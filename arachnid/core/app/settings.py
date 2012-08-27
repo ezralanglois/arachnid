@@ -392,7 +392,7 @@ class Option(optparse.Option):
         # Setup the action with the default action store
         if "action" not in kwargs: kwargs["action"] = "store" if "callback" not in kwargs else "callback"
         # Setup the action with the default value, the given value
-        if "default" not in kwargs: kwargs["default"] = value
+        if "default" not in kwargs: kwargs["default"] = registry['default'](value)
         # Setup the type with the default type, class of the given value
         if "type" not in kwargs:    kwargs["type"] = value.__class__.__name__
         # Setup the default value for an index-based choice
@@ -440,7 +440,7 @@ class Option(optparse.Option):
         TYPE_REGISTRY = {
             types.ListType      : {"callback": Option.str_to_list, "default": lambda v: optlist(v), "type": "string"},
             types.DictType      : {"callback": Option.str_to_dict, "default": lambda v: optdict(v), "type": "string"},
-            types.BooleanType   : {"action":   lambda v: "store_false" if v else "store_true", "type": None},
+            types.BooleanType   : {"action":   lambda v: "store_false" if v else "store_true", "type": None, "default": lambda v: v},
             types.TupleType     : {"callback": Option.choice_type, "default": lambda v: v[0], "type": lambda v: v[0].__class__.__name__},
             "index_true"        : {"callback": Option.choice_index, "default": 0, "type": lambda v: v[0].__class__.__name__},
         }
@@ -451,7 +451,7 @@ class Option(optparse.Option):
             if isinstance(value[0], str) and "default" in kwargs and isinstance(kwargs["default"], int):
                 key = "index_true"
             choices = value
-        return TYPE_REGISTRY[key] if key in TYPE_REGISTRY else {}, choices
+        return TYPE_REGISTRY[key] if key in TYPE_REGISTRY else {"default": lambda v: v}, choices
         
     def determine_flag(self, args, kwargs):
         '''Determine the flag from the keyword arguments
@@ -935,6 +935,8 @@ class OptionParser(optparse.OptionParser):
                  Keyword arguments where name of the option is pair with the new value
         '''
         
+        for key, val in kwargs.iteritems():
+            if isinstance(val, list): kwargs[key] = optlist(val)
         self.defaults.update(kwargs)
     
     def validate(self, values):
