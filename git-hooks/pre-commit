@@ -1,0 +1,51 @@
+#!/bin/bash
+
+echo "Running pre-commit tests"
+if [ ! -e build ] ; then
+mkdir build
+fi
+
+pyflakes arachnid > build/pyflakes.log 2>&1
+#echo "disabled pyflakes"
+if [ "$?" != "0" ] ; then
+more build/pyflakes.log
+exit 1
+fi
+
+python2.6 setup.py build_ext --inplace > build/build.log 2>&1
+
+if [ "$?" != "0" ] ; then
+more build/build.log
+exit 1
+fi
+
+nosetests arachnid > build/nosetests.log 2>&1
+
+if [ "$?" != "0" ] ; then
+more build/nosetests.log
+exit 1
+fi
+
+sphinx-build -E -n -b coverage . build > build/sphinx.log 2>&1
+if [ "$?" != "0" ] ; then
+more build/sphinx.log
+exit 1
+fi
+
+grep "warning" build/sphinx.log
+
+if [ "$?" == "0" ] ; then
+more build/sphinx.log
+exit 1
+fi
+
+n=(`wc -l build/python.txt`)
+
+if [ "${n[0]}" -gt "2" ] ; then
+echo $n $maxval
+more build/python.txt
+exit 1
+fi
+	
+echo "Running pre-commit tests - success"
+

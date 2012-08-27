@@ -1,0 +1,9 @@
+dist
+build
+*.sh
+*.so
+*.pyc
+*.cfg
+*.egg-info
+*_wrap.cxx
+*_wrap.cpp
