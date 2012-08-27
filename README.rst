@@ -23,7 +23,7 @@ Important links
 - HTML documentation (stable release): https://code.google.com/p/arachnid/w/list
 - Download releases: https://code.google.com/p/arachnid/downloads/list
 - Issue tracker: https://code.google.com/p/arachnid/issues/list
-- Mailing list: 
+- Mailing list: http://groups.google.com/group/arachnid-general
 
 Dependencies
 ============
