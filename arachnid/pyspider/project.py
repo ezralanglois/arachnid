@@ -243,14 +243,16 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             Unused keyword arguments
     '''
     
+    mn_base = os.path.basename(mn_path)
+    sn_base = os.path.basename(sn_path)
     param = dict(
-        param_file = os.path.join(mn_path, 'data', 'params'+ext),
-        reference = os.path.join(mn_path, 'data', 'reference'),
-        defocus_file = os.path.join(mn_path, 'data', 'defocus'),
-        coordinate_file = os.path.join(sn_path, 'coords', 'sndc_0000000'+ext),
-        output_pow = os.path.join(sn_path, "pow", "pow_00000"),
-        stacks = os.path.join(mn_path, 'win', 'win_0000000'+ext),
-        alignment = os.path.join(mn_path, 'refinement', 'align_0000'),
+        param_file = os.path.join(mn_base, 'data', 'params'+ext),
+        reference = os.path.join(mn_base, 'data', 'reference'),
+        defocus_file = os.path.join(mn_base, 'data', 'defocus'),
+        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_0000000'+ext),
+        output_pow = os.path.join(sn_base, "pow", "pow_00000"),
+        stacks = os.path.join(mn_base, 'win', 'win_0000000'+ext),
+        alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
     create_directories(param.values())
     param.update(extra)
@@ -260,7 +262,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
     if extra['scattering_doc'] == "ribosome":
-        extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
+        extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_base, 'data'))
     elif extra['scattering_doc'] == "":
         _logger.warn("No scattering document file specified: `--scattering-doc`")
     
