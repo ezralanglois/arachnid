@@ -45,6 +45,8 @@ Every time you add a new script or the first time you get the source, you may ru
 
 	$ python setup.py develop --install-dir $BIN -m
 
+.. _contribute:
+
 ------------
 Contributing
 ------------
@@ -134,5 +136,12 @@ Create a Program Script
 
 .. example batch program
 .. example file processor program
+
+------
+TODO
+------
+
+.. todolist::
+
 
 

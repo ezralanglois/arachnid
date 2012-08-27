@@ -5,14 +5,13 @@ Manual
 This manual covers the usage of every available script. It provides a list of
 options and corresponding example usage.
 
----------
-Overview
----------
-
 .. contents:: 
 	:depth: 1
 	:local:
 	:backlinks: none
+	
+Scripts 
+=======
 
 .. toctree::
 	:maxdepth: 2

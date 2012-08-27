@@ -2,12 +2,10 @@
 Reconstruction Protocol
 =======================
 
+/home/nash/Old/Alignment1/Reconstruction
+
 This protocol describes 3D reconstruction of a biological specimen (e.g. the ribosome) 
 from a collection of electron micrographs.
-
----------
-Overview
----------
 
 .. contents:: 
 	:depth: 1
@@ -25,7 +23,6 @@ this point you should have two things:
 		- Pixel size, A
 		- Electron energy, KeV
 		- Spherical aberration, mm
-		- Magnification
 		- Actual size of particle, pixels
 
 .. note::
@@ -35,10 +32,6 @@ this point you should have two things:
 	.. sourcecode:: sh
 	
 		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
-
-For this tutorial, examples will be given with configuration files rather than command line
-arguments. See :ref:`Running the Scripts <running-scripts>` for more information on
-configuration files.
 
 Creating a project
 ------------------
@@ -60,9 +53,7 @@ the program without arguments.
 	
 	#  Generate all the scripts and directories for a pySPIDER project
 	#  
-	#  $ spi-project micrograph_files* -o project-name -r raw-reference -e extension -p params -w 4 --apix 1.2 --voltage 300 --cs 2.26 --xmag 59000 --pixel-diameter 220
-	#  # or if params.ext exists
-	#  $ spi-project micrograph_files* -o project-name -r raw-reference -e ext -p params -w 4
+	#  $ spi-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
 	#  
 
 	
@@ -77,44 +68,142 @@ the program without arguments.
 	pixel-diameter:                 0       #       Actual size of particle, pixels
 	...
 
-The values shown above (for brevity only a partial list) are all required for this script to run. One
-way to set these values is to create a configuration file. The name of the configuration file can
-be the name of your project, e.g. `ribosome_70s`.
+The values shown above (for brevity only a partial list covering all required parameters) are all 
+required for this script to run.
+
+The values for each option can be set as follows:
 
 .. sourcecode:: sh
 	
-	$ spi-project > ribosome_70s.cfg
-	ERROR:root:Option --input-files requires a value - found empty
+	$ spi-project ../mic*.tif -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
 
-You will see an error print with this method of creating a configuration file, please ignore it. You
-can now edit the configuration file below. Shown in the example below are example values for each required
-parameter.
+Let's look at each parameter on the command line above.
+
+The `../mic*.tif` is a list of micrographs. The shell in most operating systems understands that `*` is a wildcard 
+character that allows you to select all files in directory `../` that start with `mic` and end with `.tif`. You do
+not need to convert the micrographs to SPIDER format, that will be taken care of for you. In fact, the micrographs
+are not converted at all, only the output particle projection windows are required to be in SPIDER format for
+pySPIDER.
+
+The `-o ribosome_70s` defines the name of the root output directory, which in this case is `ribosome_70s`. A set of
+directories and configuration files/scripts will be created in this output directory (:ref:`see below <project-directory>`).
+
+The `-r emd_1001.map` defines the raw reference volume. Ideally, this will be in MRC format with the pixel-size in the header. If not,
+then you will need to edit the :py:mod:`reference` script to set the pixel size.
+
+The `-e spi` defines the extension used in the SPIDER project. This is required by SPIDER and should be three characters.
+
+The `-w 4` defines the number of cores to use for parallel processing.
+
+The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--pixel-diameter 220` microscope parameters that define the experiment.
+
+The `--scatter-doc ribosome` will download a ribosome scattering file to 8A, otherwise you should specify an existing scattering file
+or nothing.
+
+.. _project-directory:
+
+The command above will create a directory called `ribosome_70s` with the following structure:
 
 .. sourcecode:: sh
-	
-	$ vi ribosome_70s.cfg
-	#  Program:	spi-project
-	#  Version:	0.0.1
-	
-	#  Generate all the scripts and directories for a pySPIDER project
-	#  
-	#  $ spi-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --xmag 59000 --pixel-diameter 220
-	#  
 
+	$ ls -R ribosome_70s
+	ribosome_70s/:
+	cluster  local run_cluster run_local
 	
-	input-files:               ../mic*.tif  #               (-i)    List of input filenames containing micrographs
-	output:                    ribosome_70s	#               (-o)    Output directory with project name
-	raw-reference:             emd_1001.map #               (-r)    Raw reference volume
-	ext:                            spi     #               (-e)    Extension for SPIDER (three characters)
-	is-ccd:							False	#		Set true if the micrographs were collected on a CCD (and have not been processed)
-	apix:                           1.2     #       Pixel size, A
-	voltage:                        300     #       Electron energy, KeV
-	cs:                             2.26    #       Spherical aberration, mm
-	xmag:                           59000   #       Magnification
-	pixel-diameter:                 220     #       Actual size of particle, pixels
-	...
+	ribosome_70s/cluster:
+	align.cfg  data  refine.cfg  refinement  win
+	
+	ribosome_70s/cluster/data:
+	paramslm1
+	
+	ribosome_70s/cluster/refinement:
+	
+	ribosome_70s/cluster/win:
+	
+	ribosome_70s/local:
+	autopick.cfg  coords  crop.cfg  defocus.cfg  pow  reference.cfg
+	
+	ribosome_70s/local/coords:
+	
+	ribosome_70s/local/pow:
+
+In the `ribosome_70s` directory, you will find two scripts: one to invoke all local scripts and one
+to invoke the cluster scripts.
+
+Running Local Scripts
+---------------------
+
+To run all the local scripts in the proper order, use the following suggested command:
+
+.. sourcecode:: sh
+
+	$ cd ribosome_70s
+	
+	$ nohup sh run_local  > /dev/null &
+
+.. note::
+	
+	All paths are setup relative to you executing a script from the project directory, e.g. `ribosome_70s`.
+
+Running Cluster Scripts
+-----------------------
+
+Running scripts on the cluster is slightly more complicated. The `spi-project` script tries to guess the proper command
+under the following assumptions:
+
+ #. Your account is setup to run an MPI job on the cluster
+ #. You have a machinefile for MPI
+ #. You have SSH-AGENT or some non-password enabled setup
+ #. Your cluster does not use a schdueling system like PBS or Torque
+
+If your files are not accessible to the cluster, then you only need to copy the `cluster` directory and the
+`run_cluster` script to the cluster. 
+
+.. sourcecode:: sh
+
+	$ cd ribosome_70s
+	
+	$ scp -r cluster run_cluster username@cluster:~/ribosome_70s
+
+To run all cluster scripts in the proper order, use the following suggested command:
+
+.. sourcecode:: sh
+
+	$ cd ribosome_70s
+	
+	$ nohup sh run_cluster > /dev/null &
+
+.. note::
+
+	You will find your refined, amplitude-enhanced volume in `ribosome_70s/cluster/refinement` with the 
+	name (assuming you specified `scattering-doc` with the appropriate file): e.g. after 13 iterations 
+	of refinement, it will be called `enh_align_0013.spi`.
+
+Improving the Data Treatment
+============================
+
+Under construction
+
+Micrograph screening
+--------------------
+
+Under construction
+
+Power spectra screening
+-----------------------
+
+Under construction
+	
+Manual CTF fitting
+------------------
+
+Under construction
+
+View average screening
+----------------------
+
+Under construction
 
 
-	
 
 
