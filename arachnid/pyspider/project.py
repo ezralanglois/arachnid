@@ -198,14 +198,14 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     
     run_single_node=\
     '''
-     nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
+     nohup %(prog)s -c $PWD/$0 > `basename $0 cfg`log &
      exit 0
     '''
     run_multi_node=\
     '''
-     %s %%prog -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log &
+     %s %s -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log &
      exit 0
-    '''%(mpi_command)
+    '''%(mpi_command, '%(prog)s')
     run_hybrid_node = run_single_node
     
     if mpi_mode == 1:
@@ -261,10 +261,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     
     if len(param['refine_step']) == 0: del param['refine_step']
     
-    tmp = [os.path.commonprefix(files)+'*']
-    if len(glob.glob(tmp[0])) == len(files): 
-        del files[:]
-        files.extend(tmp)
+    tmp = os.path.commonprefix(files)+'*'
+    if len(glob.glob(tmp)) == len(files): files = [tmp]
     
     spider_params.write(param['param_file'], **extra)
     program.write_config(reference, 
