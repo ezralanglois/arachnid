@@ -194,12 +194,12 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     if mpi_command == "": mpi_command = detect_MPI()
     run_single_node=\
     '''
-     nohup %(prog)s -c $PWD/$0 > `basename $0 cfg`log &
+     %(prog)s -c $PWD/$0 > `basename $0 cfg`log
      exit 0
     '''
     run_multi_node=\
     '''
-     %s %s -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log &
+     %s %s -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log
      exit 0
     '''%(mpi_command, '%(prog)s')
     run_hybrid_node = run_single_node
@@ -212,9 +212,9 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     sn_path = os.path.join(output, 'local')
     mn_path = os.path.join(output, 'cluster')
     
-    write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, mn_path, **extra)
+    write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, mn_path, output, **extra)
     
-def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, mn_path, raw_reference, ext, is_ccd, **extra):
+def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, mn_path, output, raw_reference, ext, is_ccd, **extra):
     ''' Write out a configuration file for each script in the reconstruction protocol
     
     :Parameters:
@@ -231,6 +231,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
               Path to files used in single node scripts only
     mn_path : str
               Path to files used in both MPI and single node scripts
+    output : str
+             Output directory root
     raw_reference : str
                     Filenam for raw input reference
     is_ccd : bool
@@ -257,56 +259,69 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
-    if extra['scatter_doc'] == "ribosome":
-        extra['scatter_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
+    if extra['scattering_doc'] == "ribosome":
+        extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
+    elif extra['scattering_doc'] == "":
+        _logger.warn("No scattering document file specified: `--scattering-doc`")
     
     spider_params.write(param['param_file'], **extra)
-    program.write_config(reference, 
-                         input_files=[raw_reference], 
-                         output=param['reference'], 
-                         description=run_single_node,
-                         config_path = sn_path,
-                         **param)
     
-    program.write_config(defocus,   
-                         input_files=files, 
-                         output=param['defocus_file'], 
-                         description=run_hybrid_node, 
-                         config_path = sn_path,
-                         supports_MPI=True,
-                         **param)
+    modules = [(reference, dict(input_files=[raw_reference],
+                               output=param['reference'],
+                               description=run_single_node,
+                               config_path = sn_path,
+                               )), 
+               (defocus,  dict(input_files=files,
+                               output=param['defocus_file'],
+                               description=run_hybrid_node, 
+                               config_path = sn_path,
+                               supports_MPI=True,
+                               )),
+                               
+               (autopick, dict(input_files=files,
+                               output=param['coordinate_file'],
+                               description=run_hybrid_node, 
+                               config_path = sn_path,
+                               supports_MPI=True,
+                               )), 
+               (crop,     dict(input_files=files,
+                               output = param['stacks'],
+                               description=run_hybrid_node, 
+                               config_path = sn_path,
+                               supports_MPI=True,
+                               )), 
+               (align,    dict(input_files=param['stacks'],
+                               output = param['alignment'],
+                               description = run_multi_node, 
+                               config_path = mn_path,
+                               supports_MPI=True,
+                               )), 
+               (refine,    dict(input_files=param['stacks'],
+                               output = param['alignment'],
+                               description = run_multi_node, 
+                               config_path = mn_path,
+                               supports_MPI=True,
+                               )),
+                ]
+    for mod, extra in modules:
+        param.update(extra)
+        program.write_config(mod, **param)
     
-    program.write_config(autopick,   
-                         input_files=files, 
-                         output=param['coordinate_file'],
-                         description=run_hybrid_node, 
-                         config_path = sn_path,
-                         supports_MPI=True,
-                         **param)
+    module_type = {}
+    for mod, extra in modules:
+        type = extra['config_path']
+        if type not in module_type: module_type[type]=[]
+        module_type[type].append(mod)
     
-    program.write_config(crop,   
-                         input_files=files,
-                         output = param['stacks'],
-                         description=run_hybrid_node, 
-                         config_path = sn_path,
-                         supports_MPI=True,
-                         **param)
-    
-    program.write_config(align,   
-                         input_files=param['stacks'],
-                         output = param['alignment'],
-                         description = run_multi_node, 
-                         config_path = mn_path,
-                         supports_MPI=True,
-                         **param)
-    
-    program.write_config(refine,   
-                         input_files=param['stacks'],
-                         output = param['alignment'],
-                         description = run_multi_node, 
-                         config_path = mn_path,
-                         supports_MPI=True,
-                         **param)
+    map = program.map_module_to_program()
+    for path, modules in module_type.iteritems():
+        type = os.path.basename(path)
+        fout = open(os.path.join(output, 'run_%s'%type), 'w')
+        fout.write("#!/bin/bash\n")
+        for mod in modules:
+            fout.write('sh %s\n'%os.path.join('..', path, map[mod.__name__]))
+            fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\n')
+        fout.close()
 
 def create_directories(files):
     ''' Create directories for a set of files
@@ -336,10 +351,10 @@ def detect_MPI():
     
     from subprocess import call
     
-    ret = call('mpiexec --version')
+    ret = call('mpiexec --version', shell=True, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
     if ret == 0: # Detected OpenMPI
-        return "nohup mpiexec -stdin none -n $nodes -machinefile machinefile"
-    return "nohup mpiexec -n $nodes -machinefile machinefile"
+        return "mpiexec -stdin none -n $nodes -machinefile machinefile"
+    return "mpiexec -n $nodes -machinefile machinefile"
 
 def download(urlpath, filepath):
     '''Download the file at the given URL to the local filepath
@@ -411,8 +426,6 @@ def check_options(options, main_option=False):
         raise OptionValueError, "No spherical aberration in mm specified (--cs), either specifiy it or an existing SPIDER params file"
     if options.pixel_diameter == 0.0:
         raise OptionValueError, "No actual size of particle in pixels specified (--pixel_diameter), either specifiy it or an existing SPIDER params file"
-    if options.scattering_doc == "":
-        _logger.warn("No scattering document file specified: `--scattering-doc`")
     
 
 def main():
