@@ -202,7 +202,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        res = refine_step(spi, alignvals, curr_slice, output, output_volume, **extra)
+        res = refine_step(spi, alignvals, curr_slice, output, output_volume, enhance=((refine_index+1)==len(refine_step)), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, res))       

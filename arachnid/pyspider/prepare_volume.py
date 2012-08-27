@@ -220,7 +220,7 @@ This is not a complete list of options available to this script, for additional 
 
 from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.spider import spider
-import filter_volume, resolution, mask_volume
+import filter_volume, resolution, mask_volume, enhance_volume
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -251,7 +251,7 @@ def process(filename, output, **extra):
     _logger.info("Resolution = %f"%res)
     return filename
 
-def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_resolution=0.0, **extra):
+def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_resolution=0.0, enhance=False, **extra):
     ''' Postprocess reconstructed volumes for next round of refinement
     
     :Parameters:
@@ -268,6 +268,8 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
                      Additional amount to add to resolution before filtering the next reference
     output_volume : str
                     Output filename for the reconstructed volume (if empty, `vol_$output` will be used). half volumes will be prefixed with `h1_` and `h2_` and the raw volume, `raw_`
+    enhance : bool
+              Output an enhanced density map
     extra : dict
             Unused keyword arguments
     
@@ -286,6 +288,8 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     output_volume = filter_volume.filter_volume_highpass(files[0], outputfile=output_volume, **extra)
     output_volume = filter_volume.filter_volume_lowpass(output_volume, sp, outputfile=output_volume, **extra)
     output_volume = mask_volume.mask_volume(output_volume, output_volume, spi, **extra)
+    if enhance:
+        enhance_volume.enhance_volume(spi, extra['apix'] / res, format_utility.add_prefix(output, "enh_"), **extra)
     return res
 
 def initialize(files, param):
