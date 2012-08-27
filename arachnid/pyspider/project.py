@@ -103,7 +103,11 @@ Critical Options
 
 .. option:: --cs <FLOAT>
     
-    Spherical aberration, mm (Default: 2.26)
+    Spherical aberration, mm (Default: 0)
+
+.. option:: --scattering-doc <FILENAME>
+    
+    Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)
 
 Advanced Options
 ================
@@ -165,7 +169,10 @@ from ..core.app import program
 from ..app import autopick
 from ..util import crop
 import reference, defocus, align, refine
-import os, sys, glob
+import os, glob, logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def batch(files, output, mpi_mode, mpi_command=None, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
@@ -250,6 +257,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
+    if extra['scatter_doc'] == "ribosome":
+        extra['scatter_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
     
     spider_params.write(param['param_file'], **extra)
     program.write_config(reference, 
@@ -332,6 +341,32 @@ def detect_MPI():
         return "nohup mpiexec -stdin none -n $nodes -machinefile machinefile"
     return "nohup mpiexec -n $nodes -machinefile machinefile"
 
+def download(urlpath, filepath):
+    '''Download the file at the given URL to the local filepath
+    
+    This function uses the urllib Python package to download file from to the remote URL
+    to the local file path.
+    
+    :Parameters:
+        
+    urlpath : str
+              Full URL to download the file from
+    filepath : str
+               Local path for filename
+    
+    :Returns:
+
+    val : str
+          Local filename
+    '''
+    import urllib
+    from urlparse import urlparse
+    
+    filename = urllib.url2pathname(urlparse(urlpath)[2])
+    filename = os.path.join(os.path.normpath(filepath), os.path.basename(filename))
+    urllib.urlretrieve(urlpath, filename)
+    return filename
+
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup
@@ -347,6 +382,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     parser.add_option("", voltage=0.0,          help="Electron energy, KeV")
     parser.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels")
     parser.add_option("", cs=0.0,               help="Spherical aberration, mm")
+    parser.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)")
     parser.add_option("", xmag=0.0,             help="Magnification (optional)")
         
     # Additional options to change
@@ -375,6 +411,8 @@ def check_options(options, main_option=False):
         raise OptionValueError, "No spherical aberration in mm specified (--cs), either specifiy it or an existing SPIDER params file"
     if options.pixel_diameter == 0.0:
         raise OptionValueError, "No actual size of particle in pixels specified (--pixel_diameter), either specifiy it or an existing SPIDER params file"
+    if options.scattering_doc == "":
+        _logger.warn("No scattering document file specified: `--scattering-doc`")
     
 
 def main():
