@@ -53,13 +53,13 @@ Examples
     
     $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
-    Create a project directory and scripts
+    # Create a project directory and scripts using 4 cores
     
-    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --xmag 59000 --pixel-diameter 220
+    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
     
-    Create a project directory and scripts for micrographs collected on CCD
+    # Create a project directory and scripts for micrographs collected on CCD using 4 cores
     
-    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --xmag 59000 --pixel-diameter 220 --is-ccd
+    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --is-ccd
 
 Critical Options
 ================
@@ -76,10 +76,6 @@ Critical Options
 .. option:: -o <FILENAME>, --output <FILENAME>
     
     Output directory with project name
-    
-.. option:: -p <FILENAME>, --param-file <FILENAME> 
-    
-    Path to SPIDER params file
 
 .. option:: -r <FILENAME>, --raw-reference <FILENAME>
     
@@ -101,24 +97,28 @@ Critical Options
     
     Electron energy, KeV (Default: 0)
 
-.. option:: --cs <FLOAT>
-    
-    Spherical aberration, mm (Default: 0)
-
-.. option:: --xmag <FLOAT>
-    
-    Magnification (Default: 0)
-
 .. option:: --pixel-diameter <INT>
     
     Actual size of particle, pixels (Default: 0)
 
+.. option:: --cs <FLOAT>
+    
+    Spherical aberration, mm (Default: 2.26)
+
 Advanced Options
 ================
+
+.. option:: --xmag <FLOAT>
+    
+    Magnification, optional (Default: 0)
 
 .. option:: --bin-factor <float>
     
     Number of times to decimate params file, and parameters: `window-size`, `x-dist, and `x-dist` and optionally the micrograph
+
+.. option:: --worker-count <INT>
+    
+    Set number of  workers to process files in parallel
 
 .. option:: -m <CHOICE>, --mpi-mode=('Default', 'All Cluster', 'All single node')
 
@@ -126,23 +126,7 @@ Advanced Options
 
 .. option:: --mpi-command <str>
     
-    Command used to invoked MPI (Default: nohup mpiexec -stdin none -n $nodes -machinefile machinefile)
-
-.. option:: --refine-step <LIST>
-
-    Value of each parameter specified in the same order as `refine-name` for each round of refinement, e.g. 15,10:0:6:1,8:0:4,1:3:1
-
-.. option:: --max-ref-proj <INT>
-
-    Maximum number of reference projections in memory (Default: 5000)
-
-.. option:: --restart-file <FILENAME>
-    
-    Set the restart file backing up processed files
-
-.. option:: --worker-count <INT>
-    
-    Set number of  workers to process files in parallel
+    Command used to invoked MPI, if empty, then attempt to detect version of MPI and provide the command
 
 .. option:: --shared-scratch <FILENAME>
 
@@ -167,6 +151,10 @@ This is not a complete list of options available to this script, for additional 
 .. todo:: download ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1001/map/emd_1001.map.gz
 
 .. todo:: add support for microscope log file
+
+.. todo:: max_ref_proj for alignment should depend on reference count, if less!
+
+.. todo:: detect MPI command and set options based on whether is mpich or openmpi
 
 .. Created on Aug 16, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -196,6 +184,7 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
             Unused keyword arguments
     '''
     
+    if mpi_command == "": mpi_command = detect_MPI()
     run_single_node=\
     '''
      nohup %(prog)s -c $PWD/$0 > `basename $0 cfg`log &
@@ -258,8 +247,6 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     param.update(extra)
     param.update(invert=is_ccd)
     del param['input_files']
-    
-    if len(param['refine_step']) == 0: del param['refine_step']
     
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
@@ -328,6 +315,23 @@ def create_directories(files):
             try: os.makedirs(filename)
             except: raise ValueError, "Error creating directory %s"%filename
 
+def detect_MPI():
+    ''' Detect if MPI is available, if not return None otherwise return command
+    for OpenMPI or MPICH.
+    
+    :Returns:
+    
+    command : str
+              Proper command for running Arachnid Scripts
+    '''
+    
+    from subprocess import call
+    
+    ret = call('mpiexec --version')
+    if ret == 0: # Detected OpenMPI
+        return "nohup mpiexec -stdin none -n $nodes -machinefile machinefile"
+    return "nohup mpiexec -n $nodes -machinefile machinefile"
+
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup
@@ -341,19 +345,16 @@ def setup_options(parser, pgroup=None, main_option=False):
     parser.add_option("", is_ccd=False,         help="Set true if the micrographs were collected on a CCD (and have not been processed)")
     parser.add_option("", apix=0.0,             help="Pixel size, A")
     parser.add_option("", voltage=0.0,          help="Electron energy, KeV")
-    parser.add_option("", cs=0.0,               help="Spherical aberration, mm")
-    parser.add_option("", xmag=0.0,             help="Magnification")
     parser.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels")
+    parser.add_option("", cs=0.0,               help="Spherical aberration, mm")
+    parser.add_option("", xmag=0.0,             help="Magnification (optional)")
         
     # Additional options to change
     group = OptionGroup(parser, "Additional Parameters", "Optional parameters to set", group_order=0,  id=__name__)
-    group.add_option("-m", mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node", default=0)
-    group.add_option("",    mpi_command="nohup mpiexec -stdin none -n $nodes -machinefile machinefile", help="Command used to invoked MPI")
-    group.add_option("",    refine_step=[],         help="Value of each parameter specified in the same order as `refine-name` for each round of refinement, e.g. 15,10:0:6:1,8:0:4,1:3:1")
-    group.add_option("",    max_ref_proj=5000,      help="Maximum number of reference projections in memory")
-    # todo - max_ref_proj for alignment should depend on reference count, if less!
-    group.add_option("",    restart_file="",        help="Set the restart file backing up processed files",     gui=dict(filetype="open"))
-    group.add_option("",    worker_count=0,         help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0))
+    group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node", default=0)
+    group.add_option("",    mpi_command="",         help="Command used to invoked MPI, if empty, then attempt to detect version of MPI and provide the command")
+    group.add_option("",    bin_factor=1.0,         help="Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified")
+    group.add_option("-w",  worker_count=0,         help="Set number of  workers to process files in parallel",  gui=dict(minimum=0))
     group.add_option("",    shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
     group.add_option("",    home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
     group.add_option("",    local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
@@ -372,8 +373,6 @@ def check_options(options, main_option=False):
         raise OptionValueError, "No electron energy in KeV specified (--voltage), either specifiy it or an existing SPIDER params file"
     if options.cs == 0.0:
         raise OptionValueError, "No spherical aberration in mm specified (--cs), either specifiy it or an existing SPIDER params file"
-    if options.xmag == 0.0:
-        raise OptionValueError, "No magnification specified (--xmag), either specifiy it or an existing SPIDER params file"
     if options.pixel_diameter == 0.0:
         raise OptionValueError, "No actual size of particle in pixels specified (--pixel_diameter), either specifiy it or an existing SPIDER params file"
     
@@ -385,7 +384,7 @@ def main():
     run_hybrid_program(__name__,
         description = '''Generate all the scripts and directories for a pySPIDER project 
                         
-                        $ %prog micrograph_files* -o project-name -r raw-reference -e extension -p params -w 4 --apix 1.2 --voltage 300 --cs 2.26 --xmag 59000 --pixel-diameter 220
+                        $ %prog micrograph_files* -o project-name -r raw-reference -e extension -p params -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
                       ''',
         supports_MPI=False,
         use_version = False,
