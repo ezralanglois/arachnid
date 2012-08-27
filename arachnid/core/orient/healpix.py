@@ -18,7 +18,15 @@ try:
                               ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside
     pix2ang_nest, pix2ang_ring, ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside;
 except:
-    tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
+    if _logger.isEnabledFor(logging.DEBUG):
+        tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
+    try:
+        from _healpix import pix2ang_nest, \
+                                  pix2ang_ring, \
+                                  ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside
+        pix2ang_nest, pix2ang_ring, ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside;
+    except:
+        tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
 
 
 def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):

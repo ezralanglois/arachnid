@@ -1874,10 +1874,13 @@ def _import_module(module_name, warn=True, prefix='_py_', ignore='_'):
     #sys.path.append(os.path.dirname(__file__))
     try:
         module = __import__('core', globals(), locals(), [module_name])
-    except ImportError:
-        sys.path.pop()
-        if warn:
-            warnings.warn("failed to import module " + module_name)
+    except:
+        try:
+            module = __import__(module_name)
+        except ImportError:
+            sys.path.pop()
+            if warn:
+                warnings.warn("failed to import module " + module_name)
     else:
         sys.path.pop()
         for attr in dir(module):
