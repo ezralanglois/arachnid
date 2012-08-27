@@ -96,8 +96,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
     dependents.extend([tracing])
-    parser = setup_parser(main_module, dependents, description, None, supports_MPI, False, None)
-    #options, args = parser.parse_args_with_config()
+    parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, False, None)
     parser.change_default(**extra)
     name = main_module.__name__
     off = name.rfind('.')
@@ -106,6 +105,30 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     parser.write(output) #, options)
+    
+def map_module_to_program(key=None):
+    ''' Create a dictionary that maps each module name to 
+    its program name
+    
+    :Parameters:
+    
+    key : str, optional
+          Name of the module to select
+    
+    :Returns:
+    
+    map : dict
+          Dictionary mapping each module name to its program
+    '''
+    
+    import arachnid.setup
+    vals = list(arachnid.setup.console_scripts)
+    for i in xrange(len(vals)):
+        program, module = vals[i].split('=', 1)
+        module, main = module.split(':', 1)
+        vals[i] = (module.strip(), program.strip())
+    vals = dict(vals)
+    return vals if key is None else vals[key]
         
 def setup_parser(main_module, dependents, description="", usage=None, supports_MPI=False, use_version=False, output_option=None):
     '''Parse and setup the parameters for the generic program
