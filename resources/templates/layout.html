@@ -1,0 +1,59 @@
+{% extends "!layout.html" %}
+
+{%- block extrahead %} 
+ <script type="text/javascript">
+  // Modfied version of http://stackoverflow.com/questions/6691558/how-do-i-make-a-div-follow-me-as-i-scroll-down-the-page
+  window.onload = function() {
+
+  function getScrollTop() {
+    if (typeof window.pageYOffset !== 'undefined' ) {
+      // Most browsers
+      return window.pageYOffset;
+    }
+
+    var d = document.documentElement;
+    if (d.clientHeight) {
+      // IE in standards mode
+      return d.scrollTop;
+    }
+
+    // IE in quirks mode
+    return document.body.scrollTop;
+  }
+  
+  var myelement = $('#searchbox');
+  myelement = $('.sphinxsidebarwrapper li')
+  topelement = $('.sphinxsidebarwrapper h3')
+  botelement = $('.sphinxsidebarwrapper h4')
+  
+     function isScrolledIntoView(elem) {
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height();
+
+        var elemTop = $(elem).offset().top;
+        var elemBottom = elemTop + $(elem).height();
+
+        return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom));
+    }
+
+  window.onscroll = function() {
+  
+    if(!isScrolledIntoView(topelement) || !isScrolledIntoView(botelement))
+    {
+    var sidebar = $('.sphinxsidebar');
+    var box = document.getElementById('sidebar'),
+        scroll = getScrollTop();
+
+    if (scroll <= 28) {
+     sidebar.css({'position': 'static'})
+    }
+    else {
+     sidebar.css({'position': 'relative', 'top': (scroll + 2) + "px"})
+    }
+    }
+  };
+
+};
+  </script>      
+{% endblock %}
+
