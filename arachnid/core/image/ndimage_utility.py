@@ -18,12 +18,18 @@ try:
     find_peaks_cwt;
 except: from util._peak_finding import find_peaks_cwt
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.INFO)
+_logger.setLevel(logging.DEBUG)
 try: 
     from util import _spider_util
     _spider_util;
 except:
-    log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+    if _logger.isEnabledFor(logging.DEBUG):
+        log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+    try:
+        import _spider_util
+        _spider_util;
+    except:
+        log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
 
 @em2numpy2res
 def find_peaks(cc, width):
@@ -188,8 +194,6 @@ def cross_correlate(img, template, out=None):
 def local_variance(img, mask, out=None):
     ''' Esimtate the local variance on the image, under the given mask
     
-    .. todo:: Fix this!
-    
     :Parameters:
     
     img : array
@@ -205,17 +209,11 @@ def local_variance(img, mask, out=None):
          Local variance map (same dim as large image)    
     '''
     
-    #normalize mask
-    #then mask mask
-    
-    tot = numpy.sum(mask>0) #img.ravel().shape[0]
+    tot = numpy.sum(mask>0)
     mask=normalize_standard(mask, mask, True)*(mask>0)
-    shape = (img.shape[0]+mask.shape[0], img.shape[1]+mask.shape[1])
-    img2 = pad_image(img, shape)
-    mask = pad_image(mask, shape)
+    mask = pad_image(mask, img.shape)
     shape = img.shape
-    img = img2.copy()
-    numpy.square(img, img2)
+    img2 = numpy.square(img)
     img2[:,:] = cross_correlate_raw(img2, mask)
     '''numpy.divide(img2, tot, img2)'''
     mask[:,:] = cross_correlate_raw(img, mask)

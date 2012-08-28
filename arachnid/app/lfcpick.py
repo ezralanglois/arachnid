@@ -289,10 +289,7 @@ def lfc(img, template, mask):
         emmask = mask
         mask = eman2_utility.em2numpy(emmask)
         cc_map = ndimage_utility.cross_correlate(img, template)
-        cc_var = ndimage_utility.local_variance(img, mask)
-        numpy.divide(1.0, cc_var, cc_var)
-        #cc_var[numpy.logical_not(numpy.isfinite(cc_var))] = 1.0
-        cc_map *= cc_var
+        cc_map /= ndimage_utility.local_variance(img, mask)
         cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
