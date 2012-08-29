@@ -19,7 +19,7 @@ Examples
 
 .. sourcecode:: sh
     
-    $ ap-prepare --param params.dat
+    $ spi-align -p params.dat
     $ more params.dat
      ;spi/dat   11-AUG-2009 AT 16:50:56   params.dat
      ;  KEY:      PARAMETERS FOR SINGLE PARTICLE RECONSTRUCTION                                                                                                    

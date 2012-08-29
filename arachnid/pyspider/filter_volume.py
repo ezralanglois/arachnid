@@ -7,7 +7,7 @@ Tips
 
  #. Boolean flags such as `disable-enhance` cannot take a value on the command-line. They only require a value in a configuration 
     file. Their existence or absence sets the appropriate value. For example, specifiying 
-    `$ ap-filtervol --disable-enhance ....` will disable amplitude enhancement.
+    `$ spi-filtervol --disable-enhance ....` will disable amplitude enhancement.
     
 Examples
 ========

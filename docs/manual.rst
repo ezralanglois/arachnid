@@ -78,15 +78,15 @@ a configuration file (see below).
 
 .. sourcecode:: sh
 	
-	$ ap-autopick
+	$ ara-autopick
 	2012-08-05 11:31:06,039 ERROR Requires at least one file
-	#  Program:	ap-autopick
+	#  Program:	ara-autopick
 	#  Version:	1.1.8
-	#  Usage: ap-autopick inputfile1 inputfile2 --option-name value ...
+	#  Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
 	
 	#  This program find particles with reference-free Gaussian homomorphic cross-correlation.
 	#  
-	#  $ ap-autopick input-stack.spi -o coords.dat
+	#  $ ara-autopick input-stack.spi -o coords.dat
 	#  
 	
 	input-files:			#		(-i)	Input files in addition to those placed on the command line
@@ -103,32 +103,32 @@ beginning.
 
 .. sourcecode:: sh
 	
-	$ ap-autopick --input-files mic_0001.spi,mic_0002.spi,mic_0003.spi --output sndc_0000.spi
+	$ ara-autopick --input-files mic_0001.spi,mic_0002.spi,mic_0003.spi --output sndc_0000.spi
 
 Some parameters have the option to use a short flag, e.g. `-o`.
 
 .. sourcecode:: sh
 	
-	$ ap-autopick -i mic_0001.spi,mic_0002.spi,mic_0003.spi -o sndc_0000.spi
+	$ ara-autopick -i mic_0001.spi,mic_0002.spi,mic_0003.spi -o sndc_0000.spi
 
 Finally, for input file only, you have the option of no flag. In this case only, multiple files must be 
 separated by spaces (whereas if you use `-i` or `--input-files`, they must be separated by commas).
 
 .. sourcecode:: sh
 	
-	$ ap-autopick mic_0001.spi mic_0002.spi mic_0003.spi -o sndc_0000.spi
+	$ ara-autopick mic_0001.spi mic_0002.spi mic_0003.spi -o sndc_0000.spi
 
 Wild cards may be used for input files, however if `-i` or `--input-files`, then the input filename
 show be quoted.
 
 .. sourcecode:: sh
 	
-	$ ap-autopick mic_*.spi -o sndc_0000.spi
-	$ ap-autopick -i "mic_*.spi" -o sndc_0000.spi
+	$ ara-autopick mic_*.spi -o sndc_0000.spi
+	$ ara-autopick -i "mic_*.spi" -o sndc_0000.spi
 	
 .. note::
 	
-	Using `ap-autopick -i "mic_*.spi" -o sndc_0000.spi` will allow you to exceed the terminal limit on number
+	Using `ara-autopick -i "mic_*.spi" -o sndc_0000.spi` will allow you to exceed the terminal limit on number
 	of input files.
 	
 A configruation file may be created in a number of ways. First, it can be created by redirecting the output
@@ -137,17 +137,17 @@ can be disregarded.
 
 .. sourcecode:: sh
     
-    $ ap-autopick > autopick.cfg		# Create configuration file
+    $ ara-autopick > autopick.cfg		# Create configuration file
     2012-08-05 11:31:06,039 ERROR Requires at least one file
     
     $ vi autopick.cfg					# Edit configuration file
-	#  Program:	ap-autopick
+	#  Program:	ara-autopick
 	#  Version:	1.1.8
-	#  Usage: ap-autopick inputfile1 inputfile2 --option-name value ...
+	#  Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
 	
 	#  This program find particles with reference-free Gaussian homomorphic cross-correlation.
 	#  
-	#  $ ap-autopick input-stack.spi -o coords.dat
+	#  $ ara-autopick input-stack.spi -o coords.dat
 	#  
 	
 	input-files:			#		(-i)	Input files in addition to those placed on the command line
@@ -161,15 +161,15 @@ example but without an error message. You can also give it a filename directly.
 
 .. sourcecode:: sh
     
-    $ ap-autopick --create-cfg 1 > autopick.cfg 	# Create configuration file
-    $ ap-autopick --create-cfg autopick.cfg		# Create configuration file
+    $ ara-autopick --create-cfg 1 > autopick.cfg 	# Create configuration file
+    $ ara-autopick --create-cfg autopick.cfg		# Create configuration file
 
 The `--create-cfg` option can also be used to create a copy of a configuration file. This
 is particulary useful when you want to change certain values from the command line.
 
 .. sourcecode:: sh
     
-    $ ap-autopick -c autopick.cfg --create-cfg autopick_new.cfg -i mic_0001.spi
+    $ ara-autopick -c autopick.cfg --create-cfg autopick_new.cfg -i mic_0001.spi
 
 Local Machine
 -------------
@@ -179,7 +179,7 @@ you specify the name and path of the configuration file.
 
 .. sourcecode:: sh
     
-    $ ap-autopick -c autopick.cfg
+    $ ara-autopick -c autopick.cfg
 
 The `-c` option is short for `--config-file` and takes the filename of the configuration
 file as input.
@@ -189,23 +189,23 @@ can redirect the output of the script to a file.
 
 .. sourcecode:: sh
     
-    $ ap-autopick -c autopick.cfg 2> autopick.log 	# Bash Shell
-    $ ap-autopick -c autopick.cfg >& autopick.log 	# C-Shell
+    $ ara-autopick -c autopick.cfg 2> autopick.log 	# Bash Shell
+    $ ara-autopick -c autopick.cfg >& autopick.log 	# C-Shell
 
 Also, you may want to run the script in the background.
     
 .. sourcecode:: sh
     
-    $ ap-autopick -c autopick.cfg 2> autopick.log &	# Bash Shell
-    $ ap-autopick -c autopick.cfg >& autopick.log &	# C-Shell
+    $ ara-autopick -c autopick.cfg 2> autopick.log &	# Bash Shell
+    $ ara-autopick -c autopick.cfg >& autopick.log &	# C-Shell
 
 If you are running the command from a remote machine and may lose the connection, then
 you may add the `nohup` command to keep the program running even if the connection is severed.
     
 .. sourcecode:: sh
     
-    $ nohup ap-autopick -c autopick.cfg 2> autopick.log &	# Bash Shell
-    $ nohup ap-autopick -c autopick.cfg >& autopick.log &	# C-Shell
+    $ nohup ara-autopick -c autopick.cfg 2> autopick.log &	# Bash Shell
+    $ nohup ara-autopick -c autopick.cfg >& autopick.log &	# C-Shell
 
 Long, difficult commands or simple scripts may be placed in the configuration file. Each
 command or command in the script must be proceeded by a space. A space at the start of the 
@@ -216,17 +216,17 @@ a space at the start of a line is ignored. You should also end your command sequ
 .. sourcecode:: sh
     
     $ vi autopick.cfg					# Edit configuration file
-	#  Program:	ap-autopick
+	#  Program:	ara-autopick
 	#  Version:	1.1.8
-	#  Usage: ap-autopick inputfile1 inputfile2 --option-name value ...
+	#  Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
 	
 	#  This program find particles with reference-free Gaussian homomorphic cross-correlation.
 	#  
-	#  $ ap-autopick input-stack.spi -o coords.dat
+	#  $ ara-autopick input-stack.spi -o coords.dat
 	#  
 	
 	# Note the space proceeding each command, these lines are ignored when the config file is read
-	 nohup ap-autopick -c autopick.cfg 2> autopick.log &
+	 nohup ara-autopick -c autopick.cfg 2> autopick.log &
 	 exit 0
 	
 	input-files:			#		(-i)	Input files in addition to those placed on the command line
@@ -251,12 +251,12 @@ administrator to find out details about how to setup your job on these types of 
 An Arachnid script that supports MPI will have the `use-MPI` option in the configuration file. Setting this option `True` or
 adding it to the command line will enable the MPI-ready version of the code.
 
-Below is an example showing how to run `ap-autopick` on a cluster of 10 nodes where `machinefile` contains a list of the 
+Below is an example showing how to run `ara-autopick` on a cluster of 10 nodes where `machinefile` contains a list of the 
 nodes that the script is allowed to use.
 
 .. sourcecode:: sh
 
-	nohup mpiexec -stdin none -n 10 -machinefile machinefile ap-autopick -c autopick.cfg --use-MPI < /dev/null > autopick.log &
+	nohup mpiexec -stdin none -n 10 -machinefile machinefile ara-autopick -c autopick.cfg --use-MPI < /dev/null > autopick.log &
 
 
 .. _version_control:
@@ -286,7 +286,7 @@ using the `prog-version` option (see below).
 
 .. sourcecode:: sh
 
-	$ ap-autopick > auto.cfg
+	$ ara-autopick > auto.cfg
 	
 	$ more auto.cfg
 	
@@ -350,13 +350,13 @@ warnings and errors. Additional information can be obtained with `--log-level` 4
 
 .. sourcecode: sh
 
-	$ ap-autopick -c autopick -v4
+	$ ara-autopick -c autopick -v4
 	
-	$ ap-autopick -c autopick -vdebug
+	$ ara-autopick -c autopick -vdebug
 	
-	$ ap-autopick -c autopick --log-level 4
+	$ ara-autopick -c autopick --log-level 4
 	
-	$ ap-autopick -c autopick --log-level debug
+	$ ara-autopick -c autopick --log-level debug
 
 Using `--log-level` 2 or warn causes the script to only print warnings and errors.
 
@@ -369,11 +369,11 @@ By default, an Arachnid script will log messages to STDERR, which means catching
 
 .. sourcecode:: sh
 	
-	$ ap-autopick -c autopick 2> log.txt # For Bash (bash) or Bourne Shell (sh) or Korn Shell (ksh)
+	$ ara-autopick -c autopick 2> log.txt # For Bash (bash) or Bourne Shell (sh) or Korn Shell (ksh)
 	#
 	# Or
 	#
-	$ ap-autopick -c autopick >& log.txt # For C-shell (csh)
+	$ ara-autopick -c autopick >& log.txt # For C-shell (csh)
 
 Log File
 --------
@@ -382,13 +382,13 @@ You also have the option of specifying a log file (however, messages will still 
 
 .. sourcecode:: sh
 	
-	$ ap-autopick -c autopick --log-file log.txt
+	$ ara-autopick -c autopick --log-file log.txt
 
 You can log only to the log file as follows:
 
 .. sourcecode:: sh
 	
-	$ ap-autopick -c autopick --log-file log.txt --disable-stderr
+	$ ara-autopick -c autopick --log-file log.txt --disable-stderr
 
 An added benefit of using `--log-file` is that old log files (with the same name) will be backed up in a zip
 archive (of the same name but with a '.zip' extension). 
@@ -397,8 +397,8 @@ Crash Report
 ------------
 
 Also, note that a crash report is generated regardless of what logging mode you choose. This file is
-called .$PROGRAM_NAME.crash_report. For example, for ap-autopick, it will be called 
-`.ap-autopick.crash_report`.
+called .$PROGRAM_NAME.crash_report. For example, for ara-autopick, it will be called 
+`.ara-autopick.crash_report`.
 
 This file contains any exceptions that are thrown during the execution of the script and is useful for reporting
 bugs. Please attach this file when you submit an issue.

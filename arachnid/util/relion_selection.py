@@ -1,6 +1,6 @@
 ''' Generate selection files to interface SPIDER and RELION
 
-This script (`ap-relion`) can generate a RELION selection file from a list of stacks, a defocus
+This script (`ara-selrelion`) can generate a RELION selection file from a list of stacks, a defocus
 file and a SPIDER params file. It can also take a RELION selection file and a SPIDER selection file
 and generate a new RELION selection file. Finally, it can generate a set of SPIDER selection files (by micrograph)
 from a RELION selection file.
@@ -32,29 +32,29 @@ Running Script
     
     # Example usage - Generate a ReLion selection file from a set of stacks
     
-    $ ap-relion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star
+    $ ara-selrelion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star
     
     # Example usage - Generate a ReLion selection file from a set of stacks with manual selection
     
-    $ ap-relion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star --select good_00000.spi
+    $ ara-selrelion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star --select good_00000.spi
     
     # Example usage - Generate a ReLion selection file from a set of stacks with manual selection where selection was produced by spider and does not have a header
     
-    $ ap-relion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star --select good_00000.spi=id,select
+    $ ara-selrelion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star --select good_00000.spi=id,select
     
     # Example usage - Generate a ReLion selection file from a SPIDER selection file and a Relion selection file
     
-    $ ap-relion relion_selection_full.star --select good_classavg01.spi -o relion_selection_subset.star
+    $ ara-selrelion relion_selection_full.star --select good_classavg01.spi -o relion_selection_subset.star
     
     # Example usage - Generate SPIDER selection files by micrograph from a Relion and SPIDER selection file
     
-    $ ap-relion relion_selection_full.star --select good_classavg01.spi -o good_000001.spi
+    $ ara-selrelion relion_selection_full.star --select good_classavg01.spi -o good_000001.spi
 
 
 Critical Options
 ================
 
-.. program:: ap-relion
+.. program:: ara-selrelion
 
 .. option:: -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
     
@@ -259,11 +259,11 @@ def main():
                          
                          Example: Generate a relion selection file from a set of stacks, defocus file and params file
                          
-                         $ ap-relion win*.spi -d def_avg.spi -p params.spi -o relion_select.star
+                         $ ara-selrelion win*.spi -d def_avg.spi -p params.spi -o relion_select.star
                          
                          Example: Select projects in a relion selection file based on the class column using a class selection file
                          
-                         $ ap-relion relion_select.star -s good_classes.spi relion_select_good.star
+                         $ ara-selrelion relion_select.star -s good_classes.spi relion_select_good.star
                       ''',
         supports_MPI = False,
         use_version = False,

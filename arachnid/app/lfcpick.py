@@ -1,6 +1,6 @@
 ''' Semi-automated particle selection (LFCPick)
 
-This script (`ap-lfcpick`) was designed to locate potential particles on a micrograph using template-matching. A user
+This script (`ara-lfcpick`) was designed to locate potential particles on a micrograph using template-matching. A user
 should spend time tuning the number of particles returned to limit the number of noise windows found. Also, a manual
 selection is generally performed to remove contamination.
 
@@ -29,16 +29,16 @@ Examples
     
     # Run with a disk as a template on a raw film micrograph
     
-    $ ap-lfcpick mic_*.spi -o sndc_00001.spi -r 110 -w 312
+    $ ara-lfcpick mic_*.spi -o sndc_00001.spi -r 110 -w 312
     
     # Run with a disk as a template on a raw CCD micrograph
     
-    $ ap-lfcpick mic_*.spi -o sndc_00001.spi -r 110 -w 312 --invert
+    $ ara-lfcpick mic_*.spi -o sndc_00001.spi -r 110 -w 312 --invert
 
 Critical Options
 ================
 
-.. program:: ap-lfcpick
+.. program:: ara-lfcpick
 
 .. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
     
@@ -60,7 +60,7 @@ Useful Options
 
 These options 
 
-.. program:: ap-lfcpick
+.. program:: ara-lfcpick
 
 .. option:: --template <FILENAME>
     
@@ -92,7 +92,7 @@ Generally, these options do not need to be changed, their default parameters hav
 you may enounter a dataset that does not react properly and these options can be adjusted to get the best possible particle
 selection.
 
-.. program:: ap-lfcpick
+.. program:: ara-lfcpick
 
 .. option:: --dist-mult <float>
     
@@ -547,11 +547,11 @@ def main():
                         
                         Example: Unprocessed film micrograph
                          
-                        $ ap-lfcpick input-stack.spi -o coords.dat -r 110
+                        $ ara-lfcpick input-stack.spi -o coords.dat -r 110
                         
                         Example: Unprocessed CCD micrograph
                          
-                        $ ap-lfcpick input-stack.spi -o coords.dat -r 110 --invert
+                        $ ara-lfcpick input-stack.spi -o coords.dat -r 110 --invert
                       ''',
         use_version = True,
     )

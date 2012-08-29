@@ -1,14 +1,14 @@
 ''' Automated particle selection (AutoPicker)
 
-This script (`ap-autopick`) was designed locate particles on a micrograph using template matching 
+This script (`ara-autopick`) was designed locate particles on a micrograph using template matching 
 (like LFCPick) but incorporates several post-processing algorithm to reduce the number of noise 
 windows and contaminants.
 
 It will not remove all contaminants but experiments have demonstrated that in many cases it removes enough 
 to achieve a descent resolution. To remove more contaminants, use 2D classification (e.g. Relion). Currently,
-I am working on a classification to further reduce contamination, this algorithm will be called AutoClean (`ap-autoclean`).
+I am working on a classification to further reduce contamination, this algorithm will be called AutoClean (`ara-autoclean`).
 
-The AutoPicker script (`ap-autopick`) takes at minimum as input the micrograph and size of the particle in pixels and
+The AutoPicker script (`ara-autopick`) takes at minimum as input the micrograph and size of the particle in pixels and
 writes out a set of coordinate files for each selected particle.
 
 Tips
@@ -38,20 +38,20 @@ Examples
     
     # Run with a disk as a template on a raw film micrograph
     
-    $ ap-autopick mic_*.spi -o sndc_00001.spi -r 110 -w 312
+    $ ara-autopick mic_*.spi -o sndc_00001.spi -r 110 -w 312
     
     # Run with a disk as a template on a raw film micrograph on 16 cores (1 micrograph per core in memory)
     
-    $ ap-autopick mic_*.spi -o sndc_00001.spi -r 110 -w 312 -p16
+    $ ara-autopick mic_*.spi -o sndc_00001.spi -r 110 -w 312 -p16
     
     # Run with a disk as a template on a raw CCD micrograph
     
-    $ ap-autopick mic_*.spi -o sndc_00001.spi -r 110 -w 312 --invert
+    $ ara-autopick mic_*.spi -o sndc_00001.spi -r 110 -w 312 --invert
     
 Critical Options
 ================
 
-.. program:: ap-autopick
+.. program:: ara-autopick
 
 .. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
     
@@ -73,7 +73,7 @@ Useful Options
 
 These options 
 
-.. program:: ap-autopick
+.. program:: ara-autopick
 
 .. option:: -w <int>, --worker-count <int>
     
@@ -105,7 +105,7 @@ Generally, these options do not need to be changed, their default parameters hav
 you may enounter a dataset that does not react properly and these options can be adjusted to get the best possible particle
 selection.
 
-.. program:: ap-autopick
+.. program:: ara-autopick
 
 .. option:: -d <float>, --dust-sigma <float>
     
@@ -460,11 +460,11 @@ def main():
                         
                         Example: Unprocessed film micrograph
                          
-                        $ ap-autopick input-stack.spi -o coords.dat -r 110
+                        $ ara-autopick input-stack.spi -o coords.dat -r 110
                         
                         Example: Unprocessed CCD micrograph
                          
-                        $ ap-autopick input-stack.spi -o coords.dat -r 110 --invert
+                        $ ara-autopick input-stack.spi -o coords.dat -r 110 --invert
                       ''',
         use_version = True
     )

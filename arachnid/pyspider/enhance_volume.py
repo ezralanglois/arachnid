@@ -7,7 +7,7 @@ Tips
 
  #. Boolean flags such as `disable-enhance` cannot take a value on the command-line. They only require a value in a configuration 
     file. Their existence or absence sets the appropriate value. For example, specifiying 
-    `$ ap-filtervol --disable-enhance ....` will disable amplitude enhancement.
+    `$ spi-filtervol --disable-enhance ....` will disable amplitude enhancement.
 
  #. This script interpolates passed the last value in the scatter file. It uses a linear model that starts at 14 A and goes to 
     the last available resolution.

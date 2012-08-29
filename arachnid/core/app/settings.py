@@ -35,9 +35,9 @@ options can be set.
 
 .. sourcecode:: sh
     
-    $ ap-bench <input-files> --metrics <name> -o <file-path>
+    $ ara-autopick <input-files> --template <name> -o <file-path>
     
-    $ ap-bench affinity.csv --metrics precision -o output-file.rst
+    $ ara-autopick mic_001.spi --template reference.spi -o sndc_000.spi
     
 There are two components to setting an option(`--metrics precision`):
 
@@ -52,9 +52,9 @@ The input files can be explicitly set as follows:
 
 .. sourcecode:: sh
     
-    $ ap-bench <input-files>
-    $ ap-bench --input-files <input-files>
-    $ ap-bench -i <input-files>
+    $ ara-autopick <input-files>
+    $ ara-autopick --input-files <input-files>
+    $ ara-autopick -i <input-files>
 
 Available Options
 +++++++++++++++++
@@ -65,9 +65,9 @@ learning about command-line options.
 
 .. sourcecode:: sh
     
-    $ ap-bench -h | more
+    $ ara-autopick -h | more
     
-    Usage: ap-bench inputfile1 inputfile2 --option-name value ...
+    Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
     
     This program estimates the performance of a machine learning or #  particle
     selection algorithm. #
@@ -80,8 +80,6 @@ learning about command-line options.
                             line
       -o OUTPUT, --output=OUTPUT
                             Path and name of the output file
-      -c CONFIG_FILE, --config-file=CONFIG_FILE
-                            Read a configuration file for options
     --More--
     
 Second, one can invoke the script with no arguments (or an incorrect argument). This 
@@ -89,11 +87,10 @@ option is best for learning about configuration file options.
 
 .. sourcecode:: sh
     
-    $ ap-bench | more
+    $ ara-autopick | more
     settings:709:root:ERROR - No metrics specified
-    #  Program:    ap-bench
+    #  Program:    ara-autopick
     #  Version:    1.1.1
-    #  Usage: ap-bench inputfile1 inputfile2 --option-name value ...
     
     #  This program estimates the performance of a machine learning or
     #  particle selection algorithm.
@@ -101,10 +98,6 @@ option is best for learning about configuration file options.
     
     input-files:        #    Input files in addition to those placed on the command line
     output:            #    Path and name of the output file
-    config-file:        #    Read a configuration file for options
-    
-    #  Options to control performance benchmarking
-    metrics:        #    List of metrics or metric groups to estimate
     --More--
     
 Configuration Files
@@ -116,11 +109,10 @@ save the configuration file, you can redirect the output stream to a file as fol
 .. sourcecode:: sh
     
     $ mkdir cfg
-    $ ap-bench > cfg/bench.cfg
-    $ more cfg/bench.cfg
-    #  Program:    ap-bench
+    $ ara-autopick > cfg/auto.cfg
+    $ more cfg/auto.cfg
+    #  Program:    ara-autopick
     #  Version:    1.1.1
-    #  Usage: ap-bench inputfile1 inputfile2 --option-name value ...
     
     #  This program estimates the performance of a machine learning or
     #  particle selection algorithm.
@@ -128,10 +120,6 @@ save the configuration file, you can redirect the output stream to a file as fol
     
     input-files:        #    Input files in addition to those placed on the command line
     output:            #    Path and name of the output file
-    config-file:        #    Read a configuration file for options
-    
-    #  Options to control performance benchmarking
-    metrics:        #    List of metrics or metric groups to estimate
     --More--
     
 Note that the directory creation above (`mkdir cfg`) is not necessary but as will be come apparent, it is
@@ -141,18 +129,17 @@ A configuration file can be used as follows:
 
 .. sourcecode:: sh
 
-    $ ap-bench -c cfg/bench.cfg # Explicitly set filename
-    $ ap-bench -c bench         # Automatically find bench.cfg in cfg
+    $ ara-autopick -c cfg/auto.cfg # Explicitly set filename
+    $ ara-autopick -c auto         # Automatically find auto.cfg in cfg
 
 Default values in configuration files can be set using command line options:
 
 .. sourcecode:: sh
     
-    $ ap-bench -o output.txt | more
+    $ ara-autopick -o output.txt | more
     settings:709:root:ERROR - No metrics specified
-    #  Program:    ap-bench
+    #  Program:    ara-autopick
     #  Version:    1.1.1
-    #  Usage: ap-bench inputfile1 inputfile2 --option-name value ...
     
     #  This program estimates the performance of a machine learning or
     #  particle selection algorithm.
@@ -160,17 +147,13 @@ Default values in configuration files can be set using command line options:
     
     input-files:                #    Input files in addition to those placed on the command line
     output:      output.txt     #    Path and name of the output file
-    config-file:                #    Read a configuration file for options
-    
-    #  Options to control performance benchmarking
-    metrics:                    #    List of metrics or metric groups to estimate
     --More--
     
 Configuration files can also be copied (almost completely):
 
 .. sourcecode:: sh
     
-    $ ap-bench -c old -i "" > cfg/new.cfg  # A parameter must be set to cause an error, e.g. -i ""
+    $ ara-autopick -c old -i "" > cfg/new.cfg  # A parameter must be set to cause an error, e.g. -i ""
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

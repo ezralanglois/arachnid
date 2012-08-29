@@ -1,6 +1,6 @@
 '''Extracting windows from a micrograph (Cropping)
 
-This script (`ap-crop`) extracts particles from a micrograph based on coordinates (which may
+This script (`ara-crop`) extracts particles from a micrograph based on coordinates (which may
 have come from AutoPicker).
 
 It performs the following preprocessing on the micrograph:
@@ -41,11 +41,11 @@ Running Cropping
     
     # Create a configuration file
     
-    $ ap-crop > crop.cfg
+    $ ara-crop > crop.cfg
     
     # Alternative: Create configuration file
     
-    $ ap-crop -i Micrographs/mic_00001.spi -r 55 -s coords/sndc_0000.spi -o "" > crop.cfg
+    $ ara-crop -i Micrographs/mic_00001.spi -r 55 -s coords/sndc_0000.spi -o "" > crop.cfg
     
     # Edit configuration file
     
@@ -55,17 +55,17 @@ Running Cropping
     
     # Run Program
     
-    $ ap-crop -c crop.cfg
+    $ ara-crop -c crop.cfg
     
     # Alternative: Run in background (Recommended when running on a remote machine)
     
-    $ nohup ap-crop -c crop.cfg > crop.log &
+    $ nohup ara-crop -c crop.cfg > crop.log &
 
 
 Critical Options
 ================
 
-.. program:: ap-crop
+.. program:: ara-crop
 
 .. option:: -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
     
@@ -94,7 +94,7 @@ Critical Options
 Useful Options
 ==============
 
-.. program:: ap-crop
+.. program:: ara-crop
 
 .. option:: -w <int>, --worker-count <int>
     

@@ -4,8 +4,8 @@ import pyspider.setup
 
 gui_scripts = []
 console_scripts = []
-console_scripts.extend(app.setup.console_scripts)
-console_scripts.extend(util.setup.console_scripts)
+console_scripts.extend(["ara-"+script for script in app.setup.console_scripts])
+console_scripts.extend(["ara-"+script for script in util.setup.console_scripts])
 console_scripts.extend(["sp-"+script for script in pyspider.setup.console_scripts])
 
 def configuration(parent_package='',top_path=None):

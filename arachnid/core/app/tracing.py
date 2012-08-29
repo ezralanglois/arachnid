@@ -29,11 +29,11 @@ Examples
 
 .. sourcecode:: sh
     
-    $ ap-bench -v4                   # Log everything including debug information
-    $ ap-bench --log-level 0         # Do not log any messages
-    $ ap-bench --log-level info      # Log only information level or higher
+    $ ara-autopick -v4                   # Log everything including debug information
+    $ ara-autopick --log-level 0         # Do not log any messages
+    $ ara-autopick --log-level info      # Log only information level or higher
     
-    $ ap-bench --log-file info.log   # Write all log messages to a file 
+    $ ara-autopick --log-file info.log   # Write all log messages to a file 
 
 The logging framework also supports fine-grained configuration. This can be enabled using
 the `--log-config` parameter.
@@ -75,7 +75,7 @@ The above logging configuration file can be specified on the command-line.
 
 .. sourcecode:: sh
     
-    $ ap-bench --log-config log.conf # Configure logging with a file
+    $ ara-autopick --log-config log.conf # Configure logging with a file
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
