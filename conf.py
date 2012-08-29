@@ -63,7 +63,7 @@ autosummary_generate=True
 
 # General information about the project.
 project = arachnid.__project__
-copyright = arachnid.__copyright__
+copyright = arachnid.__copyright__[14:]
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -101,6 +101,7 @@ exclude_trees = ['resources', 'git-hooks', 'build', 'dist']
 # unit titles (such as .. function::).
 add_module_names = False
 
+
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
 #show_authors = False
@@ -119,6 +120,8 @@ pygments_style = 'sphinx'
 #html_theme = 'haiku'
 #html_theme = 'agogo'
 html_theme = 'nature'
+
+html_show_sphinx=False
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -149,7 +152,7 @@ html_favicon = "resources/favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['resources/static']
-html_style='nature_fixed.css'
+#html_style='nature_fixed.css'
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

@@ -1,8 +1,8 @@
 {% extends "!layout.html" %}
 
+{% set css_files = css_files + ['_static/nature_fixed.css'] %}
+
 {%- block extrahead %} 
-
-
 <script type="text/javascript">
 $(document).ready(function(){
 	$("a[href^='http']").attr('target','_blank');
@@ -10,4 +10,22 @@ $(document).ready(function(){
 </script>
     
 {% endblock %}
+
+{% block sidebarlogo %}
+   {{ super() }}
+   &nbsp;
+   
+    {%- if hasdoc('copyright') %}
+        {% trans path=pathto('copyright'), copyright=copyright|e %}&copy; <a href="{{ path }}">Copyright</a> {{ copyright }}.{% endtrans %}
+      {%- else %}
+        {% trans copyright=copyright|e %}&copy; Copyright {{ copyright }}.{% endtrans %}
+      {%- endif %}
+   
+{% endblock %}
+
+
+{%- block relbar2 %}{% endblock %}
+
+{%- block footer %}{%- endblock %}
+
 

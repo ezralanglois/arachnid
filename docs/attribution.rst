@@ -1,6 +1,13 @@
 ============
 Attribution
 ============
+
+Documentation
+=============
+
+This documentation is generated using Sphinx with a modified version of the nature template.
+
+Website: http://sphinx.pocoo.org/concepts.html
  
 Art Work
 ==========

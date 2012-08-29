@@ -202,7 +202,21 @@ the new defocus file with the original name of the current defocus file.
 View average screening
 ----------------------
 
-Under construction
+Generate View averages
+++++++++++++++++++++++
+
+- Reference-base: Alignment
+
+- Reference-free: Relion
+
+	See :mod:`arachnid.util.relion_selection` for a script to help you setup
+	a selection file for Relion.
+
+View-editing
+++++++++++++
+
+This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
+
 
 Chimera Tricks
 ==============

@@ -5,12 +5,15 @@ arachnid
 
 Arachnid is Python software package for image processing in single particle reconstruction of
 images collected by cryo-electron microscopy. It is built on top of SciPy, `EMAN2`_/`Sparx`_ and
-is distributed under the `GPL 2.0`_ license.
+is distributed under the `GPL 2.0`_ license. It has the following highlighted application
+and subpackage:
+
+- AutoPicker: Automated reference-free particle selection
+- pySPIDER: Python batch files designed to better automate the reconstruction protocol
 
 This project was started in 2009 by Robert Langlois as an internal software package written
 for members of the `Frank Lab`_. This package contains only the published algorithms and
 corresponding utilities.
-
 
 For more information, see the documents in `build/sphinx/html/`. HTML documentation can be built using
 `python setup.py build_sphinx`, which assumes you have the prerequisite Python libraries.

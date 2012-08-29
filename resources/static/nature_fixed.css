@@ -26,10 +26,34 @@ margin:0; /* remove margins */
 border:0; /* remove borders */
 }
 
+div.related {
+	position:absolute;
+	z-index:3;
+}
+
+   
+div.bodywrapper {
+margin: 0 0 0 245px;
+padding: 0px;
+border: 0;
+}
+
+
+div.body {
+margin:0; /* remove margins */
+border:0; /* remove borders */
+padding: 30px 30px 30px 30px;
+}
+
 div.document {
-height:90%; /* fix height to 100% for IE */
-max-height:90%; /* fix height for other browsers */
+position:absolute;
+height:100%; /* fix height to 100% for IE */
+max-height:100%; /* fix height for other browsers */
 overflow:hidden; /*get rid of scroll bars in IE */
+padding:0px; /*remove padding */
+margin:0px; /* remove margins */
+border:0; /* remove borders */
+z-index:1;
 }
 
 
@@ -38,7 +62,11 @@ display:block; /* set up as a block */
 height:100%; /* set height to full page */
 max-height:100%; /* fix height for other browsers */
 overflow:auto; /* add scroll bars as required */
+margin:0px; /* remove margins */
+padding:0px; /*remove padding */
 }
+
+
 
 div.sphinxsidebar {
 height:100%;
@@ -46,5 +74,9 @@ max-height:100%;
 display:block;
 overflow-y:scroll; /* add scroll bars as required */
 width: 245px; /* hack to keep the search button up */
+padding:0; /*remove padding */
+//margin:0; /* remove margins */
+border:0; /* remove borders */
+z-index:3;
 }
 

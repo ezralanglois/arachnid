@@ -16,7 +16,7 @@
 __project__ = "arachnid"
 __version__ = "0.0.1"
 __author__ = "Robert Langlois"
-__copyright__ = "2012"
+__copyright__ = "Copyright (C) 2012, Robert Langlois"
 __license__ = "GPL"
 __author_email__ = "rl2528@columbia.edu"
 __description__ = "Single Particle Data Analysis Suite"
