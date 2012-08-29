@@ -23,6 +23,14 @@ this point you should have two things:
 		- Spherical aberration, mm
 		- Actual size of particle, pixels
 
+There are several ways to proceed after creating your project:
+
+#. Use the `-m All Cluster` option for `spi-project` and everything is run on the cluster (except reference preparation)
+#. Simply run the provided scripts (`run_local` and `run_cluster` to do a fast data processing)
+#. Run the `run_local` script then go to `Improving the Data Treatment`_ and manually 
+   assess the data quality and fix problems before running `run_cluster`.
+#. Run each configuration file independently
+
 .. note::
 	
 	For Frank Lab members, you must source Arachnid to get full access to pySpider (EACH time you start a terminal window).
@@ -59,10 +67,10 @@ the program without arguments.
 	output:                                 #               (-o)    Output directory with project name
 	raw-reference:                          #               (-r)    Raw reference volume
 	ext:                                    #               (-e)    Extension for SPIDER (three characters)
+	is-ccd:                         False   #	Set true if the micrographs were collected on a CCD (and have not been processed)
 	apix:                           0.0     #       Pixel size, A
 	voltage:                        0.0     #       Electron energy, KeV
 	cs:                             0.0     #       Spherical aberration, mm
-	xmag:                           0.0     #       Magnification
 	pixel-diameter:                 0       #       Actual size of particle, pixels
 	...
 
@@ -97,6 +105,11 @@ The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--pixel-diameter 220` micros
 
 The `--scatter-doc ribosome` will download a ribosome scattering file to 8A, otherwise you should specify an existing scattering file
 or nothing.
+
+.. note::
+
+	When processing unprocessed (i.e. inverted) CCD micrographs `--is-ccd` should be added to the command above.
+	In the configuration file, this should be `is-ccd: True`
 
 .. _project-directory:
 
@@ -180,7 +193,13 @@ To run all cluster scripts in the proper order, use the following suggested comm
 Improving the Data Treatment
 ============================
 
-Under construction
+Arachnid is geared toward automated data processing. Algorithms are currently under development to
+handle each the of the steps below. Until such algorithms have been developed, it is recommended
+that you use the SPIDER alternatives listed below. 
+
+.. note:: 
+	
+	Arachnid was intended to be compatible with SPIDER batch files.
 
 Micrograph screening
 --------------------
@@ -196,27 +215,25 @@ Manual CTF fitting
 ------------------
 
 This can be done with `SPIDER's CTFMatch <http://www.wadsworth.org/spider_doc/spire/doc/guitools/ctfmatch/ctfmatch.html>`_. CTFMatch
-will write out a new defocus file; it is recommended that you rename the current defocus file first, then save
-the new defocus file with the original name of the current defocus file.
+will write out a new defocus file
 
-View average screening
-----------------------
+.. note::
+	
+	It is recommended that you rename the current defocus file first, then save the new defocus file 
+	with the original name of the current defocus file.
 
-Generate View averages
-++++++++++++++++++++++
+Particle screening
+------------------
 
-- Reference-base: Alignment
+- This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
+- Alternatively with `Verify By View <http://www.wadsworth.org/spider_doc/spider/docs/techs/verify/batch/instr-apsh.htm#verify>`_
 
-- Reference-free: Relion
+Classification
+--------------
 
-	See :mod:`arachnid.util.relion_selection` for a script to help you setup
-	a selection file for Relion.
-
-View-editing
-++++++++++++
-
-This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
-
+#. Supervised Classification
+	
+	See: http://www.wadsworth.org/spider_doc/spider/docs/techs/supclass/supclass.htm
 
 Chimera Tricks
 ==============
