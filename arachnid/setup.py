@@ -6,7 +6,7 @@ gui_scripts = []
 console_scripts = []
 console_scripts.extend(app.setup.console_scripts)
 console_scripts.extend(util.setup.console_scripts)
-console_scripts.extend(["spi-"+script for script in pyspider.setup.console_scripts])
+console_scripts.extend(["sp-"+script for script in pyspider.setup.console_scripts])
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
