@@ -53,7 +53,8 @@ overflow:hidden; /*get rid of scroll bars in IE */
 padding:0px; /*remove padding */
 margin:0px; /* remove margins */
 border:0; /* remove borders */
-z-index:1;
+//z-index:1;
+width: 100%;
 }
 
 
@@ -77,6 +78,6 @@ width: 245px; /* hack to keep the search button up */
 padding:0; /*remove padding */
 //margin:0; /* remove margins */
 border:0; /* remove borders */
-z-index:3;
+//z-index:3;
 }
 
