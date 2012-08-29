@@ -153,6 +153,9 @@ Installation of Prerequisites
         export BLAS_LIBS=acml:cblas:acml_mv
         export BLAS_PATH=/opt/acml4.4.0/gfortran64_mp
         export LD_LIBRARY_PATH=$BLAS_PATH/lib:$LD_LIBRARY_PATH
+        
+        # Make sure the fortran libraries will be linked when use the PGI compiler
+        export LDFLAGS="-L/opt/pgi/linux86-64/2011/REDIST -L/opt/pgi/linux86-64/2011/libso -pgf90libs $LDFLAGS"
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

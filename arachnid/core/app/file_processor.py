@@ -21,6 +21,8 @@ The bench script has the following inheritable parameters:
     
      Set the number of micrographs to process in parallel (keep in mind memory and processor restrictions)
 
+..todo:: add file modification time to restart file, use spider id to check for file
+
 .. Created on Oct 16, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
