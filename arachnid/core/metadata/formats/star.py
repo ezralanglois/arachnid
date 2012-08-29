@@ -28,7 +28,7 @@ It supports the following attributes:
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..format_utility import ParseFormatError, convert
+from .. import format_utility
 from ..factories import namedtuple_factory
 import logging
 
@@ -129,10 +129,10 @@ class read_iterator(object):
             line = self.lastline
             self.lastline = ""
         vals = line.split()
-        if self.hlen != len(vals): raise ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
+        if self.hlen != len(vals): raise format_utility.ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
         
         if self.columns is not None: vals = vals[self.columns]
-        if self.numeric: return [convert(v) for v in vals]
+        if self.numeric: return [format_utility.convert(v) for v in vals]
         return vals
 
 def read_header(filename, header=[], factory=namedtuple_factory, **extra):
@@ -183,11 +183,11 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
     try:
         while True: # Remove header comments
             line = fin.readline()
-            if line == "": raise ParseFormatError, "Not a star file or empty"
+            if line == "": raise format_utility.ParseFormatError, "Not a star file or empty"
             if len(line) >= 5 and line[:5] == "data_": break
         while True:
             line = fin.readline()
-            if line == "": raise ParseFormatError, "Not a star file or empty"
+            if line == "": raise format_utility.ParseFormatError, "Not a star file or empty"
             line = line.strip()
             if line != "": break
             
@@ -196,19 +196,19 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
             _logger.debug("Found loop - header has labels")
             while True:
                 line = fin.readline()
-                if line == "": raise ParseFormatError, "Unexpected end of header"
+                if line == "": raise format_utility.ParseFormatError, "Unexpected end of header"
                 if line[0] != "_": break
                 line = line.strip()
                 tmpheader.append(line[1:])
             while line[0] == ';' or line[0] == '#':
                 line = fin.readline()
-                if line == "": raise ParseFormatError, "Unexpected end of file"
+                if line == "": raise format_utility.ParseFormatError, "Unexpected end of file"
                 line = line.strip()
             tot = len(line.strip().split())
         else:
             while line[0] == ';' or line[0] == '#':
                 line = fin.readline()
-                if line == "": raise ParseFormatError, "Unexpected end of file"
+                if line == "": raise format_utility.ParseFormatError, "Unexpected end of file"
                 line = line.strip()
             tot = len(line.strip().split())
             tmpheader.extend(["column"+str(i+1) for i in xrange(tot)])
@@ -219,7 +219,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
             for key, val in header.iteritems():
                 tmpheader[val] = key
         elif len(header) == 0: header.extend(tmpheader)
-        if tot != len(header): raise ParseFormatError, "Header does not match the file: %s"%header
+        if tot != len(header): raise format_utility.ParseFormatError, "Header does not match the file: %s"%header
         if isinstance(filename, str): fin.close()
         return factory.create(header, **extra), header, line
     except:
@@ -227,7 +227,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         raise
     else:
         fin.close()
-    raise ParseFormatError, "Cannot parse header of Star document file - end of document"
+    raise format_utility.ParseFormatError, "Cannot parse header of Star document file - end of document"
 
 def reader(filename, header=[], lastline="", **extra):
     '''Creates a Star read iterator

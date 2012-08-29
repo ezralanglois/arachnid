@@ -188,7 +188,7 @@ def build_description(package, extra=None):
     '''
     
     if extra is None: extra = {}
-    description = [('name', 'project'), 'version', 'author', 'license', 'author_email', 'description', 'url', 'download_url', 'keywords', ('long_description', 'doc'), 'classifiers']
+    description = [('name', 'project'), 'version', 'author', 'license', 'author_email', 'description', 'url', 'download_url', 'keywords', 'classifiers']#, ('long_description', 'doc')
     for d in description:
         if isinstance(d, tuple): key, field = d
         else: key, field = d, d

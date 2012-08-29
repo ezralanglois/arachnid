@@ -1,59 +1,63 @@
 {% extends "!layout.html" %}
 
 {%- block extrahead %} 
- <script type="text/javascript">
-  // Modfied version of http://stackoverflow.com/questions/6691558/how-do-i-make-a-div-follow-me-as-i-scroll-down-the-page
-  window.onload = function() {
 
-  function getScrollTop() {
-    if (typeof window.pageYOffset !== 'undefined' ) {
-      // Most browsers
-      return window.pageYOffset;
-    }
+<style type="text/css">
+/** Adopted from http://www.cssplay.co.uk/layouts/basics2.html **/
+html {
+height:100%; /* fix height to 100% for IE */
+max-height:100%; /* fix height for other browsers */
+padding:0; /*remove padding */
+margin:0; /* remove margins */
+border:0; /* remove borders */
+background:#fff; /*color background - only works in IE */
+font-size:80%; /*set default font size */
+font-family:"trebuchet ms", tahoma, verdana, arial, sans-serif; /* set default font */
+/* hide overflow:hidden from IE5/Mac */
+/* \*/
+overflow:hidden; /*get rid of scroll bars in IE */
+/* */
+}
 
-    var d = document.documentElement;
-    if (d.clientHeight) {
-      // IE in standards mode
-      return d.scrollTop;
-    }
 
-    // IE in quirks mode
-    return document.body.scrollTop;
-  }
-  
-  var myelement = $('#searchbox');
-  myelement = $('.sphinxsidebarwrapper li')
-  topelement = $('.sphinxsidebarwrapper h3')
-  botelement = $('.sphinxsidebarwrapper h4')
-  
-     function isScrolledIntoView(elem) {
-        var docViewTop = $(window).scrollTop();
-        var docViewBottom = docViewTop + $(window).height();
+body {
+height:100%; /* fix height to 100% for IE */
+max-height:100%; /* fix height for other browsers */
+overflow:hidden; /*get rid of scroll bars in IE */
+padding:0; /*remove padding */
+margin:0; /* remove margins */
+border:0; /* remove borders */
+}
 
-        var elemTop = $(elem).offset().top;
-        var elemBottom = elemTop + $(elem).height();
+div.document {
+height:90%; /* fix height to 100% for IE */
+max-height:90%; /* fix height for other browsers */
+overflow:hidden; /*get rid of scroll bars in IE */
+}
 
-        return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom));
-    }
 
-  window.onscroll = function() {
-  
-    if(!isScrolledIntoView(topelement) || !isScrolledIntoView(botelement))
-    {
-    var sidebar = $('.sphinxsidebar');
-    var box = document.getElementById('sidebar'),
-        scroll = getScrollTop();
+div.documentwrapper { 
+display:block; /* set up as a block */
+height:100%; /* set height to full page */
+max-height:100%; /* fix height for other browsers */
+overflow:auto; /* add scroll bars as required */
+}
 
-    if (scroll <= 28) {
-     sidebar.css({'position': 'static'})
-    }
-    else {
-     sidebar.css({'position': 'relative', 'top': (scroll + 2) + "px"})
-    }
-    }
-  };
+div.sphinxsidebar {
+height:100%;
+max-height:100%;
+display:block;
+overflow-y:scroll; /* add scroll bars as required */
+width: 245px; /* hack to keep the search button up */
+}
 
-};
-  </script>      
+</style>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	$("a[href^='http']").attr('target','_blank');
+});
+</script>
+    
 {% endblock %}
 

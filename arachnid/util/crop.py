@@ -185,7 +185,7 @@ def process(filename, output="", id_len=0, **extra):
     noise=extra['noise']
     radius, offset, bin_factor, tmp = init_param(**extra)
     npmic = eman2_utility.em2numpy(mic)
-    emdata = eman2_utility.model_blank(offset*2, offset*2)
+    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
     npdata = eman2_utility.em2numpy(emdata)
     
     test_coordinates(npmic, coords)
@@ -302,9 +302,9 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
     mic = read_micrograph(filename, **extra)
     rad = int( pixel_radius / float(bin_factor) )
     width = offset*2
-    #template = eman2_utility.model_blank(width, width)
+    #template = eman2_utility.utilities.model_blank(width, width)
     
-    template = eman2_utility.model_circle(rad, width, width)
+    template = eman2_utility.utilities.model_circle(rad, width, width)
     template.process_inplace("normalize.mask", {"mask": template, "no_sigma": True})
 
     # Define noise distribution
@@ -324,7 +324,7 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
     peak1 = peak1[index].copy().squeeze()
     
     best = (1e20, None)
-    emdata = eman2_utility.model_blank(offset*2, offset*2)
+    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
     npdata = eman2_utility.em2numpy(emdata)
     npmic = eman2_utility.em2numpy(mic)
     for i, win in enumerate(ndimage_utility.for_each_window(npmic, peak1, offset*2, 1.0)):
@@ -366,7 +366,7 @@ def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
     rad = int( pixel_radius / float(bin_factor) )
     offset = int(window*rad) if window < (2*pixel_radius) else int( window / (float(bin_factor)*2.0) )
     width = offset*2
-    mask = eman2_utility.model_circle(rad, width, width)
+    mask = eman2_utility.utilities.model_circle(rad, width, width)
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
@@ -501,7 +501,7 @@ def initialize(files, param):
             param['noise'] = generate_noise(files[0], offset, **param)
         
     else: param['noise'] = image_reader.read_image(param['noise'])
-    param['emdata'] = eman2_utility.EMData()
+    param['emdata'] = eman2_utility.EMAN2.EMData()
     return files
 
 def finalize(files, **extra):

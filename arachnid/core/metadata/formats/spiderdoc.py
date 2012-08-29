@@ -21,7 +21,7 @@ It supports the following attributes:
 .. Created on Apr 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..format_utility import ParseFormatError, convert
+from .. import format_utility
 from ..spider_utility import spider_header_vars
 from ..factories import namedtuple_factory
 import logging
@@ -117,13 +117,13 @@ class read_iterator(object):
             self.lastline = ""
         vals = line.split()
         if self.hlen+2 == len(vals): 
-            if self.numeric: return [convert(v) for v in vals[2:]]
+            if self.numeric: return [format_utility.convert(v) for v in vals[2:]]
             return vals[2:]
         elif self.hlen+1 != len(vals): 
-            raise ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
+            raise format_utility.ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
         del vals[1]
         if self.columns is not None: vals = vals[self.columns]
-        if self.numeric: return [convert(v) for v in vals]
+        if self.numeric: return [format_utility.convert(v) for v in vals]
         return vals
 
 def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **extra):
@@ -188,7 +188,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **e
                 elif len(header) == 0: 
                     header.extend(spider_header_vars(lastline))
                     _logger.debug("Spider header: "+lastline)
-            else: raise ParseFormatError, "Cannot parser header of spider document - does not start with a ; - \"%s\" - %s"%(lastline[0], lastline)
+            else: raise format_utility.ParseFormatError, "Cannot parser header of spider document - does not start with a ; - \"%s\" - %s"%(lastline[0], lastline)
             tot = len(line.strip().split())
             if (len(header)+2) != tot and ( (len(header)+1) != tot or header[0] != "id"):
                 logging.debug("%d > %d -- %s"%((len(header)+2), tot, header[0]))
@@ -198,7 +198,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **e
                 else:
                     del header[:]
                     header.extend(["column"+str(i+1) for i in xrange(tot-2)])
-                #raise ParseFormatError, "Cannot parser header of spider document - header mismatch"+str(header)+" - "+lastline
+                #raise format_utility.ParseFormatError, "Cannot parser header of spider document - header mismatch"+str(header)+" - "+lastline
             if (len(header)+2) == tot and header.count("id") == 0:
                 header.insert(0, "id")
                 if flags is not None: flags["index_column"] = True
@@ -207,7 +207,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **e
             #if flags is not None: flags["index_column"] = ((len(header)+3) == tot)
             vals = line.split()
             if (float(vals[1])) != len(vals[2:]):
-                raise ParseFormatError, "Not a valid spider file: %d != %d -> %s != %s"%(int(float(vals[1])), len(vals[2:]), str(vals))
+                raise format_utility.ParseFormatError, "Not a valid spider file: %d != %d -> %s != %s"%(int(float(vals[1])), len(vals[2:]), str(vals))
             try:
                 return factory.create(header, **extra), header, line
             except:
@@ -222,7 +222,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **e
         raise
     else:
         fin.close()
-    raise ParseFormatError, "Cannot parse header of Spider document file - end of document"
+    raise format_utility.ParseFormatError, "Cannot parse header of Spider document file - end of document"
 
 def test(filename):
     '''Test if filename supports Spider document format

@@ -72,7 +72,7 @@ Critical Options
     
     Number of times to decimate params file
 
-..option:: volume-mask <('A', 'C', 'G' or FILENAME)>
+.. option:: volume-mask <('A', 'C', 'G' or FILENAME)>
     
     Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filepath for external mask
 
@@ -122,26 +122,26 @@ High-pass Filter Options
 Spherical Mask Options
 =======================
 
-..option:: --mask-edge-width <INT>
+.. option:: --mask-edge-width <INT>
 
     Set edge with of the mask (for Gaussian this is the half-width)
 
 Adaptive Tight Mask Options
 ===========================
 
-..option:: --threshold <STR or FLOAT>
+.. option:: --threshold <STR or FLOAT>
 
     Threshold for density or 'A' for auto threshold
     
-..option:: --ndilate <INT>
+.. option:: --ndilate <INT>
 
     Number of times to dilate the mask
 
-..option:: --gk-size <INT>
+.. option:: --gk-size <INT>
  
      Size of the real space Gaussian kernel (must be odd!)
 
-..option:: --gk-sigma <FLOAT>
+.. option:: --gk-sigma <FLOAT>
 
     Width of the real space Gaussian kernel
     

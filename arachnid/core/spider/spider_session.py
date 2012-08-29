@@ -32,8 +32,9 @@ Example usage
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import sys, re, struct, os, logging, subprocess, tempfile, glob, select as io_select, atexit, math
-from spider_var import spider_var_pool
-from spider_parameter import spider_image, spider_tuple, spider_stack, is_incore_filename, SpiderParameterError
+import spider_var
+from spider_parameter import spider_image, spider_tuple, spider_stack, is_incore_filename
+import spider_parameter
 #from collections import defaultdict
 
 _logger = logging.getLogger(__name__)
@@ -137,8 +138,8 @@ class Session(object):
         self.registers = open(self.pipename, 'r')
         self.register_poll = io_select.poll()
         self.register_poll.register(self.registers.fileno())
-        self.incore_imgs = spider_var_pool()
-        self.incore_docs = spider_var_pool()
+        self.incore_imgs = spider_var.spider_var_pool()
+        self.incore_docs = spider_var.spider_var_pool()
         
         if is_linux():
             try:
@@ -540,10 +541,10 @@ def generate_ctf_param(defocus, cs=None, window=None, source=None, defocus_sprea
         extra.update(cs)
         return generate_ctf_param(defocus, **extra)
     if elambda is None: 
-        if voltage is None: raise SpiderParameterError, "Wavelength of the electrons is not set as elambda or voltage"
+        if voltage is None: raise spider_parameter.SpiderParameterError, "Wavelength of the electrons is not set as elambda or voltage"
         elambda = 12.398 / math.sqrt(voltage * (1022.0 + voltage))
     if maximum_spatial_freq is None: 
-        if apix is None: raise SpiderParameterError, "patial frequency radius corresponding to the maximum radius is not set as maximum_spatial_freq or apix"
+        if apix is None: raise spider_parameter.SpiderParameterError, "patial frequency radius corresponding to the maximum radius is not set as maximum_spatial_freq or apix"
         maximum_spatial_freq = 0.5/apix
     if pad is None or pad < 1: pad = 1
     if isinstance(window, tuple): window = (window[0]*pad, window[1]*pad)
@@ -681,156 +682,6 @@ def prefix(filename, tag):
     path, name = os.path.dirname(filename), os.path.basename(filename)
     return os.path.join(path, tag+"_"+name)
 
-
-
-def is_float_int1(f):
-    '''Test if the float value is an integer
-    
-    This function casts the float to an integer and subtracts it from the float
-        - if the result is zero, then return True
-        - otherwise, return False
-    
-    .. sourcecode:: py
-    
-        >>> from arachnid.cobweb.utility.type_utility import *
-        >>> is_float_int(1.0)
-        True
-        >>> is_float_int(1.1)
-        False
-    
-    :Parameters:
-    
-        f : float
-            A float value
-        
-    :Returns:
-            
-        return_val : boolean
-                     True if float holds an integer
-    '''
-    
-    try:
-        f = float(f)
-        i = int(f)
-        if (f-i) == 0: return True
-        else: return False
-    except:
-        return False
-
-def is_spider_image1(t):
-    '''Test if the given header matches a spider image
-    
-    If the parameter `t` is a string, assume its a filename and open it
-    
-    :Parameters:
-        
-        t : list or str
-            Filename or list of header
-    
-    :Returns:
-        
-        is_header : bool
-                    Test if an image is a spider header
-    '''
-    
-    if isinstance(t, str): h = spider_image_header1(t)
-    else: h = (99,) + t
-    # header values 1,2,5,12,13,22,23 should be integers
-    for i in (1,2,5,12,13,22,23):
-        if not is_float_int1(h[i]): return 0
-    # check iform
-    iform = int(h[5])
-    if not iform in (1,3,-11,-12,-21,-22): return 0
-    # check other header values
-    labrec = int(h[13])   # no. records in file header
-    labbyt = int(h[22])   # total no. of bytes in header
-    lenbyt = int(h[23])   # record length in bytes
-    #print "labrec = %d, labbyt = %d, lenbyt = %d" % (labrec,labbyt,lenbyt)
-    if labbyt != (labrec * lenbyt): return 0
-    # looks like a valid header
-    return labbyt
-
-def spider_image_header1(filename):
-    '''Read the header from a spider image file or stack
-    
-    :Parameters:
-        
-        filename : str
-                   SPIDER stack filename
-    
-    :Returns:
-        
-        istack : list
-                 List of SPIDER header values
-    '''
-    
-    import struct
-    with open(filename, 'rb') as fin:
-        f = fin.read(27 * 4)
-        t = struct.unpack('>27f',f)
-        if is_spider_image1(t) == 0: 
-            t = struct.unpack('<27f',f)
-            if is_spider_image1(t) == 0: raise ValueError, "Not a spider file"
-        h = (99,) + t
-        return h
-
-def is_spider_stack1(filename):
-    '''Test if the given filename or header value corresponds to a SPIDER stack file
-    
-    :Parameters:
-        
-        filename : str
-                   SPIDER stack filename or spider HEADER
-    
-    :Returns:
-        
-        istack : bool
-                 True if filename is a SPIDER stack
-    '''
-    
-    if is_incore_filename(filename):
-        return filename.is_stack
-    
-    if isinstance(filename, str):
-        filename = spider_image_header1(filename)
-    return int(filename[24]) > 0
-
-def is_spider_volume1(filename):
-    '''Test if the given filename or header value corresponds to a SPIDER volume file
-    
-    :Parameters:
-        
-        filename : str
-                   SPIDER stack filename or spider HEADER
-    
-    :Returns:
-        
-        is_vol : bool
-                 True if filename is a SPIDER stack
-    '''
-    
-    if isinstance(filename, str):
-        filename = spider_image_header1(filename)
-    return int(filename[1]) > 1
-
-def stack_size1(filename):
-    '''Get number of images in a SPIDER stack
-    
-    :Parameters:
-        
-        filename : str
-                   SPIDER stack file
-    
-    :Returns:
-        
-        numimages : int
-                    Number of images in a SPIDER stack
-    '''
-        
-    h = spider_image_header1(filename)
-    n = int(h[26]) if int(h[24]) > 0 else 1
-    return n
-
 def unpack_register_linux(data):
     ''' Unpack values from a register
     
@@ -871,8 +722,6 @@ class SpiderCommandError(StandardError):
     a command is invoked.
     '''
     pass
-
-
 
 def cleanup():
     ''' Clean up any living SPIDER processes

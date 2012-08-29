@@ -2,8 +2,6 @@
 Reconstruction Protocol
 =======================
 
-/home/nash/Old/Alignment1/Reconstruction
-
 This protocol describes 3D reconstruction of a biological specimen (e.g. the ribosome) 
 from a collection of electron micrographs.
 
@@ -187,22 +185,60 @@ Under construction
 Micrograph screening
 --------------------
 
-Under construction
+This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
 
 Power spectra screening
 -----------------------
 
-Under construction
+This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
 	
 Manual CTF fitting
 ------------------
 
-Under construction
+This can be done with `SPIDER's CTFMatch <http://www.wadsworth.org/spider_doc/spire/doc/guitools/ctfmatch/ctfmatch.html>`_. CTFMatch
+will write out a new defocus file; it is recommended that you rename the current defocus file first, then save
+the new defocus file with the original name of the current defocus file.
 
 View average screening
 ----------------------
 
 Under construction
+
+Chimera Tricks
+==============
+
+Chimera is the most common tool to visualize your density map. Here are some tricks
+to viewing SPIDER files.
+
+Open a SPIDER file
+------------------
+
+Chimera command line: open #0 spider:~/Desktop/enh_25_r7_05.ter
+
+.. sourcecode:: sh
+	
+	chimera spider:~/Desktop/enh_25_r7_05.ter
+
+View SPIDER Angle
+-----------------
+
+To see a specific orientation of your volume when using SPIDER angles,
+the following commands may be used.
+
+.. note::
+
+	- SPIDER:  ZYZ rotating frame
+	- CHIMERA: ZYX static frame
+
+.. sourcecode:: c
+
+	reset
+	turn y theta coordinatesystem #0
+	turn z phi coordinatesystem #0
+	turn x 180
+
+
+
 
 
 

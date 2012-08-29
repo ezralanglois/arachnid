@@ -1,3 +1,18 @@
+''' Arachnid Cryo-EM Image Processing package
+
+.. currentmodule:: arachnid
+
+.. autosummary::
+    :nosignatures:
+    :template: api_module.rst
+    
+    app
+    core
+    pyspider
+    util
+'''
+
+
 __project__ = "arachnid"
 __version__ = "0.0.1"
 __author__ = "Robert Langlois"

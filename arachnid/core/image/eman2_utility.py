@@ -9,12 +9,14 @@ numpy arrays.
 import logging
 try:
     import EMAN2
-    from EMAN2 import EMData, EMNumPy, EMUtil, Util, Vec3f, Vec2f, Transform, Region, Reconstructors, Processor
+    import utilities
+    '''
     from projection import prep_vol, prgs
     from utilities import model_circle, even_angles, center_2D, combine_params2, ce_fit, compose_transform2, image_decimate, gauss_edge, model_blank
     from fundamentals import rot_shift2D, fft, cyclic_shift, smallprime, window2d #, ramp
     from alignment import Numrinit, ringwe, Applyws
     if None in (EMAN2,Transform,gauss_edge,model_blank,Vec2f,Reconstructors,EMUtil,Region,Vec3f,prgs,prep_vol,image_decimate,even_angles,compose_transform2,model_circle,combine_params2,center_2D,smallprime,fft,cyclic_shift,rot_shift2D,window2d,Numrinit,Applyws,ringwe): pass
+    '''
 except:
     logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
 import numpy
@@ -22,6 +24,16 @@ import numpy
 def em2numpy2em(fn):
     ''' Convert the first argument from EMData to ndarray and convert result
     from ndarray to EMData only if the input is EMData.
+    
+    :Parameters:
+    
+    fn : function
+         Name of the function to decorate
+    
+    :Returns:
+    
+    new : function
+          Decorator
     '''
     
     def new(img, *args, **kwargs):
@@ -53,6 +65,16 @@ def em2numpy2em(fn):
 def em2numpy2res(fn):
     ''' Convert the first argument from EMData to ndarray and convert result
     from ndarray to EMData only if the input is EMData.
+    
+    :Parameters:
+    
+    fn : function
+         Name of the function to decorate
+    
+    :Returns:
+    
+    new : function
+          Decorator
     '''
     
     def new(img, *args, **kwargs):
@@ -105,7 +127,7 @@ def is_em(im):
                 True if it is an EMAN2 image (EMAN2.EMData)
     '''
     
-    return isinstance(im, EMData)
+    return isinstance(im, EMAN2.EMData)
 
 def is_numpy(im):
     '''Test if image is a NumPy array
@@ -159,7 +181,7 @@ def em2numpy(im):
                 An numpy.ndarray holding image data
     '''
     
-    return EMNumPy.em2numpy(im)
+    return EMAN2.EMNumPy.em2numpy(im)
 
 def numpy2em(im):
     '''Convert NumPy array to an EMAN2 image object
@@ -185,11 +207,11 @@ def numpy2em(im):
     '''
         
     try:
-        e = EMData()
-        EMNumPy.numpy2em(im, e)
+        e = EMAN2.EMData()
+        EMAN2.EMNumPy.numpy2em(im, e)
         return e
     except:
-        return EMNumPy.numpy2em(im)
+        return EMAN2.EMNumPy.numpy2em(im)
 
 def ramp(img, inplace=True):
     '''Remove change in illumination across an image
@@ -229,7 +251,7 @@ def histfit(img, mask, noise):
           Enhanced image
     '''
     
-    return ce_fit(img, noise, mask)[2]
+    return utilities.ce_fit(img, noise, mask)[2]
     
 def decimate(img, bin_factor=0, force_even=False, **extra):
     '''Decimate the image
@@ -262,7 +284,7 @@ def decimate(img, bin_factor=0, force_even=False, **extra):
     
     frequency_cutoff = 0.5*bin_factor
     template_min = 15
-    sb = Util.sincBlackman(template_min, frequency_cutoff, 1999) # 1999 taken directly from util_sparx.h
+    sb = EMAN2.Util.sincBlackman(template_min, frequency_cutoff, 1999) # 1999 taken directly from util_sparx.h
     return img.downsample(sb, bin_factor)
 
 def gaussian_high_pass(img, ghp_sigma=0.1, pad=False, **extra):
@@ -286,7 +308,7 @@ def gaussian_high_pass(img, ghp_sigma=0.1, pad=False, **extra):
     '''
     
     if ghp_sigma == 0.0: return img
-    return Processor.EMFourierFilter(img, {"filter_type" : Processor.fourier_filter_types.GAUSS_HIGH_PASS,   "cutoff_abs": ghp_sigma, "dopad" : pad})
+    return EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.GAUSS_HIGH_PASS,   "cutoff_abs": ghp_sigma, "dopad" : pad})
 
 def gaussian_low_pass(img, glp_sigma=0.1, pad=False, **extra):
     ''' Filter an image with the Gaussian low pass filter
@@ -309,7 +331,7 @@ def gaussian_low_pass(img, glp_sigma=0.1, pad=False, **extra):
     '''
     
     if glp_sigma == 0.0: return img
-    return Processor.EMFourierFilter(img, {"filter_type" : Processor.fourier_filter_types.GAUSS_LOW_PASS,    "cutoff_abs": glp_sigma, "dopad" : pad})
+    return EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.GAUSS_LOW_PASS,    "cutoff_abs": glp_sigma, "dopad" : pad})
 
 def setup_nn4(image_size, npad=2, sym='c1', weighting=1):
     ''' Initalize a reconstruction object
@@ -331,10 +353,10 @@ def setup_nn4(image_size, npad=2, sym='c1', weighting=1):
             Reconstructor, Fourier volume, Weight Volume, and numpy versions
     '''
     
-    fftvol = EMData()
-    weight = EMData()
+    fftvol = EMAN2.EMData()
+    weight = EMAN2.EMData()
     param = {"size":image_size, "npad":npad, "symmetry":sym, "weighting":weighting, "fftvol": fftvol, "weight": weight}
-    r = Reconstructors.get("nn4", param)
+    r = EMAN2.Reconstructors.get("nn4", param)
     r.setup()
     return (r, fftvol, weight), em2numpy(fftvol), em2numpy(weight)
 
@@ -364,12 +386,12 @@ def backproject_nn4(img, align=None, recon=None, **extra):
         for i, val in enumerate(img):
             if isinstance(val, tuple): val, a = val
             else: a = align[i]
-            xform_proj = Transform({"type":"spider","phi":a[2],"theta":a[1],"psi":a[0]})
+            xform_proj = EMAN2.Transform({"type":"spider","phi":a[2],"theta":a[1],"psi":a[0]})
             if not is_em(val): val = numpy2em(val)
             if recon is None: recon = setup_nn4(val.get_xsize(), npad, sym, weighting)
             recon[0][0].insert_slice(val, xform_proj)
     else:
-        xform_proj = Transform({"type":"spider","phi":align[2],"theta":align[1],"psi":align[0]})
+        xform_proj = EMAN2.Transform({"type":"spider","phi":align[2],"theta":align[1],"psi":align[0]})
         if not is_em(img):img = numpy2em(img)
         if recon is None: recon = setup_nn4(val.get_xsize(), npad, sym, weighting)
         recon[0][0].insert_slice(img, xform_proj)

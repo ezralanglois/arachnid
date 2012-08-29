@@ -178,7 +178,7 @@ Configuration files can also be copied (almost completely):
 import optparse, types, logging, sys, os, glob
 from operator import itemgetter as _itemgetter
 from operator import attrgetter as _attrgetter
-from functools import partial
+import functools 
 import datetime
 #from compiler.ast import Pass
 
@@ -722,7 +722,7 @@ class OptionParser(optparse.OptionParser):
                 Keyword arguments passed to the validator
         '''
         
-        self.validators[key] = partial(validator, **extra)
+        self.validators[key] = functools.partial(validator, **extra)
         
     def add_option_group(self, group):
         '''Add an option group to the option parser
@@ -1344,6 +1344,8 @@ class optlist(list):
 class Validation:
     ''' Set of functions to validate option values
     '''
+    
+    def __init__(self): pass
     
     @staticmethod
     def empty_values(val):

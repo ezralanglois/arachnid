@@ -378,7 +378,10 @@ def reload_script(version):
         reload(__import__(saved))
         raise VersionChange
 
-class VersionChange(StandardError): pass
+class VersionChange(StandardError):
+    ''' Thrown when the application has to make a version change.
+    '''
+    pass
         
 def determine_main(name):
     ''' Find the calling main module

@@ -8,7 +8,7 @@ Supported formats:
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import logging
-from ..app.tracing import log_import_error
+from ..app import tracing
 from formats import spider, eman_format as spider_writer
 #import numpy
 
@@ -228,7 +228,7 @@ def _load():
     
     formats = []
     try: from formats import eman_format
-    except: log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
+    except: tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
     else: formats.append(eman_format)
     if len(formats) == 0: raise ImportError, "No image format modules loaded!"
     return formats, eman_format

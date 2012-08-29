@@ -18,7 +18,8 @@ It supports the following attributes:
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..format_utility import ParseFormatError, convert
+
+from .. import format_utility
 from ..factories import namedtuple_factory
 import logging
 
@@ -110,10 +111,10 @@ class read_iterator(object):
             line = self.lastline
             self.lastline = ""
         vals = line.split(",")
-        if self.hlen != len(vals): raise ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
+        if self.hlen != len(vals): raise format_utility.ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
         
         if self.columns is not None: vals = vals[self.columns]
-        if self.numeric: return [convert(v) for v in vals]
+        if self.numeric: return [format_utility.convert(v) for v in vals]
         return vals
 
 def read_header(filename, header=[], factory=namedtuple_factory, **extra):
@@ -167,8 +168,8 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
                 header[val] = key
         elif len(header) == 0: header.extend(line.split(','))
         line = fin.readline().strip()
-        if line[0] == ';': raise ParseFormatError, "Cannot parse Spider file"
-        if not isinstance(header, dict) and len(header) != len(line.split(',')): raise ParseFormatError, "Cannot parse header of CSV document - header mismatch - "+str(len(header))+" != "+str(len(line.split(',')))+" - "+str(header)+" :: "+line
+        if line[0] == ';': raise format_utility.ParseFormatError, "Cannot parse Spider file"
+        if not isinstance(header, dict) and len(header) != len(line.split(',')): raise format_utility.ParseFormatError, "Cannot parse header of CSV document - header mismatch - "+str(len(header))+" != "+str(len(line.split(',')))+" - "+str(header)+" :: "+line
         if isinstance(filename, str): fin.close()
         return factory.create(header, **extra), header, line
     except:
@@ -176,7 +177,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         raise
     else:
         fin.close()
-    raise ParseFormatError, "Cannot parse header of CSV document file - end of document"
+    raise format_utility.ParseFormatError, "Cannot parse header of CSV document file - end of document"
 
 def reader(filename, header=[], lastline="", **extra):
     '''Creates a CSV read iterator

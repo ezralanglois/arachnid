@@ -4,7 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from spider_var import spider_var
+import spider_var
 import os
 
 def is_incore_filename(filename):
@@ -23,7 +23,7 @@ def is_incore_filename(filename):
     
     if isinstance(filename, tuple): 
         filename = filename[0]
-    return isinstance(filename, spider_var) or isinstance(filename, int)
+    return isinstance(filename, spider_var.spider_var) or isinstance(filename, int)
 
 def spider_doc(filename):
     '''Ensure correct format for spider file or incore file
@@ -110,7 +110,7 @@ def spider_select(filename):
             Range or filename
     '''
     
-    if isinstance(filename, int) and not isinstance(filename, spider_var):
+    if isinstance(filename, int) and not isinstance(filename, spider_var.spider_var):
         return "(1-%d)"%(filename)
     elif isinstance(filename, tuple) and len(filename) == 2 and isinstance(filename[0], int) and isinstance(filename[1], int):
         return "(%d-%d)"%filename

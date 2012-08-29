@@ -11,6 +11,24 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+'''
+
+Todo for Launch
+===============
+
+0. Test all code and documentation
+1. Push source to code.google.com
+2. Package source zip for code.google.com `downloads`
+3. Publish source to PyPI
+4. Publish documentation to website (columbia local?)
+5. Announce on 3dem-request@ncmir.ucsd.edu
+6. Create code.google.com/arachnid-docs with SVN - http://manjeetdahiya.com/2010/09/29/serving-html-documentation-from-google-code-svn/
+7. Test MPI
+8. Test autopick dog removal bug
+9. Create script to publish code, source zip, documentation and ?binary?
+10. Script building tutorial (general)
+'''
+
 #import sys, os
 import arachnid
 
@@ -27,6 +45,7 @@ extensions = ['sphinx.ext.ifconfig', 'sphinx.ext.autodoc', 'sphinx.ext.autosumma
 jsmath_path = 'jsMath/easy/load.js'
 
 coverage_ignore_functions=['check_main_options', 'check_options', 'dependents', 'initialize', 'main', 'setup_main_options', 'setup_options', 'reduce_all', 'finalize', 'configuration', 'rglob', 'build_description']
+coverage_ignore_classes=['VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['resources/templates']
@@ -40,7 +59,7 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
-#autosummary_generate=True
+autosummary_generate=True
 
 # General information about the project.
 project = arachnid.__project__
@@ -70,7 +89,7 @@ release = arachnid.__version__
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = []
+exclude_trees = ['resources', 'git-hooks', 'build', 'dist']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -169,7 +188,7 @@ html_show_sourcelink = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'arachnid-doc'
 
-todo_include_todos = True
+todo_include_todos = False
 
 rst_epilog = """
 .. |pys| replace:: pySPIDER
@@ -207,3 +226,4 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+

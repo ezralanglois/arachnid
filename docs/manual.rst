@@ -9,16 +9,58 @@ options and corresponding example usage.
 	:depth: 1
 	:local:
 	:backlinks: none
-	
-Scripts 
+
+Scripts
 =======
 
-.. toctree::
-	:maxdepth: 2
+Applications
+------------
+
+.. currentmodule:: arachnid.app
+
+.. autosummary::
+	:nosignatures:
+	:template: man_module.rst
 	
-	Applications <app/manual>
-	Utilities <util/manual>
-	pySPIDER <pyspider/manual>
+	autopick
+	lfcpick
+
+Utilities
+---------
+
+.. currentmodule:: arachnid.util
+
+.. :toctree: man_generated/
+
+.. autosummary::
+	:nosignatures:
+	:template: man_module.rst
+	
+	crop
+    relion_selection
+    
+pySPIDER
+--------
+
+.. currentmodule:: arachnid.pyspider
+
+.. autosummary::
+	:nosignatures:
+	:template: man_module.rst
+    
+    project
+    defocus
+    reference
+    align
+    create_align
+    refine
+    reconstruct
+    classify
+   	prepare_volume
+    enhance_volume
+    filter_volume
+    mask_volume
+    resolution
 
 .. _running-scripts:
 

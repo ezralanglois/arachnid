@@ -1,7 +1,7 @@
 ============
 Attribution
 ============
-
+ 
 Art Work
 ==========
 
@@ -107,5 +107,5 @@ Website: http://ami.scripps.edu/redmine/projects/ami/wiki/software
 .. toctree::
 	:hidden:
 
-	README
+	../README
 

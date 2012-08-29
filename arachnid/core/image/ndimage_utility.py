@@ -6,17 +6,19 @@ custom wrapped fortran functions (taken from SPIDER).
 .. Created on Jul 31, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..app.tracing import log_import_error
-from eman2_utility import em2numpy2em, em2numpy2res
+from ..app import tracing
+from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
 import analysis
 import numpy, scipy, math, logging, scipy.ndimage
 import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
+'''
 try: 
     from scipy.signal import find_peaks_cwt
     find_peaks_cwt;
 except: from util._peak_finding import find_peaks_cwt
+'''
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 try: 
@@ -24,14 +26,14 @@ try:
     _spider_util;
 except:
     if _logger.isEnabledFor(logging.DEBUG):
-        log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+        tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
     try:
         import _spider_util
         _spider_util;
     except:
-        log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
-
-@em2numpy2res
+        tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+"""
+@_em2numpy2res
 def find_peaks(cc, width):
     ''' Find peaks in a cross-correlation map
     
@@ -52,8 +54,9 @@ def find_peaks(cc, width):
     ccv = cc[peaks].copy().squeeze()
     peaks = numpy.unravel_index(peaks, cc.shape)
     return numpy.hstack((ccv[:, numpy.newaxis], peaks))
+"""
 
-@em2numpy2res
+@_em2numpy2res
 def find_peaks_fast(cc, width):
     ''' Find peaks in a cross-correlation map
     
@@ -123,7 +126,7 @@ def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     a[cy-radius2:cy+radius2, cx-radius2:cx+radius2][index] = 1
     return a
 
-@em2numpy2em
+@_em2numpy2em
 def ramp(img, out=None):
     '''Remove change in illumination across an image
     
@@ -352,12 +355,15 @@ def filter_gaussian_lp(img, sigma, out=None):
 def filter_butterworth_lp(img, low_cutoff, high_cutoff):
     '''
     
+    ..todo:: finish this function
+    
     .. note:: 
         
         Taken from:
         http://www.psychopy.org/epydoc/psychopy.filters-pysrc.html
         and
         Sparx
+    
     '''
     
     eps = 0.882
@@ -381,7 +387,7 @@ def filter_image(img, filt, pad=1):
     numpy.multiply(fimg, filt, fimg)
     return scipy.fftpack.ifft2(scipy.fftpack.ifftshift(fimg)).real
 
-@em2numpy2em
+@_em2numpy2em
 def histogram_match(img, mask, ref, bins=0, iter_max=100, out=None):
     '''Remove change in illumination across an image
     
@@ -413,7 +419,7 @@ def histogram_match(img, mask, ref, bins=0, iter_max=100, out=None):
     _spider_util.histc2(out.ravel(), mask.ravel(), ref.ravel(), int(bins), int(iter_max))
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def compress_image(img, mask, out=None):
     ''' Compress the valid region of an image with the given mask into 1D array
     
@@ -438,7 +444,7 @@ def compress_image(img, mask, out=None):
         out[:] = img.ravel()[mask.ravel()>0.5]
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def fftamp(img, out=None):
     ''' Calculate the power spectra of an image
     
@@ -500,7 +506,7 @@ def logpolar(image, angles=None, radii=None, out=None):
     scipy.ndimage.interpolation.map_coordinates(image, [x, y], output=out)
     return out, log_base
 
-@em2numpy2em
+@_em2numpy2em
 def fourier_mellin(img, out=None):
     ''' Calculate the Fourier Mellin transform of an image
     
@@ -523,7 +529,7 @@ def fourier_mellin(img, out=None):
     out = numpy.abs(numpy.fft.fftshift(fimg), out)
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def segment(img, bins=0, out=None):
     ''' Segment the given image with Otsu's method
     
@@ -545,7 +551,7 @@ def segment(img, bins=0, out=None):
     th = analysis.otsu(img.ravel(), bins)
     return numpy.greater(img, th, out)
 
-@em2numpy2em
+@_em2numpy2em
 def dog(img, pixel_radius, dog_width=1.2, out=None):
     ''' Calculate difference of Gaussian over the given image
     
@@ -582,7 +588,7 @@ def dog(img, pixel_radius, dog_width=1.2, out=None):
     dnxt = scipy.ndimage.gaussian_filter(dlst, sigma=sigmaDiff)# C3100-08393194-001
     return numpy.subtract(dlst, dnxt, out)
 
-@em2numpy2em
+@_em2numpy2em
 def normalize_standard(img, mask=None, var_one=True, out=None):
     ''' Normalize image to zero mean and one variance
     
@@ -609,7 +615,7 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
         numpy.divide(out, numpy.std(mdata), out)
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
     ''' Normalize image to given lower and upper range
     
@@ -641,7 +647,7 @@ def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
     if lower != 0.0: numpy.add(lower, out, out)
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def invert(img, out=None):
     '''Invert an image
     
@@ -662,7 +668,7 @@ def invert(img, out=None):
     normalize_min_max(out, -numpy.max(out), -numpy.min(out), out)
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def vst(img, out=None):
     ''' Variance stablizing transform
     
@@ -684,7 +690,7 @@ def vst(img, out=None):
     out = numpy.add(numpy.sqrt(img), numpy.sqrt(img+1), out)
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
     '''Clamp outlier pixels, either too black due to dust or too white due to hot-pixels. Replace with 
     samples drawn from the normal distribution with the same mean and standard deviation.
@@ -732,7 +738,7 @@ def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
     
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def crop_window(img, x, y, offset, out=None):
     ''' Extract a square window from an image
     
@@ -787,7 +793,7 @@ def crop_window(img, x, y, offset, out=None):
         raise
     return out
 
-@em2numpy2em
+@_em2numpy2em
 def for_each_window(mic, coords, window, bin_factor=1.0):
     ''' Extract a window from a micrograph for each coordinate in this list
     

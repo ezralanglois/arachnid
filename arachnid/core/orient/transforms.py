@@ -46,13 +46,15 @@ functions to decompose transformation matrices.
 
 Requirements
 ------------
-* `CPython 2.7 or 3.2 <http://www.python.org>`__
-* `Numpy 1.6 <http://numpy.scipy.org>`__
-* `transformations.c 2012.01.01 <http://www.lfd.uci.edu/~gohlke/>`__
+
+- `CPython 2.7 or 3.2 <http://www.python.org>`__
+- `Numpy 1.6 <http://numpy.scipy.org>`__
+- `transformations.c 2012.01.01 <http://www.lfd.uci.edu/~gohlke/>`__
   (optional implementation of some functions in C)
 
 Notes
 -----
+
 The API is not stable yet and is expected to change between revisions.
 
 This Python code is not optimized for speed. Refer to the transformations.c
@@ -87,16 +89,16 @@ be specified using a 4 character string or encoded 4-tuple:
 
   *Axes 4-string*: e.g. 'sxyz' or 'ryxy'
 
-  - first character : rotations are applied to 's'tatic or 'r'otating frame
-  - remaining characters : successive rotation axis 'x', 'y', or 'z'
+      - first character : rotations are applied to 's'tatic or 'r'otating frame
+      - remaining characters : successive rotation axis 'x', 'y', or 'z'
 
   *Axes 4-tuple*: e.g. (0, 0, 0, 0) or (1, 1, 1, 1)
 
-  - inner axis: code of axis ('x':0, 'y':1, 'z':2) of rightmost matrix.
-  - parity : even (0) if inner axis 'x' is followed by 'y', 'y' is followed
-    by 'z', or 'z' is followed by 'x'. Otherwise odd (1).
-  - repetition : first and last axis are same (1) or different (0).
-  - frame : rotations are applied to static (0) or rotating (1) frame.
+      - inner axis: code of axis ('x':0, 'y':1, 'z':2) of rightmost matrix.
+      - parity : even (0) if inner axis 'x' is followed by 'y', 'y' is followed
+        by 'z', or 'z' is followed by 'x'. Otherwise odd (1).
+      - repetition : first and last axis are same (1) or different (0).
+      - frame : rotations are applied to static (0) or rotating (1) frame.
 
 References
 ----------

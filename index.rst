@@ -19,27 +19,13 @@ Table of Contents
 .. toctree::
 	:maxdepth: 1
 
-	Install <install>
+	Install <docs/install>
 	License <license>
-	Reconstruction Protocol <arachnid/reconstruction>
-	Manual <arachnid/manual>
-	Developer's Guide <arachnid/index>
-	Attribution <attribution>
-
-Todo for Launch
-===============
-
-0. Test all code and documentation
-1. Push source to code.google.com
-2. Package source zip for code.google.com `downloads`
-3. Publish source to PyPI
-4. Publish documentation to website (columbia local?)
-5. Announce on 3dem-request@ncmir.ucsd.edu
-6. Create code.google.com/arachnid-docs with SVN - http://manjeetdahiya.com/2010/09/29/serving-html-documentation-from-google-code-svn/
-7. Test MPI
-8. Test autopick dog removal bug
-9. Create script to publish code, source zip, documentation and ?binary?
-10. Script building tutorial (general)
+	Reconstruction Protocol <docs/reconstruction>
+	Manual <docs/manual>
+	Developer's Guide <docs/development>
+	API <docs/api>
+	Attribution <docs/attribution>
 
 Important links
 ===============

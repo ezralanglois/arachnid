@@ -4,7 +4,7 @@
 .. Created on Aug 13, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..app.tracing import log_import_error
+from ..app import tracing
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -13,5 +13,5 @@ try:
     import pylab
     pylab;
 except:
-    log_import_error('Failed to load matplotlib - plotting functions have been disabled', _logger)
+    tracing.log_import_error('Failed to load matplotlib - plotting functions have been disabled', _logger)
     pylab=None

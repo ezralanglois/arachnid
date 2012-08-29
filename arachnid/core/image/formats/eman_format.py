@@ -88,7 +88,7 @@ def is_readable(filename):
            True if the format is recognized
     '''
     
-    try: return eman2_utility.EMUtil.get_image_type(filename) != eman2_utility.EMUtil.ImageType.IMAGE_UNKNOWN
+    try: return eman2_utility.EMAN2.EMUtil.get_image_type(filename) != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
     
 def read_header(filename, index=None):
@@ -110,7 +110,7 @@ def read_header(filename, index=None):
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
-    emdata = eman2_utility.EMData()
+    emdata = eman2_utility.EMAN2.EMData()
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, index)
     
@@ -139,11 +139,11 @@ def read_image(filename, index=None, cache=None):
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
-    emdata = eman2_utility.EMData() if cache is None else cache
+    emdata = eman2_utility.EMAN2.EMData() if cache is None else cache
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, index)
-    type = eman2_utility.EMUtil.get_image_type(filename)
-    if type == eman2_utility.EMUtil.ImageType.IMAGE_MRC:
+    type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
+    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
         try: mrc_label = emdata.get_attr('MRC.label0')
         except: mrc_label = ""
         if (mrc_label.find('IMAGIC') != -1 and mrc_label.find('SPIDER') != -1):
@@ -173,7 +173,7 @@ def iter_images(filename, index=None):
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     if index is None: index = 0
-    emdata = eman2_utility.EMData()
+    emdata = eman2_utility.EMAN2.EMData()
     count = count_images(filename)
     if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
     for i in xrange(index, count):
@@ -196,7 +196,7 @@ def count_images(filename):
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
-    return eman2_utility.EMUtil.get_image_count(filename)
+    return eman2_utility.EMAN2.EMUtil.get_image_count(filename)
 
 def is_writable(filename):
     ''' Test if the image extension of the given filename is understood
@@ -213,10 +213,10 @@ def is_writable(filename):
             True if the format is recognized
     '''
     
-    ext = eman2_utility.Util.get_filename_ext(filename)
+    ext = eman2_utility.EMAN2.Util.get_filename_ext(filename)
     try:
-        type = eman2_utility.EMUtil.get_image_ext_type(ext)
-        return type != eman2_utility.EMUtil.ImageType.IMAGE_UNKNOWN
+        type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(ext)
+        return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
 
 def write_image(filename, img, index=None, type=None):
@@ -231,7 +231,7 @@ def write_image(filename, img, index=None, type=None):
           Image data to write out
     index : int, optional
             Index image should be written to in the stack
-    type : eman2_utility.EMUtil.ImageType, optional
+    type : eman2_utility.EMAN2.EMUtil.ImageType, optional
            Format to write image in
     '''
     
@@ -239,16 +239,16 @@ def write_image(filename, img, index=None, type=None):
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not eman2_utility.is_em(img): img = eman2_utility.numpy2em(img)
     if type is None:
-        type = eman2_utility.EMUtil.get_image_ext_type(eman2_utility.Util.get_filename_ext(filename))
-    if type == eman2_utility.EMUtil.ImageType.IMAGE_MRC: img.process_inplace("xform.flip",{"axis":"y"})
-    if type == eman2_utility.EMUtil.ImageType.IMAGE_UNKNOWN: type = eman2_utility.EMUtil.ImageType.IMAGE_SPIDER
+        type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
+    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: img.process_inplace("xform.flip",{"axis":"y"})
+    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
     if index is None:
-        if type == eman2_utility.EMUtil.ImageType.IMAGE_SPIDER:
-            type = eman2_utility.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
+        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER:
+            type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
         index = 0
     img.write_image_c(filename, index, type)
     # Workaround for buggy Montage from doc viewer
-    if type == eman2_utility.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
+    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
         f = open(filename, 'r+b')
         f.seek(26*4)
         f.write(struct.pack('f', 0.0))

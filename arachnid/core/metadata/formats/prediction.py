@@ -25,7 +25,7 @@ It supports the following attributes:
 .. Created on Apr 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..format_utility import ParseFormatError, convert
+from .. import format_utility
 from ..factories import namedtuple_factory
 from collections import namedtuple
 import logging
@@ -126,9 +126,9 @@ class read_iterator(object):
             self.lastline = ""
         vals = line.split('\t')[1:]
         _logger.debug("line:"+str(self.hlen)+" == "+str(len(vals)))
-        if self.hlen != len(vals): raise ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
+        if self.hlen != len(vals): raise format_utility.ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
         if self.columns is not None: vals = vals[self.columns]
-        if self.numeric: return [convert(v) for v in vals]
+        if self.numeric: return [format_utility.convert(v) for v in vals]
         return vals
 
 def read_header(filename, header=[], factory=namedtuple_factory, description={}, **extra):
@@ -184,7 +184,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
             if line == "": break
             line = line.strip()
             if line == "": continue
-            if line.find('\t') == -1: raise ParseFormatError, "Could not parse prediction HEADER - no tab"
+            if line.find('\t') == -1: raise format_utility.ParseFormatError, "Could not parse prediction HEADER - no tab"
             tag, val = line.split('\t', 1)
             if tag == '#ES':
                 try:
@@ -217,7 +217,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
         raise
     else:
         fin.close()
-    raise ParseFormatError, "Cannot parse header of prediction file - end of document"
+    raise format_utility.ParseFormatError, "Cannot parse header of prediction file - end of document"
 
 def reader(filename, header=[], lastline="", **extra):
     '''Creates a malibu prediction read iterator

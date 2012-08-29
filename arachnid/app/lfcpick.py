@@ -214,7 +214,7 @@ def search_peaks(cc_map, radius, overlap_mult, peak_last=None):
     
     if 1 == 0:
         peaks = cc_map.peak_ccf(radius*overlap_mult)
-        if peak_last is not None: peaks = eman2_utility.Util.merge_peaks(peak_last, peaks, 2*radius)
+        if peak_last is not None: peaks = eman2_utility.EMAN2.Util.merge_peaks(peak_last, peaks, 2*radius)
     else:
         peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
         if peak_last is not None:
@@ -345,12 +345,12 @@ def create_template(template, disk_mult=1.0, **extra):
     #mic = ndimage_file.read_image(template)
     if template != "": return image_reader.read_image(template)
     radius, offset = init_param(**extra)[:2]
-    template = eman2_utility.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
+    template = eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
     if True:
         kernel_size = int(radius) #
         if (kernel_size%2)==0: kernel_size += 1
         try:
-            return eman2_utility.gauss_edge(template, kernel_size = kernel_size, gauss_standard_dev = 3)
+            return eman2_utility.utilities.gauss_edge(template, kernel_size = kernel_size, gauss_standard_dev = 3)
         except:
             _logger.error("template(%d,%d) - %d, %f"%(template.get_xsize(), template.get_ysize(), radius, disk_mult))
             raise
@@ -386,7 +386,7 @@ def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
     if window == 1.0: window = 1.4
     offset = int(window*rad) if window < (2*pixel_radius) else int( window / (float(bin_factor)*2.0) )
     width = offset*2
-    mask = eman2_utility.model_circle(rad, width, width)
+    mask = eman2_utility.utilities.model_circle(rad, width, width)
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
@@ -463,7 +463,7 @@ def find_overlap(coords, benchmark, pixel_radius, bench_mult=1.2, **extra):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param['emdata'] = eman2_utility.EMData()
+    param['emdata'] = eman2_utility.EMAN2.EMData()
     param["confusion"] = numpy.zeros((len(files), 4))
     
     if mpi_utility.is_root(**param):

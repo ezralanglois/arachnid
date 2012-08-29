@@ -1,18 +1,17 @@
-===============
-:mod:`arachnid`
-===============
+===================
+Developer's Guide
+===================
 
-------------
-Package API
-------------
+.. contents:: 
+	:depth: 1
+	:local:
+	:backlinks: none
+ 
+-------------------------------
+Application Programs Interface
+-------------------------------
 
-.. toctree::
-	:maxdepth: 1
-
-	Applications <app/index>
-	Utilities <util/index>
-	Core <core/index>
-	pySpider <pyspider/index>
+See :doc:`api` for a full list of available modules
 
 -----------
 Development
@@ -23,9 +22,8 @@ Development
 	:local:
 	:backlinks: none
 
---------------
 Getting Source
---------------
+==============
 
 To get the latest version of the source, use the following `git <http://git-scm.com/documentation>`_ command:
 
@@ -47,9 +45,8 @@ Every time you add a new script or the first time you get the source, you may ru
 
 .. _contribute:
 
-------------
 Contributing
-------------
+=============
 
 Bug Report
 ----------
@@ -130,12 +127,14 @@ errors is `valgrind <http://valgrind.org/>`_.
 
 	$ valgrind -v --suppressions=valgrind-python.supp python my_test_script.py
 
------------------------
+
 Create a Program Script
------------------------
+=======================
 
 .. example batch program
 .. example file processor program
+
+Under construction
 
 ------
 TODO

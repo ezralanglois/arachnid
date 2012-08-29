@@ -78,11 +78,8 @@ Run the decimate command with the given parameters
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import spider_session
-from spider_session import SpiderCommandError, SpiderParameterError
-#from spider_session import spider_fd, spider_tuple, spider_template, is_incore_filename, spider_doc, spider_select, spider_stack, spider_coord_tuple, stack_size, is_spider_stack, spider_image_header, is_spider_image, is_float_int, is_spider_volume
 from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename
-#from custom import commands
-from collections import namedtuple
+import collections
 import logging, os, numpy
 
 _logger = logging.getLogger(__name__)
@@ -832,7 +829,7 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Get value of pixel in an image")
-        if du_type not in (1, 2, 3): raise SpiderParameterError, "du_type must be 1, 2 or 3"
+        if du_type not in (1, 2, 3): raise spider_session.SpiderParameterError, "du_type must be 1, 2 or 3"
         session.invoke('du', spider_image(inputfile), spider_tuple(du_nstd), spider_tuple(du_type))
         return inputfile
     
@@ -895,8 +892,8 @@ class Session(spider_session.Session):
         if isinstance(header, str): header = header.split(',')
         hreg = ["[x%d]"%(i+1) for i in xrange(len(header))]
         session.invoke('fi h %s'%(",".join(hreg)), spider_image(inputfile), ",".join(header))
-        if int(session[9]) > 0: raise SpiderCommandError, "fi h failed to inquire header from the given file"
-        return namedtuple("fih", ",".join(header))._make([session[r] for r in hreg])
+        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "fi h failed to inquire header from the given file"
+        return collections.namedtuple("fih", ",".join(header))._make([session[r] for r in hreg])
     
     LP, HP, GAUS_LP, GAUS_HP, FERMI_LP, FERMI_HP, BUTER_LP, BUTER_HP = range(1, 9)
     def fq(session, inputfile, filter_type=7, filter_radius=0.12, pass_band=0.1, stop_band=0.2, temperature=0.3, outputfile=None, **extra):
@@ -1202,7 +1199,7 @@ class Session(spider_session.Session):
         _logger.debug("List values of an image to a document file")
         if outputfile is None: raise ValueError, "Incore documents curenttly not supported by LI D"
         if info_type not in ('H', 'P', 'R', 'C', 'I', 'W'): 
-            raise SpiderParameterError, "Info type must be .HEADER, PIXEL, ROW, COLUMN, IMAGE, OR WINDOW (H/P/R/C/I/W)"
+            raise spider_session.SpiderParameterError, "Info type must be .HEADER, PIXEL, ROW, COLUMN, IMAGE, OR WINDOW (H/P/R/C/I/W)"
         additional = []
         if   info_type == 'H': additional.append( spider_tuple(*header_pos) )
         elif info_type == 'P': additional.append( spider_tuple(column, row) )
@@ -1256,8 +1253,8 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        if mask_type not in ('D', 'C', 'G', 'T'): raise SpiderParameterError, "mask type must be D/C/G/T"
-        if background_type not in ('A', 'P', 'C', 'E'): raise SpiderParameterError, "mask type must be A/P/C/E"
+        if mask_type not in ('D', 'C', 'G', 'T'): raise spider_session.SpiderParameterError, "mask type must be D/C/G/T"
+        if background_type not in ('A', 'P', 'C', 'E'): raise spider_session.SpiderParameterError, "mask type must be A/P/C/E"
         if not isinstance(radius, tuple): radius = (radius, 0)
         elif len(radius) == 1: radius = ( int(radius[0]), 0)
         additional = [ spider_tuple(int(center[0]), int(center[1])) ]
@@ -1427,13 +1424,13 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Create an inline stack - True")
-        if not isinstance(num_images, int): raise SpiderParameterError, "Number of images currently required to be an integer"
+        if not isinstance(num_images, int): raise spider_session.SpiderParameterError, "Number of images currently required to be an integer"
         if outputfile is None: outputfile = session.temp_incore_image(True, hook=session.de, is_stack=True)#(True)
         if image_width is None: image_width = window
         if isinstance(image_width, str) or isinstance(image_width, tuple): 
             vals = session.fi_h(image_width, ('NSAM', 'NROW'))
             image_width, height = int(vals.NSAM), int(vals.NROW)
-            if height == 0 or image_width == 0: raise SpiderCommandError, "Failed to query image dimensions"
+            if height == 0 or image_width == 0: raise spider_session.SpiderCommandError, "Failed to query image dimensions"
         if isinstance(outputfile, tuple): outputfile = outputfile[0]
         if height == 0: height = image_width
         session.invoke('ms', spider_stack(outputfile), spider_tuple(image_width, height, depth), spider_tuple(num_images))
@@ -1468,7 +1465,7 @@ class Session(spider_session.Session):
         
         return spider_session.spider_command_multi_input(session, 'mu', "Multiply images", inputfile, *otherfiles, **extra)
     
-    OR_SH_TUPLE = namedtuple("orsh", "psi,x,y,mirror,cc")
+    OR_SH_TUPLE = collections.namedtuple("orsh", "psi,x,y,mirror,cc")
     def or_sh(session, inputfile, reference, trans_range=6, trans_step=2, ring_first=2, ring_last=15, test_mirror=True, window=None, **extra):
         '''Determines rotational and translational orientation between two images after resampling into 
         polar coordinates with optional additional check of mirror transformation. This is the same 
@@ -1599,7 +1596,7 @@ class Session(spider_session.Session):
             #. This command automatically calls `ms` or make stack when the outputfile is None, i.e. when an incore file is automatically used.
             #. If the `pj_radius` is 0 or less, this command sets the pj_radius to 0.69*pixel_diameter where pixel_diameter is defined in the params file
             #. Currently, `angle_list` only supports a single integer, not a selection file
-            #. If the command fails and no file is generated, it will raise an exception, SpiderCommandError
+            #. If the command fails and no file is generated, it will raise an exception, spider_session.SpiderCommandError
         
         :Parameters:
         
@@ -1630,7 +1627,7 @@ class Session(spider_session.Session):
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
         if outputfile is None: outputfile = session.ms(total_size, spider_image(inputfile))
         if pj_radius is None or pj_radius < 1:
-            if pixel_diameter is None: raise SpiderParameterError, "Either radius or pixel_diameter must be set"
+            if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
         session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_image(outputfile, max_count))
         return outputfile
@@ -2342,7 +2339,7 @@ class Session(spider_session.Session):
         if out is None: out = numpy.zeros((nreg))
         regs = ["[x%d]"%(i+1) for i in xrange(nreg)]
         session.invoke(('ud %d,'%key)+",".join(regs), spider_doc(inputfile))
-        if int(session[9]) > 0: raise SpiderCommandError, "ud failed to get value from document file"
+        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "ud failed to get value from document file"
         for i in xrange(nreg): out[i] = session[regs[i]]
         return out
 
@@ -2392,7 +2389,7 @@ class Session(spider_session.Session):
         if out is None: out = numpy.zeros((nreg))
         regs = ["[x%d]"%(i+1) for i in xrange(nreg)]
         session.invoke('ud ic %d,%s'%(key,",".join(regs)), spider_doc(inputfile))
-        if int(session[9]) > 0: raise SpiderCommandError, "ud ic failed to get value from document file"
+        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "ud ic failed to get value from document file"
         for i in xrange(nreg): out[i] = session[regs[i]]
         return out 
 
@@ -2492,8 +2489,8 @@ class Session(spider_session.Session):
             try: session.de(outputfile)
             except: pass
         session.invoke('vo ea x11', spider_tuple(theta_delta), spider_tuple(theta_start, theta_end), spider_tuple(phi_start, phi_end), spider_doc(outputfile))
-        if int(session['x11']) < 1: raise SpiderCommandError, "No angles produced"
-        if int(session[9]) > 0: raise SpiderCommandError, "vo ea failed to produce an output file"
+        if int(session['x11']) < 1: raise spider_session.SpiderCommandError, "No angles produced"
+        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "vo ea failed to produce an output file"
         return (outputfile, int(session['x11']))
     
     def vo_ras(session, inputfile, angle_num, rotation, psi_value=(1,0), outputfile=None, **extra):

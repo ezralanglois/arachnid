@@ -11,6 +11,8 @@ Before you can run a script in the Arachnid package (after installation), you ne
 
 	$ source /guam.raid.cluster.software/arachnid/arachnid.rc
 
+.. currentmodule:: arachnid
+
 Install Source
 ===============
 

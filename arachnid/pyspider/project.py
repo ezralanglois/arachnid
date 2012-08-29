@@ -156,9 +156,7 @@ This is not a complete list of options available to this script, for additional 
 
 .. todo:: add support for microscope log file
 
-.. todo:: max_ref_proj for alignment should depend on reference count, if less!
-
-.. todo:: detect MPI command and set options based on whether is mpich or openmpi
+.. todo:: where to find spider executable, add to installation discussion
 
 .. Created on Aug 16, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

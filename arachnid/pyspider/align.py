@@ -60,7 +60,7 @@ Critical Options
     
     Set to True if your data stack(s) has already been phase flipped or CTF corrected (Default: False)
 
-..option:: -r <FILENAME>, --reference <FILENAME>
+.. option:: -r <FILENAME>, --reference <FILENAME>
     
     Filename for reference with the proper pixel size
 

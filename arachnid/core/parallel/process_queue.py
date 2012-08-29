@@ -6,9 +6,9 @@ utilization with a queue.
 .. Created on Oct 16, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from multiprocessing import Process, Queue, RawArray #, Lock, Pool
+import multiprocessing
 import logging, sys, traceback, numpy, ctypes, scipy, scipy.sparse
-from functools import partial
+import functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -30,6 +30,7 @@ def shmem_as_ndarray(raw_array):
         
         Original code:
         http://pyresample.googlecode.com/svn-history/r2/trunk/pyresample/_multi_proc.py
+    
     '''
     _ctypes_to_numpy = {
                         ctypes.c_char : numpy.int8,
@@ -102,7 +103,7 @@ def create_global_dense_matrix(shape, dtype=numpy.float, use_local=False):
     if not use_local:
         tot = 1
         for s in shape: tot *= s
-        shmem_data = RawArray(_numpy_to_ctypes[dtype], tot)
+        shmem_data = multiprocessing.RawArray(_numpy_to_ctypes[dtype], tot)
         data = shmem_as_ndarray(shmem_data).reshape(shape)
         shmem = (shmem_data, shape)
     else:
@@ -130,9 +131,9 @@ def create_global_sparse_matrix(n, neighbors, use_local=False):
     
     tot = n*(neighbors+1)
     if not use_local:
-        shmem_data = RawArray(ctypes.c_double, tot)
-        shmem_row = RawArray(ctypes.c_int, tot)
-        shmem_col = RawArray(ctypes.c_int, tot)
+        shmem_data = multiprocessing.RawArray(ctypes.c_double, tot)
+        shmem_row = multiprocessing.RawArray(ctypes.c_int, tot)
+        shmem_col = multiprocessing.RawArray(ctypes.c_int, tot)
         data = shmem_as_ndarray(shmem_data)
         row = shmem_as_ndarray(shmem_row)
         col = shmem_as_ndarray(shmem_col)
@@ -264,11 +265,11 @@ def start_workers(worker_callback, n, **extra):
     '''
     
     if n == 0: return None, None
-    qin = Queue()
-    qout = Queue()
+    qin = multiprocessing.Queue()
+    qout = multiprocessing.Queue()
     for i in xrange(n): 
-        target = partial(worker_all, qin=qin, qout=qout, worker_callback=worker_callback, process_number=i, **extra)
-        p = Process(target=target)
+        target = functools.partial(worker_all, qin=qin, qout=qout, worker_callback=worker_callback, process_number=i, **extra)
+        p = multiprocessing.Process(target=target)
         p.daemon=True
         p.start()
     return qin, qout
@@ -314,11 +315,11 @@ def start_raw_workers(worker_callback, n, *args, **extra):
     '''
     
     if n == 0: return None, None
-    qin = Queue()
-    qout = Queue()
+    qin = multiprocessing.Queue()
+    qout = multiprocessing.Queue()
     for i in xrange(n):
-        target = partial(worker_callback, **extra)
-        Process(target=target, args=(qin, qout)+args).start()
+        target = functools.partial(worker_callback, **extra)
+        multiprocessing.Process(target=target, args=(qin, qout)+args).start()
     return qin, qout
 
 def start_raw_enum_workers(worker_callback, n, total=-1, *args, **extra):
@@ -364,11 +365,11 @@ def start_raw_enum_workers(worker_callback, n, total=-1, *args, **extra):
     '''
     
     if n == 0: return None, None
-    qin = Queue(total)
-    qout = Queue(total)
+    qin = multiprocessing.Queue(total)
+    qout = multiprocessing.Queue(total)
     for i in xrange(n):
-        target = partial(worker_callback, **extra)
-        Process(target=target, args=(qin, qout, i, n)+args).start()
+        target = functools.partial(worker_callback, **extra)
+        multiprocessing.Process(target=target, args=(qin, qout, i, n)+args).start()
     return qin, qout
 
 def stop_workers(n, qin):

@@ -294,7 +294,16 @@ if not loaded:
     loaded = True
     
     class NullHandler(logging.Handler):
+        ''' Logging handler that does nothing
+        '''
         def emit(self, record):
+            ''' Dummy emit function
+            
+            :Parameters:
+            
+            record : object
+                     Record to log
+            '''
             pass
     h = NullHandler()
     logging.getLogger("vispider").addHandler(h)

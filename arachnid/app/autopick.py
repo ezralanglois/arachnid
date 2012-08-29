@@ -292,7 +292,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     _logger.error("Total particles: %d"%len(scoords))
     radius, offset, bin_factor, tmp = lfcpick.init_param(**extra)
     del tmp
-    emdata = eman2_utility.model_blank(offset*2, offset*2)
+    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
     npdata = eman2_utility.em2numpy(emdata)
     dgmask = ndimage_utility.model_disk(radius/2, offset*2)
     masksm = dgmask

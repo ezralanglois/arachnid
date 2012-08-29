@@ -24,7 +24,7 @@ def test_biggest_object():
     emmask = eman2_utility.numpy2em(mask)
     threshold = analysis.otsu(mask.ravel())
     embin = binarize(emmask, threshold)
-    m1 = eman2_utility.Util.get_biggest_cluster(embin)
+    m1 = eman2_utility.EMAN2.Util.get_biggest_cluster(embin)
     m2 = ndimage_utility.biggest_object(mask>threshold)
     numpy.testing.assert_allclose(eman2_utility.em2numpy(m1), m2)
 
@@ -51,7 +51,7 @@ def test_tight_mask():
         numpy.testing.assert_allclose(eman2_utility.em2numpy(kern), K)
     
     if 1 == 1:
-        m1 = eman2_utility.Util.get_biggest_cluster(binarize(emmask, threshold))
+        m1 = eman2_utility.EMAN2.Util.get_biggest_cluster(binarize(emmask, threshold))
         for i in xrange(ndilate): m1 = dilation(m1)
         if kernel_size > 0: m1 = gauss_edge(m1, kernel_size, gauss_standard_dev)
         m2 = ndimage_utility.tight_mask(mask, threshold, ndilate, kernel_size, gauss_standard_dev)
@@ -64,7 +64,7 @@ def test_model_disk():
     '''
     
     rad, width = 13, 78
-    tmp = eman2_utility.model_circle(rad, width, width)
+    tmp = eman2_utility.utilities.model_circle(rad, width, width)
     numpy.testing.assert_allclose(eman2_utility.em2numpy(tmp), ndimage_utility.model_disk(rad, width))
 
 def test_ramp():
@@ -185,14 +185,14 @@ def test_local_variance():
         nxc = nx+mnx
         nyc = ny+mny
         print nxc
-        emtemp2 = emtemp.get_clip(eman2_utility.Region((mnx-nxc)/2, (mny-nyc)/2, nxc, nyc),0)
-        squared = emdata.get_clip(eman2_utility.Region((nx-nxc)/2, (ny-nyc)/2, nxc, nyc),0) #emdata.get_edge_mean())
+        emtemp2 = emtemp.get_clip(eman2_utility.EMAN2.Region((mnx-nxc)/2, (mny-nyc)/2, nxc, nyc),0)
+        squared = emdata.get_clip(eman2_utility.EMAN2.Region((nx-nxc)/2, (ny-nyc)/2, nxc, nyc),0) #emdata.get_edge_mean())
         #squared.process_inplace("math.pow",{'pow': 2.0});
         ref = squared.convolute(emtemp2)
         print numpy.argmax(eman2_utility.em2numpy(ref)), numpy.max(eman2_utility.em2numpy(ref))
         ref.process_inplace("xform.phaseorigin.tocenter")
         print numpy.argmax(eman2_utility.em2numpy(ref)), numpy.max(eman2_utility.em2numpy(ref))
-        #ref.clip_inplace(eman2_utility.Region((nxc-nx)/2, (nyc-ny)/2, nx, ny));
+        #ref.clip_inplace(eman2_utility.EMAN2.Region((nxc-nx)/2, (nyc-ny)/2, nx, ny));
     
         numpy.testing.assert_allclose(eman2_utility.em2numpy(ref), out)
     
