@@ -143,6 +143,10 @@ Advanced Options
 .. option:: --local-scratch <FILENAME>
     
     File directory on local node to copy files (optional but recommended for MPI jobs)
+    
+.. option:: --spider-path <FILENAME>
+
+    Filename for SPIDER executable
 
 Other Options
 =============
@@ -270,12 +274,14 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                                output=param['reference'],
                                description=run_single_node,
                                config_path = sn_path,
+                               #restart_file
                                )), 
                (defocus,  dict(input_files=files,
                                output=param['defocus_file'],
                                description=run_hybrid_node, 
                                config_path = sn_path,
                                supports_MPI=True,
+                               #restart_file
                                )),
                                
                (autopick, dict(input_files=files,
@@ -283,24 +289,28 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                                description=run_hybrid_node, 
                                config_path = sn_path,
                                supports_MPI=True,
+                               #restart_file
                                )), 
                (crop,     dict(input_files=files,
                                output = param['stacks'],
                                description=run_hybrid_node, 
                                config_path = sn_path,
                                supports_MPI=True,
+                               #restart_file
                                )), 
                (align,    dict(input_files=param['stacks'],
                                output = param['alignment'],
                                description = run_multi_node, 
                                config_path = mn_path,
                                supports_MPI=True,
+                               #selection_file
                                )), 
                (refine,    dict(input_files=param['stacks'],
                                output = param['alignment'],
                                description = run_multi_node, 
                                config_path = mn_path,
                                supports_MPI=True,
+                               #selection_file
                                )),
                 ]
     for mod, extra in modules:
@@ -402,13 +412,14 @@ def setup_options(parser, pgroup=None, main_option=False):
         
     # Additional options to change
     group = OptionGroup(parser, "Additional Parameters", "Optional parameters to set", group_order=0,  id=__name__)
-    group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node", default=0)
+    group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)
     group.add_option("",    mpi_command="",         help="Command used to invoked MPI, if empty, then attempt to detect version of MPI and provide the command")
     group.add_option("",    bin_factor=1.0,         help="Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified")
     group.add_option("-w",  worker_count=0,         help="Set number of  workers to process files in parallel",  gui=dict(minimum=0))
     group.add_option("",    shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
     group.add_option("",    home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
     group.add_option("",    local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",    spider_path="",         help="Filename for SPIDER executable", gui=dict(filetype="open"))
     parser.add_option_group(group)
     
 def check_options(options, main_option=False):
