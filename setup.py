@@ -1,6 +1,39 @@
 '''
+Installation Notes
+==================
+
+Arachnid depends on several packages that cannot or should not be installed
+using easy_install. 
+
+NumPY and SciPy fall into the should-not category because
+they can be sped up substantially if you install a vendor tuned linear 
+algebra library first.
+
+PyQT4 and EMAN2/Sparx have a more extensive set of installation requirements
+and thus must be downloaded from their respective sites.
+
+Matplotlib can use the PyQT4 library if installed after PyQT4.
+
 Prerequisites
---------------
+=============
+
+Please look over the list of prerequisites, if you do not have one
+installed then refer to the installation steps below.
+
+Compilers
+---------
+
+The following compilers are required if you install from the source:
+
+    - C compiler
+    - C++ compiler
+    - Fortran compiler
+
+See `NumPY Installation <http://docs.scipy.org/doc/numpy/user/install.html#building-from-source>`_ 
+for details on how to compile this source.
+
+Packages to Download
+--------------------
 
     - Vendor tuned linear algebra library (Required to run fast!)
         
@@ -10,30 +43,23 @@ Prerequisites
         - `Lapack`_ / `Blas`_
         - `Goto Blas`_
     
-    - Graphical user interface libraries
+    - Graphical user interface libraries (Future Requirement)
         
         - `QT4`_
         - `PyQT4`_
     
     - Single particle reconstruction package
         
-        - `EMAN2/Sparx`_
+        - `EMAN2/Sparx`_ (Currently Required)
+        - `SPIDER`_ (Not required for installation but to run pySPIDER scripts)
     
-    - Scientific Python packages:
+    - Scientific Python packages (Required)
         
         - `Numpy`_
         - `Scipy`_
         - `Matplotlib`_
-    
-    - Documentation
-    
-        - `Sphinx`_ (Documentation)
-    
-    - Binary packagers
-        
-        - `Cx_Freeze`_ (Linux Packager)
 
-
+.. _`SPIDER`: http://www.wadsworth.org/spider_doc/spider/docs/spi-register.html
 .. _`ACML`: http://developer.amd.com/cpu/Libraries/acml/Pages/default.aspx
 .. _`MKL`: http://software.intel.com/en-us/intel-mkl/
 .. _`Atlas`: http://math-atlas.sourceforge.net/
@@ -51,10 +77,10 @@ Prerequisites
 .. _`Py2exe`: http://www.py2exe.org/
 .. _`Cx_Freeze`: http://cx-freeze.sourceforge.net/
 
-Installation Steps
-------------------
+Installation of Prerequisites
+-----------------------------
 
-1. Install Vendor-tuned Linear Algebra Library
+#. Install Vendor-tuned Linear Algebra Library
         
         - `ACML`_
         - `MKL`_
@@ -79,9 +105,9 @@ Installation Steps
         
         cp lib/LINUX/cblas_LINUX.a /path-to-acml/libcblas.a
 
-2. Install Python 2.6
+#. Install Python 2.6 or 2.7
 
-3. Install Numpy
+#. Install Numpy
 
     Create `site.cfg` in the Numpy source root and add the following values depending
     on where your vendor tuned library is install (this example is for ACML):
@@ -99,25 +125,21 @@ Installation Steps
         include_dirs = /opt/acml4.4.0/gfortran64_mp/include
         
 
-4. Install Scipy
+#. Install Scipy
 
-5. Install Matplotlib
+#. Install Matplotlib (Required for plotting functions)
     
     .. note ::
 
         If you plan on using the graphical user interface, install Qt4 and PyQt4 (steps 9 and 10) before installing matplotlib
 
-6. Install EMAN2/Sparx
+#. Install EMAN2/Sparx
 
-7. Install Sphinx (Required for Documentation)
+#. Install Qt4 (Required for graphical user interface)
 
-8. Install cx_Freeze (Required to build stand-alone application)
+#. Install PyQt4 (Required for graphical user interface)
 
-9. Install Qt4 (Required for graphical user interface)
-
-10. Install PyQt4 (Required for graphical user interface)
-
-11. Setup Environment
+#. Setup Environment
     
     For Bash:
     
@@ -131,25 +153,6 @@ Installation Steps
         export BLAS_LIBS=acml:cblas:acml_mv
         export BLAS_PATH=/opt/acml4.4.0/gfortran64_mp
         export LD_LIBRARY_PATH=$BLAS_PATH/lib:$LD_LIBRARY_PATH
-
-
-
-Build Source
--------------
-
-To use OpenMP:
-
-.. sourcecode:: sh
-
-    $ export CFLAGS="-fopenmp"
-
-The following illustrates a set of commands to build various parts of the source:
-        
-.. sourcecode:: sh
-    
-    
-    $ python setup.py build           # Build the C/C++ and Fortran as well as the documents
-    $ python setup.py build_sphinx    # Build Documentation Only
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

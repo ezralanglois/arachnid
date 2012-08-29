@@ -2,21 +2,39 @@
 Installation
 =============
 
-Setup Packages
-==============
-
-Before you can run a script in the Arachnid package (after installation), you need to setup your environment.
-
-.. sourcecode:: sh
-
-	$ source /guam.raid.cluster.software/arachnid/arachnid.rc
 
 .. currentmodule:: arachnid
 
-Install Source
-===============
-
 .. automodule:: setup
+
+Installing an official release
+==============================
+
+Easy install
+------------
+
+This is usually the fastest way to install the latest stable
+release. If you have pip or easy_install, you can install or update
+with the command::
+
+    pip install -U arachnid
+
+or::
+
+    easy_install -U arachnid
+
+for easy_install.
+
+
+From Source
+-----------
+Download the package from https://code.google.com/p/arachnid/downloads/list
+, unpack the sources and cd into archive.
+
+This packages uses distutils, which is the default way of installing
+python modules. The install command is::
+
+  python setup.py install
 
 
 

@@ -1,3 +1,4 @@
+docs/api_generated/
 dist
 build
 *.sh

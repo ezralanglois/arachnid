@@ -1,0 +1,48 @@
+/** Adopted from http://www.cssplay.co.uk/layouts/basics2.html **/
+html {
+height:100%; /* fix height to 100% for IE */
+max-height:100%; /* fix height for other browsers */
+padding:0; /*remove padding */
+margin:0; /* remove margins */
+border:0; /* remove borders */
+background:#fff; /*color background - only works in IE */
+font-size:80%; /*set default font size */
+font-family:"trebuchet ms", tahoma, verdana, arial, sans-serif; /* set default font */
+/* hide overflow:hidden from IE5/Mac */
+/* \*/
+overflow:hidden; /*get rid of scroll bars in IE */
+/* */
+}
+
+
+body {
+height:100%; /* fix height to 100% for IE */
+max-height:100%; /* fix height for other browsers */
+overflow:hidden; /*get rid of scroll bars in IE */
+padding:0; /*remove padding */
+margin:0; /* remove margins */
+border:0; /* remove borders */
+}
+
+div.document {
+height:90%; /* fix height to 100% for IE */
+max-height:90%; /* fix height for other browsers */
+overflow:hidden; /*get rid of scroll bars in IE */
+}
+
+
+div.documentwrapper { 
+display:block; /* set up as a block */
+height:100%; /* set height to full page */
+max-height:100%; /* fix height for other browsers */
+overflow:auto; /* add scroll bars as required */
+}
+
+div.sphinxsidebar {
+height:100%;
+max-height:100%;
+display:block;
+overflow-y:scroll; /* add scroll bars as required */
+width: 245px; /* hack to keep the search button up */
+}
+
