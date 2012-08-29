@@ -1,3 +1,5 @@
+@import url("nature.css");
+
 /** Adopted from http://www.cssplay.co.uk/layouts/basics2.html **/
 html {
 height:100%; /* fix height to 100% for IE */

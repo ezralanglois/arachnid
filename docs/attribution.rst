@@ -102,7 +102,17 @@ Website: http://ami.scripps.edu/redmine/projects/ami/wiki/software
                 Journal of Structural Biology 166(2): 205-213.
                 <http://www.ncbi.nlm.nih.gov/pubmed/19374019>`_
 
+SPIDER
+------
 
+This package provides the main driver for pySPIDER as well as some fortran code for general
+Arachnid use.
+
+Website: http://www.wadsworth.org/spider_doc/spider/docs/
+
+.. [Shaikh2008] `Tanvir R Shaikh, Haixiao Gao, William T Baxter, Francisco J Asturias, Nicolas Boisset, Ardean Leith & Joachim Frank (2008)
+	   			SPIDER image processing for single-particle reconstruction of biological macromolecules from electron micrographs. 
+	   			Nature Protocols 3, 1941-1974 <http://www.nature.com/nprot/journal/v3/n12/full/nprot.2008.156.html>`_
 
 .. toctree::
 	:hidden:

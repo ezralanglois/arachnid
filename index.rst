@@ -1,15 +1,19 @@
-
 ====================
 Welcome to Arachnid
 ====================
 
-Arachnid is an open source software package written primarily in Python to assist in 
-particle selection, an essential step in single particle reconstruction. The algorithms
-and tools provided are rooted in image processing and object recognition as well as machine
-learning (see the `malibu`_ package). Critical, time-intensive sections of the code have 
+Arachnid is an open source software package written primarily in Python to perform image
+processing in single particle reconstruction. It has the following highlight applications
+and subpackages:
+
+- AutoPicker: Automated reference-free particle selection
+- pySPIDER: Python batch files designed to better automate the reconstruction protocol
+
+The algorithms and tools provided are rooted in image processing and object recognition as well as 
+machine learning (see the `malibu`_ package). Critical, time-intensive sections of the code have 
 been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package 
-is also utilizes several third-party packages, namely EMAN2 and SPIDER: a full list is given 
-in attribution. 
+is also utilizes several third-party packages, namely `EMAN2`_/`Sparx`_ and `SPIDER`_:, a full list 
+is given in :doc:`attribution<docs/attribution>`.
 
 This software is licensed under :doc:`GPL 2.0 <license>` or later.
 
@@ -59,20 +63,19 @@ contribute. This can be just as easy as reporting a bug or you can even add your
 References
 ==========
 
-.. [Langlois2010] Langlois, R., Pallesen, J., and Frank, J. (2010).
-                  Reference-free segmentation enhanced with data-driven template matching for particle selection in cryo-electron microscopy.
+.. [Langlois2011b] `Langlois, R., Pallesen, J., and Frank, J. (2011).
+                   Reference-free segmentation enhanced with data-driven template matching for particle selection in cryo-electron microscopy.
+                   Journal of structural biology 175 (3) 353-361 <http://view.ncbi.nlm.nih.gov/pubmed/21708269>`_
+.. [Langlois2011a] `Langlois, R., and Frank, J. (2011).
+                   A clarification of the terms used in comparing semi-automated particle selection algorithms in Cryo-EM.
+                   Journal of structural biology 175 (3) 348-352 <http://www.ncbi.nlm.nih.gov/pubmed/21420497>`_
 
 
 .. _`Frank Lab`: http://www.columbia.edu/cu/franklab/index.html
 .. _`malibu`: http://code.google.com/p/exegete
+.. _`EMAN2`: http://blake.bcm.edu/emanwiki/EMAN2
+.. _`Sparx`: http://sparx-em.org/sparxwiki/
+.. _`SPIDER`: http://www.wadsworth.org/spider_doc/spider/docs/
 
-Future
-======
 
- - Pytables - Data access
- - Pypng
- - Pyjpg
- - PIL
- - Read/Write mrc/spider
- - Subclass ndarray
 
