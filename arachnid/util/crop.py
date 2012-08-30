@@ -309,9 +309,6 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
 
     # Define noise distribution
     cc_map = mic.calc_ccf(template)
-    mic2 = mic.copy()
-    mic2 *= -1
-    cc_map -= mic2.calc_ccf(template)
     cc_map.process_inplace("xform.phaseorigin.tocenter")
     np = eman2_utility.em2numpy(cc_map)
     numpy.fabs(np, np)
