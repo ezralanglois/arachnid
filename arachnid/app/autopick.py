@@ -244,21 +244,12 @@ def ccf_center(img, template):
              Cross-correlation map
     '''
     
-    if 1 == 0:
-        cc_map = img.calc_ccf(template)
-        mic2 = img.copy()
-        mic2 *= -1
-        cc_map2 = mic2.calc_ccf(template)
-        cc_map -= cc_map2
-        cc_map.process_inplace("xform.phaseorigin.tocenter")
-        del mic2, cc_map2
-    else:
-        emimg = img
-        img = eman2_utility.em2numpy(emimg)
-        emtemplate = template
-        template = eman2_utility.em2numpy(emtemplate)
-        cc_map = ndimage_utility.cross_correlate(img, template)-ndimage_utility.cross_correlate(img*-1, template)
-        cc_map = eman2_utility.numpy2em(cc_map)
+    emimg = img
+    img = eman2_utility.em2numpy(emimg)
+    emtemplate = template
+    template = eman2_utility.em2numpy(emtemplate)
+    cc_map = ndimage_utility.cross_correlate(img, template)
+    cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
 def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, **extra):

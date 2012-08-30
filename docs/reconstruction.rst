@@ -250,8 +250,8 @@ Chimera command line: open #0 spider:~/Desktop/enh_25_r7_05.ter
 	
 	chimera spider:~/Desktop/enh_25_r7_05.ter
 
-View SPIDER Angle
------------------
+Choose a SPIDER Viewing Angle
+-----------------------------
 
 To see a specific orientation of your volume when using SPIDER angles,
 the following commands may be used.

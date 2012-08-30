@@ -232,7 +232,7 @@ try:
                      True if image format is supported
         '''
         
-        return eman2_utility.EMUtil.get_image_type(filename) != eman2_utility.EMUtil.ImageType.IMAGE_UNKNOWN
+        return eman2_utility.EMAN2.EMUtil.get_image_type(filename) != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     
     def is_mrc_using_eman2(filename):
         ''' Test if the file has an image in the MRC format
@@ -248,7 +248,7 @@ try:
                      True if image format is supported
         '''
         
-        return eman2_utility.EMUtil.get_image_type(filename) == eman2_utility.EMUtil.ImageType.IMAGE_MRC
+        return eman2_utility.EMAN2.EMUtil.get_image_type(filename) == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC
     
     def read_image_using_eman2(filename, index, force_flip, stack_as_vol=False, emdata=None):
         '''Read an image using the given filename
@@ -264,17 +264,20 @@ try:
         
         :Returns:
     
-        img : EMAN2.EMData
-              EMAN2 EMData image object
+        img : EMAN2.EMAN2.EMData
+              EMAN2 EMAN2.EMData image object
         '''
     
         try:
-            type = eman2_utility.EMUtil.get_image_type(filename)
+            type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
         except:
-            _logger.debug("Cannot get type of "+str(filename))
+            if _logger.isEnabledFor(logging.DEBUG):
+                _logger.exception("Failed to read file using EMAN2 -- %s"%filename)
+            else:
+                _logger.debug("Cannot get type of "+str(filename))
             raise IOError, "Failed to get type of file: %s"%filename
-        if type == eman2_utility.EMUtil.ImageType.IMAGE_UNKNOWN: raise IOError, "Cannot find EMAN2 compatible parser for image file: "+filename
-        if emdata is None: emdata = eman2_utility.EMData()
+        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: raise IOError, "Cannot find EMAN2 compatible parser for image file: "+filename
+        if emdata is None: emdata = eman2_utility.EMAN2.EMData()
         if index is None:
             emdata.read_image_c(filename)
         else:
@@ -283,7 +286,7 @@ try:
             else:
                 emdata.read_image_c(filename, index)
         
-        if type == eman2_utility.EMUtil.ImageType.IMAGE_MRC:
+        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
             
             try: mrc_label = emdata.get_attr('MRC.label0')
             except: mrc_label = ""
@@ -314,9 +317,9 @@ try:
         '''
         
         try:
-            count = eman2_utility.EMUtil.get_image_count(filename)
+            count = eman2_utility.EMAN2.EMUtil.get_image_count(filename)
             if vol_test and count == 1:
-                tmp = eman2_utility.EMData()
+                tmp = eman2_utility.EMAN2.EMData()
                 tmp.read_image(filename, 0, True)
                 if tmp.get_attr("nz") > 1:
                     return tmp.get_attr("nz")
