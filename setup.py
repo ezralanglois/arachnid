@@ -154,7 +154,7 @@ Installation of Prerequisites
         export BLAS_PATH=/opt/acml4.4.0/gfortran64_mp
         export LD_LIBRARY_PATH=$BLAS_PATH/lib:$LD_LIBRARY_PATH
         
-        # Make sure the fortran libraries will be linked when use the PGI compiler
+        # With PGI compiler - need to link fortran libraries otherwise you get this error: ImportError: No module named _spider_util
         export LDFLAGS="-L/opt/pgi/linux86-64/2011/REDIST -L/opt/pgi/linux86-64/2011/libso -pgf90libs $LDFLAGS"
 
 .. Created on Sep 28, 2010
