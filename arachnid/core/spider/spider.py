@@ -2736,9 +2736,9 @@ def open_session(args, spider_path="", data_ext="", thread_count=0, enable_resul
                       File path to spider executable
         data_ext : str
                    Extension of spider data files
-        thread_count : int
+        thread_count : int, noupdate
                        Number of threads per machine
-        enable_results : bool
+        enable_results : bool, noupdate
                          If set true, print results file to terminal
         rank : int
                MPI node rank

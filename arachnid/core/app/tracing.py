@@ -128,7 +128,7 @@ def setup_options(parser, pgroup=None):
     '''
     from settings import OptionGroup
     levels=tuple(log_level_val)
-    group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__)
+    group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__, dependent=False)
     if pgroup is None: pgroup = group
     group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3)
     group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True)

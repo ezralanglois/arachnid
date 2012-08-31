@@ -18,8 +18,6 @@ Parameters
     
     Version of the program to use, use `latest` to always use the latest version
 
-.. todo:: Document update_file, and update_files
-
 .. Created on Oct 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -241,7 +239,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     
     param = vars(options)
     rank = mpi_utility.get_rank(**param)
-    if rank == 0 and use_version: param['vercontrol'] = parser.version_control(options)
+    if rank == 0 and use_version: param['vercontrol'], param['opt_changed'] = parser.version_control(options)
     _logger.removeHandler(_logger.handlers[0])
     tracing.configure_logging(rank=rank, **param)
     for org in dependents:
@@ -253,6 +251,8 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             raise
     param = vars(options)
     param['file_options'] = parser.collect_file_options()
+    param['infile_deps'] = parser.collect_file_options(type='open')
+    param['outfile_deps'] = parser.collect_file_options(type='save')
     param.update(update_file_param(max_filename_len, **param))
     args = options.input_files
     return parser, args, param
@@ -325,11 +325,13 @@ def setup_program_options(parser, supports_MPI=False, output_option=None):
     if output_option is not None:
         parser.add_option("-o", output="", help=output_option, gui=dict(filetype="save"), required_file=True)
     if not supports_MPI or not mpi_utility.supports_MPI(): return
-    parser.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
-    parser.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-    parser.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-    parser.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-    parser.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group = settings.OptionGroup(parser, "MPI", "Options to control MPI",  id=__name__, dependent=False)
+    group.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
+    group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    parser.add_option_group(group)
     
 def reload_script(version):
     ''' Update sys.path and reload all the modules
@@ -435,57 +437,5 @@ def collect_dependents(dependents):
             deps.extend(deps[index].dependents())
         index += 1
     return list(set(deps))
-
-def update_file(filename, local_root, ext):
-    '''
-    '''
-    
-    if local_root == "":
-        return os.path.splitext(filename)[0]+ext if filename != "" else ""
-    return os.path.join(local_root, os.path.splitext(filename)[0]+ext) if filename != "" else ""
-
-def update_files(options, names, local_root, ext, max_filename=78):
-    '''
-    '''
-    
-    if not hasattr(options, 'remote_tmp') or not hasattr(options, 'local_root'): return 
-    if not os.path.exists(options.remote_tmp):
-        try:
-            os.makedirs(options.remote_tmp)
-        except: pass
-    
-    base = os.path.basename(local_root)
-    if base == "": base = os.path.basename(os.path.dirname(local_root))
-    if options.remote_tmp != "" and options.local_root != "" and (len(options.remote_tmp)+len(base)+5) < len(options.local_root): # hack, move out as param
-        rank = mpi_utility.get_rank(**vars(options))
-        shortcut = os.path.join(options.remote_tmp, "lnk%d_%s"%(rank,base))
-        
-        #if rank == 0:
-        _logger.info("Shortcut: %s -> %s"%(options.local_root, shortcut))
-        try:
-            if os.path.exists(shortcut): os.remove(shortcut)
-        except: pass
-        else:
-            try: os.symlink(options.local_root, shortcut)
-            except:
-                _logger.error("Src: %s"%options.local_root)
-                _logger.error("Des: %s"%shortcut)
-                raise
-            else:
-                _logger.info("Shortcut - finished")
-        local_root=shortcut
-    
-    for name in names:
-        val = getattr(options, name)
-        if isinstance(val, list):
-            for i in xrange(len(val)):
-                val[i] = update_file(val[i], local_root, ext)
-                if max_filename > 0 and len(val[i]) > max_filename:
-                    raise ValueError, "%s > 80 characters: %d -> %s"%(name, len(val[i]), val[i])
-        else:
-            val = update_file(val, local_root, ext)
-            setattr(options, name, val)
-            if max_filename > 0 and len(val) > max_filename:
-                raise ValueError, "%s > 80 characters: %d -> %s"%(name, len(val), val)
 
 

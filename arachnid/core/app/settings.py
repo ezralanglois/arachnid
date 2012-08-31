@@ -234,13 +234,14 @@ class Option(optparse.Option):
              Keyword arguments
     '''
     
-    EXTRA_ATTRS = ('gui', 'archive', 'required', 'required_file') #, 'glob_more',
+    EXTRA_ATTRS = ('gui', 'archive', 'required', 'required_file', 'dependent') #, 'glob_more',
     
     def __init__(self, *args, **kwargs):
         #Construct a smarter option
         
         self._required=False
         self._required_file=False
+        self._dependent = True
         choices = None
         flag, value = self.determine_flag(args, kwargs)
         if flag is not None:
@@ -270,6 +271,9 @@ class Option(optparse.Option):
             del kwargs["archive"]
         else:
             self.archive = False
+        if 'dependent' in kwargs:
+            self._dependent = kwargs["dependent"]
+            del kwargs["dependent"]
         
         optparse.Option.__init__(self, *args, **kwargs)
         self.choices = kwargs['choices'] if choices is None and 'choices' in kwargs else choices
@@ -599,11 +603,13 @@ class OptionGroup(optparse.OptionGroup):
             A title of the group
     description : string
                  A help description of the group
+    dependent : bool
+                Set false if this option has no bearing on output file creation
     kwargs : dict
              A dictionary of keyword arguments
     '''
     
-    def __init__(self, parser, title, description=None, group_order=0, **kwargs):
+    def __init__(self, parser, title, description=None, group_order=0, dependent=True, **kwargs):
         '''Initialize an option group
         '''
         
@@ -611,6 +617,7 @@ class OptionGroup(optparse.OptionGroup):
         for key, val in kwargs.iteritems(): setattr(self, key, val)
         self.option_groups = []
         self.group_order=group_order
+        self._dependent = dependent
     
     def group_titles(self):
         '''Get a tuple of group titles.
@@ -716,6 +723,10 @@ class OptionParser(optparse.OptionParser):
                 An OptionGroup to add to the OptionParser
         '''
         
+        if not group._dependent:
+            for opt in group.option_list:
+                opt._dependent=False
+        
         optparse.OptionParser.add_option_group(self, group)
         for subgroup in group.option_groups:
             optparse.OptionParser.add_option_group(self, subgroup)
@@ -759,7 +770,10 @@ class OptionParser(optparse.OptionParser):
         fout.write("# %s - %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), str(self.version)))
         self.write(fout, changed, comments=False)
         fout.close()
-        return VersionControl(output)
+        
+        dep_opts = set(self.collect_dependent_options())
+        dep = [val for val in changed if val in dep_opts]
+        return VersionControl(output), len(dep) > 0
     
     def parse_all(self, args=sys.argv[1:], values=None, fin=None):
         '''Parse configuration file, then command line
@@ -1150,8 +1164,8 @@ class OptionParser(optparse.OptionParser):
                 if test(opt): optionlist.append(opt.dest)
         return optionlist
         
-    def collect_file_options(self):
-        ''' Collect all the options that point to file names
+    def collect_dependent_options(self):
+        ''' Collect all the options that are dependencies of the output
         
         :Returns:
         
@@ -1159,9 +1173,33 @@ class OptionParser(optparse.OptionParser):
                 List of file option destinations
         '''
         
-        def is_file(opt):
-            return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint['type']
-        return self.collect_options(is_file)
+        def is_dependent(opt):
+            return opt._dependent and opt.dest != self.add_input_files
+        return self.collect_options(is_dependent)
+        
+    def collect_file_options(self, type=None):
+        ''' Collect all the options that point to file names
+        
+        :Parameters:
+        
+        type : str
+               Type of the file to collect: open or save
+        
+        :Returns:
+        
+        names : list
+                List of file option destinations
+        '''
+        
+        if type is None:
+            def is_file(opt):
+                return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint['type']
+            is_file_test = is_file
+        else:
+            def is_file_type(opt):
+                return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint['type'] and opt.gui_hint['file'] == type
+            is_file_test = is_file_type
+        return self.collect_options(is_file_test)
     
     def program_name(self):
         ''' Get the current name of the program
@@ -1614,6 +1652,8 @@ def setup_options_from_doc(parser, *args, **kwargs):
             type = parameter_type(args[-i], doc)
             param = {args[-i]: defaults[-i]}
             #print func, args, defaults, doc
+            if type.find('noupdate') != -1:
+                param['dependent']=False
             if type.find('infile') != -1:
                 param.update(gui=dict(filetype="open"))
             if type.find('outfile') != -1:

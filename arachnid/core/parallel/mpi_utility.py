@@ -89,6 +89,28 @@ def send_to_root(data, root, comm=None, **extra):
     elif rank == root:
         comm.Send([data, MPI.DOUBLE], dest=0, tag=4)
 
+def broadcast(data, comm=None, **extra):
+    ''' Broadcast the specified data to all the nodes
+    
+    :Parameters:
+    
+    data : object
+           Python object to broadcast to all nodes
+    comm : mpi4py.MPI.Intracomm
+           MPI communications object
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    data : object
+           Python object recieved
+    '''
+    
+    if comm is not None:
+        data = comm.bcast(data)
+    return data
+
 def block_reduce(data, batch_size=100000, root=0, comm=None, **extra):
     ''' Reduce data array to the root node
     
