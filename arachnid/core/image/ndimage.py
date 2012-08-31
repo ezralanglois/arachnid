@@ -6,3 +6,7 @@
 import numpy
 
 _header = numpy.dtype([('apix', numpy.float)])
+_ctf = numpy.dtype([('apix', numpy.float)])
+_align = numpy.dtype([('apix', numpy.float)])
+
+

@@ -178,13 +178,29 @@ def write_image(filename, img, index=None):
           Image data to write out
     index : int, optional
             Index image should be written to in the stack
-    format : eman2_utility.EMUtil.ImageType, optional
-             Format to write image in
     '''
     
     format = get_write_format(filename)
     format.write_image(filename, img, index)
     
+def write_stack(filename, imgs):
+    ''' Write the given image to the given filename using a format
+    based on the file extension, or given type.
+    
+    :Parameters:
+    
+    filename : str
+               Output filename for the image
+    imgs : array
+           Image stack data to write out
+    '''
+    
+    format = get_write_format(filename)
+    index = 0
+    for img in imgs:
+        format.write_image(filename, img, index)
+        index += 1
+
 def get_write_format(filename):
     ''' Get the write format for the image
     
