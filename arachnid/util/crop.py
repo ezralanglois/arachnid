@@ -143,9 +143,9 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Nov 27, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
-from ..core.image import eman2_utility, ndimage_utility
-from ..core.image import reader as image_reader, writer as image_writer #, ndimage_file - replace image_reader and writer
+ndimage_file=None
+from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader and writer
+from ..core.image import reader as image_reader, writer as image_writer
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.parallel import mpi_utility
 import numpy, os, logging
@@ -197,7 +197,10 @@ def process(filename, output="", id_len=0, **extra):
             coord = coords[index]
             x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
             _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
-        image_writer.write_image(mic_out, win, index)
+        if ndimage_file is not None:
+            ndimage_file.write(mic_out, win, index)
+        else:
+            image_writer.write_image(mic_out, win, index)
         index += 1
     return filename
 
@@ -257,7 +260,10 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     '''
     
     offset = init_param(bin_factor=bin_factor, **extra)[1]
-    mic = image_reader.read_image(filename, emdata=emdata)
+    if ndimage_file is not None:
+        mic = ndimage_file.read_image(filename)
+    else:
+        mic = image_reader.read_image(filename, emdata=emdata)
     if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
     if invert:
         _logger.debug("Invert micrograph")
@@ -294,10 +300,15 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
                 Noise window
     '''
     
-    if noise != "": return image_reader.read_image(noise)
+    if noise != "": 
+        if ndimage_file is not None:
+            return ndimage_file.read_image(noise)
+        return image_reader.read_image(noise)
     noise_file = format_utility.add_prefix(output, "noise_")
     if os.path.exists(noise_file):
         _logger.warn("Found cached noise file: %s - delete if you want to regenerate"%noise_file)
+        if ndimage_file is not None:
+            return ndimage_file.read_image(noise)
         return image_reader.read_image(noise_file)
     mic = read_micrograph(filename, **extra)
     rad = int( pixel_radius / float(bin_factor) )
@@ -329,9 +340,17 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
         win = enhance_window(emdata, None, None, **extra)
         std = numpy.std(eman2_utility.em2numpy(win))
         if std < best[0]: best = (std, win)
-        if noise_stack and i < 11: image_writer.write_image(noise_file, win, i)
+        if noise_stack and i < 11: 
+            if ndimage_file is not None:
+                ndimage_file.write(noise_file, win, i)
+            else:
+                image_writer.write_image(noise_file, win, i)
     noise_win = best[1]
-    if not noise_stack: image_writer.write_image(noise_file, noise_win)
+    if not noise_stack:
+        if ndimage_file is not None:
+            ndimage_file.write(noise_file, noise_win)
+        else:
+            image_writer.write_image(noise_file, noise_win)
     return noise_win
 
 def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
@@ -497,7 +516,11 @@ def initialize(files, param):
         if mpi_utility.is_client_strict(**param):
             param['noise'] = generate_noise(files[0], offset, **param)
         
-    else: param['noise'] = image_reader.read_image(param['noise'])
+    else: 
+        if ndimage_file is not None:
+            param['noise'] =  ndimage_file.read_image(param['noise'])
+        else:
+            param['noise'] = image_reader.read_image(param['noise'])
     param['emdata'] = eman2_utility.EMAN2.EMData()
     return files
 

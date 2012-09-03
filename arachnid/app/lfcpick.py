@@ -121,8 +121,10 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 2, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+ndimage_file=None
 from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader
-from ..core.image import reader as image_reader
+if ndimage_file is None:
+    from ..core.image import reader as image_reader
 from ..core.metadata import format_utility, format, spider_params, spider_utility
 from ..core.parallel import mpi_utility
 import os, logging
@@ -319,8 +321,10 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
           Micrograph image
     '''
     
-    #mic = ndimage_file.read_image(filename)
-    mic = image_reader.read_image(filename, emdata=emdata)
+    if ndimage_file is not None:
+        mic = ndimage_file.read_image(filename)
+    else:
+        mic = image_reader.read_image(filename, emdata=emdata)
     if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: mic = ndimage_utility.invert(mic)
     return mic
@@ -343,7 +347,11 @@ def create_template(template, disk_mult=1.0, **extra):
                Template read from file or uniform disk with soft edge
     '''
     #mic = ndimage_file.read_image(template)
-    if template != "": return image_reader.read_image(template)
+    if template != "": 
+        if ndimage_file is not None:
+            return image_reader.read_image(template)
+        else:
+            return image_reader.read_image(template)
     radius, offset = init_param(**extra)[:2]
     template = eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
     if True:

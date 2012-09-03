@@ -3,6 +3,8 @@
 Supported formats:
     
      - :py:mod:`EMAN2/SPARX <formats.eman_format>`
+     - :py:mod:`MRC <formats.mrc>`
+     - :py:mod:`SPIDER <formats.spider>`
 
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
