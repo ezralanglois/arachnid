@@ -22,6 +22,7 @@ Parameters
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..parallel import mpi_utility
+from ..gui import settings_editor
 import tracing, settings
 import logging, sys, os, traceback
 import arachnid as root_module
@@ -93,7 +94,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
-    dependents.extend([tracing])
+    dependents.extend([tracing, settings_editor])
     parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, False, None)
     parser.change_default(**extra)
     name = main_module.__name__
@@ -202,11 +203,12 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
-    dependents.extend([tracing])
+    dependents.extend([tracing, settings_editor])
     
     description="\n#  ".join([s.strip() for s in description.split("\n")])
     parser = setup_parser(main_module, dependents, description, usage, supports_MPI, use_version, output_option)
     options, args = parser.parse_args_with_config()
+    settings_editor.display(parser, options)
     
     if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
     #parser.write("."+parser.default_config_filename(), options)

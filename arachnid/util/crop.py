@@ -264,7 +264,8 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
         mic = ndimage_file.read_image(filename)
     else:
         mic = image_reader.read_image(filename, emdata=emdata)
-    if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
+    if bin_factor > 1.0 and not disable_bin: 
+        mic = eman2_utility.decimate(mic, bin_factor)
     if invert:
         _logger.debug("Invert micrograph")
         mic = ndimage_utility.invert(mic)
