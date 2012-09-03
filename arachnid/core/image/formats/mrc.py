@@ -54,13 +54,25 @@ numpy2mrc = {
     ## convert these to uint16
     numpy.uint16: 6,
 }
+'''
+    if(IsLittleEndian())
+    {
+        machine_stamp[0] = 68;
+        machine_stamp[1] = 65;
+    }
+    else
+    {
+        machine_stamp[0] = machine_stamp[1] = 17;
+    }
+'''
 intbyteorder = {
     0x11110000: 'big',
-    0x44440000: 'little'
+    0x44440000: 'little', #hack
+    0x44410000: 'little'
 }
 byteorderint = {
     'big': 0x11110000,
-    'little': 0x44440000
+    'little': 0x44410000
 }
 
 mrc_defaults = dict(alpha=90, beta=90, gamma=90, mapc=1, mapr=2, maps=3, map='MAP ', byteorder=byteorderint[sys.byteorder])
@@ -187,8 +199,8 @@ def _gen_header():
 header_image_dtype, header_stack_dtype = _gen_header()
 
 mrc2ara={'': ''}
-mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_image_dtype]))
-mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_stack_dtype]))
+mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_image_dtype.names]))
+mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_stack_dtype.names]))
 ara2mrc=dict([(val, key) for key,val in mrc2ara.iteritems()])
 
 def is_format_header(h):
@@ -226,10 +238,14 @@ def is_readable(filename):
         h = filename
         if not is_format_header(h):
             raise ValueError, "Array dtype incorrect"
-    else: h = read_header(filename)
-    if h['mode'] not in mrc2numpy: return False
-    if h['byteorder'] not in intbyteorder: return False
-    if not numpy.alltrue([h[v] > 0 for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen', 'mx', 'my', 'mz')]): return False
+    else: 
+        try:
+            h = read_header(filename)
+        except: return False
+    if h['mode'][0] not in mrc2numpy: return False
+    if h['byteorder'][0] not in intbyteorder and \
+       h['byteorder'][0].byteswap() not in intbyteorder: return False
+    if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'mx', 'my', 'mz')]): return False
     return True
 
 def read_header(filename, index=None):
@@ -287,6 +303,8 @@ def iter_images(filename, index=None, header=None):
                Filename or open stream for a file
     index : int, optional
             Index of image to start, if None, start with the first image (Default: None)
+    header : dict, optional
+             Output dictionary to place header values
     
     :Returns:
         
@@ -300,14 +318,14 @@ def iter_images(filename, index=None, header=None):
         h = read_header(f)
         count = count_images(h)
         if header is not None:  _update_header(header, h, mrc2ara, 'mrc')
-        d_len = h['nx']*h['ny']
-        dtype = mrc2numpy[h['mode']]
+        d_len = h['nx'][0]*h['ny'][0]
+        dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         offset = 1024 + index * d_len * dtype.itemsize;
         f.seek(offset)
         for i in xrange(index, count):
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
-            if index is None and int(h['nz']) > 1: out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
-            elif int(h['ny']) > 1: out = out.reshape(int(h['nx']), int(h['ny']))
+            if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
+            elif int(h['ny'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]))
             yield out
     finally:
         _close(filename, f)
@@ -321,6 +339,8 @@ def read_image(filename, index=None, header=None):
                Filename or open stream for a file
     index : int, optional
             Index of image to get, if None, first image (Default: None)
+    header : dict, optional
+             Output dictionary to place header values
     
     :Returns:
         
@@ -335,13 +355,13 @@ def read_image(filename, index=None, header=None):
         if header is not None: _update_header(header, h, mrc2ara, 'mrc')
         count = count_images(h)
         if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
-        d_len = h['nx']*h['ny']
-        dtype = mrc2numpy[h['mode']]
+        d_len = h['nx'][0]*h['ny'][0]
+        dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         offset = 1024 + index * d_len * dtype.itemsize;
         f.seek(offset)
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
-        if index is None and int(h['nz']) > 1:   out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
-        elif int(h['ny']) > 1: out = out.reshape(int(h['nx']), int(h['ny']))
+        if index is None and int(h['nz'][0]) > 1:   out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
+        elif int(h['ny']) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]))
     finally:
         _close(filename, f)
     return out
@@ -361,8 +381,9 @@ def write_image(filename, img, index=None, header=None):
              Dictionary of header values
     '''
     
-    try: img = img.type(mrc2numpy[numpy2mrc[img.dtype.type]])
-    except: raise TypeError, "Unsupported type for MRC writing: %s"%str(img.dtype)
+    try: img = img.astype(mrc2numpy[numpy2mrc[img.dtype.type]])
+    except:
+        raise TypeError, "Unsupported type for MRC writing: %s"%str(img.dtype)
     
     f = _open(filename, 'w')
     if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
@@ -373,7 +394,7 @@ def write_image(filename, img, index=None, header=None):
         header['nx'] = img.shape[-1]
         header['ny'] = img.shape[-2] if img.ndim > 1 else 1
         if header['nz'] == 0:
-            header['nz'] = img.shape[-3] if img.ndim > 1 else 1
+            header['nz'] = img.shape[-3] if img.ndim > 2 else 1
         header['mode'] = numpy2mrc[img.dtype.type]
         header['mx'] = header['nx']
         header['my'] = header['ny']
@@ -410,5 +431,5 @@ def write_image(filename, img, index=None, header=None):
 
 if __name__ == '__main__':
     
-    print header_image_dtype.itemsize
+    print len(header_image_dtype)
     print header_stack_dtype.itemsize

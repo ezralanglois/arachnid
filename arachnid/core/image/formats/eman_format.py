@@ -68,10 +68,14 @@ lists each supported extension with its corresponding file format.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from .. import eman2_utility, ndimage
+from spider import _update_header
 import numpy, logging, struct
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+eman2ara={'': ''}
+ara2eman=dict([(val, key) for key,val in eman2ara.iteritems()])
 
 def is_readable(filename):
     ''' Test if the input filename of the image is in a recognized
@@ -118,7 +122,7 @@ def read_header(filename, index=None):
     header[0].apix = emdata.get_attr('apix_x')
     return header
 
-def read_image(filename, index=None, cache=None):
+def read_image(filename, index=None, header=None, cache=None):
     '''Read an image from an EMAN2/Sparx supported format
     
     :Parameters:
@@ -127,6 +131,8 @@ def read_image(filename, index=None, cache=None):
                Input filename to read
     index : int, optional
             Index of image to get, if None, first image (Default: None)
+    header : dict, optional
+             Output dictionary to place header values
     cache : EMData
              Cached image data object
     
@@ -142,6 +148,7 @@ def read_image(filename, index=None, cache=None):
     emdata = eman2_utility.EMAN2.EMData() if cache is None else cache
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, index)
+    if header is not None: _update_header(emdata.todict(), header, eman2ara)
     type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
         try: mrc_label = emdata.get_attr('MRC.label0')
@@ -153,7 +160,7 @@ def read_image(filename, index=None, cache=None):
     if cache is None: data = data.copy()
     return data
 
-def iter_images(filename, index=None):
+def iter_images(filename, index=None, header=None):
     ''' Read a set of SPIDER images
     
     :Parameters:
@@ -162,6 +169,8 @@ def iter_images(filename, index=None):
                Input filename to read
     index : int, optional
             Index of image to start, if None, start with the first image (Default: None)
+    header : dict, optional
+             Output dictionary to place header values
     
     :Returns:
         
@@ -176,8 +185,13 @@ def iter_images(filename, index=None):
     emdata = eman2_utility.EMAN2.EMData()
     count = count_images(filename)
     if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
+    
+    update_header=True
     for i in xrange(index, count):
-        yield read_image(filename, i, emdata)
+        img = read_image(filename, i, header, emdata)
+        if update_header:
+            update_header=False
+        yield img
     
 def count_images(filename):
     ''' Count the number of images in the file
@@ -219,7 +233,7 @@ def is_writable(filename):
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
 
-def write_image(filename, img, index=None, type=None):
+def write_image(filename, img, index=None, header=None, type=None):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
@@ -231,13 +245,18 @@ def write_image(filename, img, index=None, type=None):
           Image data to write out
     index : int, optional
             Index image should be written to in the stack
+    header : dict, optional
+             Dictionary of header values
     type : eman2_utility.EMAN2.EMUtil.ImageType, optional
-           Format to write image in
+           Format in which to write image
     '''
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not eman2_utility.is_em(img): img = eman2_utility.numpy2em(img)
+    h={}
+    header=_update_header(h, header, ara2eman)
+    for key, val in header.iteritems(): img.set_attr(key, val)
     if type is None:
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: img.process_inplace("xform.flip",{"axis":"y"})
