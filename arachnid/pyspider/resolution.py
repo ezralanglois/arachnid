@@ -180,7 +180,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     res_edge_width : int
                       Set edge with of the mask (for Gaussian this is the half-width)
     res_threshold : str
-                Threshold for density or 'A' for auto threshold
+                Threshold for density or `A` for auto threshold
     res_ndilate : int
               Number of times to dilate the mask
     res_gk_size : int

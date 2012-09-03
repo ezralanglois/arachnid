@@ -1755,7 +1755,7 @@ class Session(spider_session.Session):
         upper_scale : float
                       Upper range of scale factors by which the second Fourier must be multiplied for the comparison
         missing_ang : str
-                      'C' if you have a missing cone and 'W' if you have a missing wedge
+                      `C` if you have a missing cone and `W` if you have a missing wedge
         max_tilt : float
                    Angle of maximum tilt angle in degrees
         noise_factor : float

@@ -921,6 +921,9 @@ class OptionParser(optparse.OptionParser):
                 if hasattr(self.values, self.add_input_files):_logger.debug("Checking input files - has input \""+str(getattr(self.values, self.add_input_files))+"\" -- "+str(option.dest)+" == "+str(getattr(self.values, option.dest)))
             else:
                 self.skipped_flags.append(key)
+        try: fin+"+"
+        except:pass
+        else: setattr(self.values, 'config_file', fin)
         return self.values
     
     def change_default(self, **kwargs):
@@ -1237,6 +1240,56 @@ class OptionParser(optparse.OptionParser):
         logging.error(msg)
         self.write(values=values)
         sys.exit(10)
+    
+    def create_property_tree(self, factory, property_class=object, converter=lambda x:x, option_list=None, title=None, option_groups=[], tree=None):
+        ''' Create a property tree used to create a graphical user
+        interface
+        
+        :Parameters:
+        
+        factory : function
+                  Function that builds the properties
+        property_class : class
+                         Base class of the dynamically created propery class
+        converter : function
+                    Converts one value type to another
+        option_list : list
+                      List of options to build the tree from
+        title : str
+                Name of the group
+        option_groups : list
+                        List of option groups
+        tree : OptionValueMap
+               Current property tree
+        
+        :Returns:
+        
+        tree : OptionValueMap
+               Mapping between options and properties
+        '''
+        
+        if option_list is not None:
+            if tree is None: tree = OptionValueMap(converter)
+            if title is None: title = "Critical"
+            try:
+                Branch = propertyobject(title.replace(' ', '_'), property_class, factory, option_list)
+            except:
+                _logger.error("title = %s"%str(title))
+                raise
+            title = title.replace('_', ' ')
+            title = title.capitalize()
+            setattr(Branch, 'DisplayName', title)
+            setattr(Branch, '_children', [])
+            branch = Branch()
+            for group in option_groups:
+                self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, branch)
+            tree.append(branch)
+        else:
+            tree = None
+            if len(self.option_list)>0: tree = self.create_property_tree(factory, property_class, converter, self.option_list)
+            groups = sorted(self.option_groups, key=_attrgetter('group_order'))
+            for group in groups: tree = self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, tree)
+        return tree
 
 class OptionValueError(optparse.OptParseError):
     """Exception raised for errors in parsing values of options
@@ -1448,11 +1501,14 @@ def propertyobject(typename, parenttype, property, options):
     if parenttype_name: pass
     
     for option in options:
-        if isinstance(option.default, str) or (isinstance(option.default, optlist) and len(option.default) == 0):
+        if option.is_not_config() or option.dest is None: continue
+        #if isinstance(option.default, str) or (isinstance(option.default, optlist) and len(option.default) == 0):
+        if isinstance(option.default, str) or (isinstance(option.default, optlist)):
             template += "        self._m_%s='%s'\n"%(option.dest, str(option.default))
         else:
             template += "        self._m_%s=%s\n"%(option.dest, str(option.default))
     for option in options:
+        if option.is_not_config() or option.dest is None: continue
         opttype = option.type
         if opttype == 'string': 
             opttype = 'int' if option.choices is not None and isinstance(option.default, int) else 'QString'
@@ -1644,7 +1700,8 @@ def setup_options_from_doc(parser, *args, **kwargs):
             if index != -1: 
                 group_order=int(d[index+6:].strip())
                 break
-        group = OptionGroup(parser, func, doc[0], group_order=group_order, id=func)
+        name = func.__name__ if callable(func) else func
+        group = OptionGroup(parser, name, doc[0], group_order=group_order, id=name)
         for i in xrange(1, len(defaults)+1):
             if defaults[-i] is None: continue
             help = parameter_help(args[-i], doc)

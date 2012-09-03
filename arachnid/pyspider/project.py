@@ -401,7 +401,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     parser.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
     parser.add_option("-o", output="",          help="Output directory with project name", gui=dict(filetype="save"), required=True)
     parser.add_option("-r", raw_reference="",   help="Raw reference volume", gui=dict(filetype="open"), required=True)
-    parser.add_option("-e", ext="",             help="Extension for SPIDER (three characters)", gui=dict(filetype="open"), required=True)
+    parser.add_option("-e", ext="",             help="Extension for SPIDER (three characters)", required=True)
     parser.add_option("", is_ccd=False,         help="Set true if the micrographs were collected on a CCD (and have not been processed)")
     parser.add_option("", apix=0.0,             help="Pixel size, A")
     parser.add_option("", voltage=0.0,          help="Electron energy, KeV")
