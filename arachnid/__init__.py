@@ -10,6 +10,27 @@
     core
     pyspider
     util
+
+:mod:`arachnid.app`
+===================
+
+.. automodule:: arachnid.app
+
+:mod:`arachnid.util`
+====================
+
+.. automodule:: arachnid.util
+
+:mod:`arachnid.pyspider`
+=========================
+
+.. automodule:: arachnid.pyspider
+    
+:mod:`arachnid.core`
+====================
+
+.. automodule:: arachnid.core
+
 '''
 
 

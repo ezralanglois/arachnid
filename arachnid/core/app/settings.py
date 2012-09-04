@@ -1072,6 +1072,7 @@ class OptionParser(optparse.OptionParser):
                   List of options
         flag_len : int
                    Current length of the flag
+        
         :Returns:
         
         return_val : int

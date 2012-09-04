@@ -1,4 +1,20 @@
-'''
+''' Propery tree/table editor
+
+.. currentmodule:: arachnid.core.gui.property
+
+.. autosummary::
+    :nosignatures:
+    :toctree: api_generated/
+    :template: api_module.rst
+    
+    pyqtProperty
+    ButtonDelegate
+    Property
+    PropertyDelegate
+    PropertyModel
+
+.. todo:: why does PyqtProperty get missed?
+
 '''
 
 

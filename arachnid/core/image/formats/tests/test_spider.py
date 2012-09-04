@@ -1,7 +1,7 @@
 ''' Unit testing for the image formats
 
 .. Created on Aug 31, 2012
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
 from .. import spider, eman_format

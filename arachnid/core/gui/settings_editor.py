@@ -10,7 +10,7 @@
 .. todo:: add logging debug more
 
 .. Created on Sep 3, 2012
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 #from ..app import tracing
 import logging, sys, os
@@ -58,7 +58,7 @@ def _create_settings_dialog(parser, name=None, config_file="", **extra):
     # Read given config file, command line - open button
     dialog = Dialog()
     dialog.setWindowTitle(config_file)
-    tree = parser.create_property_tree(pyqtProperty.pyqtProperty, QtCore.QObject)
+    tree = parser.create_property_tree(pyqtProperty.PyqtProperty, QtCore.QObject)
     if name is None:
         for branch in tree:
             dialog.addProperty(branch, branch.DisplayName)  

@@ -44,8 +44,8 @@ import arachnid
 extensions = ['sphinx.ext.ifconfig', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.todo', 'sphinx.ext.coverage']
 jsmath_path = 'jsMath/easy/load.js'
 
-coverage_ignore_functions=['check_main_options', 'check_options', 'dependents', 'initialize', 'main', 'setup_main_options', 'setup_options', 'reduce_all', 'finalize', 'configuration', 'rglob', 'build_description']
-coverage_ignore_classes=['check_dep', 'VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
+coverage_ignore_functions=['setView', 'check_main_options', 'check_options', 'dependents', 'initialize', 'main', 'setup_main_options', 'setup_options', 'reduce_all', 'finalize', 'configuration', 'rglob', 'build_description']
+coverage_ignore_classes=['PyqtProperty', 'check_dep', 'VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['resources/templates']
@@ -89,7 +89,7 @@ release = arachnid.__version__
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = ['resources', 'git-hooks', 'build', 'dist']
+exclude_trees = ['resources', 'git-hooks', 'build', 'dist']#, 'arachnid/core/gui/icons']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -230,4 +230,6 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+
 

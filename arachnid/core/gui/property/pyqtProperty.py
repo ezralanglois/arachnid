@@ -3,10 +3,10 @@
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-#from ..core import settings
+
 from PyQt4 import QtCore
 
-class pyqtProperty(QtCore.pyqtProperty):
+class PyqtProperty(QtCore.pyqtProperty):
     ''' Extend a pyqtProperty to hold additional information
         
     :Parameters:
@@ -46,6 +46,7 @@ class pyqtProperty(QtCore.pyqtProperty):
         QtCore.pyqtProperty.__init__(self, type, fget, fset, freset, fdel, doc, designable, scriptable, stored, user, constant, final)
         self.editorHints = editorHints
         self.doc = doc
+    
 
 
     

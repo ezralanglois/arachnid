@@ -256,7 +256,8 @@ def rglob(pattern, root=os.curdir):
     return filenames
 
 class check_dep(Command):
-    '''
+    ''' Check if the dependencies listed in `install_requires` and `extras_require`
+    are currently installed and on the Python path.
     '''
     description = "Check if dependencies are installed"
 
@@ -267,12 +268,14 @@ class check_dep(Command):
     def finalize_options(self): pass
 
     def run(self):
+        ''' Check if dependencies are importable.
+        '''
+        
         ret = 0
         packages = self.distribution.install_requires
         for v in self.distribution.extras_require.values():
             if isinstance(v, list): packages.extend(v)
             else: packages.append(v)
-        # + self.distribution.setup_requires
         sep=['>', '<', '>=', '<=', '==']
         found = []
         notfound=[]

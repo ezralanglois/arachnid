@@ -127,6 +127,26 @@ errors is `valgrind <http://valgrind.org/>`_.
 
 	$ valgrind -v --suppressions=valgrind-python.supp python my_test_script.py
 
+Documentation Hack
+==================
+
+To get the documentation to build correctly, you need to edit `sphinx/ext/autosummary/generate.py` in your site-packages
+directory. 
+
+Change Line 143 from
+
+.. sourcecode:: py
+
+	for name in dir(obj):
+
+to
+
+.. sourcecode:: py
+
+	for name in vars(obj):
+
+A little background: The default autosummary code gets all inherited members of a class. This ensures only the current
+members will be documented.
 
 Create a Program Script
 =======================

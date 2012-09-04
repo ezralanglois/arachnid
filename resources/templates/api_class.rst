@@ -4,7 +4,7 @@
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
-	
+
    {% block methods %}
    {% if methods %}
 
@@ -19,5 +19,3 @@
    {%- endfor %}
    {% endif %}
    {% endblock %}
-
-
