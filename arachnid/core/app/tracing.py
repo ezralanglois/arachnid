@@ -86,11 +86,13 @@ import logging, logging.config, os, socket, time, sys, zipfile
 loaded = False
 
 log_level_val = ['critical', 'error', 'warning', 'info', 'debug']
-log_level_map = {'critical': logging.CRITICAL,
-                 'error':    logging.ERROR,
-                 'warning':  logging.WARNING,
-                 'info':     logging.INFO,
-                 'debug':    logging.DEBUG, }
+log_level_map = {'critical':    logging.CRITICAL,
+                 'error':       logging.ERROR,
+                 'warning':     logging.WARNING,
+                 'info':        logging.INFO,
+                 'debug':       logging.DEBUG,
+                 'debug_more':  logging.DEBUG-1,
+                 }
 log_formats = { 'critical': "%(asctime)s %(message)s",
                 'error':    "%(asctime)s %(levelname)s %(message)s",
                 'warning':  "%(asctime)s %(levelname)s %(message)s",
