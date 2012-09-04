@@ -45,7 +45,7 @@ extensions = ['sphinx.ext.ifconfig', 'sphinx.ext.autodoc', 'sphinx.ext.autosumma
 jsmath_path = 'jsMath/easy/load.js'
 
 coverage_ignore_functions=['check_main_options', 'check_options', 'dependents', 'initialize', 'main', 'setup_main_options', 'setup_options', 'reduce_all', 'finalize', 'configuration', 'rglob', 'build_description']
-coverage_ignore_classes=['VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
+coverage_ignore_classes=['check_dep', 'VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['resources/templates']

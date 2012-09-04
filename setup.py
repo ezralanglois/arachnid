@@ -32,6 +32,26 @@ The following compilers are required if you install from the source:
 See `NumPY Installation <http://docs.scipy.org/doc/numpy/user/install.html#building-from-source>`_ 
 for details on how to compile this source.
 
+Checking
+--------
+
+You can check what dependencies you have installed (and accessible) with the following command:
+
+.. sourcecode:: sh
+
+    $ python setup.py check
+      running check
+      Checking for mpi4py: not found
+      ---
+      Checking for numpy: found - 1.6.1
+      Checking for scipy: found - 0.10.0rc1
+      Checking for matplotlib: found - 1.1.0
+      Checking for PyQt4: found
+      Checking for matplotlib: found - 1.1.0
+      Checking for EMAN2: found
+
+In the above example, only `mpi4py` was not installed.
+
 Packages to Download
 --------------------
 
@@ -169,8 +189,9 @@ except:
     ez_setup.use_setuptools()
     import setuptools
 from numpy.distutils.core import setup
+from distutils.core import Command
 from distutils import log
-import os, fnmatch
+import os, fnmatch,sys
 import arachnid, arachnid.setup
 
 # Classifiers http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -234,6 +255,44 @@ def rglob(pattern, root=os.curdir):
             filenames.append( os.path.join(path, filename) )
     return filenames
 
+class check_dep(Command):
+    '''
+    '''
+    description = "Check if dependencies are installed"
+
+    user_options = []
+    test_commands = {}
+    
+    def initialize_options(self): pass
+    def finalize_options(self): pass
+
+    def run(self):
+        ret = 0
+        packages = self.distribution.install_requires
+        for v in self.distribution.extras_require.values():
+            if isinstance(v, list): packages.extend(v)
+            else: packages.append(v)
+        # + self.distribution.setup_requires
+        sep=['>', '<', '>=', '<=', '==']
+        found = []
+        notfound=[]
+        for package in packages:
+            for s in sep:
+                idx = package.find(s)
+                if idx > -1: 
+                    package=package[:idx]
+                    break
+            try:    mod = __import__(package)
+            except: notfound.append(package)
+            else:   found.append((package, mod))
+        for package in notfound:
+            log.info("Checking for %s: not found"%(package))
+        log.info('---')
+        for package, mod in found:
+            version = ' - '+mod.__version__ if hasattr(mod, '__version__') else ''
+            log.info("Checking for %s: found%s"%(package, version))
+        sys.exit(len(notfound))
+
 if __name__ == '__main__':
     
     kwargs = build_description(arachnid)
@@ -247,15 +306,18 @@ if __name__ == '__main__':
           install_requires = [
             'numpy>=1.3.0',
             'scipy>=0.7.1',
+            'matplotlib>=1.1.0',
             ],
             extras_require = {
             'MPI': 'mpi4py>=1.2.2',
-            'Bundle': 'cx_Freeze>=4.1',
             'Plotting': 'matplotlib>=1.1.0',
+            'EMAN2' : ['EMAN2'],
+            'PyQT' : ['PyQt4'],
             },
             setup_requires = [
             'Sphinx>=1.0.4',
             ],
+            cmdclass = {'check': check_dep},
             **kwargs
     )
 
