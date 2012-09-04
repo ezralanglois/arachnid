@@ -7,6 +7,7 @@
 .. todo:: volume mask separate out choice and filename
 .. todo:: html help in tab or popup
 .. todo:: maximum length for string argument
+.. todo:: add logging debug more
 
 .. Created on Sep 3, 2012
 .. codeauthor:: robertlanglois
