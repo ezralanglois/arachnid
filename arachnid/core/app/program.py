@@ -209,6 +209,15 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     description="\n#  ".join([s.strip() for s in description.split("\n")])
     parser = setup_parser(main_module, dependents, description, usage, supports_MPI, use_version, output_option)
     options, args = parser.parse_args_with_config()
+    
+    if 1 == 0:
+        unset = parser.collect_unset_options()
+        if len(unset) > 0:
+            for opt in unset:
+                print opt
+            sys.exit(1)
+        sys.exit(0)
+        
     settings_editor.display(parser, **vars(options))
     
     if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)

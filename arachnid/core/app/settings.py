@@ -265,7 +265,7 @@ class Option(optparse.Option):
         elif choices is not None:
             self.gui_hint = dict(type="choices", choices=choices)
         else:
-            self.gui_hint = {'type': 'unset'}
+            self.gui_hint = {'unset': True, 'type': kwargs.get('type', 'unset')}
         if "archive" in kwargs:
             self.archive = kwargs["archive"]
             del kwargs["archive"]
@@ -1153,7 +1153,7 @@ class OptionParser(optparse.OptionParser):
             except:
                 _logger.error("Cannot write out option: "+name)
                 raise
-           
+    
     def collect_options(self, test, options=None):
         ''' Collect all the options that point to file names
         
@@ -1177,8 +1177,22 @@ class OptionParser(optparse.OptionParser):
                 optionlist.extend(self.collect_options(test, group.option_list))
         else:
             for opt in options:
-                if test(opt): optionlist.append(opt.dest)
+                if test(opt) and opt.dest is not None:
+                    optionlist.append(opt.dest)
         return optionlist
+    
+    def collect_unset_options(self):
+        ''' Collect all options where the GUI hint parameter is `unset`
+        
+        :Returns:
+        
+        names : list
+                List of options with unset GUI hint
+        '''
+        
+        def is_unset(opt):
+            return opt.gui_hint['type'] == 'str'
+        return self.collect_options(is_unset)
         
     def collect_dependent_options(self):
         ''' Collect all the options that are dependencies of the output
