@@ -123,6 +123,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     if QtGui is None: return 
     parser.add_option("-X", ui=False,       help="Display the graphical user interface", gui=dict(nogui=True))
-    parser.add_option("-S", screen_shot="", help="Output filename for a screenshot of the UI", gui=dict(filetype="save"))
+    parser.add_option("-S", screen_shot="", help="Output filename for a screenshot of the UI", gui=dict(filetype="save", nogui=True))
     # Launcher command option
  

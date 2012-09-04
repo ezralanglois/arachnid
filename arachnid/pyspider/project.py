@@ -407,7 +407,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     parser.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0))
     parser.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels", gui=dict(minimum=0))
     parser.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0))
-    parser.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)")
+    parser.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     parser.add_option("", xmag=0.0,             help="Magnification (optional)", gui=dict(minimum=0))
         
     # Additional options to change
