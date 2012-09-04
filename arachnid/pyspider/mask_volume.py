@@ -268,13 +268,15 @@ def finalize(files, **extra):
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
-    from ..core.app.settings import setup_options_from_doc
+    from ..core.app.settings import setup_options_from_doc, OptionGroup
     
     if main_option:
         parser.add_option("-i", input_files=[], help="List of input filenames containing volumes", required_file=True, gui=dict(filetype="file-list"))
         parser.add_option("-o", output="",      help="Output filename for masked volume with correct number of digits (e.g. masked_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
-    setup_options_from_doc(parser, mask_volume, spherical_mask, tightmask)
+    mgroup = OptionGroup(parser, "Masking", "Option to control masking",  id=__name__, group_order=0)
+    setup_options_from_doc(parser, mask_volume, spherical_mask, tightmask, group=mgroup)
+    parser.add_option_group(mgroup)
     if main_option:
         setup_options_from_doc(parser, spider.open_session)
         parser.change_default(thread_count=4, log_level=3)

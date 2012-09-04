@@ -618,6 +618,18 @@ class OptionGroup(optparse.OptionGroup):
         self.option_groups = []
         self.group_order=group_order
         self._dependent = dependent
+        self._child = False
+        
+    def is_child(self):
+        ''' Test if the option group is a child of another option group
+        
+        :Returns:
+        
+        val : bool
+              True if this option group is a child of another group
+        '''
+        
+        return self._child
     
     def group_titles(self):
         '''Get a tuple of group titles.
@@ -640,6 +652,7 @@ class OptionGroup(optparse.OptionGroup):
         '''
         
         #self.parser.add_option_group(group)
+        group._child = True
         self.option_groups.append(group)
 
 class OptionParser(optparse.OptionParser):
@@ -1282,13 +1295,15 @@ class OptionParser(optparse.OptionParser):
             setattr(Branch, '_children', [])
             branch = Branch()
             for group in option_groups:
-                self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, branch)
+                self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, branch._children)
             tree.append(branch)
         else:
             tree = None
             if len(self.option_list)>0: tree = self.create_property_tree(factory, property_class, converter, self.option_list)
             groups = sorted(self.option_groups, key=_attrgetter('group_order'))
-            for group in groups: tree = self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, tree)
+            for group in groups: 
+                if group.is_child(): continue
+                tree = self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, tree)
         return tree
 
 class OptionValueError(optparse.OptParseError):
@@ -1718,7 +1733,7 @@ def setup_options_from_doc(parser, *args, **kwargs):
             if isinstance(defaults[-i], tuple):
                 param.update(default=0)
             group.add_option("", help=help, **param)
-        parser.add_option_group(group)
+        kwargs.get('group', parser).add_option_group(group)
 
 def parameter_type(name, doc):
     ''' Extract the parameter type from the documentation of a function

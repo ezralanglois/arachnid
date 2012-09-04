@@ -1,16 +1,18 @@
 ''' Create a Graphical User Interface (GUI) to edit settings of a program
 
-.. todo:: files should have text box
+.. todo:: files should have text box, input files should test for existence, if not popup dialog
 .. todo:: string list editor
 .. todo:: filename list editor
 .. todo:: refinement, double list editor link with header
 .. todo:: spider document editor, link to header
 .. todo:: volume mask separate out choice and filename
+.. todo:: html help in tab or popup
+.. todo:: maximum length for string argument
 
 .. Created on Sep 3, 2012
 .. codeauthor:: robertlanglois
 '''
-from ..app import tracing
+#from ..app import tracing
 import logging, sys
 
 _logger = logging.getLogger(__name__)
@@ -24,7 +26,7 @@ try:
     QtGui;
 except:
     QtGui=None
-    tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
+    #tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
 
 def display(parser, name=None, ui=False, config_file="", **extra):
     ''' Display a settings editor graphical user interface

@@ -61,7 +61,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, use_ver
         main_module.main()
         return
     
-    mpi_utility.mpi_init(param, **param)    
+    mpi_utility.mpi_init(param, **param)  
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
     try:
         if main_template is not None: main_template.main(args, main_module, **param)
@@ -164,7 +164,8 @@ def setup_parser(main_module, dependents, description="", usage=None, supports_M
         raise
     if hasattr(main_module, "setup_main_options"): main_module.setup_main_options(parser, group)
     if len(group.option_list) > 0: parser.add_option_group(group)
-    for module in dependents: module.setup_options(parser, group)
+    for module in dependents:
+        module.setup_options(parser, group)
     setup_program_options(parser, supports_MPI, output_option)
     return parser
 
@@ -329,10 +330,10 @@ def setup_program_options(parser, supports_MPI=False, output_option=None):
     if not supports_MPI or not mpi_utility.supports_MPI(): return
     group = settings.OptionGroup(parser, "MPI", "Options to control MPI",  id=__name__, dependent=False)
     group.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
-    group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-    group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-    group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
+    group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     parser.add_option_group(group)
     
 def reload_script(version):

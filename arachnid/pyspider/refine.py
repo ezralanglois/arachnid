@@ -327,21 +327,25 @@ def setup_options(parser, pgroup=None, main_option=False):
                        (0.5,2),
                        ()]
         
-        parser.add_option("-i", input_files=[],          help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",               help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
-        parser.add_option("-r", reference="",            help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
-        parser.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
-        parser.add_option("",   refine_name=refine_name, help="List of option names to change in each round of refinement, values set in `refine-step`")
-        parser.add_option("",   refine_step=refine_step, help="List of value tuples where each tuple represents a round of refinement and contains a value for each parameter specified in the same order as `refine-name` for each round of refinement; each round is separated with a comma; each value by a colon, e.g. 15,10:0:6:1,8:0:4,1:3:1")
+        bgroup = OptionGroup(parser, "Primary", "Primary options to set for input and output", group_order=0,  id=__name__)
+        bgroup.add_option("-i", input_files=[],          help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
+        bgroup.add_option("-o", output="",               help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
+        bgroup.add_option("-r", reference="",            help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
+        bgroup.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
+        parser.add_option_group(bgroup)
+        sgroup = OptionGroup(parser, "Refinement", "Option to change during refinement", group_order=0,  id=__name__)
+        sgroup.add_option("",   refine_name=refine_name, help="List of option names to change in each round of refinement, values set in `refine-step`")
+        sgroup.add_option("",   refine_step=refine_step, help="List of value tuples where each tuple represents a round of refinement and contains a value for each parameter specified in the same order as `refine-name` for each round of refinement; each round is separated with a comma; each value by a colon, e.g. 15,10:0:6:1,8:0:4,1:3:1")
+        bgroup.add_option_group(sgroup)
         
-    group = OptionGroup(parser, "Refinement Parameters", "Options controlling alignment", group_order=0,  id=__name__)
+    group = OptionGroup(parser, "Additional Refinement", "Options to customize your refinement", group_order=0,  id=__name__)
     
     group.add_option("",   refine_index=-1,             help="Iteration to start refinment: -1 = start at last volume based on output (if there is none, then start at beginning), 0 = start at begining, > 0 start after specific iteration")
     group.add_option("",   keep_reference=False,        help="Do not change the reference - for tilt-pair analysis - second exposure")
     group.add_option("",   min_resolution=0.0,          help="Minimum resolution to filter next input volume")
     group.add_option("",   add_resolution=0.0,          help="Additional amount to add to resolution before filtering the next reference")
     
-    parser.add_option_group(group)
+    bgroup.add_option_group(group)
     
     if main_option:
         parser.change_default(thread_count=4, log_level=3, max_ref_proj=5000)
