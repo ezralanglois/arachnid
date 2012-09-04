@@ -1,6 +1,5 @@
 ''' Create a Graphical User Interface (GUI) to edit settings of a program
 
-.. todo:: files should have text box, input files should test for existence, if not popup dialog
 .. todo:: string list editor
 .. todo:: filename list editor
 .. todo:: refinement, double list editor link with header

@@ -47,11 +47,13 @@ class DialogWidget(QtGui.QWidget):
              Parent of the checkbox widget
     icon : QIcon
            Icon for the button
+    keep_editor : bool
+                  Keep the text editor
     '''
     
     editFinished = QtCore.pyqtSignal()
     
-    def __init__(self, parent=None, icon=None):
+    def __init__(self, parent=None, icon=None, keep_editor=False):
         "Initialize a font dialog"
         
         QtGui.QWidget.__init__(self, parent)
@@ -60,15 +62,24 @@ class DialogWidget(QtGui.QWidget):
         self.button = QtGui.QToolButton(self)
         self.action = QtGui.QAction(QtGui.QIcon(icon), "", self)
         self.button.setDefaultAction(self.action)
-        self.spacer = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.formLayout = QtGui.QFormLayout(self)
-        self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)#FieldsStayAtSizeHint)
-        self.formLayout.setLabelAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignRight|QtCore.Qt.AlignTop)
-        self.formLayout.setContentsMargins(0, 0, 5, 0)
-        self.formLayout.setObjectName("formLayout")
-        self.formLayout.setItem(0, QtGui.QFormLayout.LabelRole, self.spacer)
-        self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.button)
+        
+        if keep_editor:
+            self.layout = QtGui.QHBoxLayout(self)
+            self.layout.setObjectName("dialogLayout")
+            self.layout.setContentsMargins(0, 0, 5, 0)
+            self.field = QtGui.QLineEdit(self)
+            self.layout.addWidget(self.field)
+            self.layout.addWidget(self.button)
+        else:
+            self.spacer = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+            self.formLayout = QtGui.QFormLayout(self)
+            self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)#FieldsStayAtSizeHint)
+            self.formLayout.setLabelAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+            self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignRight|QtCore.Qt.AlignTop)
+            self.formLayout.setContentsMargins(0, 0, 5, 0)
+            self.formLayout.setObjectName("formLayout")
+            self.formLayout.setItem(0, QtGui.QFormLayout.LabelRole, self.spacer)
+            self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.button)
         self.button.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.connect(self.action, QtCore.SIGNAL("triggered()"), self.showDialog)
     
@@ -210,11 +221,13 @@ class FileDialogWidget(DialogWidget):
     def __init__(self, type, filter="", path="", parent=None):
         "Initialize a font dialog"
         
-        DialogWidget.__init__(self, parent)
+        DialogWidget.__init__(self, parent, keep_editor=True)
         self.filename = ""
         self.filter = filter
         self.path = path
         self.filetype = type
+        self.field.setText(self.filename)
+        self.connect(self.field, QtCore.SIGNAL('editingFinished()'), self.updateFilename)
     
     def showDialog(self):
         ''' Display a file dialog
@@ -230,6 +243,21 @@ class FileDialogWidget(DialogWidget):
             self.fileChanged.emit(self.filename)
         self.editFinished.emit()
     
+    def updateFilename(self):
+        ''' Update the filename from the line edit
+        '''
+        
+        filename = str(self.field.text())
+        if not os.path.isdir(filename):
+            self.path = os.path.dirname(str(filename))
+        else: self.path = filename
+        if self.filetype == 'open' and not os.path.exists(filename) and filename != "":
+            self.field.setText("")
+            self.showDialog()
+        else:
+            self.filename = filename
+            self.editFinished.emit()
+    
     def setCurrentFilename(self, filename):
         ''' Set the current filename
         
@@ -239,8 +267,11 @@ class FileDialogWidget(DialogWidget):
                    Filename to display
         '''
         
-        self.filename = filename
-        if self.path == "": self.path = os.path.dirname(str(self.filename))
+        self.filename = str(filename)
+        if not os.path.isdir(self.filename):
+            self.path = os.path.dirname(str(self.filename))
+        else: self.path = self.filename
+        self.field.setText(filename)
     
     def selectedFilename(self):
         ''' Get the current filename
