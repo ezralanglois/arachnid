@@ -6,6 +6,8 @@ words, it defines a common set of options.
 Parameters
 ----------
 
+.. program:: shared
+
 .. option:: --use-MPI <BOOL>
     
     Set this flag True when using mpirun or mpiexec (Only available for MPI-enabled programs)
@@ -33,6 +35,10 @@ Parameters
 .. option:: --local-temp <FILENAME>
     
     File directory on local node for temporary files (optional but recommended for MPI jobs)
+
+.. option:: -t, --thread-count <INT>
+    
+    Number of threads per machine, 0 means determine from environment (Default: 0)
 
 .. Created on Oct 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -373,7 +379,7 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
     group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     parser.add_option_group(group)
     if supports_OMP:
-        parser.add_option("-t",   thread_count=0,          help="Set the number of threads to use in OpenMP")
+        parser.add_option("-t",   thread_count=0,          help="Number of threads per machine, 0 means determine from environment")
     
 def reload_script(version):
     ''' Update sys.path and reload all the modules

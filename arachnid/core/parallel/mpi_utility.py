@@ -204,19 +204,22 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     if rank is None: rank = get_rank(comm)
     size = get_size(comm)
     if is_client(comm):
+        assert(rank>0)
         if rank > 0:
             vals = parallel_utility.partition_array(vals, size-1)
             offset = 1
             for v in vals[:rank]: offset += len(v)
-            vals = vals[rank+1]
+            vals = vals[rank-1]
         try:
             for index, res in process_tasks.process_mp(process, vals, **extra):
+                assert(index <= size)
                 if rank > 0:
                     index += offset
                     comm.send(index, dest=0, tag=4)
                     comm.send(res, dest=0, tag=5)
                     status = comm.recv(source=0, tag=6)
                     if status < 0: raise StandardError, "Some MPI process crashed"
+                assert(index>0)
                 yield index-1, res
         except:
             if rank > 0: comm.send(-1, dest=0, tag=4)

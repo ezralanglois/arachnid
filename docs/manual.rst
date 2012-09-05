@@ -509,7 +509,7 @@ a cryo-EM experiment.
 MPI-Enabled Scripts
 -------------------
 
-These options are shared by all mpi-enabled scripts. For pySPIDER scripts, each of the directories is 
+These options are shared by all MPI-enabled scripts. For pySPIDER scripts, each of the directories is 
 extermely important for proper function:
 
  - The :option:`--shared-scratch` option is important for native SPIDER reconstruction engines; it is used 
@@ -544,12 +544,26 @@ extermely important for proper function:
 
 	File directory on local node to setup a soft link to `home-prefix` (optional but recommended for MPI jobs)
 
+OpenMP-Enabled Scripts
+----------------------
+
+This option is shared by all non-pySPIDER OpenMP-enabled scripts.
+
+.. program:: openmp-enabled
+
+.. option:: --thread-count <int>
+    
+    Number of threads per machine, 0 means determine from environment
+
 .. _spider-options:
 
 |spi| Scripts
 -------------
 
 These options are shared pyspider scripts; those prefixed with `spi-`.
+
+
+.. program:: pyspider
 
 .. option:: --spider-path <FILENAME>
     
@@ -561,7 +575,7 @@ These options are shared pyspider scripts; those prefixed with `spi-`.
     
 .. option:: --thread-count <int>
     
-    Number of threads per machine
+    Number of threads per machine, 0 means use all cores
     
 .. option:: --enable-results <BOOL>
     

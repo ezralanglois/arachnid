@@ -85,7 +85,7 @@ PyInit__transformations(void)
 #define INITERROR return
 
 PyMODINIT_FUNC
-init_healpix(void)
+init_omp(void)
 #endif
 {
     PyObject *module;
@@ -105,10 +105,10 @@ init_healpix(void)
     if (module == NULL)
         INITERROR;
 
-    if (_import_array() < 0) {
+    /*if (_import_array() < 0) {
         Py_DECREF(module);
         INITERROR;
-    }
+    }*/
 
     {
 #if PY_MAJOR_VERSION < 3

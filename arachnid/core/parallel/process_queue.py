@@ -185,7 +185,7 @@ def recreate_global_sparse_matrix(shmem, shape=None):
         return scipy.sparse.coo_matrix( (data[:shape[1]],(row[:shape[1]], col[:shape[1]])), shape=shape[0] )
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=shmem[3] )
 
-def start_workers_with_output(items, worker_callback, n, use_enum=False, **extra):
+def start_workers_with_output(items, worker_callback, n, **extra):
     '''Start workers and distribute tasks
     
     .. sourcecode:: py
