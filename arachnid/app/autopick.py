@@ -457,7 +457,8 @@ def main():
                          
                         $ ara-autopick input-stack.spi -o coords.dat -r 110 --invert
                       ''',
-        use_version = True
+        use_version = True,
+        supports_OMP=True,
     )
 
 def dependents(): return [lfcpick]

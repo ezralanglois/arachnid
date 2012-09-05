@@ -10,7 +10,7 @@ Parameters
     
     Set this flag True when using mpirun or mpiexec (Only available for MPI-enabled programs)
 
-.. option:: -z <filename>, --create-cfg <filename>
+.. option:: -z <FILENAME>, --create-cfg <FILENAME>
     
     Create a configuration file (if the value is 1, true, y, t, then write to standard output)
 
@@ -18,10 +18,26 @@ Parameters
     
     Version of the program to use, use `latest` to always use the latest version
 
+.. option:: --shared-scratch <FILENAME>
+    
+    File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
+
+.. option:: --home-prefix <FILENAME>
+    
+    File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
+
+.. option:: --local-scratch <FILENAME>
+    
+    File directory on local node to copy files (optional but recommended for MPI jobs)
+
+.. option:: --local-temp <FILENAME>
+    
+    File directory on local node for temporary files (optional but recommended for MPI jobs)
+
 .. Created on Oct 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..parallel import mpi_utility
+from ..parallel import mpi_utility, openmp
 from ..gui import settings_editor
 import tracing, settings
 import logging, sys, os, traceback
@@ -31,7 +47,7 @@ import file_processor
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def run_hybrid_program(name, description, usage=None, supports_MPI=True, use_version=False, max_filename_len=0, output_option=None):
+def run_hybrid_program(name, description, usage=None, supports_MPI=True, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
     ''' Run the main function or other entry points in the calling module
     
     :Parameters:
@@ -44,6 +60,8 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, use_ver
             Current usage of the program
     supports_MPI : bool
                    If True, add MPI capability
+    supports_OMP : bool
+                   If True, add OpenMP capability
     use_version : bool
                   If True, add version control capability
     max_filename_len : int
@@ -53,15 +71,19 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, use_ver
     '''
     
     _logger.addHandler(logging.StreamHandler())
+    _logger.debug("Run program: %d, %d"%(supports_MPI, mpi_utility.supports_MPI()))
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
     try:
-        parser, args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, use_version, max_filename_len, output_option)
+        parser, args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
     except VersionChange:
         main_module.main()
         return
     
-    mpi_utility.mpi_init(param, **param)  
+    mpi_utility.mpi_init(param, **param)
+    if supports_OMP:
+        if param['thread_count'] > 0:
+            openmp.set_thread_count(param['thread_count'])
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
     try:
         if main_template is not None: main_template.main(args, main_module, **param)
@@ -74,7 +96,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, use_ver
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
         
-def write_config(main_module, description="", config_path=None, supports_MPI=False, **extra):
+def write_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
     ''' Write a configuration file to an output file
     
     :Parameters:
@@ -87,6 +109,8 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
                   Path to write configuration file
     supports_MPI : bool
                    Set True if the script supports MPI
+    supports_OMP : bool
+                   If True, add OpenMP capability
     '''
     
     _logger.addHandler(logging.StreamHandler())
@@ -95,7 +119,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
     dependents.extend([tracing, settings_editor])
-    parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, False, None)
+    parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)
     parser.change_default(**extra)
     name = main_module.__name__
     off = name.rfind('.')
@@ -129,7 +153,7 @@ def map_module_to_program(key=None):
     vals = dict(vals)
     return vals if key is None else vals[key]
         
-def setup_parser(main_module, dependents, description="", usage=None, supports_MPI=False, use_version=False, output_option=None):
+def setup_parser(main_module, dependents, description="", usage=None, supports_MPI=False, supports_OMP=False, use_version=False, output_option=None):
     '''Parse and setup the parameters for the generic program
     
     :Parameters:
@@ -144,6 +168,8 @@ def setup_parser(main_module, dependents, description="", usage=None, supports_M
             Current usage of the program
     supports_MPI : bool
                    If True, add MPI capability
+    supports_OMP : bool
+                   If True, add OpenMP capability
     output_option : str, optional
                     If specified, then add `-o, --output` option with given help string
     
@@ -166,10 +192,10 @@ def setup_parser(main_module, dependents, description="", usage=None, supports_M
     if len(group.option_list) > 0: parser.add_option_group(group)
     for module in dependents:
         module.setup_options(parser, group)
-    setup_program_options(parser, supports_MPI, output_option)
+    setup_program_options(parser, supports_MPI, supports_OMP, output_option)
     return parser
 
-def parse_and_check_options(main_module, main_template, description, usage, supports_MPI=False, use_version=False, max_filename_len=0, output_option=None):
+def parse_and_check_options(main_module, main_template, description, usage, supports_MPI=False, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
     '''Parse and setup the parameters for the generic program
     
     :Parameters:
@@ -184,6 +210,8 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             Current usage of the program
     supports_MPI : bool
                    If True, add MPI capability
+    supports_OMP : bool
+                   If True, add OpenMP capability
     use_version : bool
                   If True, add version control capability
     max_filename_len : int
@@ -207,7 +235,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     dependents.extend([tracing, settings_editor])
     
     description="\n#  ".join([s.strip() for s in description.split("\n")])
-    parser = setup_parser(main_module, dependents, description, usage, supports_MPI, use_version, output_option)
+    parser = setup_parser(main_module, dependents, description, usage, supports_MPI, supports_OMP, use_version, output_option)
     options, args = parser.parse_args_with_config()
     
     if 1 == 0:
@@ -329,7 +357,7 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param
 
-def setup_program_options(parser, supports_MPI=False, output_option=None):
+def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output_option=None):
     # Collection of options necessary to use functions in this script
     
     parser.add_option("",   create_cfg="",          help="Create a configuration file (if the value is 1, true, y, t, then write to standard output)", gui=dict(nogui=True))
@@ -344,6 +372,8 @@ def setup_program_options(parser, supports_MPI=False, output_option=None):
     group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     parser.add_option_group(group)
+    if supports_OMP:
+        parser.add_option("-t",   thread_count=0,          help="Set the number of threads to use in OpenMP")
     
 def reload_script(version):
     ''' Update sys.path and reload all the modules

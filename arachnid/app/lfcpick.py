@@ -562,6 +562,7 @@ def main():
                         $ ara-lfcpick input-stack.spi -o coords.dat -r 110 --invert
                       ''',
         use_version = True,
+        supports_OMP=True,
     )
 
 def dependents(): return [spider_params]

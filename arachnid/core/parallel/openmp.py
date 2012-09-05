@@ -6,12 +6,12 @@
 from ..app import tracing
 import logging
 
-
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try:
     from core import _omp
+    _omp;
 except:
     if _logger.isEnabledFor(logging.DEBUG):
         tracing.log_import_error("Failed to import OpenMP module - certain functionality will not be available", _logger)

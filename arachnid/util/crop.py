@@ -572,6 +572,7 @@ def main():
                         
                         $ %prog micrograph.spi -o particle-stack.spi -r 110 -s particle-coords.spi -w 312
                       ''',
+        supports_OMP=True,
     )
 
 def dependents(): return [spider_params]
