@@ -785,7 +785,7 @@ class OptionParser(optparse.OptionParser):
         fout.close()
         
         dep_opts = set(self.collect_dependent_options())
-        dep = [val for val in changed if val in dep_opts]
+        dep = [val for val in vars(changed).iterkeys() if val in dep_opts]
         return VersionControl(output), len(dep) > 0
     
     def parse_all(self, args=sys.argv[1:], values=None, fin=None):
@@ -1224,11 +1224,11 @@ class OptionParser(optparse.OptionParser):
         
         if type is None:
             def is_file(opt):
-                return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint['type']
+                return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint
             is_file_test = is_file
         else:
             def is_file_type(opt):
-                return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint['type'] and opt.gui_hint['file'] == type
+                return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type
             is_file_test = is_file_type
         return self.collect_options(is_file_test)
     
