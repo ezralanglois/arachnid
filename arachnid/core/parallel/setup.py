@@ -1,16 +1,11 @@
 ''' Setup for core modules
 '''
 
-
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
-    import numpy
-    config = Configuration('core', parent_package, top_path)
+    config = Configuration('parallel', parent_package, top_path)
     config.set_options(quiet=True)
-    config.add_subpackage('image')
-    config.add_subpackage('orient')
-    config.add_subpackage('parallel')
-    config.add_include_dirs([numpy.get_include()])
+    config.add_subpackage('core')
     return config
 
 if __name__ == '__main__':

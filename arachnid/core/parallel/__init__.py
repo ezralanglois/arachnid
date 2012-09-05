@@ -3,6 +3,10 @@
 .. currentmodule:: arachnid.core.parallel
 
 .. autosummary::
+    
+    core
+
+.. autosummary::
     :nosignatures:
     :toctree: api_generated/
     :template: api_module.rst
@@ -11,4 +15,5 @@
     process_queue
     process_tasks
     mpi_utility
+    openmp
 '''
