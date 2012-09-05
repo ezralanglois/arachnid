@@ -3,7 +3,7 @@
 .. Created on Dec 3, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from PyQt4 import QtGui #, QtCore
+from PyQt4 import QtGui, QtCore
 try: from pyui.PropertyDialog import Ui_PropertyDialog
 except:
     raise
@@ -56,6 +56,24 @@ class Dialog(QtGui.QDialog):
         
         self.showSetup()
         QtGui.QDialog.showEvent(self, event)
+    
+    def done(self, mode):
+        '''Dialog is done
+        
+        :Parameters:
+            
+            mode : int
+                   Dialog accept mode
+        '''
+        
+        if self.windowTitle() == "":
+            filename = QtGui.QFileDialog.getSaveFileName(self, self.tr("Save config file as"), QtCore.QDir.currentPath(), "Config files (*.cfg)")
+            if filename: 
+                self.setWindowTitle(filename)
+            else:
+                ret = QtGui.QMessageBox.warning(self, "Warning", "Close without saving?", QtGui.QMessageBox.Yes| QtGui.QMessageBox.No)
+                if ret == QtGui.QMessageBox.No: return
+        super(Dialog, self).done(mode)
     
     def addProperty(self, obj, name, icon=None):
         ''' Add a property to the property tree

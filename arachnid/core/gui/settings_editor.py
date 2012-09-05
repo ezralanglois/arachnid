@@ -106,17 +106,21 @@ def display(parser, name=None, ui=False, **extra):
          Set true to display the dialog
     extra : dict
             Unused keyword arguments
+            
+    :Returns:
+    
+    create_cfg : str
+                 Output filename for the configuration file
     '''
     
     screenshot(parser, name, **extra)
-    if QtGui is None or not ui: return
+    if QtGui is None or not ui: return extra['create_cfg']
     app, dialog = _create_settings_dialog(parser, name, **extra)
     dialog.show()
-    # call hook to write new config file
-    # set create_cfg
-    # app.exec_()
-    # or
-    sys.exit(app.exec_())
+    ret = app.exec_()
+    if dialog.windowTitle() == "": sys.exit(ret)
+    return str(dialog.windowTitle())
+    
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
