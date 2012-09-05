@@ -198,6 +198,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         if refine_index > 0 and not keep_reference: 
             extra['reference'] = output_volume
             spi.iq_sync(extra['reference'])
+        spider.ensure_proper_parameters(extra)
         output = spider_utility.spider_filename(output, refine_index+1) 
         output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
         if mpi_utility.is_root(**extra): 
