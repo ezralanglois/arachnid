@@ -78,7 +78,12 @@ Packages to Download
         - `Numpy`_
         - `Scipy`_
         - `Matplotlib`_
+    
+    - MPI Packages (Required to use MPI)
+        
+        - `mpi4py`_
 
+.. _`mpi4py`: http://mpi4py.scipy.org/
 .. _`SPIDER`: http://www.wadsworth.org/spider_doc/spider/docs/spi-register.html
 .. _`ACML`: http://developer.amd.com/cpu/Libraries/acml/Pages/default.aspx
 .. _`MKL`: http://software.intel.com/en-us/intel-mkl/
@@ -309,11 +314,10 @@ if __name__ == '__main__':
           install_requires = [
             'numpy>=1.3.0',
             'scipy>=0.7.1',
-            'matplotlib>=1.1.0',
             ],
             extras_require = {
             'MPI': 'mpi4py>=1.2.2',
-            'Plotting': 'matplotlib>=1.1.0',
+            'plot': 'matplotlib>=1.1.0',
             'EMAN2' : ['EMAN2'],
             'PyQT' : ['PyQt4'],
             },
