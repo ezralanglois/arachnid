@@ -289,6 +289,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     for i in xrange(len(files)):
         if not os.path.isabs(files[i]):
             files[i] = os.path.abspath(files[i])
+    raw_reference = os.path.abspath(raw_reference)
     
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]

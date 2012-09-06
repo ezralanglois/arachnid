@@ -10,6 +10,7 @@ import logging
 try:
     import EMAN2
     import utilities
+    EMAN2;
 except:
     logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
     EMAN2 = None

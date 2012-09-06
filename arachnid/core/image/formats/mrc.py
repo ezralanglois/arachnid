@@ -251,8 +251,8 @@ def is_readable(filename):
             _logger.exception("Unable to read header")
             return False
     _logger.debug("MRC - mode: %d"%h['mode'][0])
-    _logger.debug("MRC - byteorder: %h"%h['byteorder'][0])
-    _logger.debug("MRC - byteorder-swapped: %h"%h['byteorder'][0].byteswap() )
+    _logger.debug("MRC - byteorder: %d"%h['byteorder'][0])
+    _logger.debug("MRC - byteorder-swapped: %d"%h['byteorder'][0].byteswap() )
     _logger.debug("MRC - nx: %d"%h['nx'][0] )
     _logger.debug("MRC - ny: %d"%h['ny'][0] )
     _logger.debug("MRC - nz: %d"%h['nz'][0] )
