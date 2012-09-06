@@ -274,7 +274,6 @@ def initialize(files, param):
     # Initialize global parameters for the script
     
     #param['spi'] = spider.open_session(files, **param)
-    #spider_params.read_spider_parameters_to_dict(param['spi'].replace_ext(param['param_file']), param)
     pass
 
 def finalize(files, **extra):

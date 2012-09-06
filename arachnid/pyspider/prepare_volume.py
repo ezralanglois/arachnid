@@ -296,7 +296,7 @@ def initialize(files, param):
     # Initialize global parameters for the script
     
     param['spi'] = spider.open_session(files, **param)
-    spider_params.read_spider_parameters_to_dict(param['spi'].replace_ext(param['param_file']), param)
+    spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     pfiles = []
     for i in xrange(0, len(files), 3):
         pfiles.append((files[i], files[i+1], files[i+2]))

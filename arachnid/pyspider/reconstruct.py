@@ -214,7 +214,7 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     '''
     
     assert(window>0)
-    param = spider_params.read_spider_parameters_to_dict(spi.replace_ext(param_file), extra)
+    param = spider_params.read(spi.replace_ext(param_file), extra)
     cache = spider_utility.spider_filename('cache_%s'%str(mpi_utility.rank(**extra)+1).zfill(len(str(mpi_utility.size(**extra)))))
     if home_prefix == "": 
         home_prefix = os.path.dirname(os.path.dirname(files[0]))

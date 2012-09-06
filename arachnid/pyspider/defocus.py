@@ -494,7 +494,7 @@ def initialize(files, param):
         except: pass
     mpi_utility.barrier(**param)
     param['spi'] = spider.open_session(files, **param)
-    spider_params.read_spider_parameters_to_dict(param['spi'].replace_ext(param['param_file']), param)
+    spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     param['output'] = param['spi'].replace_ext(param['output'])
 
 def reduce_all(filename, file_completed, file_count, output, **extra):
