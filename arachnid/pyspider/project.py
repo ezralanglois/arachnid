@@ -374,6 +374,15 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         _logger.info("Writing script %s"%os.path.join(output, 'run_%s'%type))
         fout = open(os.path.join(output, 'run_%s'%type), 'w')
         fout.write("#!/bin/bash\n")
+        if type == 'cluster':
+            fout.write('MACHINEFILE="machinefile"\n')
+            fout.write('if [ ! -e "$MACHINEFILE" ] ; then \n')
+            fout.write('echo "Cannot find machinefile"\n')
+            fout.write('exit 1\n')
+            fout.write('nodes=`python -c "fin=open(\\"$MACHINEFILE\\", \'r\');lines=fin.readlines();print len([val for val in lines if val[0].strip() != \'\' and val[0].strip()[0] != \'#\'])"`\n')
+            fout.write('export nodes MACHINEFILE\n')
+            # count nodes
+            # export environment variable
         for mod in modules:
             fout.write('sh %s\n'%os.path.join('..', map[mod.__name__]))
             fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\n')
@@ -411,8 +420,8 @@ def detect_MPI():
     
     ret = call('mpiexec --version', shell=True, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
     if ret == 0: # Detected OpenMPI
-        return "mpiexec -stdin none -n $nodes -machinefile machinefile"
-    return "mpiexec -n $nodes -machinefile machinefile"
+        return "mpiexec -stdin none -n $nodes -machinefile $MACHINEFILE"
+    return "mpiexec -n $nodes -machinefile $MACHINEFILE"
 
 def download(urlpath, filepath):
     '''Download the file at the given URL to the local filepath
