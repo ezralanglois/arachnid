@@ -10,8 +10,11 @@
 .. Created on Aug 9, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import numpy, sys
+import numpy, sys, logging
 from spider import _open, _close, _update_header
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 mrc2numpy = {
     0: numpy.uint8,
@@ -234,14 +237,28 @@ def is_readable(filename):
           True if the header conforms to MRC
     '''
     
+    _logger.debug("MRC - is_readable")
     if hasattr(filename, 'dtype'): 
+        _logger.debug("Found header")
         h = filename
         if not is_format_header(h):
             raise ValueError, "Array dtype incorrect"
     else: 
+        _logger.debug("Read header")
         try:
             h = read_header(filename)
-        except: return False
+        except: 
+            _logger.exception("Unable to read header")
+            return False
+    _logger.debug("MRC - mode: %d"%h['mode'][0])
+    _logger.debug("MRC - byteorder: %h"%h['byteorder'][0])
+    _logger.debug("MRC - byteorder-swapped: %h"%h['byteorder'][0].byteswap() )
+    _logger.debug("MRC - nx: %d"%h['nx'][0] )
+    _logger.debug("MRC - ny: %d"%h['ny'][0] )
+    _logger.debug("MRC - nz: %d"%h['nz'][0] )
+    _logger.debug("MRC - mx: %d"%h['mx'][0] )
+    _logger.debug("MRC - my: %d"%h['my'][0] )
+    _logger.debug("MRC - mz: %d"%h['mz'][0] )
     if h['mode'][0] not in mrc2numpy: return False
     if h['byteorder'][0] not in intbyteorder and \
        h['byteorder'][0].byteswap() not in intbyteorder: return False

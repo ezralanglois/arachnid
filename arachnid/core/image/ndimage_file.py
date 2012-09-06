@@ -244,7 +244,8 @@ def _load():
     ''' Import available formats
     '''
     
-    formats = []
+    from formats import mrc
+    formats = [mrc]
     try: from formats import eman_format
     except: tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
     else: formats.append(eman_format)

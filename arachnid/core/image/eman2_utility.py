@@ -10,15 +10,9 @@ import logging
 try:
     import EMAN2
     import utilities
-    '''
-    from projection import prep_vol, prgs
-    from utilities import model_circle, even_angles, center_2D, combine_params2, ce_fit, compose_transform2, image_decimate, gauss_edge, model_blank
-    from fundamentals import rot_shift2D, fft, cyclic_shift, smallprime, window2d #, ramp
-    from alignment import Numrinit, ringwe, Applyws
-    if None in (EMAN2,Transform,gauss_edge,model_blank,Vec2f,Reconstructors,EMUtil,Region,Vec3f,prgs,prep_vol,image_decimate,even_angles,compose_transform2,model_circle,combine_params2,center_2D,smallprime,fft,cyclic_shift,rot_shift2D,window2d,Numrinit,Applyws,ringwe): pass
-    '''
 except:
     logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
+    EMAN2 = None
 import numpy
 
 def em2numpy2em(fn):

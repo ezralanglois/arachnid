@@ -69,7 +69,7 @@ lists each supported extension with its corresponding file format.
 '''
 from .. import eman2_utility, ndimage
 from spider import _update_header
-import numpy, logging, struct
+import numpy, logging, struct, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -92,12 +92,12 @@ def is_readable(filename):
            True if the format is recognized
     '''
     
-    _logger.debug("Test if read: %s"%filename)
+    if not os.path.exists(filename): return False
     try: 
         type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
-        _logger.debug("got type")
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
-    except: return False
+    except: 
+        return False
     
 def read_header(filename, index=None):
     ''' Read the SPIDER header
@@ -117,17 +117,14 @@ def read_header(filename, index=None):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
-    _logger.debug("Create emdata object")
     emdata = eman2_utility.EMAN2.EMData()
-    _logger.debug("Read image from index: %s"%str(index))
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, index)
     
-    _logger.debug("Get pixel size")
     header = numpy.zeros(1, dtype=ndimage._header)
     header[0].apix = emdata.get_attr('apix_x')
-    _logger.debug("Finished read_header")
     return header
 
 def read_image(filename, index=None, header=None, cache=None):
@@ -152,6 +149,7 @@ def read_image(filename, index=None, header=None, cache=None):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     emdata = eman2_utility.EMAN2.EMData() if cache is None else cache
     if index is None: emdata.read_image_c(filename)
@@ -188,6 +186,7 @@ def iter_images(filename, index=None, header=None):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     if index is None: index = 0
     emdata = eman2_utility.EMAN2.EMData()
@@ -217,6 +216,7 @@ def count_images(filename):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     return eman2_utility.EMAN2.EMUtil.get_image_count(filename)
 
@@ -262,16 +262,12 @@ def write_image(filename, img, index=None, header=None, type=None):
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not eman2_utility.is_em(img): 
-        _logger.debug("Converting numpy array to EMData")
         img = eman2_utility.numpy2em(img)
     h={}
-    _logger.debug("Updating the header")
     header=_update_header(h, header, ara2eman)
     for key, val in header.iteritems(): img.set_attr(key, val)
     if type is None:
-        _logger.debug("Determine type of file from extension")
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
-    _logger.debug("Using type: %d"%type)
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: 
         _logger.debug("MRC - must flip")
         img.process_inplace("xform.flip",{"axis":"y"})
@@ -283,7 +279,6 @@ def write_image(filename, img, index=None, header=None, type=None):
             _logger.debug("Type SPIDER stack - switch to SINGLE spider")
             type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
         index = 0
-    _logger.debug("Write image")
     img.write_image_c(filename, index, type)
     # Workaround for buggy Montage from doc viewer
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
@@ -292,7 +287,6 @@ def write_image(filename, img, index=None, header=None, type=None):
         f.seek(26*4)
         f.write(struct.pack('f', 0.0))
         f.close()
-    _logger.debug("Finished write")
 
 
 
