@@ -6,8 +6,8 @@
 .. todo:: spider document editor, link to header
 .. todo:: volume mask separate out choice and filename
 .. todo:: html help in tab or popup
-.. todo:: maximum length for string argument
 .. todo:: add logging debug more
+.. todo:: set style sheet and mark required items with background color
 
 .. Created on Sep 3, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

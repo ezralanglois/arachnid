@@ -498,8 +498,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("",   phase_flip=False,       help="Set to True if your data stack(s) has already been phase flipped or CTF corrected")
 
     rgroup = OptionGroup(parser, "Reconstruction Parameters", "Options controlling reconstruction", group_order=0,  id=__name__)
-    rgroup.add_option("",   npad=2,                                 help="Padding for the reconstruction")
-    rgroup.add_option("",   sym='c1',                               help="Symmetry for the reconstruction")
+    rgroup.add_option("",   npad=2,                                 help="Padding for the reconstruction", gui=dict(minimum=1))
+    rgroup.add_option("",   sym=('c1',),                            help="Symmetry for the reconstruction")
     rgroup.add_option("",   mult_ctf=False,                         help="Multiply by the CTF rather than phase flip before backprojection")
     rgroup.add_option("",   engine=('MPI_nn4', 'BPCG', 'BP32F'),    help="Type of reconstruction engine to use", default=0)
     parser.add_option_group(rgroup)
