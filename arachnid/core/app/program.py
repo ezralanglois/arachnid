@@ -378,8 +378,8 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
     group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     parser.add_option_group(group)
-    if supports_OMP:
-        parser.add_option("-t",   thread_count=0,          help="Number of threads per machine, 0 means determine from environment")
+    if supports_OMP and openmp.get_max_threads() > 1:
+        parser.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
     
 def reload_script(version):
     ''' Update sys.path and reload all the modules

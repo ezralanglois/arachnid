@@ -8,25 +8,26 @@
 
 char py_set_num_threads_doc[] =
     "Set the number of threads for OpenMP to use";
-
-static PyObject *
-py_set_num_threads(
-    PyObject *obj,
-    PyObject *args,
-    PyObject *kwds)
+static PyObject* py_set_num_threads(PyObject *obj, PyObject *args)
 {
     int thread_count;
-    static char *kwlist[] = {"thread_count", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
-        &thread_count)) goto _fail;
+    if (!PyArg_ParseTuple(args, "i", &thread_count)) return NULL;
 #	ifdef _OPENMP
     if (thread_count < 1) thread_count = 1;
 	omp_set_num_threads(thread_count);
 #	endif
+	Py_RETURN_NONE;
+}
 
- _fail:
-    return NULL;
+char py_get_max_threads_doc[] =
+    "Get maximum number of available threads for OpenMP to use";
+static PyObject* py_get_max_threads(PyObject *obj)
+{
+#	ifdef _OPENMP
+    return PyInt_FromLong(omp_get_max_threads());
+#   else
+    return 1;
+#	endif
 }
 
 
@@ -39,9 +40,8 @@ char module_doc[] =
     "\n\nVersion: %s\n";
 
 static PyMethodDef module_methods[] = {
-    {"set_num_threads",
-        (PyCFunction)py_set_num_threads,
-        METH_VARARGS|METH_KEYWORDS, py_set_num_threads_doc},
+    {"set_num_threads", (PyCFunction)py_set_num_threads, METH_VARARGS, py_set_num_threads_doc},
+    {"get_max_threads", (PyCFunction)py_get_max_threads, 0, py_get_max_threads_doc},
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 

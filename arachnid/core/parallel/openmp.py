@@ -29,6 +29,16 @@ def set_thread_count(thread_count):
                    Number of threads to be used by OpenMP
     '''
     
-    _omp.set_thread_count(thread_count)
+    _omp.set_num_threads(thread_count)
 
-
+def get_max_threads():
+    '''Get maximum number of available threads.
+    Return 1 if OpenMP is disabled.
+    
+    :Returns:
+    
+    num : int
+          Number of available threads
+    '''
+    
+    return _omp.get_max_threads()
