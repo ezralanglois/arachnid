@@ -1,12 +1,21 @@
 #!/bin/bash
 
+#TODO convert to python script
+
+# Only test the changed files
+#git diff --cached --name-status | awk '$1 != "R" { print $2 }'
+#git diff-index --cached HEAD | awk '$5 != "R" { print $6 }'
+
+# TODO: Test pep8?
+
+#TODO: To force the commit run: git commit --no-verify
+
 echo "Running pre-commit tests"
 if [ ! -e build ] ; then
 mkdir build
 fi
 
 pyflakes arachnid > build/pyflakes.log 2>&1
-#echo "disabled pyflakes"
 if [ "$?" != "0" ] ; then
 more build/pyflakes.log
 exit 1
@@ -19,12 +28,17 @@ more build/build.log
 exit 1
 fi
 
+# TODO: get directory of commit file
+# TODO: Run on that
+
 nosetests arachnid > build/nosetests.log 2>&1
 
 if [ "$?" != "0" ] ; then
 more build/nosetests.log
 exit 1
 fi
+
+# TODO: Remove generated version of the file
 
 sphinx-build -E -n -b coverage . build > build/sphinx.log 2>&1
 if [ "$?" != "0" ] ; then

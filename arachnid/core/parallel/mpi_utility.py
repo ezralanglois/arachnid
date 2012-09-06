@@ -212,7 +212,6 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             vals = vals[rank-1]
         try:
             for index, res in process_tasks.process_mp(process, vals, **extra):
-                assert(index <= size)
                 if rank > 0:
                     _logger.error("Send: %d + %d from %d"%(index, offset, rank))
                     index += offset
