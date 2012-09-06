@@ -208,14 +208,14 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     
     if mpi_mode == 1:
         run_hybrid_node = run_multi_node
-        _logger.debug("Creating multi-node project")
+        _logger.info("Creating multi-node project")
     elif mpi_mode == 2:
         run_multi_node = run_single_node
-        _logger.debug("Creating single-node project")
+        _logger.info("Creating single-node project")
     else:
-        _logger.debug("Creating hybrid project")
+        _logger.info("Creating hybrid project")
     
-    _logger.debug("Writing project to %s"%output)
+    _logger.info("Writing project to %s"%output)
     sn_path = os.path.join(output, 'local')
     mn_path = os.path.join(output, 'cluster')
     
@@ -265,7 +265,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     )
     
 
-    _logger.debug("Creating directories")
+    _logger.info("Creating directories")
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     _logger.debug("Writing SPIDER params file")
     spider_params.write(os.path.join(output, param['param_file']), **extra)
@@ -283,17 +283,17 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     if extra['scattering_doc'] == "ribosome":
         scattering_doc = os.path.join(mn_path, 'data', 'scattering8'+ext)
         if not os.path.exists(scattering_doc):
-            _logger.debug("Downloading scattering doc")
+            _logger.info("Downloading scattering doc")
             extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
             if ext != os.path.splitext(extra['scattering_doc'])[1]:
                 os.rename(extra['scattering_doc'], scattering_doc)
                 extra['scattering_doc'] = scattering_doc
         else:
-            _logger.debug("Downloading scattering doc - skipping, already found")
+            _logger.info("Downloading scattering doc - skipping, already found")
     elif extra['scattering_doc'] == "":
         _logger.warn("No scattering document file specified: `--scattering-doc`")
     else:
-        _logger.debug("Copying scattering doc")
+        _logger.info("Copying scattering doc")
         scattering_doc = os.path.join(mn_path, 'data', os.path.splitext(os.path.basename(extra['scattering_doc']))[0]+ext)
         fin = open(extra['scattering_doc'], 'r')
         fout = open(scattering_doc, 'w')
@@ -346,14 +346,15 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                                #selection_file
                                )),
                 ]
+    map = {}
     for mod, extra in modules:
         param.update(extra)
         name = mod.__name__
         idx = name.rfind('.')
         if idx != -1: name = name[idx+1:]
         param.update(log_file=os.path.join(os.path.basename(extra['config_path']), 'log', name+'.log'))
-        _logger.debug("Writing config file for %s"%name)
-        program.write_config(mod, **param)
+        _logger.info("Writing config file for %s"%name)
+        map[mod.__name__] = program.write_config(mod, **param)
     
     module_type = {}
     for mod, extra in modules:
@@ -361,10 +362,10 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         if type not in module_type: module_type[type]=[]
         module_type[type].append(mod)
     
-    map = program.map_module_to_program()
+    #map = program.map_module_to_program()
     for path, modules in module_type.iteritems():
         type = os.path.basename(path)
-        _logger.debug("Writing script %s"%os.path.join(output, 'run_%s'%type))
+        _logger.info("Writing script %s"%os.path.join(output, 'run_%s'%type))
         fout = open(os.path.join(output, 'run_%s'%type), 'w')
         fout.write("#!/bin/bash\n")
         for mod in modules:

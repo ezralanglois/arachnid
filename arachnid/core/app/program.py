@@ -118,6 +118,11 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
                    Set True if the script supports MPI
     supports_OMP : bool
                    If True, add OpenMP capability
+                   
+    :Returns:
+    
+    output : str
+             Output filename of the configuration file
     '''
     
     _logger.addHandler(logging.StreamHandler())
@@ -135,6 +140,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     parser.write(output) #, options)
+    return output
     
 def map_module_to_program(key=None):
     ''' Create a dictionary that maps each module name to 
