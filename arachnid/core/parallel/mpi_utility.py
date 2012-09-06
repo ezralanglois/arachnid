@@ -204,7 +204,6 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     if rank is None: rank = get_rank(comm)
     size = get_size(comm)
     if is_client(comm):
-        assert(rank>0)
         if rank > 0:
             vals = parallel_utility.partition_array(vals, size-1)
             offset = 1
