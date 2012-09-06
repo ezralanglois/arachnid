@@ -423,7 +423,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     parser.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0))
     parser.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     parser.add_option("", xmag=0.0,             help="Magnification (optional)", gui=dict(minimum=0))
-        
+    
+    # Ganylerix - 
+    
     # Additional options to change
     group = OptionGroup(parser, "Additional Parameters", "Optional parameters to set", group_order=0,  id=__name__)
     group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)

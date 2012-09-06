@@ -300,7 +300,7 @@ class Option(optparse.Option):
                      Dictionary of validator objects
         '''
         
-        if self.gui_hint is not None and self.gui_hint['type'] in validators:
+        if self.gui_hint is not None and 'type' in self.gui_hint and self.gui_hint['type'] in validators:
             val = validators[self.gui_hint['type']](getattr(values, self.dest, self.default), self.dest)
             if val is not None: setattr(values, self.dest, val)
         
