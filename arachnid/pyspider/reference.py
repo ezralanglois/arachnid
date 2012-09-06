@@ -123,12 +123,12 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
     _logger.info("Processing: %s"%os.path.basename(filename))
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
-    header = ndimage_file.read_header(spi.replace_ext(filename))
+    header = ndimage_file.read_header(filename)
     if curr_apix == 0: 
         if header['apix'] != 0: raise ValueError, "Pixel size of input volume is unknown - please use `--curr-apix` to set it"
         curr_apix = header['apix']
         _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
-    filename = ndimage_file.copy_to_spider(spi.replace_ext(filename), spi.replace_ext('tmp_spi_file'))
+    filename = ndimage_file.copy_to_spider(filename, spi.replace_ext('tmp_spi_file'))
     _logger.debug("Filtering volume")
     filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
     _logger.debug("Centering volume")
