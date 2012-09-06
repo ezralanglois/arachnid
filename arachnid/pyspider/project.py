@@ -272,6 +272,14 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             extra['scattering_doc'] = os.path.splitext(extra['scattering_doc'])[0]+ext
     elif extra['scattering_doc'] == "":
         _logger.warn("No scattering document file specified: `--scattering-doc`")
+    else:
+        scattering_doc = os.path.join(mn_base, 'data', os.path.splitext(os.path.basename(extra['scattering_doc']))[0]+ext)
+        fin = open(extra['scattering_doc'], 'r')
+        fout = open(scattering_doc, 'w')
+        for line in fin: fout.write(line)
+        fin.close()
+        fout.close
+        extra['scattering_doc'] = scattering_doc
     
     spider_params.write(param['param_file'], **extra)
     
