@@ -96,6 +96,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         else: main_module.batch(args, **param)
     except IOError, e:
         _logger.error("***"+str(e)+see_also)
+        _logger.exception("Ensuring exception logged")
     except:
         exc_type, exc_value = sys.exc_info()[:2]
         _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)

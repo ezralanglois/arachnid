@@ -215,6 +215,7 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     else:
         _logger.debug("Creating hybrid project")
     
+    _logger.debug("Writing project to %s"%output)
     sn_path = os.path.join(output, 'local')
     mn_path = os.path.join(output, 'cluster')
     
@@ -273,13 +274,13 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
     if extra['scattering_doc'] == "ribosome":
-        output = os.path.join(mn_base, 'data', 'scattering8'+ext)
-        if not os.path.exists(output):
+        scattering_doc = os.path.join(mn_base, 'data', 'scattering8'+ext)
+        if not os.path.exists(scattering_doc):
             _logger.debug("Downloading scattering doc")
             extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_base, 'data'))
             if ext != os.path.splitext(extra['scattering_doc'])[1]:
-                os.rename(extra['scattering_doc'], output)
-                extra['scattering_doc'] = output
+                os.rename(extra['scattering_doc'], scattering_doc)
+                extra['scattering_doc'] = scattering_doc
         else:
             _logger.debug("Downloading scattering doc - skipping, already found")
     elif extra['scattering_doc'] == "":
