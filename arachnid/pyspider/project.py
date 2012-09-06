@@ -257,7 +257,6 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         stacks = os.path.join(mn_base, 'win', 'win_0000000'+ext),
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
-    config2base = dict(run_single_node=sn_base, run_multi_node=mn_base)
     create_directories(param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     param.update(extra)
     param.update(invert=is_ccd)
@@ -328,7 +327,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                 ]
     for mod, extra in modules:
         param.update(extra)
-        param.update(log_file=os.path.join(config2base[extra['config_path']], 'log', mod.__name__+'.log'))
+        param.update(log_file=os.path.join(extra['config_path'], 'log', mod.__name__+'.log'))
         program.write_config(mod, **param)
     
     module_type = {}
