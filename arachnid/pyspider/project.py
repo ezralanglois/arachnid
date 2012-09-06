@@ -266,7 +266,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     
 
     _logger.debug("Creating directories")
-    create_directories(param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
+    create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
+    for key, path in param.iteritems(): param[key] = os.path.join('..', path)
     param.update(extra)
     param.update(invert=is_ccd)
     del param['input_files']
@@ -274,10 +275,10 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
     if extra['scattering_doc'] == "ribosome":
-        scattering_doc = os.path.join(mn_base, 'data', 'scattering8'+ext)
+        scattering_doc = os.path.join(mn_path, 'data', 'scattering8'+ext)
         if not os.path.exists(scattering_doc):
             _logger.debug("Downloading scattering doc")
-            extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_base, 'data'))
+            extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
             if ext != os.path.splitext(extra['scattering_doc'])[1]:
                 os.rename(extra['scattering_doc'], scattering_doc)
                 extra['scattering_doc'] = scattering_doc
@@ -287,7 +288,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         _logger.warn("No scattering document file specified: `--scattering-doc`")
     else:
         _logger.debug("Copying scattering doc")
-        scattering_doc = os.path.join(mn_base, 'data', os.path.splitext(os.path.basename(extra['scattering_doc']))[0]+ext)
+        scattering_doc = os.path.join(mn_path, 'data', os.path.splitext(os.path.basename(extra['scattering_doc']))[0]+ext)
         fin = open(extra['scattering_doc'], 'r')
         fout = open(scattering_doc, 'w')
         for line in fin: fout.write(line)
@@ -296,7 +297,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         extra['scattering_doc'] = scattering_doc
     
     _logger.debug("Writing SPIDER params file")
-    spider_params.write(param['param_file'], **extra)
+    spider_params.write(os.path.join(output, param['param_file']), **extra)
     
     modules = [(reference, dict(input_files=[raw_reference],
                                output=param['reference'],
@@ -364,18 +365,20 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\n')
         fout.close()
 
-def create_directories(files):
+def create_directories(output, files):
     ''' Create directories for a set of files
     
     :Parameters:
     
+    output : str
+             Root output directory
     files : list
             List of filenames
     '''
     
     for filename in files:
         if filename is None: continue
-        filename = os.path.dirname(filename)
+        filename = os.path.dirname(os.path.join(output, filename))
         if not os.path.exists(filename):
             try: os.makedirs(filename)
             except: raise ValueError, "Error creating directory %s"%filename
