@@ -267,6 +267,9 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
 
     _logger.debug("Creating directories")
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
+    _logger.debug("Writing SPIDER params file")
+    spider_params.write(os.path.join(output, param['param_file']), **extra)
+    for key, path in param.iteritems(): param[key] = os.path.join('..', path)
     param.update(extra)
     param.update(invert=is_ccd)
     del param['input_files']
@@ -295,9 +298,6 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         fout.close
         extra['scattering_doc'] = scattering_doc
     
-    _logger.debug("Writing SPIDER params file")
-    spider_params.write(os.path.join(output, param['param_file']), **extra)
-    for key, path in param.iteritems(): param[key] = os.path.join('..', path)
     
     modules = [(reference, dict(input_files=[raw_reference],
                                output=param['reference'],

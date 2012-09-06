@@ -332,7 +332,12 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
     '''
     
     param = {}
-    if home_prefix is None or local_temp == "": return param
+    if home_prefix is None or local_temp == "": 
+        
+        # Test if file does not exist and is relative path, update
+        # based on config file path, if exists
+        
+        return param
     if home_prefix == "":
         home_prefix = os.path.commonprefix([extra[opt] for opt in file_options])
         if not os.path.exists(home_prefix): home_prefix = os.path.dirname(home_prefix)
