@@ -206,23 +206,27 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     '''%(mpi_command, '%(prog)s')
     run_hybrid_node = run_single_node
     
+    _logger.info("Writing project to %s"%output)
+    sn_path = os.path.join(output, 'local')
+    mn_path = os.path.join(output, 'cluster')
+    hb_path = sn_path
+    
     if mpi_mode == 1:
         run_hybrid_node = run_multi_node
+        hb_path = mn_path
         _logger.info("Creating multi-node project")
     elif mpi_mode == 2:
         run_multi_node = run_single_node
         _logger.info("Creating single-node project")
+        mn_path = sn_path
     else:
         _logger.info("Creating hybrid project")
     
-    _logger.info("Writing project to %s"%output)
-    sn_path = os.path.join(output, 'local')
-    mn_path = os.path.join(output, 'cluster')
     
-    write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, mn_path, output, **extra)
+    write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, **extra)
     _logger.info("Completed")
     
-def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, mn_path, output, raw_reference, ext, is_ccd, **extra):
+def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, raw_reference, ext, is_ccd, **extra):
     ''' Write out a configuration file for each script in the reconstruction protocol
     
     :Parameters:
@@ -237,6 +241,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                      Command to run MPI scripts
     sn_path : str
               Path to files used in single node scripts only
+    hb_path : str
+              Path to files used in hybrid scripts only
     mn_path : str
               Path to files used in both MPI and single node scripts
     output : str
@@ -312,7 +318,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                (defocus,  dict(input_files=files,
                                output=param['defocus_file'],
                                description=run_hybrid_node, 
-                               config_path = sn_path,
+                               config_path = hb_path,
                                supports_MPI=True,
                                #restart_file
                                )),
@@ -320,14 +326,14 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                (autopick, dict(input_files=files,
                                output=param['coordinate_file'],
                                description=run_hybrid_node, 
-                               config_path = sn_path,
+                               config_path = hb_path,
                                supports_MPI=True,
                                #restart_file
                                )), 
                (crop,     dict(input_files=files,
                                output = param['stacks'],
                                description=run_hybrid_node, 
-                               config_path = sn_path,
+                               config_path = hb_path,
                                supports_MPI=True,
                                #restart_file
                                )), 
@@ -369,7 +375,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         fout = open(os.path.join(output, 'run_%s'%type), 'w')
         fout.write("#!/bin/bash\n")
         for mod in modules:
-            fout.write('sh %s\n'%os.path.join('..', path, map[mod.__name__]))
+            fout.write('sh %s\n'%os.path.join('..', map[mod.__name__]))
             fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\n')
         fout.close()
 
