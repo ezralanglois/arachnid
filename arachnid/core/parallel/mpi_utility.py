@@ -214,8 +214,9 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             for index, res in process_tasks.process_mp(process, vals, **extra):
                 assert(index <= size)
                 if rank > 0:
+                    _logger.error("Send: %d + %d from %d"%(index, offset, rank))
                     index += offset
-                    comm.send(index, dest=0, tag=4)
+                    comm.send(int(index), dest=0, tag=4)
                     comm.send(res, dest=0, tag=5)
                     status = comm.recv(source=0, tag=6)
                     if status < 0: raise StandardError, "Some MPI process crashed"
@@ -227,7 +228,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
         else:
             if rank > 0: comm.send(0, dest=0, tag=4)
     else:
-        lenbuf = numpy.zeros((size, 1), dtype=numpy.int)
+        lenbuf = numpy.zeros((size, 1))#, dtype=numpy.int)
         reqs=[]
         node_req=[]
         for i in xrange(1, size):
@@ -239,6 +240,8 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             node = node_req[idx]
             if lenbuf[node, 0] > 0:
                 res = comm.recv(source=node, tag=5)
+                #if lenbuf[node, 0] >= size:
+                #    raise ValueError, "Id bug: %d - node: %d - idx: %d"%(lenbuf[node, 0], node, idx)
                 yield lenbuf[node, 0]-1, res
                 comm.send(status, dest=node, tag=6)
                 if status == 0:

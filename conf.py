@@ -20,11 +20,9 @@ Todo for Launch
 1. Push source to code.google.com
 2. Package source zip for code.google.com `downloads`
 3. Publish source to PyPI
-4. Publish documentation to website (columbia local?)
+4. Publish documentation to website
 5. Announce on 3dem-request@ncmir.ucsd.edu
 6. Create code.google.com/arachnid-docs with SVN - http://manjeetdahiya.com/2010/09/29/serving-html-documentation-from-google-code-svn/
-7. Test MPI
-8. Test autopick dog removal bug
 9. Create script to publish code, source zip, documentation and ?binary?
 10. Script building tutorial (general)
 '''

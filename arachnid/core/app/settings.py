@@ -259,8 +259,8 @@ class Option(optparse.Option):
                 self.gui_hint['file'] = self.gui_hint['filetype']
             elif 'nogui' in self.gui_hint:
                 self.gui_hint['type'] = 'nogui'
-            else:
-                raise ValueError, "Unsupported gui hint: %s"%str(self.gui_hint)
+            #else:
+            #    raise ValueError, "Unsupported gui hint: %s"%str(self.gui_hint)
             del kwargs["gui"]
         elif choices is not None:
             self.gui_hint = dict(type="choices", choices=choices)

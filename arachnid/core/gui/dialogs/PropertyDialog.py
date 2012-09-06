@@ -10,7 +10,7 @@ except:
     #from PyQt4 import uic
     #Ui_PropertyDialog = os.path.join(os.path.split(__file__)[0], "PropertyDialog.ui")
 from .. import property
-import logging
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -61,12 +61,16 @@ class Dialog(QtGui.QDialog):
         '''Dialog is done
         
         :Parameters:
-            
-            mode : int
-                   Dialog accept mode
+        
+        mode : int
+               Dialog accept mode
         '''
         
-        if self.windowTitle() == "":
+        filename = self.windowTitle()
+        if os.path.exists(filename):
+            ret = QtGui.QMessageBox.warning(self, "Warning", "Overwrite existing file?", QtGui.QMessageBox.Yes| QtGui.QMessageBox.No)
+            if ret == QtGui.QMessageBox.No: filename = ""
+        if filename == "":
             filename = QtGui.QFileDialog.getSaveFileName(self, self.tr("Save config file as"), QtCore.QDir.currentPath(), "Config files (*.cfg)")
             if filename: 
                 self.setWindowTitle(filename)
