@@ -261,7 +261,9 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             Unused keyword arguments
     '''
     
+    data_ext = ext
     if ext[0] != '.': ext = '.'+ext
+    else: data_ext = ext[1:]
     mn_base = os.path.basename(mn_path)
     sn_base = os.path.basename(sn_path)
     param = dict(
@@ -312,7 +314,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         fout.close
         extra['scattering_doc'] = scattering_doc
     
-    
+    param['data_ext'] = data_ext
     modules = [(reference, dict(input_files=[raw_reference],
                                output=param['reference'],
                                description=run_single_node,
