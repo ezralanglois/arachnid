@@ -92,6 +92,7 @@ def is_readable(filename):
            True if the format is recognized
     '''
     
+    _logger.debug("Test if read: %s"%filename)
     try: return eman2_utility.EMAN2.EMUtil.get_image_type(filename) != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
     
