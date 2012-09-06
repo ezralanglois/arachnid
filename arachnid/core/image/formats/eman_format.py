@@ -124,7 +124,7 @@ def read_header(filename, index=None):
     else: emdata.read_image_c(filename, index)
     
     header = numpy.zeros(1, dtype=ndimage._header)
-    header[0].apix = emdata.get_attr('apix_x')
+    header['apix'][0] = emdata.get_attr('apix_x')
     return header
 
 def read_image(filename, index=None, header=None, cache=None):

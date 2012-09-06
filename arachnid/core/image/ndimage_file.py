@@ -9,7 +9,7 @@ Supported formats:
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import logging
+import logging, os
 from ..app import tracing
 from formats import spider, eman_format as spider_writer
 #import numpy
@@ -87,7 +87,10 @@ def read_header(filename, index=None):
           Array with header information in the file
     '''
     
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
+    if format is None: 
+        raise IOError, "Could not find format for %s"%filename
     return format.read_header(filename, index)
 
 def read_image(filename, index=None):
@@ -106,7 +109,10 @@ def read_image(filename, index=None):
           Array with header information in the file
     '''
     
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
+    if format is None: 
+        raise IOError, "Could not find format for %s"%filename
     return format.read_image(filename, index)
 
 def iter_images(filename, index=None):
@@ -125,7 +131,10 @@ def iter_images(filename, index=None):
           Array with header information in the file
     '''
     
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
+    if format is None: 
+        raise IOError, "Could not find format for %s"%filename
     return format.iter_images(filename, index)
 
 def count_images(filename):
@@ -141,14 +150,16 @@ def count_images(filename):
     out : int
           Number of images in the file
     '''
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+    format = get_read_format(filename)
+    if format is None: 
+        raise IOError, "Could not find format for %s"%filename
     
     if isinstance(filename, list):
-        format = get_read_format(filename)
         total = 0
         for f in filename:
             total += format.count_images(f)
         return total
-    format = get_read_format(filename)
     return format.count_images(filename)
 
 def is_writable(filename):
@@ -183,6 +194,8 @@ def write_image(filename, img, index=None):
     '''
     
     format = get_write_format(filename)
+    if format is None: 
+        raise IOError, "Could not find format for extension of %s"%filename
     format.write_image(filename, img, index)
     
 def write_stack(filename, imgs):
@@ -198,6 +211,8 @@ def write_stack(filename, imgs):
     '''
     
     format = get_write_format(filename)
+    if format is None: 
+        raise IOError, "Could not find format for extension of %s"%filename
     index = 0
     for img in imgs:
         format.write_image(filename, img, index)

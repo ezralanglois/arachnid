@@ -251,8 +251,8 @@ def is_readable(filename):
             _logger.exception("Unable to read header")
             return False
     _logger.debug("MRC - mode: %d"%h['mode'][0])
-    _logger.debug("MRC - byteorder: %d"%h['byteorder'][0])
-    _logger.debug("MRC - byteorder-swapped: %d"%h['byteorder'][0].byteswap() )
+    _logger.debug("MRC - byteorder: %02x"%h['byteorder'][0])
+    _logger.debug("MRC - byteorder-swapped: %02x"%h['byteorder'][0].byteswap() )
     _logger.debug("MRC - nx: %d"%h['nx'][0] )
     _logger.debug("MRC - ny: %d"%h['ny'][0] )
     _logger.debug("MRC - nz: %d"%h['nz'][0] )
@@ -309,7 +309,7 @@ def count_images(filename):
     
     if hasattr(filename, 'dtype'): h=filename
     else: h = read_header(filename)
-    return h['nz']
+    return h['nz'][0]
 
 def iter_images(filename, index=None, header=None):
     ''' Read a set of SPIDER images
