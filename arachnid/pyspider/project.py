@@ -245,6 +245,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             Unused keyword arguments
     '''
     
+    if ext[0] != '.': ext = '.'+ext
     mn_base = os.path.basename(mn_path)
     sn_base = os.path.basename(sn_path)
     param = dict(
@@ -266,6 +267,9 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     if len(glob.glob(tmp)) == len(files): files = [tmp]
     if extra['scattering_doc'] == "ribosome":
         extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_base, 'data'))
+        if ext != os.path.splitext(extra['scattering_doc'])[1]:
+            os.rename(extra['scattering_doc'], os.path.splitext(extra['scattering_doc'])[0]+ext)
+            extra['scattering_doc'] = os.path.splitext(extra['scattering_doc'])[0]+ext
     elif extra['scattering_doc'] == "":
         _logger.warn("No scattering document file specified: `--scattering-doc`")
     
