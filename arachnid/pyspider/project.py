@@ -122,11 +122,15 @@ Advanced Options
 
 .. option:: --worker-count <INT>
     
-    Set number of  workers to process files in parallel
+    Set number of  workers to process files in parallel (Default: 0)
+
+.. option:: -t <INT>, --thread-count <INT>
+    
+    Set number of threads to run in parallel, if not set then SPIDER uses all cores (Default: 0)
 
 .. option:: -m <CHOICE>, --mpi-mode=('Default', 'All Cluster', 'All single node')
 
-    Setup scripts to run with their default setup or on the cluster or on a single node", default=0
+    Setup scripts to run with their default setup or on the cluster or on a single node
 
 .. option:: --mpi-command <str>
     
@@ -275,7 +279,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     _logger.debug("Writing SPIDER params file")
     spider_params.write(os.path.join(output, param['param_file']), **extra)
-    for key, path in param.iteritems(): param[key] = os.path.join('..', path)
+    
     param.update(extra)
     param.update(invert=is_ccd)
     del param['input_files']
