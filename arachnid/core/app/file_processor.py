@@ -84,7 +84,7 @@ def main(files, module, restart_file="", **extra):
     '''
     
     extra['restart_file']=restart_file # require restart_file=restart_file?
-    process, initialize, finalize, reduce_all = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None)
+    process, initialize, finalize, reduce_all, init_process = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None)
     if mpi_utility.is_root(**extra):
         #files = check_dependencies(files, **extra)
         if len(files) > 1: files = restart(restart_file, files)
@@ -103,7 +103,7 @@ def main(files, module, restart_file="", **extra):
         if f is not None: files = f
     
     current = 0
-    for index, filename in mpi_utility.mpi_reduce(process, files, **extra):
+    for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
         if mpi_utility.is_root(**extra):
             if reduce_all is not None:
                 current += 1

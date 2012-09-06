@@ -219,6 +219,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.metadata import spider_params, spider_utility, format_utility
+from ..core.parallel import mpi_utility
 from ..core.spider import spider
 import filter_volume, resolution, mask_volume, enhance_volume
 import logging
@@ -300,7 +301,18 @@ def initialize(files, param):
     pfiles = []
     for i in xrange(0, len(files), 3):
         pfiles.append((files[i], files[i+1], files[i+2]))
+    if len(pfiles) > 1 and param['worker_count'] > 1: 
+        param['spi'].close()
+        param['spi'] = None
     return pfiles
+
+def init_process(process_number, rank, input_files, **extra):
+    # Initialize a child process
+    
+    rank = mpi_utility.size(**extra)*rank + process_number
+    param = {}
+    param['spi'] = spider.open_session(input_files, rank=rank, **extra)
+    return param
 
 def finalize(files, **extra):
     # Finalize global parameters for the script

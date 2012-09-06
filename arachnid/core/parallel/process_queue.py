@@ -185,7 +185,7 @@ def recreate_global_sparse_matrix(shmem, shape=None):
         return scipy.sparse.coo_matrix( (data[:shape[1]],(row[:shape[1]], col[:shape[1]])), shape=shape[0] )
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=shmem[3] )
 
-def start_workers_with_output(items, worker_callback, n, **extra):
+def start_workers_with_output(items, worker_callback, n, init_process=None, **extra):
     '''Start workers and distribute tasks
     
     .. sourcecode:: py
@@ -212,6 +212,8 @@ def start_workers_with_output(items, worker_callback, n, **extra):
                       Worker callback function to process an item
     n : int
         Number of processes
+    init_process : function
+                   Initalize the parameters for the child process
     extra : dict
             Unused keyword arguments
         
@@ -222,13 +224,13 @@ def start_workers_with_output(items, worker_callback, n, **extra):
     '''
     
     if n > len(items): n = len(items)
-    qin, qout = start_workers(worker_callback, n, **extra)
+    qin, qout = start_workers(worker_callback, n, init_process, **extra)
     for i in enumerate(items): qin.put(i)
     stop_workers(n, qin)
     qin.close()
     return qout
 
-def start_workers(worker_callback, n, **extra):
+def start_workers(worker_callback, n, init_process=None, **extra):
     '''Start workers and set the worker callback function
     
     .. sourcecode:: py
@@ -255,6 +257,8 @@ def start_workers(worker_callback, n, **extra):
                       Worker callback function to process an item
     n : int
         Number of processes
+    init_process : function
+                   Initalize the parameters for the child process
     extra : dict
             Unused keyword arguments
         
@@ -268,7 +272,7 @@ def start_workers(worker_callback, n, **extra):
     qin = multiprocessing.Queue()
     qout = multiprocessing.Queue()
     for i in xrange(n): 
-        target = functools.partial(worker_all, qin=qin, qout=qout, worker_callback=worker_callback, process_number=i, **extra)
+        target = functools.partial(worker_all, qin=qin, qout=qout, worker_callback=worker_callback, process_number=i, init_process=init_process, **extra)
         p = multiprocessing.Process(target=target)
         p.daemon=True
         p.start()
@@ -406,7 +410,7 @@ def stop_workers(n, qin):
     
     for i in xrange(n): qin.put(None)
 
-def worker_all(qin, qout, worker_callback, **extra):
+def worker_all(qin, qout, worker_callback, init_process=None, **extra):
     '''Runs a generic worker process
     
     This function runs the worker call back in an infinite loop that
@@ -422,11 +426,14 @@ def worker_all(qin, qout, worker_callback, **extra):
            Output Queue
     worker_callback : function
                       Worker callback function to process an item
+    init_process : function
+                   Initalize the parameters for the child process
     extra : dict
             Unused keyword arguments
     '''
 
     try:
+        extra.update(init_process(**extra))
         while True:
             try:
                 val = qin.get(True, 5)

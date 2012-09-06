@@ -496,6 +496,18 @@ def initialize(files, param):
     param['spi'] = spider.open_session(files, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     param['output'] = param['spi'].replace_ext(param['output'])
+    if len(files) > 1 and param['worker_count'] > 1: 
+        param['spi'].close()
+        param['spi'] = None
+
+def init_process(process_number, rank, input_files, **extra):
+    # Initialize a child process
+    
+    rank = mpi_utility.size(**extra)*rank + process_number
+    param = {}
+    param['spi'] = spider.open_session(input_files, rank=rank, **extra)
+    return param
+    
 
 def reduce_all(filename, file_completed, file_count, output, **extra):
     # Process each input file in the main thread (for multi-threaded code)

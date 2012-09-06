@@ -12,7 +12,7 @@ import logging, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process_mp(process, vals, worker_count, **extra):
+def process_mp(process, vals, worker_count, init_process=None, **extra):
     ''' Generator that runs a process functor in parallel (or serial if worker_count 
         is less than 2) over a list of given data values and returns the result
         
@@ -24,6 +24,8 @@ def process_mp(process, vals, worker_count, **extra):
            List of items to process in parallel
     worker_count : int
                     Number of processes to run in parallel
+    init_process : function
+                   Initalize the parameters for the child process
     extra : dict
             Unused keyword arguments
     
@@ -35,7 +37,7 @@ def process_mp(process, vals, worker_count, **extra):
     
     if worker_count > 1 and len(vals) > worker_count:
         logging.debug("Running with multiple processes: %d"%worker_count)
-        qout = process_queue.start_workers_with_output(vals, process, worker_count, **extra)
+        qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
         index = 0
         while index < len(vals):
             val = qout.get()

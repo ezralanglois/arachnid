@@ -93,7 +93,7 @@ from ..core.metadata import spider_params, spider_utility
 from ..core.image import ndimage_file
 from ..core.spider import spider
 import filter_volume
-import logging
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -120,6 +120,7 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
                Filename for correct location
     '''
     
+    _logger.info("Processing: %s"%os.path.basename(filename))
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
     header = ndimage_file.read_header(spi.replace_ext(filename))
@@ -128,8 +129,11 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
         curr_apix = header['apix']
         _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
     filename = ndimage_file.copy_to_spider(spi.replace_ext(filename), spi.replace_ext('tmp_spi_file'))
+    _logger.debug("Filtering volume")
     filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
+    _logger.debug("Centering volume")
     filename = center_volume(filename, spi, output)
+    _logger.debug("Resizing volume")
     filename = resize_volume(filename, spi, curr_apix, outputfile=output, **extra)
     return filename
 
