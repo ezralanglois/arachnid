@@ -114,12 +114,16 @@ def read_header(filename, index=None):
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
+    _logger.debug("Create emdata object")
     emdata = eman2_utility.EMAN2.EMData()
+    _logger.debug("Read image from index: %s"%str(index))
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, index)
     
+    _logger.debug("Get pixel size")
     header = numpy.zeros(1, dtype=ndimage._header)
     header[0].apix = emdata.get_attr('apix_x')
+    _logger.debug("Finished read_header")
     return header
 
 def read_image(filename, index=None, header=None, cache=None):
@@ -253,25 +257,38 @@ def write_image(filename, img, index=None, header=None, type=None):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
-    if not eman2_utility.is_em(img): img = eman2_utility.numpy2em(img)
+    if not eman2_utility.is_em(img): 
+        _logger.debug("Converting numpy array to EMData")
+        img = eman2_utility.numpy2em(img)
     h={}
+    _logger.debug("Updating the header")
     header=_update_header(h, header, ara2eman)
     for key, val in header.iteritems(): img.set_attr(key, val)
     if type is None:
+        _logger.debug("Determine type of file from extension")
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
-    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: img.process_inplace("xform.flip",{"axis":"y"})
-    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
+    _logger.debug("Using type: %d"%type)
+    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: 
+        _logger.debug("MRC - must flip")
+        img.process_inplace("xform.flip",{"axis":"y"})
+    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: 
+        _logger.debug("Type unknow - assume spider stack")
+        type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
     if index is None:
         if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER:
+            _logger.debug("Type SPIDER stack - switch to SINGLE spider")
             type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
         index = 0
+    _logger.debug("Write image")
     img.write_image_c(filename, index, type)
     # Workaround for buggy Montage from doc viewer
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
+        _logger.debug("Hacking spider file")
         f = open(filename, 'r+b')
         f.seek(26*4)
         f.write(struct.pack('f', 0.0))
         f.close()
+    _logger.debug("Finished write")
 
 
 
