@@ -274,6 +274,10 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     param.update(invert=is_ccd)
     del param['input_files']
     
+    for i in xrange(len(files)):
+        if not os.path.isabs(files[i]):
+            files[i] = os.path.abspath(files[i])
+    
     tmp = os.path.commonprefix(files)+'*'
     if len(glob.glob(tmp)) == len(files): files = [tmp]
     if extra['scattering_doc'] == "ribosome":
@@ -344,8 +348,11 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                 ]
     for mod, extra in modules:
         param.update(extra)
-        param.update(log_file=os.path.join(extra['config_path'], 'log', mod.__name__+'.log'))
-        _logger.debug("Writing config file for %s"%mod.__name__)
+        name = mod.__name__
+        idx = name.rfind('.')
+        if idx != -1: name = name[idx+1:]
+        param.update(log_file=os.path.join(os.path.basename(extra['config_path']), 'log', name+'.log'))
+        _logger.debug("Writing config file for %s"%name)
         program.write_config(mod, **param)
     
     module_type = {}
