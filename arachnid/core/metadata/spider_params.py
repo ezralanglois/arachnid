@@ -112,7 +112,7 @@ def write(output, apix, voltage, cs, xmag, pixel_diameter, window_size=0, ampcon
     vals[19] = res
     format.write(output, vals, header=['param'], format=format.spiderdoc)
 
-def read(filename, param=None):
+def read(filename, extra=None):
     '''Read spider parameters
     
     :Parameters:
@@ -120,7 +120,7 @@ def read(filename, param=None):
     filename : str
               File path to parameter file
 
-    param : dict
+    extra : dict
             Spider parameter dictionary
     
     :Returns:
@@ -129,7 +129,7 @@ def read(filename, param=None):
           Spider parameter dictionary
     '''
     
-    if param is None: param = {}
+    param = {}
     if 'comm' not in param or param['comm'] is None or param['comm'].Get_rank() == 0:
         bin_factor = param.get('bin_factor', 1.0)
         #      1    2     3      4      5    6     7    8          9            10        11      12             13         14    15    16   17         18         19  20
@@ -151,6 +151,7 @@ def read(filename, param=None):
             param['pixel_diameter'] /= bin_factor
     if 'comm' in param and param['comm'] is not None:
         param = param['comm'].bcast(param)
+    if extra is not None: extra.update(param)
     return param
 
 def ctf_spider2EMAN(apix, ampcont, voltage, window, cs, bfactor=0.0, defocus=0.0, **extra):
