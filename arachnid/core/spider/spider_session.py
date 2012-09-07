@@ -71,6 +71,7 @@ class Session(object):
         self.version = None
         
         if rank is not None: _logger.debug("Using MPI spider = %d"%rank)
+        if tmp_path: _logger.info("Using local path: %s"%tmp_path)
         if filepath == None or filepath == "":
             _logger.debug("Searching for Spider")
             spiderexec = 'spider_linux_mp_opt64'
@@ -319,7 +320,7 @@ class Session(object):
             except: pass
             else:
                 if err is not None:
-                    _logger.error("Error in command: %s"%str(args))
+                    _logger.error("Error in command: %s - with message: %s"%(str(args), str(err)))
                     raise SpiderCommandError, err
         self.spider.stdin.flush()
         
