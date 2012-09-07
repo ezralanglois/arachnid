@@ -201,12 +201,12 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     run_single_node=\
     '''
      %(prog)s -c $PWD/$0 > `basename $0 cfg`log
-     exit 0
+     exit $?
     '''
     run_multi_node=\
     '''
      %s %s -c $PWD/$0 --use-MPI < /dev/null > .`basename $0 cfg`log
-     exit 0
+     exit $?
     '''%(mpi_command, '%(prog)s')
     run_hybrid_node = run_single_node
     
