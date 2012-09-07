@@ -65,7 +65,10 @@ def spider_image(filename, index=None):
     
     if isinstance(filename, tuple): filename, index = filename
     if filename == "" or filename is None: return "*"
-    filename = spider_doc(filename)
+    if is_incore_filename(filename): filename = "_%d"%filename
+    elif filename.rfind('.') != -1:
+        if len(os.path.splitext(filename)[1][1:]) == 3:
+            filename = os.path.splitext(filename)[0]
     if index is not None:
         if filename[-1] == '@': filename += str(index)
         else: filename += '@'+str(index)
@@ -90,7 +93,10 @@ def spider_stack(filename, size=None):
     '''
     
     if filename == "" or filename is None: return "*"
-    filename = spider_doc(filename)
+    if is_incore_filename(filename): filename = "_%d"%filename
+    elif filename.rfind('.') != -1:
+        if len(os.path.splitext(filename)[1][1:]) == 3:
+            filename = os.path.splitext(filename)[0]
     if filename.find('@') == -1: filename += '@'
     if size is not None and size > 0 and filename[-1] != '*':
         filename = filename.rjust(len(str(size)), '*')

@@ -323,8 +323,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import setup_options_from_doc
     
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of input filenames containing volumes triples, full_vol, half_vol_1, half_vol_2", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for the filtered, masked volume as well as base output name for FSC curve (`res_$output`)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of input filenames containing volumes triples, full_vol, half_vol_1, half_vol_2", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for the filtered, masked volume as well as base output name for FSC curve (`res_$output`)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, filter_volume.filter_volume_highpass)
     if main_option:

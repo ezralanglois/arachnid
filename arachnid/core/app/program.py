@@ -86,7 +86,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         return
     
     mpi_utility.mpi_init(param, **param)
-    if supports_OMP:
+    if supports_OMP and openmp.get_max_threads() > 1:
         if param['thread_count'] > 0:
             openmp.set_thread_count(param['thread_count'])
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
@@ -361,15 +361,21 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
     
     for opt in file_options:
         if opt not in extra: continue
-        if extra[opt].find(home_prefix) != 0: continue
         if hasattr(extra[opt], 'append'):
+            param[opt] = []
             for filename in extra[opt]:
-                filename = os.path.join(shortcut, filename[len(home_prefix):])
+                if filename.find(home_prefix) != 0: continue
+                if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+                filename = os.path.join(shortcut, filename[len(home_prefix)+1:])
+                if not os.path.exists(filename): raise IOError, "Cannot find file: %s -- %s -- %s"%(filename, shortcut, local_temp)
                 if max_filename_len > 0 and len(filename) > max_filename_len:
                     raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(filename), filename)
                 param[opt].append(filename)
         else:
-            param[opt] = os.path.join(shortcut, extra[opt][len(home_prefix):])
+            if extra[opt].find(home_prefix) != 0: continue
+            if not os.path.exists(extra[opt]): raise IOError, "Cannot find file: %s"%extra[opt]
+            param[opt] = os.path.join(shortcut, extra[opt][len(home_prefix)+1:])
+            if not os.path.exists(param[opt]): raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
             if max_filename_len > 0 and len(param[opt]) > max_filename_len:
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param

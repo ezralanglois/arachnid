@@ -230,8 +230,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import setup_options_from_doc
     
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of input filenames where consecutive names are half volume pairs, must have even number of files", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for the doc file contains the FSC curve with correct number of digits (e.g. fsc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of input filenames where consecutive names are half volume pairs, must have even number of files", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for the doc file contains the FSC curve with correct number of digits (e.g. fsc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session)
     if main_option:

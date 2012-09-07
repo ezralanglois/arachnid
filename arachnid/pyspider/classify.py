@@ -301,8 +301,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         parser.add_option_group(group)
         
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of input alignment files", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for selection file", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of input alignment files", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for selection file", gui=dict(filetype="save"), required_file=True)
         parser.change_default(log_level=3)
 
 def check_options(options, main_option=False):

@@ -205,6 +205,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     
     if rank is None: rank = get_rank(comm)
     size = get_size(comm)
+    lenbuf = numpy.zeros((size, 1), dtype=numpy.int32)
     if is_client(comm):
         if rank > 0:
             vals = parallel_utility.partition_array(vals, size-1)
@@ -216,7 +217,8 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
                 _logger.debug("client-processing: %d of %d-%d"%(index, rank, size-1))
                 if rank > 0:
                     index += offset
-                    comm.send(int(index), dest=0, tag=4)
+                    lenbuf[0, 0] = index
+                    comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
                     comm.send(res, dest=0, tag=5)
                     status = comm.recv(source=0, tag=6)
                     if status < 0: raise StandardError, "Some MPI process crashed"
@@ -225,18 +227,21 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
                 yield index-1, res
         except:
             _logger.debug("client-processing - error")
-            if rank > 0: comm.send(-1, dest=0, tag=4)
+            if rank > 0: 
+                lenbuf[0, 0] = -1.0
+                comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
             raise
         else:
-            if rank > 0: comm.send(0, dest=0, tag=4)
+            if rank > 0: 
+                lenbuf[0, 0] = 0.0
+                comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
             _logger.debug("client-processing - finished")
     else:
         _logger.debug("Root progress monitor - started")
-        lenbuf = numpy.zeros((size, 1))#, dtype=numpy.int)
         reqs=[]
         node_req=[]
         for i in xrange(1, size):
-            reqs.append(comm.Irecv(lenbuf[i, :], source=i, tag=4))
+            reqs.append(comm.Irecv([lenbuf[i, :], MPI.INT], source=i, tag=4))
             node_req.append(i)
         status=0
         while len(reqs) > 0:
@@ -245,9 +250,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             _logger.debug("Root root - irecv: %d, %d, %d - status: %d"%(idx, node, lenbuf[node, 0], status))
             if lenbuf[node, 0] > 0:
                 res = comm.recv(source=node, tag=5)
-                #if lenbuf[node, 0] >= size:
-                #    raise ValueError, "Id bug: %d - node: %d - idx: %d"%(lenbuf[node, 0], node, idx)
-                yield lenbuf[node, 0]-1, res
+                yield int(lenbuf[node, 0])-1, res
                 comm.send(status, dest=node, tag=6)
                 if status == 0:
                     reqs[idx] = comm.Irecv(lenbuf[node, :], source=node, tag=4)

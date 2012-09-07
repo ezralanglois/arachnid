@@ -284,14 +284,14 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     if pgroup is None: pgroup=parser
     if main_option:
-        parser.add_option("-i", input_files=[],              help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
-    parser.add_option("-d", defocus ="",                     help="Filename for the defocus values for each micrograph", gui=dict(filetype="open"), required_file=False)
-    parser.add_option("",   defocus_header="id:0,defocus:1", help="Header labelling important columns in the `defocus` file")
-    parser.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)
-    parser.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
-    parser.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
-    parser.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus file")
+        pgroup.add_option("-i", input_files=[],              help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
+    pgroup.add_option("-d", defocus ="",                     help="Filename for the defocus values for each micrograph", gui=dict(filetype="open"), required_file=False)
+    pgroup.add_option("",   defocus_header="id:0,defocus:1", help="Header labelling important columns in the `defocus` file")
+    pgroup.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)
+    pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
+    pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
+    pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus file")
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
     

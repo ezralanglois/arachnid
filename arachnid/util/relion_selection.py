@@ -231,11 +231,11 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)")
     group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)")
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
-    if pgroup is None: parser.add_option_group(group)
+    parser.add_option_group(group)
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
-        parser.change_default(log_level=3)
+        pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
+        pgroup.change_default(log_level=3)
 
 def check_options(options, main_option=False):
     #Check if the option values are valid

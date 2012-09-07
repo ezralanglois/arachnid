@@ -489,10 +489,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc, OptionGroup
     
-    if pgroup is None: pgroup=parser
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-a", alignment="",   help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
     pgroup.add_option("",   phase_flip=False,       help="Set to True if your data stack(s) has already been phase flipped or CTF corrected")

@@ -177,14 +177,19 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
                Current filename
     '''
     
+    _logger.debug("Processing: %s"%filename)
     id = spider_utility.spider_id(filename)
     output = spider_utility.spider_filename(output, id)
     output_pow = spider_utility.spider_filename(output_pow, id)
     output_roo = spider_utility.spider_filename(output_roo, id)
     output_ctf = spider_utility.spider_filename(output_ctf, id)
+    _logger.debug("create power spec")
     power_spec = create_powerspectra(filename, **extra)
+    _logger.debug("mask power spec")
     power_spec = mask_power_spec(power_spec, output_pow=output_pow, **extra)
+    _logger.debug("rotational average")
     rotational_average(power_spec, output_roo=output_roo, **extra)
+    _logger.debug("estimate defocus")
     ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=output_ctf, **extra)
     return filename, numpy.asarray(id, defocus, ang, mag, cutoff)
 
@@ -533,14 +538,14 @@ def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc
     
-    parser.add_option("-i", input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="file-list"))
-    parser.add_option("-o", output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+    pgroup.add_option("-i", input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="file-list"))
+    pgroup.add_option("-o", output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
-    parser.add_option("-d", decimate=False,                                 help="Set True to decimate the micrograph to the specified `bin-factor`")
-    parser.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
-    parser.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
-    parser.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
-    parser.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
+    pgroup.add_option("-d", decimate=False,                                 help="Set True to decimate the micrograph to the specified `bin-factor`")
+    pgroup.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
+    pgroup.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
+    pgroup.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
+    pgroup.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
     
     setup_options_from_doc(parser, create_powerspectra, mask_power_spec, for_window_in_micrograph)# classes=spider.Session
     if main_option:

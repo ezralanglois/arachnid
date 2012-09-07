@@ -216,11 +216,11 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import setup_options_from_doc
     
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of input filenames containing volumes to convert to references", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for references with correct number of digits (e.g. enhanced_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of input filenames containing volumes to convert to references", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for references with correct number of digits (e.g. enhanced_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
-        parser.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
-        parser.add_option("",   curr_apix=0.0,          help="Current pixel size of the input volume (only necessary if not MRC)")
+        pgroup.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
+        pgroup.add_option("",   curr_apix=0.0,          help="Current pixel size of the input volume (only necessary if not MRC)")
         setup_options_from_doc(parser, spider.open_session)
         parser.change_default(thread_count=4, log_level=3)
 

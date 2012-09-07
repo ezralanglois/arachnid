@@ -513,8 +513,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     if pgroup is None: pgroup=parser
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-r", reference="",   help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
     
