@@ -67,9 +67,9 @@ lists each supported extension with its corresponding file format.
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from .. import eman2_utility, ndimage
+from .. import eman2_utility
 from spider import _update_header
-import numpy, logging, struct, os
+import logging, struct, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -111,8 +111,8 @@ def read_header(filename, index=None):
     
     :Returns:
         
-    out : array
-          Array with header information in the file
+    header : dict
+             Dictionary with header information
     '''
     
     try: "+"+filename
@@ -123,8 +123,9 @@ def read_header(filename, index=None):
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, index)
     
-    header = numpy.zeros(1, dtype=ndimage._header)
-    header['apix'][0] = emdata.get_attr('apix_x')
+    header = {}
+    _logger.debug("apix=%f"%emdata.get_attr('apix_x'))
+    header['apix'] = emdata.get_attr('apix_x')
     return header
 
 def read_image(filename, index=None, header=None, cache=None):
@@ -272,7 +273,7 @@ def write_image(filename, img, index=None, header=None, type=None):
         _logger.debug("MRC - must flip")
         img.process_inplace("xform.flip",{"axis":"y"})
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: 
-        _logger.debug("Type unknow - assume spider stack")
+        _logger.debug("Type unknown - assume spider stack")
         type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
     if index is None:
         if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER:

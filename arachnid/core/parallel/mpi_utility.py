@@ -180,6 +180,8 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     ''' Map a set of values to client nodes and process them in parallel with `process`. If MPI
     is not enabled, it will use multi-process or serial code depending on the parameters.
     
+    .. todo:: figure out what is wrong here!
+    
     :Parameters:
     
     process : function
@@ -211,21 +213,25 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             vals = vals[rank-1]
         try:
             for index, res in process_tasks.process_mp(process, vals, **extra):
+                _logger.debug("client-processing: %d of %d-%d"%(index, rank, size-1))
                 if rank > 0:
-                    _logger.error("Send: %d + %d from %d"%(index, offset, rank))
                     index += offset
                     comm.send(int(index), dest=0, tag=4)
                     comm.send(res, dest=0, tag=5)
                     status = comm.recv(source=0, tag=6)
                     if status < 0: raise StandardError, "Some MPI process crashed"
+                else: index += 1
                 assert(index>0)
                 yield index-1, res
         except:
+            _logger.debug("client-processing - error")
             if rank > 0: comm.send(-1, dest=0, tag=4)
             raise
         else:
             if rank > 0: comm.send(0, dest=0, tag=4)
+            _logger.debug("client-processing - finished")
     else:
+        _logger.debug("Root progress monitor - started")
         lenbuf = numpy.zeros((size, 1))#, dtype=numpy.int)
         reqs=[]
         node_req=[]
@@ -236,6 +242,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
         while len(reqs) > 0:
             idx = MPI.Request.Waitany(reqs)
             node = node_req[idx]
+            _logger.debug("Root root - irecv: %d, %d, %d - status: %d"%(idx, node, lenbuf[node, 0], status))
             if lenbuf[node, 0] > 0:
                 res = comm.recv(source=node, tag=5)
                 #if lenbuf[node, 0] >= size:
@@ -248,9 +255,11 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
                     del reqs[idx]
                     del node_req[idx]
             else:
+                _logger.debug("Requesting client shutdown: %d"%node)
                 if lenbuf[node, 0] < 0 and status == 0: status=-1
                 del reqs[idx]
                 del node_req[idx]
+        _logger.debug("Root progress monitor - finished")
 
 def is_root(comm=None, **extra):
     ''' Test if node is root

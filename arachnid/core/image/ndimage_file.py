@@ -50,8 +50,11 @@ def copy_to_spider(filename, tempfile):
     '''
     
     if is_spider_format(filename): return filename
-    for index, img in enumerate(iter_images(filename)):
-        spider_writer.write_image(tempfile, img, index)
+    
+    img = read_image(filename)
+    spider_writer.write_image(tempfile, img)
+    #for index, img in enumerate(iter_images(filename)):
+    #    spider_writer.write_image(tempfile, img, index)
     return tempfile
 
 def is_readable(filename):

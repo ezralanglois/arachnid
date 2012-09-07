@@ -129,9 +129,11 @@ class Session(object):
             self._invoke('MD', 'RESULTS ON')
             self._invoke('MD', 'TERM ON') 
             #self._invoke('MD', 'TERM OFF') 
+            self._results = True
         else: 
             self._invoke('MD', 'RESULTS OFF')
             self._invoke('MD', 'TERM OFF') 
+            self._results = False
         self._invoke('MD', 'PIPE', self.pipename)
         self._invoke('MD', 'SET MP', thread_count)
         
@@ -269,7 +271,7 @@ class Session(object):
         ''' Close the Spider session
         '''
         
-        _logger.error("Attempting to close SPIDER")
+        _logger.debug("Attempting to close SPIDER")
         if hasattr(self, 'spider') and self.spider is not None:
             _logger.debug("Closing SPIDER")
             if _logger.getEffectiveLevel() > logging.DEBUG:
@@ -286,7 +288,9 @@ class Session(object):
         if hasattr(self, 'pipename') and self.pipename is not None:
             try: os.remove(self.pipename)
             except: pass
-        tmp_files = ['jnkASSIGN1', 'LOG.%s'%self.dataext]
+        tmp_files = ['jnkASSIGN1', 'LOG.%s'%self.dataext, 'LOG.tmp']
+        if not self._results:
+            tmp_files.extend(glob.glob('results.%s.*'%self.dataext))
         tmp_files.extend(glob.glob('fort.*'))
         tmp_files.extend(glob.glob('_*.'+self.dataext))
         tmp_files.extend(glob.glob('_*.%s'%self.dataext))

@@ -52,11 +52,40 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 Current row index for grouping
         '''
         
+        if 1 == 0:
+            oproperties = list(properties)
+            for p in oproperties: 
+                try:
+                    properties[p.order_index]=p
+                except: 
+                    _logger.error("%s - %d"%(p.__class__.__name__, p.order_index))
+                    raise
+            del oproperties
+            
         for propertyObject in properties:
             name = getattr(propertyObject.__class__, 'DisplayName', propertyObject.__class__.__name__)
             _logger.debug("Add item %s - %d - child: %d"%(name, rindex, len(propertyObject._children)))
             currentItem = Property(name, rindex, None, None, parentItem)
-            props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
+            
+            props = dir(propertyObject.__class__)
+            oprops = list(props)
+            last = -1
+            for propName in oprops:
+                metaProperty = getattr(propertyObject.__class__, propName)
+                if not hasattr(metaProperty, 'order_index'): continue
+                try:
+                    props[metaProperty.order_index]=propName
+                    if metaProperty.order_index > last: last = metaProperty.order_index
+                except:
+                    _logger.error("%s - %d < %d"%(propName, metaProperty.order_index, len(oprops)))
+                    raise
+            props = props[:last+1]
+            
+            props = [prop for prop in props if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
+            #props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
+            
+            
+            
             for propName in props:
                 metaProperty = getattr(propertyObject.__class__, propName)
                 for propertyClass in Property.PROPERTIES:

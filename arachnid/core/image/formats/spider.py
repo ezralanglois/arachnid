@@ -12,7 +12,6 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from arachnid.core.metadata import type_utility
-from .. import ndimage
 import numpy
 
 spi_defaults = dict()
@@ -82,7 +81,9 @@ def is_readable(filename):
         h = filename
         if not is_format_header(h): 
             raise ValueError, "Array dtype incorrect"
-    else: h = read_spider_header(filename)
+    else: 
+        try: h = read_spider_header(filename)
+        except: return False
     for i in ('nz','ny','iform','nx','labrec','labbyt','lenbyt'):
         if not type_utility.is_float_int(h[i]): return False
     if not int(h['iform']) in (1,3,-11,-12,-21,-22): return False
@@ -167,13 +168,13 @@ def read_header(filename, index=None):
     
     :Returns:
         
-    out : array
-          Array with header information in the file
+    header : dict
+             Dictionary with header information
     '''
     
     h = read_spider_header(filename, index)
-    header = numpy.zeros(1, dtype=ndimage._header)
-    header[0].apix = h['apix']
+    header={}
+    header['apix'] = h['apix']
     return header
 
 def read_spider_header(filename, index=None):

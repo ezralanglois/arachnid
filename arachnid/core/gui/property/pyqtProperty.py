@@ -47,7 +47,7 @@ class PyqtProperty(QtCore.pyqtProperty):
                       Editor hints property dictionary
     '''
     
-    def __init__(self, type, fget=None, fset=None, freset=None, fdel=None, doc=None, designable=True, scriptable=True, stored=True, user=False, constant=False, final=False, editorHints={}):
+    def __init__(self, index, type, fget=None, fset=None, freset=None, fdel=None, doc=None, designable=True, scriptable=True, stored=True, user=False, constant=False, final=False, editorHints={}):
         ''' Create a PyqtProperty object
         '''
         
@@ -55,6 +55,7 @@ class PyqtProperty(QtCore.pyqtProperty):
         QtCore.pyqtProperty.__init__(self, type, fget, fset, freset, fdel, doc, designable, scriptable, stored, user, constant, final)
         self.editorHints = editorHints
         self.doc = doc
+        self.order_index = index
     
 
 

@@ -205,7 +205,7 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     '''
     run_multi_node=\
     '''
-     %s %s -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log
+     %s %s -c $PWD/$0 --use-MPI < /dev/null > .`basename $0 cfg`log
      exit 0
     '''%(mpi_command, '%(prog)s')
     run_hybrid_node = run_single_node
@@ -386,6 +386,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             fout.write('if [ ! -e "$MACHINEFILE" ] ; then \n')
             fout.write('echo "Cannot find machinefile"\n')
             fout.write('exit 1\n')
+            fout.write('fi\n')
             fout.write('nodes=`python -c "fin=open(\\"$MACHINEFILE\\", \'r\');lines=fin.readlines();print len([val for val in lines if val[0].strip() != \'\' and val[0].strip()[0] != \'#\'])"`\n')
             fout.write('export nodes MACHINEFILE\n')
             # count nodes
@@ -470,7 +471,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     parser.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1))
     parser.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0))
     parser.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels", gui=dict(minimum=0))
-    parser.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0))
+    parser.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2))
     parser.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     parser.add_option("", xmag=0.0,             help="Magnification (optional)", gui=dict(minimum=0))
     
