@@ -131,7 +131,7 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
     filename = ndimage_file.copy_to_spider(filename, spi.replace_ext('tmp_spi_file'))
     _logger.debug("Filtering volume")
     filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
-    os.unlink(spi.replace_ext('tmp_spi_file'))
+    if os.path.exists(spi.replace_ext('tmp_spi_file')): os.unlink(spi.replace_ext('tmp_spi_file'))
     _logger.debug("Centering volume")
     filename = center_volume(filename, spi, output)
     _logger.debug("Resizing volume")

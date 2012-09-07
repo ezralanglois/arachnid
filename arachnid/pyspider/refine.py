@@ -192,6 +192,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
             _logger.info("Refinement finished: %d. %f"%(refine_index, res))
         mpi_utility.barrier(**extra)
     
+    throttle_mp(spi, **extra)
     for step in refine_step[refine_index:]:
         for i, s in enumerate(refine_name[:len(step)]):
             extra[s] = step[i]
@@ -239,18 +240,52 @@ def refine_step(spi, alignvals, curr_slice, output, output_volume, input_stack, 
     '''
     
     reconstruct.cache_local(spi, alignvals[curr_slice], input_stack=input_stack, **extra)
+    release_mp(spi, **extra)
     if 1 == 1: # todo add parameter to do this
         tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
         tmp = alignvals[curr_slice, 6:8] / extra['apix']
         format.write(spi.replace_ext(tmp_align), tmp)
         spi.rt_sq(input_stack, tmp_align, outputfile=dala_stack)
     align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, input_stack=dala_stack, **extra)
+    throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra):
         alignvals[:]=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
         format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')) 
+    release_mp(spi, **extra)
     vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, input_stack=input_stack, **extra)
     if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+    else: throttle_mp(spi, **extra)
     return None
+
+def throttle_mp(spi, thread_count, **extra):
+    ''' Set number of cores in SPIDER to 1
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    thread_count : int
+                   Number of threads to use
+    extra : dict
+            Unused keyword arguments 
+    '''
+    
+    if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
+
+def release_mp(spi, thread_count, **extra):
+    ''' Reset number of cores in SPIDER to default
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    thread_count : int
+                   Number of threads to use
+    extra : dict
+            Unused keyword arguments 
+    '''
+    
+    if thread_count > 1 or thread_count == 0: spi.md('SET MP', thread_count) 
 
 def setup_log(output):
     ''' Setup the refinement progress log file
