@@ -72,6 +72,7 @@ def is_readable(filename):
            True if the format is recognized
     '''
     
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     return get_read_format(filename) is not None
 
 def read_header(filename, index=None):
