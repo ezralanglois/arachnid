@@ -223,6 +223,11 @@ def is_format_header(h):
     return h.dtype == header_stack_dtype or h.dtype == header_stack_dtype.newbyteorder() or \
            h.dtype == header_image_dtype or h.dtype == header_image_dtype.newbyteorder()
 
+def bin(x, digits=0): 
+    oct2bin = ['000','001','010','011','100','101','110','111'] 
+    binstring = [oct2bin[int(n)] for n in oct(x)] 
+    return ''.join(binstring).lstrip('0').zfill(digits) 
+
 def is_readable(filename):
     ''' Test if the file read has a valid MRC header
     
@@ -237,35 +242,57 @@ def is_readable(filename):
           True if the header conforms to MRC
     '''
     
-    _logger.debug("MRC - is_readable")
     if hasattr(filename, 'dtype'): 
-        _logger.debug("Found header")
         h = filename
         if not is_format_header(h):
             raise ValueError, "Array dtype incorrect"
     else: 
-        _logger.debug("Read header")
         try:
-            h = read_header(filename)
+            h = read_mrc_header(filename)
         except: 
             _logger.exception("Unable to read header")
             return False
+    '''
     _logger.debug("MRC - mode: %d"%h['mode'][0])
-    _logger.debug("MRC - byteorder: %02x"%h['byteorder'][0])
-    _logger.debug("MRC - byteorder-swapped: %02x"%h['byteorder'][0].byteswap() )
+    _logger.debug("MRC - byteorder2: %x"%(h['byteorder'][0]))
+    _logger.debug("MRC - byteorder: %x"%(h['byteorder'][0]&-65536))
+    _logger.debug("MRC - byteorder-swapped: %x"%h['byteorder'][0].byteswap() )
+    _logger.debug("MRC - byteorder-swapped: %x"%(h['byteorder'][0].byteswap()&-65536) )
     _logger.debug("MRC - nx: %d"%h['nx'][0] )
     _logger.debug("MRC - ny: %d"%h['ny'][0] )
     _logger.debug("MRC - nz: %d"%h['nz'][0] )
     _logger.debug("MRC - mx: %d"%h['mx'][0] )
     _logger.debug("MRC - my: %d"%h['my'][0] )
     _logger.debug("MRC - mz: %d"%h['mz'][0] )
+    '''
     if h['mode'][0] not in mrc2numpy: return False
-    if h['byteorder'][0] not in intbyteorder and \
-       h['byteorder'][0].byteswap() not in intbyteorder: return False
+    if (h['byteorder'][0]&-65536) not in intbyteorder and \
+       (h['byteorder'][0].byteswap()&-65536) not in intbyteorder: return False
     if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'mx', 'my', 'mz')]): return False
     return True
 
 def read_header(filename, index=None):
+    ''' Read the MRC header
+    
+    :Parameters:
+    
+    filename : str or file object
+               Filename or open stream for a file
+    index : int, ignored
+            Index of image to get the header, if None, the stack header (Default: None)
+    
+    :Returns:
+        
+    header : dict
+             Dictionary with header information
+    '''
+    
+    h = read_mrc_header(filename, index)
+    header={}
+    header['apix']=h['xlen']/h['nx']
+    return header
+
+def read_mrc_header(filename, index=None):
     ''' Read the MRC header
     
     :Parameters:
@@ -308,7 +335,7 @@ def count_images(filename):
     '''
     
     if hasattr(filename, 'dtype'): h=filename
-    else: h = read_header(filename)
+    else: h = read_mrc_header(filename)
     return h['nz'][0]
 
 def iter_images(filename, index=None, header=None):
@@ -332,7 +359,7 @@ def iter_images(filename, index=None, header=None):
     f = _open(filename, 'r')
     try:
         if index is None: index = 0
-        h = read_header(f)
+        h = read_mrc_header(f)
         count = count_images(h)
         if header is not None:  _update_header(header, h, mrc2ara, 'mrc')
         d_len = h['nx'][0]*h['ny'][0]
@@ -368,7 +395,7 @@ def read_image(filename, index=None, header=None):
     f = _open(filename, 'r')
     try:
         if index is None: index = 0
-        h = read_header(f)
+        h = read_mrc_header(f)
         if header is not None: _update_header(header, h, mrc2ara, 'mrc')
         count = count_images(h)
         if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
