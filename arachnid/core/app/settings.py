@@ -1339,7 +1339,7 @@ class OptionParser(optparse.OptionParser):
             for group in groups: 
                 if group.is_child(): continue
                 option_list = group.get_config_options()
-                if len(option_list) == 0: continue
+                if len(option_list) == 0 and len(group.option_groups) == 0: continue
                 tree = self.create_property_tree(factory, property_class, converter, option_list, group.title, group.option_groups, tree)
         return tree
     

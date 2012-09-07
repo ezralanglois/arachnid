@@ -105,13 +105,20 @@ def main(files, module, restart_file="", **extra):
     current = 0
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
         if mpi_utility.is_root(**extra):
-            if reduce_all is not None:
-                current += 1
-                filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
-            if fout is not None:
-                if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
-                for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
-                fout.flush()
+            try:
+                _logger.debug("file_processor - 1")
+                if reduce_all is not None:
+                    current += 1
+                    filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
+                _logger.debug("file_processor - 2")
+                if fout is not None:
+                    if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
+                    for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
+                    fout.flush()
+                _logger.debug("file_processor - 3")
+            except:
+                _logger.exception("Error in root")
+                del files[:]
     
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
@@ -204,12 +211,12 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
 def setup_options(parser, pgroup=None):
     # Options added to OptionParser by core.app.program
     from settings import OptionGroup
-    group = OptionGroup(parser, "File Processor", "Options to control the state of the file processor",  id=__name__) if pgroup is None else pgroup
+    group = OptionGroup(parser, "Processor", "Options to control the state of the file processor",  id=__name__)
     group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(maximum=sys.maxint, minimum=0))
     group.add_option("",   restart_file="",   help="Set the restart file backing up processed files",     gui=dict(filetype="open"), dependent=False)
     group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
     #group.add_option("",   force=False,       help="Force the program to run from the start")
-    if pgroup is None: parser.add_option_group(group)
+    pgroup.add_option_group(group)
 
 def check_options(options):
     # Options tested by core.app.program before the program is run

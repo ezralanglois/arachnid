@@ -342,7 +342,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup
     
-    if pgroup is None: pgroup=parser
     if main_option:
         refine_name=['theta-delta', 'angle-range', 'trans-range', 'trans-step', 'use_apsh']
         refine_step = [(15,0,30,4,'True'),
@@ -372,16 +371,14 @@ def setup_options(parser, pgroup=None, main_option=False):
         sgroup = OptionGroup(parser, "Refinement", "Option to change during refinement", group_order=0,  id=__name__)
         sgroup.add_option("",   refine_name=refine_name, help="List of option names to change in each round of refinement, values set in `refine-step`")
         sgroup.add_option("",   refine_step=refine_step, help="List of value tuples where each tuple represents a round of refinement and contains a value for each parameter specified in the same order as `refine-name` for each round of refinement; each round is separated with a comma; each value by a colon, e.g. 15,10:0:6:1,8:0:4,1:3:1")
-        bgroup.add_option_group(sgroup)
+        pgroup.add_option_group(sgroup)
         
-    group = OptionGroup(parser, "Additional Refinement", "Options to customize your refinement", group_order=0,  id=__name__)
-    
+    group = OptionGroup(parser, "Additional", "Options to customize your refinement", group_order=0,  id=__name__)
     group.add_option("",   refine_index=-1,             help="Iteration to start refinment: -1 = start at last volume based on output (if there is none, then start at beginning), 0 = start at begining, > 0 start after specific iteration")
     group.add_option("",   keep_reference=False,        help="Do not change the reference - for tilt-pair analysis - second exposure")
     group.add_option("",   min_resolution=0.0,          help="Minimum resolution to filter next input volume")
     group.add_option("",   add_resolution=0.0,          help="Additional amount to add to resolution before filtering the next reference")
-    
-    bgroup.add_option_group(group)
+    pgroup.add_option_group(group)
     
     if main_option:
         parser.change_default(thread_count=4, log_level=3, max_ref_proj=5000)

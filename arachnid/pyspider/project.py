@@ -81,10 +81,6 @@ Critical Options
     
     Raw reference volume
 
-.. option:: -e <str>, --ext <str>
-    
-    Extension for SPIDER, three characters (Default: dat)
-
 .. option:: --is-ccd <BOOL>
 
     Set true if the micrographs were collected on a CCD (and have not been processed)
@@ -111,6 +107,10 @@ Critical Options
 
 Advanced Options
 ================
+
+.. option:: -e <str>, --ext <str>
+    
+    Extension for SPIDER, three characters (Default: dat)
 
 .. option:: --xmag <FLOAT>
     
@@ -464,19 +464,19 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
     pgroup.add_option("-o", output="",          help="Output directory with project name", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume", gui=dict(filetype="open"), required=True)
-    pgroup.add_option("-e", ext="dat",          help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
     pgroup.add_option("", is_ccd=False,         help="Set true if the micrographs were collected on a CCD (and have not been processed)")
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1))
-    parser.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0))
-    parser.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels", gui=dict(minimum=0))
-    parser.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2))
-    parser.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
-    parser.add_option("", xmag=0.0,             help="Magnification (optional)", gui=dict(minimum=0))
+    pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0))
+    pgroup.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels", gui=dict(minimum=0))
+    pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2))
+    pgroup.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     
     # Ganylerix - 
     
     # Additional options to change
-    group = OptionGroup(parser, "Additional Parameters", "Optional parameters to set", group_order=0,  id=__name__)
+    group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
+    group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
+    group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
     group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)
     group.add_option("",    mpi_command="",         help="Command used to invoked MPI, if empty, then attempt to detect version of MPI and provide the command")
     group.add_option("",    bin_factor=1.0,         help="Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified", gui=dict(minimum=1e-3, decimals=3, singleStep=1.0))

@@ -107,7 +107,14 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         _logger.debug("Add item: %s"%str(propertyObject.__class__.__name__))
         if hasattr(propertyObject, 'todict') or hasattr(propertyObject, '_children'):
-            if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
+            #if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
+            
+            props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty)]
+            if len(props) != 0:
+                _logger.debug("Tab as root")
+                if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
+            else:
+                if hasattr(propertyObject, '_children'): propertyObject = propertyObject._children
             self.beginInsertRows(QtCore.QModelIndex(), self.rowCount(), self.rowCount()+len(propertyObject))
             self._addItems(propertyObject, self.rootItem)
             self.endInsertRows()

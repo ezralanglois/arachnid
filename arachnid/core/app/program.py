@@ -129,7 +129,6 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
-    dependents.extend([settings_editor])
     parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)
     parser.change_default(**extra)
     name = main_module.__name__
@@ -195,15 +194,19 @@ def setup_parser(main_module, dependents, description="", usage=None, supports_M
     
     parser = settings.OptionParser(usage, version=root_module.__version__, description=description)
     try:
-        group = settings.OptionGroup(parser, "Required Parameters", "Options that must be set to run the program", group_order=-20,  id=__name__) 
+        mgroup = settings.OptionGroup(parser, "Primary", "Options that must be set to run the program", group_order=-20,  id=__name__) 
+        group = settings.OptionGroup(parser, "Required", "Options that must be set to run the program", group_order=-20,  id=__name__) 
         main_module.setup_options(parser, group, True)
     except:
         _logger.error("Module name: %s"%str(main_module))
         raise
     if hasattr(main_module, "setup_main_options"): main_module.setup_main_options(parser, group)
-    if len(group.option_list) > 0: parser.add_option_group(group)
+    mgroup.add_option_group(group)
+    parser.add_option_group(mgroup)
+    group = settings.OptionGroup(parser, "Dependent", "Options require by dependents of the program", group_order=0,  id=__name__)
     for module in dependents:
         module.setup_options(parser, group)
+    if len(group.option_list) > 0 or len(group.option_groups) > 0: parser.add_option_group(group)
     setup_program_options(parser, supports_MPI, supports_OMP, output_option)
     return parser
 
@@ -244,7 +247,6 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
-    dependents.extend([settings_editor])
     
     description="\n#  ".join([s.strip() for s in description.split("\n")])
     parser = setup_parser(main_module, dependents, description, usage, supports_MPI, supports_OMP, use_version, output_option)
@@ -276,12 +278,13 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             parser.write(options.create_cfg, options)
             sys.exit(0)
     
+    additional = [tracing, settings_editor]
     try:
-        for module in dependents+[tracing]:
+        for module in dependents+additional:
             if not hasattr(module, "update_options"): continue
             module.update_options(options)
         parser.validate(options)
-        for module in dependents+[tracing]:
+        for module in dependents+additional:
             if not hasattr(module, "check_options"): continue
             module.check_options(options)
         if hasattr(main_module, "check_main_options"): main_module.check_main_options(options)
@@ -385,7 +388,8 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
     
     parser.add_option("",   create_cfg="",          help="Create a configuration file (if the value is 1, true, y, t, then write to standard output)", gui=dict(nogui=True))
     gen_group = settings.OptionGroup(parser, "General", "Options to general program features",  id=__name__)
-    gen_group.add_option("",   prog_version=root_module.__version__, help="Select version of the program (set `latest` to use the lastest version`)")
+    prg_group = settings.OptionGroup(parser, "Program", "Options to program features",  id=__name__)
+    prg_group.add_option("",   prog_version=root_module.__version__, help="Select version of the program (set `latest` to use the lastest version`)")
     if output_option is not None:
         parser.add_option("-o", output="", help=output_option, gui=dict(filetype="save"), required_file=True)
     if supports_MPI and mpi_utility.supports_MPI():
@@ -397,10 +401,11 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
         group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
         gen_group.add_option_group(group)
     if supports_OMP and openmp.get_max_threads() > 1:
-        gen_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
+        prg_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
     tracing.setup_options(parser, gen_group)
+    settings_editor.setup_options(parser, gen_group)
+    gen_group.add_option_group(prg_group)
     parser.add_option_group(gen_group)
-    
     
 def reload_script(version):
     ''' Update sys.path and reload all the modules

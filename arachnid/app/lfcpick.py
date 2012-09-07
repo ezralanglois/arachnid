@@ -535,10 +535,10 @@ def setup_options(parser, pgroup=None, main_option=False):
         bgroup.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
         bgroup.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         bgroup.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        parser.add_option_group(bgroup)
+        pgroup.add_option_group(bgroup)
         parser.change_default(log_level=3)
         parser.change_default(window=1.4)
-    parser.add_option_group(group)
+    pgroup.add_option_group(group)
 
 def check_options(options, main_option=False):
     #Check if the option values are valid
