@@ -17,8 +17,10 @@ except:
         tracing.log_import_error("Failed to import OpenMP module - certain functionality will not be available", _logger)
     try:
         from core import _omp
+        _omp;
     except:
         tracing.log_import_error("Failed to import OpenMP module - certain functionality will not be available", _logger)
+        _omp = None
 
 def set_thread_count(thread_count):
     ''' Set the number of threads to be used by OpenMP
@@ -41,4 +43,6 @@ def get_max_threads():
           Number of available threads
     '''
     
-    return _omp.get_max_threads()
+    if _omp is not None:
+        return _omp.get_max_threads()
+    return 1

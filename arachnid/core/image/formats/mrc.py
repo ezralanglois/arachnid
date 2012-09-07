@@ -250,7 +250,6 @@ def is_readable(filename):
         try:
             h = read_mrc_header(filename)
         except: 
-            _logger.exception("Unable to read header")
             return False
     '''
     _logger.debug("MRC - mode: %d"%h['mode'][0])

@@ -654,6 +654,21 @@ class OptionGroup(optparse.OptionGroup):
         #self.parser.add_option_group(group)
         group._child = True
         self.option_groups.append(group)
+    
+    def get_config_options(self):
+        ''' Get options that will appear in the config file
+        
+        :Returns:
+        
+        option_list : list
+                      List of configurable options
+        '''
+        
+        option_list = []
+        for option in self.option_list:
+            if option.is_not_config() or option.dest is None: continue
+            option_list.append(option)
+        return option_list
 
 class OptionParser(optparse.OptionParser):
     '''Extended option parser
@@ -1318,12 +1333,31 @@ class OptionParser(optparse.OptionParser):
             tree.append(branch)
         else:
             tree = None
-            if len(self.option_list)>0: tree = self.create_property_tree(factory, property_class, converter, self.option_list)
+            option_list = self.get_config_options()
+            if len(option_list)>0: tree = self.create_property_tree(factory, property_class, converter, option_list)
             groups = sorted(self.option_groups, key=_attrgetter('group_order'))
             for group in groups: 
                 if group.is_child(): continue
-                tree = self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, tree)
+                option_list = group.get_config_options()
+                if len(option_list) == 0: continue
+                tree = self.create_property_tree(factory, property_class, converter, option_list, group.title, group.option_groups, tree)
         return tree
+    
+    def get_config_options(self):
+        ''' Get options that will appear in the config file
+        
+        :Returns:
+        
+        option_list : list
+                      List of configurable options
+        '''
+        
+        option_list = []
+        for option in self.option_list:
+            if option.is_not_config() or option.dest is None: continue
+            option_list.append(option)
+        return option_list
+        
 
 class OptionValueError(optparse.OptParseError):
     """Exception raised for errors in parsing values of options

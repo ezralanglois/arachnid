@@ -525,20 +525,20 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   disable_bin=False,   help="Disable micrograph decimation")
     group.add_option("",   invert=False,        help="Invert the contrast of CCD micrographs")
     
-    parser.add_option_group(group)
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
-        parser.add_option("",   limit=2000,     help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
+        pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        group.add_option("",   limit=2000,      help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
         # move next three options to benchmark
         
-        group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
-        parser.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
-        parser.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        parser.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        parser.add_option_group(group)
+        bgroup = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
+        bgroup.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
+        bgroup.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
+        bgroup.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
+        parser.add_option_group(bgroup)
         parser.change_default(log_level=3)
         parser.change_default(window=1.4)
+    parser.add_option_group(group)
 
 def check_options(options, main_option=False):
     #Check if the option values are valid

@@ -426,8 +426,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   pca_mode=0.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
     parser.add_option_group(group)
     if main_option:
-        parser.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
-        parser.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         # move next three options to benchmark
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))

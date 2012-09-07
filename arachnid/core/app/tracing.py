@@ -131,12 +131,14 @@ def setup_options(parser, pgroup=None):
     from settings import OptionGroup
     levels=tuple(log_level_val)
     group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__, dependent=False)
-    if pgroup is None: pgroup = group
     group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3)
     group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True)
     group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"))
     group.add_option("",   disable_stderr=False, help="If true, output will only be written to the given log file")
-    parser.add_option_group(group)
+    if pgroup is not None:
+        pgroup.add_option_group(group)
+    else:
+        parser.add_option_group(group)
 
 def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tmp="", disable_stderr=False, **extra):
     '''Configure logging with use selected options

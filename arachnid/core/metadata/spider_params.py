@@ -202,7 +202,10 @@ def setup_options(parser, pgroup=None, required=False):
     group = OptionGroup(parser, "Params", "Options to control basic SPIDER parameters", id=__name__, gui=dict(root=True, stacked="prepComboBox"))
     group.add_option("-p", param_file="",  help="Spider parameter file describing a Cryo-EM experiment", required=required)
     group.add_option("-b", bin_factor=1.0, help="Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified")
-    parser.add_option_group(group)
+    if pgroup is not None:
+        pgroup.add_option_group(group)
+    else:
+        parser.add_option_group(group)
     
 def update_options(options):
     ''' Update the current options

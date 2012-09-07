@@ -130,7 +130,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
-    dependents.extend([tracing, settings_editor])
+    dependents.extend([settings_editor])
     parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)
     parser.change_default(**extra)
     name = main_module.__name__
@@ -245,7 +245,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     if main_template is not None and main_template != main_module: dependents.append(main_template)
-    dependents.extend([tracing, settings_editor])
+    dependents.extend([settings_editor])
     
     description="\n#  ".join([s.strip() for s in description.split("\n")])
     parser = setup_parser(main_module, dependents, description, usage, supports_MPI, supports_OMP, use_version, output_option)
@@ -278,11 +278,11 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             sys.exit(0)
     
     try:
-        for module in dependents:
+        for module in dependents+[tracing]:
             if not hasattr(module, "update_options"): continue
             module.update_options(options)
         parser.validate(options)
-        for module in dependents:
+        for module in dependents+[tracing]:
             if not hasattr(module, "check_options"): continue
             module.check_options(options)
         if hasattr(main_module, "check_main_options"): main_module.check_main_options(options)
@@ -379,19 +379,25 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
     # Collection of options necessary to use functions in this script
     
     parser.add_option("",   create_cfg="",          help="Create a configuration file (if the value is 1, true, y, t, then write to standard output)", gui=dict(nogui=True))
-    parser.add_option("",   prog_version=root_module.__version__, help="Select version of the program (set `latest` to use the lastest version`)")
+    gen_group = settings.OptionGroup(parser, "General", "Options to general program features",  id=__name__)
+    gen_group.add_option("",   prog_version=root_module.__version__, help="Select version of the program (set `latest` to use the lastest version`)")
     if output_option is not None:
         parser.add_option("-o", output="", help=output_option, gui=dict(filetype="save"), required_file=True)
-    if not supports_MPI or not mpi_utility.supports_MPI(): return
-    group = settings.OptionGroup(parser, "MPI", "Options to control MPI",  id=__name__, dependent=False)
-    group.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
-    group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
-    group.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-    group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
-    group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
-    parser.add_option_group(group)
+    if supports_MPI and mpi_utility.supports_MPI():
+        group = settings.OptionGroup(parser, "MPI", "Options to control MPI",  id=__name__, dependent=False)
+        group.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
+        group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
+        group.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+        group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
+        group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
+        gen_group.add_option_group(group)
+    _logger.error("here1")
     if supports_OMP and openmp.get_max_threads() > 1:
-        parser.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
+        gen_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
+    _logger.error("here2")
+    tracing.setup_options(parser, gen_group)
+    parser.add_option_group(gen_group)
+    
     
 def reload_script(version):
     ''' Update sys.path and reload all the modules
