@@ -71,7 +71,7 @@ class Session(object):
         self.version = None
         
         if rank is not None: _logger.debug("Using MPI spider = %d"%rank)
-        if tmp_path: _logger.info("Using local path: %s"%tmp_path)
+        if tmp_path: _logger.debug("Using local path: %s"%tmp_path)
         if filepath == None or filepath == "":
             _logger.debug("Searching for Spider")
             spiderexec = 'spider_linux_mp_opt64'
@@ -95,7 +95,8 @@ class Session(object):
             _logger.debug("Using spider: %s"%self.spiderexec)
         if not os.path.exists(self.spiderexec): raise ValueError, "Cannot find spider executable: "+self.spiderexec
         self.get_version(tmp_path)
-        _logger.info("SPIDER Version = %d.%d"%self.version)
+        if rank == 0:
+            _logger.info("SPIDER Version = %d.%d"%self.version)
         
         if os.path.exists(os.path.join(os.path.dirname(self.spiderexec), 'Nextresults')):
             os.environ['SPBIN_DIR'] = os.path.dirname(self.spiderexec) + os.sep
