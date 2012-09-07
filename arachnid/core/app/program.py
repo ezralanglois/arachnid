@@ -77,7 +77,6 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     '''
     
     _logger.addHandler(logging.StreamHandler())
-    _logger.debug("Run program: %d, %d"%(supports_MPI, mpi_utility.supports_MPI()))
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
     try:
@@ -338,7 +337,7 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
     '''
     
     param = {}
-    if home_prefix is None or local_temp == "": 
+    if home_prefix is None or local_temp == "" or not os.path.exists(local_temp): 
         
         # Test if file does not exist and is relative path, update
         # based on config file path, if exists
@@ -363,7 +362,7 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
     for opt in file_options:
         if opt not in extra: continue
         if extra[opt].find(home_prefix) != 0: continue
-        if isinstance(extra[opt], list):
+        if hasattr(extra[opt], 'append'):
             for filename in extra[opt]:
                 filename = os.path.join(shortcut, filename[len(home_prefix):])
                 if max_filename_len > 0 and len(filename) > max_filename_len:
@@ -391,10 +390,8 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
         group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
         group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
         gen_group.add_option_group(group)
-    _logger.error("here1")
     if supports_OMP and openmp.get_max_threads() > 1:
         gen_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
-    _logger.error("here2")
     tracing.setup_options(parser, gen_group)
     parser.add_option_group(gen_group)
     
