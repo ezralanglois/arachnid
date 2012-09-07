@@ -414,7 +414,7 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, loc
     if not os.path.exists(filename): filename = spi.replace_ext(filename)
     temp_spider_file = "temp_spider_file"
     if local_scratch != "": temp_spider_file = os.path.join(local_scratch, temp_spider_file)
-    filename = ndimage_file.copy_to_spider(filename, temp_spider_file)
+    filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
     if decimate and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
