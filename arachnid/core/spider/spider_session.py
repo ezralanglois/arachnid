@@ -494,7 +494,7 @@ def spider_command_multi_input(session, command, message, inputfile, *otherfiles
     if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
     if len(otherfiles) == 1 and otherfiles[0] is None: return session.cp(inputfile)
     otherfiles = [spider_image(f) for f in otherfiles]
-    otherfiles.extend(spider_image(outputfile), '*')
+    otherfiles.extend([spider_image(outputfile), '*'])
     session.invoke(command, spider_image(inputfile), *otherfiles)
     return outputfile
 
