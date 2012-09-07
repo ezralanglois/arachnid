@@ -1530,6 +1530,7 @@ def propertyobject(typename, parenttype, property, options, order):
              Property object
     '''
     
+    typename = typename.replace('-', '_')
     parenttype_name = parenttype.__name__
     template = '''class %(typename)s(%(parenttype_name)s):
     def __init__(self): 
