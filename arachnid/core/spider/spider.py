@@ -2725,7 +2725,7 @@ def nonspi_file(session, filename, temp):
         
         
 
-def open_session(args, spider_path="", data_ext="", thread_count=0, enable_results=False, rank=None, remote_tmp=None, **extra):
+def open_session(args, spider_path="", data_ext="", thread_count=0, enable_results=False, rank=None, local_temp=None, **extra):
     '''Opens a spider session
     
     :Parameters:
@@ -2742,7 +2742,7 @@ def open_session(args, spider_path="", data_ext="", thread_count=0, enable_resul
                          If set true, print results file to terminal
         rank : int
                MPI node rank
-        remote_tmp : str
+        local_temp : str
                      Path to start SPIDER
         extra : dict
                 Unused keyword arguments
@@ -2759,7 +2759,7 @@ def open_session(args, spider_path="", data_ext="", thread_count=0, enable_resul
             _logger.warn("Changing Spider data extension from %s to %s"%(data_ext, tmp_ext))
             data_ext = tmp_ext
         elif data_ext == "": data_ext = 'spi'
-    return Session(spider_path, data_ext, thread_count, enable_results, rank, remote_tmp)
+    return Session(spider_path, data_ext, thread_count, enable_results, rank, local_temp)
 
 def stack(session, inputfile, node_count, outputfile=None):
     ''' Stack a set of individual spider stacks into a single stack
