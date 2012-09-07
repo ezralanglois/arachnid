@@ -380,7 +380,7 @@ def for_window_in_micrograph(spi, filename, window_size=500, x_overlap=50, y_ove
     else: x_dist /= bin_factor
     if not y_dist: y_dist = window_size
     else: y_dist /= bin_factor
-    x_size, y_size = spi.fi_h(filename, ('NSAM', 'NROW'))
+    x_size, y_size = spi.fi_h(corefile, ('NSAM', 'NROW'))
     x_overlap_norm = 100.0 / (100-x_overlap)
     y_overlap_norm = 100.0 / (100-y_overlap)
     x_steps = int( float(x_overlap_norm) * ( (x_size-2*x_dist)/window_size-1)   )

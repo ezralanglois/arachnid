@@ -516,24 +516,29 @@ def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
-    group = OptionGroup(parser, "Template-matching", "Options to control template-matching",  id=__name__) if pgroup is None else pgroup
-    group.add_option("-r", pixel_radius=0,      help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
-    group.add_option("",   window=1.0,          help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
+    group = OptionGroup(parser, "Template-matching", "Options to control template-matching",  id=__name__)
+    '''
+    group.add_option("-r", pixel_radius=0,      help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, --param-file)")
+    group.add_option("",   window=1.0,          help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, --param-file)")
     group.add_option("",   disk_mult=0.65,      help="Disk smooth kernel size factor", gui=dict(maximum=10.0, minimum=0.01, singleStep=0.1, decimals=2)) #"2:0.1:0.01:10.0"
     group.add_option("",   overlap_mult=1.2,    help="Multiplier for the amount of allowed overlap or inter-particle distance", gui=dict(maximum=10.0, minimum=0.001, singleStep=0.1, decimals=2))
     group.add_option("",   template="",         help="Optional predefined template", gui=dict(filetype="open"))
-    
     group.add_option("",   disable_bin=False,   help="Disable micrograph decimation")
-    group.add_option("",   invert=False,        help="Invert the micrograph")
-    if pgroup is None: parser.add_option_group(group)
+    '''
+    group.add_option("",   invert=False,        help="Invert the contrast of CCD micrographs")
+    
+    parser.add_option_group(group)
     if main_option:
         parser.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         parser.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         parser.add_option("",   limit=2000,     help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
         # move next three options to benchmark
+        
+        group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
         parser.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
         parser.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         parser.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
+        parser.add_option_group(group)
         parser.change_default(log_level=3)
         parser.change_default(window=1.4)
 
