@@ -287,7 +287,8 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=1, du_nstd=[], d
     '''
     
     if not use_powerspec:
-        image_count = spider.count_images(spi, filename)
+        image_count = ndimage_file.count_images(filename)
+        #image_count = spider.count_images(spi, filename)
         for_win = spider.for_image(spi, filename, image_count) \
                   if image_count > 1 else \
                   for_window_in_micrograph(spi, filename, **extra)
@@ -388,7 +389,7 @@ def for_window_in_micrograph(spi, filename, window_size=500, x_overlap=50, y_ove
     y_mult = window_size/y_overlap_norm
     return for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps)
 
-def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, **extra):
+def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, local_scratch="", **extra):
     ''' Read a micrograph file into core memory
     
     :Parameters:
@@ -401,6 +402,8 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, **e
                  Decimation factor of the micrograph
     decimate : bool
                Decimate the micrograph
+    local_scratch : str, optional
+                    Output filename for local scratch drive
     
     :Returns:
     
@@ -408,13 +411,17 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, **e
                Image in SPIDER core memory
     '''
     
-    filename = ndimage_file.copy_to_spider(filename, "temp_spider_file")
+    if not os.path.exists(filename): filename = spi.replace_ext(filename)
+    temp_spider_file = "temp_spider_file"
+    if local_scratch != "": temp_spider_file = os.path.join(local_scratch, temp_spider_file)
+    filename = ndimage_file.copy_to_spider(filename, temp_spider_file)
     if decimate and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
         #corefile = spi.dc_s(filename, bin_factor, **extra) # Use iterpolation!
     else:
         corefile = spi.cp(filename, **extra)
+    if os.path.exists(spi.replace_ext(temp_spider_file)): os.unlink(spi.replace_ext(temp_spider_file))
     return corefile
 
 def for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps):
