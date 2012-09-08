@@ -40,6 +40,8 @@ Parameters
     
     Number of threads per machine, 0 means determine from environment (Default: 0)
 
+.. todo:: if not exist set to empty home-prefix, local-scratch, local-temp and warn
+
 .. Created on Oct 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -126,10 +128,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     
     _logger.addHandler(logging.StreamHandler())
     main_template = file_processor if file_processor.supports(main_module) else None
-    dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
-    dependents = collect_dependents(dependents)
-    if main_template is not None and main_template != main_module: dependents.append(main_template)
-    parser = setup_parser(main_module, dependents, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
     parser.change_default(**extra)
     name = main_module.__name__
     off = name.rfind('.')
@@ -164,15 +163,15 @@ def map_module_to_program(key=None):
     vals = dict(vals)
     return vals if key is None else vals[key]
         
-def setup_parser(main_module, dependents, description="", usage=None, supports_MPI=False, supports_OMP=False, use_version=False, output_option=None):
+def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, use_version=False, output_option=None):
     '''Parse and setup the parameters for the generic program
     
     :Parameters:
         
     main_module : module
                   Main module
-    dependents : list
-                 List of dependent modules
+    main_template : module
+                    Main module wrapper
     description : string
                   Description of the program
     usage : string
@@ -186,12 +185,14 @@ def setup_parser(main_module, dependents, description="", usage=None, supports_M
     
     :Returns:
     
-    args : list
-           List of files to process
-    options : object
-              Options object
+    parser : OptionParser
+             OptionParser
+    dependents : list
+                 List of dependent modules
     '''
     
+    dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
+    dependents = collect_dependents(dependents)
     parser = settings.OptionParser(usage, version=root_module.__version__, description=description)
     try:
         mgroup = settings.OptionGroup(parser, "Primary", "Options that must be set to run the program", group_order=-20,  id=__name__) 
@@ -207,8 +208,9 @@ def setup_parser(main_module, dependents, description="", usage=None, supports_M
     for module in dependents:
         module.setup_options(parser, group)
     if len(group.option_list) > 0 or len(group.option_groups) > 0: parser.add_option_group(group)
-    setup_program_options(parser, supports_MPI, supports_OMP, output_option)
-    return parser
+    if main_template == main_module: main_template = None
+    setup_program_options(parser, main_template, supports_MPI, supports_OMP, output_option)
+    return parser, dependents
 
 def parse_and_check_options(main_module, main_template, description, usage, supports_MPI=False, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
     '''Parse and setup the parameters for the generic program
@@ -244,12 +246,8 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             Dictionary of parameters and their corresponding values
     '''
     
-    dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
-    dependents = collect_dependents(dependents)
-    if main_template is not None and main_template != main_module: dependents.append(main_template)
-    
     description="\n#  ".join([s.strip() for s in description.split("\n")])
-    parser = setup_parser(main_module, dependents, description, usage, supports_MPI, supports_OMP, use_version, output_option)
+    parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, output_option)
     options, args = parser.parse_args_with_config()
     
     if 1 == 0:
@@ -279,6 +277,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             sys.exit(0)
     
     additional = [tracing, settings_editor]
+    if main_template is not None and main_template != main_module: additional.append(main_template)
     try:
         for module in dependents+additional:
             if not hasattr(module, "update_options"): continue
@@ -383,7 +382,7 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param
 
-def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output_option=None):
+def setup_program_options(parser, main_template, supports_MPI=False, supports_OMP=False, output_option=None):
     # Collection of options necessary to use functions in this script
     
     parser.add_option("",   create_cfg="",          help="Create a configuration file (if the value is 1, true, y, t, then write to standard output)", gui=dict(nogui=True))
@@ -404,6 +403,7 @@ def setup_program_options(parser, supports_MPI=False, supports_OMP=False, output
         prg_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
     tracing.setup_options(parser, gen_group)
     settings_editor.setup_options(parser, gen_group)
+    if main_template is not None: main_template.setup_options(parser, gen_group)
     gen_group.add_option_group(prg_group)
     parser.add_option_group(gen_group)
     
