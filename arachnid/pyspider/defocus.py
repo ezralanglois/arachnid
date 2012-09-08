@@ -498,13 +498,6 @@ def default_path(filename, output):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    if mpi_utility.is_root(**param):
-        _logger.info("Padding: %d"%param['pad'])
-        _logger.info("Window size: %d"%param['window_size']/param['bin_factor'])
-        _logger.info("Bin factor: %d"%param['bin_factor'])
-        if param['bin_factor'] != 1.0:
-            _logger.info("Interpolate micrograph")
-    
     if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_00000")
     if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_00000")
     if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_00000")
@@ -525,6 +518,17 @@ def initialize(files, param):
     if len(files) > 1 and param['worker_count'] > 1: 
         param['spi'].close()
         param['spi'] = None
+    
+    if mpi_utility.is_root(**param):
+        _logger.info("Bin factor: %f"%param['bin_factor'])
+        _logger.info("Padding: %d"%param['pad'])
+        _logger.info("Pixel size: %f"%(param['apix']*param['bin_factor']))
+        _logger.info("Window size: %d"%(param['window_size']/param['bin_factor']))
+        if param['bin_factor'] != 1.0:
+            if not param['disable_bin']:
+                _logger.info("Interpolate micrograph with %f"%param['bin_factor'])
+            else:
+                _logger.info("No micrograph interpolation")
 
 def init_process(process_number, rank, input_files, **extra):
     # Initialize a child process
@@ -550,18 +554,21 @@ def finalize(files, **extra):
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
-    from ..core.app.settings import setup_options_from_doc
+    from ..core.app.settings import setup_options_from_doc, OptionGroup
     
     pgroup.add_option("-i", input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="file-list"))
     pgroup.add_option("-o", output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
-    pgroup.add_option("",   disable_bin=False,                              help="Disable micrograph decimation")
-    pgroup.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
-    pgroup.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
-    pgroup.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
-    pgroup.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
     
-    setup_options_from_doc(parser, create_powerspectra, mask_power_spec, for_window_in_micrograph)# classes=spider.Session
+    group = OptionGroup(parser, "Additional", "Options to customize defocus estimation", group_order=0,  id=__name__)
+    group.add_option("",   disable_bin=False,                              help="Disable micrograph decimation")
+    group.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
+    group.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
+    group.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
+    group.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
+    pgroup.add_option_group(group)
+    
+    setup_options_from_doc(parser, create_powerspectra, mask_power_spec, for_window_in_micrograph, group=pgroup)# classes=spider.Session
     if main_option:
         setup_options_from_doc(parser, spider.open_session)
         parser.change_default(thread_count=4, log_level=3)
