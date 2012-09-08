@@ -28,13 +28,15 @@ except:
     QtGui=None
     tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
 
-def _create_settings_dialog(parser, name=None, config_file="", style_sheet="", **extra):
+def _create_settings_dialog(parser, options, name=None, config_file="", style_sheet="", **extra):
     ''' Create a setting dialog editor
     
     :Parameters:
     
     parser : OptionParser
              The option parser used to parse the command line parameters
+    options : object
+              Options container
     name : str, optional
            Name for the tab, if unspecified then generate from the groups
     config_file : str
@@ -68,10 +70,10 @@ def _create_settings_dialog(parser, name=None, config_file="", style_sheet="", *
     # Read given config file, command line - open button
     dialog = Dialog()
     dialog.setWindowTitle(config_file)
-    tree = parser.create_property_tree(pyqtProperty.PyqtProperty, QtCore.QObject)
+    tree = parser.create_property_tree(options, pyqtProperty.PyqtProperty, QtCore.QObject)
     if name is None:
         for branch in tree:
-            dialog.addProperty(branch, branch.DisplayName)  
+            dialog.addProperty(branch, branch.DisplayName)
     else:
         dialog.addProperty(tree, name)
     return app, dialog
@@ -103,13 +105,15 @@ def screenshot(parser, name=None, screen_shot="", **extra):
     originalPixmap.save(os.path.splitext(screen_shot)[0]+'.png', 'png')
     sys.exit(0)
 
-def display(parser, name=None, ui=False, **extra):
+def display(parser, options, name=None, ui=False, **extra):
     ''' Display a settings editor graphical user interface
     
     :Parameters:
         
     parser : OptionParser
              The option parser used to parse the command line parameters
+    options : object
+              Options container
     name : str, optional
            Name for the tab, if unspecified then generate from the groups
     ui : bool
@@ -125,7 +129,7 @@ def display(parser, name=None, ui=False, **extra):
     
     screenshot(parser, name, **extra)
     if QtGui is None or not ui: return extra['create_cfg']
-    app, dialog = _create_settings_dialog(parser, name, **extra)
+    app, dialog = _create_settings_dialog(parser, options, name, **extra)
     dialog.show()
     ret = app.exec_()
     if dialog.windowTitle() == "": sys.exit(ret)

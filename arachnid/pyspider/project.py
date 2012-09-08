@@ -471,7 +471,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
     pgroup.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     
-    # Ganylerix - 
     
     # Additional options to change
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)

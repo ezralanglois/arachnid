@@ -1287,12 +1287,14 @@ class OptionParser(optparse.OptionParser):
         self.write(values=values)
         sys.exit(10)
     
-    def create_property_tree(self, factory, property_class=object, converter=lambda x:x, option_list=None, title=None, option_groups=[], tree=None, order=0):
+    def create_property_tree(self, param, factory, property_class=object, converter=lambda x:x, option_list=None, title=None, option_groups=[], tree=None, order=0):
         ''' Create a property tree used to create a graphical user
         interface
         
         :Parameters:
         
+        param : object
+                Option value container
         factory : function
                   Function that builds the properties
         property_class : class
@@ -1320,7 +1322,7 @@ class OptionParser(optparse.OptionParser):
             if tree is None: tree = OptionValueMap(converter)
             if title is None: title = "Critical"
             try:
-                Branch = propertyobject(title.replace(' ', '_'), property_class, factory, option_list, order)
+                Branch = propertyobject(title.replace(' ', '_'), property_class, factory, option_list, order, param)
             except:
                 _logger.error("title = %s"%str(title))
                 raise
@@ -1328,22 +1330,22 @@ class OptionParser(optparse.OptionParser):
             title = title.capitalize()
             setattr(Branch, 'DisplayName', title)
             setattr(Branch, '_children', [])
-            branch = Branch()
+            branch = Branch(param)
             order = 0 #len(option_list)
             for group in option_groups:
-                self.create_property_tree(factory, property_class, converter, group.option_list, group.title, group.option_groups, branch._children, order)
+                self.create_property_tree(param, factory, property_class, converter, group.option_list, group.title, group.option_groups, branch._children, order)
                 #order += 1
             tree.append(branch)
         else:
             tree = None
             option_list = self.get_config_options()
-            if len(option_list)>0: tree = self.create_property_tree(factory, property_class, converter, option_list)
+            if len(option_list)>0: tree = self.create_property_tree(param, factory, property_class, converter, option_list)
             groups = sorted(self.option_groups, key=_attrgetter('group_order'))
             for group in groups: 
                 if group.is_child(): continue
                 option_list = group.get_config_options()
                 if len(option_list) == 0 and len(group.option_groups) == 0: continue
-                tree = self.create_property_tree(factory, property_class, converter, option_list, group.title, group.option_groups, tree)
+                tree = self.create_property_tree(param, factory, property_class, converter, option_list, group.title, group.option_groups, tree)
         return tree
     
     def get_config_options(self):
@@ -1545,7 +1547,7 @@ class Validation:
         
         return Validation.empty_string(val, "Empty filename")
 
-def propertyobject(typename, parenttype, property, options, order):
+def propertyobject(typename, parenttype, property, options, order, param):
     '''Create an object with the specified properties
     
     :Parameters:
@@ -1560,6 +1562,8 @@ def propertyobject(typename, parenttype, property, options, order):
               List of options
     order : int
             Order the object was added
+    param : object
+            Option value container
     
     :Returns:
     
@@ -1570,27 +1574,45 @@ def propertyobject(typename, parenttype, property, options, order):
     typename = typename.replace('-', '_')
     parenttype_name = parenttype.__name__
     template = '''class %(typename)s(%(parenttype_name)s):
-    def __init__(self): 
-        %(parenttype_name)s.__init__(self)\n\n''' % locals()
+    def __init__(self, param): 
+        %(parenttype_name)s.__init__(self)\n\n
+        self._param=param\n''' % locals()
     if parenttype_name: pass
     
     template += "        self.order_index=%d\n"%order
+    '''
     for option in options:
         if option.is_not_config() or option.dest is None: continue
         #if isinstance(option.default, str) or (isinstance(option.default, optlist) and len(option.default) == 0):
-        if isinstance(option.default, str) or (isinstance(option.default, optlist)):
-            template += "        self._m_%s='%s'\n"%(option.dest, str(option.default))
+        value = param.get(option.dest, option.default)
+        if isinstance(value, str) or (isinstance(value, optlist)):
+            template += "        self._m_%s='%s'\n"%(option.dest, str(value))
         else:
-            template += "        self._m_%s=%s\n"%(option.dest, str(option.default))
+            template += "        self._m_%s=%s\n"%(option.dest, str(value))
+    '''
     for i, option in enumerate(options):
         if option.is_not_config() or option.dest is None: continue
         opttype = option.type
+        if isinstance(param, dict):
+            value = param.get(option.dest, option.default)
+        else:
+            value = getattr(param, option.dest, option.default)
         if opttype == 'string': 
-            opttype = 'int' if option.choices is not None and isinstance(option.default, int) else 'QString'
+            opttype = 'int' if option.choices is not None and isinstance(value, int) else 'QString'
         if opttype is None: opttype = 'bool'
         help = option.help.split('\n', 1)[0]
-        template += "    %s = %s(%d, '%s', attrgetter('_m_%s'), lambda self,value: setattr(self, '_m_%s', value), user=True, doc='%s', editorHints=%s)\n"%(option.dest, property.__name__, i, opttype, option.dest, option.dest, help, str(option.gui_hint))
-    
+        if isinstance(param, dict):
+            get_value = "self._param['%s']"%option.dest
+            set_value = "lambda self,value: self._param.update(%s=value)"%option.dest
+        else:
+            get_value = "self._param.%s"%option.dest
+            set_value = "lambda self,value: setattr(self._param, '%s', value)"%option.dest
+        if isinstance(value, optlist):
+            get_value = "lambda self: str(%s)"%get_value
+        else:
+            get_value = "lambda self: %s"%get_value
+        template += "    %s = %s(%d, '%s', %s, %s, user=True, doc='%s', editorHints=%s)\n"%(option.dest, property.__name__, i, opttype, get_value, set_value, help, str(option.gui_hint))
+        
     namespace = dict(itemgetter=_itemgetter, attrgetter=_attrgetter)
     namespace[parenttype.__name__] = parenttype
     namespace[property.__name__] = property

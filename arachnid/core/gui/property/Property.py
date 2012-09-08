@@ -1135,7 +1135,8 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("setValue Qstring")
-        Property.setValue(self, value)
+        if value.isValid():
+            Property.setValue(self, str(value.toString()))
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
