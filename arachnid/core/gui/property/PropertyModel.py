@@ -63,7 +63,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
             del oproperties
             
         for propertyObject in properties:
-            name = getattr(propertyObject.__class__, 'DisplayName', propertyObject.__class__.__name__.replace('_', '-'))
+            #name = getattr(propertyObject.__class__, 'DisplayName', propertyObject.__class__.__name__) #.replace('_', '-'))
+            name = propertyObject.__class__.__name__
             _logger.debug("Add item %s - %d - child: %d"%(name, rindex, len(propertyObject._children)))
             currentItem = Property(name, rindex, None, None, parentItem)
             
