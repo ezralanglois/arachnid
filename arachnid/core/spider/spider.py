@@ -83,6 +83,7 @@ import collections
 import logging, os, numpy
 
 _logger = logging.getLogger(__name__)
+_logger.setLevel(logging.INFO)
 
 class Session(spider_session.Session):
     ''' Class defines a set of Spider commands for the current spider Session
@@ -2675,7 +2676,11 @@ def image_size(session, filename):
             Shape of the image
     '''
     
-    shape  = session.fi_h(spider_stack(filename), ('NSAM','NROW', 'NSLICE'))
+    istack, = session.fi_h(filename, ('ISTACK', ))
+    if istack > 0:
+        shape  = session.fi_h(spider_stack(filename), ('NSAM','NROW', 'NSLICE'))
+    else:
+        shape  = session.fi_h(spider_image(filename), ('NSAM','NROW', 'NSLICE'))
     return shape
 
 def for_image(session, filename, count=None):
@@ -3030,5 +3035,36 @@ def angle_count(theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0
             if skip and theta == 90.0 and phi >= 180.0: continue
             count += 1
     return count
+
+def throttle_mp(spi, thread_count, **extra):
+    ''' Set number of cores in SPIDER to 1
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    thread_count : int
+                   Number of threads to use
+    extra : dict
+            Unused keyword arguments 
+    '''
+    
+    if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
+
+def release_mp(spi, thread_count, **extra):
+    ''' Reset number of cores in SPIDER to default
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    thread_count : int
+                   Number of threads to use
+    extra : dict
+            Unused keyword arguments 
+    '''
+    
+    if thread_count > 1 or thread_count == 0: spi.md('SET MP', thread_count)
+
 
 
