@@ -106,16 +106,13 @@ def main(files, module, restart_file="", **extra):
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
         if mpi_utility.is_root(**extra):
             try:
-                _logger.debug("file_processor - 1")
                 if reduce_all is not None:
                     current += 1
                     filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
-                _logger.debug("file_processor - 2")
                 if fout is not None:
                     if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
                     for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
                     fout.flush()
-                _logger.debug("file_processor - 3")
             except:
                 _logger.exception("Error in root")
                 del files[:]

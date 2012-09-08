@@ -140,6 +140,8 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
     #. :ref:`Options shared by SPIDER params scripts... <param-options>`
 
+.. todo:: create fast version that does all the power spect averaging in numpy
+
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''

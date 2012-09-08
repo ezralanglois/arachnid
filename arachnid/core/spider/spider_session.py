@@ -38,6 +38,7 @@ import spider_parameter
 #from collections import defaultdict
 
 _logger = logging.getLogger(__name__)
+_logger.setLevel(logging.INFO)
 
 class Session(object):
     ''' Create an interactive session with Spider
@@ -69,6 +70,10 @@ class Session(object):
         self.registers = None
         self.dataext = ext if ext[0] != '.' else ext[1:]
         self.version = None
+        
+        if not os.path.exists(tmp_path):
+            _logger.warn("Local path (--local-temp) does not exist: %s"%tmp_path)
+            tmp_path=None
         
         if rank is not None: _logger.debug("Using MPI spider = %d"%rank)
         if tmp_path: _logger.debug("Using local path: %s"%tmp_path)

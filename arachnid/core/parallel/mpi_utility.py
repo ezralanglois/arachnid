@@ -214,17 +214,17 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             vals = vals[rank-1]
         try:
             for index, res in process_tasks.process_mp(process, vals, **extra):
-                _logger.debug("client-processing: %d of %d-%d -- %d"%(index, rank, size-1,offset))
+                #_logger.debug("client-processing: %d of %d-%d -- %d"%(index, rank, size-1,offset))
                 if rank > 0:
                     index += offset
                     lenbuf[0, 0] = index
-                    _logger.debug("client-send-1: %d"%rank)
+                    #_logger.debug("client-send-1: %d"%rank)
                     comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
-                    _logger.debug("client-send-2: %d"%rank)
+                    #_logger.debug("client-send-2: %d"%rank)
                     comm.send(res, dest=0, tag=5)
-                    _logger.debug("client-recv-3: %d"%rank)
+                    #_logger.debug("client-recv-3: %d"%rank)
                     status = comm.recv(source=0, tag=6)
-                    _logger.debug("client-done-4: %d"%rank)
+                    #_logger.debug("client-done-4: %d"%rank)
                     if status < 0: raise StandardError, "Some MPI process crashed"
                 else: index += 1
                 assert(index>0)
@@ -251,23 +251,23 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
         while len(reqs) > 0:
             idx = MPI.Request.Waitany(reqs)
             node = node_req[idx]
-            _logger.debug("Root root - irecv: %d, %d, %d - status: %d"%(idx, node, lenbuf[node, 0], status))
+            #_logger.debug("Root root - irecv: %d, %d, %d - status: %d"%(idx, node, lenbuf[node, 0], status))
             if lenbuf[node, 0] > 0:
-                _logger.debug("root-recv-1: %d"%node)
+                #_logger.debug("root-recv-1: %d"%node)
                 res = comm.recv(source=node, tag=5)
-                _logger.debug("root-recv-2: %d"%node)
+                #_logger.debug("root-recv-2: %d"%node)
                 
                 yield int(lenbuf[node, 0])-1, res
                 if len(vals) == 0:
                     status=-1
-                _logger.debug("root-send-2: %d"%node)
+                #_logger.debug("root-send-2: %d"%node)
                 comm.send(status, dest=node, tag=6)
                 if status == 0:
                     reqs[idx] = comm.Irecv(lenbuf[node, :], source=node, tag=4)
                 else:
                     del reqs[idx]
                     del node_req[idx]
-                _logger.debug("root-done-3: %d"%node)
+                #_logger.debug("root-done-3: %d"%node)
             else:
                 _logger.debug("Requesting client shutdown: %d"%node)
                 if lenbuf[node, 0] < 0 and status == 0: status=-1

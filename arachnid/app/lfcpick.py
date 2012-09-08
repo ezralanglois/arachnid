@@ -78,6 +78,10 @@ These options
 .. option:: --bin-factor <int>
     
     Decimate the micrograph to speed up computation time
+
+.. option:: --disable-bin <BOOL>
+    
+    Disable micrograph decimation
     
 .. option:: --restart-file <FILENAME>
 
