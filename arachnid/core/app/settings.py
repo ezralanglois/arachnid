@@ -1164,6 +1164,7 @@ class OptionParser(optparse.OptionParser):
                     if code != "": code = "\t(%s)\t"%code
                     comment = "\t"+self.comment+"\t"+code+help
                     if option.choices is not None:
+                        comment += ": "
                         comment += ",".join([str(c) for c in option.choices])
                 fout.write(name[2:]+self.separator+flag_sep+str(value)+comment+"\n")
             except:

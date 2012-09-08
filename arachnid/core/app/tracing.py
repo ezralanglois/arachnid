@@ -83,9 +83,30 @@ The above logging configuration file can be specified on the command-line.
 
 import logging, logging.config, os, socket, time, sys, zipfile
 
+
+
+class Logger(logging.Logger):
+    ''' Maintains a list of loggers for this package
+    '''
+    
+    _log_map = set()
+    
+    def __init__(self, name, level=logging.DEBUG):
+        ''' Create a logger
+        
+        :Parameters:
+        
+        name : str
+               Name of the logger
+        level : int
+                Logging level
+        '''
+        logging.Logger.__init__(self, name, level)
+        Logger._log_map.add(name)
+
 loaded = False
 
-log_level_val = ['critical', 'error', 'warning', 'info', 'debug']
+log_level_val = ['critical', 'error', 'warning', 'info', 'debug', 'debug_more']
 log_level_map = {'critical':    logging.CRITICAL,
                  'error':       logging.ERROR,
                  'warning':     logging.WARNING,
@@ -161,6 +182,11 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
     extra : dict
             Unused keyword arguments
     '''
+    
+    if log_level == 5:
+        for name in Logger._log_map:
+            if logging.getLogger(name).getEffectiveLevel() == logging.INFO:
+                logging.getLogger(name).setLevel(logging.DEBUG)
     
     if log_config != "":
         logging.config.fileConfig(log_config)
@@ -333,3 +359,6 @@ class ExceptionFilter(logging.Filter):
         #print "here: ", record.exc_info
         #record.exc_info  = None
         return record.exc_info is None
+    
+
+if logging._loggerClass != Logger: logging.setLoggerClass(Logger)
