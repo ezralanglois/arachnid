@@ -67,9 +67,9 @@ Useful Options
     
     Number of times to pad window before Fourier transform; if pad > window-size, then size of padded image (0 means none)
 
-.. option:: --decimate <BOOL> 
+.. option:: --disable-bin <BOOL>
     
-    Set True to decimate the micrograph to the specified `bin-factor`
+    Disable micrograph decimation
 
 Periodogram Options
 ===================
@@ -183,6 +183,7 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
     output_pow = spider_utility.spider_filename(output_pow, id)
     output_roo = spider_utility.spider_filename(output_roo, id)
     output_ctf = spider_utility.spider_filename(output_ctf, id)
+    #spider.throttle_mp(**extra)
     _logger.debug("create power spec")
     power_spec = create_powerspectra(filename, **extra)
     _logger.debug("mask power spec")
@@ -300,14 +301,18 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=1, du_nstd=[], d
         image_count = 0
         swin = None
         tmp = None
+        _logger.debug("generating summed power spec")
         for win in for_win:
             if tmp is None:
                 window_size, = spi.fi_h(win, ('NSAM', ))
                 if pad > 1 and pad < window_size: pad = pad*window_size
             swin, tmp = periodogram(spi, win, swin, tmp, pad, du_nstd, du_type)
             image_count += 1
+        _logger.debug("set image count")
         spi['v10'] = image_count
+        _logger.debug("generating avg power spec")
         avg2 = spi.ar(swin, "P1/[v10]")
+        _logger.debug("generating std power spec")
         return spi.wu(avg2)
     else:
         power_spec = spi.cp(filename)
@@ -394,7 +399,7 @@ def for_window_in_micrograph(spi, filename, window_size=500, x_overlap=50, y_ove
     y_mult = window_size/y_overlap_norm
     return for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps)
 
-def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, local_scratch="", **extra):
+def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
     ''' Read a micrograph file into core memory
     
     :Parameters:
@@ -405,8 +410,8 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, loc
                Input filename for the micrograph
     bin_factor : int
                  Decimation factor of the micrograph
-    decimate : bool
-               Decimate the micrograph
+    disable_bin : bool
+                  Disable micrograph decimatation
     local_scratch : str, optional
                     Output filename for local scratch drive
     
@@ -418,9 +423,9 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, decimate=False, loc
     
     if not os.path.exists(filename): filename = spi.replace_ext(filename)
     temp_spider_file = "temp_spider_file"
-    if local_scratch != "": temp_spider_file = os.path.join(local_scratch, temp_spider_file)
+    if local_scratch != "" and os.path.exists(local_scratch): temp_spider_file = os.path.join(local_scratch, temp_spider_file)
     filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
-    if decimate and bin_factor != 1.0 and bin_factor != 0.0:
+    if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
         #corefile = spi.dc_s(filename, bin_factor, **extra) # Use iterpolation!
@@ -460,7 +465,9 @@ def for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_
     '''
     
     tmp = None
+    _logger.debug("Steps: %d, %d - %d"%(y_steps, x_steps, window_size))
     for y in xrange(y_steps):
+        _logger.debug("%d of %d"%(y, y_steps))
         yu = x_mult * y + y_dist
         for x in xrange(x_steps):
             xu = y_mult * x + x_dist
@@ -476,7 +483,7 @@ def default_path(filename, output):
                Filename for secondary output file
     output : str
              Filename primary output file
-             
+    
     :Returns:
     
     filename : str
@@ -490,6 +497,13 @@ def default_path(filename, output):
 
 def initialize(files, param):
     # Initialize global parameters for the script
+    
+    if mpi_utility.is_root(**param):
+        _logger.info("Padding: %d"%param['pad'])
+        _logger.info("Window size: %d"%param['window_size']/param['bin_factor'])
+        _logger.info("Bin factor: %d"%param['bin_factor'])
+        if param['bin_factor'] != 1.0:
+            _logger.info("Interpolate micrograph")
     
     if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_00000")
     if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_00000")
@@ -541,7 +555,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-i", input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="file-list"))
     pgroup.add_option("-o", output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
-    pgroup.add_option("-d", decimate=False,                                 help="Set True to decimate the micrograph to the specified `bin-factor`")
+    pgroup.add_option("",   disable_bin=False,                              help="Disable micrograph decimation")
     pgroup.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
     pgroup.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
     pgroup.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
