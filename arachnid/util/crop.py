@@ -545,7 +545,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", noise="",                 help="Use specified noise file")
     group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
     group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
-    parser.add_option_group(group)
+    pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)

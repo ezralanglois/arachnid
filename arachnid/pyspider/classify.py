@@ -285,20 +285,20 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     if 1 == 1:
         from ..core.app.settings import setup_options_from_doc
-        setup_options_from_doc(parser, classify_projections)
+        setup_options_from_doc(parser, classify_projections, group=pgroup)
     else:
         from ..core.app.settings import OptionGroup
         group = OptionGroup(parser, "Classification", "Options controlling classification", group_order=0,  id=__name__)
         group.add_option("",   threshold_type=('None', 'Auto', 'CC', 'Total'),       help="Type of thresholding to perform", default=0)
-        group.add_option("",   cc_threshold=0.0,       help="Cross-correlation threshold value (used with `--threshold-type CC`")
-        group.add_option("",   cc_total=0.9,           help="Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)")
+        group.add_option("",   cc_threshold=0.0,        help="Cross-correlation threshold value (used with `--threshold-type CC`")
+        group.add_option("",   cc_total=0.9,            help="Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)")
         group.add_option("",   threshold_by_view=False, help="Apply threshold within each view (determined with `view_resolution`)")
         group.add_option("",   view_resolution=1,       help="Resolution (or angular increment) to consider, e.g. 1 ~ 30 deg (theta-delta), 2 ~ 15 deg, 3 ~ 7 deg (used when `--threshold-by-view` is set True)")
         group.add_option("",   threshold_bins=0,        help="Number of bins to use in Otzus method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)")
         group.add_option("",   keep_low_cc=False,       help="Set to True if you want to keep the low cross-correlation particles instead")
         group.add_option("",   cull_overrep=False,      help="Set to True if you want to ensure each view has roughly the same number of particles (used when `--threshold-by-view` is set True)")
         group.add_option("",   cc_nstd=3,               help="Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean")
-        parser.add_option_group(group)
+        pgroup.add_option_group(group)
         
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of input alignment files", required_file=True, gui=dict(filetype="file-list"))

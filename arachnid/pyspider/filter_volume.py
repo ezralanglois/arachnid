@@ -258,9 +258,9 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",      help="Output filename for filtered volume with correct number of digits (e.g. masked_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=15.0,        help="Resolution to filter the volumes")
-    setup_options_from_doc(parser, filter_volume_lowpass)
+    setup_options_from_doc(parser, filter_volume_lowpass, group=pgroup)
     if main_option:
-        setup_options_from_doc(parser, spider.open_session, filter_volume_highpass)
+        setup_options_from_doc(parser, spider.open_session, filter_volume_highpass, group=pgroup)
         parser.change_default(thread_count=4, log_level=3)
     
 

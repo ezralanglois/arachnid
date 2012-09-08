@@ -276,9 +276,9 @@ def setup_options(parser, pgroup=None, main_option=False):
         spider_params.setup_options(parser, pgroup, True)
     mgroup = OptionGroup(parser, "Masking", "Option to control masking",  id=__name__, group_order=0)
     setup_options_from_doc(parser, mask_volume, spherical_mask, tightmask, group=mgroup)
-    parser.add_option_group(mgroup)
+    pgroup.add_option_group(mgroup)
     if main_option:
-        setup_options_from_doc(parser, spider.open_session)
+        setup_options_from_doc(parser, spider.open_session, group=pgroup)
         parser.change_default(thread_count=4, log_level=3)
 
 def check_options(options, main_option=False):

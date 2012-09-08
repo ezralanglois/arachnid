@@ -233,9 +233,9 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of input filenames where consecutive names are half volume pairs, must have even number of files", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the doc file contains the FSC curve with correct number of digits (e.g. fsc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
-    setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session)
+    setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
     if main_option:
-        setup_options_from_doc(parser, spider.open_session)
+        setup_options_from_doc(parser, spider.open_session, group=pgroup)
         parser.change_default(thread_count=4, log_level=3)
 
 def check_options(options, main_option=False):

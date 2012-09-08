@@ -522,9 +522,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   max_ref_proj=300,       help="Maximum number of reference projections in memory")
     group.add_option("",   use_apsh=False,         help="Set True to use AP SH instead of AP REF (trade speed for accuracy)")
     group.add_option("",   use_flip=False,         help="Use the phase flipped stack for alignment")
-    parser.add_option_group(group)
+    pgroup.add_option_group(group)
     
-    setup_options_from_doc(parser, 'pj_3q', 'vo_ea', 'ap_sh', classes=spider.Session)
+    setup_options_from_doc(parser, 'pj_3q', 'vo_ea', 'ap_sh', classes=spider.Session, group=pgroup)
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
 

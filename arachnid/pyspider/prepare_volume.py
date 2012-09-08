@@ -214,6 +214,8 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
     #. :ref:`Options shared by SPIDER params scripts... <param-options>`
 
+.. todo:: filter_volume_highpass what to do about it?
+
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -326,7 +328,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of input filenames containing volumes triples, full_vol, half_vol_1, half_vol_2", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the filtered, masked volume as well as base output name for FSC curve (`res_$output`)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
-    setup_options_from_doc(parser, filter_volume.filter_volume_highpass)
+    setup_options_from_doc(parser, filter_volume.filter_volume_highpass, group=pgroup)
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
     

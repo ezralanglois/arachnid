@@ -220,7 +220,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",      help="Output filename for filtered/enhanced volume with correct number of digits (e.g. masked_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=15.0,     help="Resolution to filter the volumes")
-    setup_options_from_doc(parser, spider.open_session, enhance_volume)
+    setup_options_from_doc(parser, spider.open_session, enhance_volume, group=pgroup)
     parser.change_default(thread_count=4, log_level=3)
     
 

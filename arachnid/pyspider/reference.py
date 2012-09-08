@@ -221,7 +221,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
         pgroup.add_option("",   curr_apix=0.0,          help="Current pixel size of the input volume (only necessary if not MRC)")
-        setup_options_from_doc(parser, spider.open_session)
+        setup_options_from_doc(parser, spider.open_session, group=pgroup)
         parser.change_default(thread_count=4, log_level=3)
 
 def check_options(options, main_option=False):
