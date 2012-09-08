@@ -266,6 +266,8 @@ class Option(optparse.Option):
             self.gui_hint = dict(type="choices", choices=choices)
         else:
             self.gui_hint = {'unset': True, 'type': kwargs.get('type', 'unset')}
+        if self._required and not value:
+            self.gui_hint.update(required=True)
         if "archive" in kwargs:
             self.archive = kwargs["archive"]
             del kwargs["archive"]
@@ -304,7 +306,7 @@ class Option(optparse.Option):
             val = validators[self.gui_hint['type']](getattr(values, self.dest, self.default), self.dest)
             if val is not None: setattr(values, self.dest, val)
         
-        if self._required:
+        if self._required and self.type != 'bool':
             val = getattr(values, self.dest, self.default)
             if not val:
                 raise OptionValueError, "Option %s requires a value - found empty" % (self._long_opts[0])

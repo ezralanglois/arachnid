@@ -370,6 +370,10 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         if not index.isValid(): return QtCore.QVariant()
         item = index.internalPointer()
+        
+        if role == QtCore.Qt.ForegroundRole and index.column() == 0 and 'required' in item.hints and item.hints['required']:
+            return QtCore.QVariant(QtGui.QColor(QtCore.Qt.blue))
+        
         if (role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.StatusTipRole) and item.doc is not None:
             return item.doc
         elif role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.DecorationRole or role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:

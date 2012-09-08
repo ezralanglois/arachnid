@@ -194,7 +194,7 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
     rotational_average(power_spec, output_roo=output_roo, **extra)
     _logger.debug("estimate defocus")
     ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=output_ctf, **extra)
-    return filename, numpy.asarray(id, defocus, ang, mag, cutoff)
+    return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     '''Compute the rotation average of the power spectra and store as an ndarray
@@ -522,6 +522,8 @@ def initialize(files, param):
         param['spi'] = None
     
     if mpi_utility.is_root(**param):
+        _logger.info("Writing power spectra to %s"%param['output_pow'])
+        _logger.info("Writing defocus to %s"%param['output'])
         _logger.info("Bin factor: %f"%param['bin_factor'])
         _logger.info("Padding: %d"%param['pad'])
         _logger.info("Pixel size: %f"%(param['apix']*param['bin_factor']))

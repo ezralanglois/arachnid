@@ -116,7 +116,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.metadata import format, format_utility, spider_utility
+from ..core.metadata import spider_params, format, format_utility, spider_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, align
@@ -342,6 +342,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         sgroup.add_option("",   refine_name=refine_name, help="List of option names to change in each round of refinement, values set in `refine-step`")
         sgroup.add_option("",   refine_step=refine_step, help="List of value tuples where each tuple represents a round of refinement and contains a value for each parameter specified in the same order as `refine-name` for each round of refinement; each round is separated with a comma; each value by a colon, e.g. 15,10:0:6:1,8:0:4,1:3:1")
         pgroup.add_option_group(sgroup)
+        spider_params.setup_options(parser, pgroup, True)
         
     group = OptionGroup(parser, "Additional", "Options to customize your refinement", group_order=0,  id=__name__)
     group.add_option("",   refine_index=-1,             help="Iteration to start refinment: -1 = start at last volume based on output (if there is none, then start at beginning), 0 = start at begining, > 0 start after specific iteration")

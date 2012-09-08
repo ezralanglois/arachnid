@@ -516,7 +516,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-r", reference="",   help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
-    spider_params.setup_options(parser, pgroup, True)
+        spider_params.setup_options(parser, pgroup, True)
     
     group = OptionGroup(parser, "Alignment Parameters", "Options controlling alignment", group_order=0,  id=__name__)
     group.add_option("",   max_ref_proj=300,       help="Maximum number of reference projections in memory")

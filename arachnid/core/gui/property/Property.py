@@ -42,7 +42,7 @@ class Property(QtCore.QObject):
         self.group = group
         #self.property_ext = extended
         assert(property is None or hasattr(property, "dynamicPropertyNames"))
-        self.hints = extended.editorHints if extended is not None else ""
+        self.hints = extended.editorHints if extended is not None else {}
         self.doc = extended.doc if extended is not None else None
         
         if 'label' in self.hints:

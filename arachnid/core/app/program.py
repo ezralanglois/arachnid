@@ -82,7 +82,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
     try:
-        parser, args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
+        args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
     except VersionChange:
         main_module.main()
         return
@@ -237,9 +237,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
                     If specified, then add `-o, --output` option with given help string
     
     :Returns:
-        
-    parser : OptionParser
-             The option parser used to parse the command line parameters
+    
     args : list
            List of files to process
     param : dict
@@ -309,7 +307,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     param['outfile_deps'] = parser.collect_file_options(type='save')
     param.update(update_file_param(max_filename_len, **param))
     args = options.input_files
-    return parser, args, param
+    return args, param
 
 def update_file_param(max_filename_len, file_options, home_prefix=None, local_temp="", shared_scratch="", local_scratch="", **extra):
     ''' Create a soft link to the home_prefix and change all filenames to
@@ -362,22 +360,24 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
             raise
     
     for opt in file_options:
-        if opt not in extra: continue
+        if opt not in extra or extra[opt]=="": continue
+        assert(opt != 'home_prefix')
         if hasattr(extra[opt], 'append'):
             param[opt] = []
             for filename in extra[opt]:
                 if filename.find(home_prefix) != 0: continue
-                if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
                 filename = os.path.join(shortcut, filename[len(home_prefix)+1:])
-                if not os.path.exists(filename): raise IOError, "Cannot find file: %s -- %s -- %s"%(filename, shortcut, local_temp)
+                #if not os.path.exists(filename): raise IOError, "Cannot find file: %s -- %s -- %s"%(filename, shortcut, local_temp)
                 if max_filename_len > 0 and len(filename) > max_filename_len:
                     raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(filename), filename)
                 param[opt].append(filename)
         else:
-            if extra[opt].find(home_prefix) != 0: continue
-            if not os.path.exists(extra[opt]): raise IOError, "Cannot find file: %s"%extra[opt]
-            param[opt] = os.path.join(shortcut, extra[opt][len(home_prefix)+1:])
-            if not os.path.exists(param[opt]): raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
+            if len(home_prefix) < len(extra[opt]) and extra[opt].find(home_prefix) >= 0:
+                param[opt] = os.path.join(shortcut, extra[opt][len(home_prefix)+1:])
+            elif not os.path.isabs(extra[opt]):
+                param[opt] = os.path.join(shortcut, extra[opt])
+            else: continue
+            #if not os.path.exists(param[opt]): raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
             if max_filename_len > 0 and len(param[opt]) > max_filename_len:
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param

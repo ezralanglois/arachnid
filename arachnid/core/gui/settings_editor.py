@@ -12,7 +12,7 @@
 .. Created on Sep 3, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-#from ..app import tracing
+from ..app import tracing
 import logging, sys, os
 
 _logger = logging.getLogger(__name__)
@@ -26,9 +26,9 @@ try:
     QtGui;
 except:
     QtGui=None
-    #tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
+    tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
 
-def _create_settings_dialog(parser, name=None, config_file="", **extra):
+def _create_settings_dialog(parser, name=None, config_file="", style_sheet="", **extra):
     ''' Create a setting dialog editor
     
     :Parameters:
@@ -39,6 +39,8 @@ def _create_settings_dialog(parser, name=None, config_file="", **extra):
            Name for the tab, if unspecified then generate from the groups
     config_file : str
                   Name of configuration file to display in title
+    style_sheet : str
+                  Style sheet for the settings dialog
     extra : dict
             Unused keyword arguments
             
@@ -51,6 +53,14 @@ def _create_settings_dialog(parser, name=None, config_file="", **extra):
     '''
     
     app = QtGui.QApplication([])
+    if style_sheet != "" and os.path.exists(style_sheet):
+        fin = open(style_sheet, 'r')
+        _logger.info("Using style sheet: %s"%style_sheet)
+        try:
+            sheet = "".join(fin.readlines())
+            app.setStyleSheet(sheet)
+            print sheet
+        finally: fin.close()
     QtCore.QCoreApplication.setOrganizationName("Frank Lab")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
     QtCore.QCoreApplication.setApplicationName(arachnid.__project__)
@@ -127,6 +137,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     
     if QtGui is None: return 
+    
+    parser.add_option("-C", style_sheet="", help="Input filename for the style sheet the graphical user interface", gui=dict(nogui=True, filetype='open'))
     parser.add_option("-X", ui=False,       help="Display the graphical user interface", gui=dict(nogui=True))
     parser.add_option("-S", screen_shot="", help="Output filename for a screenshot of the UI", gui=dict(filetype="save", nogui=True))
     # Launcher command option
