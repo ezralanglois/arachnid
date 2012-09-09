@@ -1026,10 +1026,13 @@ class OptionParser(optparse.OptionParser):
         flag_len = int(self.maximum_flag_length() / 8.0)+2
         if comments: self._write_header(fout)
         self._write_options(fout, self.option_list, values, flag_len, comments)
+        self._write_group_options(fout, self.option_groups, values, flag_len, comments)
+        '''
         groups = sorted(self.option_groups, key=_attrgetter('group_order'))
         for group in groups:
             if comments: self._write_group_header(fout, group)
             self._write_options(fout, group.option_list, values, flag_len, comments)
+        '''
     
     def archived(self):
         '''Get a collection of archived filenames
@@ -1134,6 +1137,31 @@ class OptionParser(optparse.OptionParser):
         '''
         
         fout.write("\n\n"+self.comment+"  "+group.get_description()+"\n")
+        
+    def _write_group_options(self, fout, groups,  values, flag_len, comments):
+        ''' Write groups recursively to the file stream
+        
+        :Parameters:
+            
+        fout : stream
+               An output filename or output stream
+        options : list
+                  A list of options
+        values : object (dict)
+                 An instance of the value object
+        flag_len : int
+                   Length of the flag for comment white space
+        comments : bool
+                   Set False to disable all comments
+        '''
+        
+        groups = sorted(groups, key=_attrgetter('group_order'))
+        for group in groups:
+            if comments: self._write_group_header(fout, group)
+            self._write_options(fout, group.option_list, values, flag_len, comments)
+            if group.is_child():
+                if len(group.option_groups) > 0:
+                    self._write_group_options(fout, group.option_groups, values, flag_len, comments)
     
     def _write_options(self, fout, options, values, flag_len, use_comment=True):
         ''' Write options to file stream
@@ -1142,12 +1170,16 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : string or stream
-            An output filename or output stream
+        fout : stream
+               An output filename or output stream
         options : list
-            A list of options
+                  A list of options
         values : object (dict)
-            An instance of the value object
+                 An instance of the value object
+        flag_len : int
+                   Length of the flag for comment white space
+        comments : bool
+                   Set False to disable all comments
         '''
         
         for option in options:
@@ -1580,16 +1612,6 @@ def propertyobject(typename, parenttype, property, options, order, param):
     if parenttype_name: pass
     
     template += "        self.order_index=%d\n"%order
-    '''
-    for option in options:
-        if option.is_not_config() or option.dest is None: continue
-        #if isinstance(option.default, str) or (isinstance(option.default, optlist) and len(option.default) == 0):
-        value = param.get(option.dest, option.default)
-        if isinstance(value, str) or (isinstance(value, optlist)):
-            template += "        self._m_%s='%s'\n"%(option.dest, str(value))
-        else:
-            template += "        self._m_%s=%s\n"%(option.dest, str(value))
-    '''
     for i, option in enumerate(options):
         if option.is_not_config() or option.dest is None: continue
         opttype = option.type
