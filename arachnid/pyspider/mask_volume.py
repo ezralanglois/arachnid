@@ -156,7 +156,8 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
                  Filename for masked volume
     '''
     
-    if prefix is not None: format_utility.add_prefix(outputfile, prefix)
+    if prefix is not None: outputfile = format_utility.add_prefix(outputfile, prefix)
+    _logger.debug("Masking(%s): %s -> %s"%(volume_mask, filename, outputfile))
     volume_mask = volume_mask.upper()
     if volume_mask == 'A':
         tightmask(spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
