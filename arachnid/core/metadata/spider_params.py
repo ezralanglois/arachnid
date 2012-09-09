@@ -42,7 +42,7 @@ import logging, math, numpy
 import format
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.INFO)
+_logger.setLevel(logging.DEBUG)
 
 def write(output, apix, voltage, cs, xmag, pixel_diameter, window_size=0, ampcont=0.1, res=7, envelope_half_width=10000.00, **extra):
     ''' Create a SPIDER params file from a set of parameters
@@ -131,7 +131,7 @@ def read(filename, extra=None):
     
     param = {}
     if 'comm' not in param or param['comm'] is None or param['comm'].Get_rank() == 0:
-        bin_factor = param.get('bin_factor', 1.0)
+        bin_factor = extra.get('bin_factor', 1.0)
         #      1    2     3      4      5    6     7    8          9            10        11      12             13         14    15    16   17         18         19  20
         keys="zip,format,width,height,apix,voltage,cs,source,defocus_spread,astigmatism,azimuth,ampcont,envelope_half_width,lam,maxfreq,dec,window,pixel_diameter,xmag,res".split(',')
         fin = file(filename, 'r')
@@ -142,6 +142,7 @@ def read(filename, extra=None):
             param[keys[index]] = float(line.split()[2])
             index += 1
         fin.close()
+        _logger.debug("Decimation: %d, %d"%(bin_factor, param['dec']))
         if bin_factor > 1.0 and bin_factor != param['dec']:
             param['width'] /= bin_factor
             param['height'] /= bin_factor
@@ -149,6 +150,7 @@ def read(filename, extra=None):
             param['maxfreq'] /= bin_factor
             param['window'] /= bin_factor
             param['pixel_diameter'] /= bin_factor
+        _logger.debug("apix: %f"%(param['apix']))
     if 'comm' in param and param['comm'] is not None:
         param = param['comm'].bcast(param)
     if extra is not None: extra.update(param)
