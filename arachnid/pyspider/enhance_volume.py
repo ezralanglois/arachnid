@@ -88,7 +88,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.metadata import spider_params, spider_utility, format_utility
+from ..core.metadata import spider_params, spider_utility, format_utility, format
 from ..core.spider import spider
 import mask_volume, filter_volume
 import logging, numpy
@@ -120,8 +120,8 @@ def process(filename, spi, output, resolution, **extra):
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
     sp = extra['apix']/resolution
-    output = filter_volume.filter_volume_lowpass(filename, sp, outputfile=output, **extra)
-    output = enhance_volume(output, output, **extra)
+    output = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output, **extra)
+    output = enhance_volume(output, spi, sp, output, **extra)
     return filename
 
 def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False, enh_resol=0.0, enh_sigma=3.0, apix=None, window=None, **extra):
@@ -162,7 +162,7 @@ def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False
     
     filter_limit = int(window*sp) # Thanks to Jesper Pallesen
     _logger.info("Enhancing with filter limit: %d"%(filter_limit))
-    tmp_roo = spider.prefix(outputfile, 'roo')
+    tmp_roo = format_utility.add_prefix(outputfile, 'roo')
     spi.de(tmp_roo)
     
     if enh_mask:
@@ -197,7 +197,7 @@ def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False
         cur_col2 = numpy.sqrt(cur_col2/powspec[i, 0])
         outvals[i-1, :] = (cur_col2, res, sfreq, numpy.log(cur_col2))
     
-    tmp_roo = spider.prefix(outputfile, 'scatter')
+    tmp_roo = format_utility.add_prefix(outputfile, 'scatter')
     format.write(spi.replace_ext(tmp_roo), outvals, header="c1,c2,c3,c4".split(','), format=format.spiderdoc)
     return spi.fd(filename, tmp_roo, outputfile)
 

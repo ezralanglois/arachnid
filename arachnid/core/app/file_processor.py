@@ -111,7 +111,8 @@ def main(files, module, restart_file="", **extra):
                     filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
                 if fout is not None:
                     if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
-                    for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
+                    #for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
+                    for f in filename: fout.write("%s\n"%(str(f)))
                     fout.flush()
             except:
                 _logger.exception("Error in root")

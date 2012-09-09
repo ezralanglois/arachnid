@@ -306,10 +306,11 @@ class Option(optparse.Option):
             val = validators[self.gui_hint['type']](getattr(values, self.dest, self.default), self.dest)
             if val is not None: setattr(values, self.dest, val)
         
-        if self._required and self.type != 'bool':
+        
+        if self._required and type(getattr(values, self.dest)) != types.BooleanType:
             val = getattr(values, self.dest, self.default)
             if not val:
-                raise OptionValueError, "Option %s requires a value - found empty" % (self._long_opts[0])
+                raise OptionValueError, "Option %s requires a value - found empty (%s)" % (self._long_opts[0], self.type)
             if self._required_file:
                 if not isinstance(val, list): val = [val]
                 for v in val:
