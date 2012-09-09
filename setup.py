@@ -63,7 +63,7 @@ Packages to Download
         - `Lapack`_ / `Blas`_
         - `Goto Blas`_
     
-    - Graphical user interface libraries (Future Requirement)
+    - Graphical user interface libraries (Required for GUI)
         
         - `QT4`_
         - `PyQT4`_

@@ -466,6 +466,10 @@ Other Options
 	Version of the program that created the configuration file. Chaning this value
 	will load the specified version of the program at run-time.
 
+.. option:: -X <BOOL>, --ui <BOOL>
+	
+	Display the graphical user interface
+
 .. _file-proc-options:
 
 File Processor
