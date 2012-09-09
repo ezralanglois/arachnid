@@ -504,8 +504,8 @@ def initialize(files, param):
     if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_00000")
     if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_00000")
     param['output_pow'] = default_path(param['output_pow'], param['output'])
-    param['output_roo'] = default_path(param['output_roo'], param['output_pow'])
-    param['output_ctf'] = default_path(param['output_ctf'], param['output_pow'])
+    param['output_roo'] = default_path(param['output_roo'], os.path.dirname(param['output_pow']))
+    param['output_ctf'] = default_path(param['output_ctf'],  os.path.dirname(param['output_pow']))
     if mpi_utility.is_root(**param):
         try: os.makedirs(os.path.dirname(param['output_pow'])) 
         except: pass

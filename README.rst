@@ -1,4 +1,3 @@
-.. -*- mode: rst -*-
 
 arachnid
 ========
@@ -33,7 +32,7 @@ Dependencies
 
 The required dependencies to build the software are Python >= 2.6,
 setuptools, Numpy >= 1.3, SciPy >= 0.7, matplotlib>=1.1.0, mpi4py>=1.2.2,
-and a working C/C++ compiler.
+and working C/C++ and Fortran compilers.
 
 The required dependencies to run code in this project also includes 
 EMAN2/Sparx.
