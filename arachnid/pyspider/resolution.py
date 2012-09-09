@@ -155,9 +155,9 @@ def process(filename, output, **extra):
                Filename for correct location
     '''
     
-    if spider_utility.is_spider_filename(filename):
-        output = spider_utility.spider_filename(output, filename)
-    sp = estimate_resolution(filename[0], filename[1], output, **extra)
+    if spider_utility.is_spider_filename(filename[0]):
+        output = spider_utility.spider_filename(output, filename[0])
+    sp = estimate_resolution(filename[0], filename[1], outputfile=output, **extra)
     res = extra['apix']/sp
     _logger.info("Resolution = %f"%(res))
     return filename
@@ -202,13 +202,16 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh2_')
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     if pylab is not None:
-        vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="freq,dph,fsc,fscrit,voxels"))
+        vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
         pylab.clf()
-        pylab.plot(vals[0], vals[2])
+        print numpy.min(vals[:, 0]), numpy.max(vals[:, 0])
+        print numpy.min(vals[:, 2]), numpy.max(vals[:, 2])
+        pylab.plot(vals[:, 1], vals[:, 3])
+        #pylab.scatter(vals[:, 0], vals[:, 2])
         pylab.xlabel('Normalized Frequency')
         pylab.ylabel('Fourier Shell Correlation')
         pylab.title('Fourier Shell Correlation')
-        pylab.savefig(format_utility.add_prefix(os.path.splitext(outputfile)+".png", "plot_"))
+        pylab.savefig(format_utility.add_prefix(os.path.splitext(outputfile)[0]+".png", "plot_"))
     return sp
 
 def initialize(files, param):
