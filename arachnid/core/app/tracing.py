@@ -118,7 +118,8 @@ log_formats = { 'critical': "%(asctime)s %(message)s",
                 'error':    "%(asctime)s %(levelname)s %(message)s",
                 'warning':  "%(asctime)s %(levelname)s %(message)s",
                 'info':     "%(asctime)s %(levelname)s %(message)s",
-                'debug':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s" }
+                'debug':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s",
+                'debug_more':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s" }
 
 def log_import_error(message, logger=None):
     ''' Create a logger with a stream handler and log a warning in
