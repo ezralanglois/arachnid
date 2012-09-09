@@ -438,7 +438,7 @@ class Session(object):
                 Value of variable
         '''
         
-        self.set(**{varname: value})
+        self.set(**{spider_register_name(varname): value})
 
 
 def spider_command_fifo(session, command, inputfile, outputfile, message, *args):
