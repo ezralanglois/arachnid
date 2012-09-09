@@ -70,8 +70,9 @@ class Session(object):
         self.registers = None
         self.dataext = ext if ext[0] != '.' else ext[1:]
         self.version = None
+        self._results = True
         
-        if not os.path.exists(tmp_path):
+        if tmp_path is not None and tmp_path != "" and not os.path.exists(tmp_path):
             _logger.warn("Local path (--local-temp) does not exist: %s"%tmp_path)
             tmp_path=None
         
@@ -136,7 +137,6 @@ class Session(object):
             self._invoke('MD', 'RESULTS ON')
             self._invoke('MD', 'TERM ON') 
             #self._invoke('MD', 'TERM OFF') 
-            self._results = True
         else: 
             self._invoke('MD', 'RESULTS OFF')
             self._invoke('MD', 'TERM OFF') 
