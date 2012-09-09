@@ -276,7 +276,9 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
     
-
+    if os.path.exists(os.path.join(extra['home_prefix'], output)):
+        extra['home_prefix'] = os.path.join(extra['home_prefix'], output)
+    
     _logger.info("Creating directories")
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     _logger.debug("Writing SPIDER params file")
