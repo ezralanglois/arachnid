@@ -42,7 +42,7 @@ from ..parallel import mpi_utility
 import format_utility
 import os, numpy, logging
 
-__formats = [star, project, csv, prediction, spiderdoc, spidersel]
+__formats = [star, spiderdoc, spidersel, project, csv, prediction]
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 #_logger.setLevel(logging.DEBUG)
