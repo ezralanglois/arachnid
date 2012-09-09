@@ -307,6 +307,23 @@ def count_images(filename):
     else: h = read_spider_header(filename)
     return max(int(h['istack']), 1)
 
+def is_writable(filename):
+    ''' Test if the image extension of the given filename is understood
+    as a writable format.
+    
+    :Parameters:
+    
+    filename : str
+               Output filename to test
+    
+    :Returns:
+    
+    write : bool
+            True if the format is recognized
+    '''
+    
+    return False
+
 def write_image(filename, img, index=None, header=None):
     ''' Write an image array to a file in the MRC format
     
