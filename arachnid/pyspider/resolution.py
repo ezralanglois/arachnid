@@ -132,7 +132,7 @@ from ..core.image.ndplot import pylab
 from ..core.metadata import format, format_utility, spider_utility, spider_params
 from ..core.spider import spider
 import mask_volume
-import logging, os, numpy
+import logging, os, numpy, scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -204,10 +204,31 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
         pylab.clf()
-        print numpy.min(vals[:, 0]), numpy.max(vals[:, 0])
-        print numpy.min(vals[:, 2]), numpy.max(vals[:, 2])
         pylab.plot(vals[:, 1], vals[:, 3])
-        #pylab.scatter(vals[:, 0], vals[:, 2])
+        if 1 == 1:
+            def spatial(B,y):
+                ''' Returns the spatial frequency for a given criterion'''
+                return numpy.log( B[1]/(B[2]-y) - 1.0 )/-B[0] - B[3]
+            def sigmoid(B,x):
+                ''' Returns the gaussian function for B=m,stdev,max,offset '''
+                return B[2] - ( B[1] / (1.0 + numpy.exp(-B[0]*(x+B[3])) ))
+            def errfunc(p,x,y):
+                return y-sigmoid(p,x)
+            p0 = [0.5, 0.5, 0.5, 0.5]
+            fit = scipy.optimize.leastsq(errfunc,p0,args=(vals[:, 1],vals[:, 3]))
+            pylab.plot(vals[:, 1], sigmoid(fit[0], vals[:, 1]), 'g.')
+        
+            sp5 = spatial(fit[0], 0.5)
+            sp14 = spatial(fit[0], 0.14)
+            pylab.plot((vals[0, 1], sp5), (0.5, 0.5), 'r--')
+            pylab.plot((vals[0, 1], sp14), (0.14, 0.14), 'b--')
+            pylab.plot((sp5, sp5), (0.0, 0.5), 'r--')
+            pylab.plot((sp14, sp14), (0.0, 0.14), 'b--')
+            pylab.text(sp5+sp5*0.1, 0.5, r'$%.3f,\ %.2f \AA$'%(sp5, extra['apix']/sp5))
+            pylab.text(sp14+sp14*0.1, 0.14, r'$%.3f,\ %.2f \AA$'%(sp14, extra['apix']/sp14))
+        
+        
+        pylab.axis([0.0,0.5, 0.0,1.0])
         pylab.xlabel('Normalized Frequency')
         pylab.ylabel('Fourier Shell Correlation')
         pylab.title('Fourier Shell Correlation')
