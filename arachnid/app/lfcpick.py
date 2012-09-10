@@ -396,12 +396,14 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
            Disk mask with `radius` that keeps data in the disk
     '''
     
-    if pixel_diameter != 0:
+    if pixel_diameter > 0:
         rad = int( float(pixel_diameter) / 2 )
+        offset = int( window / 2.0 )
     else:
         rad = int( pixel_radius / float(bin_factor) )
+        offset = int( window / (float(bin_factor)*2.0) )
     if window == 1.0: window = 1.4
-    offset = int(window*rad) if window < (2*rad) else int( window / (float(bin_factor)*2.0) )
+    if window < (2*rad): offset = int(window*rad)
     width = offset*2
     mask = eman2_utility.utilities.model_circle(rad, width, width)
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
