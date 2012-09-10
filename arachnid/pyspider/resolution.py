@@ -203,9 +203,12 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
+        x, y = vals[:, 1], vals[:, 3]
+        coeff = fit_sigmoid(x, y)
+        #err = numpy.sum(numpy.abs(y-sigmoid(coeff, x)))
+        #_logger.info("Fit error: %f"%err)
         pylab.clf()
-        pylab.plot(vals[:, 1], vals[:, 3])
-        if 1 == 1:
+        if 1 == 0:
             def spatial(B,y):
                 ''' Returns the spatial frequency for a given criterion'''
                 return numpy.log( B[1]/(B[2]-y) - 1.0 )/-B[0] - B[3]
@@ -217,7 +220,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
             p0 = [0.5, 0.5, 0.5, 0.5]
             fit = scipy.optimize.leastsq(errfunc,p0,args=(vals[:, 1],vals[:, 3]))
             pylab.plot(vals[:, 1], sigmoid(fit[0], vals[:, 1]), 'g.')
-        
+            
             sp5 = spatial(fit[0], 0.5)
             sp14 = spatial(fit[0], 0.14)
             pylab.plot((vals[0, 1], sp5), (0.5, 0.5), 'r--')
@@ -227,13 +230,77 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
             pylab.text(sp5+sp5*0.1, 0.5, r'$%.3f,\ %.2f \AA$'%(sp5, extra['apix']/sp5))
             pylab.text(sp14+sp14*0.1, 0.14, r'$%.3f,\ %.2f \AA$'%(sp14, extra['apix']/sp14))
         
+        pylab.plot(x, sigmoid(coeff, x), 'g.')
+        markers=['r--', 'b--']
+        for i, yp in enumerate([0.5, 0.14]):
+            xp = sigmoid_inv(coeff, yp)
+            pylab.plot((vals[0, 1], xp), (yp, yp), markers[i])
+            pylab.plot((xp, xp), (0.0, yp), markers[i])
+            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, extra['apix']/xp))
         
+        pylab.plot(x, y)
         pylab.axis([0.0,0.5, 0.0,1.0])
         pylab.xlabel('Normalized Frequency')
         pylab.ylabel('Fourier Shell Correlation')
         pylab.title('Fourier Shell Correlation')
         pylab.savefig(format_utility.add_prefix(os.path.splitext(outputfile)[0]+".png", "plot_"))
     return sp
+
+def fit_sigmoid(x, y):
+    ''' Use non-linear least squares to fit x and y to a sigmoid-like function
+    
+    :Parameters:
+    
+    x : array
+        X-values for training
+    y : array
+        y-values for training
+    
+    :Returns:
+    
+    coeff : array
+            Array of coefficents that fit x to y
+    '''
+    
+    def errfunc(p,x,y): return y-sigmoid(p,x)
+    p0 = [0.5, 0.5, 0.5, 0.5]
+    return scipy.optimize.leastsq(errfunc,p0,args=(x, y))[0]
+
+def sigmoid_inv(coeff,y):
+    ''' Returns a the related inverse of the sigmoid-like function for the given coeffients and x values
+    
+    :Parameters:
+    
+    coeff : array
+            Array of coeffients
+    y : array
+        Array of y-values
+    
+    :Returns:
+    
+    x : array
+        Inverse of sigmoid like function of y-values
+    '''
+    
+    return numpy.log( coeff[1]/(coeff[2]-y) - 1.0 )/-coeff[0] - coeff[3]
+
+def sigmoid(coeff,x):
+    ''' Returns a sigmoid-like function for the given coeffients and x values
+    
+    :Parameters:
+    
+    coeff : array
+            Array of coeffients
+    x : array
+        Array of x-values
+    
+    :Returns:
+    
+    y : array
+        Sigmoid like function of x values
+    '''
+    
+    return coeff[2] - ( coeff[1] / (1.0 + numpy.exp(-coeff[0]*(x+coeff[3])) ))
 
 def initialize(files, param):
     # Initialize global parameters for the script

@@ -791,8 +791,7 @@ class OptionParser(optparse.OptionParser):
             changed=self.get_default_values()
             for key, val in new_values.iteritems():
                 if key == '_parser' or val is None: continue
-                if key not in values:
-                    setattr(changed, key, val)
+                if key not in values: continue
                 elif val == values[key]: setattr(changed, key, None)
                 else: setattr(changed, key, val)
             mode='a'

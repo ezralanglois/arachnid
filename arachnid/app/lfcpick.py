@@ -368,13 +368,15 @@ def create_template(template, disk_mult=1.0, **extra):
             raise
     else: return template
 
-def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
+def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **extra):
     ''' Ensure all parameters have the proper scale and create a mask
     
     :Parameters:
         
     pixel_radius : float
                   Radius of the particle
+    pixel_diameter : int
+                     Diameter of the particle
     window : float
              Size of the window (if less than particle diameter, assumed to be multipler)
     bin_factor : float
@@ -394,9 +396,12 @@ def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
            Disk mask with `radius` that keeps data in the disk
     '''
     
-    rad = int( pixel_radius / float(bin_factor) )
+    if pixel_diameter != 0:
+        rad = int( float(pixel_diameter) / 2 )
+    else:
+        rad = int( pixel_radius / float(bin_factor) )
     if window == 1.0: window = 1.4
-    offset = int(window*rad) if window < (2*pixel_radius) else int( window / (float(bin_factor)*2.0) )
+    offset = int(window*rad) if window < (2*rad) else int( window / (float(bin_factor)*2.0) )
     width = offset*2
     mask = eman2_utility.utilities.model_circle(rad, width, width)
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
