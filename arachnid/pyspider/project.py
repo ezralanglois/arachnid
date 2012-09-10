@@ -142,7 +142,7 @@ Advanced Options
 
 .. option:: --home-prefix <FILENAME>
     
-    File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
+    File directory accessible to all nodes to copy files, if empty then it uses the absolute path of the output file (optional but recommended for MPI jobs)
 
 .. option:: --local-scratch <FILENAME>
     
@@ -276,7 +276,9 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
     
-    if os.path.exists(os.path.join(extra['home_prefix'], output)):
+    if extra['home_prefix'] == "":
+        extra['home_prefix'] = os.path.abspath(output)
+    elif os.path.exists(os.path.join(extra['home_prefix'], output)):
         extra['home_prefix'] = os.path.join(extra['home_prefix'], output)
     
     _logger.info("Creating directories")
@@ -484,7 +486,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-w",  worker_count=0,         help="Set number of  workers to process files in parallel",  gui=dict(minimum=0))
     group.add_option("-t",  thread_count=0,         help="Set number of threads to run in parallel, if not set then SPIDER uses all cores",  gui=dict(minimum=0))
     group.add_option("",    shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
-    group.add_option("",    home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
+    group.add_option("",    home_prefix="",         help="File directory accessible to all nodes to copy files, if empty then it uses the absolute path of the output file (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
     group.add_option("",    local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    spider_path="",         help="Filename for SPIDER executable", gui=dict(filetype="open"))
