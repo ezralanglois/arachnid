@@ -307,8 +307,10 @@ class Option(optparse.Option):
             if val is not None: setattr(values, self.dest, val)
         
         
+        _logger.error("Test: %s"%(self.dest))
         if self._required and type(getattr(values, self.dest)) != types.BooleanType:
             val = getattr(values, self.dest, self.default)
+            _logger.error("%s == %s"%(self.dest, val))
             if not val:
                 raise OptionValueError, "Option %s requires a value - found empty (%s)" % (self._long_opts[0], self.type)
             if self._required_file:
@@ -984,8 +986,25 @@ class OptionParser(optparse.OptionParser):
         '''
         
         self._validate_options(self.option_list, values)
-        for group in self.option_groups:
+        self._validate_option_group(self, values)
+    
+    def _validate_option_group(self, group, values):
+        ''' Validate a list of options
+        
+        This method checks if an option has a validation method and invokes
+        it to test whether the given value is valid.
+        
+        :Parameters:
+        
+        option_list : list
+                      List of options to test
+        values : object
+                 Option value container
+        '''
+        
+        for group in group.option_groups:
             self._validate_options(group.option_list, values)
+            self._validate_option_group(group, values)
     
     def _validate_options(self, option_list, values):
         ''' Validate a list of options
@@ -1227,7 +1246,11 @@ class OptionParser(optparse.OptionParser):
         if options is None:
             optionlist.extend(self.collect_options(test, self.option_list))
             for group in self.option_groups:
-                optionlist.extend(self.collect_options(test, group.option_list))
+                optionlist.extend(self.collect_options(test, group))
+        elif isinstance(options, OptionGroup):
+            optionlist.extend(self.collect_options(test, options.option_list))
+            for group in options.option_groups:
+                optionlist.extend(self.collect_options(test, group))
         else:
             for opt in options:
                 if test(opt) and opt.dest is not None:
