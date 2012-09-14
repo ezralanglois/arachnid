@@ -208,6 +208,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
         #err = numpy.sum(numpy.abs(y-sigmoid(coeff, x)))
         #_logger.info("Fit error: %f"%err)
         pylab.clf()
+        """
         if 1 == 0:
             def spatial(B,y):
                 ''' Returns the spatial frequency for a given criterion'''
@@ -229,7 +230,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
             pylab.plot((sp14, sp14), (0.0, 0.14), 'b--')
             pylab.text(sp5+sp5*0.1, 0.5, r'$%.3f,\ %.2f \AA$'%(sp5, extra['apix']/sp5))
             pylab.text(sp14+sp14*0.1, 0.14, r'$%.3f,\ %.2f \AA$'%(sp14, extra['apix']/sp14))
-        
+        """
         pylab.plot(x, sigmoid(coeff, x), 'g.')
         markers=['r--', 'b--']
         for i, yp in enumerate([0.5, 0.14]):
