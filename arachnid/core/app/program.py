@@ -306,7 +306,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     param['infile_deps'] = parser.collect_file_options(type='open')
     param['outfile_deps'] = parser.collect_file_options(type='save')
     param.update(update_file_param(max_filename_len, **param))
-    args = options.input_files
+    args = param['input_files'] #options.input_files
     return args, param
 
 def update_file_param(max_filename_len, file_options, home_prefix=None, local_temp="", shared_scratch="", local_scratch="", **extra):
@@ -371,13 +371,16 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
                 if max_filename_len > 0 and len(filename) > max_filename_len:
                     raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(filename), filename)
                 param[opt].append(filename)
+            if len(param[opt]) == 0: del param[opt]
         else:
             if len(home_prefix) < len(extra[opt]) and extra[opt].find(home_prefix) >= 0:
                 param[opt] = os.path.join(shortcut, extra[opt][len(home_prefix)+1:])
             elif not os.path.isabs(extra[opt]):
                 param[opt] = os.path.join(shortcut, extra[opt])
             else: continue
-            #if not os.path.exists(param[opt]): raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
+            #if not os.path.exists(param[opt]): 
+               # _logger.warn("Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp))
+                #raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
             if max_filename_len > 0 and len(param[opt]) > max_filename_len:
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param
