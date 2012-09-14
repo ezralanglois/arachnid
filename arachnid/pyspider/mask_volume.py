@@ -129,7 +129,7 @@ def process(filename, output, **extra):
     
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
-    mask_volume(filename, output, **extra)
+    mask_volume(filename, output, mask_output=format_utility.add_prefix(output, "mask_"), **extra)
     return filename
 
 def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra):
@@ -201,7 +201,7 @@ def spherical_mask(filename, outputfile, spi, volume_mask, mask_edge_width=10, p
     radius = pixel_diameter/2+mask_edge_width/2 if volume_mask == 'C' else pixel_diameter/2+mask_edge_width
     return spi.ma(filename, radius, (width, width, width), volume_mask, 'C', mask_edge_width, outputfile=outputfile)
 
-def tightmask(filename, outputfile, threshold, ndilate=1, gk_size=3, gk_sigma=3.0, **extra):
+def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigma=3.0, mask_output=None, **extra):
     ''' Tight mask the input volume and write to outputfile
     
     :Parameters:
@@ -218,6 +218,8 @@ def tightmask(filename, outputfile, threshold, ndilate=1, gk_size=3, gk_sigma=3.
               Size of the real space Gaussian kernel (must be odd!)
     gk_sigma : float
                Width of the real space Gaussian kernel
+    mask_output : str
+                  Output filename for the mask
     extra : dict
             Unused keyword arguments
     
@@ -231,6 +233,9 @@ def tightmask(filename, outputfile, threshold, ndilate=1, gk_size=3, gk_sigma=3.
     try: threshold=float(threshold)
     except: threshold=None
     mask = ndimage_utility.tight_mask(img, threshold, ndilate, gk_size, gk_sigma)
+    if mask_output:
+        ndimage_file.write_image(mask_output, mask)
+        
     ndimage_file.write_image(outputfile, img*mask)
     return outputfile
 
