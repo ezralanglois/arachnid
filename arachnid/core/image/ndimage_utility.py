@@ -762,7 +762,7 @@ def crop_window(img, x, y, offset, out=None):
     '''
     
     xb = x-offset
-    yb = x-offset
+    yb = y-offset
     width = offset*2
     xe = xb+width
     ye = yb+width
@@ -784,12 +784,28 @@ def crop_window(img, x, y, offset, out=None):
     
     try:
         out[dyb:width-dye, dxb:width-dxe] = img[yb:ye, xb:xe]
+    except:
+        _logger.error("Error in window1 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
         if dxe > 0: out[dyb:width-dye, width-dxe:] = img[yb:ye, xb-dxe:xb]
+    except:
+        _logger.error("Error in window2 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
         if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye:yb, xb:xe]
+    except:
+        _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
         if dyb > 0: out[:dyb, dxb:width-dxe] = img[ye:ye+dyb, xb:xe]
+    except:
+        _logger.error("Error in window4 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
         if dxb > 0: out[dyb:width-dye, :dxb] = img[yb:ye, xe:xe+dxb]
     except:
-        _logger.error("Error in window %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        _logger.error("Error in window5 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
     return out
 
