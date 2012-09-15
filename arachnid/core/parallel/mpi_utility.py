@@ -206,12 +206,14 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     if rank is None: rank = get_rank(comm)
     size = get_size(comm)
     lenbuf = numpy.zeros((size, 1), dtype=numpy.int32)
+    _logger.debug("processing - started: %d - %d"%(len(vals), size))
     if is_client(comm):
         if rank > 0:
             vals = parallel_utility.partition_array(vals, size-1)
             offset = 1
             for v in vals[:rank-1]: offset += len(v) # 
             vals = vals[rank-1]
+        _logger.debug("client-processing - started: %d"%len(vals))
         try:
             for index, res in process_tasks.process_mp(process, vals, **extra):
                 #_logger.debug("client-processing: %d of %d-%d -- %d"%(index, rank, size-1,offset))
@@ -241,7 +243,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
                 comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
             _logger.debug("client-processing - finished")
     else:
-        _logger.debug("Root progress monitor - started")
+        _logger.debug("Root progress monitor - started: %d"%(len(vals)))
         reqs=[]
         node_req=[]
         for i in xrange(1, size):

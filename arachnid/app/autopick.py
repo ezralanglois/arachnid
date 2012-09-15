@@ -147,8 +147,6 @@ This is not a complete list of options available to this script, for additional 
 
 .. todo:: Test histogram
 
-.. todo:: Test MPI
-
 .. todo:: Test Version control
 
 .. Created on Dec 21, 2011
@@ -186,8 +184,11 @@ def process(filename, output, id_len=0, confusion=[], **extra):
             Coordinates found
     '''
     
+    _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
+    _logger.debug("Search micrograph")
     peaks = search(mic, **extra)
+    _logger.debug("Write coordinates")
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
     format.write(output, coords, spiderid=filename, id_len=id_len, default_format=format.spiderdoc)
     return filename, peaks
@@ -214,8 +215,11 @@ def search(img, overlap_mult=1.2, disable_prune=False, **extra):
     
     template = lfcpick.create_template(**extra)
     radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
+    _logger.debug("Filter micrograph")
     img = eman2_utility.gaussian_high_pass(img, 0.25/radius, True)
+    _logger.debug("Template-matching")
     cc_map = ccf_center(img, template)
+    _logger.debug("Find peaks")
     peaks = lfcpick.search_peaks(cc_map, radius, overlap_mult)
     if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
     index = numpy.argsort(peaks[:,0])[::-1]
@@ -223,6 +227,7 @@ def search(img, overlap_mult=1.2, disable_prune=False, **extra):
     index = index[::-1]
     peaks = peaks[index].copy().squeeze()
     if not disable_prune:
+        _logger.debug("Classify peaks")
         sel = classify_windows(img, peaks, **extra)
         peaks = peaks[sel].copy()
     peaks[:, 1:3] *= bin_factor
@@ -291,7 +296,9 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     vfeat = None #numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
     
+    _logger.info("Windowing %d particles"%len(scoords))
     for i, win in enumerate(ndimage_utility.for_each_window(eman2_utility.em2numpy(mic), scoords, offset*2, bin_factor)):
+        if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
         npdata[:, :] = win
         eman2_utility.ramp(emdata)
         win[:, :] = npdata
@@ -303,6 +310,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         ndimage_utility.normalize_standard(amp, masksm, out=amp)
         ndimage_utility.compress_image(amp, masksm, data[i])
     
+    _logger.debug("Performing PCA")
     feat, idx = analysis.pca(data, data, pca_mode)[:2]
     if feat.ndim != 2:
         _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))

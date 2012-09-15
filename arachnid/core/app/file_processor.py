@@ -85,10 +85,11 @@ def main(files, module, restart_file="", **extra):
     
     extra['restart_file']=restart_file # require restart_file=restart_file?
     process, initialize, finalize, reduce_all, init_process = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None)
+    
     if mpi_utility.is_root(**extra):
         #files = check_dependencies(files, **extra)
         if len(files) > 1: files = restart(restart_file, files)
-    mpi_utility.broadcast(files, **extra)
+    files = mpi_utility.broadcast(files, **extra)
     
     if mpi_utility.is_root(**extra):
         if restart_file == "": restart_file = ".restart.%s"%module.__name__
@@ -158,6 +159,7 @@ def restart(filename, files):
     '''
     
     if os.path.exists(filename):
+        _logger.debug("Found restart file: %s"%filename)
         fin = open(filename, 'r')
         last = [line.strip() for line in fin]
         fin.close()
