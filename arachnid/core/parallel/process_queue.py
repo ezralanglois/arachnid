@@ -433,7 +433,7 @@ def worker_all(qin, qout, worker_callback, init_process=None, **extra):
     '''
 
     try:
-        extra.update(init_process(**extra))
+        if init_process is not None: extra.update(init_process(**extra))
         while True:
             try:
                 val = qin.get(True, 5)
