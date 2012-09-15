@@ -188,7 +188,7 @@ def process(filename, output="", id_len=0, **extra):
     emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
     npdata = eman2_utility.em2numpy(emdata)
     
-    test_coordinates(npmic, coords)
+    test_coordinates(npmic, coords, bin_factor)
     
     for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
         npdata[:, :] = win
@@ -204,7 +204,7 @@ def process(filename, output="", id_len=0, **extra):
         index += 1
     return filename
 
-def test_coordinates(npmic, coords):
+def test_coordinates(npmic, coords, bin_factor):
     ''' Test if the coordinates cover the micrograph properly
     
     :Parameters:
@@ -213,6 +213,8 @@ def test_coordinates(npmic, coords):
             Array 2-D for micrograph
     coords : list
              List of namedtuple coordinates
+    bin_factor : float
+                 Decimation factor for the coordinates
     '''
     
     coords, header = format_utility.tuple2numpy(coords)
@@ -220,18 +222,21 @@ def test_coordinates(npmic, coords):
     except: raise ValueError, "Coordinate file does not have a label for the x-column"
     try: y = header.index('y')
     except: raise ValueError, "Coordinate file does not have a label for the y-column"
+    if bin_factor > 0.0: 
+        coords[:, x] /= bin_factor
+        coords[:, y] /= bin_factor
     if numpy.min(coords[:, x]) < 0: raise ValueError, "Invalid x-coordate: %d"%numpy.min(coords[:, x])
     if numpy.min(coords[:, y]) < 0: raise ValueError, "Invalid y-coordate: %d"%numpy.min(coords[:, y])
     
     if numpy.max(coords[:, x]) > npmic.shape[1]: 
-        raise ValueError, "The x-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.min(coords[:, x])
+        raise ValueError, "The x-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.max(coords[:, x])
     if numpy.max(coords[:, y]) > npmic.shape[0]: 
-        raise ValueError, "The y-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.min(coords[:, y])
+        raise ValueError, "The y-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.max(coords[:, y])
     
     if numpy.max(coords[:, x])*2 < npmic.shape[1]: 
-        _logger.warn("The maximum x-coordate is less than twice the size of the micrograph width - consider changing --bin-factor: %d"%numpy.min(coords[:, x]))
+        _logger.warn("The maximum x-coordate is less than twice the size of the micrograph width - consider changing --bin-factor: %d"%numpy.max(coords[:, x]))
     if numpy.max(coords[:, y])*2 < npmic.shape[0]: 
-        _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.min(coords[:, y]))
+        _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.max(coords[:, y]))
 
 def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, **extra):
     ''' Read a micrograph from a file and perform preprocessing
@@ -273,19 +278,13 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
         mic = eman2_utility.gaussian_high_pass(mic, sigma/(2.0*offset), True)
     return mic
             
-def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", output="", noise_stack=True, **extra):
+def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     ''' Automatically generate a stack of noise windows and by default choose the first
     
     :Parameters:
         
     filename : str
                Input micrograph filename
-    offset : int
-             Half-width of the window
-    bin_factor : float
-               Decimation factor
-    pixel_radius : float
-                  Radius of the particle
     noise : str
             Input filename for existing noise window
     output : str
@@ -312,7 +311,7 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
             return ndimage_file.read_image(noise)
         return image_reader.read_image(noise_file)
     mic = read_micrograph(filename, **extra)
-    rad = int( pixel_radius / float(bin_factor) )
+    rad, offset = init_param(**extra)[:2]
     width = offset*2
     #template = eman2_utility.utilities.model_blank(width, width)
     
@@ -354,13 +353,15 @@ def generate_noise(filename, offset, bin_factor, pixel_radius=0, noise="", outpu
             image_writer.write_image(noise_file, noise_win)
     return noise_win
 
-def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
+def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **extra):
     ''' Ensure all parameters have the proper scale and create a mask
     
     :Parameters:
         
     pixel_radius : float
                   Radius of the particle
+    pixel_diameter : int
+                     Diameter of the particle
     window : float
              Size of the window (if less than particle diameter, assumed to be multipler)
     bin_factor : float
@@ -370,8 +371,8 @@ def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
     
     :Returns:
         
-    radius : float
-             Radius of particle scaled by bin_factor
+    rad : float
+          Radius of particle scaled by bin_factor
     offset : int
              Half-width of the window
     bin_factor : float
@@ -380,8 +381,14 @@ def init_param(pixel_radius, window=1.0, bin_factor=1.0, **extra):
            Disk mask with `radius` that keeps data in the disk
     '''
     
-    rad = int( pixel_radius / float(bin_factor) )
-    offset = int(window*rad) if window < (2*pixel_radius) else int( window / (float(bin_factor)*2.0) )
+    if pixel_diameter > 0:
+        rad = int( float(pixel_diameter) / 2 )
+        offset = int( window / 2.0 )
+    else:
+        rad = int( pixel_radius / float(bin_factor) )
+        offset = int( window / (float(bin_factor)*2.0) )
+    if window == 1.0: window = 1.4
+    if window < (2*rad): offset = int(window*rad)
     width = offset*2
     mask = eman2_utility.utilities.model_circle(rad, width, width)
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
@@ -512,10 +519,10 @@ def initialize(files, param):
         if isinstance(files[0], tuple): files = files[0]
         
         if mpi_utility.is_root(**param):
-            param['noise'] = generate_noise(files[0], offset, **param)
+            param['noise'] = generate_noise(files[0], **param)
         mpi_utility.barrier(**param)
         if mpi_utility.is_client_strict(**param):
-            param['noise'] = generate_noise(files[0], offset, **param)
+            param['noise'] = generate_noise(files[0], **param)
         
     else: 
         if ndimage_file is not None:
