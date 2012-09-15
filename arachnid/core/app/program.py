@@ -81,6 +81,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     _logger.addHandler(logging.StreamHandler())
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
+    if not use_version and main_template == file_processor: use_version=True
     try:
         args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
     except VersionChange:
