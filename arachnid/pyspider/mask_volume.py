@@ -211,7 +211,7 @@ def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigm
     outputfile : str
                  Output tight masked volume
     threshold : str
-                Threshold for density or 'A' for auto threshold
+                Threshold for density or `A` for auto threshold
     ndilate : int
               Number of times to dilate the mask
     gk_size : int
