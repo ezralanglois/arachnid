@@ -534,10 +534,10 @@ def initialize(files, param):
             else:
                 _logger.info("No micrograph interpolation")
 
-def init_process(process_number, rank, input_files, **extra):
+def init_process(process_number, input_files, rank=0, **extra):
     # Initialize a child process
     
-    rank = mpi_utility.size(**extra)*rank + process_number
+    rank = mpi_utility.get_size(**extra)*rank + process_number
     param = {}
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
