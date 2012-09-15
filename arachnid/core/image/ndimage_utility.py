@@ -643,7 +643,7 @@ def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
     vmax = numpy.max(img) if mask is None else numpy.max(img*mask)
     numpy.divide(out, vmax, out)
     upper = upper-lower
-    if upper != 1.0: numpy.multipy(upper, out, out)
+    if upper != 1.0: numpy.multiply(upper, out, out)
     if lower != 0.0: numpy.add(lower, out, out)
     return out
 
