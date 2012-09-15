@@ -358,13 +358,18 @@ class Session(object):
         _logger.debug("%s"%str(args))
         self._invoke(*args)
         if self[9] > 0:
-            
-            self._invoke('MD', 'RESULTS ON')
-            self._invoke('MD', 'TERM ON') 
-            self._invoke(*args)
-            self._invoke('my fl')
-            
+            _logger.error("Error in command: %s"%str(args))
+            for arg in args:
+                _logger.error("Arg: %s"%arg)
+            if not self._results:
+                self._invoke('MD', 'RESULTS ON')
+                self._invoke('MD', 'TERM ON') 
+                self._invoke(*args)
+                self._invoke('my fl')
             self[9] = "0"
+            if not self._results:
+                self._invoke('MD', 'RESULTS OFF')
+                self._invoke('MD', 'TERM OFF') 
             _logger.error("Error in command: %s"%str(args))
             raise SpiderCommandError, "%s failed in Spider"%args[0]
     
