@@ -169,26 +169,26 @@ try:
                 Index of the image in a stack
         '''
         
-        ext = eman2_utility.Util.get_filename_ext(filename)
+        ext = eman2_utility.EMAN2.Util.get_filename_ext(filename)
         try:
-            type = eman2_utility.EMUtil.get_image_ext_type(ext)
+            type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(ext)
         except:
             _logger.debug("Cannot get type of "+filename+" with extension "+str(ext))
             raise
-        if type == eman2_utility.EMUtil.ImageType.IMAGE_MRC: img.process_inplace("xform.flip",{"axis":"y"})
+        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: img.process_inplace("xform.flip",{"axis":"y"})
         if not eman2_utility.is_em(img): img = eman2_utility.numpy2em(img)
-        if type == eman2_utility.EMUtil.ImageType.IMAGE_UNKNOWN: 
-            type = eman2_utility.EMUtil.ImageType.IMAGE_SPIDER
+        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: 
+            type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
             _logger.debug("Converting to spider format - "+filename)
         if index is None: 
             _logger.debug("Converting to single spider format")
-            if type == eman2_utility.EMUtil.ImageType.IMAGE_SPIDER: type = eman2_utility.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
+            if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER: type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
             index = 0
         else:
             _logger.debug("Converting to stack spider format")
         if index == 0 and os.path.exists(filename) and not disable_auto_delete: os.unlink(filename)
         img.write_image_c(filename, index, type)
-        if type == eman2_utility.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
+        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
             f = open(filename, 'r+b')
             f.seek(26*4)
             f.write(struct.pack('f', 0.0))
