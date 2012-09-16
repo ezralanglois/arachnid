@@ -179,7 +179,7 @@ def batch(files, output, aligment, **extra):
         _logger.info("Resolution = %f"%(extra['apix']/sp))
         _logger.info("Completed")
 
-def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="", home_prefix="", shared_scratch="", incore=False, window=0, **extra):
+def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="", home_prefix="", shared_scratch="", incore=False, **extra):
     ''' Initialize SPIDER params, directory structure and parameters as well as cache data and phase flip
     
     :Parameters:
@@ -202,8 +202,6 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
                      File directory on local node to copy files (optional but recommended for MPI jobs)
     incore : bool
              Should the processed data stacks be held in in-core memory
-    window : int
-             Size of the projection window
     extra : dict
             Unused keyword arguments
     
@@ -213,8 +211,9 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
             Dictionary of updated parameters 
     '''
     
-    assert(window>0)
     param = spider_params.read(spi.replace_ext(param_file), extra)
+    window = param['window']
+    assert(window>0)
     cache = spider_utility.spider_filename('cache_%s'%str(mpi_utility.rank(**extra)+1).zfill(len(str(mpi_utility.size(**extra)))))
     if home_prefix == "": 
         home_prefix = os.path.dirname(os.path.dirname(files[0]))
