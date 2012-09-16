@@ -170,12 +170,12 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.metadata import spider_params
+from ..core.metadata import spider_params, spider_utility
 from ..core.app import program
 from ..app import autopick
 from ..util import crop
 import reference, defocus, align, refine
-import os, glob, logging
+import os, glob, logging, re
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -266,16 +266,18 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     else: data_ext = ext[1:]
     mn_base = os.path.basename(mn_path)
     sn_base = os.path.basename(sn_path)
+    id_len = spider_utility.spider_id_length(os.path.splitext(files[0])[0])
     param = dict(
         param_file = os.path.join(mn_base, 'data', 'params'+ext),
         reference = os.path.join(mn_base, 'data', 'reference'),
         defocus_file = os.path.join(mn_base, 'data', 'defocus'),
-        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_0000000'+ext),
-        output_pow = os.path.join(sn_base, "pow", "pow_00000"),
-        stacks = os.path.join(mn_base, 'win', 'win_0000000'+ext),
+        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_'+"".zfill(id_len)+ext),
+        output_pow = os.path.join(sn_base, "pow", "pow_"+"".zfill(id_len)+ext),
+        stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+ext),
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
     
+    stk = re.compile('0+')
     if extra['home_prefix'] == "":
         extra['home_prefix'] = os.path.abspath(output)
     elif os.path.exists(os.path.join(extra['home_prefix'], output)):
@@ -348,14 +350,14 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                                supports_MPI=True,
                                #restart_file
                                )), 
-               (align,    dict(input_files=param['stacks'],
+               (align,    dict(input_files=stk.sub('*', param['stacks']),
                                output = param['alignment'],
                                description = run_multi_node, 
                                config_path = mn_path,
                                supports_MPI=True,
                                #selection_file
                                )), 
-               (refine,    dict(input_files=param['stacks'],
+               (refine,    dict(input_files=stk.sub('*', param['stacks']),
                                output = param['alignment'],
                                description = run_multi_node, 
                                config_path = mn_path,
