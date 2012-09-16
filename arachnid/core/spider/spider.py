@@ -2676,11 +2676,13 @@ def image_size(session, filename):
             Shape of the image
     '''
     
+    ''' Add code to detect SPIDER stack?
     istack, = session.fi_h(filename, ('ISTACK', ))
     if istack > 0:
         shape  = session.fi_h(spider_stack(filename), ('NSAM','NROW', 'NSLICE'))
     else:
-        shape  = session.fi_h(spider_image(filename), ('NSAM','NROW', 'NSLICE'))
+    '''
+    shape  = session.fi_h(spider_image(filename), ('NSAM','NROW', 'NSLICE'))
     return shape
 
 def for_image(session, filename, count=None):
@@ -2835,19 +2837,20 @@ def enumerate_stack(inputfile, selection, outputfile=None):
                   Tuple filename and index (If outputfile is not None)
     '''
     
-    if not hasattr(selection, '__iter__'): selection = xrange(selection)
+    if not hasattr(selection, '__iter__'): selection = xrange(1, selection+1)
     if isinstance(inputfile, dict):
         if outputfile is None:
             for fid, index in selection: 
-                yield (inputfile[int(fid)], index+1) 
+                yield (inputfile[int(fid)], int(index+1)) 
         else:
-            for j, fid, index in enumerate(selection): 
-                yield (inputfile[int(fid)], index+1), (outputfile, j+1)
+            for j, index in enumerate(selection): 
+                fid, index = index
+                yield (inputfile[int(fid)], int(index)), (outputfile, int(j+1))
     else:
         if outputfile is None:
-            for index in selection: yield (inputfile, index+1) 
+            for index in selection: yield (inputfile, int(index)) 
         else:
-            for j, index in enumerate(selection): yield (inputfile, index+1), (outputfile, j+1)
+            for j, index in enumerate(selection): yield (inputfile, int(index)), (outputfile, int(j)+1)
 
 def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank=0, **extra):
     ''' Phase flip the input stack and store in the given output stack
@@ -2916,14 +2919,14 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
     '''
     
     if not is_incore_filename(outputfile) and os.path.exists(session.replace_ext(outputfile)):
-        width, stack_count = session.fi_h(outputfile, ('NSAM', 'MAXIM'))
+        width, stack_count = session.fi_h(spider_stack(outputfile), ('NSAM', 'MAXIM'))
     else: stack_count = 0
     if stack_count != len(selection) or width != window:
         if rank == 0:
             if stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
             else:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
         input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
-        width = session.fi_h(input, ('NSAM', ))
+        width = session.fi_h(spider_stack(input), ('NSAM', ))
         if width != window:
             copy_interpolate(session, inputfile, selection, outputfile, window)
         else:
