@@ -99,6 +99,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     except IOError, e:
         _logger.error("***"+str(e)+see_also)
         _logger.exception("Ensuring exception logged")
+        sys.exit(1)
     except:
         exc_type, exc_value = sys.exc_info()[:2]
         _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
@@ -342,6 +343,9 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
         
         # Test if file does not exist and is relative path, update
         # based on config file path, if exists
+        if home_prefix is None: _logger.warn("--home-prefix not set - no file update")
+        if home_prefix is None: _logger.warn("--local-temp not set - no file update")
+        if home_prefix is None: _logger.warn("--local-temp does not exist - no file update")
         
         return param
     if home_prefix == "":
@@ -361,13 +365,15 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
             raise
     
     for opt in file_options:
-        if opt not in extra or extra[opt]=="": continue
+        if opt not in extra or len(extra[opt])==0: continue
         assert(opt != 'home_prefix')
         if hasattr(extra[opt], 'append'):
             param[opt] = []
             for filename in extra[opt]:
-                if filename.find(home_prefix) != 0: continue
-                filename = os.path.join(shortcut, filename[len(home_prefix)+1:])
+                if len(home_prefix) < len(filename) and filename.find(home_prefix) >= 0:
+                    filename = os.path.join(shortcut, filename[len(home_prefix)+1:])
+                elif not os.path.isabs(filename):
+                    filename = os.path.join(shortcut, filename)
                 #if not os.path.exists(filename): raise IOError, "Cannot find file: %s -- %s -- %s"%(filename, shortcut, local_temp)
                 if max_filename_len > 0 and len(filename) > max_filename_len:
                     raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(filename), filename)
