@@ -7,7 +7,7 @@ Tips
 ====
 
  #. For a single stack, use `--stack-select` to assign the micrograph and stack_id number. This
-    is especially important when assigning defocus to each projection.
+    is especially important when assigning defocus_file to each projection.
  
  #. If the filename value for `--select-file` has a number before the extension (is
     a valid SPIDER filename), e.g. select_01.spi, then the filename is treated as
@@ -15,7 +15,7 @@ Tips
     a selection file over the full stack (for single stack) or micrograph selection
     file for multiple-stacks.
 
- #. Any projection with defocus 0 or not found in the defocus file will be automatically
+ #. Any projection with defocus_file 0 or not found in the defocus_file file will be automatically
     skipped.
 
 Examples
@@ -27,10 +27,10 @@ Examples
     
     $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
-    # Create an 'empty' alignment file (i.e. rotation values 0) with defocus values from a
+    # Create an 'empty' alignment file (i.e. rotation values 0) with defocus_file values from a
     # set of stacks
     
-    $ spi-create-align stack_*.spi -o align.spi --defocus defocus.spi
+    $ spi-create-align stack_*.spi -o align.spi --defocus_file defocus_file.spi
     
 Critical Options
 ================
@@ -51,13 +51,13 @@ Critical Options
 Useful Options
 ==============
 
-.. option:: -d <FILENAME>, --defocus <FILENAME>
+.. option:: -d <FILENAME>, --defocus_file <FILENAME>
     
-    Filename for the defocus values for each micrograph
+    Filename for the defocus_file values for each micrograph
 
-.. option:: --defocus-header <STR>
+.. option:: --defocus_file-header <STR>
     
-    Header labelling important columns in the `defocus` file (Default: id:0,defocus:1)
+    Header labelling important columns in the `defocus_file` file (Default: id:0,defocus_file:1)
 
 .. option:: -s <FILENAME>, --select-file <FILENAME>
     
@@ -108,7 +108,7 @@ def batch(files, output, **extra):
     '''
     
     alignvals = create_alignment(files, **extra)   
-    format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')) 
+    format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(',')) 
     #spider.alignment_header(alignvals))
 
 def create_alignment(files, sort_align=False, **extra):
@@ -119,7 +119,7 @@ def create_alignment(files, sort_align=False, **extra):
     files : list
             List of input files
     sort_align : bool
-                 Sort the alignment file by defocus
+                 Sort the alignment file by defocus_file
     extra : dict
             Unused keyword arguments
     
@@ -130,14 +130,14 @@ def create_alignment(files, sort_align=False, **extra):
     '''
     
     label = create_stack_label(files, **extra)
-    defocus = read_defocus(**extra)
+    defocus_file = read_defocus_file(**extra)
     label = select_subset(files, label, **extra)
     align = numpy.zeros((len(label), 18))
     align[:, 4] = label[:, 0]
     align[:, 15] = label[:, 1]
     align[:, 16] = label[:, 2]
-    if len(defocus) > 0:
-        align[:, 17] = [defocus.get(l[1], 0) for l in label]
+    if len(defocus_file) > 0:
+        align[:, 17] = [defocus_file.get(l[1], 0) for l in label]
         align = align[align[:, 17] > 0]
         if sort_align: align[:] = align[numpy.argsort(align[:, 17])].squeeze()
     return align
@@ -247,36 +247,36 @@ def create_stack_label(files, stack_select, stack_header, **extra):
         label[:, 0] = numpy.arange(1, len(label)+1)
     return label
 
-def read_defocus(defocus="", defocus_header="id:0,defocus:1", **extra):
-    '''Parsing a selection that maps each micrograph to its defocus
+def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1", **extra):
+    '''Parsing a selection that maps each micrograph to its defocus_file
     
     .. Order=-1
     
     :Parameters:
     
-    defocus : str
+    defocus_file : str
                Defocus selection file
-    defocus_header : str
-                     Header describing SPIDER document file `defocus`
+    defocus_file_header : str
+                     Header describing SPIDER document file `defocus_file`
     extra : dict
             Unused keyword arguments
     
     :Returns:
     
-    defocus : dict
-              Dictionary of stacks with corresponding defocus
+    defocus_file : dict
+              Dictionary of stacks with corresponding defocus_file
     '''
     
-    if defocus == "": return {}
-    defocus_dict = format.read(defocus, header=defocus_header, numeric=True)
-    defocus_dict = format_utility.map_object_list(defocus_dict)
-    for key in defocus_dict.iterkeys():
+    if defocus_file == "": return {}
+    defocus_file_dict = format.read(defocus_file, header=defocus_file_header, numeric=True)
+    defocus_file_dict = format_utility.map_object_list(defocus_file_dict)
+    for key in defocus_file_dict.iterkeys():
         try:
-            defocus_dict[key] = defocus_dict[key].defocus
+            defocus_file_dict[key] = defocus_file_dict[key].defocus_file
         except:
-            _logger.error("Unexpected defocus error: %s - %s - %s"%(str(key), str(defocus_dict[key]._fields), str(defocus_header)))
+            _logger.error("Unexpected defocus_file error: %s - %s - %s"%(str(key), str(defocus_file_dict[key]._fields), str(defocus_file_header)))
             raise
-    return defocus_dict
+    return defocus_file_dict
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -286,12 +286,12 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[],              help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
-    pgroup.add_option("-d", defocus ="",                     help="Filename for the defocus values for each micrograph", gui=dict(filetype="open"), required_file=False)
-    pgroup.add_option("",   defocus_header="id:0,defocus:1", help="Header labelling important columns in the `defocus` file")
+    pgroup.add_option("-d", defocus_file ="",                help="Filename for the defocus_file values for each micrograph", gui=dict(filetype="open"), required_file=False)
+    pgroup.add_option("",   defocus_file_header="id:0,defocus_file:1", help="Header labelling important columns in the `defocus_file` file")
     pgroup.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
     pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
-    pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus file")
+    pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus_file file")
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
     
@@ -309,7 +309,7 @@ def main():
     run_hybrid_program(__name__,
         description = '''Create an initial alignment file
                         
-                        $ %prog image_stack_*.ter -d defocus.ter -o align.ter
+                        $ %prog image_stack_*.ter -d defocus_file.ter -o align.ter
                         
                         http://
                         
