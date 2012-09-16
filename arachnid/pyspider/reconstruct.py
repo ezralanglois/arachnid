@@ -249,7 +249,8 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     param['master_filename'] = filename
     param['master_select'] = select
     
-    cache_local(spi, align, filename, select, window, param['input_stack'], param['flip_stack'], **extra)
+    extra.update(param)
+    cache_local(spi, align, **extra)#, filename, select, window, param['input_stack'], param['flip_stack']
     return param
 
 def cache_local(spi, align, master_filename, master_select, window, input_stack=None, flip_stack=None, rank=0, **extra):
