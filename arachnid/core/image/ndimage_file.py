@@ -156,12 +156,16 @@ def count_images(filename):
     '''
     
     if isinstance(filename, list):
+    
+        if not os.path.exists(filename[0]): raise IOError, "Cannot find file: %s"%filename
+        format = get_read_format(filename[0])
         total = 0
         for f in filename:
             total += format.count_images(f)
         return total
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
-    format = get_read_format(filename)
+    else:
+        if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+        format = get_read_format(filename)
     if format is None: 
         raise IOError, "Could not find format for %s"%filename
     return format.count_images(filename)
