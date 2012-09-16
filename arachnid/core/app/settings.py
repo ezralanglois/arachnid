@@ -167,6 +167,7 @@ import datetime
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.WARN)
+_logger.addHandler(logging.StreamHandler())
 
 class Option(optparse.Option):
     '''Smarter signature to the option class.
@@ -307,10 +308,8 @@ class Option(optparse.Option):
             if val is not None: setattr(values, self.dest, val)
         
         
-        _logger.error("Test: %s"%(self.dest))
         if self._required and type(getattr(values, self.dest)) != types.BooleanType:
             val = getattr(values, self.dest, self.default)
-            _logger.error("%s == %s"%(self.dest, val))
             if not val:
                 raise OptionValueError, "Option %s requires a value - found empty (%s)" % (self._long_opts[0], self.type)
             if self._required_file:
@@ -517,10 +516,13 @@ class Option(optparse.Option):
         '''
         
         vals = value.strip().split(',')
-        vals = optlist([convert(v.strip()) for v in vals if v.strip() != ""])
-        if len(vals) > 0 and vals[0].find(":") != -1:
-            for i in range(len(vals)):
+        #vals = optlist([convert(v.strip()) for v in vals if v.strip() != ""])
+        for i in range(len(vals)):
+            vals[i] = vals[i].strip()
+            if  vals[i].find(":") != -1:
                 vals[i] = tuple([convert(v.strip()) for v in vals[i].split(":")])
+            elif vals[i] != "": vals[i] = convert(vals[i])
+        vals = optlist(vals)
         setattr(parser.values, option.dest, vals)
     
     @staticmethod
@@ -806,7 +808,8 @@ class OptionParser(optparse.OptionParser):
         fout.close()
         
         dep_opts = set(self.collect_dependent_options())
-        dep = [val for val in vars(changed).iterkeys() if val in dep_opts]
+        dep = [key for key,val in vars(changed).iteritems() if key in dep_opts and val is not None]
+        _logger.debug("Dependent options changed: %s"%str(dep))
         return VersionControl(output), len(dep) > 0
     
     def parse_all(self, args=sys.argv[1:], values=None, fin=None):
