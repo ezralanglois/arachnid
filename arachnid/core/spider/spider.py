@@ -2918,8 +2918,11 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
              True if a copy was performed
     '''
     
+    window = int(window)
     if not is_incore_filename(outputfile) and os.path.exists(session.replace_ext(outputfile)):
         width, stack_count = session.fi_h(spider_stack(outputfile), ('NSAM', 'MAXIM'))
+        stack_count = int(stack_count)
+        width = int(width)
     else: stack_count = 0
     if stack_count != len(selection) or width != window:
         if rank == 0:
