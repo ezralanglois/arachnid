@@ -512,7 +512,7 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     
     if main_option: spider_params.check_options(options)
-    if options.pad <= 1: raise OptionValueError, "Padding cannot be less than or equal to one (--pad)"
+    if options.npad <= 1: raise OptionValueError, "Padding cannot be less than or equal to one (--npad)"
     #if options.sym <= 1: raise OptionValueError, "Padding cannot be less than or equal to one (--pad)"
 
 def main():
