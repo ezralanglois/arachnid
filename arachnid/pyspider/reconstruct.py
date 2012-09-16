@@ -214,7 +214,7 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     param = spider_params.read(spi.replace_ext(param_file), extra)
     window = param['window']
     assert(window>0)
-    cache = spider_utility.spider_filename('cache_%s'%str(mpi_utility.get_rank(**extra)+1).zfill(len(str(.mpi_utility.get_size(**extra)))))
+    cache = spider_utility.spider_filename('cache_',  mpi_utility.get_rank(**extra)+1, len(str(mpi_utility.get_size(**extra))))
     if home_prefix == "": 
         home_prefix = os.path.dirname(os.path.dirname(files[0]))
     if shared_scratch == "":
@@ -402,8 +402,8 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
     spi.rt_sq(input_stack, align_file, selectfile, outputfile=dala_stack)
     mpi_utility.barrier(**extra)
     if mpi_utility.is_root(**extra):
-        dalamap = spider_utility.file_map(dala_stack, .mpi_utility.get_size(**extra))
-        dala_stack = spider.stack(spi, dalamap, .mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))
+        dalamap = spider_utility.file_map(dala_stack, mpi_utility.get_size(**extra))
+        dala_stack = spider.stack(spi, dalamap, mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))
         if selection is not None: align = align[selection]
         format.write(spi.replace_ext(align_file), align)
         if engine == 1:
