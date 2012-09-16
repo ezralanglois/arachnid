@@ -277,6 +277,9 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
     
+    if spider_utility.is_spider_filename(raw_reference):
+        param.update(reference=spider_utility.spider_filename(param['reference'], raw_reference))
+    
     stk = re.compile('0+')
     if extra['home_prefix'] == "":
         extra['home_prefix'] = os.path.abspath(output)
