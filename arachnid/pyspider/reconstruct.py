@@ -225,7 +225,8 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
        try: os.makedirs(os.path.dirname(param['shared_scratch']))
        except: pass
     param['cache_file'] = cache
-    param['local_scratch'] = os.path.join(local_scratch, cache)
+    local_scratch = os.path.join(local_scratch, cache)
+    param['local_scratch'] = local_scratch
     if mpi_utility.is_root(**extra):
        try: os.makedirs(os.path.dirname(param['local_scratch']))
        except: pass
