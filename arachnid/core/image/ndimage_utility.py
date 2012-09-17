@@ -58,6 +58,35 @@ def find_peaks(cc, width):
     return numpy.hstack((ccv[:, numpy.newaxis], peaks))
 """
 
+def mean_azimuthal(img, center=None):
+    ''' Calculate the sum of a 2D array along the azimuthal
+    
+    :Parameters:
+    
+    img : array-like
+          Image array
+    center : tuple, optional
+              Coordaintes of the image center
+    
+    :Returns:
+    
+    out : array
+          Sum over the radial lines of the image
+    
+    .. notes::
+    
+        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
+    '''
+    
+    img = numpy.asanyarray(img)
+    if img.ndim != 2: raise ValueError, "Input array must be 2D"
+    if center is None: center = (img.shape[0]/2, img.shape[1]/2)
+    i, j = numpy.arange(img.shape[0])[:, None], np.arange(img.shape[1])[None, :]   
+    i, j = i-center[0], j-center[1]
+    k = (j**2+i**2)**.5
+    k = k.astype(int)
+    return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel())
+
 @_em2numpy2res
 def find_peaks_fast(cc, width):
     ''' Find peaks in a cross-correlation map
