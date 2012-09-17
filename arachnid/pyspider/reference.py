@@ -129,6 +129,9 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
         curr_apix = header['apix']
         _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
     filename = ndimage_file.copy_to_spider(filename, spi.replace_ext('tmp_spi_file'))
+    w, h, d = spi.fi_h(filename, ('NSAM', 'NROW', 'NSLICE'))
+    if w != h: raise ValueError, "Width does not match height - requires box"
+    if w != d: raise ValueError, "Width does not match depth - requires box"
     _logger.debug("Filtering volume")
     filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
     if os.path.exists(spi.replace_ext('tmp_spi_file')): os.unlink(spi.replace_ext('tmp_spi_file'))
@@ -185,6 +188,8 @@ def resize_volume(filename, spi, curr_apix, apix, window, outputfile=None, **ext
     '''
     
     w, h, d = spi.fi_h(filename, ('NSAM', 'NROW', 'NSLICE'))
+    if w != h: raise ValueError, "Width does not match height - requires box"
+    if w != d: raise ValueError, "Width does not match depth - requires box"
     
     bin_factor = curr_apix / apix
     _logger.info("Interpolating Structure: %f * %f = %f | %f/%f | %f"%(w, bin_factor, w*bin_factor, apix, curr_apix, window))
