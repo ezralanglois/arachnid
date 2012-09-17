@@ -6,6 +6,7 @@
 import numpy, logging
 import parallel_utility
 import process_tasks
+import socket
 try:
     MPI=None
     from mpi4py import MPI
@@ -14,6 +15,17 @@ except:
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+def hostname():
+    ''' Get the current hostname
+    
+    :Return:
+    
+    name : str
+           Hostname of current node
+    '''
+    
+    return socket.gethostname()
 
 def mpi_range(total, rank=None, comm=None, **extra):
     '''Range of values to process for the current node
