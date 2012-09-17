@@ -18,6 +18,7 @@ def test_mean_azimuthal():
     
     orig = numpy.random.rand(50,50)
     rot = ndimage_utility.mean_azimuthal(orig)
+    rot;
 
 def test_rolling_window():
     '''

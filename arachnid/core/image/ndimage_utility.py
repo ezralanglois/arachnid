@@ -73,7 +73,7 @@ def mean_azimuthal(img, center=None):
     out : array
           Sum over the radial lines of the image
     
-    .. notes::
+    .. note::
     
         Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
     '''
@@ -81,7 +81,7 @@ def mean_azimuthal(img, center=None):
     img = numpy.asanyarray(img)
     if img.ndim != 2: raise ValueError, "Input array must be 2D"
     if center is None: center = (img.shape[0]/2, img.shape[1]/2)
-    i, j = numpy.arange(img.shape[0])[:, None], np.arange(img.shape[1])[None, :]   
+    i, j = numpy.arange(img.shape[0])[:, None], numpy.arange(img.shape[1])[None, :]   
     i, j = i-center[0], j-center[1]
     k = (j**2+i**2)**.5
     k = k.astype(int)
