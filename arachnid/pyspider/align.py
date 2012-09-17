@@ -210,7 +210,7 @@ def batch(files, output, **extra):
         _logger.info("Resolution = %f"%res)
         _logger.info("Completed")
 
-def initalize(spi, files, align, max_ref_proj, window=0, use_flip=False, **extra):
+def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     ''' Initialize SPIDER params, directory structure and parameters as well as cache data and phase flip
     
     :Parameters:
@@ -225,8 +225,6 @@ def initalize(spi, files, align, max_ref_proj, window=0, use_flip=False, **extra
                    Maximum number of reference projections to hold in memory
     use_flip : bool
                Use CTF-corrected stack for alignment
-    window : int
-             Size of the projection window
     extra : dict
             Unused keyword arguments
     
@@ -238,16 +236,19 @@ def initalize(spi, files, align, max_ref_proj, window=0, use_flip=False, **extra
     
     #if not os.path.exists(os.path.dirname(output)): os.makedirs(os.path.dirname(output))
     param = reconstruct.initalize(spi, files, align, **extra)
-    param['reference_stack'] = spi.ms(max_ref_proj, window)
+    param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
     param['dala_stack'] = format_utility.add_prefix(param['cache_file'], 'dala_')
     if align.shape[1] > 15:
         mics = align[:, 15].astype(numpy.int)
         umic = numpy.unique(mics)
         offset = numpy.zeros(len(umic), dtype=numpy.int)
         for i in xrange(offset.shape[0]):
-            idx = numpy.argwhere(umic[i] == mics).reshape(len(mics))
+            idx = numpy.argwhere(umic[i] == mics)
+            idx = idx.reshape(idx.shape[0])
             offset[i] = idx[0]
-            assert(len(idx) == (idx[len(idx)-1]-idx[0]))
+            if len(idx) != (idx[len(idx)-1]-idx[0]+1):
+                _logger.error("%d != %d = %d - %d"%(len(idx), (idx[len(idx)-1]-idx[0]), idx[len(idx)-1], idx[0]))
+            assert(len(idx) == (idx[len(idx)-1]-idx[0]+1))
         param['defocus_offset'] = offset
         if use_flip and param['flip_stack'] is not None:
             param['input_stack'] = param['flip_stack']
