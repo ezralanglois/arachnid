@@ -12,6 +12,35 @@ try:
     pylab;
 except: pylab=None
 
+def test_rolling_window():
+    '''
+    '''
+    
+    orig = numpy.random.rand(50,50)
+    window=10
+    step=5
+    ar = ndimage_utility.rolling_window(orig, (window, window), asteps=(step, step))
+    b1=0
+    for i in xrange((orig.shape[0]-window)/step):
+        e1 = b1+window
+        b=0
+        for j in xrange((orig.shape[0]-window)/step):
+            e = b+window
+            try:
+                numpy.testing.assert_allclose(orig[b1:e1, b:e], ar[i, j])
+            except:
+                print "i=%d, j=%d"%(i, j)
+                raise
+            b += step
+        b1 += step
+
+def powerspec_avg():
+    '''
+    '''
+    
+    orig = numpy.random.rand(50,50,10)
+    avg = ndimage_utility.powerspec_avg(orig, 64)
+
 def test_biggest_object():
     '''
     '''

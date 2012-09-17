@@ -232,6 +232,199 @@ def local_variance(img, mask, out=None):
     img2[:,:] = scipy.fftpack.fftshift(img2)
     return depad_image(img2, shape, out)
 
+def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=False):
+    """Create a view of `array` which for every point gives the n-dimensional
+    neighbourhood defined by window. New dimensions are added at the end of
+    `array`, and as no padding is done the arrays first dimensions are smaller
+    then before. It is possible to extend only earlier dimensions by giving
+    window a 0 sized dimension.
+
+    :Parameters:
+    
+    array : array_like
+        Array to which the rolling window is applied.
+    window : int or tuple
+        Either a single integer to create a window of only the last axis or a
+        tuple to create it for the last len(window) axes. 0 can be used as a
+        to ignore a dimension in the window.
+    asteps : tuple
+        Aligned at the last axis, new steps for the original array, ie. for
+        creation of non-overlapping windows.
+    wsteps : int or tuple (same size as window)
+        steps inside the window this can be 0 to repeat along the axis.
+    intersperse : bool
+        If True, the new dimensions are right after the corresponding original
+        dimension, instead of at the end of the array.
+
+    :Returns:
+    
+    out : array
+          A view on `array` which is smaller to fit the windows and has windows added
+          dimensions (0s not counting), ie. every point of `array` is an array of size
+          window.
+
+    Examples:
+    
+    >>> a = numpy.arange(16).reshape(4,4)
+    >>> rolling_window(a, (2,2))[0:2,0:2]
+    array([[[[ 0,  1],
+             [ 4,  5]],
+
+            [[ 1,  2],
+             [ 5,  6]]],
+
+
+           [[[ 4,  5],
+             [ 8,  9]],
+
+            [[ 5,  6],
+             [ 9, 10]]]])
+
+    Or to create non-overlapping windows, but only along the first dimension:
+    >>> rolling_window(a, (2,0), asteps=(2,1))
+    array([[[ 0,  4],
+            [ 1,  5],
+            [ 2,  6],
+            [ 3,  7]],
+
+           [[ 8, 12],
+            [ 9, 13],
+            [10, 14],
+            [11, 15]]])
+    Note that the 0 is discared, so that the output dimension is 3:
+    >>> rolling_window(a, (2,0), asteps=(2,1)).shape
+    (2, 4, 2)
+
+    This is useful for example to calculate the maximum in all 2x2 submatrixes:
+    >>> rolling_window(a, (2,2), asteps=(2,2)).max((2,3))
+    array([[ 5,  7],
+           [13, 15]])
+
+    Or delay embedding (3D embedding with delay 2):
+    >>> x = numpy.arange(10)
+    >>> rolling_window(x, 3, wsteps=2)
+    array([[0, 2, 4],
+           [1, 3, 5],
+           [2, 4, 6],
+           [3, 5, 7],
+           [4, 6, 8],
+           [5, 7, 9]])
+    
+    
+    .. note::
+    
+        Taken from: https://github.com/numpy/numpy/pull/31
+        
+    """
+    array = numpy.asarray(array)
+    orig_shape = numpy.asarray(array.shape)
+    window = numpy.atleast_1d(window).astype(int) # maybe crude to cast to int...
+
+    # Check if window is legal:
+    if window.ndim > 1:
+        raise ValueError("`window` must be one-dimensional.")
+    if numpy.any(window < 0):
+        raise ValueError("All elements of `window` must be larger then 1.")
+    if len(array.shape) < len(window):
+        raise ValueError("`window` length must be less or equal `array` dimension.") 
+
+    _asteps = numpy.ones_like(orig_shape)
+    if asteps is not None:
+        asteps = numpy.atleast_1d(asteps)
+        if asteps.ndim != 1:
+            raise ValueError("`asteps` must be either a scalar or one dimensional.")
+        if len(asteps) > array.ndim:
+            raise ValueError("`asteps` cannot be longer then the `array` dimension.")
+        # does not enforce alignment, so that steps can be same as window too.
+        _asteps[-len(asteps):] = asteps
+
+        if numpy.any(asteps < 1):
+             raise ValueError("All elements of `asteps` must be larger then 1.")
+    asteps = _asteps
+
+    _wsteps = numpy.ones_like(window)
+    if wsteps is not None:
+        wsteps = numpy.atleast_1d(wsteps)
+        if wsteps.shape != window.shape:
+            raise ValueError("`wsteps` must have the same shape as `window`.")
+        if numpy.any(wsteps < 0):
+             raise ValueError("All elements of `wsteps` must be larger then 0.")
+
+        _wsteps[:] = wsteps
+        _wsteps[window == 0] = 1 # make sure that steps are 1 for non-existing dims.
+    wsteps = _wsteps
+
+    # Check that the window would not be larger then the original:
+    if numpy.any(orig_shape[-len(window):] < window * wsteps):
+        raise ValueError("`window` * `wsteps` larger then `array` in at least one dimension.")
+
+    new_shape = orig_shape # just renaming...
+
+    # For calculating the new shape 0s must act like 1s:
+    _window = window.copy()
+    _window[_window==0] = 1
+
+    new_shape[-len(window):] += wsteps - _window * wsteps
+    new_shape = (new_shape + asteps - 1) // asteps
+    # make sure the new_shape is at least 1 in any "old" dimension (ie. steps
+    # is (too) large, but we do not care.
+    new_shape[new_shape < 1] = 1
+    shape = new_shape
+
+    strides = numpy.asarray(array.strides)
+    strides *= asteps
+    new_strides = array.strides[-len(window):] * wsteps
+
+    # The full new shape and strides:
+    if not intersperse:
+        new_shape = numpy.concatenate((shape, window))
+        new_strides = numpy.concatenate((strides, new_strides))
+    else:
+        _ = numpy.zeros_like(shape)
+        _[-len(window):] = window
+        _window = _.copy()
+        _[-len(window):] = new_strides
+        _new_strides = _
+
+        new_shape = numpy.zeros(len(shape)*2, dtype=int)
+        new_strides = numpy.zeros(len(shape)*2, dtype=int)
+
+        new_shape[::2] = shape
+        new_strides[::2] = strides
+        new_shape[1::2] = _window
+        new_strides[1::2] = _new_strides
+
+    new_strides = new_strides[new_shape != 0]
+    new_shape = new_shape[new_shape != 0]
+
+    return numpy.lib.stride_tricks.as_strided(array, shape=new_shape, strides=new_strides)
+
+
+def powerspec_avg(imgs, pad):
+    ''' Calculate an averaged power specra from a set of images
+    
+    :Parameters:
+    
+    imgs : iterable
+           Iterator of images
+    pad : int
+          Number of times to pad an image
+    
+    :Returns:
+    
+    avg_powspec : array
+                  Averaged power spectra
+    '''
+    
+    if pad is None or pad <= 0: pad = 1
+    avg = None
+    for img in imgs:
+        pad_width = img.shape[0]*pad
+        fimg = scipy.fftpack.fft2(ndimage_utility.pad_image(img, (pad_width, pad_width)))
+        if avg is None: avg = fimg.copy()
+        else: avg += fimg
+    return scipy.fftpack.fftshift(avg).real
+
 def local_variance2(img, mask, out=None):
     ''' Esimtate the local variance on the image, under the given mask
     
