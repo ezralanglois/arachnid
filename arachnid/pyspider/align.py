@@ -199,6 +199,7 @@ def batch(files, output, **extra):
     spi = spider.open_session(files, **extra)
     align = create_align.create_alignment(files, sort_align=True, **extra)
     curr_slice = mpi_utility.mpi_slice(len(align), **extra)
+    _logger.warn("Count - %s: %d"%(mpi_utility.hostname(), len(align[curr_slice])))
     extra.update(initalize(spi, files, align[curr_slice], **extra))
     align_to_reference(spi, align, curr_slice, **extra)
     if mpi_utility.is_root(**extra):
@@ -239,17 +240,12 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
     param['dala_stack'] = format_utility.add_prefix(param['cache_file'], 'dala_')
     if align.shape[1] > 15:
-        mics = align[:, 15].astype(numpy.int)
-        umic = numpy.unique(mics)
-        offset = numpy.zeros(len(umic), dtype=numpy.int)
+        defs = align[:, 17]
+        udefs = numpy.unique(defs)
+        offset = numpy.zeros(len(udefs), dtype=numpy.int)
         for i in xrange(offset.shape[0]):
-            idx = numpy.argwhere(umic[i] == mics)
-            idx = idx.reshape(idx.shape[0])
-            offset[i] = idx[0]
-            if len(idx) != (idx[len(idx)-1]-idx[0]+1):
-                _logger.error("%d != %d = %d - %d"%(len(idx), (idx[len(idx)-1]-idx[0]), idx[len(idx)-1], idx[0]))
-            assert(len(idx) == (idx[len(idx)-1]-idx[0]+1))
-        param['defocus_offset'] = offset
+            offset[i] = numpy.sum(udefs[i] == defs)
+        param['defocus_offset'] = numpy.cumsum(offset)
         if use_flip and param['flip_stack'] is not None:
             param['input_stack'] = param['flip_stack']
             param['phase_flip']=True
@@ -385,6 +381,9 @@ def align_projections_by_defocus_sm(spi, ap_sel, align, reference, angle_doc, an
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
+        if len(align[proj_beg-1:proj_end-1]) <= 0:
+            _logger.error("%d : %d"%(proj_beg-1, proj_end-1))
+        assert(len(align[proj_beg-1:proj_end-1]) > 0)
         align_projections_sm(spi, ap_sel, align[proj_beg-1:proj_end-1], dreference, angle_doc, angle_num, proj_beg-1, **extra)
         proj_beg = proj_end
     
@@ -419,6 +418,10 @@ def align_projections_by_defocus(spi, ap_sel, align, reference, angle_doc, angle
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
+        if len(align[proj_beg-1:proj_end-1]) <= 0 or proj_end < proj_beg:
+            _logger.error("%d : %d"%(proj_beg, proj_end))
+            _logger.error("%s"%str(defocus_offset))
+        assert(len(align[proj_beg-1:proj_end-1]) > 0 and proj_beg < proj_end)
         align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end-1], dreference, angle_doc, angle_rng, **extra)
         proj_beg = proj_end
 
@@ -455,7 +458,7 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, ang
     tmp_align = format_utility.add_prefix(cache_file, "align_")
     for i in xrange(1, angle_rng.shape[0]):
         angle_num = (angle_rng[i]-angle_rng[i-1])
-        spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]+1), outputfile=reference_stack, **extra)
+        spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
         ap_sel(input_stack, inputselect, reference, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
         vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True))
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
@@ -520,7 +523,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         spider_params.setup_options(parser, pgroup, True)
     
     group = OptionGroup(parser, "Alignment Parameters", "Options controlling alignment", group_order=0,  id=__name__)
-    group.add_option("",   max_ref_proj=300,       help="Maximum number of reference projections in memory")
+    group.add_option("",   max_ref_proj=300,       help="Maximum number of reference projections in memory", gui=dict(minimum=10))
     group.add_option("",   use_apsh=False,         help="Set True to use AP SH instead of AP REF (trade speed for accuracy)")
     group.add_option("",   use_flip=False,         help="Use the phase flipped stack for alignment")
     pgroup.add_option_group(group)
