@@ -242,19 +242,19 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
     :Parameters:
     
     array : array_like
-        Array to which the rolling window is applied.
+            Array to which the rolling window is applied.
     window : int or tuple
-        Either a single integer to create a window of only the last axis or a
-        tuple to create it for the last len(window) axes. 0 can be used as a
-        to ignore a dimension in the window.
+             Either a single integer to create a window of only the last axis or a
+             tuple to create it for the last len(window) axes. 0 can be used as a
+             to ignore a dimension in the window.
     asteps : tuple
-        Aligned at the last axis, new steps for the original array, ie. for
-        creation of non-overlapping windows.
+             Aligned at the last axis, new steps for the original array, ie. for
+             creation of non-overlapping windows.
     wsteps : int or tuple (same size as window)
-        steps inside the window this can be 0 to repeat along the axis.
+             steps inside the window this can be 0 to repeat along the axis.
     intersperse : bool
-        If True, the new dimensions are right after the corresponding original
-        dimension, instead of at the end of the array.
+                  If True, the new dimensions are right after the corresponding original
+                  dimension, instead of at the end of the array.
 
     :Returns:
     
@@ -262,59 +262,57 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
           A view on `array` which is smaller to fit the windows and has windows added
           dimensions (0s not counting), ie. every point of `array` is an array of size
           window.
-
+    
     Examples:
     
-    >>> a = numpy.arange(16).reshape(4,4)
-    >>> rolling_window(a, (2,2))[0:2,0:2]
-    array([[[[ 0,  1],
-             [ 4,  5]],
-
-            [[ 1,  2],
-             [ 5,  6]]],
-
-
-           [[[ 4,  5],
-             [ 8,  9]],
-
-            [[ 5,  6],
-             [ 9, 10]]]])
+        >>> a = numpy.arange(16).reshape(4,4)
+        >>> rolling_window(a, (2,2))[0:2,0:2]
+        array([[[[ 0,  1],
+                 [ 4,  5]],
+    
+                [[ 1,  2],
+                 [ 5,  6]]],
+    
+    
+               [[[ 4,  5],
+                 [ 8,  9]],
+    
+                [[ 5,  6],
+                 [ 9, 10]]]])
 
     Or to create non-overlapping windows, but only along the first dimension:
-    >>> rolling_window(a, (2,0), asteps=(2,1))
-    array([[[ 0,  4],
-            [ 1,  5],
-            [ 2,  6],
-            [ 3,  7]],
-
-           [[ 8, 12],
-            [ 9, 13],
-            [10, 14],
-            [11, 15]]])
+        >>> rolling_window(a, (2,0), asteps=(2,1))
+        array([[[ 0,  4],
+                [ 1,  5],
+                [ 2,  6],
+                [ 3,  7]],
+    
+               [[ 8, 12],
+                [ 9, 13],
+                [10, 14],
+                [11, 15]]])
     Note that the 0 is discared, so that the output dimension is 3:
-    >>> rolling_window(a, (2,0), asteps=(2,1)).shape
-    (2, 4, 2)
+        >>> rolling_window(a, (2,0), asteps=(2,1)).shape
+        (2, 4, 2)
 
     This is useful for example to calculate the maximum in all 2x2 submatrixes:
-    >>> rolling_window(a, (2,2), asteps=(2,2)).max((2,3))
-    array([[ 5,  7],
-           [13, 15]])
+        >>> rolling_window(a, (2,2), asteps=(2,2)).max((2,3))
+        array([[ 5,  7],
+               [13, 15]])
 
     Or delay embedding (3D embedding with delay 2):
-    >>> x = numpy.arange(10)
-    >>> rolling_window(x, 3, wsteps=2)
-    array([[0, 2, 4],
-           [1, 3, 5],
-           [2, 4, 6],
-           [3, 5, 7],
-           [4, 6, 8],
-           [5, 7, 9]])
-    
+        >>> x = numpy.arange(10)
+        >>> rolling_window(x, 3, wsteps=2)
+        array([[0, 2, 4],
+               [1, 3, 5],
+               [2, 4, 6],
+               [3, 5, 7],
+               [4, 6, 8],
+               [5, 7, 9]])
     
     .. note::
     
         Taken from: https://github.com/numpy/numpy/pull/31
-        
     """
     array = numpy.asarray(array)
     orig_shape = numpy.asarray(array.shape)
@@ -420,7 +418,7 @@ def powerspec_avg(imgs, pad):
     avg = None
     for img in imgs:
         pad_width = img.shape[0]*pad
-        fimg = scipy.fftpack.fft2(ndimage_utility.pad_image(img, (pad_width, pad_width)))
+        fimg = scipy.fftpack.fft2(pad_image(img, (pad_width, pad_width)))
         if avg is None: avg = fimg.copy()
         else: avg += fimg
     return scipy.fftpack.fftshift(avg).real

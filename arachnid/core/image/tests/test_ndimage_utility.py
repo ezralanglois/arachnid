@@ -40,6 +40,7 @@ def powerspec_avg():
     
     orig = numpy.random.rand(50,50,10)
     avg = ndimage_utility.powerspec_avg(orig, 64)
+    avg;
 
 def test_biggest_object():
     '''
