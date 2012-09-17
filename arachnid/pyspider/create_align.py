@@ -89,7 +89,7 @@ This is not a complete list of options available to this script, for additional 
 
 from ..core.metadata import format, spider_utility, format_utility
 from ..core.image import ndimage_file
-import numpy, logging
+import numpy, logging, glob, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -247,7 +247,7 @@ def create_stack_label(files, stack_select, stack_header, **extra):
         label[:, 0] = numpy.arange(1, len(label)+1)
     return label
 
-def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1", **extra):
+def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1", data_ext="", **extra):
     '''Parsing a selection that maps each micrograph to its defocus_file
     
     .. Order=-1
@@ -258,6 +258,8 @@ def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1"
                Defocus selection file
     defocus_file_header : str
                      Header describing SPIDER document file `defocus_file`
+    data_ext : str
+               SPIDER project extension for data file
     extra : dict
             Unused keyword arguments
     
@@ -268,6 +270,12 @@ def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1"
     '''
     
     if defocus_file == "": return {}
+    if not os.path.exists(defocus_file):
+        if data_ext == "":
+            f = glob.glob(defocus_file+".???")
+            if len(f) == 1: defocus_file = f[0]
+            else: raise ValueError, "Defocus file requires extension: %s"%str(f)
+        else: defocus_file += "."+data_ext
     defocus_file_dict = format.read(defocus_file, header=defocus_file_header, numeric=True)
     defocus_file_dict = format_utility.map_object_list(defocus_file_dict)
     for key in defocus_file_dict.iterkeys():
