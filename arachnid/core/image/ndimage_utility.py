@@ -3,6 +3,8 @@
 This module contains a set of image enhancement functions using NumPy, SciPy and 
 custom wrapped fortran functions (taken from SPIDER).
 
+.. todo:: automatic inversion detection? for defocus? based on ctf
+
 .. Created on Jul 31, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''

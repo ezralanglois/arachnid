@@ -391,16 +391,19 @@ def read_image(filename, index=None, header=None):
           Array with image information from the file
     '''
     
+    idx = 0 if index is None else index
     f = _open(filename, 'r')
     try:
-        if index is None: index = 0
         h = read_mrc_header(f)
         if header is not None: _update_header(header, h, mrc2ara, 'mrc')
         count = count_images(h)
-        if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
-        d_len = h['nx'][0]*h['ny'][0]
+        if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
+        if index is None and count == h['nx'][0]:
+            d_len = h['nx'][0]*h['ny'][0]*h['nz'][0]
+        else:
+            d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        offset = 1024 + index * d_len * dtype.itemsize;
+        offset = 1024 + idx * d_len * dtype.itemsize;
         f.seek(offset)
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
         if index is None and int(h['nz'][0]) > 1:   out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
