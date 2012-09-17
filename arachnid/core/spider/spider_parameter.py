@@ -5,7 +5,10 @@
 '''
 
 import spider_var
-import os
+import os, logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def is_incore_filename(filename):
     '''Test if the given filename refers to a spider incore file
@@ -99,7 +102,7 @@ def spider_stack(filename, size=None):
             filename = os.path.splitext(filename)[0]
     if filename.find('@') == -1: filename += '@'
     if size is not None and size > 0 and filename[-1] != '*':
-        filename = filename.rjust(len(str(size)), '*')
+        filename = filename.ljust(len(str(size))+len(filename), '*')
     return filename
 
 def spider_select(filename):
