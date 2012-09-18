@@ -2763,7 +2763,8 @@ def open_session(args, spider_path="", data_ext="", thread_count=0, enable_resul
     if args is not None and len(args) > 0:
         tmp_ext = os.path.splitext(args[0])[1][1:]
         if data_ext != tmp_ext and data_ext == "":
-            _logger.warn("Changing Spider data extension from %s to %s"%(data_ext, tmp_ext))
+            if rank is None or rank == 0:
+                _logger.warn("Changing Spider data extension from %s to %s"%(data_ext, tmp_ext))
             data_ext = tmp_ext
         elif data_ext == "": data_ext = 'spi'
     return Session(spider_path, data_ext, thread_count, enable_results, rank, local_temp)
@@ -2841,7 +2842,7 @@ def enumerate_stack(inputfile, selection, outputfile=None):
     if isinstance(inputfile, dict):
         if outputfile is None:
             for fid, index in selection: 
-                yield (inputfile[int(fid)], int(index+1)) 
+                yield (inputfile[int(fid)], int(index)) 
         else:
             for j, index in enumerate(selection): 
                 fid, index = index
@@ -2934,6 +2935,10 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
             copy_interpolate(session, inputfile, selection, outputfile, window)
         else:
             copy(session, inputfile, selection, outputfile)
+        stack_count,  = session.fi_h(spider_stack(outputfile), ('MAXIM', ))
+        if stack_count == 0: 
+            import socket
+            raise ValueError, "No images copied for %s"%socket.gethostname()
         return True
     return False
 
@@ -2979,8 +2984,10 @@ def copy_interpolate(session, inputfile, selection, outputfile, window):
     '''
     
     session.de(outputfile)
+    tempout = None
     for inputfile, outputfile in enumerate_stack(inputfile, selection, outputfile):
-        session.ip(inputfile, (window, window), outputfile=outputfile)
+        tempout=session.ip(inputfile, (window, window), outputfile=tempout)
+        session.cp(tempout, outputfile=outputfile)
 
 def copy(session, inputfile, selection, outputfile):
     ''' Copy a set of stacks to an output stack
