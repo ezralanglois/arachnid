@@ -255,22 +255,24 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
                 Masked power spectra
     '''
     
-    if ps_radius == 0: return power_spec
-    x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
-    x_cent, y_cent = (x_size/2+1, y_size/2+1)
-    if z_size > 1:
-        center = (x_cent, y_cent, z_size/2+1)
-        p_val = spi.gp(power_spec, (x_cent+10, 5, 5))
-    else: 
-        center = (x_cent, y_cent)
-        p_val = spi.gp(power_spec, (x_cent+10, 5))
-    mask_radius = int((2*float(apix)/ps_radius)*x_size)
-    if ps_outer > 0: ps_outer=x_cent-ps_outer
-    power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
-    if output_pow != "": spi.cp(power_spec, output_pow)
+    spi.du(power_spec, 4, 3)
+    if 1 == 0:
+        if ps_radius == 0: return power_spec
+        x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
+        x_cent, y_cent = (x_size/2+1, y_size/2+1)
+        if z_size > 1:
+            center = (x_cent, y_cent, z_size/2+1)
+            p_val = spi.gp(power_spec, (x_cent+10, 5, 5))
+        else: 
+            center = (x_cent, y_cent)
+            p_val = spi.gp(power_spec, (x_cent+10, 5))
+        mask_radius = int((2*float(apix)/ps_radius)*x_size)
+        if ps_outer > 0: ps_outer=x_cent-ps_outer
+        power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
+        if output_pow != "": spi.cp(power_spec, output_pow)
     return power_spec
 
-def create_powerspectra(filename, spi, use_powerspec=False, pad=1, du_nstd=[], du_type=3, **extra):
+def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], du_type=3, **extra):
     ''' Calculate the power spectra from the given file
     
     :Parameters:
@@ -356,7 +358,7 @@ def periodogram(spi, win, swin, tmp, pad=1024, du_nstd=[], du_type=3):
     swin = spi.ad(win2, swin, outputfile=swin)
     return swin, tmp
 
-def for_window_in_micrograph(spi, filename, window_size=500, x_overlap=50, y_overlap=50, x_dist=0, y_dist=0, bin_factor=None, **extra):
+def for_window_in_micrograph(spi, filename, window_size=512, x_overlap=50, y_overlap=50, x_dist=0, y_dist=0, bin_factor=None, **extra):
     ''' Window out successive sliding windows along the micrograph
     
     :Parameters:
@@ -575,7 +577,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     setup_options_from_doc(parser, create_powerspectra, mask_power_spec, for_window_in_micrograph, group=pgroup)# classes=spider.Session
     if main_option:
         setup_options_from_doc(parser, spider.open_session)
-        parser.change_default(thread_count=4, log_level=3)
+        parser.change_default(thread_count=4, log_level=3, bin_factor=2)
 
 def check_options(options, main_option=False):
     #Check if the option values are valid

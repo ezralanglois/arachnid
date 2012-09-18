@@ -344,7 +344,7 @@ def align_projections_sm(spi, ap_sel, align, reference, angle_doc, angle_num, of
     for i in xrange(len(align)):
         spi.vo_ras(angle_doc, angle_num, (-align[i, 2], -align[i, 1], -align[i, 0]), outputfile=angle_rot)
         spi.pj_3q(reference, angle_rot, (1, angle_num), outputfile=reference_stack, **extra)
-        ap_sel(input_stack, (offset+1,offset+1), reference, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
+        ap_sel(input_stack, (offset+1,offset+1), reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
         vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True))
         align[i, :4] = vals[0, :4]
         align[i, 5:15] = vals[0, 5:]
@@ -381,9 +381,6 @@ def align_projections_by_defocus_sm(spi, ap_sel, align, reference, angle_doc, an
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
-        if len(align[proj_beg-1:proj_end-1]) <= 0:
-            _logger.error("%d : %d"%(proj_beg-1, proj_end-1))
-        assert(len(align[proj_beg-1:proj_end-1]) > 0)
         align_projections_sm(spi, ap_sel, align[proj_beg-1:proj_end-1], dreference, angle_doc, angle_num, proj_beg-1, **extra)
         proj_beg = proj_end
     
@@ -418,10 +415,6 @@ def align_projections_by_defocus(spi, ap_sel, align, reference, angle_doc, angle
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
-        if len(align[proj_beg-1:proj_end-1]) <= 0 or proj_end < proj_beg:
-            _logger.error("%d : %d"%(proj_beg, proj_end))
-            _logger.error("%s"%str(defocus_offset))
-        assert(len(align[proj_beg-1:proj_end-1]) > 0 and proj_beg < proj_end)
         align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end-1], dreference, angle_doc, angle_rng, **extra)
         proj_beg = proj_end
 
@@ -458,8 +451,13 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, ang
     tmp_align = format_utility.add_prefix(cache_file, "align_")
     for i in xrange(1, angle_rng.shape[0]):
         angle_num = (angle_rng[i]-angle_rng[i-1])
+        stack_count1,  = spi.fi_h(spider.spider_stack(reference_stack), ('MAXIM', ))
         spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
-        ap_sel(input_stack, inputselect, reference, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
+        stack_count,  = spi.fi_h(spider.spider_stack(reference_stack), ('MAXIM', ))
+        if stack_count != angle_num:
+            _logger.error("(%d) %d == %d -- %d, %d"%(stack_count1, stack_count, angle_num, angle_rng[i-1]+1, angle_rng[i]))
+        assert(stack_count==angle_num)
+        ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
         vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True))
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
         align[sel, :4] = vals[sel, :4]
@@ -520,6 +518,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-r", reference="",   help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
+        setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
     
     group = OptionGroup(parser, "Alignment Parameters", "Options controlling alignment", group_order=0,  id=__name__)
@@ -528,7 +527,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   use_flip=False,         help="Use the phase flipped stack for alignment")
     pgroup.add_option_group(group)
     
-    setup_options_from_doc(parser, 'pj_3q', 'vo_ea', 'ap_sh', classes=spider.Session, group=pgroup)
+    group = OptionGroup(parser, "Other Parameters", "Options controlling alignment", group_order=0,  id=__name__)
+    setup_options_from_doc(parser, 'pj_3q', 'vo_ea', 'ap_sh', classes=spider.Session, group=group)
+    pgroup.add_option_group(group)
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
 

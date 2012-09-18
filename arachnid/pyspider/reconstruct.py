@@ -494,6 +494,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-a", alignment="",   help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
+        
+        setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
     pgroup.add_option("",   phase_flip=False,       help="Set to True if your data stack(s) has already been phase flipped or CTF corrected")
 
@@ -502,9 +504,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     rgroup.add_option("",   sym=('c1',),                            help="Symmetry for the reconstruction")
     rgroup.add_option("",   mult_ctf=False,                         help="Multiply by the CTF rather than phase flip before backprojection")
     rgroup.add_option("",   engine=('MPI_nn4', 'BPCG', 'BP32F'),    help="Type of reconstruction engine to use", default=0)
+    setup_options_from_doc(parser, 'bp_cg_3', classes=spider.Session, group=rgroup)
     pgroup.add_option_group(rgroup)
     
-    setup_options_from_doc(parser, 'bp_cg_3', classes=spider.Session, group=pgroup)
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
     
