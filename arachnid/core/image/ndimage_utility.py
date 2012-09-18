@@ -940,6 +940,7 @@ def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
     vmin = numpy.min(img)
     vmax = numpy.max(img)
     
+    '''
     avg1, std1, vmin1, vmax1 = avg, std, vmin, vmax
     start = int( max((vmax-avg)/std, (avg-vmin)/std) )
     for nstd in xrange(start, int(min(abs(dust_sigma), xray_sigma))-1, -1):
@@ -948,14 +949,17 @@ def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
         sel = numpy.logical_and(avg > lcut, avg < hcut)
         avg = numpy.mean(img[sel])
         std = numpy.std(img[sel])
+    '''
     
+    if xray_sigma == 0: xray_sigma=dust_sigma if dust_sigma > 0 else -dust_sigma
     if dust_sigma > 0: dust_sigma = -dust_sigma
-    if xray_sigma == 0: xray_sigma=dust_sigma
-    if ((vmin1 - avg1) / std1) < dust_sigma:
-        sel = ((img - avg)/std) < dust_sigma
+    lcut = avg+std*dust_sigma
+    hcut = avg+std*xray_sigma
+    if vmin < lcut:
+        sel = img < lcut
         out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
-    if ((vmax1 - avg1) / std1) > xray_sigma:
-        sel = ((img - avg)/std) > xray_sigma
+    if vmax > hcut:
+        sel = img > hcut
         out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
     
     return out
