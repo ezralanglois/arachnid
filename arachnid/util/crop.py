@@ -175,10 +175,9 @@ def process(filename, output="", id_len=0, **extra):
     '''
     
     try: coords = read_coordinates(fileid=filename, id_len=id_len, **extra)
-    except: return filename
+    except: return filename, 0
     
     fid = spider_utility.spider_id(filename, id_len)
-    _logger.info("Processing: %d with %d windows"%(fid, len(coords)))
     mic_out = spider_utility.spider_filename(output, fid)
     mic = read_micrograph(filename, **extra)    
     norm_mask=extra['mask']*-1+1
@@ -202,7 +201,7 @@ def process(filename, output="", id_len=0, **extra):
         else:
             image_writer.write_image(mic_out, win, index)
         index += 1
-    return filename
+    return filename, len(coords)
 
 def test_coordinates(npmic, coords, bin_factor):
     ''' Test if the coordinates cover the micrograph properly
@@ -514,6 +513,7 @@ def initialize(files, param):
             _logger.info("Dedust: %d"%param['clamp_window'])
             _logger.info("Histogram matching")
             if not param['disable_normalize']: _logger.info("Normalize (xmipp style)")
+        param['count'] = numpy.zeros(1, dtype=numpy.int)
     
     if param['noise'] == "":
         if isinstance(files[0], tuple): files = files[0]
@@ -532,8 +532,17 @@ def initialize(files, param):
     param['emdata'] = eman2_utility.EMAN2.EMData()
     return files
 
-def finalize(files, **extra):
+def reduce_all(val, count, **extra):
+    # Process each input file in the main thread (for multi-threaded code)
+
+    filename, total = val
+    count[0]+= total
+    _logger.info("Finished Processing: %d with %d windows - %d windows in total"%(spider_utility.spider_id(filename), count, count[0]))
+    return filename
+
+def finalize(files, count, **extra):
     # Finalize global parameters for the script
+    _logger.info("Extracted %d windows"%count[0])
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):
