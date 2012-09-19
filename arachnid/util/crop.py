@@ -516,16 +516,18 @@ def initialize(files, param):
         param['count'] = numpy.zeros(2, dtype=numpy.int)
     
     if mpi_utility.is_root(**param):
-        if not spider_utility.is_spider_filename(param['selection_doc']) and os.path.exists(param['selection_doc']):
-            _logger.info("Assuming %s is a micrograph selection file"%param['selection_doc'])
+        selection_doc = format_utility.parse_header(param['selection_doc'])[0]
+        if not spider_utility.is_spider_filename(selection_doc) and os.path.exists(selection_doc):
             select = format.read(param['selection_doc'], numeric=True)
+            file_count = len(files)
             if len(select) > 0:
                 filename = files[0]
                 files = []
                 for s in select:
-                    files.append(spider_utility.spider_filename(files[0], s.id))
+                    files.append(spider_utility.spider_filename(filename, s.id))
+            _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_doc, len(files), file_count))
                 
-    files = mpi_utility.broadcast(files, **extra)
+    files = mpi_utility.broadcast(files, **param)
     
     if param['noise'] == "":
         if isinstance(files[0], tuple): files = files[0]
