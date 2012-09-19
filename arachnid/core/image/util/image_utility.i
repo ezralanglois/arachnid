@@ -72,7 +72,7 @@ DECLARE_DATA_TYPE(unsigned long long)
 //%template(f_name)   f_name<itype,int>;
 %template(f_name)   f_name<itype,float>;
 %template(f_name)   f_name<itype,double>;
-%template(f_name)   f_name<itype,long double>;
+%template(f_name)   f_name<itype,long double>; // bug in version 11 of pgi compiler fixed in 11.6
 %enddef
 
 %define INSTANTIATE_ALL( f_name )

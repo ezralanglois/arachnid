@@ -31,9 +31,9 @@ void rotavg(T* out, int onx, int ony, int onz, T* avg, int na, int rmax)
 
 	int lz=(onz/2+onz%2), ly=(ony/2+ony%2), lx=(onx/2+onx%2);
 #	if defined(_OPENMP_3_0)
-#	pragma omp parallel for reduction(+: padded, padcnt) collapse(3)
+#	pragma omp parallel for collapse(3)
 #	elif defined(_OPENMP)
-#	pragma omp parallel for reduction(+: padded, padcnt)
+#	pragma omp parallel for
 #	endif
 	for(int z=-onz/2;z<lz;++z)
 	{

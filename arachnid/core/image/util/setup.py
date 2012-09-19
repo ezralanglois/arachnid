@@ -8,6 +8,7 @@ This setup file defines a build script for C/C++ or Fortran extensions.
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
+    import os
     config = Configuration('util', parent_package, top_path)
     if 1 == 1:
         config.add_library('spider_util', sources=['spider_lib.f90'],  define_macros=[('SP_LIBFFTW3', 1)])
@@ -18,7 +19,7 @@ def configuration(parent_package='',top_path=None):
 
     config.add_extension('_spider_util', sources=['spider_util.f90'], libraries=['spider_util'])
     config.add_extension('_image_utility', sources=['image_utility.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['image_utility.h'], swig_opts=['-c++'])
-    #config.add_include_dirs('')
+    config.add_include_dirs(os.path.dirname(__file__))
     return config
 
 if __name__ == '__main__':
