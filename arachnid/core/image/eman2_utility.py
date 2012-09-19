@@ -208,6 +208,36 @@ def numpy2em(im):
     except:
         return EMAN2.EMNumPy.numpy2em(im)
 
+def fsc(img1, img2, complex=False):
+    ''' Estimate the Fourier shell correlation between two images
+    
+    :Parameters:
+    
+    img1 : array
+           Image
+    img2 : array
+           Image
+    complex : bool
+              Set true if images are complex
+    
+    :Returns:
+    
+    fsc : array
+          Fourier shell correlation curve: (0) spatial frequency (1) FSC
+    '''
+    
+    if not is_em(img1): img1 = numpy2em(img1)
+    if not is_em(img2): img2 = numpy2em(img2)
+    if complex:
+        img1.set_attr('is_complex', 1)
+        img2.set_attr('is_complex', 1)
+    res = img1.calc_fourier_shell_correlation(img2, 1.0)
+    res = numpy.asarray(res).reshape((3, len(res)/3)).T
+    #sel = numpy.abs(res[:, 1]-0.5)
+    #sp = res[sel.argmin(), 0]
+    #resolution = apix*bin_factor/sp
+    return res
+
 def ramp(img, inplace=True):
     '''Remove change in illumination across an image
     
