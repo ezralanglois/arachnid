@@ -203,26 +203,41 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
-        x, y = vals[:, 1], vals[:, 3]
-        coeff = fit_sigmoid(x, y)
-        #err = numpy.sum(numpy.abs(y-sigmoid(coeff, x)))
-        #_logger.info("Fit error: %f"%err)
-        pylab.clf()
-        pylab.plot(x, sigmoid(coeff, x), 'g.')
-        markers=['r--', 'b--']
-        for i, yp in enumerate([0.5, 0.14]):
-            xp = sigmoid_inv(coeff, yp)
-            pylab.plot((vals[0, 1], xp), (yp, yp), markers[i])
-            pylab.plot((xp, xp), (0.0, yp), markers[i])
-            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, extra['apix']/xp))
-        
-        pylab.plot(x, y)
-        pylab.axis([0.0,0.5, 0.0,1.0])
-        pylab.xlabel('Normalized Frequency')
-        pylab.ylabel('Fourier Shell Correlation')
-        pylab.title('Fourier Shell Correlation')
-        pylab.savefig(format_utility.add_prefix(os.path.splitext(outputfile)[0]+".png", "plot_"))
+        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'])
     return sp
+
+def plot_fsc(outputfile, x, y, apix):
+    '''Write a resolution image plot to a file
+    
+    :Parameters:
+    
+    outputfile : str
+                 Output filename for FSC plot image
+    x : array
+        Spatial frequency
+    y : array
+        FSC score
+    apix : float
+           Pixel size
+    '''
+    
+    if pylab is None: return 
+    coeff = fit_sigmoid(x, y)
+    pylab.clf()
+    pylab.plot(x, sigmoid(coeff, x), 'g.')
+    markers=['r--', 'b--']
+    for i, yp in enumerate([0.5, 0.14]):
+        xp = sigmoid_inv(coeff, yp)
+        pylab.plot((x[0], xp), (yp, yp), markers[i])
+        pylab.plot((xp, xp), (0.0, yp), markers[i])
+        pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, apix/xp))
+    
+    pylab.plot(x, y)
+    pylab.axis([0.0,0.5, 0.0,1.0])
+    pylab.xlabel('Normalized Frequency')
+    pylab.ylabel('Fourier Shell Correlation')
+    pylab.title('Fourier Shell Correlation')
+    pylab.savefig(os.path.splitext(outputfile)[0]+".png")
 
 def fit_sigmoid(x, y):
     ''' Use non-linear least squares to fit x and y to a sigmoid-like function
