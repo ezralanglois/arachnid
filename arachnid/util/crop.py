@@ -513,7 +513,19 @@ def initialize(files, param):
             _logger.info("Dedust: %d"%param['clamp_window'])
             _logger.info("Histogram matching")
             if not param['disable_normalize']: _logger.info("Normalize (xmipp style)")
-        param['count'] = numpy.zeros(1, dtype=numpy.int)
+        param['count'] = numpy.zeros(2, dtype=numpy.int)
+    
+    if mpi_utility.is_root(**param):
+        if not spider_utility.is_spider_filename(param['selection_doc']) and os.path.exists(param['selection_doc']):
+            _logger.info("Assuming %s is a micrograph selection file"%param['selection_doc'])
+            select = format.read(param['selection_doc'], numeric=True)
+            if len(select) > 0:
+                filename = files[0]
+                files = []
+                for s in select:
+                    files.append(spider_utility.spider_filename(files[0], s.id))
+                
+    files = mpi_utility.broadcast(files, **extra)
     
     if param['noise'] == "":
         if isinstance(files[0], tuple): files = files[0]
@@ -537,7 +549,8 @@ def reduce_all(val, count, **extra):
 
     filename, total = val
     count[0]+= total
-    _logger.info("Finished Processing: %d with %d windows - %d windows in total"%(spider_utility.spider_id(filename), count, count[0]))
+    count[1]+= 1
+    _logger.info("Finished Processing: %d with %d windows - %d windows in total in %d files"%(spider_utility.spider_id(filename), total, count[0], count[1]))
     return filename
 
 def finalize(files, count, **extra):
