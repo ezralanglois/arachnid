@@ -12,12 +12,21 @@ try:
     pylab;
 except: pylab=None
 
+def test_rotavgl():
+    '''
+    '''
+    
+    orig = numpy.random.rand(50,50)
+    rot = ndimage_utility.rotavg(orig)
+    rot;
+
 def test_mean_azimuthal():
     '''
     '''
     
     orig = numpy.random.rand(50,50)
     rot = ndimage_utility.mean_azimuthal(orig)
+    assert(rot.ndim == 1 or rot.shape[1]==1)
     rot;
 
 def test_rolling_window():

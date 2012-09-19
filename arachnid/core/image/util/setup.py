@@ -17,6 +17,7 @@ def configuration(parent_package='',top_path=None):
                            extra_f77_compile_args=['-x f95-cpp-input', '-fopenmp', '-D__OPENMP'])
 
     config.add_extension('_spider_util', sources=['spider_util.f90'], libraries=['spider_util'])
+    config.add_extension('_image_utility', sources=['image_utility.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['image_utility.h'], swig_opts=['-c++'])
     #config.add_include_dirs('')
     return config
 

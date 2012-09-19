@@ -34,6 +34,22 @@ except:
         _spider_util;
     except:
         tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+
+try: 
+    from util import _image_utility
+    _image_utility;
+except:
+    if _logger.isEnabledFor(logging.DEBUG):
+        tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
+    try:
+        import _image_utility
+        _image_utility;
+    except:
+        tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
+
+
+
+
 """
 @_em2numpy2res
 def find_peaks(cc, width):
@@ -57,6 +73,33 @@ def find_peaks(cc, width):
     peaks = numpy.unravel_index(peaks, cc.shape)
     return numpy.hstack((ccv[:, numpy.newaxis], peaks))
 """
+
+def rotavg(img, out=None):
+    ''' Create a 2D rotational average of the given image
+    
+    :Parameters:
+    
+    img : array
+          Image to rotationally average
+    out : array
+          Output rotationally averaged image
+    
+    :Returns:
+    
+    out : array
+          Output rotationally averaged image
+    '''
+    
+    img = numpy.asanyarray(img)
+    if img.ndim != 2: raise ValueError, "Input array must be 2D"
+    if out is None: out = img.copy()
+    avg = mean_azimuthal(img)
+    rmax = min(img.shape[0]/2 + img.shape[0]%2, img.shape[1]/2 + img.shape[1]%2)
+    if img.ndim > 2: rmax = min(rmax, img.shape[2]/2 + img.shape[2]%2)
+    if out.ndim==2: out=out.reshape((out.shape[0], out.shape[1], 1))
+    _image_utility.rotavg(out, avg, rmax)
+    if out.shape[2] == 1: out = out.reshape((out.shape[0], out.shape[1]))
+    return out
 
 def mean_azimuthal(img, center=None):
     ''' Calculate the sum of a 2D array along the azimuthal
