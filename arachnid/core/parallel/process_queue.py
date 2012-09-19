@@ -442,9 +442,7 @@ def worker_all(qin, qout, worker_callback, init_process=None, **extra):
                 if hasattr(qin, "task_done"):  qin.task_done()
                 break
             index, val = val
-            _logger.error("start - %s"%str(val))
             outval = worker_callback(val, **extra)
-            _logger.error("end - %s"%str(val))
             qout.put((index, outval))
             if hasattr(qin, "task_done"): qin.task_done()
     except:
