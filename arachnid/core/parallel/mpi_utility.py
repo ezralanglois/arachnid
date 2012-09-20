@@ -27,6 +27,55 @@ def hostname():
     
     return socket.gethostname()
 
+def gather_array(vals, curvals=None, comm=None, **extra):
+    ''' Gather a distributed array to the root node
+    
+    :Parameters:
+        
+    vals : int
+            Total number of value to process
+    curvals : int
+              Rank of the sender
+    comm : mpi4py.MPI.Intracomm
+           MPI communications object
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    if comm is not None:
+        #_logger.error("Start gather for node %d - %s"%(comm.Get_rank(), socket.gethostname()))
+        if 1 == 1:
+            size = comm.Get_size()
+            rank = comm.Get_rank()
+            if curvals is None:
+                b, e = mpi_range(len(vals), rank, comm)
+                curvals = vals[b:e]
+            if comm.Get_rank() > 0:
+                comm.Send([curvals, MPI.DOUBLE], dest=0, tag=1)
+            else:
+                b, e = mpi_range(len(vals), rank, comm)
+                vals[b:e] = curvals
+                for node in xrange(1, size):
+                    b, e = mpi_range(len(vals), node, comm)
+                    comm.Recv([vals[b:e], MPI.DOUBLE], source=node, tag=1)
+        else:
+            size = comm.Get_size()
+            '''
+            counts = data_range(len(vals), size, vals.shape[1])
+            if curvals is None:
+                b, e = mpi_range(len(vals), comm.Get_rank(), comm)
+                curvals = vals[b:e]
+            curvals = curvals.ravel()
+            vals = vals.ravel()
+            assert(len(curvals) == counts[comm.Get_rank()])
+            assert(numpy.sum(counts) == len(vals))
+            
+            #comm.Allgatherv(sendbuf=[curvals, MPI.DOUBLE], recvbuf=[vals, (counts, None), MPI.DOUBLE])
+            _logger.debug("Gather-started: %s"%str(counts))
+            comm.Gatherv(sendbuf=[curvals, MPI.DOUBLE], recvbuf=[vals, (counts, None), MPI.DOUBLE])
+            _logger.debug("Gather-finished")
+            '''
+
 def mpi_range(total, rank=None, comm=None, **extra):
     '''Range of values to process for the current node
     
@@ -229,6 +278,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
         try:
             for index, res in process_tasks.process_mp(process, vals, **extra):
                 #_logger.debug("client-processing: %d of %d-%d -- %d"%(index, rank, size-1,offset))
+                if len(vals) == 0: raise ValueError, "An unknown error as occurred"
                 if rank > 0:
                     index += offset
                     lenbuf[0, 0] = index
