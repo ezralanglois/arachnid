@@ -16,6 +16,27 @@ except:
     EMAN2 = None
 import numpy
 
+def model_circle(rad, x, y):
+    ''' Create a model circle
+    
+    :Parameters:
+    
+    rad : int
+          Radius
+    x : int
+        Width of the image
+    y : int
+        Height of the image
+        
+    :Returns:
+    
+    model : array
+            Image with disk of radius `rad`
+    '''
+    
+    emdata =  utilities.model_circle(rad, x, y)
+    return em2numpy(emdata).copy()
+
 def em2numpy2em(fn):
     ''' Convert the first argument from EMData to ndarray and convert result
     from ndarray to EMData only if the input is EMData.
