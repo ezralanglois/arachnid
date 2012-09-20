@@ -228,9 +228,11 @@ def plot_fsc(outputfile, x, y, apix):
     markers=['r--', 'b--']
     for i, yp in enumerate([0.5, 0.14]):
         xp = sigmoid_inv(coeff, yp)
-        pylab.plot((x[0], xp), (yp, yp), markers[i])
-        pylab.plot((xp, xp), (0.0, yp), markers[i])
-        pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, apix/xp))
+        if numpy.alltrue(numpy.isfinite(xp)):
+            pylab.plot((x[0], xp), (yp, yp), markers[i])
+            pylab.plot((xp, xp), (0.0, yp), markers[i])
+            res = 0 if xp == 0 else apix/xp
+            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, res))
     
     pylab.plot(x, y)
     pylab.axis([0.0,0.5, 0.0,1.0])
