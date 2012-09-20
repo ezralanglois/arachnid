@@ -1135,8 +1135,16 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("setValue Qstring")
-        if value.isValid():
-            Property.setValue(self, str(value.toString()))
+        if not hasattr(value, 'isValid'):
+            Property.setValue(self, str(value))
+        elif value.isValid():
+            if value.type() == QtCore.QVariant.String:
+                Property.setValue(self, str(value.toString()))
+            elif value.type() == QtCore.QVariant.StringList:
+                value = [str(s) for s in value]
+                Property.setValue(self, value)
+            else:
+                raise ValueError, "bug: %s -- %"%(str(value.typeName()), str(value))
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role

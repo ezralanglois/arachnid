@@ -234,7 +234,10 @@ class FileDialogWidget(DialogWidget):
         '''
         
         _logger.debug("Show dialog %s"%self.filetype)
-        if self.filetype == 'open':
+        if self.filetype == 'file-list':
+            filenames = QtGui.QFileDialog.getOpenFileNames(None, 'Open files', self.path, self.filter)
+            filename = ",".join([str(f) for f in filenames])
+        elif self.filetype == 'open':
             filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', self.path, self.filter)
         else:
             filename = QtGui.QFileDialog.getSaveFileName(None, 'Save file', self.path, self.filter)
@@ -248,6 +251,8 @@ class FileDialogWidget(DialogWidget):
         '''
         
         filename = str(self.field.text())
+        if self.filetype == 'file-list' and filename.find(',') != -1:
+            filename = filename.split(",")[0]
         if not os.path.isdir(filename):
             self.path = os.path.dirname(str(filename))
         else: self.path = filename
@@ -255,7 +260,7 @@ class FileDialogWidget(DialogWidget):
             self.field.setText("")
             self.showDialog()
         else:
-            self.filename = filename
+            self.filename = str(self.field.text())
             self.editFinished.emit()
     
     def setCurrentFilename(self, filename):
