@@ -1897,10 +1897,10 @@ class Session(spider_session.Session):
                          Filename of output image
         '''
         
-        input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
+        input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
         assert(count > 1)
         if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
-        session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(count), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
+        session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
         return outputfile
         
     def sd_e(session, outputfile, **extra):
