@@ -97,7 +97,9 @@ def rotavg(img, out=None):
     rmax = min(img.shape[0]/2 + img.shape[0]%2, img.shape[1]/2 + img.shape[1]%2)
     if img.ndim > 2: rmax = min(rmax, img.shape[2]/2 + img.shape[2]%2)
     if out.ndim==2: out=out.reshape((out.shape[0], out.shape[1], 1))
-    _image_utility.rotavg(out, avg, rmax)
+    avg = avg.astype(out.dtype)
+    assert(rmax <= avg.shape[0])
+    _image_utility.rotavg(out, avg, int(rmax))
     if out.shape[2] == 1: out = out.reshape((out.shape[0], out.shape[1]))
     return out
 
@@ -469,7 +471,6 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
 
     return numpy.lib.stride_tricks.as_strided(array, shape=new_shape, strides=new_strides)
 
-
 def powerspec_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
     
@@ -488,12 +489,18 @@ def powerspec_avg(imgs, pad):
     
     if pad is None or pad <= 0: pad = 1
     avg = None
+    total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
-        fimg = scipy.fftpack.fft2(pad_image(img, (pad_width, pad_width)))
+        fimg = fftamp(pad_image(img, (pad_width, pad_width)))
+        #fimg = scipy.fftpack.fft2(pad_image(img, (pad_width, pad_width)))
         if avg is None: avg = fimg.copy()
         else: avg += fimg
-    return scipy.fftpack.fftshift(avg).real
+        total += 1.0
+    avg = avg.real
+    numpy.sqrt(avg, avg)
+    numpy.divide(avg, total, avg)
+    return avg #scipy.fftpack.fftshift(avg).real
 
 def local_variance2(img, mask, out=None):
     ''' Esimtate the local variance on the image, under the given mask
@@ -795,7 +802,7 @@ def fourier_mellin(img, out=None):
     return out
 
 @_em2numpy2em
-def segment(img, bins=0, out=None):
+def segment(img, bins=0, mask=None, out=None):
     ''' Segment the given image with Otsu's method
     
     :Parameters:
@@ -804,6 +811,8 @@ def segment(img, bins=0, out=None):
           Input image
     bins : int
            Number of bins to use in discretizing data for Otsu's method
+    mask : array, optional
+           Mask to estimate threshold
     out : numpy.ndarray
           Output image
         
@@ -813,7 +822,10 @@ def segment(img, bins=0, out=None):
           Normalized image
     '''
     
-    th = analysis.otsu(img.ravel(), bins)
+    if mask is not None:
+        th = analysis.otsu(compress_image(img, mask).ravel(), bins)
+    else:
+        th = analysis.otsu(img.ravel(), bins)
     return numpy.greater(img, th, out)
 
 @_em2numpy2em
@@ -956,7 +968,7 @@ def vst(img, out=None):
     return out
 
 @_em2numpy2em
-def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
+def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     '''Clamp outlier pixels, either too black due to dust or too white due to hot-pixels. Replace with 
     samples drawn from the normal distribution with the same mean and standard deviation.
     
@@ -968,6 +980,8 @@ def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
                  Number of standard deviations for black pixels
     xray_sigma : float
                  Number of standard deviations for white pixels
+    replace : float
+              Value to replace with, if None use random noise
     out : numpy.ndarray
           Output image
                      
@@ -994,16 +1008,20 @@ def replace_outlier(img, dust_sigma, xray_sigma=0, out=None):
         std = numpy.std(img[sel])
     '''
     
-    if xray_sigma == 0: xray_sigma=dust_sigma if dust_sigma > 0 else -dust_sigma
+    if xray_sigma is None: xray_sigma=dust_sigma if dust_sigma > 0 else -dust_sigma
     if dust_sigma > 0: dust_sigma = -dust_sigma
     lcut = avg+std*dust_sigma
     hcut = avg+std*xray_sigma
     if vmin < lcut:
         sel = img < lcut
-        out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
+        if replace is None:
+            out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
+        else: out[sel] = replace
     if vmax > hcut:
         sel = img > hcut
-        out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
+        if replace is None:
+            out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
+        else: out[sel] = replace
     
     return out
 

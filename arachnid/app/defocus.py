@@ -4,8 +4,10 @@
 .. Created on Sep 16, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app import tracing
+tracing;
 from ..core.metadata import format, spider_params, spider_utility, format_utility
+format;
 from ..core.image import ndimage_utility, ndimage_file, eman2_utility
 from ..core.image.ndplot import pylab
 import numpy, logging, os, scipy.optimize
@@ -38,45 +40,110 @@ def process(filename, output, id_len=0, **extra):
     
     id = spider_utility.spider_id(filename)
     output = spider_utility.spider_filename(output, id)
-    powerspec = powerspectra(filename, **extra)
-    write_powerspectra(output, powerspec, **extra)
-    defocus = esimate_defocus(powerspec, **extra)
-    plot_ctf(output, powerspec, defocus, **extra)
+    
+    _logger.info("Processing %s"%filename)
+    if 1 == 1:
+        esimate_signal(filename, output, **extra)
+        defocus = 0
+    else:
+        powerspec = powerspectra(filename, **extra)
+        write_powerspectra(output, powerspec, **extra)
+        defocus = esimate_defocus(powerspec, **extra)
+        plot_ctf(output, powerspec, defocus, **extra)
     
     # Calculate astig
     
     return filename, numpy.asarray((id, defocus, 0, 0, 0))
 
 
-def esimate_signal(filename, output, apix, window=500, overlap=0.5, pad=2, **extra):
+def esimate_signal(filename, output, apix, window_size=500, overlap=0.5, pad=2, **extra):
     ''' Estimate the signal based on two power spectra
     
     Use ellipse as a contraint
+    
+    1. modify the ring width
+    2. invert mask
+    3. rot avg
+    4. correlation between model and average - 1d to 2d
+    
+    noise window search
     '''
     
-    step = max(1, window*overlap)
-    rwin = ndimage_utility.rolling_window(ndimage_file.read_image(filename), (window, window), (step, window))
+    step = max(1, window_size*overlap)
+    rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
     rwin1 = rwin[::2]
     rwin2 = rwin[1::2]
-    avg1 = ndimage_utility.powerspec_avg(rwin1.reshape((rwin1.shape[0]*rwin1.shape[1], rwin1.shape[2], rwin1.shape[3])), pad)
-    avg2 = ndimage_utility.powerspec_avg(rwin2.reshape((rwin2.shape[0]*rwin2.shape[1], rwin2.shape[2], rwin2.shape[3])), pad)
+    if rwin1.shape[0] > rwin2.shape[0]: rwin1 = rwin1[:rwin2.shape[0]]
+    elif rwin2.shape[0] > rwin1.shape[0]: rwin2 = rwin2[:rwin1.shape[0]]
+    avg  = ndimage_utility.powerspec_avg(rwin.reshape( (rwin.shape[0]*rwin.shape[1],   rwin.shape[2],  rwin.shape[3])),  pad)
+    #avg1 = ndimage_utility.powerspec_avg(rwin1.reshape((rwin1.shape[0]*rwin1.shape[1], rwin1.shape[2], rwin1.shape[3])), pad)
+    #avg2 = ndimage_utility.powerspec_avg(rwin2.reshape((rwin2.shape[0]*rwin2.shape[1], rwin2.shape[2], rwin2.shape[3])), pad)
+    ravg = ndimage_utility.rotavg(avg)
     
-    write_powerspectra(output, avg1, prefix='pow1_')
-    write_powerspectra(output, avg2, prefix='pow2_')
+    #avg = ndimage_utility.replace_outlier(avg, 5, 0, replace=0)
+    #avg1 = ndimage_utility.replace_outlier(avg1, 5, 0, replace=0)
+    #avg2 = ndimage_utility.replace_outlier(avg2, 5, 0, replace=0)
+    mask = eman2_utility.model_circle(10, avg.shape[0], avg.shape[1])*-1+1
     
-    res = eman2_utility.fsc(avg1, avg2)
-    resolution.plot_fsc(format_utility.add_prefix(output, 'raw_'), res[:, 0], res[:, 1], apix)
+    write_powerspectra(output, avg*mask, prefix='pow_')
+    #write_powerspectra(output, avg1*mask, prefix='pow1_')
+    #write_powerspectra(output, avg2*mask, prefix='pow2_')
     
-    ravg = ndimage_utility.rotavg(avg1)+ndimage_utility.rotavg(avg2)
-    mask = ndimage_utility.segment(ravg)
     
-    mavg1 = avg1*mask
-    mavg2 = avg2*mask
-    write_powerspectra(output, mavg1, prefix='mpow1_')
-    write_powerspectra(output, mavg2, prefix='mpow2_')
+    #ravg1 = ndimage_utility.rotavg(avg1)
+    #ravg2 = ndimage_utility.rotavg(avg2)
+    write_powerspectra(output, ravg*mask, prefix='powavg1_')
+    #write_powerspectra(output, ravg1*mask, prefix='powavg1_')
+    #write_powerspectra(output, ravg2*mask, prefix='powavg2_')
     
-    res = eman2_utility.fsc(mavg1, mavg2)
-    resolution.plot_fsc(format_utility.add_prefix(output, 'masked_'), res[:, 0], res[:, 1], apix)
+    
+    #res = eman2_utility.fsc(avg1, avg2, complex=True)
+    #resolution.plot_fsc(format_utility.add_prefix(output, 'half_'), res[:, 0], res[:, 1], apix)
+    
+    res = eman2_utility.fsc(ravg, avg, complex=True)
+    resolution.plot_fsc(format_utility.add_prefix(output, 'rotavg_'), res[:, 0], res[:, 1], apix)
+    
+def read_micrograph(filename, bin_factor, **extra):
+    ''' Read and preprocess a micrograph
+    
+    :Parameters:
+    
+    filename : str
+               Input filename for the micrograph
+    bin_factor : float
+                 Number of times to decimate the micrograph
+                 
+    :Returns:
+    
+    img : array
+          Micrograph image
+    '''
+    
+    img = ndimage_file.read_image(filename)
+    if bin_factor != 1.0 and bin_factor != 0.0:
+        img = eman2_utility.decimate(img, bin_factor)
+    return img
+
+def read_stack(filename, bin_factor, **extra):
+    ''' Iterate over a stack and preprocess the images
+    
+    :Parameters:
+    
+    filename : str
+               Input filename for the particle stack
+    bin_factor : float
+                 Number of times to decimate the particle stack
+                 
+    :Returns:
+    
+    img : array
+          Image from particle stack
+    '''
+    
+    for img in ndimage_file.iter_images(filename):
+        if bin_factor != 1.0 and bin_factor != 0.0:
+            img = eman2_utility.decimate(img, bin_factor)
+        yield img
 
 def esimate_astigmatism(powerspec, ampcont, cs, voltage, **extra):
     '''
@@ -149,17 +216,17 @@ def write_powerspectra(output, powerspec, use_powerspec=False, prefix='pow_', **
     output = os.path.join(output, spider_utility.spider_filename(prefix, base))
     ndimage_file.write_image(output, powerspec)
 
-def powerspectra(filename, use_powerspec=False, window=500, overlap=0.5, pad=2, **extra):
+def powerspectra(filename, use_powerspec=False, window_size=500, overlap=0.5, pad=2, **extra):
     ''' Create an averaged power spectra from a stack of images
     
     :Parameters:
     
     filename : str
-               Input filename for the stack
+               Input filename for the micrograph or stack
     use_powerspec : bool
                     True if input was a power spectra
-    window : int
-             Size of the window
+    window_size : int
+                  Size of the window
     overlap : float
               Allowed overlap between windows
     pad : int
@@ -175,10 +242,10 @@ def powerspectra(filename, use_powerspec=False, window=500, overlap=0.5, pad=2, 
     
     if use_powerspec: return ndimage_file.read_image(filename)
     if ndimage_file.count_images(filename) > 1:
-        return ndimage_utility.powerspec_avg(ndimage_file.iter_images(filename), pad)
+        return ndimage_utility.powerspec_avg(read_stack(filename), pad)
     else:
-        step = max(1, window*overlap)
-        rwin = ndimage_utility.rolling_window(ndimage_file.read_image(filename), (window, window), (step, step))
+        step = max(1, window_size*overlap)
+        rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
         return ndimage_utility.powerspec_avg(rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3])), pad)
 
 def plot_ctf(output, powerspec, defocus, **extra):
@@ -217,7 +284,8 @@ def plot_ctf(output, powerspec, defocus, **extra):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param["ctf"] = numpy.zeros((len(files), 4))
+    _logger.info("Processing %d files"%len(files))
+    param["ctf"] = numpy.zeros((len(files), 5))
     '''
     if mpi_utility.is_root(**param):
         radius, offset, bin_factor, param['mask'] = init_param(**param)
@@ -233,8 +301,10 @@ def reduce_all(val, ctf, file_index, file_completed, file_count, output, **extra
     filename, ctf_param = val
     ctf[file_index, :] = ctf_param
     
-    format.write(output, ctf.reshape((1, ctf.shape[0])), default_format=format.spiderdoc, 
+    '''
+    format.write(output, ctf[file_index, :].reshape((1, ctf.shape[1])), default_format=format.spiderdoc, 
                  header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
+    '''
     
     _logger.info("Finished processing: %s"%(os.path.basename(filename)))
     return filename
@@ -245,14 +315,14 @@ def finalize(files, ctf, output, **extra):
     #ctf
     
     # Tune CTF overall values
-    _logger.info("Completed")
+    _logger.info("Completed - %d"%len(files))
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "CTF Estimation", "Options to control CTF estimation",  id=__name__)
-    group.add_option("",   window=500,          help="Window size for micrograph periodogram", gui=dict(minimum=10))
+    group.add_option("",   window_size=500,     help="Window size for micrograph periodogram", gui=dict(minimum=10))
     group.add_option("",   overlap=0.5,         help="Allowed overlap for windows in micrograph periodogram", gui=dict(minimum=0.0, decimals=2, singleStep=0.1))
     group.add_option("",   pad=1,               help="Number of times to pad an image before calculating the power spectrum", gui=dict(minimum=1))
     group.add_option("",   use_powerspec=False, help="Input file is already a power spectra")
@@ -267,9 +337,11 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
-    if options.window <= 0: raise OptionValueError, "Window size must be greater than zero (--window)"
+    if options.window_size <= 0: raise OptionValueError, "Window size must be greater than zero (--window-size)"
     if options.overlap < 0.0 or options.overlap > 1.0 : raise OptionValueError, "Overlap must be between zero and one (--overlap)"
     if options.pad <= 0: raise OptionValueError, "Padding must be greater than zero (--pad)"
+    
+    options.window_size = int(options.window_size/options.bin_factor)
 
 def main():
     #Main entry point for this script

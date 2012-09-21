@@ -141,6 +141,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 15, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..core.app.program import run_hybrid_program
 
 from ..core.metadata import spider_params, spider_utility, format, format_utility
 from ..core.parallel import mpi_utility
@@ -224,9 +225,9 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     if mpi_utility.is_root(**extra):
        try: os.makedirs(os.path.dirname(param['shared_scratch']))
        except: pass
-    param['cache_file'] = cache
     local_scratch = os.path.join(local_scratch, cache)
     param['local_scratch'] = local_scratch
+    param['cache_file'] = local_scratch
     if mpi_utility.is_root(**extra):
        try: os.makedirs(os.path.dirname(param['local_scratch']))
        except: pass
@@ -310,9 +311,10 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
     align[:, 6:8] /= extra['apix']
     if mpi_utility.is_root(**extra):
         selection = classify.classify_projections(align, **extra)
-    else: selection = None
+    else: selection = 0
     selection = mpi_utility.broadcast(selection, **extra)
-    selection = numpy.argwhere(selection)
+    if hasattr(selection, 'ndim'):
+        selection = numpy.argwhere(selection)
     return reconstruct(spi, align, selection, curr_slice, output, **extra)
 
 def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack=None, flip_stack=None, **extra):
@@ -455,17 +457,19 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     align_file = format_utility.add_prefix(local_scratch, "align_")
     
     if selection is not None:
-        even = numpy.arange(0, len(selection[curr_slice]), 2, dtype=numpy.int)
-        odd = numpy.arange(1, len(selection[curr_slice]), 2, dtype=numpy.int)
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(selection[even]), header=('id', ))
-        format.write(spi.replace_ext(seloddfile), numpy.asarray(selection[odd]), header=('id', ))
+        sel = selection[curr_slice]
+        even = numpy.arange(0, len(sel), 2, dtype=numpy.int)
+        odd = numpy.arange(1, len(sel), 2, dtype=numpy.int)
+        _logger.error("%s, %s, %s, %s"%(str(selection.shape), str(sel.shape), str(even.shape), str(odd.shape), ))
+        format.write(spi.replace_ext(selevenfile), numpy.asarray(sel[even]), header=('id', ))
+        format.write(spi.replace_ext(seloddfile), numpy.asarray(sel[odd]), header=('id', ))
     else:
         even = numpy.arange(0, len(align[curr_slice]), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
         format.write(spi.replace_ext(selevenfile), numpy.asarray(even), header=('id', ))
         format.write(spi.replace_ext(seloddfile), numpy.asarray(odd), header=('id', ))
         
-    format.write(spi.replace_ext(align_file), align[curr_slice])
+    format.write(spi.replace_ext(align_file), align[curr_slice], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','))
     spi.rt_sq(input_stack, align_file, selevenfile, outputfile=even_dala_stack)
     spi.rt_sq(input_stack, align_file, seloddfile, outputfile=odd_dala_stack)
     even_dala_stack = spi.replace_ext(even_dala_stack)
@@ -520,7 +524,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Reconstruction of aligned particles into a volume

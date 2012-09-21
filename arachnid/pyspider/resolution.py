@@ -127,7 +127,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 12, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app.program import run_hybrid_program
 from ..core.image.ndplot import pylab
 from ..core.metadata import format, format_utility, spider_utility, spider_params
 from ..core.spider import spider
@@ -206,7 +206,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
         plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'])
     return sp
 
-def plot_fsc(outputfile, x, y, apix):
+def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     '''Write a resolution image plot to a file
     
     :Parameters:
@@ -219,23 +219,28 @@ def plot_fsc(outputfile, x, y, apix):
         FSC score
     apix : float
            Pixel size
+    freq_rng : float, optional
+               Spatial frequency range to plot
     '''
     
     if pylab is None: return 
-    coeff = fit_sigmoid(x, y)
-    pylab.clf()
-    pylab.plot(x, sigmoid(coeff, x), 'g.')
-    markers=['r--', 'b--']
-    for i, yp in enumerate([0.5, 0.14]):
-        xp = sigmoid_inv(coeff, yp)
-        if numpy.alltrue(numpy.isfinite(xp)):
-            pylab.plot((x[0], xp), (yp, yp), markers[i])
-            pylab.plot((xp, xp), (0.0, yp), markers[i])
-            res = 0 if xp == 0 else apix/xp
-            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, res))
+    try:
+        coeff = fit_sigmoid(x, y)
+    except: pass
+    else:
+        pylab.clf()
+        pylab.plot(x, sigmoid(coeff, x), 'g.')
+        markers=['r--', 'b--']
+        for i, yp in enumerate([0.5, 0.14]):
+            xp = sigmoid_inv(coeff, yp)
+            if numpy.alltrue(numpy.isfinite(xp)):
+                pylab.plot((x[0], xp), (yp, yp), markers[i])
+                pylab.plot((xp, xp), (0.0, yp), markers[i])
+                res = 0 if xp == 0 else apix/xp
+                pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, res))
     
     pylab.plot(x, y)
-    pylab.axis([0.0,0.5, 0.0,1.0])
+    pylab.axis([0.0,freq_rng, 0.0,1.0])
     pylab.xlabel('Normalized Frequency')
     pylab.ylabel('Fourier Shell Correlation')
     pylab.title('Fourier Shell Correlation')
@@ -338,7 +343,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Calculate the resolution from volume pairs

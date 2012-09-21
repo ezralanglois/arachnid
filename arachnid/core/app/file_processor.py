@@ -87,10 +87,11 @@ def main(files, module, restart_file="", **extra):
     process, initialize, finalize, reduce_all, init_process = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None)
     
     if mpi_utility.is_root(**extra):
-        #files = check_dependencies(files, **extra)
-        if len(files) > 1: files = restart(restart_file, files)
+        files = check_dependencies(files, **extra)
+        #if len(files) > 1: files = restart(restart_file, files)
     files = mpi_utility.broadcast(files, **extra)
     
+    '''
     if mpi_utility.is_root(**extra):
         if restart_file == "": restart_file = ".restart.%s"%module.__name__
         try: 
@@ -98,6 +99,7 @@ def main(files, module, restart_file="", **extra):
         except: fout = None
         #if fout is not None:
         #    write_dependencies(fout, files, **extras)
+    '''
     
     if initialize is not None:
         f = initialize(files, extra)
@@ -110,20 +112,24 @@ def main(files, module, restart_file="", **extra):
                 if reduce_all is not None:
                     current += 1
                     filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
+                '''
                 if fout is not None:
                     if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
                     #for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
                     for f in filename: fout.write("%s\n"%(str(f)))
                     fout.flush()
+                '''
             except:
                 _logger.exception("Error in root")
                 del files[:]
     
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
+    '''
     if mpi_utility.is_root(**extra) and fout is not None:
         fout.close()
         if restart_file != "" and os.path.exists(restart_file): os.unlink(restart_file)
+    '''
 
 def restart(filename, files):
     '''Test if script can restart and update file list appropriately
@@ -193,19 +199,28 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
             Unused extra keyword arguments
     '''
     
-    if opt_changed or force: return files
+    if opt_changed or force:
+        msg = "configuration file changed" if opt_changed else "--force option specified"
+        _logger.info("Restarting from the beginning - %s"%msg)
+        return files
     unfinished = []
     for f in files:
         deps = [spider_utility.spider_filename(out, f) for out in outfile_deps]
-        if not numpy.alltrue([os.path.exists(out) for out in deps]):
+        exists = [os.path.exists(out) for out in deps]
+        if not numpy.alltrue(exists):
+            _logger.debug("Adding: %s because %s does not exist"%(f, outfile_deps[numpy.argmin(exists)]))
             unfinished.append(f)
             continue
-        first_output = numpy.min( [os.path.getctime(out) for out in deps] )
+        mods = [os.path.getctime(out) for out in deps]
+        first_output = numpy.min( mods )
         deps = [f]+[spider_utility.spider_filename(input, f) for input in infile_deps]
-        last_input = numpy.max( [os.path.getctime(input) for input in deps] )
+        mods = [os.path.getctime(input) for input in deps]
+        last_input = numpy.max( mods )
         if last_input >= first_output:
+            _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))
             unfinished.append(f)
             continue
+        _logger.info("Skipping: %s all dependencies satisfied (use --force or force: True to reprocess)"%f)
     return unfinished
 
 def setup_options(parser, pgroup=None):

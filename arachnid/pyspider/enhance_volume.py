@@ -87,7 +87,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 12, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility, format_utility, format
 from ..core.spider import spider
 import mask_volume, filter_volume
@@ -236,7 +236,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Filter and enhance a volume

@@ -173,7 +173,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, format, format_utility
 from ..core.parallel import mpi_utility, parallel_utility
 from ..core.spider import spider
@@ -204,7 +204,7 @@ def batch(files, output, **extra):
     align_to_reference(spi, align, curr_slice, **extra)
     if mpi_utility.is_root(**extra):
         align[:]=align[numpy.argsort(align[:, 4]).reshape(align.shape[0])]
-        format.write(output, align, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')) 
+        format.write(output, align, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), default_format=format.spiderdoc)
     vols = reconstruct.reconstruct_classify(spi, align, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra):
         res = prepare_volume.post_process(vols, spi, output, **extra)
@@ -345,7 +345,7 @@ def align_projections_sm(spi, ap_sel, align, reference, angle_doc, angle_num, of
         spi.vo_ras(angle_doc, angle_num, (-align[i, 2], -align[i, 1], -align[i, 0]), outputfile=angle_rot)
         spi.pj_3q(reference, angle_rot, (1, angle_num), outputfile=reference_stack, **extra)
         ap_sel(input_stack, (offset+1,offset+1), reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
-        vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True))
+        vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
         align[i, :4] = vals[0, :4]
         align[i, 5:15] = vals[0, 5:]
         offset += 1
@@ -381,7 +381,7 @@ def align_projections_by_defocus_sm(spi, ap_sel, align, reference, angle_doc, an
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
-        align_projections_sm(spi, ap_sel, align[proj_beg-1:proj_end-1], dreference, angle_doc, angle_num, proj_beg-1, **extra)
+        align_projections_sm(spi, ap_sel, align[proj_beg-1:proj_end], dreference, angle_doc, angle_num, proj_beg-1, **extra)
         proj_beg = proj_end
     
 def align_projections_by_defocus(spi, ap_sel, align, reference, angle_doc, angle_rng, defocus_offset, **extra):
@@ -415,7 +415,7 @@ def align_projections_by_defocus(spi, ap_sel, align, reference, angle_doc, angle
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
-        align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end-1], dreference, angle_doc, angle_rng, **extra)
+        align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end], dreference, angle_doc, angle_rng, **extra)
         proj_beg = proj_end
 
 def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, angle_rng, cache_file, input_stack, reference_stack, **extra):
@@ -454,11 +454,16 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, ang
         stack_count1,  = spi.fi_h(spider.spider_stack(reference_stack), ('MAXIM', ))
         spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
         stack_count,  = spi.fi_h(spider.spider_stack(reference_stack), ('MAXIM', ))
+        width, height,  = spi.fi_h(spider.spider_stack(reference_stack, 1), ('NSAM', 'NROW'))
         if stack_count != angle_num:
-            _logger.error("(%d) %d == %d -- %d, %d"%(stack_count1, stack_count, angle_num, angle_rng[i-1]+1, angle_rng[i]))
-        assert(stack_count==angle_num)
+            _logger.error("(%d) %d == %d -- %d, %d -- %d, %d"%(stack_count1, stack_count, angle_num, angle_rng[i-1]+1, angle_rng[i], width, height))
+        #assert(stack_count==angle_num)
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
-        vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True))
+        vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
+        if vals.shape[0] != align.shape[0]:
+            _logger.error("%d - %d"%(vals[0, 4], vals[len(vals)-1, 4]))
+            _logger.error("%d != %d"%(vals.shape[0], align.shape[0]))
+        assert(vals.shape[0] == align.shape[0])
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
         align[sel, :4] = vals[sel, :4]
         align[sel, 5:15] = vals[sel, 5:]
@@ -543,7 +548,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Align a set of particle windows to a reference

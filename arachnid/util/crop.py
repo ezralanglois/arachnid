@@ -143,6 +143,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Nov 27, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..core.app.program import run_hybrid_program
 ndimage_file=None
 from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader and writer
 from ..core.image import reader as image_reader, writer as image_writer
@@ -592,7 +593,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Crop a set of particles from a micrograph

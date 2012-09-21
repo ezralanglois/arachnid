@@ -111,8 +111,9 @@ def test_model_disk():
     '''
     
     rad, width = 13, 78
-    tmp = eman2_utility.utilities.model_circle(rad, width, width)
-    numpy.testing.assert_allclose(eman2_utility.em2numpy(tmp), ndimage_utility.model_disk(rad, width))
+    for rad in xrange(1, 13):
+        tmp = eman2_utility.utilities.model_circle(rad, width, width)
+        numpy.testing.assert_allclose(eman2_utility.em2numpy(tmp), ndimage_utility.model_disk(rad, width))
 
 def test_ramp():
     '''

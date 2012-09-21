@@ -318,6 +318,8 @@ def decimate(img, bin_factor=0, force_even=False, **extra):
     val : EMAN2.EMData
           Decimated image
     '''
+    orig = img
+    if not is_em(img): img = numpy2em(img)
     
     if bin_factor == 0.0: return img
     bin_factor = 1.0/bin_factor
@@ -331,7 +333,11 @@ def decimate(img, bin_factor=0, force_even=False, **extra):
     frequency_cutoff = 0.5*bin_factor
     template_min = 15
     sb = EMAN2.Util.sincBlackman(template_min, frequency_cutoff, 1999) # 1999 taken directly from util_sparx.h
-    return img.downsample(sb, bin_factor)
+    img = img.downsample(sb, bin_factor)
+    if not is_em(orig): 
+        orig = img
+        img = em2numpy(orig).copy()
+    return img
 
 def gaussian_high_pass(img, ghp_sigma=0.1, pad=False, **extra):
     ''' Filter an image with the Gaussian high pass filter

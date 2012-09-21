@@ -152,7 +152,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Dec 21, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app.program import run_hybrid_program
 from ..core.image import eman2_utility, ndimage_utility, analysis
 from ..core.metadata import format_utility, format
 from ..core.parallel import mpi_utility
@@ -453,7 +453,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     run_hybrid_program(__name__,
         description = '''Find particles using template-matching with unsupervsied learning algorithm
                         

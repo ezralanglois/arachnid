@@ -125,6 +125,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 2, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..core.app.program import run_hybrid_program
 ndimage_file=None
 from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader
 if ndimage_file is None:
@@ -561,7 +562,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     run_hybrid_program(__name__,
         description = '''Find particles using template-matching
         

@@ -136,7 +136,7 @@ class Session(object):
         if _logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
             self._invoke('MD', 'RESULTS ON')
             self._invoke('MD', 'TERM ON') 
-            #self._invoke('MD', 'TERM OFF') 
+            _logger.debug("Result enabled for terminal")
         else: 
             self._invoke('MD', 'RESULTS OFF')
             self._invoke('MD', 'TERM OFF') 
@@ -308,16 +308,20 @@ class Session(object):
                 try: os.remove(filename)
                 except: pass
     
-    def _invoke(self, *args):
+    def _invoke(self, *args, **kwargs):
         ''' Send a command to Spider
         
         :Parameters:
             
         args : list
                List of arguments
+        kwargs : dict
+                 Keyword arguments
         '''
         
         if self.spider is None: raise ValueError, "No pipe to Spider process"
+        test_error = kwargs.get('test_error', True)
+        if not test_error:_logger.error("Error results: %s"%str(args))
         for arg in args:
             cmd = str(arg)
             self.spider.stdin.write(cmd+'\n')
@@ -326,8 +330,13 @@ class Session(object):
             except: pass
             else:
                 if err is not None:
+                    if test_error and 1 == 0:
+                        try:
+                            self._invoke_with_results(*args) 
+                        except: pass
                     _logger.error("Error in command: %s - with message: %s"%(str(args), str(err)))
-                    raise SpiderCommandError, err
+                    if test_error: 
+                        raise SpiderCommandError, err
         self.spider.stdin.flush()
         
     def _get_errors(self):
@@ -361,17 +370,29 @@ class Session(object):
             _logger.error("Error in command: %s"%str(args))
             for arg in args:
                 _logger.error("Arg: %s"%arg)
-            if not self._results:
-                self._invoke('MD', 'RESULTS ON')
-                self._invoke('MD', 'TERM ON') 
-                self._invoke(*args)
-                self._invoke('my fl')
+            self._invoke_with_results(*args) 
             self[9] = "0"
-            if not self._results:
-                self._invoke('MD', 'RESULTS OFF')
-                self._invoke('MD', 'TERM OFF') 
             _logger.error("Error in command: %s"%str(args))
             raise SpiderCommandError, "%s failed in Spider"%args[0]
+    
+    def _invoke_with_results(self, *args):
+        ''' Invoke a SPIDER command with the results file on
+        
+        :Parameters:
+            
+        args : list
+               List of arguments
+        '''
+        
+        if not self._results:
+            self._invoke('MD', 'RESULTS ON', test_error=False)
+            _logger.error("here: %f"%self[9])
+            self._invoke('MD', 'TERM ON', test_error=False) 
+            self._invoke(*args, test_error=False)
+            self._invoke('my fl', test_error=False)
+            self._invoke('MD', 'RESULTS OFF', test_error=False)
+            self._invoke('MD', 'TERM OFF', test_error=False) 
+        
     
     def set(self, **kwargs):
         ''' Set the spider register with given name and value

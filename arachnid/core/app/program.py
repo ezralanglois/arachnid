@@ -45,9 +45,10 @@ Parameters
 .. Created on Oct 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+import tracing
+import settings
 from ..parallel import mpi_utility, openmp
 from ..gui import settings_editor
-import tracing, settings
 import logging, sys, os, traceback
 import arachnid as root_module
 import file_processor

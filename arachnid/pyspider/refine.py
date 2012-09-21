@@ -115,7 +115,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, format, format_utility, spider_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
@@ -310,7 +310,7 @@ def get_refinement_start(aligment, refine_index=-1, output="", **extra):
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
-    from ..core.app.settings import OptionGroup
+    from ..core.app.settings import OptionGroup, setup_options_from_doc
     
     if main_option:
         refine_name=['theta-delta', 'angle-range', 'trans-range', 'trans-step', 'use_apsh']
@@ -371,7 +371,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Refine the orientational assignment of a set of projections

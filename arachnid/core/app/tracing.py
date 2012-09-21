@@ -210,7 +210,7 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
                     handlers.append(h)
                 logging.debug("Writing to log file: %s"%(log_file))
                 backupname = backup(log_file)
-                if backupname: logging.warn("Backing up log file to %s"%(backupname))
+                if backupname: logging.debug("Backing up log file to %s"%(backupname))
                 h = logging.FileHandler(log_file, mode='w')
                 h.addFilter(ExceptionFilter())
                 handlers.append(logging.FileHandler(default_error_log, mode='w'))
@@ -227,15 +227,15 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             ch.addFilter(ExceptionFilter())
             handlers.append(logging.FileHandler(default_error_log, mode='w'))
             handlers.append(ch)
-        try:    log_level = log_level_val[log_level]
-        except: pass
-        level = log_level_map[log_level]
+        try:    log_level_name = log_level_val[log_level]
+        except: log_level_name = log_level
+        level = log_level_map[log_level_name]
         logging.basicConfig(level=level)
         root = logging.getLogger()
         root.setLevel(level)
         while len(root.handlers) > 0: root.removeHandler(root.handlers[0])
         for ch in handlers: 
-            ch.setFormatter(logging.Formatter(log_formats[log_level]))
+            ch.setFormatter(logging.Formatter(log_formats[log_level_name]))
             root.addHandler(ch)
             ch.setLevel(level)
         root.setLevel(level)

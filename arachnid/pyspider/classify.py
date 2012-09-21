@@ -97,7 +97,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 15, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_utility
 from ..core.image import analysis
 from ..core.orient import healpix
@@ -320,7 +320,6 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
     
     run_hybrid_program(__name__,
         description = '''Classify projections based on an alignment
