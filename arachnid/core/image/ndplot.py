@@ -9,6 +9,16 @@ import logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+try:
+    import matplotlib
+    try: import pycairo
+    except:matplotlib.use('Agg')
+    else: 
+        matplotlib.use('cairo.png')
+        pycairo;
+except:
+    tracing.log_import_error('Failed to set backend', _logger)
+    
 try: 
     import pylab
     pylab;

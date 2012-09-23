@@ -224,6 +224,7 @@ def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     '''
     
     if pylab is None: return 
+    pylab.switch_backend('cairo.png')
     try:
         coeff = fit_sigmoid(x, y)
     except: pass
