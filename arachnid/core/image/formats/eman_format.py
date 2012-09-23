@@ -69,7 +69,7 @@ lists each supported extension with its corresponding file format.
 '''
 from .. import eman2_utility
 from spider import _update_header
-import logging, struct, os
+import logging, struct, os, numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -153,8 +153,10 @@ def read_image(filename, index=None, header=None, cache=None):
     if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     emdata = eman2_utility.EMAN2.EMData() if cache is None else cache
+    #_logger.debug("read_image-1: %s"%str(index))
     if index is None: emdata.read_image_c(filename)
-    else: emdata.read_image_c(filename, index)
+    else: emdata.read_image_c(filename, int(index))
+    #_logger.debug("read_image-2")
     if header is not None: _update_header(emdata.todict(), header, eman2ara)
     type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
@@ -192,10 +194,12 @@ def iter_images(filename, index=None, header=None):
     if index is None: index = 0
     emdata = eman2_utility.EMAN2.EMData()
     count = count_images(filename)
-    if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
+    if numpy.any(index >= count): raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
+    if not hasattr(index, '__iter__'): index =  xrange(index, count)
+    else: index = index.astype(numpy.int)
     
     update_header=True
-    for i in xrange(index, count):
+    for i in index:
         img = read_image(filename, i, header, emdata)
         if update_header:
             update_header=False

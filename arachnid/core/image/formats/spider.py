@@ -270,18 +270,20 @@ def iter_images(filename, index=None, header=None):
     '''
     
     f = _open(filename, 'r')
+    if index is None: index = 0
     try:
-        if index is None: index = 0
         h = read_spider_header(f)
         if header is not None: _update_header(header, h, spi2ara, 'mrc')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
         count = count_images(h)
-        if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
+        if numpy.any(index >= count): raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
         offset = h_len + index * (h_len+i_len)
         f.seek(offset)
-        for i in xrange(index, count):
+        if not hasattr(index, '__iter__'): index =  xrange(index, count)
+        else: index = index.astype(numpy.int)
+        for i in index:
             out = numpy.fromfile(f, dtype=h.dtype.fields['nx'][0], count=d_len)
             if int(h['nz']) > 1:   out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
             elif int(h['ny']) > 1: out = out.reshape(int(h['nx']), int(h['ny']))

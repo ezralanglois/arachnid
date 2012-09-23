@@ -126,8 +126,8 @@ def iter_images(filename, index=None):
     
     filename : str
                Input filename to read
-    index : int, optional
-            Index of image to start, if None, start with the first image (Default: None)
+    index : int or array, optional
+            Index of image to start or array of selected images, if None, start with the first image (Default: None)
     
     :Returns:
         

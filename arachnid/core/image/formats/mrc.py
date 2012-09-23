@@ -356,8 +356,8 @@ def iter_images(filename, index=None, header=None):
     '''
     
     f = _open(filename, 'r')
+    if index is None: index = 0
     try:
-        if index is None: index = 0
         h = read_mrc_header(f)
         count = count_images(h)
         if header is not None:  _update_header(header, h, mrc2ara, 'mrc')
@@ -365,7 +365,9 @@ def iter_images(filename, index=None, header=None):
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         offset = 1024 + index * d_len * dtype.itemsize;
         f.seek(offset)
-        for i in xrange(index, count):
+        if not hasattr(index, '__iter__'): index =  xrange(index, count)
+        else: index = index.astype(numpy.int)
+        for i in index:
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
             elif int(h['ny'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]))
