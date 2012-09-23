@@ -249,9 +249,9 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
         if use_flip and param['flip_stack'] is not None:
             param['input_stack'] = param['flip_stack']
             param['phase_flip']=True
-    param.update(extra)
-    spider.ensure_proper_parameters(param)
-    return param
+    extra.update(param)
+    spider.ensure_proper_parameters(extra)
+    return extra
 
 def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, phase_flip, use_apsh, **extra):
     ''' Align a set of projections to the given reference
