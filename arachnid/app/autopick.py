@@ -302,7 +302,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         npdata[:, :] = win
         eman2_utility.ramp(emdata)
         win[:, :] = npdata
-        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, win)
+        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
         if vfeat is not None:
             vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
         amp = ndimage_utility.fourier_mellin(win)*maskap
