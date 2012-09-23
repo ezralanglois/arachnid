@@ -439,14 +439,12 @@ def backproject_nn4(img, align=None, recon=None, **extra):
     npad, sym, weighting = extra.get('npad', 2), extra.get('sym', 'c1'), extra.get('weighting', 1)
     if not hasattr(img, 'ndim'):
         for i, val in enumerate(img):
-            #_logger.debug("backproject_nn4-1")
             if isinstance(val, tuple): val, a = val
             else: a = align[i]
             xform_proj = EMAN2.Transform({"type":"spider","phi":a[2],"theta":a[1],"psi":a[0]})
             if not is_em(val): val = numpy2em(val)
             if recon is None: recon = setup_nn4(val.get_xsize(), npad, sym, weighting)
             recon[0][0].insert_slice(val, xform_proj)
-            #_logger.debug("backproject_nn4-2")
     else:
         xform_proj = EMAN2.Transform({"type":"spider","phi":align[2],"theta":align[1],"psi":align[0]})
         if not is_em(img):img = numpy2em(img)
@@ -468,5 +466,5 @@ def finalize_nn4(recon):
           Volume as a numpy array
     '''
     
-    return em2numpy(recon[0][0].finish())
+    return em2numpy(recon[0][0].finish()).copy()
 

@@ -460,7 +460,6 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         sel = selection[curr_slice]
         even = numpy.arange(0, len(sel), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(sel), 2, dtype=numpy.int)
-        _logger.error("%s, %s, %s, %s"%(str(selection.shape), str(sel.shape), str(even.shape), str(odd.shape), ))
         format.write(spi.replace_ext(selevenfile), numpy.asarray(sel[even]), header=('id', ))
         format.write(spi.replace_ext(seloddfile), numpy.asarray(sel[odd]), header=('id', ))
     else:
@@ -481,7 +480,7 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
-            ndimage_file.write_image(spi.replace_ext(vol_output[0]), vol[0])
+            ndimage_file.write_image(spi.replace_ext(vol_output[i]), vol[i])
     elif vol is not None:
         ndimage_file.write_image(spi.replace_ext(vol_output[mpi_utility.get_rank(**extra)]), vol)
     
