@@ -646,9 +646,9 @@ def ensure_stack_select(session, stack, select=None):
     if select is None or select == "" or select == "*":
         if stack is None: raise ValueError, "Requires stack filename"
         stack_count, = session.fi_h(spider_stack(stack), ('MAXIM'))
-        select = (1, stack_count)
+        select = (1, int(stack_count))
     stack_count, stack_size, stack_size = session.ud_n(select)
-    return select, stack_count, stack_size
+    return select, int(stack_count), int(stack_size)
 
 _is_spider_regiser = re.compile("[xX]\d\d")
 
