@@ -452,8 +452,8 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on multiple nodes - started")
     selevenfile = format_utility.add_prefix(local_scratch, "seleven_recon_")
     seloddfile = format_utility.add_prefix(local_scratch, "selodd_recon_")
-    even_dala_stack = format_utility.add_prefix(local_scratch, "edala_recon_")
-    odd_dala_stack = format_utility.add_prefix(local_scratch, "odala_recon_")
+    dala_stack = format_utility.add_prefix(local_scratch, "dala_recon_")#even_dala_stack
+    #odd_dala_stack = format_utility.add_prefix(local_scratch, "odala_recon_")
     align_file = format_utility.add_prefix(local_scratch, "align_")
     
     if selection is not None:
@@ -466,18 +466,18 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     else:
         even = numpy.arange(0, len(align[curr_slice]), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(even), header=('id', ))
-        format.write(spi.replace_ext(seloddfile), numpy.asarray(odd), header=('id', ))
+        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ))
+        format.write(spi.replace_ext(seloddfile), numpy.asarray(odd)+1, header=('id', ))
         
-    format.write(spi.replace_ext(align_file), align[curr_slice], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','))
-    spi.rt_sq(input_stack, align_file, selevenfile, outputfile=even_dala_stack)
-    spi.rt_sq(input_stack, align_file, seloddfile, outputfile=odd_dala_stack)
-    even_dala_stack = spi.replace_ext(even_dala_stack)
-    odd_dala_stack = spi.replace_ext(odd_dala_stack)
+    format.write(spi.replace_ext(align_file), align[curr_slice], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,stack_id,micrograph,defocus".split(','))
+    spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
+    #spi.rt_sq(input_stack, align_file, seloddfile, outputfile=odd_dala_stack)
+    dala_stack = spi.replace_ext(dala_stack)
+    #odd_dala_stack = spi.replace_ext(odd_dala_stack)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
     
-    gen1 = ndimage_file.iter_images(even_dala_stack)
-    gen2 = ndimage_file.iter_images(odd_dala_stack)
+    gen1 = ndimage_file.iter_images(dala_stack, even)
+    gen2 = ndimage_file.iter_images(dala_stack, odd)
     vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
