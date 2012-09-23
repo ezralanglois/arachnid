@@ -487,6 +487,8 @@ def initialize(files, param):
     param["confusion"] = numpy.zeros((len(files), 4))
     
     if mpi_utility.is_root(**param):
+        if not os.path.exists(os.path.dirname(param['output'])):
+            os.makedirs(os.path.dirname(param['output']))
         radius, offset, bin_factor, param['mask'] = init_param(**param)
         _logger.info("Pixel radius: %d"%radius)
         _logger.info("Window size: %d"%(offset*2))
