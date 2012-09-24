@@ -15,6 +15,7 @@
     
     healpix
     transforms
+    orient_utility
 
 :mod:`arachnid.core.orient.core`
 ================================
