@@ -38,6 +38,7 @@ Utilities
 	
 	crop
     relion_selection
+    bench
     
 pySPIDER
 --------

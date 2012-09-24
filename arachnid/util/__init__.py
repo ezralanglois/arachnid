@@ -9,4 +9,5 @@
     
     crop
     relion_selection
+    bench
 '''
