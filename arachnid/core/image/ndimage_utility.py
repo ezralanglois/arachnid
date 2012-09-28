@@ -47,7 +47,14 @@ except:
     except:
         tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
 
-
+'''
+needtr = 0; if size(x,1) == 1; x = x(:); needtr = 1; end;
+N = size(x,1); 
+r = floor(N/2)+1; f = ((1:N)-r)/(N/2); 
+p = exp(-j*s*pi*f)'; 
+y = ifft(fft(x).*ifftshift(p)); if isreal(x); y = real(y); end;
+if needtr; y = y.'; end;
+'''
 
 
 """
@@ -1147,6 +1154,8 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
 
     out : numpy.ndarray
           Output image
+    threshold : float
+                Threshold used to create binary mask
     '''
     
     if img.ndim != 2 and img.ndim != 3: raise ValueError, "Requires 2 or 3 dimensional images"
@@ -1166,7 +1175,7 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
         K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
         K /= (numpy.mean(K)*numpy.prod(K.shape))
         out[:] = scipy.ndimage.convolve(out, K)
-    return out
+    return out, threshold
 
 def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
     ''' Create a centered Gaussian kernel

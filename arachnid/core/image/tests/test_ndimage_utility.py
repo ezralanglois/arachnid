@@ -101,7 +101,7 @@ def test_tight_mask():
         m1 = eman2_utility.EMAN2.Util.get_biggest_cluster(binarize(emmask, threshold))
         for i in xrange(ndilate): m1 = dilation(m1)
         if kernel_size > 0: m1 = gauss_edge(m1, kernel_size, gauss_standard_dev)
-        m2 = ndimage_utility.tight_mask(mask, threshold, ndilate, kernel_size, gauss_standard_dev)
+        m2 = ndimage_utility.tight_mask(mask, threshold, ndilate, kernel_size, gauss_standard_dev)[0]
         m3 = eman2_utility.em2numpy(m1)
         #print numpy.sum(m3), numpy.sum(m2), numpy.max(m3), numpy.max(m2), numpy.sqrt(numpy.sum((m3-m2)**2)), numpy.sqrt(numpy.max((m3-m2)**2))
         numpy.testing.assert_allclose(m3, m2)
