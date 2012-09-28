@@ -13,7 +13,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def pca(trn, tst=None, frac=0.9):
+def pca(trn, tst=None, frac=-1):
     ''' Principal component analysis using SVD
     
     :Parameters:
@@ -29,6 +29,8 @@ def pca(trn, tst=None, frac=0.9):
         
     val : numpy.ndarray
           Projected data
+    idx : int
+          Selected number of Eigen vectors
     V : numpy.ndarray
         Eigen vectors
     spec : float
@@ -58,8 +60,9 @@ def pca(trn, tst=None, frac=0.9):
             idx = diff.argmax()+1
         else:
             idx = _assess_dimension(t, trn.shape[0], trn.shape[1])+1
-    else:
+    elif frac > 0.0:
         idx = numpy.sum(t.cumsum()<frac)+1
+    else: idx = d.shape[0]
     _logger.error("pca: %s -- %s"%(str(V.shape), str(idx)))
     if idx >= len(d): idx = 1
     val = d[:idx]*numpy.dot(V[:idx], tst.T).T
