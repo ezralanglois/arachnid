@@ -12,10 +12,12 @@ Supported formats:
 import logging, os
 from ..app import tracing
 from formats import spider, eman_format as spider_writer
-#import numpy
+from ..metadata import spider_utility 
+import numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
 
 def is_spider_format(filename):
     ''' Test if input file is in SPIDER format
@@ -135,6 +137,13 @@ def iter_images(filename, index=None):
           Array with header information in the file
     '''
     
+    if index is not None and hasattr(index, 'ndim') and index.ndim == 2:
+        fileid = index[:, 0].astype(numpy.int)
+        ids = numpy.unique(fileid)
+        for id in ids:
+            filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
+            iter_images(filename, index[id == fileid, 1])
+        return
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
     if format is None: 
