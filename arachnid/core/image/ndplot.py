@@ -14,7 +14,10 @@ try:
     try: import pycairo
     except:matplotlib.use('Agg')
     else: 
-        matplotlib.use('cairo.png')
+        try:
+            matplotlib.use('cairo.png')
+        except:
+            tracing.log_import_error('Failed to set backend', _logger)
         pycairo;
 except:
     tracing.log_import_error('Failed to set backend', _logger)
