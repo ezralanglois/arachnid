@@ -635,7 +635,7 @@ def read_alignment(filename, header=None, **extra):
                     "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,defocus",
                     "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror"
                 ]
-    del extra['numeric']
+    if 'numeric' in extra: del extra['numeric']
     align = None
     for h in align_header:
         try:
