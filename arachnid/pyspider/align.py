@@ -203,8 +203,8 @@ def batch(files, output, **extra):
     extra.update(initalize(spi, files, align[curr_slice], **extra))
     align_to_reference(spi, align, curr_slice, **extra)
     if mpi_utility.is_root(**extra):
-        align[:]=align[numpy.argsort(align[:, 4]).reshape(align.shape[0])]
-        format.write(output, align, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), default_format=format.spiderdoc)
+        align2=align[numpy.argsort(align[:, 4]).reshape(align.shape[0])]
+        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), default_format=format.spiderdoc)
     vols = reconstruct.reconstruct_classify(spi, align, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra):
         res = prepare_volume.post_process(vols, spi, output, **extra)
@@ -451,19 +451,9 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, ang
     tmp_align = format_utility.add_prefix(cache_file, "align_")
     for i in xrange(1, angle_rng.shape[0]):
         angle_num = (angle_rng[i]-angle_rng[i-1])
-        stack_count1,  = spi.fi_h(spider.spider_stack(reference_stack), ('MAXIM', ))
         spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
-        stack_count,  = spi.fi_h(spider.spider_stack(reference_stack), ('MAXIM', ))
-        width, height,  = spi.fi_h(spider.spider_stack(reference_stack, 1), ('NSAM', 'NROW'))
-        if stack_count != angle_num:
-            _logger.error("(%d) %d == %d -- %d, %d -- %d, %d"%(stack_count1, stack_count, angle_num, angle_rng[i-1]+1, angle_rng[i], width, height))
-        #assert(stack_count==angle_num)
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
         vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
-        if vals.shape[0] != align.shape[0]:
-            _logger.error("%d - %d"%(vals[0, 4], vals[len(vals)-1, 4]))
-            _logger.error("%d != %d"%(vals.shape[0], align.shape[0]))
-        assert(vals.shape[0] == align.shape[0])
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
         align[sel, :4] = vals[sel, :4]
         align[sel, 5:15] = vals[sel, 5:]
