@@ -28,6 +28,8 @@ Tips
  #. When using MPI, :option:`home-prefix` should point to a directory on the head node, :option:`local-scratch` should point to a local directory 
     on the cluster node, :option:`shared-scratch` should point to a directory accessible to all nodes
     and all other paths should be relative to :option:`home-prefix`.
+    
+ #. Be aware that data cached during alignment may need to be recached if you need to rerun only the reconstruction script.
 
 Examples
 ========
@@ -137,6 +139,10 @@ This is not a complete list of options available to this script, for additional 
     #. :mod:`See classify for more options... <arachnid.pyspider.classify>`
 
 .. todo:: test symmetry
+
+.. todo:: write selection files when caching locally
+
+.. todo:: add delete cache parameter
 
 .. Created on Aug 15, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -458,10 +464,10 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     
     if selection is not None:
         sel = selection[curr_slice]
-        even = numpy.arange(0, len(sel), 2, dtype=numpy.int)
-        odd = numpy.arange(1, len(sel), 2, dtype=numpy.int)
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(sel[even]), header=('id', ))
-        format.write(spi.replace_ext(seloddfile), numpy.asarray(sel[odd]), header=('id', ))
+        even = sel[numpy.arange(0, len(sel), 2, dtype=numpy.int)]
+        odd = sel[numpy.arange(1, len(sel), 2, dtype=numpy.int)]
+        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ))
+        format.write(spi.replace_ext(seloddfile),  numpy.asarray(odd)+1,  header=('id', ))
     else:
         even = numpy.arange(0, len(align[curr_slice]), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
