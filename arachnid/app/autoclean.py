@@ -11,15 +11,15 @@ import logging, numpy, os #, scipy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(input_files, input_vals, output, **extra):
+def process(input_vals, input_files, output, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
     
+    input_vals : list 
+                 Tuple(view id, image labels and alignment parameters)
     input_files : list
                   List of input file stacks
-    input_vals : tuple(view id, image labels and alignment parameters)
-                Input filename
     output : str
              Filename for output file
     extra : dict
@@ -58,7 +58,7 @@ def classify_data(data, **extra):
           1D array of selected images
     '''
     
-    eigs = analysis.pca(data, frac=1)
+    eigs = analysis.pca(data, frac=1)[0] #val, idx, V[:idx], t[idx]
     sel = analysis.one_class_classification(eigs)
     return eigs, sel
 
@@ -89,7 +89,7 @@ def image_transform(img, align, mask, use_rtsq=False, resolution=0.0, apix=None,
     :Returns:
     
     out : array
-          Transformed image
+          1D transformed image
     '''
     
     m = align[1] > 180.0
@@ -99,8 +99,11 @@ def image_transform(img, align, mask, use_rtsq=False, resolution=0.0, apix=None,
         img = eman2_utility.gaussian_low_pass(img, apix/resolution, True)
         bin_factor = min(8, resolution / apix*2)
     img = eman2_utility.decimate(img, bin_factor)
-    ndimage_utility.normalize_standard(img, mask, True, img)
-    img = ndimage_utility.compress_image(img, mask)
+    if 1 == 0:
+        pass # add bispectrum
+    else:
+        ndimage_utility.normalize_standard(img, mask, True, img)
+        img = ndimage_utility.compress_image(img, mask)
     return img
 
 def read_data(input_files, label, align, pixel_diameter=None, **extra):
@@ -122,7 +125,7 @@ def read_data(input_files, label, align, pixel_diameter=None, **extra):
     :Returns:
     
     data : array
-           2D array of transformed image data
+           2D array of transformed image data, each row is a transformed image
     '''
     
     mask = None
@@ -130,7 +133,7 @@ def read_data(input_files, label, align, pixel_diameter=None, **extra):
     label[:, 1]-=1
     for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
         if mask is None:
-            mask = ndimage_utility.model_dist(int(pixel_diameter/2), img.shape)
+            mask = ndimage_utility.model_disk(int(pixel_diameter/2), img.shape)
         img = image_transform(img, align[i], mask, **extra)
         if data is None:
             data = numpy.zeros((label.shape[0], img.ravel().shape[0]))
@@ -241,12 +244,12 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
-
+        pgroup.add_option("-a", alignment="",   help="Input file containing alignment parameters", required_file=True, gui=dict(filetype="open"))
 def check_options(options, main_option=False):
     #Check if the option values are valid
     
-    from ..core.app.settings import OptionValueError
-    if options.pixel_radius == 0: raise OptionValueError, "Pixel radius must be greater than zero"
+    #from ..core.app.settings import OptionValueError
+    pass
 
 def main():
     #Main entry point for this script
@@ -255,13 +258,9 @@ def main():
                         
                         http://
                         
-                        Example: Unprocessed film micrograph
+                        Example:
                          
-                        $ ara-autoclean input-stack.spi -o coords.dat -r 110
-                        
-                        Example: Unprocessed CCD micrograph
-                         
-                        $ ara-autoclean input-stack.spi -o coords.dat -r 110 --invert
+                        $ ara-autoclean input-stack.spi -o coords.dat -p params.spi
                       ''',
         use_version = True,
         supports_OMP=True,
