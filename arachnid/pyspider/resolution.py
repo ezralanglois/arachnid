@@ -309,8 +309,12 @@ def initialize(files, param):
     param['spi'] = spider.open_session(files, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     pfiles = []
-    for i in xrange(0, len(files), 2):
-        pfiles.append((files[i], files[i+1]))
+    if param['sliding']:
+        for i in xrange(1, len(files)):
+            pfiles.append((files[i-1], files[i]))
+    else:
+        for i in xrange(0, len(files), 2):
+            pfiles.append((files[i], files[i+1]))
     return pfiles
 
 def finalize(files, **extra):
@@ -324,6 +328,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of input filenames where consecutive names are half volume pairs, must have even number of files", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the doc file contains the FSC curve with correct number of digits (e.g. fsc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-s", sliding=False,  help="Estimate resolution between each neighbor")
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
     if main_option:
@@ -336,7 +341,7 @@ def check_options(options, main_option=False):
     
     if main_option:
         spider_params.check_options(options)
-        if len(options.input_files)%2 == 1:
+        if len(options.input_files)%2 == 1 and not options.sliding:
             _logger.debug("Found: %s"%",".join(options.input_files))
             raise OptionValueError, "Requires even number of input files or volume pairs - found %d"%len(options.input_files)
         if not spider_utility.test_valid_spider_input(options.input_files):
