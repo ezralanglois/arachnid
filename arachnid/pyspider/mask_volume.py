@@ -232,7 +232,8 @@ def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigm
     img = ndimage_file.read_image(filename)
     try: threshold=float(threshold)
     except: threshold=None
-    mask = ndimage_utility.tight_mask(img, threshold, ndilate, gk_size, gk_sigma)
+    mask, th = ndimage_utility.tight_mask(img, threshold, ndilate, gk_size, gk_sigma)
+    _logger.info("Adaptive mask threshold = %f"%th)
     if mask_output:
         ndimage_file.write_image(mask_output, mask)
         
