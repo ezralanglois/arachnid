@@ -458,8 +458,8 @@ def write(filename, values, mode='w', **extra):
     
     :Parameters:
     
-    filename : string
-              Path of a file
+    filename : str
+              Input filename containing data
     values : list
              List of objects to be written
     mode : string
@@ -511,6 +511,8 @@ def write_dataset(output, feat, id=None, label=None, good=None, header=None, sor
              Maximum length of the SPIDER id
     prefix : str, optional
              Prefix to add to start of the output filename
+    extra : dict
+            Unused extra keyword arguments
         
     :Returns:
     
@@ -610,6 +612,38 @@ def read_identifiers(filename, columns=None, **extra):
     columns=("id",)
     values = read(filename, columns=columns, **extra)
     return split_spider_id(values)
+
+def read_alignment(filename, header=None, **extra):
+    ''' Read alignment data from a file
+    
+    :Parameters:
+    
+    filename : str
+              Input filename containing alignment data
+    header : str
+             User-specified header for the alignment file
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+    
+    align : list
+            List of named tuples
+    '''
+    align_header = [
+                    "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus",
+                    "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,defocus",
+                    "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror"
+                ]
+    del extra['numeric']
+    align = None
+    for h in align_header:
+        try:
+            align = read(filename, numeric=True, header=h, **extra)
+        except: pass
+    if align is None:
+        align = read(filename, numeric=True, header=header, **extra)
+    return align
 
 
 
