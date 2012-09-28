@@ -19,6 +19,56 @@ import numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def mirror(img, out=None):
+    ''' Mirror an image about the x-axis
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    out : array
+          Output array
+        
+    :Returns:
+    
+    img : array
+          Transformed image
+    '''
+    if out is None: out = img.copy()
+    emdata = numpy2em(img)
+    emdata.process_inplace("mirror", {"axis":'x'})
+    out[:, :] = em2numpy(emdata)
+    return out
+
+def rot_shift2D(img, psi, tx, ty, m, out=None):
+    ''' Rotate and shift an image in 2D
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    psi : float
+          Inplane rotation
+    tx : int
+         Translation in the x-direction
+    ty : int
+         Translation in the y-direction
+    m : bool
+        True if image should be mirrored around x-axis
+    out : array
+          Output array
+        
+    :Returns:
+    
+    img : array
+          Transformed image
+    '''
+    if out is None: out = img.copy()
+    emdata = numpy2em(img)
+    emdata = utilities.rot_shift2D(emdata, psi, tx, ty, m, interpolation_method="gridding")
+    out[:, :] = em2numpy(emdata)
+    return out
+
 def model_circle(rad, x, y):
     ''' Create a model circle
     
