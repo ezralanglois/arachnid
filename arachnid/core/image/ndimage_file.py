@@ -143,14 +143,14 @@ def iter_images(filename, index=None):
         if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
         for id in ids:
             filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
-            iter_images(filename, index[id == fileid, 1])
-        raise StopIteration
+            for img in iter_images(filename, index[id == fileid, 1]):
+                yield img
+        return
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
-    if format is None: 
-        raise IOError, "Could not find format for %s"%filename
-    format.iter_images(filename, index)
-    raise StopIteration
+    if format is None: raise IOError, "Could not find format for %s"%filename
+    for img in format.iter_images(filename, index):
+        yield img
 
 def count_images(filename):
     ''' Count the number of images in the file
