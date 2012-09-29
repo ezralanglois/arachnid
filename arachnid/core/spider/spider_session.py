@@ -133,10 +133,10 @@ class Session(object):
         self.spider_poll = io_select.poll()
         self.spider_poll.register(self.spider_err.fileno())
         self._invoke(self.dataext)
-        if _logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
-            self._invoke('MD', 'RESULTS ON')
-            self._invoke('MD', 'TERM ON') 
-            _logger.debug("Result enabled for terminal")
+        if enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
+            #self._invoke('MD', 'RESULTS ON')
+            self._invoke('MD', 'TERM OFF')
+            _logger.warn("Result enabled")
         else: 
             self._invoke('MD', 'RESULTS OFF')
             self._invoke('MD', 'TERM OFF') 
@@ -273,6 +273,13 @@ class Session(object):
         '''
         
         self.close()
+        
+    def flush(self):
+        ''' Flush to results file
+        '''
+        
+        if self._results:
+            self.invoke("my fl")
     
     def close(self):
         ''' Close the Spider session
