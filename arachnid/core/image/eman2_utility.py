@@ -413,7 +413,11 @@ def gaussian_high_pass(img, ghp_sigma=0.1, pad=False, **extra):
     '''
     
     if ghp_sigma == 0.0: return img
-    return EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.GAUSS_HIGH_PASS,   "cutoff_abs": ghp_sigma, "dopad" : pad})
+    orig = img
+    if not is_em(img): img = numpy2em(img)
+    img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.GAUSS_HIGH_PASS,   "cutoff_abs": ghp_sigma, "dopad" : pad})
+    if not is_em(orig): img = em2numpy(img).copy()
+    return img
 
 def gaussian_low_pass(img, glp_sigma=0.1, pad=False, **extra):
     ''' Filter an image with the Gaussian low pass filter
@@ -436,7 +440,11 @@ def gaussian_low_pass(img, glp_sigma=0.1, pad=False, **extra):
     '''
     
     if glp_sigma == 0.0: return img
-    return EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.GAUSS_LOW_PASS,    "cutoff_abs": glp_sigma, "dopad" : pad})
+    orig = img
+    if not is_em(img): img = numpy2em(img)
+    img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.GAUSS_LOW_PASS,    "cutoff_abs": glp_sigma, "dopad" : pad})
+    if not is_em(orig): img = em2numpy(img).copy()
+    return img
 
 def setup_nn4(image_size, npad=2, sym='c1', weighting=1):
     ''' Initalize a reconstruction object
