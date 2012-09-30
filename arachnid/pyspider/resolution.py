@@ -157,10 +157,10 @@ def process(filename, output, **extra):
     
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])
-    sp = estimate_resolution(filename[0], filename[1], outputfile=output, **extra)
+    sp, fsc = estimate_resolution(filename[0], filename[1], outputfile=output, **extra)
     res = extra['apix']/sp
-    _logger.info("Resolution = %f"%(res))
-    return filename
+    _logger.info("Resolution = %f - between %s and %s"%(res, filename[0], filename[1]))
+    return filename, fsc
 
 def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=3.0, **extra):
     ''' Estimate the resolution from two half volumes
@@ -201,10 +201,11 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'])
     filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'])
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
+    _logger.debug("Found resolution at spatial frequency: %f"%sp)
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
         plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'])
-    return sp
+    return sp, (vals[:, 1], vals[:, 3])
 
 def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     '''Write a resolution image plot to a file
@@ -242,9 +243,9 @@ def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     
     pylab.plot(x, y)
     pylab.axis([0.0,freq_rng, 0.0,1.0])
-    pylab.xlabel('Normalized Frequency')
+    pylab.xlabel('Spatial Frequency ($\AA^{-1}$)')
     pylab.ylabel('Fourier Shell Correlation')
-    pylab.title('Fourier Shell Correlation')
+    #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png")
 
 def fit_sigmoid(x, y):
@@ -308,6 +309,7 @@ def initialize(files, param):
     
     param['spi'] = spider.open_session(files, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    param['fsc_curves'] = []
     pfiles = []
     if param['sliding']:
         for i in xrange(1, len(files)):
@@ -317,8 +319,18 @@ def initialize(files, param):
             pfiles.append((files[i], files[i+1]))
     return pfiles
 
-def finalize(files, **extra):
+def reduce_all(filename, fsc_curves, **extra):
+    # Process each input file in the main thread (for multi-threaded code)
+    filename, fsc = filename
+    fsc_curves.append(fsc)
+    return filename
+    
+
+def finalize(files, fsc_curves, **extra):
     # Finalize global parameters for the script
+    if len(fsc_curves) > 1:
+        # todo plot multiple fscs
+        pass
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):
@@ -344,7 +356,7 @@ def check_options(options, main_option=False):
         if len(options.input_files)%2 == 1 and not options.sliding:
             _logger.debug("Found: %s"%",".join(options.input_files))
             raise OptionValueError, "Requires even number of input files or volume pairs - found %d"%len(options.input_files)
-        if not spider_utility.test_valid_spider_input(options.input_files):
+        if not spider_utility.test_valid_spider_input(options.input_files[::2]):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
 
 def main():

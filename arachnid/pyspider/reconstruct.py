@@ -182,7 +182,7 @@ def batch(files, output, aligment, **extra):
     vols = reconstruct_classify(spi, align, curr_slice, output, **extra)
     
     if mpi_utility.is_root(**extra):
-        sp = resolution.estimate_resolution(vols[1], vols[2], format_utility.add_prefix(output, 'dres_'), **extra)
+        sp = resolution.estimate_resolution(vols[1], vols[2], format_utility.add_prefix(output, 'dres_'), **extra)[0]
         _logger.info("Resolution = %f"%(extra['apix']/sp))
         _logger.info("Completed")
 
