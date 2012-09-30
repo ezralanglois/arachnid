@@ -10,6 +10,7 @@
     core
     pyspider
     util
+    snippets
 
 :mod:`arachnid.app`
 ===================
