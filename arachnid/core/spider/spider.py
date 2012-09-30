@@ -458,7 +458,7 @@ class Session(spider_session.Session):
         session.invoke('bp 32f', spider_stack(inputfile, max_count), spider_select(input_select), spider_doc(angle_file), spider_doc(sym_file), spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]))
         return outputfile
     
-    def bp_cg(session, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, mode=1, lambda_weight=2000.0, input_select=None, sym_file="", outputfile=None, pixel_diameter=None, **extra):
+    def bp_cg(session, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, reg_mode=1, lambda_weight=2000.0, input_select=None, sym_file="", outputfile=None, pixel_diameter=None, **extra):
         '''Calculates two sample reconstructions from randomly selected subsets 
         containing half of the total projections and a a total-3D reconstruction 
         from all the projections using conjugate gradients with regularization.
@@ -481,8 +481,8 @@ class Session(spider_session.Session):
                       Stopping criteria
         iter_limit :  float
                       Maximum number of iterations
-        mode : int
-               Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
+        reg_mode : int
+                   Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
         lambda_weight : float
                         Weight of regularization
         stack_count : int
@@ -509,10 +509,10 @@ class Session(spider_session.Session):
         if cg_radius == 0: cg_radius = int(pixel_diameter/2.0) + 1
         input_select, max_count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
         session.invoke('bp cg', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(cg_radius), spider_doc(angle_file), 'N', 
-                       spider_image(outputfile), spider_tuple(error_limit, chi2_limit), spider_tuple(iter_limit, mode), spider_tuple(lambda_weight)) #, spider_tuple('F')
+                       spider_image(outputfile), spider_tuple(error_limit, chi2_limit), spider_tuple(iter_limit, reg_mode), spider_tuple(lambda_weight)) #, spider_tuple('F')
         return outputfile
     
-    def bp_cg_3(session, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, mode=1, 
+    def bp_cg_3(session, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, reg_mode=1, 
                 lambda_weight=2000.0, input_select=None, sym_file="", outputfile=None, pixel_diameter=None, **extra):
         '''Calculates two sample reconstructions from randomly selected subsets 
         containing half of the total projections and a a total-3D reconstruction 
@@ -538,8 +538,8 @@ class Session(spider_session.Session):
                       Stopping criteria
         iter_limit :  float
                       Maximum number of iterations
-        mode : int
-               Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
+        reg_mode : int
+                   Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
         lambda_weight : float
                         Weight of regularization
         stack_count : int
@@ -567,7 +567,7 @@ class Session(spider_session.Session):
         input_select, max_count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
         session.invoke('bp cg 3', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(cg_radius), 
                        spider_doc(angle_file), 'N', spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]), 
-                       spider_tuple(error_limit, chi2_limit), spider_tuple(iter_limit, mode), spider_tuple(lambda_weight))
+                       spider_tuple(error_limit, chi2_limit), spider_tuple(iter_limit, reg_mode), spider_tuple(lambda_weight))
         return outputfile
     
     def ce_fit(session, inputfile, reference, mask, outputfile=None, **extra):
