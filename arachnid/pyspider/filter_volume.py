@@ -175,6 +175,7 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
                  Output filename for filtered volume
     '''
     
+    if filename == outputfile: filename = spi.cp(filename)
     if sp > 0.08:
         if filter_type == 1:
             rad = sp
