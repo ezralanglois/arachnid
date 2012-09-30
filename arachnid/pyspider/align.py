@@ -210,6 +210,7 @@ def batch(files, output, **extra):
         res = prepare_volume.post_process(vols, spi, output, **extra)
         _logger.info("Resolution = %f"%res)
         _logger.info("Completed")
+    mpi_utility.barrier(**extra)
 
 def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     ''' Initialize SPIDER params, directory structure and parameters as well as cache data and phase flip
