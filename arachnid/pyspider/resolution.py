@@ -194,18 +194,21 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     
     sp : float
          Spatial frequency of the volumes
+    
+    .. todo:: mask based on full volume or half volume average
     '''
     
     for val in "volume_mask,mask_edge_width,threshold,ndilate,gk_size,gk_sigma,prefix".split(','): 
         if val in extra: del extra[val]
-    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'])
-    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'])
+    mask_output = format_utility.add_prefix(outputfile, "mask_")
+    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], mask_output=mask_output)
+    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], mask_output=mask_output)
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     _logger.debug("Found resolution at spatial frequency: %f"%sp)
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
         plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'])
-    return sp, (vals[:, 1], vals[:, 3])
+    return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T
 
 def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     '''Write a resolution image plot to a file
@@ -304,6 +307,46 @@ def sigmoid(coeff,x):
     
     return coeff[2] - ( coeff[1] / (1.0 + numpy.exp(-coeff[0]*(x+coeff[3])) ))
 
+def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
+    '''Write a resolution image plot to a file comparing multiple FSC curves
+    
+    :Parameters:
+    
+    outputfile : str
+                 Output filename for FSC plot image
+    fsc_curves : tuple
+                 Spatial frequency array followed by FSC score
+    apix : float
+           Pixel size
+    freq_rng : float, optional
+               Spatial frequency range to plot
+    '''
+    
+    if pylab is None: return 
+    pylab.switch_backend('cairo.png')
+    for i, fsc in enumerate(fsc_curves):
+        if isinstance(fsc, tuple):
+            label, fsc = fsc
+        else: label = "Iteration %d"%(i+1)
+        try:
+            coeff = fit_sigmoid(fsc[:, 0], fsc[:, 1])
+        except: pass
+        else:
+            res1 = sigmoid_inv(coeff, 0.5)
+            res2 = sigmoid_inv(coeff, 0.14)
+            label += ( " $%.3f (%.3f) \AA$"%(apix/res1, apix/res2) )
+        pylab.plot(fsc[:, 0], fsc[:, 1], label=label)
+    
+    lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
+    #pylab.legend(loc=1)
+    # detect drop below some number, stop range there?
+    pylab.axis([0.0,0.5,0.0,1.0])
+    pylab.xlabel('Spatial Frequency ($\AA^{-1}$)')
+    pylab.ylabel('Fourier Shell Correlation')
+    #pylab.title('Fourier Shell Correlation')
+    pylab.savefig(os.path.splitext(outputfile)[0]+".png", bbox_extra_artists=(lgd,), bbox_inches='tight')
+    #fig.savefig('samplefigure', bbox_extra_artists=(lgd,), bbox_inches='tight')
+
 def initialize(files, param):
     # Initialize global parameters for the script
     
@@ -322,15 +365,17 @@ def initialize(files, param):
 def reduce_all(filename, fsc_curves, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     filename, fsc = filename
-    fsc_curves.append(fsc)
+    label = os.path.basename(filename[0])
+    if spider_utility.is_spider_filename(label):
+        label = spider_utility.spider_id(label, use_int=False)
+    fsc_curves.append((label, fsc))
     return filename
     
 
-def finalize(files, fsc_curves, **extra):
+def finalize(files, output, fsc_curves, apix, **extra):
     # Finalize global parameters for the script
     if len(fsc_curves) > 1:
-        # todo plot multiple fscs
-        pass
+        plot_cmp_fsc(format_utility.add_prefix(output, "plot_cmp_"), fsc_curves, apix)
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):
