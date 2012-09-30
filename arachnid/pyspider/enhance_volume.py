@@ -124,40 +124,43 @@ def process(filename, spi, output, resolution, **extra):
     output = enhance_volume(output, spi, sp, output, **extra)
     return filename
 
-def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False, enh_resol=0.0, enh_sigma=3.0, apix=None, window=None, **extra):
+def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False, enh_resol=0.0, enh_sigma=3.0, apix=None, window=None, prefix=None, **extra):
     '''Frequency enhance volume
     
     :Parameters:
-    
-        filename : str
-                   Filename of the input volume
-        spi : vispider.core.spider.Session
-                  Current SPIDER session
-        sp : float
-             Spatial frequency to filter volume
-        outputfile : str
-                     Filename of the output volume
-        scatter_doc : str
-                      Filename for x-ray scatter file
-        enh_mask : bool
-                   Generate a tight mask under which to calculate the fall off
-        enh_resol : float
-                    Gaussian lowpass filter to given resolution (0 disables)
-        enh_sigma : float
-                    Gaussian filter width in real space (0 disables)
-        apix : float
-               Pixel size (provided by the SPIDER params file)
-        window : int
-                 Size of the current window (provided by the SPIDER params file)
-        extra : dict
-                Unused keyword arguments
+
+    filename : str
+               Filename of the input volume
+    spi : vispider.core.spider.Session
+              Current SPIDER session
+    sp : float
+         Spatial frequency to filter volume
+    outputfile : str
+                 Filename of the output volume
+    scatter_doc : str
+                  Filename for x-ray scatter file
+    enh_mask : bool
+               Generate a tight mask under which to calculate the fall off
+    enh_resol : float
+                Gaussian lowpass filter to given resolution (0 disables)
+    enh_sigma : float
+                Gaussian filter width in real space (0 disables)
+    apix : float
+           Pixel size (provided by the SPIDER params file)
+    window : int
+             Size of the current window (provided by the SPIDER params file)
+    prefix : str
+             Prefix for the mask output file
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
         
-        output_volume : str
-                        Name of the output volume
+    output_volume : str
+                    Name of the output volume
     '''
     if scatter_doc == "": return filename
+    if prefix is not None: outputfile = format_utility.add_prefix(outputfile, prefix)
     if filename == outputfile: filename = spi.cp(filename)
     
     filter_limit = int(window*sp) # Thanks to Jesper Pallesen
@@ -206,6 +209,9 @@ def initialize(files, param):
     
     param['spi'] = spider.open_session(files, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    
+    _logger.info("Pixel size: %f"%param['apix'])
+    _logger.info("Bin factor: %f"%param['bin_factor'])
 
 def finalize(files, **extra):
     # Finalize global parameters for the script
