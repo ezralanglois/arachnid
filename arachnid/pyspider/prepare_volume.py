@@ -283,17 +283,17 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     '''
     
     if output_volume == "": output_volume = format_utility.add_prefix(output, "vol_")
-    sp = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)
+    sp = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)[0]
     res = extra['apix']/sp
     if add_resolution > 0.0: 
         sp = extra['apix'] / (add_resolution+res)
     if (add_resolution+res) < min_resolution: sp = extra['apix']/min_resolution
-    #filter_volume_highpass(filename, spi, hp_radius=0, hp_type=0, hp_bw_pass=0.05, hp_bw_stop=0.05, hp_temp=0.0025, apix=None, outputfile=None, **extra)
-    output_volume = filter_volume.filter_volume_highpass(files[0], spi, outputfile=output_volume, **extra)
-    output_volume = filter_volume.filter_volume_lowpass(output_volume, spi, sp, outputfile=output_volume, **extra)
-    output_volume = mask_volume.mask_volume(output_volume, output_volume, spi, **extra)
+    filename = files[0]
+    filename = filter_volume.filter_volume_highpass(filename, spi, outputfile=output_volume, **extra)
+    filename = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output_volume, **extra)
+    filename = mask_volume.mask_volume(filename, output_volume, spi, **extra)
     if enhance:
-        enhance_volume.enhance_volume(spi, extra['apix'] / res, format_utility.add_prefix(output, "enh_"), **extra)
+        enhance_volume.enhance_volume(filename, spi, extra['apix'] / res, output, prefix="enh_", **extra)
     return res
 
 def initialize(files, param):
