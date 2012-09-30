@@ -343,7 +343,7 @@ def read_array_mpi(filename, numeric=True, sort_column=None, **extra):
     
     vals = None
     if mpi_utility.is_root(**extra):
-        vals = format.read(filename, numeric=numeric, **extra)
+        vals = read(filename, numeric=numeric, **extra)
         vals = format_utility.tuple2numpy(vals)[0]
         if sort_column < vals.shape[1]:
             vals[:] = vals[numpy.argsort(vals[:, sort_column]).squeeze()]
