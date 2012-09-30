@@ -104,7 +104,7 @@ from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.image import ndimage_utility, ndimage_file
 from ..core.spider import spider
-import logging
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -157,15 +157,17 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
     '''
     
     if prefix is not None: outputfile = format_utility.add_prefix(outputfile, prefix)
-    _logger.debug("Masking(%s): %s -> %s"%(volume_mask, filename, outputfile))
-    volume_mask = volume_mask.upper()
-    if volume_mask == 'A':
+    mask_type = volume_mask
+    if mask_type.find(os.sep) != -1: mask_type = os.path.basename(mask_type)
+    mask_type = mask_type.upper()
+    _logger.debug("Masking(%s): (%s) %s -> %s"%(mask_type, volume_mask, filename, outputfile))
+    if mask_type == 'A':
         tightmask(spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
-    elif volume_mask in ('C', 'G'):
-        spherical_mask(filename, outputfile, spi, volume_mask, **extra)
-    elif volume_mask == 'N':
+    elif mask_type in ('C', 'G'):
+        spherical_mask(filename, outputfile, spi, mask_type, **extra)
+    elif mask_type == 'N':
         if outputfile != filename: spi.cp(filename, outputfile)
-    elif volume_mask != "":
+    elif mask_type != "":
         apply_mask(spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), spi.replace_ext(volume_mask))
     else: return filename
     return outputfile
