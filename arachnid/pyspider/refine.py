@@ -115,7 +115,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app.program import run_hybrid_program, tracing
 from ..core.metadata import spider_params, format, format_utility, spider_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
@@ -125,14 +125,14 @@ import logging, numpy, os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, aligment, refine_index=-1, output="", **extra):
+def batch(files, alignment, refine_index=-1, output="", **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
     
     files : list
             List of input filenames
-    aligment : str
+    alignment : str
                Input alignment filename
     refine_index : int
                    Starting iteration for refinement (-1, means start at end)
@@ -144,8 +144,8 @@ def batch(files, aligment, refine_index=-1, output="", **extra):
     
     #min_resolution
     spi = spider.open_session(files, **extra)
-    alignment, refine_index = get_refinement_start(spi.replace_ext(aligment), refine_index, spi.replace_ext(output))
-    alignvals = format.read_array_mpi(spi.replace_ext(aligment), sort_column=17, **extra)
+    alignment, refine_index = get_refinement_start(spi.replace_ext(alignment), refine_index, spi.replace_ext(output))
+    alignvals = format.read_array_mpi(spi.replace_ext(alignment), sort_column=17, **extra)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))
     setup_log(output)
@@ -204,14 +204,14 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        res = refine_step(spi, alignvals, curr_slice, output, output_volume, enhance=((refine_index+1)==len(refine_step)), **extra)
+        res = refinement_step(spi, alignvals, curr_slice, output, output_volume, enhance=((refine_index+1)==len(refine_step)), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, res))       
         refine_index += 1
     mpi_utility.barrier(**extra)
 
-def refine_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
+def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
     ''' Perform a single step of refinement
     
     :Parameters:
@@ -243,8 +243,9 @@ def refine_step(spi, alignvals, curr_slice, output, output_volume, input_stack, 
     spider.release_mp(spi, **extra)
     if 1 == 1: # todo add parameter to do this
         tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
-        tmp = alignvals[curr_slice, 6:8] / extra['apix']
-        format.write(spi.replace_ext(tmp_align), tmp)
+        tmp = alignvals[curr_slice].copy()
+        tmp[:, 6:8] /= extra['apix']
+        format.write(spi.replace_ext(tmp_align), tmp, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','))
         spi.rt_sq(input_stack, tmp_align, outputfile=dala_stack)
     align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, input_stack=dala_stack, **extra)
     spider.throttle_mp(spi, **extra)
@@ -267,17 +268,17 @@ def setup_log(output):
     '''
     
     log_file = os.path.splitext(format_utility.add_prefix(output, "progress_"))[0]+".log"
-    format_utility.backup(log_file)
+    tracing.backup(log_file)
     ch = logging.FileHandler(log_file, mode='a')
     _logger.addHandler(ch)
     ch.setLevel(logging.INFO)
     ch.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
     
-def get_refinement_start(aligment, refine_index=-1, output="", **extra):
+def get_refinement_start(alignment, refine_index=-1, output="", **extra):
     ''' 
     :Parameters:
 
-    aligment : str
+    alignment : str
                Input alignment filename
     refine_index : int
                    Starting iteration for refinement (-1, means start at end)
@@ -302,11 +303,11 @@ def get_refinement_start(aligment, refine_index=-1, output="", **extra):
         if os.path.exists(spider_utility.spider_filename(output, refine_index)):
             raise IOError, "Specified refinement file does not exist: %s"%spider_utility.spider_filename(output, refine_index+1)
     if refine_index == 0:
-        if os.path.exists(aligment):
-            raise IOError, "Specified alignment file does not exist: %s"%aligment
+        if not os.path.exists(alignment):
+            raise IOError, "Specified alignment file does not exist: %s"%alignment
     else: 
-        aligment = spider_utility.spider_filename(output, refine_index)
-    return aligment, refine_index
+        alignment = spider_utility.spider_filename(output, refine_index)
+    return alignment, refine_index
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -365,9 +366,16 @@ def check_options(options, main_option=False):
         options.refine_name[i] = options.refine_name[i].replace('-', '_')
         if not hasattr(options, options.refine_name[i]):
             raise OptionValueError, "Refinement parameter name does not exist: %s (--refine-name)"%options.refine_name[i]
+    for i in xrange(len(options.refine_step)):
+        vals = options.refine_step[i]
+        if not hasattr(vals, '__iter__'):
+            options.refine_step[i] = [vals]
+        elif len(vals) > len(options.refine_name): 
+            raise OptionValueError, "Too many arguments in refinement step: %d - supports up to %d but found %d"%(i+1, len(options.refine_name), len(vals))
     for vals in options.refine_step:
-         if len(vals) > len(options.refine_name): 
-                raise OptionValueError, "Too many arguments in refinement step: %d - supports up to %d but found %d"%(i+1, len(options.refine_name), len(vals))
+        if not hasattr(vals, '__iter__'): continue
+        if len(vals) > len(options.refine_name): 
+            raise OptionValueError, "Too many arguments in refinement step: %d - supports up to %d but found %d"%(i+1, len(options.refine_name), len(vals))
 
 def main():
     #Main entry point for this script
