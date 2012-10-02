@@ -250,8 +250,8 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_sta
     align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, input_stack=dala_stack, **extra)
     spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra):
-        alignvals[:]=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
-        format.write(spi.replace_ext(output), alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')) 
+        align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
+        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')) 
     spider.release_mp(spi, **extra)
     vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, input_stack=input_stack, **extra)
     if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
