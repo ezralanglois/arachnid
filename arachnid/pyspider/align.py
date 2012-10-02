@@ -199,7 +199,6 @@ def batch(files, output, **extra):
     spi = spider.open_session(files, **extra)
     align = create_align.create_alignment(files, sort_align=True, **extra)
     curr_slice = mpi_utility.mpi_slice(len(align), **extra)
-    _logger.warn("Count - %s: %d"%(mpi_utility.hostname(), len(align[curr_slice])))
     extra.update(initalize(spi, files, align[curr_slice], **extra))
     align_to_reference(spi, align, curr_slice, **extra)
     if mpi_utility.is_root(**extra):
@@ -281,7 +280,7 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, phase_fl
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
-    if use_small_angle_alignment(spi, curr_slice, **extra):
+    if use_small_angle_alignment(spi, align[curr_slice], **extra):
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
         assert(angle_num <= max_ref_proj)
@@ -468,8 +467,8 @@ def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra
     
     spi : spider.Session
           Current SPIDER session
-    curr_slice : slice
-                 Current offset slice
+    curr_slice : array
+                 Current alignment
     theta_end : float
                 Range of theta to search
     angle_range : float
