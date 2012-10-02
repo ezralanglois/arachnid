@@ -1238,7 +1238,7 @@ def biggest_object(img, out=None):
     out[label == biggest] = 1
     return out
 
-def bispectrum(signal, samprate, maxlag, window='gaussian', scale='unbiased'):
+def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='unbiased'):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
     
     :Parameters:
@@ -1314,7 +1314,7 @@ def bispectrum(signal, samprate, maxlag, window='gaussian', scale='unbiased'):
         sig = signal[:,k];
         sig = sig.reshape((len(sig)),1);
         trflsig=sig[samp1ind-1].T;
-        trflsig = trflsig[0]
+        trflsig = trflsig[0] #??
         toepsig = scipy.linalg.toeplitz(numpy.hstack([numpy.ravel(sig[samlsamind-1]),numpy.ravel(zerosmaxlag1)]),numpy.hstack([numpy.ravel(numpy.conj(trflsig[ml1samind-1])),zeros1maxlag]))
         t = numpy.zeros([len(onesmaxlag211),len(trflsig)])
         for n in numpy.arange(0,len(onesmaxlag211)):
