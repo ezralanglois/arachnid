@@ -1271,12 +1271,12 @@ def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='u
     '''
         
     # Compute lag vector
-    sr = numpy.shape(signal);
-    sample = sr[0];
+    sr = numpy.shape(signal)
+    sample = sr[0]
     if sample == 1:
-        signal = signal.T;
+        signal = signal.T
         sample = sr[1]
-        record = 1;
+        record = 1
     else:
         record = sr[1] 
   
@@ -1287,69 +1287,69 @@ def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='u
         raise ValueError('Scale must be either biased, b, unbiased or u') 
         
     # Generate Constants
-    maxlag1 = maxlag+1;
-    maxlag2 = maxlag*2;
-    maxlag21 = maxlag2+1;
-    samp1ind = numpy.arange(sample,0,-1);
-    samlsamind = numpy.arange(sample-maxlag,sample+1);
-    ml1samind = numpy.arange(maxlag1,sample+1);
-    ml211ind = numpy.arange(maxlag21,0,-1);
-    zeros1maxlag = numpy.zeros(maxlag);
-    zerosmaxlag1 = zeros1maxlag;
-    onesmaxlag211 = numpy.ones(maxlag21,dtype=int);
+    maxlag1 = maxlag+1
+    maxlag2 = maxlag*2
+    maxlag21 = maxlag2+1
+    samp1ind = numpy.arange(sample,0,-1, dtype=numpy.int)
+    samlsamind = numpy.arange(sample-maxlag,sample+1, dtype=numpy.int)
+    ml1samind = numpy.arange(maxlag1,sample+1, dtype=numpy.int)
+    ml211ind = numpy.arange(maxlag21,0,-1, dtype=numpy.int)
+    zeros1maxlag = numpy.zeros(maxlag)
+    zerosmaxlag1 = zeros1maxlag
+    onesmaxlag211 = numpy.ones(maxlag21,dtype=int)
     
     # Subtract mean from signal 
     if record > 1:
-        ave = numpy.mean(signal.T,axis = 1);
+        ave = numpy.mean(signal.T,axis = 1)
         meansig = numpy.zeros([sample,record])
         for n in numpy.arange(0,sample):
-            meansig[n,:] = ave;
+            meansig[n,:] = ave
     else:   
-        meansig = numpy.mean(signal);
-    signal = signal-meansig;
+        meansig = numpy.mean(signal)
+    signal = signal-meansig
 
     # Prepare cumulant matrix
-    cum = numpy.zeros([maxlag21,maxlag21]);
+    cum = numpy.zeros([maxlag21,maxlag21])
     for k in numpy.arange(0,record):
-        sig = signal[:,k];
-        sig = sig.reshape((len(sig)),1);
-        trflsig=sig[samp1ind-1].T;
+        sig = signal[:,k]
+        sig = sig.reshape((len(sig)),1)
+        trflsig=sig[samp1ind-1].T
         trflsig = trflsig[0] #??
         toepsig = scipy.linalg.toeplitz(numpy.hstack([numpy.ravel(sig[samlsamind-1]),numpy.ravel(zerosmaxlag1)]),numpy.hstack([numpy.ravel(numpy.conj(trflsig[ml1samind-1])),zeros1maxlag]))
         t = numpy.zeros([len(onesmaxlag211),len(trflsig)])
         for n in numpy.arange(0,len(onesmaxlag211)):
-            t[n,:] = trflsig;
-        cum = cum + numpy.dot(toepsig*t,toepsig.T);
-    cum = cum/record;
+            t[n,:] = trflsig
+        cum = cum + numpy.dot(toepsig*t,toepsig.T)
+    cum = cum/record
     if numpy.logical_or(scale == 'b',scale == 'biased'):
-        cum = cum/sample;
+        cum = cum/sample
     else:
-        scalmat=numpy.zeros([maxlag1,maxlag1]);
+        scalmat=numpy.zeros([maxlag1,maxlag1])
         for k in numpy.arange(0,maxlag1):
-            maxlag1k = maxlag1-k-1;
-            scalmat[k,k:maxlag1] = numpy.tile(sample-maxlag1k,(1,maxlag1k+1));
-        scalmat = scalmat + numpy.triu(scalmat,1).T;       
-        samplemaxlag1 = sample-maxlag1;
-        maxlag1ind = numpy.arange(maxlag,0,-1);
-        a = scipy.linalg.toeplitz(numpy.arange(samplemaxlag1,sample-1), numpy.arange(samplemaxlag1,sample-maxlag2-1,-1));
+            maxlag1k = maxlag1-k-1
+            scalmat[k,k:maxlag1] = numpy.tile(sample-maxlag1k,(1,maxlag1k+1))
+        scalmat = scalmat + numpy.triu(scalmat,1).T
+        samplemaxlag1 = sample-maxlag1
+        maxlag1ind = numpy.arange(maxlag,0,-1)
+        a = scipy.linalg.toeplitz(numpy.arange(samplemaxlag1,sample-1), numpy.arange(samplemaxlag1,sample-maxlag2-1,-1))
         a = numpy.vstack([a,scalmat[maxlag1-1,maxlag1ind-1]])
-        scalmat = numpy.hstack([scalmat,a]);
-        scalmat = numpy.vstack([scalmat,scalmat[numpy.ix_(maxlag1ind-1,ml211ind-1)]]);
+        scalmat = numpy.hstack([scalmat,a])
+        scalmat = numpy.vstack([scalmat,scalmat[numpy.ix_(maxlag1ind-1,ml211ind-1)]])
         [r,c] = numpy.nonzero(scalmat<1)
-        scalmat[r,c] = 1;
+        scalmat[r,c] = 1
         cum = cum/scalmat    
     wind = lagwind(maxlag1,window);
-    we = numpy.ravel(numpy.hstack([wind[numpy.arange(maxlag1-1,0,-1)], wind]));
+    we = numpy.ravel(numpy.hstack([wind[numpy.arange(maxlag1-1,0,-1)], wind]))
     windeven = numpy.zeros([len(onesmaxlag211),len(we)]) 
     for n in numpy.arange(0,len(onesmaxlag211)):
-        windeven[n,:] = we;
+        windeven[n,:] = we
     wind = numpy.hstack([wind,zeros1maxlag])
     wind = scipy.linalg.toeplitz([wind,numpy.hstack([wind[0],numpy.zeros(maxlag2)])])
     wind = scipy.tril(wind[0:maxlag21,0:maxlag21])
-    wind = wind + scipy.tril(wind,-1).T;
-    wind = wind[ml211ind-1,:]*windeven*windeven.T;
-    bisp = scipy.fftpack.fftshift(scipy.fftpack.fft2(scipy.fftpack.ifftshift(cum*wind)));
-    a = numpy.fft.ifftshift(cum*wind);
+    wind = wind + scipy.tril(wind,-1).T
+    wind = wind[ml211ind-1,:]*windeven*windeven.T
+    bisp = scipy.fftpack.fftshift(scipy.fftpack.fft2(scipy.fftpack.ifftshift(cum*wind)))
+    a = numpy.fft.ifftshift(cum*wind)
     return bisp
 
 def lagwind(lag,window):
@@ -1375,42 +1375,44 @@ def lagwind(lag,window):
             Output window array
     '''
     
-    lag = float(lag);
-    lag1 = lag-1;
+    lag = float(lag)
+    lag1 = lag-1
     if lag == 1:
         return 1
     windows = ['uniform','sasaki','priestley', 'parzen', 'hamming', 'gaussian', 'daniell'];
-    i = windows.index(window)+1;
+    try: int(window)
+    except: i = windows.index(window)+1
+    else: i = window+1
     if i == 1:
-        wind = numpy.ones(lag);
+        wind = numpy.ones(lag)
     elif i == 2:
-        windlag = numpy.arange(lag)/lag1;
-        wind=numpy.sin(numpy.pi*windlag)/numpy.pi+numpy.cos(numpy.pi*windlag)*(1-windlag);
+        windlag = numpy.arange(lag)/lag1
+        wind=numpy.sin(numpy.pi*windlag)/numpy.pi+numpy.cos(numpy.pi*windlag)*(1-windlag)
     elif i == 3:
-        windlag = (numpy.arange(float(lag1))+1)/lag1;
-        w = (numpy.sin(numpy.pi*windlag)/numpy.pi/windlag-numpy.cos(numpy.pi*windlag))*3/numpy.pi/numpy.pi/windlag/windlag;
-        wind = numpy.ones(lag);
-        wind[1:len(wind)] = w;
+        windlag = (numpy.arange(float(lag1))+1)/lag1
+        w = (numpy.sin(numpy.pi*windlag)/numpy.pi/windlag-numpy.cos(numpy.pi*windlag))*3/numpy.pi/numpy.pi/windlag/windlag
+        wind = numpy.ones(lag)
+        wind[1:len(wind)] = w
     elif i == 4:
-        fixlag121 = int(lag1/2)+1;
-        windlag0 = numpy.arange(fixlag121+1)/lag1;
+        fixlag121 = int(lag1/2)+1
+        windlag0 = numpy.arange(fixlag121+1)/lag1
         windlag1 = 1-numpy.arange(fixlag121,lag1+1)/lag1
         wind1 = 1-(1-windlag0)*windlag0*windlag0*6
-        wind2 = windlag1*windlag1*windlag1*2;
+        wind2 = windlag1*windlag1*windlag1*2
         wind = numpy.ones(len(wind1)+len(wind2))
         wind[0:len(wind1)] = wind1
         wind[len(wind1):len(wind)] = wind2
     elif i == 5:
-        wind=0.54+0.46*numpy.cos(numpy.pi*numpy.arange(lag1+1)/lag1);
+        wind=0.54+0.46*numpy.cos(numpy.pi*numpy.arange(lag1+1)/lag1)
     elif i == 6:
         w1 = scipy.special.erfc(((numpy.arange(1,lag1)/(lag1)-.5)*8)/numpy.sqrt(2))/2
-        w2 = numpy.zeros(len(w1)+1);
-        w2[0:len(w2)-1] = w1;
-        wind = numpy.ones(len(w2)+1);
-        wind[1:len(wind)] = w2;
+        w2 = numpy.zeros(len(w1)+1)
+        w2[0:len(w2)-1] = w1
+        wind = numpy.ones(len(w2)+1)
+        wind[1:len(wind)] = w2
     elif i == 7:
         windlag = numpy.arange(1,lag)/lag1
-        w1 = numpy.sin(numpy.pi*windlag)/numpy.pi/windlag;
-        wind = numpy.ones(len(w1)+1);
-        wind[1:len(wind)] = w1;
+        w1 = numpy.sin(numpy.pi*windlag)/numpy.pi/windlag
+        wind = numpy.ones(len(w1)+1)
+        wind[1:len(wind)] = w1
     return wind
