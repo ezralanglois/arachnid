@@ -16,7 +16,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/plot_fsc.py
    :language: python
-   :lines: 25-
+   :lines: 22-
    :linenos:
 '''
 

@@ -14,7 +14,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/unstack.py
    :language: python
-   :lines: 23-
+   :lines: 20-
    :linenos:
 '''
 

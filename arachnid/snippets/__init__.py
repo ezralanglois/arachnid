@@ -9,4 +9,6 @@
     
     plot_fsc
     unstack
+    filter_volume
+    mask_volume
 '''
