@@ -32,6 +32,11 @@
 
 .. automodule:: arachnid.core
 
+:mod:`arachnid.snippets`
+========================
+
+.. automodule:: arachnid.snippets
+
 '''
 
 
