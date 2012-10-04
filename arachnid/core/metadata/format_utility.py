@@ -129,6 +129,39 @@ try:
         return create_namedtuple_list(values, "Selection", header=header)
 except: pass
 
+def new_filename(filename, prefix, suffix=None, ext=None):
+    '''Add a prefix, suffix and/or extension to the given filename
+    
+    .. sourcecode:: py
+    
+        >>> from core.metadata.format_utility import *
+        >>> print add_prefix('output.txt', 'new')
+            'new_output.txt'
+    
+    :Parameters:
+    
+    filename : str
+               Name of the file to prefix
+    prefix : str
+             Prefix to add to a filename
+    suffix : str
+             Suffix to add to a filename
+    ext : str
+          Extension to add to a filename
+    
+    :Returns:
+    
+    filename : str
+               Filename with prefix
+    '''
+    
+    if prefix is not None: filename = add_prefix(filename, prefix)
+    if suffix is not None: filename = add_suffix(filename, suffix)
+    if ext is not None:
+        if len(ext) > 0 and ext[0] != '.': ext = "."+ext
+        filename = os.path.splitext(filename)[0]+ext
+    return filename
+
 def add_prefix(filename, prefix):
     '''Add a prefix to the given filename
     
