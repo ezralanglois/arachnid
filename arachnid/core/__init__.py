@@ -13,6 +13,7 @@
     orient
     parallel
     spider
+    util
 
 :mod:`arachnid.core.app`
 =========================
@@ -48,5 +49,10 @@
 ==============================
 
 .. automodule:: arachnid.core.spider
+
+:mod:`arachnid.core.util`
+==============================
+
+.. automodule:: arachnid.core.util
 
 '''
