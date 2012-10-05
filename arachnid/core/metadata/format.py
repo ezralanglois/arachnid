@@ -198,6 +198,7 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
         if ext != "":
             base = os.path.splitext(filename)[0]
             filename = base+ext
+    filename = os.path.expanduser(filename)
     try:
         fin = open(filename, mode)
     except:
