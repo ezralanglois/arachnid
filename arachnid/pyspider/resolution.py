@@ -130,9 +130,10 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 from ..core.image.ndplot import pylab
 from ..core.metadata import format, format_utility, spider_utility, spider_params
+from ..core.util import fitting
 from ..core.spider import spider
 import mask_volume
-import logging, os, numpy, scipy
+import logging, os, numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -162,7 +163,7 @@ def process(filename, output, **extra):
     _logger.info("Resolution = %f - between %s and %s"%(res, filename[0], filename[1]))
     return filename, fsc
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=3.0, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
@@ -176,17 +177,21 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     outputfile : str
                  Filename for output resolution file (also masks `res_mh1_$outputfile` and `res_mh2_$outputfile` and resolution image `plot_$outputfile.png`)
     resolution_mask : str
-                      Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filepath for external mask
+                      Spherical mask: Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filepath for external mask
     res_edge_width : int
-                      Set edge with of the mask (for Gaussian this is the half-width)
+                     Spherical mask: Set edge with of the mask (for Gaussian this is the half-width)
     res_threshold : str
-                Threshold for density or `A` for auto threshold
+                   Tight mask: Threshold for density or `A` for auto threshold
     res_ndilate : int
-              Number of times to dilate the mask
+                  Tight mask: Number of times to dilate the mask
     res_gk_size : int
-              Size of the real space Gaussian kernel (must be odd!)
+                  Tight mask: Size of the real space Gaussian kernel (must be odd!)
     res_gk_sigma : float
-               Width of the real space Gaussian kernel
+                   Tight mask: Width of the real space Gaussian kernel
+    res_filter : float
+                 Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
+    dpi : int
+          Dots per inch for output plot
     extra : dict 
             Unused keyword arguments
     
@@ -201,16 +206,16 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     for val in "volume_mask,mask_edge_width,threshold,ndilate,gk_size,gk_sigma,prefix".split(','): 
         if val in extra: del extra[val]
     mask_output = format_utility.add_prefix(outputfile, "mask_")
-    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], mask_output=mask_output)
-    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], mask_output=mask_output)
+    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
+    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     _logger.debug("Found resolution at spatial frequency: %f"%sp)
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
-        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'])
+        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi)
     return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T
 
-def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
+def plot_fsc(outputfile, x, y, apix, freq_rng=0.5, dpi=72):
     '''Write a resolution image plot to a file
     
     :Parameters:
@@ -230,14 +235,14 @@ def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     if pylab is None: return 
     pylab.switch_backend('cairo.png')
     try:
-        coeff = fit_sigmoid(x, y)
+        coeff = fitting.fit_sigmoid(x, y)
     except: pass
     else:
         pylab.clf()
-        pylab.plot(x, sigmoid(coeff, x), 'g.')
+        pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
         markers=['r--', 'b--']
         for i, yp in enumerate([0.5, 0.14]):
-            xp = sigmoid_inv(coeff, yp)
+            xp = fitting.sigmoid_inv(coeff, yp)
             if numpy.alltrue(numpy.isfinite(xp)):
                 pylab.plot((x[0], xp), (yp, yp), markers[i])
                 pylab.plot((xp, xp), (0.0, yp), markers[i])
@@ -249,63 +254,7 @@ def plot_fsc(outputfile, x, y, apix, freq_rng=0.5):
     pylab.xlabel('Spatial Frequency ($\AA^{-1}$)')
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
-    pylab.savefig(os.path.splitext(outputfile)[0]+".png")
-
-def fit_sigmoid(x, y):
-    ''' Use non-linear least squares to fit x and y to a sigmoid-like function
-    
-    :Parameters:
-    
-    x : array
-        X-values for training
-    y : array
-        y-values for training
-    
-    :Returns:
-    
-    coeff : array
-            Array of coefficents that fit x to y
-    '''
-    
-    def errfunc(p,x,y): return y-sigmoid(p,x)
-    p0 = [0.5, 0.5, 0.5, 0.5]
-    return scipy.optimize.leastsq(errfunc,p0,args=(x, y))[0]
-
-def sigmoid_inv(coeff,y):
-    ''' Returns a the related inverse of the sigmoid-like function for the given coeffients and x values
-    
-    :Parameters:
-    
-    coeff : array
-            Array of coeffients
-    y : array
-        Array of y-values
-    
-    :Returns:
-    
-    x : array
-        Inverse of sigmoid like function of y-values
-    '''
-    
-    return numpy.log( coeff[1]/(coeff[2]-y) - 1.0 )/-coeff[0] - coeff[3]
-
-def sigmoid(coeff,x):
-    ''' Returns a sigmoid-like function for the given coeffients and x values
-    
-    :Parameters:
-    
-    coeff : array
-            Array of coeffients
-    x : array
-        Array of x-values
-    
-    :Returns:
-    
-    y : array
-        Sigmoid like function of x values
-    '''
-    
-    return coeff[2] - ( coeff[1] / (1.0 + numpy.exp(-coeff[0]*(x+coeff[3])) ))
+    pylab.savefig(os.path.splitext(outputfile)[0]+".png", dpi=dpi)
 
 def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
     '''Write a resolution image plot to a file comparing multiple FSC curves
@@ -329,11 +278,11 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
             label, fsc = fsc
         else: label = "Iteration %d"%(i+1)
         try:
-            coeff = fit_sigmoid(fsc[:, 0], fsc[:, 1])
+            coeff = fitting.fit_sigmoid(fsc[:, 0], fsc[:, 1])
         except: pass
         else:
-            res1 = sigmoid_inv(coeff, 0.5)
-            res2 = sigmoid_inv(coeff, 0.14)
+            res1 = fitting.sigmoid_inv(coeff, 0.5)
+            res2 = fitting.sigmoid_inv(coeff, 0.14)
             label += ( " $%.3f (%.3f) \AA$"%(apix/res1, apix/res2) )
         pylab.plot(fsc[:, 0], fsc[:, 1], label=label)
     
@@ -357,6 +306,16 @@ def initialize(files, param):
     if param['sliding']:
         for i in xrange(1, len(files)):
             pfiles.append((files[i-1], files[i]))
+    if param['group']:
+        groups = {}
+        for f in files:
+            id = spider_utility.spider_id(f)
+            if id not in groups: groups[id]=[]
+            groups[id].append(f)
+            if len(groups[id]) > 2: raise ValueError, "Cannot have more than two volumes with the same spider ID: %s"%",".join(groups[id])
+        for p in groups.itervalues():
+            if len(groups[id]) < 2: raise ValueError, "Cannot have less than two volumes with the same spider ID: %s"%",".join(groups[id])
+            pfiles.append(tuple(p))
     else:
         for i in xrange(0, len(files), 2):
             pfiles.append((files[i], files[i+1]))
@@ -386,6 +345,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of input filenames where consecutive names are half volume pairs, must have even number of files", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the doc file contains the FSC curve with correct number of digits (e.g. fsc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", sliding=False,  help="Estimate resolution between each neighbor")
+        pgroup.add_option("-g", group=False,    help="Group by SPIDER ID")
+        pgroup.add_option("",   dpi=72,         help="Resolution of the output plot in dots per inch (DPI)")
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
     if main_option:
