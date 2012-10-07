@@ -2,7 +2,7 @@
 Reconstruction Protocol
 =======================
 
-This protocol describes 3D reconstruction of a biological specimen (e.g. the ribosome) 
+This protocol describes single-particle reconstruction of a biological specimen (e.g. the ribosome) 
 from a collection of electron micrographs.
 
 .. contents:: 
@@ -268,7 +268,84 @@ the following commands may be used.
 	turn z phi coordinatesystem #0
 	turn x 180
 
+Running Isolated Scripts
+========================
 
+This section covers running Arachnid scripts in isolation, i.e. when you only want to use Arachnid for one
+procedure in the single-particle reconstruction workflow.
+
+.. note::
+	
+	For Frank Lab members, you must source Arachnid to get full access to pySpider (EACH time you start a terminal window).
+	
+	.. sourcecode:: sh
+	
+		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
+
+Particle Selection
+------------------
+
+1. Create a config file
+
+.. sourcecode:: sh
+
+	$ ara-autopick > auto.cfg
+
+2. Edit config file
+
+.. sourcecode:: sh
+
+	$ vi auto.cfg
+	
+	# - or -
+	
+	$ kwrite auto.cfg
+
+	input-files: Micrographs/mic_*.spi
+	output:	coords/sndc_0000.spi
+	param-file: params.spi
+	bin-factor: 2.0
+	worker-count: 4
+	invert: False 	# Set True for unprocessed CCD micrographs
+
+3. Run using config file
+
+.. sourcecode:: sh
+	
+	$ ara-autopick -c auto.cfg
+
+Particle Windowing
+------------------
+
+1. Create a config file
+
+.. sourcecode:: sh
+
+	$ ara-crop > crop.cfg
+
+2. Edit config file
+
+.. sourcecode:: sh
+
+	$ vi crop.cfg
+	
+	# - or -
+	
+	$ kwrite crop.cfg
+
+	input-files: Micrographs/mic_*.spi
+	output:	win/win_0000.spi
+	coordinate-file: coords/sndc_0000.spi
+	param-file: params.spi
+	bin-factor: 1.0
+	worker-count: 4		# Set based on number of available cores and memory limitations
+	invert: False 		# Set True for unprocessed CCD micrographs
+
+3. Run using config file
+
+.. sourcecode:: sh
+	
+	$ ara-crop -c auto.cfg
 
 
 
