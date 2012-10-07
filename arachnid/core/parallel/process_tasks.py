@@ -36,7 +36,6 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
     '''
     
     if worker_count > 1 and len(vals) > worker_count:
-        logging.debug("Running with multiple processes: %d"%worker_count)
         qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
         index = 0
         while index < len(vals):
@@ -51,7 +50,7 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
             index += 1
             yield val
     else:
-        logging.debug("Running with single process")
+        logging.debug("Running with single process: %d"%len(vals))
         for i, val in enumerate(vals):
             yield i, process(val, **extra)
 
