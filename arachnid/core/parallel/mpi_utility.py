@@ -43,7 +43,8 @@ def gather_array(vals, curvals=None, comm=None, **extra):
     '''
     
     if comm is not None:
-        #_logger.error("Start gather for node %d - %s"%(comm.Get_rank(), socket.gethostname()))
+        comm.barrier()
+        _logger.error("Start gather for node %d - %s"%(comm.Get_rank(), socket.gethostname()))
         if 1 == 1:
             size = comm.Get_size()
             rank = comm.Get_rank()
@@ -294,7 +295,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
                 assert(index>0)
                 yield index-1, res
         except:
-            _logger.debug("client-processing - error")
+            _logger.exception("client-processing - error")
             if rank > 0: 
                 lenbuf[0, 0] = -1.0
                 comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
