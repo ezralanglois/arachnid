@@ -118,7 +118,7 @@ SIRT Options
 
     Maximum number of iterations (Default: 20)
         
-.. option:: --mode : int
+.. option:: --reg-mode : int
 
     Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative (Default: 1)
         
@@ -238,7 +238,7 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
        try: os.makedirs(os.path.dirname(param['local_scratch']))
        except: pass
     param['flip_stack'] = None
-    if phase_flip: param['flip_stack'] = format_utility.add_prefix(local_scratch, 'flip_recon_')
+    if not phase_flip: param['flip_stack'] = format_utility.add_prefix(local_scratch, 'flip_recon_')
     param['input_stack'] = spi.ms(len(align), window) if incore else format_utility.add_prefix(local_scratch, 'stack')
     
     if len(files) == 1:
@@ -287,9 +287,16 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
     '''
     
     update = spider.cache_interpolate(spi, master_filename, master_select, input_stack, window, rank)
-    if update and flip_stack is not None:  
+    if flip_stack is not None and (update or not os.path.exists(spi.replace_ext(flip_stack))):  
+        _logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
+    if spider.count_images(spi, flip_stack) != len(align):
+        _logger.error("flip: %d == %d"%(spider.count_images(spi, flip_stack), len(align)))
+    if spider.count_images(spi, input_stack) != len(align):
+        _logger.error("input: %d == %d"%(spider.count_images(spi, input_stack), len(align)))
+    assert(spider.count_images(spi, flip_stack) == len(align))
+    assert(spider.count_images(spi, input_stack) == len(align))
 
 def reconstruct_classify(spi, align, curr_slice, output, **extra):
     ''' Classify a set of projections and reconstruct a volume with the given alignment values
@@ -315,6 +322,7 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
     
     align = align.copy()
     align[:, 6:8] /= extra['apix']
+    align[:, 12:14] /= extra['apix']
     if mpi_utility.is_root(**extra):
         selection = classify.classify_projections(align, **extra)
     else: selection = 0
