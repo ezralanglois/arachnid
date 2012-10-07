@@ -63,10 +63,10 @@ def pca(trn, tst=None, frac=-1):
     elif frac > 0.0:
         idx = numpy.sum(t.cumsum()<frac)+1
     else: idx = d.shape[0]
-    _logger.error("pca: %s -- %s"%(str(V.shape), str(idx)))
+    #_logger.error("pca: %s -- %s"%(str(V.shape), str(idx)))
     if idx >= len(d): idx = 1
     val = d[:idx]*numpy.dot(V[:idx], tst.T).T
-    _logger.error("pca2: %s -- %s"%(str(V.shape), str(tst.shape)))
+    #_logger.error("pca2: %s -- %s"%(str(V.shape), str(tst.shape)))
     return val, idx, V[:idx], t[idx]
 
 def _assess_dimension(spectrum, n_samples, n_features):
@@ -130,7 +130,7 @@ def _assess_dimension(spectrum, n_samples, n_features):
 
     return max_ll[1]
 
-def one_class_classification(data, nstd_min=3):
+def one_class_classification_old(data, nstd_min=3):
     ''' Classify a set of data into one-class and outliers
     
     :Parameters:
@@ -152,6 +152,34 @@ def one_class_classification(data, nstd_min=3):
     #th = otsu(dist, numpy.sqrt(len(dist)))
     #dsel = dist < th
     return dsel
+
+def one_class_classification(data_reduced,raveled_im,plot):
+    # rows = number of datapoints
+    # return index of cut
+    row, col = numpy.shape(data_reduced) 
+    dist = one_class_distance(data_reduced)
+    sind = numpy.argsort(dist)
+    c1v = numpy.zeros(row)
+    c2v = c1v
+    for n in numpy.arange(0,row-1):
+        m = min(sind)
+        l = numpy.nonzero(sind == m)
+        sind[l] = row+2
+        class1 = numpy.nonzero(sind == (row+2))
+        class2 = numpy.nonzero(sind != (row+2))
+        c1v[n] = numpy.mean(numpy.std(raveled_im[class1,:])**2)
+        c2v[n] = numpy.mean(numpy.std(raveled_im[class2,:])**2)
+    c2vscaled = c2v/max(c2v)
+    xscaled = numpy.arange(0,row,dtype=float)/row
+    d = numpy.sqrt((1-xscaled)**2+(c2vscaled)**2)
+    m = min(d)
+    cut = d == m #numpy.nonzero(d == m)
+    '''
+    if (plot == 1) and (pylab is not None) :
+        pylab.plot(xscaled,c2vscaled)
+        pylab.show()
+    '''
+    return cut
 
 def one_class_distance(data, nstd_min=3):
     ''' Calculate the distance from the median center of the data
@@ -323,13 +351,15 @@ def otsu(data, bins=0):
     else: index_high = index+1
     return (thresholds[index_low]+thresholds[index_high]) / 2
 
-def running_variance(x):
+def running_variance(x, axis=None):
     '''Given a vector x, compute the variance for x[0:i]
     
     :Parameters:
         
     x : numpy.ndarray
         Sorted data
+    axis : int, optional
+           Axis along which the running variance is computed
     
     :Returns:
         
@@ -347,14 +377,46 @@ def running_variance(x):
     '''
     n = len(x)
     # The mean of x[0:i]
-    m = x.cumsum() / numpy.arange(1,n+1)
+    m = x.cumsum(axis=axis) / numpy.arange(1,n+1)
     # x[i]-mean[i-1] for i=1...
     x_minus_mprev = x[1:]-m[:-1]
     # x[i]-mean[i] for i=1...
     x_minus_m = x[1:]-m[1:]
     # s for i=1...
-    s = (x_minus_mprev*x_minus_m).cumsum()
+    s = (x_minus_mprev*x_minus_m).cumsum(axis=axis)
     var = s / numpy.arange(2,n+1)
+    if axis is not None:
+        var = numpy.mean(var, axis=0)
     # Prepend Inf so we have a variance for x[0]
     return numpy.hstack(([0],var))
+
+def online_variance(data, axis=None):    
+    '''Given a vector x, compute the variance for x[0:i]
+    
+    :Parameters:
+        
+    x : numpy.ndarray
+        Sorted data
+    axis : int, optional
+           Axis along which the running variance is computed
+    
+    :Returns:
+        
+    var : numpy.ndarray
+          Running variance
+    
+    .. note::
+        
+        Adopted from two-pass algorithm:
+            http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    '''
+    
+    if axis is None: 
+        axis = 0
+        data = data.ravel()
+    meanx = data.cumsum(axis)
+    meanx /= numpy.arange(1, data.shape[axis]+1).reshape(data.shape[axis], 1)
+    out = numpy.cumsum(numpy.square(data-meanx), axis=axis)
+    print data.shape, meanx.shape, out.shape
+    return out/(len(data)-1)
 
