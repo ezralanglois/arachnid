@@ -6,6 +6,32 @@ Developer's Guide
 	:depth: 1
 	:local:
 	:backlinks: none
+	
+	
+------------
+Custom Code
+------------
+
+Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
+that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
+a way to test new ideas, perform a simple task quickly or customize objects such as plots.
+
+The Snippets below cover a set of examples for writing fast-prototype code. These
+examples range from unstacking a SPIDER image stack to customizing the FSC plot.
+
+.. currentmodule:: arachnid.snippets
+
+.. autosummary::
+    :nosignatures:
+    :toctree: api_generated/
+    :template: api_module.rst
+    
+    plot_fsc
+    unstack
+    filter_volume
+    mask_volume
+    reconstruct
+    reconstruct3
  
 -------------------------------
 Application Programs Interface
@@ -147,6 +173,7 @@ to
 
 A little background: The default autosummary code gets all inherited members of a class. This ensures only the current
 members will be documented.
+
 
 Create a Program Script
 =======================
