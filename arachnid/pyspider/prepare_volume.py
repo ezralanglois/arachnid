@@ -328,6 +328,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of input filenames containing volumes triples, full_vol, half_vol_1, half_vol_2", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the filtered, masked volume as well as base output name for FSC curve (`res_$output`)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-e", enhance=False,  help="Enhance the output volume")
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, filter_volume.filter_volume_highpass, group=pgroup)
     if main_option:
@@ -365,7 +366,7 @@ def main():
         use_version = False,
         max_filename_len = 78,
     )
-def dependents(): return [filter_volume, resolution, mask_volume]
+def dependents(): return [filter_volume, resolution, mask_volume, enhance_volume]
 if __name__ == "__main__": main()
 
 
