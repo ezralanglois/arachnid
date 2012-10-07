@@ -1,6 +1,6 @@
 ''' Filter a volume
 
-Download to edit and run: :download:`plot_fsc.py <../../arachnid/snippets/filter_volume.py>`
+Download to edit and run: :download:`filter_volume.py <../../arachnid/snippets/filter_volume.py>`
 
 To run:
 
@@ -14,8 +14,8 @@ To run:
    :linenos:
 '''
 
-#from ..core.metadata import spider_params, spider_utility
-from ..core.spider import spider
+#from arachnid.core.metadata import spider_params, spider_utility
+from arachnid.core.spider import spider
 
 if __name__ == '__main__':
     

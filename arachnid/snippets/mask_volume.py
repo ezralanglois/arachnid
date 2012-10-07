@@ -1,6 +1,6 @@
 ''' Mask a volume
 
-Download to edit and run: :download:`plot_fsc.py <../../arachnid/snippets/mask_volume.py>`
+Download to edit and run: :download:`mask_volume.py <../../arachnid/snippets/mask_volume.py>`
 
 To run:
 
@@ -13,8 +13,8 @@ To run:
    :lines: 16-
    :linenos:
 '''
-from ..core.image import ndimage_utility, ndimage_file
-from ..core.spider import spider
+from arachnid.core.image import ndimage_utility, ndimage_file
+from arachnid.core.spider import spider
 
 if __name__ == '__main__':
     
