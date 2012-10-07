@@ -66,13 +66,25 @@ Tight Masking Options
 
     Generate a tight mask under which to calculate the fall off
 
-.. option:: --enh-resol <FLOAT>
+.. option:: --enh-filter <FLOAT>
 
-    Gaussian lowpass filter to given resolution (0 disables)
+    Gaussian lowpass filter to given resolution for tight mask (0 disables)
 
-.. option:: --enh-sigma <FLOAT>
+.. option:: --enh-gk-sigma <FLOAT>
 
-    Gaussian filter width in real space (0 disables)
+    Gaussian filter width in real space for tight mask (0 disables)
+
+.. option:: --enh-gk-size <INT>
+    
+    Size of the real space Gaussian kernel for tight mask (must be odd!)
+
+.. option:: --enh-threshold <'A' or FLOAT>
+
+    Threshold for density or `A` for auto threshold for tight mask
+
+.. option:: --enh-ndilate <INT>
+
+    Number of times to dilate the mask for tight mask
 
 Other Options
 =============
@@ -124,7 +136,7 @@ def process(filename, spi, output, resolution, **extra):
     output = enhance_volume(output, spi, sp, output, **extra)
     return filename
 
-def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False, enh_resol=0.0, enh_sigma=3.0, apix=None, window=None, prefix=None, **extra):
+def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False, enh_gk_sigma=9.0, enh_gk_size=3, enh_filter=0.0, enh_threshold='A', enh_ndilate=1, apix=None, window=None, prefix=None, **extra):
     '''Frequency enhance volume
     
     :Parameters:
@@ -141,10 +153,16 @@ def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False
                   Filename for x-ray scatter file
     enh_mask : bool
                Generate a tight mask under which to calculate the fall off
-    enh_resol : float
-                Gaussian lowpass filter to given resolution (0 disables)
-    enh_sigma : float
-                Gaussian filter width in real space (0 disables)
+    enh_gk_sigma : float
+                   Gaussian filter width in real space for tight mask (0 disables)
+    enh_gk_size : int
+                  Size of the real space Gaussian kernel for tight mask (must be odd!)
+    enh_filter : float
+                 Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
+    enh_threshold : str
+                    Threshold for density or `A` for auto threshold  for tight mask
+    enh_ndilate : int
+                  Number of times to dilate the mask  for tight mask
     apix : float
            Pixel size (provided by the SPIDER params file)
     window : int
@@ -169,9 +187,9 @@ def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False
     spi.de(tmp_roo)
     
     if enh_mask:
-        temp = filter_volume.filter_volume_lowpass(spi, filename, apix/enh_resol, 3) if enh_resol > 0 else filename
+        temp = filter_volume.filter_volume_lowpass(spi, filename, apix/enh_filter, 3) if enh_filter > 0 else filename
         mvol = format_utility.add_prefix(outputfile, 'enh_tm_')
-        mask_volume.tightmask(spider.nonspi_file(spi, temp, mvol), spi.replace_ext(mvol), None, 1, 3, enh_sigma)
+        mask_volume.tightmask(spi, spider.nonspi_file(spi, temp, mvol), spi.replace_ext(mvol), enh_threshold, enh_ndilate, enh_gk_size, enh_gk_sigma, enh_filter, apix)
         mvol = spi.cp(mvol)
         spi.de(mvol)
     else:
@@ -226,7 +244,10 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",      help="Output filename for filtered/enhanced volume with correct number of digits (e.g. masked_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=15.0,     help="Resolution to filter the volumes")
-    setup_options_from_doc(parser, spider.open_session, enhance_volume, group=pgroup)
+        setup_options_from_doc(parser, spider.open_session, group=pgroup)
+    
+    
+    setup_options_from_doc(parser, enhance_volume, group=pgroup)
     parser.change_default(thread_count=4, log_level=3)
     
 
