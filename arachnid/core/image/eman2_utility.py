@@ -10,6 +10,7 @@ import logging
 try:
     import EMAN2
     import utilities
+    import fundamentals
     EMAN2;
 except:
     logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
@@ -40,7 +41,7 @@ def mirror(img, out=None):
     out[:, :] = em2numpy(emdata)
     return out
 
-def rot_shift2D(img, psi, tx, ty, m, out=None):
+def rot_shift2D(img, psi, tx=None, ty=None, m=None, out=None):
     ''' Rotate and shift an image in 2D
     
     :Parameters:
@@ -63,9 +64,14 @@ def rot_shift2D(img, psi, tx, ty, m, out=None):
     img : array
           Transformed image
     '''
+    if tx is None:
+        #m = psi[1] > 179.9
+        tx = psi[7]
+        ty = psi[8]
+        psi = psi[6]
     if out is None: out = img.copy()
     emdata = numpy2em(img)
-    emdata = utilities.rot_shift2D(emdata, psi, tx, ty, m, interpolation_method="gridding")
+    emdata = fundamentals.rot_shift2D(emdata, psi, tx, ty, m, interpolation_method="gridding")
     out[:, :] = em2numpy(emdata)
     return out
 
