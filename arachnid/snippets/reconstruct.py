@@ -14,7 +14,7 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file
+from arachnid.core.image import ndimage_file, eman2_utility
 from arachnid.core.image import reconstruct
 import itertools 
 
@@ -22,6 +22,7 @@ if __name__ == "__main__":
     align_file = ""
     image_file = ""
     output = ""
+    use_rtsq = False
     
     #Note: this code assuming you are reconstructing a dala stack or a translated stack
     
@@ -35,6 +36,8 @@ if __name__ == "__main__":
     iter_single_image_files = itertools.imap(lambda id: spider_utility.spider_filename(image_file, id), image_ids)
     # Read in a set of images from single SPIDER files - memory efficient
     iter_single_images = itertools.imap(ndimage_file.read_image, iter_single_image_files)
+    if use_rtsq:
+        iter_single_images = itertools.imap(eman2_utility.rot_shift2D, iter_single_images, align)
     # Peform reconstruction
     vol = reconstruct.reconstruct_nn4(iter_single_images, align)
     # Write volume to file
