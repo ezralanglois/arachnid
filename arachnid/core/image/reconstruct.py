@@ -1,5 +1,7 @@
 ''' Reconstruct a set of projections into 3D volume
 
+.. todo:: make multi-core
+
 .. Created on Aug 15, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -37,8 +39,8 @@ def reconstruct_nn4(gen, align=None, npad=2, sym='c1', weighting=1, **extra):
     '''
     
     recon = eman2_utility.backproject_nn4(gen, align, npad=npad, sym=sym, weighting=weighting)
-    mpi_utility.block_reduce(eman2_utility.em2numpy(recon[1][0]), **extra)
-    mpi_utility.block_reduce(eman2_utility.em2numpy(recon[1][1]), **extra)
+    mpi_utility.block_reduce(recon[1], **extra)
+    mpi_utility.block_reduce(recon[2], **extra)
     if mpi_utility.is_root(**extra):
         return eman2_utility.finalize_nn4(recon)
 
