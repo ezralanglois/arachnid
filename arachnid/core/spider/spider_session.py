@@ -27,6 +27,8 @@ Example usage
 . todo::
 
     add warnings based on Spider Version
+    
+    results file into folder for multipler spider invocations using stdout
 
 .. Created on Aug 13, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -136,7 +138,7 @@ class Session(object):
         if enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
             #self._invoke('MD', 'RESULTS ON')
             self._invoke('MD', 'TERM OFF')
-            _logger.warn("Result enabled")
+            if rank == 0: _logger.warn("Result enabled")
         else: 
             self._invoke('MD', 'RESULTS OFF')
             self._invoke('MD', 'TERM OFF') 
@@ -308,8 +310,6 @@ class Session(object):
         tmp_files.extend(glob.glob('fort.*'))
         tmp_files.extend(glob.glob('_*.'+self.dataext))
         tmp_files.extend(glob.glob('_*.%s'%self.dataext))
-        if _logger.getEffectiveLevel() > logging.DEBUG:
-            tmp_files.extend(glob.glob('results.%s.*'%self.dataext))
         for filename in tmp_files:
             if os.path.exists(filename):
                 try: os.remove(filename)
