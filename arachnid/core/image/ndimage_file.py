@@ -135,17 +135,20 @@ def iter_images(filename, index=None):
         
     out : array
           Array with header information in the file
+        
+    .. todo:: iter single images
     '''
     
-    if index is not None and hasattr(index, 'ndim') and index.ndim == 2:
-        fileid = index[:, 0].astype(numpy.int)
-        ids = numpy.unique(fileid)
-        if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
-        for id in ids:
-            filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
-            for img in iter_images(filename, index[id == fileid, 1]):
-                yield img
-        return
+    if index is not None and hasattr(index, 'ndim'):
+        if index.ndim == 2 and index.shape[1]>1:
+            fileid = index[:, 0].astype(numpy.int)
+            ids = numpy.unique(fileid)
+            if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
+            for id in ids:
+                filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
+                for img in iter_images(filename, index[id == fileid, 1]):
+                    yield img
+            return
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
     if format is None: raise IOError, "Could not find format for %s"%filename
@@ -211,6 +214,9 @@ def write_image(filename, img, index=None):
     index : int, optional
             Index image should be written to in the stack
     '''
+    
+    if index is not None and index == 0 and os.path.exists(filename):
+        os.unlink(filename)
     
     format = get_write_format(filename)
     if format is None: 
