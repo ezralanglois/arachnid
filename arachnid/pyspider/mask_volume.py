@@ -86,6 +86,10 @@ Adaptive Tight Mask Options
 
     Width of the real space Gaussian kernel
 
+.. option:: --pre_filter <FLOAT>
+
+    Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
+
 Other Options
 =============
 
@@ -127,8 +131,8 @@ def process(filename, output, **extra):
                Filename for correct location
     '''
     
-    if spider_utility.is_spider_filename(filename):
-        output = spider_utility.spider_filename(output, filename)
+    if spider_utility.is_spider_filename(filename[0]):
+        output = spider_utility.spider_filename(output, filename[0])
     mask_volume(filename, output, mask_output=format_utility.add_prefix(output, "mask_"), **extra)
     return filename
 
@@ -162,7 +166,7 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
     mask_type = mask_type.upper()
     _logger.debug("Masking(%s): (%s) %s -> %s"%(mask_type, volume_mask, filename, outputfile))
     if mask_type == 'A':
-        tightmask(spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
+        tightmask(spi, spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
     elif mask_type in ('C', 'G'):
         spherical_mask(filename, outputfile, spi, mask_type, **extra)
     elif mask_type == 'N':
@@ -203,11 +207,13 @@ def spherical_mask(filename, outputfile, spi, volume_mask, mask_edge_width=10, p
     radius = pixel_diameter/2+mask_edge_width/2 if volume_mask == 'C' else pixel_diameter/2+mask_edge_width
     return spi.ma(filename, radius, (width, width, width), volume_mask, 'C', mask_edge_width, outputfile=outputfile)
 
-def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigma=3.0, mask_output=None, **extra):
+def tightmask(spi, filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigma=3.0, pre_filter=0.0, apix=1.0, mask_output=None, **extra):
     ''' Tight mask the input volume and write to outputfile
     
     :Parameters:
     
+    spi : spider.Session
+          Current SPIDER session
     filename : str
                Input volume
     outputfile : str
@@ -220,6 +226,10 @@ def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigm
               Size of the real space Gaussian kernel (must be odd!)
     gk_sigma : float
                Width of the real space Gaussian kernel
+    pre_filter : float
+                 Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
+    apix : float
+           Pixel size
     mask_output : str
                   Output filename for the mask
     extra : dict
@@ -231,8 +241,19 @@ def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigm
                  Output tight masked volume
     '''
     
+    if pre_filter > 0.0:
+        filename = spi.fq(filename, spi.GAUS_LP, filter_radius=apix/pre_filter, outputfile=mask_output)
+        filename = spi.replace_ext(filename)
+    
     img = ndimage_file.read_image(filename)
-    if mask_output is None or not os.path.exists(mask_output):
+    
+    
+    mask = None
+    if mask_output is not None and os.path.exists(mask_output):
+        mask = ndimage_file.read_image(mask_output)
+        if mask.shape[0] != img.shape[0] or mask.shape[1] != img.shape[1] or mask.shape[2] != img.shape[2]: mask=None
+    
+    if mask is None:
         try: threshold=float(threshold)
         except: threshold=None
         mask, th = ndimage_utility.tight_mask(img, threshold, ndilate, gk_size, gk_sigma)
@@ -241,7 +262,6 @@ def tightmask(filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigm
             ndimage_file.write_image(mask_output, mask)
     else:
         _logger.info("Using pre-generated tight-mask")
-        mask = ndimage_file.read_image(mask_output)
         
     ndimage_file.write_image(outputfile, img*mask)
     return outputfile
