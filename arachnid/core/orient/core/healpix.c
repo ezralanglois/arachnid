@@ -58,7 +58,7 @@ py_pix2ang_nest(
     if( euler == NULL )
     {
     	result = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-		if (euler == NULL)
+		if (result == NULL)
 		{
 			PyErr_Format(PyExc_MemoryError, "unable to allocate result");
 			goto _fail;
@@ -101,7 +101,7 @@ py_pix2ang_ring(
     if( euler == NULL )
     {
     	result = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-		if (euler == NULL)
+		if (result == NULL)
 		{
 			PyErr_Format(PyExc_MemoryError, "unable to allocate result");
 			goto _fail;
