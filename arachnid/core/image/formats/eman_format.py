@@ -194,7 +194,11 @@ def iter_images(filename, index=None, header=None):
     if index is None: index = 0
     emdata = eman2_utility.EMAN2.EMData()
     count = count_images(filename)
-    if numpy.any(index >= count): raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
+    if numpy.any(index >= count):
+        if hasattr(index, '__iter__'): 
+            sel = numpy.argwhere(index >= count)
+            index=index[sel[0]]
+        raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
     if not hasattr(index, '__iter__'): index =  xrange(index, count)
     else: index = index.astype(numpy.int)
     
