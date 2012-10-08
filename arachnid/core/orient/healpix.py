@@ -28,6 +28,26 @@ except:
     except:
         tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
 
+def _ensure_theta(theta, half=False):
+    ''' Ensure theta falls in the proper range, 0-180.0
+    
+    :Parameters:
+    
+    theta : float
+            Theta value
+    half : bool, optional
+           If true, then assume theta can be mirrored
+           
+    :Returns:
+    
+    theta : float
+            Theta value in proper range
+    '''
+    
+    if theta >= numpy.pi: 
+        if half: theta = theta - numpy.pi
+        else: theta = theta - numpy.pi/2
+    return theta
 
 def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
@@ -63,14 +83,14 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         if out is None: out = numpy.zeros(len(theta), dtype=numpy.long)
         i = 0
         for t, p in theta:
-            if half and t >= numpy.pi: t = t - numpy.pi
+            t = _ensure_theta(t, half)
             out[i] = _ang2pix(int(resolution), float(t), float(p))
             i += 1
         return out
     else:
         _ang2pix = getattr(healpix, 'ang2pix_%s'%scheme)
         if phi is None: "phi must not be None when theta is a float"
-        if half and theta >= numpy.pi: theta = theta - numpy.pi
+        theta = _ensure_theta(theta, half)
         return _ang2pix(int(resolution), float(theta), float(phi))
 
 def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
@@ -108,7 +128,7 @@ def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         if out is None: out = numpy.zeros((len(theta), 2))
         i = 0
         for t, p in theta:
-            if half and t >= numpy.pi: t = t - numpy.pi
+            t = _ensure_theta(t, half)
             pix = _ang2pix(int(resolution), float(t), float(p))
             out[i, :] = _pix2ang(int(resolution), int(pix))
             i += 1
@@ -116,7 +136,7 @@ def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
     else:
         _ang2pix = getattr(healpix, 'ang2pix_%s'%scheme)
         if phi is None: "phi must not be None when theta is a float"
-        if half and theta >= numpy.pi: theta = theta - numpy.pi
+        theta = _ensure_theta(theta, half)
         return _ang2pix(int(resolution), float(theta), float(phi))
 
 
