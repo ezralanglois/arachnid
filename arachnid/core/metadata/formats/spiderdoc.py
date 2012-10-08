@@ -116,7 +116,7 @@ class read_iterator(object):
             line = self.lastline
             self.lastline = ""
         vals = line.split()
-        if self.hlen+2 == len(vals): 
+        if self.hlen+2 == len(vals):
             if self.numeric: return [format_utility.convert(v) for v in vals[2:]]
             return vals[2:]
         elif self.hlen+1 != len(vals): 
@@ -180,26 +180,30 @@ def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **e
                     header = spider_header_vars(lastline)
                     tot = len(line.strip().split())
                     if (len(header)+2) != tot and ( (len(header)+1) != tot or header[0] != "id"):
+                        _logger.debug("Creating default header: %s"%str(header))
                         del header[:]
                         header.extend(["column"+str(i+1) for i in xrange(tot-2)])
                     for key, val in dheader.iteritems():
                         header[int(val)] = key
                     _logger.debug("Created spider header from dict: %s"%str(header))
                 elif len(header) == 0: 
+                    _logger.debug("Extending header: %s"%str(header))
                     header.extend(spider_header_vars(lastline))
                     _logger.debug("Spider header: "+lastline)
             else: raise format_utility.ParseFormatError, "Cannot parser header of spider document - does not start with a ; - \"%s\" - %s"%(lastline[0], lastline)
             tot = len(line.strip().split())
             if (len(header)+2) != tot and ( (len(header)+1) != tot or header[0] != "id"):
-                logging.debug("%d > %d -- %s"%((len(header)+2), tot, header[0]))
+                _logger.debug("Adding id: %d > %d -- %s == %s"%((len(header)+2), tot, str(header), line))
                 if (len(header)+2) > tot:
                     d = (len(header)+2) - tot
                     del header[d:]
                 else:
+                    _logger.debug("Creating default header")
                     del header[:]
                     header.extend(["column"+str(i+1) for i in xrange(tot-2)])
                 #raise format_utility.ParseFormatError, "Cannot parser header of spider document - header mismatch"+str(header)+" - "+lastline
             if (len(header)+2) == tot and header.count("id") == 0:
+                _logger.debug("Insert id at front: %d -- %s"%(header.count("id"), str(header)))
                 header.insert(0, "id")
                 if flags is not None: flags["index_column"] = True
             else:
@@ -209,13 +213,14 @@ def read_header(filename, header=[], factory=namedtuple_factory, flags=None, **e
             if (float(vals[1])) != len(vals[2:]):
                 raise format_utility.ParseFormatError, "Not a valid spider file: %d != %d -> %s != %s"%(int(float(vals[1])), len(vals[2:]), str(vals))
             try:
+                _logger.debug("Create header: %s"%str(header))
                 return factory.create(header, **extra), header, line
             except:
                 del header[:]
                 header.extend(["column"+str(i+1) for i in xrange(tot-2)])
                 if (len(header)+2) == tot and header.count("id") == 0:
                     header.insert(0, "id")
-                logging.debug("create-header: "+str(header))
+                _logger.debug("create-default-header: "+str(header))
                 return factory.create(header, **extra), header, line
     except:
         fin.close()
