@@ -108,7 +108,7 @@ def batch(files, output, **extra):
     '''
     
     alignvals = create_alignment(files, **extra)   
-    format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(',')) 
+    format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
 
 def create_alignment(files, sort_align=False, **extra):

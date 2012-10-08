@@ -416,14 +416,14 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
         selection = format.write(spi.replace_ext(selectfile), numpy.asarray(selection[curr_slice]), header=('id', ))
     else: selectfile = None
     
-    format.write(spi.replace_ext(align_file), align[curr_slice])
+    format.write(spi.replace_ext(align_file), align[curr_slice], format=format.spiderdoc)
     spi.rt_sq(input_stack, align_file, selectfile, outputfile=dala_stack)
     mpi_utility.barrier(**extra)
     if mpi_utility.is_root(**extra):
         dalamap = spider_utility.file_map(dala_stack, mpi_utility.get_size(**extra))
         dala_stack = spider.stack(spi, dalamap, mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))
         if selection is not None: align = align[selection]
-        format.write(spi.replace_ext(align_file), align)
+        format.write(spi.replace_ext(align_file), align, format=format.spiderdoc)
         if engine == 1:
             spi.bp_cg_3(dala_stack, align_file, outputfile=vol_output, **extra)
         else:
@@ -474,15 +474,15 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         sel = selection[curr_slice]
         even = sel[numpy.arange(0, len(sel), 2, dtype=numpy.int)]
         odd = sel[numpy.arange(1, len(sel), 2, dtype=numpy.int)]
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ))
-        format.write(spi.replace_ext(seloddfile),  numpy.asarray(odd)+1,  header=('id', ))
+        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ), format=format.spiderdoc)
+        format.write(spi.replace_ext(seloddfile),  numpy.asarray(odd)+1,  header=('id', ), format=format.spiderdoc)
     else:
         even = numpy.arange(0, len(align[curr_slice]), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ))
-        format.write(spi.replace_ext(seloddfile), numpy.asarray(odd)+1, header=('id', ))
+        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ), format=format.spiderdoc)
+        format.write(spi.replace_ext(seloddfile), numpy.asarray(odd)+1, header=('id', ), format=format.spiderdoc)
         
-    format.write(spi.replace_ext(align_file), align[curr_slice], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,stack_id,micrograph,defocus".split(','))
+    format.write(spi.replace_ext(align_file), align[curr_slice], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,stack_id,micrograph,defocus".split(','), format=format.spiderdoc)
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
     #spi.rt_sq(input_stack, align_file, seloddfile, outputfile=odd_dala_stack)
     dala_stack = spi.replace_ext(dala_stack)

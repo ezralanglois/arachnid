@@ -549,7 +549,7 @@ def reduce_all(filename, file_completed, file_count, output, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
     filename, defocus_vals = filename
-    format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), default_format=format.spiderdoc, 
+    format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
                  header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
     _logger.info("Finished processing: %s - %d of %d"%(os.path.basename(filename), file_completed, file_count))
     return filename
