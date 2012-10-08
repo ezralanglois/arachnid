@@ -55,7 +55,6 @@ py_pix2ang_nest(
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "ll|O&", kwlist,
         &order, &ipix, PyConverter_DoubleVector3OrNone, &euler)) goto _fail;
 
-    fprintf(stderr, "order: %d, ipix: %d\n", order, ipix);
     if( euler == NULL )
     {
     	result = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
@@ -99,7 +98,6 @@ py_pix2ang_ring(
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "ll|O&", kwlist,
         &order, &ipix, PyConverter_DoubleVector3OrNone, &euler)) goto _fail;
 
-    fprintf(stderr, "order: %d, ipix: %ld\n", order, ipix);
     if( euler == NULL )
     {
     	result = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
@@ -112,9 +110,7 @@ py_pix2ang_ring(
     else result = euler;
 
     {
-        fprintf(stderr, "order2: %d, ipix: %ld\n", order, ipix);
     	double *ang = (double *)PyArray_DATA(result);
-        fprintf(stderr, "order3: %d, ipix: %ld\n", order, ipix);
     	pix2ang_ring(order, ipix, ang, ang+1);
     }
 
@@ -140,14 +136,11 @@ py_ang2pix_nest(
     double phi;
 	long ipix;
     static char *kwlist[] = {"order", "theta", "phi", NULL};
-    fprintf(stderr, "---here1\n");
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "ldd", kwlist,
         &order, &theta, &phi)) goto _fail;
 
     {
-        fprintf(stderr, "---here2\n");
     	ang2pix_nest(order, theta, phi, &ipix);
-        fprintf(stderr, "----here3 %d\n", ipix);
     }
 
     return PyLong_FromLong(ipix);
@@ -171,21 +164,16 @@ py_ang2pix_ring(
 	long ipix;
     static char *kwlist[] = {"order", "theta", "phi", NULL};
 
-    fprintf(stderr, "---here1\n");
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "ldd", kwlist,
         &order, &theta, &phi)) goto _fail;
 
     {
-        fprintf(stderr, "---here2\n");
     	ang2pix_ring(order, theta, phi, &ipix);
-        fprintf(stderr, "----here3 %d\n", ipix);
     }
-    fprintf(stderr, "---here4\n");
 
     return PyLong_FromLong(ipix);
 
   _fail:
-  fprintf(stderr, "---here5\n");
     return NULL;
 }
 
