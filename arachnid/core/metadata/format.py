@@ -418,7 +418,11 @@ def read(filename, columns=None, header=None, **extra):
                 except:
                     raise ValueError, "Cannot find column "+str(c)+" in header: "+",".join(header)
     
-    return map(factory, format.reader(fin, header, lastline, **extra))
+    try:
+        return map(factory, format.reader(fin, header, lastline, **extra))
+    except:
+        _logger.error("header: %s"%str(header))
+        raise
 
 def write(filename, values, mode='w', **extra):
     ''' Write a document to some format either specified or determined from extension
@@ -642,6 +646,7 @@ def read_alignment(filename, header=None, **extra):
         try:
             align = read(filename, numeric=True, header=h, **extra)
         except: pass
+        else: break
     if align is None:
         align = read(filename, numeric=True, header=header, **extra)
     return align
