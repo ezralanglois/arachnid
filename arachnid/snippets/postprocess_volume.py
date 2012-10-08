@@ -10,7 +10,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/postprocess_volume.py
    :language: python
-   :lines: 16-
+   :lines: 17-
    :linenos:
 '''
 
@@ -80,10 +80,10 @@ if __name__ == '__main__':
     
     # Mask the volume
     if mask_type == "tight":
-        img = ndimage_file.read_image(output_volume)                                                     # Read volume from a file
+        img = ndimage_file.read_image(spi.replace_ext(output_volume))                                                     # Read volume from a file
         mask, th = ndimage_utility.tight_mask(img, threshold=threshold_for_binary_mask, ndilate=number_of_times_to_dialate_binary_mask, gk_size=size_of_the_gaussian_kernel, gk_sigma=standard_deviation_of_gaussian)    # Generate a adaptive tight mask
         print "Threshold: ", th                                                                         # Print threshold used to create the tight mask
-        ndimage_file.write_image(output_volume, img*mask)                                               # Write the masked volume to output_volume
+        ndimage_file.write_image(spi.replace_ext(output_volume), img*mask)                                               # Write the masked volume to output_volume
     elif mask_type == "spherical":
         center = spider.image_size(spi, input_volume)[0]/2+1                                                                   # Center of the volume
         radius = pixel_diameter/2+mask_edge_width/2 if mask_edge_type == 'C' else pixel_diameter/2+mask_edge_width                # Define radius of the mask
