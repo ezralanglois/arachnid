@@ -14,4 +14,5 @@
     reconstruct
     reconstruct3
     postprocess_volume
+    estimate_resolution
 '''

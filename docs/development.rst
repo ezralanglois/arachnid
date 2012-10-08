@@ -33,6 +33,7 @@ examples range from unstacking a SPIDER image stack to customizing the FSC plot.
     reconstruct
     reconstruct3
     postprocess_volume
+    estimate_resolution
  
 -------------------------------
 Application Programs Interface
