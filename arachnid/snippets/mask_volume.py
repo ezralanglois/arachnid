@@ -2,6 +2,10 @@
 
 Download to edit and run: :download:`mask_volume.py <../../arachnid/snippets/mask_volume.py>`
 
+.. seealso::
+
+    List of :py:class:`SPIDER Commands <arachnid.core.spider.spider.Session>`
+
 To run:
 
 .. sourcecode:: sh
@@ -10,7 +14,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/mask_volume.py
    :language: python
-   :lines: 16-
+   :lines: 20-
    :linenos:
 '''
 from arachnid.core.image import ndimage_utility, ndimage_file

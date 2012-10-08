@@ -2,6 +2,10 @@
 
 Download to edit and run: :download:`filter_volume.py <../../arachnid/snippets/filter_volume.py>`
 
+.. seealso::
+
+    List of :py:class:`SPIDER Commands <arachnid.core.spider.spider.Session>`
+
 To run:
 
 .. sourcecode:: sh
@@ -10,7 +14,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/filter_volume.py
    :language: python
-   :lines: 16-
+   :lines: 21-
    :linenos:
 '''
 

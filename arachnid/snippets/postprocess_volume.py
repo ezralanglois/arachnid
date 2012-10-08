@@ -2,6 +2,10 @@
 
 Download to edit and run: :download:`postprocess_volume.py <../../arachnid/snippets/postprocess_volume.py>`
 
+.. seealso::
+
+    List of :py:class:`SPIDER Commands <arachnid.core.spider.spider.Session>`
+
 To run:
 
 .. sourcecode:: sh
@@ -10,7 +14,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/postprocess_volume.py
    :language: python
-   :lines: 17-
+   :lines: 21-
    :linenos:
 '''
 

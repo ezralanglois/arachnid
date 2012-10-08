@@ -2,6 +2,10 @@
 
 Download to edit and run: :download:`estimate_resolution.py <../../arachnid/snippets/estimate_resolution.py>`
 
+.. seealso::
+
+    List of :py:class:`SPIDER Commands <arachnid.core.spider.spider.Session>`
+
 To run:
 
 .. sourcecode:: sh
@@ -10,11 +14,11 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/estimate_resolution.py
    :language: python
-   :lines: 17-
+   :lines: 21-
    :linenos:
 '''
 
-from arachnid.core.image import ndimage_utility, ndimage_file
+from arachnid.core.image import ndimage_file
 from arachnid.core.metadata import spider_params
 from arachnid.core.spider import spider
 
