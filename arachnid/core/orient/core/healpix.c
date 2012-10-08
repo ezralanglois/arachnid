@@ -52,7 +52,7 @@ py_pix2ang_nest(
     long order;
     static char *kwlist[] = {"order", "ipix", "euler", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii|O&", kwlist,
         &order, &ipix, PyConverter_DoubleVector3OrNone, &euler)) goto _fail;
 
     if( euler == NULL )
@@ -95,7 +95,7 @@ py_pix2ang_ring(
     long order;
     static char *kwlist[] = {"order", "ipix", "euler", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii|O&", kwlist,
         &order, &ipix, PyConverter_DoubleVector3OrNone, &euler)) goto _fail;
 
     if( euler == NULL )
@@ -136,15 +136,17 @@ py_ang2pix_nest(
     double phi;
 	long ipix;
     static char *kwlist[] = {"order", "theta", "phi", NULL};
-
+    fprintf(stderr, "---here1\n");
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
         &order, &theta, &phi)) goto _fail;
 
     {
+        fprintf(stderr, "---here2\n");
     	ang2pix_nest(order, theta, phi, &ipix);
+        fprintf(stderr, "----here3 %d\n", ipix);
     }
 
-    return PyArray_Return(ipix);
+    return PyLong_FromLong(ipix);
 
   _fail:
     return NULL;
@@ -165,16 +167,21 @@ py_ang2pix_ring(
 	long ipix;
     static char *kwlist[] = {"order", "theta", "phi", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    fprintf(stderr, "---here1\n");
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "iff", kwlist,
         &order, &theta, &phi)) goto _fail;
 
     {
+        fprintf(stderr, "---here2\n");
     	ang2pix_ring(order, theta, phi, &ipix);
+        fprintf(stderr, "----here3 %d\n", ipix);
     }
+    fprintf(stderr, "---here4\n");
 
-    return PyArray_Return(ipix);
+    return PyLong_FromLong(ipix);
 
   _fail:
+  fprintf(stderr, "---here5\n");
     return NULL;
 }
 
@@ -192,14 +199,14 @@ py_nest2ring(
 	long ipixr;
     static char *kwlist[] = {"order", "ipix", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist,
         &order, &ipix)) goto _fail;
 
     {
     	nest2ring(order, ipix, &ipixr);
     }
 
-    return PyArray_Return(ipixr);
+    return PyLong_FromLong(ipixr);
 
   _fail:
     return NULL;
@@ -219,14 +226,14 @@ py_ring2nest(
 	long ipixn;
     static char *kwlist[] = {"order", "ipix", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist,
         &order, &ipix)) goto _fail;
 
     {
     	ring2nest(order, ipix, &ipixn);
     }
 
-    return PyArray_Return(ipixn);
+    return PyLong_FromLong(ipixn);
 
   _fail:
     return NULL;
@@ -245,14 +252,14 @@ py_nside2npix(
     long npix;
     static char *kwlist[] = {"order", "ipix", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist,
         &order)) goto _fail;
 
     {
     	npix = nside2npix(order);
     }
 
-    return PyArray_Return(npix);
+    return PyLong_FromLong(npix);
 
   _fail:
     return NULL;
@@ -271,14 +278,14 @@ py_npix2nside(
     long npix;
     static char *kwlist[] = {"order", "ipix", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist,
         &npix)) goto _fail;
 
     {
     	order = npix2nside(npix);
     }
 
-    return PyArray_Return(order);
+    return PyLong_FromLong(order);
 
   _fail:
     return NULL;
