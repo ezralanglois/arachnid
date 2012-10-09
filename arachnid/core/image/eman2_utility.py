@@ -66,9 +66,9 @@ def rot_shift2D(img, psi, tx=None, ty=None, m=None, out=None):
     '''
     if tx is None:
         #m = psi[1] > 179.9
-        tx = psi[7]
-        ty = psi[8]
-        psi = psi[6]
+        tx = psi[6]
+        ty = psi[7]
+        psi = psi[5]
     if out is None: out = img.copy()
     emdata = numpy2em(img)
     emdata = fundamentals.rot_shift2D(emdata, psi, tx, ty, m, interpolation_method="gridding")
