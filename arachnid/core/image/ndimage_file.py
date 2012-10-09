@@ -141,6 +141,19 @@ def iter_images(filename, index=None):
     
     if index is not None and hasattr(index, 'ndim'):
         if index.ndim == 2 and index.shape[1]>1:
+            beg = 0
+            tot = len(numpy.unique(index[:, 0].astype(numpy.int)))
+            if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
+            for i in xrange(tot):
+                id = index[beg, 0]
+                filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
+                sel = numpy.argwhere(id == index[:, 0]).ravel()
+                if beg != sel[0]: raise ValueError, "Array must be sorted by file ids: %d != %d -- %f, %f"%((beg), sel[0], index[beg, 0], beg)
+                for img in iter_images(filename, index[sel, 1]):
+                    yield img
+                beg += sel.shape[0]
+            
+            '''
             fileid = index[:, 0].astype(numpy.int)
             ids = numpy.unique(fileid)
             if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
@@ -148,6 +161,7 @@ def iter_images(filename, index=None):
                 filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
                 for img in iter_images(filename, index[id == fileid, 1]):
                     yield img
+            '''
             return
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
