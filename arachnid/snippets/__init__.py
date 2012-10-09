@@ -15,4 +15,6 @@
     reconstruct3
     postprocess_volume
     estimate_resolution
+    center_images
+    plot_angles
 '''

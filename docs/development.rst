@@ -34,6 +34,8 @@ examples range from unstacking a SPIDER image stack to customizing the FSC plot.
     reconstruct3
     postprocess_volume
     estimate_resolution
+    center_images
+    plot_angles
  
 -------------------------------
 Application Programs Interface
