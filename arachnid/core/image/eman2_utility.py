@@ -20,6 +20,33 @@ import numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def fshift(img, x, y, z=0, out=None):
+    ''' Shift an image
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    x : float
+        Translation in the x-direction
+    y : float
+        Translation in the y-direction
+    z : float
+        Translation in the z-direction
+    out : array
+          Output array
+        
+    :Returns:
+    
+    img : array
+          Transformed image
+    '''
+    if out is None: out = img.copy()
+    emdata = numpy2em(img)
+    emdata = fundamentals.fshift(emdata, x, y, z)
+    out[:, :] = em2numpy(emdata)
+    return out
+
 def mirror(img, out=None):
     ''' Mirror an image about the x-axis
     
