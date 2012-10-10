@@ -249,7 +249,7 @@ def classify_projections_by_view(alignvals, threshold_type=('None', 'Auto', 'CC'
     
     if threshold_type == 0: return None
     sel = analysis.one_class_selection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
-    view = healpix.ang2pix(view_resolution, alignvals[:, 1:])
+    view = healpix.ang2pix(view_resolution, numpy.deg2rad(alignvals[:, 1:3]))
     views = numpy.unique(view)
     maximum_views = 0
     if cull_overrep:
