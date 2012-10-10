@@ -15,7 +15,7 @@ To run:
 '''
 from arachnid.core.metadata import format, format_utility, spider_utility
 from arachnid.core.image import ndimage_file, eman2_utility
-import numpy
+import numpy, itertools
 
 if __name__ == '__main__':
 
@@ -29,18 +29,17 @@ if __name__ == '__main__':
     align = format.read_alignment(align_file)
     align,header = format_utility.tuple2numpy(align)
     
-    for i, img in enumerate(ndimage_file.iter_images(image_file, align[:, 15:17])):
+    align[:, 16]-=1
+    iter_single_images = ndimage_file.iter_images(image_file, align[:, 15:17])
+    #align[:, 0] = -align[:, 5]
         
-        # Convert TR to RT
-        psi = -align[i].psi
-        ca = numpy.cos(align[i].psi)
-        sa = numpy.sin(align[i].psi)
-        x = align[i].tx*ca + align[i].ty*sa
-        y = align[i].ty*ca - align[i].tx*sa
+    psi = -align[:, 5]
+    ca = numpy.cos(psi)
+    sa = numpy.sin(psi)
+    tx = align[:, 6]*ca + align[:, 7]*sa
+    ty = align[:, 7]*ca - align[:, 6]*sa
         
-        #Shift the image
-        img = eman2_utility.fshift(img, x, y)
-        
-        #Write to single image file
+    iter_single_images = itertools.imap(eman2_utility.fshift, iter_single_images, tx, ty)
+    for i, img in enumerate(iter_single_images):
         ndimage_file.write_image(spider_utility.spider_filename(output_file, int(align[i, 4])), img)
 
