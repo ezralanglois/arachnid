@@ -155,7 +155,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
-def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=[], refine_name=[], keep_reference=False, **extra):
+def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start=30.0, keep_reference=False, **extra):
     ''' Refine a volume for the specified number of iterations
     
     :Parameters:
@@ -170,8 +170,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
                    Starting offset in refinement
     output : str
              Output filename for refinement
-    refine_name : list
-                  List of option names to change in each round of refinement, values set in :option:`refine_step`
+    resolution_start : float
+                       Starting resolution
     refine_step : list
                   List of value tuples where each tuple represents a round of refinement and contains 
                   a value for each parameter specified in the same order as `refine-name` for each 
@@ -183,11 +183,31 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
             Unused keyword arguments
     '''
     
-    # 1. Decimation
+    param=dict(extra)
+    
+    #bin_factor = int( round( resolution / ( apix * 4 ) ) )
+    #filter_resolution = (bin_factor+1)*4*apix
+    
+    extra.update(spider_params.update_params(bin_factor, **param))
+    
+    # 1. Decimation - 30A for first
     # 2. Theta-delta
     # 3. Filtering
-    # 4. Translation range, step
+    # 4. Translation range, step ( how to choose? avg+std*4 )
     # 5. Angular restriction
+    
+    # Max translation is always 3
+    # 24
+    # 12
+    # 6
+    # 3
+    
+    # numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+    
+    # angular restriction based on 100 views to search
+    
+    
+    
     '''
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     
@@ -210,6 +230,44 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         refine_index += 1
     '''
     mpi_utility.barrier(**extra)
+    
+def theta_delta(resolution, apix, pixel_diameter, **extra):
+    ''' Angular sampling rate
+    
+    :Parameters:
+    
+    resolution : float
+                 Current resolution of the volume
+    apix : float
+           Pixel size
+    pixel_diameter : int
+                     Diameter of the particle in pixels
+           
+    :Returns:
+    
+    theta_delta : float
+                  Angular sampling rate
+    '''
+    
+    return numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+    
+def decimation_level(resolution, apix, **extra):
+    ''' Estimate the level of decimation required
+    
+    :Parameters:
+    
+    resolution : float
+                 Current resolution of the volume
+    apix : float
+           Pixel size
+           
+    :Returns:
+    
+    decimation : int
+                 Level of decimation
+    '''
+    
+    return int( round( resolution / ( apix * 4 ) ) )
 
 def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
     ''' Perform a single step of refinement
@@ -281,7 +339,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         bgroup.add_option("-i", input_files=[],          help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         bgroup.add_option("-o", output="",               help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         bgroup.add_option("-r", reference="",            help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
-        bgroup.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
+        bgroup.add_option("",   resolution_start=30.0,   help="Starting resolution for the refinement")
+        #bgroup.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
         pgroup.add_option_group(bgroup)
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
