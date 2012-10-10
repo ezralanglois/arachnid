@@ -195,7 +195,7 @@ def batch(files, output, **extra):
     extra : dict
             Unused keyword arguments
     '''
-        
+    
     spi = spider.open_session(files, **extra)
     align = create_align.create_alignment(files, sort_align=True, **extra)
     curr_slice = mpi_utility.mpi_slice(len(align), **extra)
@@ -203,7 +203,7 @@ def batch(files, output, **extra):
     align_to_reference(spi, align, curr_slice, **extra)
     if mpi_utility.is_root(**extra):
         align2=align[numpy.argsort(align[:, 4]).reshape(align.shape[0])]
-        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), default_format=format.spiderdoc)
+        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc)
     vols = reconstruct.reconstruct_classify(spi, align, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra):
         res = prepare_volume.post_process(vols, spi, output, **extra)
@@ -246,14 +246,14 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
         for i in xrange(offset.shape[0]):
             offset[i] = numpy.sum(udefs[i] == defs)
         param['defocus_offset'] = numpy.cumsum(offset)
-        if use_flip and param['flip_stack'] is not None:
-            param['input_stack'] = param['flip_stack']
-            param['phase_flip']=True
+        #if use_flip and param['flip_stack'] is not None:
+        #    param['input_stack'] = param['flip_stack']
+            #param['phase_flip']=True
     extra.update(param)
     spider.ensure_proper_parameters(extra)
     return extra
 
-def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, phase_flip, use_apsh, **extra):
+def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip, use_apsh, flip_stack=None, **extra):
     ''' Align a set of projections to the given reference
     
     :Parameters:
@@ -268,23 +268,28 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, phase_fl
                 Input filename for reference used in alignment
     max_ref_proj : int
                    Maximum number of reference projections allowed in memory
-    phase_flip : bool
+    use_flip : bool
                  Set true if the input stack is already phase flipped
     use_apsh : bool
                Set true to use AP SH rather than the faster, yet less accurate AP REF
+    flip_stack : str
+                 Filename for CTF-corrected stack
     extra : dict
             Unused keyword arguments
     '''
     
+    if use_flip and flip_stack is not None: extra['input_stack'] = flip_stack
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
+    if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
     if use_small_angle_alignment(spi, align[curr_slice], **extra):
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
         assert(angle_num <= max_ref_proj)
-        if phase_flip:
+        if extra['test_mirror']: extra['test_mirror']=False
+        if use_flip:
             if mpi_utility.is_root(**extra): _logger.info("Small angle alignment on CTF-corrected stacks - started")
             align_projections_sm(spi, ap_sel, None, align[curr_slice], reference, angle_doc, angle_num, **extra)
             if mpi_utility.is_root(**extra): _logger.info("Small angle alignment on CTF-corrected stacks - finished")
@@ -296,7 +301,7 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, phase_fl
         #angle_set, angle_num = spider.angle_split(spi, max_ref_proj, outputfile=angle_cache, **extra)
         angle_doc, angle_num = spi.vo_ea(outputfile=angle_cache, **extra)
         angle_off = parallel_utility.partition_offsets(angle_num, int(numpy.ceil(float(angle_num)/max_ref_proj)))
-        if phase_flip:
+        if use_flip:
             if mpi_utility.is_root(**extra): _logger.info("Alignment on CTF-corrected stacks - started")
             align_projections(spi, ap_sel, None, align[curr_slice], reference, angle_doc, angle_off, **extra)
             if mpi_utility.is_root(**extra): _logger.info("Alignment on CTF-corrected stacks - finished")
@@ -304,8 +309,10 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, phase_fl
             if mpi_utility.is_root(**extra): _logger.info("Alignment on raw stacks - started")
             align_projections_by_defocus(spi, ap_sel, align[curr_slice], reference, angle_doc, angle_off, **extra)
             if mpi_utility.is_root(**extra): _logger.info("Alignment on raw stacks - finished")
+    if _logger.isEnabledFor(logging.DEBUG): _logger.debug("End alignment - %s"%mpi_utility.hostname())
     align[curr_slice, 8] = angle_num
     align[curr_slice, 6:8] *= extra['apix']
+    align[curr_slice, 12:14] *= extra['apix']
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - started")
     mpi_utility.gather_array(align, align[curr_slice], **extra)
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - finished")
@@ -453,7 +460,10 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, ang
         angle_num = (angle_rng[i]-angle_rng[i-1])
         spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
+        # 1     2    3     4     5   6 7   8   9      10      11    12  13 14 15
+        #epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror
         vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
+        assert(vals.shape[1]==15)
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
         align[sel, :4] = vals[sel, :4]
         align[sel, 5:15] = vals[sel, 5:]
