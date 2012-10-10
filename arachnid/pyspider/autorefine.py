@@ -115,12 +115,12 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program, tracing
-from ..core.metadata import spider_params, format, format_utility, spider_utility
+from ..core.app.program import run_hybrid_program
+from ..core.metadata import spider_params, format, format_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, align, refine
-import logging, numpy, os
+import logging, numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -188,8 +188,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
     # 3. Filtering
     # 4. Translation range, step
     # 5. Angular restriction
-    
-    refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
+    '''
+    output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     
     spider.throttle_mp(spi, **extra)
     for step in refine_step[refine_index:]:
@@ -208,6 +208,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, res))       
         refine_index += 1
+    '''
     mpi_utility.barrier(**extra)
 
 def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
@@ -275,26 +276,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup, setup_options_from_doc
     
-    if main_option:
-        refine_name=['theta-delta', 'angle-range', 'trans-range', 'trans-step', 'use_apsh']
-        refine_step = [(15,0,30,4,'True'),
-                       (14,0,24,4),
-                       (13,0,20,2),
-                       (10,0,16,1),
-                       (7.0,0,10,1,False),
-                       (5.0,0,8),
-                       (4.0,0,4),
-                       (3.0,10,2),
-                       (2.5,6,1),
-                       (2.0,5),
-                       (1.0,4),
-                       (0.75),
-                       (0.7),
-                       (0.65,3),
-                       (0.6),
-                       (0.5,2),
-                       ()]
-        
+    if main_option:        
         bgroup = OptionGroup(parser, "Primary", "Primary options to set for input and output", group_order=0,  id=__name__)
         bgroup.add_option("-i", input_files=[],          help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         bgroup.add_option("-o", output="",               help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
