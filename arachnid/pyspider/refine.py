@@ -145,7 +145,10 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     #min_resolution
     spi = spider.open_session(files, **extra)
     alignment, refine_index = get_refinement_start(spi.replace_ext(alignment), refine_index, spi.replace_ext(output))
-    alignvals = format.read_array_mpi(spi.replace_ext(alignment), sort_column=17, **extra)
+    #  1     2    3    4     5   6  7  8   9    10        11    12   13 14 15      16          17       18
+    #"epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus"
+    alignvals = format.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
+    assert(alignvals.shape[1]==18)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))
     setup_log(output)
@@ -214,6 +217,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
 def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
     ''' Perform a single step of refinement
     
+    .. todo:: undecimate before reconstruct
+    
     :Parameters:
     
     spi : spider.Session
@@ -239,19 +244,25 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_sta
                  Resolution of the current reconstruction (only for root node)
     '''
     
+    # move to before reconstruct, pass parameter for undecimate for next round
+    # undecimate all params file values!
+    # add function to spider params!
     reconstruct.cache_local(spi, alignvals[curr_slice], input_stack=input_stack, **extra)
     spider.release_mp(spi, **extra)
-    if 1 == 1: # todo add parameter to do this
-        tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
-        tmp = alignvals[curr_slice].copy()
-        tmp[:, 6:8] /= extra['apix']
-        format.write(spi.replace_ext(tmp_align), tmp, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','))
+    tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
+    tmp = alignvals[curr_slice].copy()
+    tmp[:, 6:8] /= extra['apix']
+    tmp[:, 12:14] /= extra['apix']
+    format.write(spi.replace_ext(tmp_align), tmp[:, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
+    if not spider.supports_internal_rtsq(spi):
+        if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
         spi.rt_sq(input_stack, tmp_align, outputfile=dala_stack)
+    else: dala_stack = input_stack
     align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, input_stack=dala_stack, **extra)
     spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra):
         align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
-        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')) 
+        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
     spider.release_mp(spi, **extra)
     vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, input_stack=input_stack, **extra)
     if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
