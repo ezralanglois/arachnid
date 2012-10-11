@@ -198,9 +198,27 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         res = refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, enhance=((refine_index+1)==len(refine_step)), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            _logger.info("Refinement finished: %d. %f"%(refine_index+1, res))       
+            _logger.info("Refinement finished: %d. %f (%f)"%(refine_index+1, res, effective_resolution(**extra)))       
         refine_index += 1
     mpi_utility.barrier(**extra)
+
+def effective_resolution(theta_delta, apix, pixel_diamter, **extra):
+    ''' Estimate the effective resolution of the structure
+    
+    :Parameters:
+    
+    theta_delta : float
+                  Estimate angular step size
+    apix : float
+          Pixel size
+    pixel_diamter : int
+                    Size of the particle in pixels
+    extra : dict
+            Unused keyword arguments
+    
+    '''
+    
+    return numpy.tan(numpy.deg2rad(theta_delta/2))*apix*pixel_diamter
     
 def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
     ''' Recover the volume from the last refinement if it does not exist
@@ -217,6 +235,8 @@ def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
                    Starting offset in refinement
     output : str
              Output filename for refinement
+    extra : dict
+            Unused keyword arguments
              
     :Returns:
     
