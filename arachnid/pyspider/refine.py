@@ -155,7 +155,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
-def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=[], refine_name=[], keep_reference=False, **extra):
+def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=[], refine_name=[], **extra):
     ''' Refine a volume for the specified number of iterations
     
     :Parameters:
@@ -177,8 +177,6 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
                   a value for each parameter specified in the same order as `refine-name` for each 
                   round of refinement; each round is separated with a comma; each value by a colon, 
                   e.g. 15,10:0:6:1,8:0:4,1:3:1
-    keep_reference : bool
-                     Keep the initial reference for each round of refinement
     extra : dict
             Unused keyword arguments
     '''
@@ -187,34 +185,56 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         for i, s in enumerate(refine_name[:len(step)]):
             extra[s] = step[i]
     
-    output_volume = spider_utility.spider_filename(format_utility.add_prefix(output, "vol_"), refine_index) 
-    if refine_index > 0 and not os.path.exists(spi.replace_ext(output_volume)):
-        vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
-        if mpi_utility.is_root(**extra): 
-            res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
-            _logger.info("Refinement finished: %d. %f"%(refine_index, res))
-        mpi_utility.barrier(**extra)
-    
+    output_volume = recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
+    ring_last = extra['ring_last']
     spider.throttle_mp(spi, **extra)
     for step in refine_step[refine_index:]:
         for i, s in enumerate(refine_name[:len(step)]):
             extra[s] = step[i]
-        if refine_index > 0 and not keep_reference: 
-            extra['reference'] = output_volume
-            spi.iq_sync(extra['reference'])
+        extra['ring_last'] = ring_last
         spider.ensure_proper_parameters(extra)
-        output = spider_utility.spider_filename(output, refine_index+1) 
-        output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        res = refinement_step(spi, alignvals, curr_slice, output, output_volume, enhance=((refine_index+1)==len(refine_step)), **extra)
+        res = refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, enhance=((refine_index+1)==len(refine_step)), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, res))       
         refine_index += 1
     mpi_utility.barrier(**extra)
+    
+def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
+    ''' Recover the volume from the last refinement if it does not exist
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    alignvals : array
+            Array of alignment parameters
+    curr_slice : slice
+                 Slice of align or selection arrays on current node
+    refine_index : int
+                   Starting offset in refinement
+    output : str
+             Output filename for refinement
+             
+    :Returns:
+    
+    output_volume : str
+                    Output filename for the volume
+    '''
+    
+    output_volume = spider_utility.spider_filename(format_utility.add_prefix(output, "vol_"), refine_index) 
+    if refine_index > 0 and not os.path.exists(spi.replace_ext(output_volume)):
+        _logger.info("Reconstructing missing volume")
+        vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
+        if mpi_utility.is_root(**extra): 
+            res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+            _logger.info("Refinement finished: %d. %f"%(refine_index, res))
+        mpi_utility.barrier(**extra)
+    return output_volume
 
-def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
+def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, **extra):
     ''' Perform a single step of refinement
     
     .. todo:: undecimate before reconstruct
@@ -231,10 +251,10 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_sta
              Output filename for alignment file
     output_volume : str
                     Output filename for reconstruct reference used in the next round
-    input_stack : str
-                  Local input stack of projections
-    dala_stack : str
-                 Local aligned stack of projections
+    refine_index : int
+                   Current refinement index
+    keep_reference : bool
+                     Keep the initial reference for each round of refinement
     extra : dict
             Unused keyword arguments
     
@@ -243,28 +263,31 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_sta
     resolution : float
                  Resolution of the current reconstruction (only for root node)
     '''
+    if refine_index > 0 and not keep_reference: 
+        extra['reference'] = output_volume
+        spi.iq_sync(extra['reference'])
     
+    output = spider_utility.spider_filename(output, refine_index+1) 
+    output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
     # move to before reconstruct, pass parameter for undecimate for next round
     # undecimate all params file values!
     # add function to spider params!
-    reconstruct.cache_local(spi, alignvals[curr_slice], input_stack=input_stack, **extra)
-    spider.release_mp(spi, **extra)
+    reconstruct.cache_local(spi, alignvals[curr_slice], **extra)
     tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
-    tmp = alignvals[curr_slice].copy()
+    tmp = alignvals[curr_slice, :15].copy()
     tmp[:, 6:8] /= extra['apix']
     tmp[:, 12:14] /= extra['apix']
-    format.write(spi.replace_ext(tmp_align), tmp[:, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
-    if not spider.supports_internal_rtsq(spi):
-        if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
-        spi.rt_sq(input_stack, tmp_align, outputfile=dala_stack)
-    else: dala_stack = input_stack
-    align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, input_stack=dala_stack, **extra)
+    format.write(spi.replace_ext(tmp_align), tmp, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
+    spider.release_mp(spi, **extra)
+    
+    align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, **extra)
+    
     spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra):
         align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
         format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
     spider.release_mp(spi, **extra)
-    vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, input_stack=input_stack, **extra)
+    vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
     else: spider.throttle_mp(spi, **extra)
     return None
@@ -325,7 +348,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup, setup_options_from_doc
     
     if main_option:
-        refine_name=['theta-delta', 'angle-range', 'trans-range', 'trans-step', 'use_apsh']
+        refine_name=['theta-delta', 'angle-range', 'trans-range', 'trans-step', 'use-apsh']
         refine_step = [(15,0,30,4,'True'),
                        (14,0,24,4),
                        (13,0,20,2),
@@ -407,7 +430,7 @@ def main():
                         a cluster:
                         
                         source /guam.raid.cluster.software/arachnid/arachnid.rc
-                        nodes=`python -c "fin=open(\"machinefile\", 'r');lines=fin.readlines();print len([val for val in lines if val[0].strip() != '' and val[0].strip()[0] != '#'])"`
+                        nodes=`python -c "fin=open('machinefile', 'r');lines=fin.readlines();print len([val for val in lines if val[0].strip() != '' and val[0].strip()[0] != '#'])"`
                         nohup mpiexec -stdin none -n $nodes -machinefile machinefile %prog -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log &
                         exit 0
                       ''',

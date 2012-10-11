@@ -144,17 +144,44 @@ def read(filename, extra=None):
         fin.close()
         _logger.debug("Decimation: %d, %d"%(bin_factor, param['dec']))
         if bin_factor > 1.0 and bin_factor != param['dec']:
-            param['width'] /= bin_factor
-            param['height'] /= bin_factor
-            param['apix'] *= bin_factor
-            param['maxfreq'] /= bin_factor
-            param['window'] /= bin_factor
-            param['pixel_diameter'] /= bin_factor
+            param.update(update_params(bin_factor, **param))
         _logger.debug("apix: %f"%(param['apix']))
     if 'comm' in param and param['comm'] is not None:
         param = param['comm'].bcast(param)
     if extra is not None: extra.update(param)
     return param
+
+def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diameter, **extra):
+    ''' Update the SPIDER params based on the current decimation factor
+    
+    :Parameters:
+    
+    bin_factor : float
+                 Current decimation factor
+    width : int
+            Width of the micrograph
+    height : int
+             Height of the micrograph
+    apix : float
+           Pixel size
+    maxfreq : float
+              Maximum spatial frequence
+    window : int
+             Window size
+    pixel_diameter : int
+                     Diameter of the particle in pixels
+    extra : dict
+            Unused extra keyword arguments
+    '''
+    
+    return dict(width=width/bin_factor, 
+                height=height/bin_factor, 
+                apix=apix*bin_factor, 
+                maxfreq=maxfreq/bin_factor, 
+                window=window/bin_factor, 
+                pixel_diameter=pixel_diameter/bin_factor)
+    
+    
 
 def ctf_spider2EMAN(apix, ampcont, voltage, window, cs, bfactor=0.0, defocus=0.0, **extra):
     ''' Convert the Spider CTF to EMAN2
