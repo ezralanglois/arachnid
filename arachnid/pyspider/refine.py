@@ -151,7 +151,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     assert(alignvals.shape[1]==18)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))
-    setup_log(output)
+    if mpi_utility.is_root(**extra): setup_log(output)
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
@@ -204,6 +204,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
 
 def effective_resolution(theta_delta, apix, pixel_diamter, **extra):
     ''' Estimate the effective resolution of the structure
+    
+    .. todo:: use for conservative filter
     
     :Parameters:
     
