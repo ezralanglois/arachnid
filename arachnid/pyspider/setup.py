@@ -15,5 +15,6 @@ console_scripts = [
  'reference = arachnid.pyspider.reference:main',
  'refine = arachnid.pyspider.refine:main',
  'resolution = arachnid.pyspider.resolution:main',
+ 'autorefine = arachnid.pyspider.autorefine:main',
 ]
 
