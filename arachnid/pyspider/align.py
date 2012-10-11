@@ -253,7 +253,7 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     spider.ensure_proper_parameters(extra)
     return extra
 
-def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip, use_apsh, flip_stack=None, **extra):
+def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip, use_apsh, shuffle_angles=False, **extra):
     ''' Align a set of projections to the given reference
     
     :Parameters:
@@ -272,13 +272,14 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
                  Set true if the input stack is already phase flipped
     use_apsh : bool
                Set true to use AP SH rather than the faster, yet less accurate AP REF
-    flip_stack : str
-                 Filename for CTF-corrected stack
+    shuffle_angles : bool
+                     Shuffle the angular distribution
     extra : dict
             Unused keyword arguments
     '''
     
-    if use_flip and flip_stack is not None: extra['input_stack'] = flip_stack
+    angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
+    extra['input_stack'] = prealign_input(spi, use_flip=use_flip, **extra)
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
@@ -287,6 +288,10 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     if use_small_angle_alignment(spi, align[curr_slice], **extra):
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
+        if shuffle_angles:
+            psi, theta, phi = numpy.random.random_integers(low=0, high=360, size=3)
+            if theta > 180.0: theta -= 180.0
+            angle_doc=spi.vo_ras(angle_doc, angle_num, (psi, theta, phi), outputfile=angle_rot)
         assert(angle_num <= max_ref_proj)
         if extra['test_mirror']: extra['test_mirror']=False
         if use_flip:
@@ -300,6 +305,10 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     else:
         #angle_set, angle_num = spider.angle_split(spi, max_ref_proj, outputfile=angle_cache, **extra)
         angle_doc, angle_num = spi.vo_ea(outputfile=angle_cache, **extra)
+        if shuffle_angles:
+            psi, theta, phi = numpy.random.random_integers(low=0, high=360, size=3)
+            if theta > 180.0: theta -= 180.0
+            angle_doc=spi.vo_ras(angle_doc, angle_num, (psi, theta, phi), outputfile=angle_rot)
         angle_off = parallel_utility.partition_offsets(angle_num, int(numpy.ceil(float(angle_num)/max_ref_proj)))
         if use_flip:
             if mpi_utility.is_root(**extra): _logger.info("Alignment on CTF-corrected stacks - started")
@@ -498,21 +507,38 @@ def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra
         return part_count < full_count
     return False
 
-
-        
-
-'''
-def prealign_2D(spi, alignvals, input_stack, spider_cache, dala_stack, step=None, bin_factor=1.0, **extra):
+def prealign_input(spi, input_stack, use_flip, flip_stack, dala_stack, inputangles, **extra):
+    ''' Select and pre align the proper input stack
     
-    tmp_prev_align="*"
-    if step is not None:
-        tmp_prev_align = spider.prefix(spider_cache, "prev_align")
-        alignvals = alignvals[:, :15].copy()
-        alignvals[:, 6:8] /= bin_factor
-        spi.write_document(alignvals, [], tmp_prev_align)
-        input_stack = spi.rt_sq(input_stack, tmp_prev_align, outputfile=dala_stack)
-    return tmp_prev_align, input_stack
-'''
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    input_stack : str
+                  Local input stack of projections
+    use_flip : bool
+               Set true if the input stack is already phase flipped
+    flip_stack : str
+                 Filename for CTF-corrected stack
+    dala_stack : str
+                 Local aligned stack of projections
+    inputangles : str
+                 Document file with euler angles for each experimental projection (previous alignment)
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    input_stack : str
+                  Input filename for the input stack
+    '''
+    
+    
+    if use_flip and flip_stack is not None: input_stack = flip_stack
+    if not spider.supports_internal_rtsq(spi) and inputangles is not None:
+        if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
+        input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
+    return input_stack
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
