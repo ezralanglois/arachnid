@@ -116,7 +116,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.metadata import spider_params, format, format_utility
+from ..core.metadata import spider_params, format #, format_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, align, refine
@@ -155,7 +155,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
-def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start=30.0, keep_reference=False, **extra):
+def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start=30.0, num_iterations=0, **extra):
     ''' Refine a volume for the specified number of iterations
     
     :Parameters:
@@ -172,66 +172,42 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
              Output filename for refinement
     resolution_start : float
                        Starting resolution
-    refine_step : list
-                  List of value tuples where each tuple represents a round of refinement and contains 
-                  a value for each parameter specified in the same order as `refine-name` for each 
-                  round of refinement; each round is separated with a comma; each value by a colon, 
-                  e.g. 15,10:0:6:1,8:0:4,1:3:1
-    keep_reference : bool
-                     Keep the initial reference for each round of refinement
+    num_iterations : int
+                     Maximum number of allowed iterations
     extra : dict
             Unused keyword arguments
     '''
     
+    refine_name = "theta_delta,angle_range,trans_range,use_apsh,min_resolution,apix".split(',')
     param=dict(extra)
-    
-    #bin_factor = int( round( resolution / ( apix * 4 ) ) )
-    #filter_resolution = (bin_factor+1)*4*apix
-    
-    extra.update(spider_params.update_params(bin_factor, **param))
-    
-    # 1. Decimation - 30A for first
-    # 2. Theta-delta
-    # 3. Filtering
-    # 4. Translation range, step ( how to choose? avg+std*4 )
-    # 5. Angular restriction
-    
-    # Max translation is always 3
-    # 24
-    # 12
-    # 6
-    # 3
-    
-    # numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
-    
-    # angular restriction based on 100 views to search
-    
-    
-    
-    '''
+    extra['trans_range']=500
+    extra['trans_step']=1
+    theta_prev = None
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
-    
-    spider.throttle_mp(spi, **extra)
-    for step in refine_step[refine_index:]:
-        for i, s in enumerate(refine_name[:len(step)]):
-            extra[s] = step[i]
-        if refine_index > 0 and not keep_reference: 
-            extra['reference'] = output_volume
-            spi.iq_sync(extra['reference'])
-        spider.ensure_proper_parameters(extra)
-        output = spider_utility.spider_filename(output, refine_index+1) 
-        output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
-        if mpi_utility.is_root(**extra): 
+    for refine_index in xrange(refine_index, num_iterations):
+        # Angular restriction
+        # Undecimated reconstruction
+        bin_factor = decimation_level(resolution_start, **extra)
+        extra.update(spider_params.update_params(bin_factor, **param))
+        extra['trans_range'] = ensure_translation_range(**extra)
+        param['ring_last'] = int(param['pixel_diameter']/2.0)
+        extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
+        shuffle_angles = extra['theta_delta'] == theta_prev and refine_index > 0
+        extra['min_resolution'] = filter_resolution(resolution_start, **extra)
+        if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        res = refinement_step(spi, alignvals, curr_slice, output, output_volume, enhance=((refine_index+1)==len(refine_step)), **extra)
+        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, shuffle_angles=shuffle_angles, **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            _logger.info("Refinement finished: %d. %f"%(refine_index+1, res))       
-        refine_index += 1
-    '''
+            trans_range = translation_range(alignvals)
+            _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
+        extra['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
+        resolution_start = mpi_utility.broadcast(resolution_start, **extra)
+        theta_prev = extra['theta_delta']
     mpi_utility.barrier(**extra)
     
-def theta_delta(resolution, apix, pixel_diameter, **extra):
+    
+def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, **extra):
     ''' Angular sampling rate
     
     :Parameters:
@@ -242,6 +218,12 @@ def theta_delta(resolution, apix, pixel_diameter, **extra):
            Pixel size
     pixel_diameter : int
                      Diameter of the particle in pixels
+    trans_range : int
+                  Maximum translation range
+    theta_delta : float
+                  Current theta delta
+    extra : dict
+            Unused keyword arguments
            
     :Returns:
     
@@ -249,7 +231,9 @@ def theta_delta(resolution, apix, pixel_diameter, **extra):
                   Angular sampling rate
     '''
     
-    return numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+    if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= 2:
+        return numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+    return theta_delta
     
 def decimation_level(resolution, apix, **extra):
     ''' Estimate the level of decimation required
@@ -260,6 +244,8 @@ def decimation_level(resolution, apix, **extra):
                  Current resolution of the volume
     apix : float
            Pixel size
+    extra : dict
+            Unused keyword arguments
            
     :Returns:
     
@@ -269,66 +255,64 @@ def decimation_level(resolution, apix, **extra):
     
     return int( round( resolution / ( apix * 4 ) ) )
 
-def refinement_step(spi, alignvals, curr_slice, output, output_volume, input_stack, dala_stack, **extra):
-    ''' Perform a single step of refinement
+def ensure_translation_range(window, ring_last, trans_range, **extra):
+    ''' Ensure a valid translation range
     
-    .. todo:: undecimate before reconstruct
+    :Pararameters:
     
-    :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    alignvals : array
-                Array of alignment parameters
-    curr_slice : slice
-                 Slice of align or selection arrays on current node
-    output : str
-             Output filename for alignment file
-    output_volume : str
-                    Output filename for reconstruct reference used in the next round
-    input_stack : str
-                  Local input stack of projections
-    dala_stack : str
-                 Local aligned stack of projections
-    extra : dict
-            Unused keyword arguments
+    window : int
+             Size of the window
+    ring_last : int
+                Last alignment ring
+    trans_range : int
+                  Current translation range
     
     :Returns:
     
-    resolution : float
-                 Resolution of the current reconstruction (only for root node)
+    trans_range : int
+                  Proper translation range
     '''
     
-    # move to before reconstruct, pass parameter for undecimate for next round
-    # undecimate all params file values!
-    # add function to spider params!
-    reconstruct.cache_local(spi, alignvals[curr_slice], input_stack=input_stack, **extra)
-    spider.release_mp(spi, **extra)
-    tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
-    tmp = alignvals[curr_slice].copy()
-    tmp[:, 6:8] /= extra['apix']
-    tmp[:, 12:14] /= extra['apix']
-    format.write(spi.replace_ext(tmp_align), tmp[:, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
-    if not spider.supports_internal_rtsq(spi):
-        if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
-        spi.rt_sq(input_stack, tmp_align, outputfile=dala_stack)
-    else: dala_stack = input_stack
+    if (window/2 - ring_last - trans_range) < 3:
+        return spider.max_translation_range(window, ring_last)
+    return trans_range
     
+def translation_range(alignvals):
+    ''' Estimate the tail of the translation distribution
     
-    tmp_align = None
+    :Parameters:
     
+    alignvals : array
+                Array to estimate the translations from
     
-    align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, input_stack=dala_stack, **extra)
+    :Returns:
     
-    spider.throttle_mp(spi, **extra)
-    if mpi_utility.is_root(**extra):
-        align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
-        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
-    spider.release_mp(spi, **extra)
-    vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, input_stack=input_stack, **extra)
-    if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
-    else: spider.throttle_mp(spi, **extra)
-    return None
+    range : float
+            New translation range
+    '''
+    
+    t = numpy.abs(alignvals[:, 12:14].ravel())
+    return max(1, int(numpy.median(t)+numpy.std(t)*4))
+    
+def filter_resolution(bin_factor, apix, **extra):
+    ''' Resolution for conservative filtering
+    
+    :Parameters:
+    
+    bin_factor : int
+                 Level of decimation
+    apix : float
+           Pixel size
+    extra : dict
+            Unused keyword arguments
+           
+    :Returns:
+    
+    resolution : float
+                 Resolution to filter
+    '''
+    
+    return (bin_factor+1)*4*apix
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -340,7 +324,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         bgroup.add_option("-o", output="",               help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         bgroup.add_option("-r", reference="",            help="Filename for reference with the proper pixel size", gui=dict(filetype="open"), required_file=True)
         bgroup.add_option("",   resolution_start=30.0,   help="Starting resolution for the refinement")
-        #bgroup.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
+        bgroup.add_option("",   num_iterations=10,       help="Maximum number of iterations")
+        bgroup.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
         pgroup.add_option_group(bgroup)
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
@@ -356,22 +341,9 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     from ..core.app.settings import OptionValueError
     
-    if len(options.refine_name) == 0: raise OptionValueError, "No refinement names specified"
-    if len(options.refine_step) == 0: raise OptionValueError, "No refinement steps specified"
-    for i in xrange(len(options.refine_name)):
-        options.refine_name[i] = options.refine_name[i].replace('-', '_')
-        if not hasattr(options, options.refine_name[i]):
-            raise OptionValueError, "Refinement parameter name does not exist: %s (--refine-name)"%options.refine_name[i]
-    for i in xrange(len(options.refine_step)):
-        vals = options.refine_step[i]
-        if not hasattr(vals, '__iter__'):
-            options.refine_step[i] = [vals]
-        elif len(vals) > len(options.refine_name): 
-            raise OptionValueError, "Too many arguments in refinement step: %d - supports up to %d but found %d"%(i+1, len(options.refine_name), len(vals))
-    for vals in options.refine_step:
-        if not hasattr(vals, '__iter__'): continue
-        if len(vals) > len(options.refine_name): 
-            raise OptionValueError, "Too many arguments in refinement step: %d - supports up to %d but found %d"%(i+1, len(options.refine_name), len(vals))
+    if options.resolution_start <= 0: raise OptionValueError, "Resolution must be a positive number, ideally larger than 30"
+    if options.num_iterations <= 1: raise OptionValueError, "Number of iterations must be greater than 1"
+    
 
 def main():
     #Main entry point for this script
