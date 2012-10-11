@@ -406,6 +406,10 @@ def for_window_in_micrograph(spi, filename, window_size=512, x_overlap=50, y_ove
 def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
     ''' Read a micrograph file into core memory
     
+    .. todo:: find all places where spider files are written to send to spider
+    
+    .. todo:: find name of shmem in other linux flavors http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html
+    
     :Parameters:
     
     spi : spider.Session
@@ -427,8 +431,15 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, 
     
     if not os.path.exists(filename): filename = spi.replace_ext(filename)
     temp_spider_file = "temp_spider_file"
+    shm = os.path.join('/', 'dev', 'shm') # .. todo:: check name for ubutu and others
+    if os.path.exists(shm): temp_spider_file = os.path.join(shm, temp_spider_file) # .todo:: find all places and do this
     if local_scratch != "" and os.path.exists(local_scratch): temp_spider_file = os.path.join(local_scratch, temp_spider_file)
-    filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+    try:
+        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+    except:
+        if temp_spider_file == "temp_spider_file": pass
+        temp_spider_file = "temp_spider_file"
+        
     if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
