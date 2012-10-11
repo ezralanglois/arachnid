@@ -327,8 +327,8 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
         selection = classify.classify_projections(align, **extra)
     else: selection = 0
     selection = mpi_utility.broadcast(selection, **extra)
-    if hasattr(selection, 'ndim'):
-        selection = numpy.argwhere(selection)
+    #if hasattr(selection, 'ndim'):
+    #    selection = numpy.argwhere(selection)
     return reconstruct(spi, align, selection, curr_slice, output, **extra)
 
 def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack=None, flip_stack=None, **extra):
@@ -413,21 +413,22 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
     align_file = format_utility.add_prefix(local_scratch, "align_")
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on a single node - started")
     if selection is not None:
-        selection = format.write(spi.replace_ext(selectfile), numpy.asarray(selection[curr_slice]), header=('id', ))
+        selection = numpy.argwhere(selection[curr_slice])
+        format.write(spi.replace_ext(selectfile), selection, header=('id', ))
     else: selectfile = None
     
     format.write(spi.replace_ext(align_file), align[curr_slice], format=format.spiderdoc)
-    spi.rt_sq(input_stack, align_file, selectfile, outputfile=dala_stack)
+    spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
     mpi_utility.barrier(**extra)
     if mpi_utility.is_root(**extra):
         dalamap = spider_utility.file_map(dala_stack, mpi_utility.get_size(**extra))
         dala_stack = spider.stack(spi, dalamap, mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))
-        if selection is not None: align = align[selection]
+        #if selection is not None: align = align[selection]
         format.write(spi.replace_ext(align_file), align, format=format.spiderdoc)
         if engine == 1:
-            spi.bp_cg_3(dala_stack, align_file, outputfile=vol_output, **extra)
+            spi.bp_cg_3(dala_stack, align_file, input_select=selectfile, outputfile=vol_output, **extra)
         else:
-            spi.bp_32f(dala_stack, align_file, outputfile=vol_output, **extra)
+            spi.bp_32f(dala_stack, align_file, input_select=selectfile, outputfile=vol_output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on a single node - finished")
     return vol_output
 
@@ -464,33 +465,25 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     '''
     
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on multiple nodes - started")
-    selevenfile = format_utility.add_prefix(local_scratch, "seleven_recon_")
-    seloddfile = format_utility.add_prefix(local_scratch, "selodd_recon_")
     dala_stack = format_utility.add_prefix(local_scratch, "dala_recon_")#even_dala_stack
-    #odd_dala_stack = format_utility.add_prefix(local_scratch, "odala_recon_")
     align_file = format_utility.add_prefix(local_scratch, "align_")
     
-    if selection is not None:
-        sel = selection[curr_slice]
+    if selection is not None and 1 == 0:
+        sel = numpy.argwhere(selection[curr_slice]).squeeze()
         even = sel[numpy.arange(0, len(sel), 2, dtype=numpy.int)]
         odd = sel[numpy.arange(1, len(sel), 2, dtype=numpy.int)]
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ), format=format.spiderdoc)
-        format.write(spi.replace_ext(seloddfile),  numpy.asarray(odd)+1,  header=('id', ), format=format.spiderdoc)
     else:
         even = numpy.arange(0, len(align[curr_slice]), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
-        format.write(spi.replace_ext(selevenfile), numpy.asarray(even)+1, header=('id', ), format=format.spiderdoc)
-        format.write(spi.replace_ext(seloddfile), numpy.asarray(odd)+1, header=('id', ), format=format.spiderdoc)
         
-    format.write(spi.replace_ext(align_file), align[curr_slice], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,stack_id,micrograph,defocus".split(','), format=format.spiderdoc)
+    format.write(spi.replace_ext(align_file), align[curr_slice, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
-    #spi.rt_sq(input_stack, align_file, seloddfile, outputfile=odd_dala_stack)
     dala_stack = spi.replace_ext(dala_stack)
-    #odd_dala_stack = spi.replace_ext(odd_dala_stack)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
     
     gen1 = ndimage_file.iter_images(dala_stack, even)
     gen2 = ndimage_file.iter_images(dala_stack, odd)
+    align = align[curr_slice]
     vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
