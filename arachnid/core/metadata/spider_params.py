@@ -174,12 +174,12 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
             Unused extra keyword arguments
     '''
     
-    return dict(width=width/bin_factor, 
-                height=height/bin_factor, 
+    return dict(width=int(width/bin_factor), 
+                height=int(height/bin_factor), 
                 apix=apix*bin_factor, 
                 maxfreq=maxfreq/bin_factor, 
-                window=window/bin_factor, 
-                pixel_diameter=pixel_diameter/bin_factor)
+                window=int(window/bin_factor), 
+                pixel_diameter=int(pixel_diameter/bin_factor))
     
     
 
