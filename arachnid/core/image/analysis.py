@@ -8,10 +8,60 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import numpy, scipy.special, scipy.linalg
-import logging
+from ..parallel import process_tasks, process_queue
+from ..util import numpy_ext
+import logging, functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+def resample(data, sample_num, sample_size, thread_count=0, operator=functools.partial(numpy.mean, axis=0), length=None):
+    ''' Resample a dataset and apply the operator functor to each sample. The result is stored in
+    a 2D array.
+    
+    :Parameters:
+    
+    data : array
+           Data array
+    sample_num : int
+                 Number of times to resample
+    sample_size : int
+                  Number of random samples to draw 
+    thread_count : int
+                   Number of threads
+    operator : function
+               Function to apply to each random sample (Default mean operator)
+    length : int
+             Size of return result from operator
+    
+    :Returns:
+    
+    sample : array
+             Result of operator over each sample
+    '''
+    
+    if length is None: length = data.shape[1]
+    sample, shmem_sample = process_queue.create_global_dense_matrix( ( sample_num, length )  )
+    replace = sample_size == 0
+    if sample_size == 0 : sample_size = total
+    elif sample_size < 1.0: sample_size = int(sample_size*total)
+    process_queue.map_array(_resample_worker, thread_count, data, shmem_sample, sample_size, replace)
+    return sample
+
+def _resample_worker(beg, end, operator, shmem_data, shmem_sample, sample_size, replace, weight=None):
+    ''' Resample the dataset and store in a subset
+    
+    :Parameters:
+    
+    '''
+    
+    data = process_queue.recreate_global_dense_matrix(shmem_data)
+    sample = process_queue.recreate_global_dense_matrix(shmem_sample)
+    index = numpy.arange(data.shape[0], dtype=numpy.int)
+    for i in xrange(beg, end):
+        selected = numpy_ext.choice(index.copy(), size=sample_size, replace=replace, p=weight)
+        subset = data[selected].squeeze()
+        sample[i, :] = operator(subset)
 
 def pca(trn, tst=None, frac=-1):
     ''' Principal component analysis using SVD

@@ -185,6 +185,36 @@ def recreate_global_sparse_matrix(shmem, shape=None):
         return scipy.sparse.coo_matrix( (data[:shape[1]],(row[:shape[1]], col[:shape[1]])), shape=shape[0] )
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=shmem[3] )
 
+def map_array(worker_callback, thread_count, data, *args, **extra):
+    '''Start workers and set the worker callback function
+    
+    :Parameters:
+    
+        worker_callback : function
+                          Worker callback function to process an item
+        data : array
+               Array to map
+        args : list
+               Unused positional arguments
+        extra : dict
+                Unused keyword arguments
+    '''
+    
+    if thread_count > 1:
+        if isinstance(data, tuple) and len(data) == 2:
+            size = len(recreate_global_dense_matrix(data))
+        else: size = len(data)
+        counts = numpy.zeros(thread_count, dtype=numpy.int)
+        for i in xrange(thread_count):
+            counts[i] = ( (size / thread_count) + (size % thread_count > i) )
+        offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
+        numpy.cumsum(counts, out=offsets[1:])
+        processes = [Process(target=partial(worker_callback, **extra), args=(offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
+        for p in processes: p.start()
+        for p in processes: p.join()
+    else:
+        worker_callback(0, size, data, *args, **extra)
+
 def start_workers_with_output(items, worker_callback, n, init_process=None, **extra):
     '''Start workers and distribute tasks
     
