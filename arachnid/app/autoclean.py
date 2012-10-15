@@ -58,7 +58,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     label = numpy.zeros((len(data2), 2))
     label[:, 0] = input_vals[0]
     label[:, 1] = numpy.arange(1, len(data2)+1)
-    format.write_dataset(os.path.splitext(output)[0]+".csv", feat, input_vals[0], label, prefix="embed_", header="select")
+    format.write_dataset(os.path.splitext(output)[0]+".csv", feat, input_vals[0], label, prefix="embed_", header="best")
     #format.write(os.path.splitext(output)[0]+".csv", feat, prefix="embed_", spiderid=input_vals[0], header=['select']+header)
     
     
@@ -158,7 +158,7 @@ def classify_data(data, test=None, output="", neig=1, **extra):
         sel = numpy.zeros(len(eigs), dtype=numpy.bool)
         sel[idx[:len(idx)/2]]=1
     
-    return eigs, sel, energy
+    return eigs, sel, (energy, idx)
 
 def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, **extra):
     ''' Transform an image
@@ -210,8 +210,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution
         bin_factor = max(1, min(8, resolution / (apix*2)))
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if not disable_bispec:
-        _logger.info("Calc bispectrum")
-        ndimage_utility.normalize_standard(img, None, True, img)
+        ndimage_utility.normalize_standard(img, mask, True, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
         bispec_lag = min(max(1, bispec_lag), img.ravel().shape[0])
@@ -237,56 +236,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution
     else:
         ndimage_utility.normalize_standard(img, mask, True, img)
         img = ndimage_utility.compress_image(img, mask)
-    return img #, freq
-
-def read_data2(input_files, label, align, pixel_diameter=None, **extra):
-    ''' Read images from a file and transform into a matrix
-    
-    :Parameters:
-    
-    input_files : list
-                  List of input file stacks
-    label : array
-            2D array of particle labels (stack_id, particle_id)
-    align : array
-            2D array of alignment parameters
-    pixel_diameter : int
-                     Diameter of the particle in pixels
-    extra : dict
-            Unused key word arguments
-            
-    :Returns:
-    
-    data : array
-           2D array of transformed image data, each row is a transformed image
-    '''
-    
-    mask = None
-    data = None
-    label[:, 1]-=1
-    hp_cutoff = 2.0/pixel_diameter
-    for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
-        if mask is None:
-            bin_factor = min(8, extra['resolution'] / (extra['apix']*2) ) if extra['resolution'] > (extra['apix']*2) else 1.0
-            shape = numpy.asarray(img.shape) / bin_factor
-            if 1 == 1:
-                avg2 = numpy.zeros(shape)
-                for img2 in ndimage_file.iter_images(input_files, label):
-                    if bin_factor > 1: img2 = eman2_utility.decimate(img2, bin_factor)
-                    avg2 += img2
-                avg2 /= len(label)
-                avg2 = eman2_utility.gaussian_low_pass(avg2, extra['apix']/60.0, True)
-                mask = ndimage_utility.segment(avg2)
-                mask = scipy.ndimage.morphology.binary_fill_holes(mask)
-            else:
-                mask = ndimage_utility.model_disk(int(pixel_diameter/(2*bin_factor)), shape)
-            _logger.info("Image size: (%d,%d) for bin-factor: %f, pixel size: %f, resolution: %f"%(mask.shape[0], mask.shape[1], bin_factor, extra['apix'], extra['resolution']))
-        img, freq = image_transform(img, align[i], mask, hp_cutoff, **extra)
-        if data is None:
-            _logger.info("Dataset size: %d,%d"%(label.shape[0], img.ravel().shape[0]))
-            data = numpy.zeros((label.shape[0], img.ravel().shape[0]))
-        data[i, :] = img.ravel()
-    return data
+    return img
 
 def read_data(input_files, label, align, **extra):
     ''' Read images from a file and transform into a matrix
@@ -314,7 +264,7 @@ def read_data(input_files, label, align, **extra):
     return ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, align=align, **extra), extra['mask']
 
 def create_tightmask(input_files, label, resolution, apix, **extra):
-    '''
+    ''' Create a tight mask from a view average
     
     :Parameters:
     
@@ -342,7 +292,7 @@ def create_tightmask(input_files, label, resolution, apix, **extra):
         if avg2 is None: avg2 = numpy.zeros(img2.shape)
         avg2 += img2
     avg2 /= len(label)
-    avg2 = eman2_utility.gaussian_low_pass(avg2, apix/60.0, True)
+    avg2 = eman2_utility.gaussian_low_pass(avg2, apix/80.0, True)
     mask = ndimage_utility.segment(avg2)
     return scipy.ndimage.morphology.binary_fill_holes(mask)
 
@@ -524,7 +474,7 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **ex
     file_completed *= 3
     for i in xrange(len(avg3)):
         ndimage_file.write_image(output, avg3[i], file_completed+i)
-    _logger.info("Finished processing %d - %d,%d - Energy: %f"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy))
+    _logger.info("Finished processing %d - %d,%d - Energy: %f, %d"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy[0], energy[1]))
     return input[0]
 
 def finalize(files, total, sel_by_mic, output, **extra):
