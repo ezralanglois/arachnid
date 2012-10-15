@@ -8,7 +8,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import numpy, scipy.special, scipy.linalg
-from ..parallel import process_tasks, process_queue
+from ..parallel import process_queue
 from ..util import numpy_ext
 import logging, functools
 
@@ -42,6 +42,7 @@ def resample(data, sample_num, sample_size, thread_count=0, operator=functools.p
     
     if length is None: length = data.shape[1]
     sample, shmem_sample = process_queue.create_global_dense_matrix( ( sample_num, length )  )
+    total = len(process_queue.recreate_global_dense_matrix(data))
     replace = sample_size == 0
     if sample_size == 0 : sample_size = total
     elif sample_size < 1.0: sample_size = int(sample_size*total)
@@ -117,7 +118,7 @@ def pca(trn, tst=None, frac=-1):
     if idx >= len(d): idx = 1
     val = d[:idx]*numpy.dot(V[:idx], tst.T).T
     #_logger.error("pca2: %s -- %s"%(str(V.shape), str(tst.shape)))
-    return val, idx, V[:idx], t[idx]
+    return val, idx, V[:idx], numpy.sum(t[:idx])
 
 def _assess_dimension(spectrum, n_samples, n_features):
     '''Compute the likelihood of a rank ``rank`` dataset
@@ -467,6 +468,5 @@ def online_variance(data, axis=None):
     meanx = data.cumsum(axis)
     meanx /= numpy.arange(1, data.shape[axis]+1).reshape(data.shape[axis], 1)
     out = numpy.cumsum(numpy.square(data-meanx), axis=axis)
-    print data.shape, meanx.shape, out.shape
     return out/(len(data)-1)
 
