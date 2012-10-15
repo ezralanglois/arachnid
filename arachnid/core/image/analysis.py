@@ -13,6 +13,91 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def embed(data, neighbors, dimension):
+    ''' Emded a given data matrix using diffusion maps with a self-tuning kernel
+    
+    :Parameters:
+    '''
+    
+    
+    dist2 = euclidean_distance2(data, data)
+    
+    #dist2 = nearest_neighbor(dist2)
+    dist2, index = largest_connected(dist2)
+    
+    #kernel.normalize_local(dist2, thread_count)
+    numpy.multiply(dist2.data, -1.0, dist2.data)
+    numpy.exp(dist2.data, dist2.data)
+    #kernel.kernel_utility.normalize_sparse(dist2.shape[0], dist2.row, dist2.col, dist2.data, thread_count)
+    
+    if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
+    D = scipy.power(dist2.sum(axis=0), -0.5)
+    D[numpy.logical_not(numpy.isfinite(D))] = 1.0
+    norm = scipy.sparse.dia_matrix((D, (0,)), shape=dist2.shape)
+    L = norm * dist2 * norm
+    del norm
+    if hasattr(scipy.sparse.linalg, 'eigen_symmetric'):
+        evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
+    else:
+        evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1)
+    del L
+    evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
+    index = numpy.argsort(evals)[-2:-2-dimension:-1]
+    evecs = D[:,numpy.newaxis] * evecs[:, index]
+    return evecs, evals[index].squeeze(), index
+
+def largest_connected(dist2, out=None):
+    ''' Find the largest connected component in a graph
+    
+    :Parameters:
+    '''
+    
+    tmp = dist2.tocsr() if not scipy.sparse.isspmatrix_csr(dist2) else dist2
+    tmp = (tmp + tmp.T)/2
+    n, comp = scipy.sparse.csgraph.cs_graph_components(tmp)
+    b = len(numpy.unique(comp))
+    _logger.debug("Check connected components: %d -- %d -- %d (%d)"%(n, b, dist2.shape[0], dist2.data.shape[0]))
+    n = b
+    index = None
+    if n > 1:
+        bins = numpy.unique(comp)
+        count = numpy.zeros(len(bins))
+        for i in xrange(len(bins)):
+            if bins[i] > -1:
+                count[i] = numpy.sum(comp == bins[i])
+        _logger.info("Number of components: %d"%(n))
+        idx = numpy.argsort(count)[::-1]
+        for i in idx[:10]:
+            _logger.info("%d: %d"%(bins[i], count[i]))
+        index = numpy.argwhere(comp == bins[numpy.argmax(count)])
+        #dist2 = distance.knn_select(dist2, index, out)
+    return dist2, index
+
+def euclidean_distance2(X, Y):
+    ''' Calculate the squared euclidean distance between two 
+    matrices using optimized BLAS
+    
+    :Parameters:
+    
+    X : array
+        Matrix 1 (mxa)
+    Y : array
+        Matrix 2 (nxa)
+    
+    :Returns:
+    
+    dist2 : array
+            Array holding the distance between both matrices (mxn)
+    '''
+    
+    gemm = scipy.linalg.fblas.dgemm
+    x2 = (X**2).sum(axis=1)
+    y2 = (Y**2).sum(axis=1)
+    dist2 = gemm(-2.0, X, Y, trans_b=True, beta=0).T
+    dist2 += x2[:, numpy.newaxis]
+    dist2 += y2
+    return dist2
+
 def pca(trn, tst=None, frac=-1):
     ''' Principal component analysis using SVD
     
@@ -45,11 +130,15 @@ def pca(trn, tst=None, frac=-1):
         `https://raw.github.com/scikit-learn/scikit-learn/master/sklearn/decomposition/pca.py`
     '''
     
+    use_svd=True
     mtrn = trn.mean(axis=0)
     trn = trn - mtrn
     if tst is None: tst = trn
     else: tst = tst - mtrn
-    U, d, V = scipy.linalg.svd(trn, False)
+    if use_svd:
+        U, d, V = scipy.linalg.svd(trn, False)
+    else:
+        d, V = numpy.linalg.eig(numpy.corrcoef(trn, rowvar=0))
     t = d**2/trn.shape[0]
     t /= t.sum()
     if frac >= 1:
@@ -277,7 +366,11 @@ def threshold_max(data, threshold, max_num, reverse=False):
     if not reverse: idx = idx[::-1]
     threshold = numpy.searchsorted(data[idx], threshold)
     if threshold > max_num: threshold = max_num
-    return data[idx[threshold]]
+    try:
+        return data[idx[threshold]]
+    except:
+        _logger.error("%d > %d -> %d"%(threshold, idx.shape[0], max_num))
+        raise
 
 def threshold_from_total(data, total, reverse=False):
     ''' Find the threshold given the total number of elements kept.
@@ -300,7 +393,11 @@ def threshold_from_total(data, total, reverse=False):
     if total < 1.0: total = int(total*data.shape[0])
     idx = numpy.argsort(data)
     if not reverse: idx = idx[::-1]
-    return data[idx[total]]
+    try:
+        return data[idx[total]]
+    except:
+        _logger.error("%d > %d"%(total, idx.shape[0]))
+        raise
 
 def otsu(data, bins=0):
     ''' Otsu's threshold selection algorithm
