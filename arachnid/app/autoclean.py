@@ -39,25 +39,38 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     '''
     
     output = spider_utility.spider_filename(output, input_vals[0])
-    data = read_data(input_files, *input_vals[1:], **extra)
-    eigs, sel = classify_data(data, output=output, **extra)
+    data, mask = read_data(input_files, *input_vals[1:3], **extra)
+    data2 = data
+    #data2, mask = read_data(input_files, *input_vals[3:5], mask=mask, **extra)
+    #_logger.error("test: %s == %s"%(str(data.shape), str(data2.shape)))
+    #data2 = numpy.vstack((data, data2))
+    #_logger.error("test2: %s == %s"%(str(data.shape), str(data2.shape)))
+    assert(data2.shape[1]==data.shape[1])
+    eigs, sel, energy = classify_data(data, None, output=output, **extra)
+    #sel = numpy.zeros((len(data2)))
+    #sel[:len(data)]=1
     
     # Write 
     if eigs.ndim == 1: eigs = eigs.reshape((eigs.shape[0], 1))
     feat = numpy.hstack((sel[:, numpy.newaxis], eigs))
-    header=[]
-    for i in xrange(1, eigs.shape[1]+1): header.append('c%d'%i)
-    format.write(os.path.splitext(output)[0]+".csv", feat, prefix="embed_", spiderid=input_vals[0], header=['select']+header)
+    #header=[]
+    #for i in xrange(1, eigs.shape[1]+1): header.append('c%d'%i)
+    label = numpy.zeros((len(data2), 2))
+    label[:, 0] = input_vals[0]
+    label[:, 1] = numpy.arange(1, len(data2)+1)
+    format.write_dataset(os.path.splitext(output)[0]+".csv", feat, input_vals[0], label, prefix="embed_", header="select")
+    #format.write(os.path.splitext(output)[0]+".csv", feat, prefix="embed_", spiderid=input_vals[0], header=['select']+header)
     
     
-    extra['poutput']=format_utility.new_filename(output, 'pos_') if write_view_stack == 1 or write_view_stack == 3 else None
+    extra['poutput']=format_utility.new_filename(output, 'pos_') if write_view_stack == 1 or write_view_stack >= 3 else None
     extra['noutput']=format_utility.new_filename(output, 'neg_') if write_view_stack == 2 or write_view_stack == 3 else None
+    if write_view_stack == 4: extra['noutput'] = extra['poutput']
     extra['sort_by']=eigs[:, 0] if sort_view_stack else None
-    avg3 = compute_average3(input_files, *input_vals[1:], selected=sel, **extra)
+    avg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, **extra)
     
-    return input_vals, sel, avg3
+    return input_vals, sel, avg3, energy
 
-def classify_data(data, output="", neig=1, **extra):
+def classify_data(data, test=None, output="", neig=1, **extra):
     ''' Classify the aligned projection data grouped by view
     
     :Parameters:
@@ -79,8 +92,13 @@ def classify_data(data, output="", neig=1, **extra):
           1D array of selected images
     '''
     
-    eigs = analysis.pca(data, frac=neig)[0] # Returns: val, idx, V[:idx], t[idx]
+    eigs, idx, vec,energy = analysis.pca(data, test, frac=neig) # Returns: val, idx, V[:idx], t[idx]
+    if test is not None: assert(eigs.shape[0] == test.shape[0])
+    idx;
+    vec;
+    if test is None: test = data
     
+    assert(numpy.alltrue(numpy.isreal(eigs)))
     # Sphere growing in Eigen Space
     cent = numpy.median(eigs, axis=0)
     eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
@@ -88,14 +106,17 @@ def classify_data(data, output="", neig=1, **extra):
     # Variance Estimate
     idx = numpy.argsort(eig_dist_cent)
     #var = analysis.running_variance(data[idx], axis=1)
-    var = analysis.online_variance(data[idx], axis=0)
-    rvar = analysis.online_variance(data[idx[::-1]], axis=0)
+    var = analysis.online_variance(test[idx], axis=0)
+    rvar = analysis.online_variance(test[idx[::-1]], axis=0)
     #sel = numpy.argwhere(var[len(var)-1] < th).ravel()
     
     #slope = (var[len(var)-1, sel]-var[0, sel]) / len(var)
     #min_slope = numpy.max(slope)
     mvar = numpy.mean(var, axis=1)
     mrvar = numpy.mean(rvar, axis=1)
+    
+    template = numpy.mean(test[idx[:int(0.3*test.shape[0])]], axis=0)
+    cc = numpy.sum(numpy.square(template-test[idx]), axis=1)
     
     if pylab is not None:
         maxval = numpy.max(var)
@@ -111,6 +132,12 @@ def classify_data(data, output="", neig=1, **extra):
         pylab.clf()
         pylab.plot(numpy.arange(1, len(var)+1), mvar, 'r-')
         pylab.savefig(format_utility.new_filename(output, "mvar_", ext="png"))
+        pylab.clf()
+        pylab.plot(numpy.arange(1, len(var)+1), (mvar+mrvar)/2.0, 'r-')
+        pylab.savefig(format_utility.new_filename(output, "bvar_", ext="png"))
+        pylab.clf()
+        pylab.plot(numpy.arange(1, len(cc)+1), cc, 'r-')
+        pylab.savefig(format_utility.new_filename(output, "cc_", ext="png"))
         
     if pylab is not None:
         th = analysis.otsu(eig_dist_cent)
@@ -131,9 +158,9 @@ def classify_data(data, output="", neig=1, **extra):
         sel = numpy.zeros(len(eigs), dtype=numpy.bool)
         sel[idx[:len(idx)/2]]=1
     
-    return eigs, sel
+    return eigs, sel, energy
 
-def image_transform(img, align, mask, use_rtsq=False, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_srate=0.01, **extra):
+def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, **extra):
     ''' Transform an image
     
     .. todo:: add ctf correction
@@ -142,10 +169,14 @@ def image_transform(img, align, mask, use_rtsq=False, resolution=0.0, apix=None,
     
     img : array
           Image data
+    idx : int
+          Offset in the alignment array
     align : array
             Alignment parameters
     mask : array
            Mask
+    hp_cutoff : float
+                Highpass cutoff
     use_rtsq : bool
                Set true to rotate and translate
     resolution : float
@@ -160,8 +191,6 @@ def image_transform(img, align, mask, use_rtsq=False, resolution=0.0, apix=None,
                     Set true to estimate biased bispectrum
     bispec_lag : float
                  Percentage of the maximum lag
-    bispec_srate : float
-                   Bispectrum sample rate
     extra : dict
             Unused key word arguments
     
@@ -171,34 +200,46 @@ def image_transform(img, align, mask, use_rtsq=False, resolution=0.0, apix=None,
           1D transformed image
     '''
     
-    m = align[1] > 179.99
+    freq=None
+    align = align[idx]
+    m = align[1] > 179.99 if not flip_mirror else align[1] < 179.99
     if use_rtsq: img = eman2_utility.rot_shift2D(img, align[5], align[6], align[7], m)
     elif m:      img = eman2_utility.mirror(img)
     if resolution > (2*apix):
-        img = eman2_utility.gaussian_low_pass(img, apix/resolution, True)
+        #img = eman2_utility.gaussian_low_pass(img, apix/resolution, True)
         bin_factor = max(1, min(8, resolution / (apix*2)))
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if not disable_bispec:
+        _logger.info("Calc bispectrum")
         ndimage_utility.normalize_standard(img, None, True, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
         bispec_lag = min(max(1, bispec_lag), img.ravel().shape[0])
         img *= mask
         try:
-            img = ndimage_utility.bispectrum(img, bispec_srate, bispec_lag, bispec_window, scale)
+            img, freq = ndimage_utility.bispectrum(img, 1.0, bispec_lag, bispec_window, scale) # 1.0 = apix
         except:
             _logger.error("%d, %d"%(img.shape[0], bispec_lag))
             raise
-        if 1 == 0: img = img.real
-        elif 1 == 0: img = img.imag
+        
+        # do this?
+        freq=numpy.abs(freq)
+        idx = numpy.argwhere(numpy.logical_and(freq >= hp_cutoff, freq <= apix/resolution))
+        if bispec_mode == 1: 
+            img = img.real
+            img = img[idx[:, numpy.newaxis], idx]
+        elif bispec_mode == 2: 
+            img = img.imag
+            img = img[idx[:, numpy.newaxis], idx]
         else:
-            img = numpy.hstack((img.real[:, numpy.newaxis], img.imag[:, numpy.newaxis]))
+            img = img[idx[:, numpy.newaxis], idx]
+            img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
     else:
         ndimage_utility.normalize_standard(img, mask, True, img)
         img = ndimage_utility.compress_image(img, mask)
-    return img
+    return img #, freq
 
-def read_data(input_files, label, align, pixel_diameter=None, **extra):
+def read_data2(input_files, label, align, pixel_diameter=None, **extra):
     ''' Read images from a file and transform into a matrix
     
     :Parameters:
@@ -223,17 +264,87 @@ def read_data(input_files, label, align, pixel_diameter=None, **extra):
     mask = None
     data = None
     label[:, 1]-=1
+    hp_cutoff = 2.0/pixel_diameter
     for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
         if mask is None:
             bin_factor = min(8, extra['resolution'] / (extra['apix']*2) ) if extra['resolution'] > (extra['apix']*2) else 1.0
             shape = numpy.asarray(img.shape) / bin_factor
-            mask = ndimage_utility.model_disk(int(pixel_diameter/(2*bin_factor)), shape)
+            if 1 == 1:
+                avg2 = numpy.zeros(shape)
+                for img2 in ndimage_file.iter_images(input_files, label):
+                    if bin_factor > 1: img2 = eman2_utility.decimate(img2, bin_factor)
+                    avg2 += img2
+                avg2 /= len(label)
+                avg2 = eman2_utility.gaussian_low_pass(avg2, extra['apix']/60.0, True)
+                mask = ndimage_utility.segment(avg2)
+                mask = scipy.ndimage.morphology.binary_fill_holes(mask)
+            else:
+                mask = ndimage_utility.model_disk(int(pixel_diameter/(2*bin_factor)), shape)
             _logger.info("Image size: (%d,%d) for bin-factor: %f, pixel size: %f, resolution: %f"%(mask.shape[0], mask.shape[1], bin_factor, extra['apix'], extra['resolution']))
-        img = image_transform(img, align[i], mask, **extra)
+        img, freq = image_transform(img, align[i], mask, hp_cutoff, **extra)
         if data is None:
+            _logger.info("Dataset size: %d,%d"%(label.shape[0], img.ravel().shape[0]))
             data = numpy.zeros((label.shape[0], img.ravel().shape[0]))
         data[i, :] = img.ravel()
     return data
+
+def read_data(input_files, label, align, **extra):
+    ''' Read images from a file and transform into a matrix
+    
+    :Parameters:
+    
+    input_files : list
+                  List of input file stacks
+    label : array
+            2D array of particle labels (stack_id, particle_id)
+    align : array
+            2D array of alignment parameters
+    extra : dict
+            Unused key word arguments
+            
+    :Returns:
+    
+    data : array
+           2D array of transformed image data, each row is a transformed image
+    '''
+    
+    label[:, 1]-=1
+    extra['hp_cutoff'] = extra['apix']/20 #'2.0/extra['pixel_diameter']
+    if 'mask' not in extra: extra['mask'] = create_tightmask(input_files, label, **extra)
+    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, align=align, **extra), extra['mask']
+
+def create_tightmask(input_files, label, resolution, apix, **extra):
+    '''
+    
+    :Parameters:
+    
+    input_files : list
+                  List of input file stacks
+    label : array
+            2D array of particle labels (stack_id, particle_id)
+    resolution : float
+                 Resolution to filter data
+    apix : float
+           Pixel size
+    extra : dict
+            Unused key word arguments
+            
+    :Returns:
+    
+    mask : array
+           2D array image mask
+    '''
+    
+    bin_factor = min(8, resolution / (apix*2) ) if resolution > (apix*2) else 1.0
+    avg2 = None
+    for img2 in ndimage_file.iter_images(input_files, label):
+        if bin_factor > 1: img2 = eman2_utility.decimate(img2, bin_factor)
+        if avg2 is None: avg2 = numpy.zeros(img2.shape)
+        avg2 += img2
+    avg2 /= len(label)
+    avg2 = eman2_utility.gaussian_low_pass(avg2, apix/60.0, True)
+    mask = ndimage_utility.segment(avg2)
+    return scipy.ndimage.morphology.binary_fill_holes(mask)
 
 def read_alignment(files, alignment="", **extra):
     ''' Read alignment parameters
@@ -300,7 +411,8 @@ def read_alignment(files, alignment="", **extra):
     group = []
     for r in refs:
         sel = r == ref
-        group.append((r, label[sel], align[sel]))
+        #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
+        group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
     return group
 
 def compute_average3(input_files, label, align, selected=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, **extra):
@@ -358,15 +470,18 @@ def compute_average3(input_files, label, align, selected=None, use_rtsq=False, s
         if selected[i] > 0.5:
             if avgsel is None: avgsel = img.copy()
             else: avgsel += img
-            if poutput is not None:
+            if poutput is not None and poutput != noutput:
                 ndimage_file.write_image(poutput, img, poff)
                 poff += 1
         else:
             if avgunsel is None: avgunsel = img.copy()
             else: avgunsel += img
-            if noutput is not None:
+            if noutput is not None and poutput != noutput:
                 ndimage_file.write_image(noutput, img, noff)
                 noff += 1
+        if poutput is not None and poutput == noutput:
+            ndimage_file.write_image(poutput, img, poff)
+            poff += 1
     if avgunsel is None: avgunsel = numpy.zeros(img.shape)
     if avgsel is None: avgsel = numpy.zeros(img.shape)
     avgful = avgsel + avgunsel
@@ -397,7 +512,7 @@ def initialize(files, param):
 def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
-    input, sel, avg3 = val
+    input, sel, avg3, energy = val
     label = input[1]
     file_completed -= 1
     total[file_completed, 0] = input[0]
@@ -409,7 +524,7 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **ex
     file_completed *= 3
     for i in xrange(len(avg3)):
         ndimage_file.write_image(output, avg3[i], file_completed+i)
-    _logger.info("Finished processing %d - %d,%d"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2])))
+    _logger.info("Finished processing %d - %d,%d - Energy: %f"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy))
     return input[0]
 
 def finalize(files, total, sel_by_mic, output, **extra):
@@ -427,7 +542,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     from ..core.app.settings import OptionGroup
     windows = ('none', 'uniform', 'sasaki', 'priestley', 'parzen', 'hamming', 'gaussian', 'daniell')
-    view_stack = ('None', 'Positive', 'Negative', 'Both')
+    view_stack = ('None', 'Positive', 'Negative', 'Both', 'Single')
     group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
     group.add_option("", resolution=5.0,              help="Filter to given resolution - requires apix to be set")
     group.add_option("", use_rtsq=False,              help="Use alignment parameters to rotate projections in 2D")
@@ -436,9 +551,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", bispec_window=windows,       help="Use the image data rather than the bispectrum", default=6)
     group.add_option("", bispec_biased=False,         help="Estimate biased bispectrum, default unbiased")
     group.add_option("", bispec_lag=0.314,            help="Percent of the signal to be used for lag")
-    group.add_option("", bispec_srate=0.01,           help="Sample rate for the bispectrum")
+    group.add_option("", bispec_mode=('Both', 'Amp', 'Phase'), help="Part of the bispectrum to use", default=0)
     group.add_option("", first_view=False,            help="Test the algorithm on the first view")
-    group.add_option("", write_view_stack=view_stack, help="Write out selected views to a stack", default=0)
+    group.add_option("", write_view_stack=view_stack, help="Write out selected views to a stack where single means write both to a single stack", default=0)
     group.add_option("", sort_view_stack=False,       help="Sort the view stack by the first Eigen vector")
     
     pgroup.add_option_group(group)
@@ -451,7 +566,6 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     
     if options.bispec_lag < 1e-20: raise OptionValueError, "Invalid value for `--bispec-lag`, must be greater than zero"
-    if options.bispec_srate < 1e-20: raise OptionValueError, "Invalid value for `--bispec-srate`, must be greater than zero"
 
 def main():
     #Main entry point for this script
