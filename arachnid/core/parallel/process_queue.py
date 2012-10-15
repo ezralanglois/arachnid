@@ -209,7 +209,7 @@ def map_array(worker_callback, thread_count, data, *args, **extra):
             counts[i] = ( (size / thread_count) + (size % thread_count > i) )
         offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
         numpy.cumsum(counts, out=offsets[1:])
-        processes = [Process(target=partial(worker_callback, **extra), args=(offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
+        processes = [multiprocessing.Process(target=functools.partial(worker_callback, **extra), args=(offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
         for p in processes: p.start()
         for p in processes: p.join()
     else:
