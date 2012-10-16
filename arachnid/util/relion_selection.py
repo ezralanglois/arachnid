@@ -104,7 +104,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
-from ..core.image import ndimage_utility, ndimage_file
+from ..core.image import eman2_utility, ndimage_file #, ndimage_utility
 import numpy, os, logging
 
 _logger = logging.getLogger(__name__)
@@ -193,19 +193,20 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
                 Unused key word arguments
     '''
     
-    spider_params.read_spider_parameters_to_dict(param_file, extra)
+    spider_params.read(param_file, extra)
     pixel_radius = int(extra['pixel_diameter']/2.0)
     if img.shape[0]%2 != 0: raise ValueError, "Relion requires even sized images"
     if img.shape[0] != img.shape[0]: raise ValueError, "Relion requires square images"
     if pixel_radius > 0:
-        mask = ndimage_utility.model_disk(pixel_radius, img.shape[0])*-1+1
+        #mask = ndimage_utility.model_disk(pixel_radius, img.shape[0])*-1+1
+        mask = eman2_utility.model_circle(pixel_radius, img.shape[0], img.shape[1])*-1+1
         avg = numpy.mean(img*mask)
         if numpy.allclose(0.0, avg):
-            raise ValueError, "Relion requires the background to be zero normalized, not %f"%avg
+            _logger.warn("Relion requires the background to be zero normalized, not %g"%avg)
     
     defocus_dict = format.read(defocus, header=defocus_header, numeric=True)
     defocus_dict = format_utility.map_object_list(defocus_dict)
-    spider_params.read_spider_parameters_to_dict(param_file, extra)
+    spider_params.read(param_file, extra)
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
     label = []
     idlen = len(str(ndimage_file.count_images(files)))
@@ -219,18 +220,19 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
                 select_vals = [s.id for s in select_vals if s.select > 0] if len(select_vals) > 0 and hasattr(select_vals[0], 'select') else [s.id for s in select_vals]
         else:
             select_vals = xrange(ndimage_file.count_images(filename))
+        if defocus_dict[mic].defocus < 1000: continue
         for pid in select_vals:
             label.append( ("%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont) )
-    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast")
+    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast".split(','))
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
-    group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__) if pgroup is None else pgroup
-    group.add_option("-s", select="",                       help="SPIDER selection file (Only required when the input is a relion selection file) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`")
-    group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)")
-    group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)")
+    group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
+    group.add_option("-s", select="",                       help="SPIDER selection file (Only required when the input is a relion selection file) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
+    group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
     pgroup.add_option_group(group)
     if main_option:
@@ -246,7 +248,7 @@ def check_options(options, main_option=False):
     if ndimage_file.is_readable(options.input_files[0]):
         if options.defocus == "": raise OptionValueError, "No defocus file specified"
         if options.param_file == "": raise OptionValueError, "No parameter file specified"
-    if main_option:
+    elif main_option:
         if len(options.input_files) != 1: raise OptionValueError, "Only a single input file is supported"
 
 def main():

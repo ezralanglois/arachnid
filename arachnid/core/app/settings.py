@@ -1005,9 +1005,9 @@ class OptionParser(optparse.OptionParser):
                  Option value container
         '''
         
-        for group in group.option_groups:
-            self._validate_options(group.option_list, values)
-            self._validate_option_group(group, values)
+        for cgroup in group.option_groups:
+            self._validate_options(cgroup.option_list, values)
+            self._validate_option_group(cgroup, values)
     
     def _validate_options(self, option_list, values):
         ''' Validate a list of options
