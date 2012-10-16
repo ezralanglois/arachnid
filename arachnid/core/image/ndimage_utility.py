@@ -1238,15 +1238,13 @@ def biggest_object(img, out=None):
     out[label == biggest] = 1
     return out
 
-def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='unbiased'):
+def bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased'):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
     
     :Parameters:
     
     signal : array
              Input array
-    samprate : float
-               Rate at which data was sampled
     maxlag : int
              Maximum bispectrum lag (<= signal length)
     window : string
@@ -1286,7 +1284,7 @@ def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='u
     if numpy.logical_and(numpy.logical_and(scale != 'u',scale != 'b'),numpy.logical_and(scale != 'unbiased',scale != 'biased')):
         raise ValueError('Scale must be either biased, b, unbiased or u') 
     
-    freq = numpy.arange(-maxlag,maxlag, dtype=numpy.float)/maxlag/2*samprate
+    freq = numpy.arange(-maxlag,maxlag, dtype=numpy.float)/maxlag/2
     
     # Generate Constants
     maxlag1 = maxlag+1
