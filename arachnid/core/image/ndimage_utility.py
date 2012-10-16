@@ -1285,7 +1285,9 @@ def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='u
         raise ValueError('Maxlag must be an integer smaller than the signal vector') 
     if numpy.logical_and(numpy.logical_and(scale != 'u',scale != 'b'),numpy.logical_and(scale != 'unbiased',scale != 'biased')):
         raise ValueError('Scale must be either biased, b, unbiased or u') 
-        
+    
+    freq = numpy.arange(-maxlag,maxlag, dtype=numpy.float)/maxlag/2*samprate
+    
     # Generate Constants
     maxlag1 = maxlag+1
     maxlag2 = maxlag*2
@@ -1350,7 +1352,7 @@ def bispectrum(signal, samprate=0.01, maxlag=0.0081, window='gaussian', scale='u
     wind = wind[ml211ind-1,:]*windeven*windeven.T
     bisp = scipy.fftpack.fftshift(scipy.fftpack.fft2(scipy.fftpack.ifftshift(cum*wind)))
     a = numpy.fft.ifftshift(cum*wind)
-    return bisp
+    return bisp, freq
 
 def lagwind(lag,window):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
