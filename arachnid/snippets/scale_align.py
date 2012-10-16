@@ -14,11 +14,16 @@ To run:
    :lines: 17-
    :linenos:
 '''
-from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility
-from arachnid.core.orient import orient_utility
-import numpy, itertools
+from arachnid.core.metadata import format #, format_utility
 
+if 1 == 0:
+    import logging
+    format._logger.setLevel(logging.DEBUG)
+    format.star._logger.setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().addHandler(logging.StreamHandler())
+    format._logger.addHandler(logging.StreamHandler())
+    format.star._logger.addHandler(logging.StreamHandler())
 if __name__ == '__main__':
 
     # Parameters
@@ -30,17 +35,16 @@ if __name__ == '__main__':
     
     # Read an alignment file
     align = format.read_alignment(align_file)
-    align,header = format_utility.tuple2numpy(align)
     
-    try:
-        tx=header.index('tx')
-        ty=header.index('ty')
-    except:
-        tx=header.index('rlnOriginX')
-        ty=header.index('rlnOriginY')
-        
+    if hasattr(align[0], 'tx'):
+        for i in xrange(len(align)):
+            tx = align[i].tx
+            ty = align[i].ty
+            align[i] = align[i]._replace(tx=tx*mult, ty=ty*mult)
+    else:
+        for i in xrange(len(align)):
+            tx = align[i].rlnOriginX
+            ty = align[i].rlnOriginY
+            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult)
     
-    align[:, tx] *= mult
-    align[:, ty] *= mult
-    
-    format.write(output_file, align, header=header)
+    format.write(output_file, align)
