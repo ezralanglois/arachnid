@@ -250,7 +250,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         bispec_lag = min(max(1, bispec_lag), img.ravel().shape[0])
         img *= mask
         try:
-            img, freq = ndimage_utility.bispectrum(img, 1.0, bispec_lag, bispec_window, scale) # 1.0 = apix
+            img, freq = ndimage_utility.bispectrum(img, bispec_lag, bispec_window, scale) # 1.0 = apix
         except:
             _logger.error("%d, %d"%(img.shape[0], bispec_lag))
             raise
