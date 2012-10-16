@@ -15,6 +15,37 @@ import logging, functools
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def subset_no_overlap(data, overlap, n=100):
+    ''' Select a non-overlapping subset of the data based on hyper-sphere exclusion
+    
+    :Parameters:
+    
+    data : array
+           Full set array
+    overlap : float
+              Exclusion distance
+    n : int
+        Maximum number in the subset
+    
+    :Returns:
+    
+    out : array
+          Indices of non-overlapping subset
+    '''
+    
+    k=1
+    out = numpy.zeros(n, dtype=numpy.int)
+    for i in xrange(1, len(data)):
+        ref = data[out[:k]]
+        if ref.ndim == 1: ref = ref.reshape((1, len(ref[0])))
+        mat = scipy.spatial.distance.cdist(ref, data[i].reshape((1, len(data[i]))), metric='euclidean')
+        val = numpy.min(mat)
+        if val > overlap:
+            out[k] = i
+            k+=1
+            if k >= n: break
+    return out[:k]
+
 def resample(data, sample_num, sample_size, thread_count=0, operator=functools.partial(numpy.mean, axis=0), length=None):
     ''' Resample a dataset and apply the operator functor to each sample. The result is stored in
     a 2D array.
