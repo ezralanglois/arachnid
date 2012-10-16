@@ -158,10 +158,10 @@ def process(filename, output, **extra):
     
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])
-    sp, fsc = estimate_resolution(filename[0], filename[1], outputfile=output, **extra)
-    res = extra['apix']/sp
+    sp, fsc, apix = estimate_resolution(filename[0], filename[1], outputfile=output, **extra)
+    res = apix/sp
     _logger.info("Resolution = %f - between %s and %s"%(res, filename[0], filename[1]))
-    return filename, fsc
+    return filename, fsc, apix
 
 def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, **extra):
     ''' Estimate the resolution from two half volumes
@@ -205,6 +205,8 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     
     for val in "volume_mask,mask_edge_width,threshold,ndilate,gk_size,gk_sigma,prefix".split(','): 
         if val in extra: del extra[val]
+    
+    extra.update(ensure_pixel_size(spi, filename1, **extra))
     mask_output = format_utility.add_prefix(outputfile, "mask_")
     filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
     filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
@@ -213,7 +215,33 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
         plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi)
-    return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T
+    return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T, extra['apix']
+
+def ensure_pixel_size(spi, filename, **extra):
+    ''' Ensure the proper pixel size
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    filename : str
+                Filename of the first input volume
+    
+    :Returns:
+    
+    params : dict
+             Updated SPIDER params
+    '''
+    
+    del extra['bin_factor']
+    w = spider.image_size(spi, filename)[0]
+    w = int(w)
+    params = {}
+    if extra['window'] != w:
+        bin_factor = extra['window']/float(w)
+        params = spider_params.update_params(bin_factor, **extra)
+        _logger.warn("Changing pixel size: %f (%f/%f) -> %f"%(bin_factor, extra['window'], w, params['apix']))
+    return params
 
 def plot_fsc(outputfile, x, y, apix, freq_rng=0.5, dpi=72):
     '''Write a resolution image plot to a file
@@ -241,8 +269,10 @@ def plot_fsc(outputfile, x, y, apix, freq_rng=0.5, dpi=72):
         pylab.clf()
         pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
         markers=['r--', 'b--']
-        for i, yp in enumerate([0.5, 0.14]):
+        for i, yp in enumerate([0.5, 0.143]):
             xp = fitting.sigmoid_inv(coeff, yp)
+            if (apix/xp) < (2*apix) or not numpy.isfinite(xp):
+                xp = fitting.fit_linear_interp(numpy.hstack((x[:, numpy.newaxis], y[:, numpy.newaxis])), yp)
             if numpy.alltrue(numpy.isfinite(xp)):
                 pylab.plot((x[0], xp), (yp, yp), markers[i])
                 pylab.plot((xp, xp), (0.0, yp), markers[i])
@@ -273,17 +303,26 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
     
     if pylab is None: return 
     pylab.switch_backend('cairo.png')
+    res = numpy.zeros((len(fsc_curves), 2))
+    apix1 = apix
     for i, fsc in enumerate(fsc_curves):
         if isinstance(fsc, tuple):
-            label, fsc = fsc
+            if len(fsc) == 3:
+                label, fsc, apix1 = fsc
+            else:
+                label, fsc = fsc
         else: label = "Iteration %d"%(i+1)
         try:
             coeff = fitting.fit_sigmoid(fsc[:, 0], fsc[:, 1])
         except: pass
         else:
             res1 = fitting.sigmoid_inv(coeff, 0.5)
-            res2 = fitting.sigmoid_inv(coeff, 0.14)
-            label += ( " $%.3f (%.3f) \AA$"%(apix/res1, apix/res2) )
+            res2 = fitting.sigmoid_inv(coeff, 0.143)
+            if (apix1/res1) < (2*apix1) or not numpy.isfinite(res1) or not numpy.isfinite(res2):
+                res1 = fitting.fit_linear_interp(fsc, 0.5)
+                res2 = fitting.fit_linear_interp(fsc, 0.143)
+            res[i, :] = (apix1/res1, apix1/res2)
+            label += ( " $%.3f (%.3f) \AA$"%(apix1/res1, apix1/res2) )
         pylab.plot(fsc[:, 0], fsc[:, 1], label=label)
     
     lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
@@ -295,12 +334,22 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", bbox_extra_artists=(lgd,), bbox_inches='tight')
     #fig.savefig('samplefigure', bbox_extra_artists=(lgd,), bbox_inches='tight')
+    
+    pylab.clf()
+    pylab.plot(numpy.arange(1, len(res)+1), res[:, 0], label="FSC(0.5)")
+    pylab.plot(numpy.arange(1, len(res)+1), res[:, 1], label="FSC(0.143)")
+    lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
+    #pylab.axis([0.0,0.5,0.0,1.0])
+    pylab.ylabel('Resolution ($\AA$)')
+    pylab.xlabel('Refinement Step')
+    pylab.savefig(os.path.splitext(outputfile)[0]+"_overall.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
+    
 
 def initialize(files, param):
     # Initialize global parameters for the script
     
     param['spi'] = spider.open_session(files, **param)
-    spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    spider_params.read(param['spi'].replace_ext(param['param_file']), param)    
     param['fsc_curves'] = []
     pfiles = []
     if param['sliding']:
@@ -313,9 +362,9 @@ def initialize(files, param):
             if id not in groups: groups[id]=[]
             groups[id].append(f)
             if len(groups[id]) > 2: raise ValueError, "Cannot have more than two volumes with the same spider ID: %s"%",".join(groups[id])
-        for p in groups.itervalues():
+        for id in sorted(groups.keys()):
             if len(groups[id]) < 2: raise ValueError, "Cannot have less than two volumes with the same spider ID: %s"%",".join(groups[id])
-            pfiles.append(tuple(p))
+            pfiles.append(tuple(groups[id]))
     else:
         for i in xrange(0, len(files), 2):
             pfiles.append((files[i], files[i+1]))
@@ -323,11 +372,11 @@ def initialize(files, param):
 
 def reduce_all(filename, fsc_curves, **extra):
     # Process each input file in the main thread (for multi-threaded code)
-    filename, fsc = filename
+    filename, fsc, apix = filename
     label = os.path.basename(filename[0])
     if spider_utility.is_spider_filename(label):
         label = spider_utility.spider_id(label, use_int=False)
-    fsc_curves.append((label, fsc))
+    fsc_curves.append((label, fsc, apix))
     return filename
     
 
