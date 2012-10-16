@@ -39,7 +39,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     '''
     
     output = spider_utility.spider_filename(output, input_vals[0])
-    data, mask = read_data(input_files, *input_vals[1:3], **extra)
+    data, mask, avg = read_data(input_files, *input_vals[1:3], **extra)
     data2 = data
     #data2, mask = read_data(input_files, *input_vals[3:5], mask=mask, **extra)
     #_logger.error("test: %s == %s"%(str(data.shape), str(data2.shape)))
@@ -67,10 +67,37 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     if write_view_stack == 4: extra['noutput'] = extra['poutput']
     extra['sort_by']=eigs[:, 0] if sort_view_stack else None
     avg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, **extra)
+    savg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, template=avg, **extra)
     
-    return input_vals, sel, avg3, energy
+    return input_vals, sel, avg3+savg3, energy
 
 def classify_data(data, test=None, output="", neig=1, **extra):
+    ''' Classify the aligned projection data grouped by view
+    
+    :Parameters:
+    
+    data : array
+           2D array where each row is an aligned and transformed image
+    output : str
+             Output filename for intermediary data
+    neig : float
+           Number of eigen vectors to use (or mode)
+    extra : dict
+            Unused key word arguments
+            
+    :Returns:
+    
+    eigs : array
+           2D array of embedded images
+    sel : array
+          1D array of selected images
+    '''
+    
+    from sklearn.covariance import EllipticEnvelope
+    
+    learner = EllipticEnvelope(contamination=0.261)
+
+def classify_data2(data, test=None, output="", neig=1, **extra):
     ''' Classify the aligned projection data grouped by view
     
     :Parameters:
@@ -149,6 +176,8 @@ def classify_data(data, test=None, output="", neig=1, **extra):
         _logger.info("Total selected: %d"%numpy.sum(eig_dist_cent<th))
     
     if 1 == 1:
+        sel = eigs[:, 0] < 0
+    elif 1 == 1:
         sel = eig_dist_cent < th
     elif 1 == 1:
         sel = numpy.zeros(len(eigs), dtype=numpy.bool)
@@ -160,7 +189,7 @@ def classify_data(data, test=None, output="", neig=1, **extra):
     
     return eigs, sel, (energy, idx)
 
-def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, **extra):
+def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, **extra):
     ''' Transform an image
     
     .. todo:: add ctf correction
@@ -179,6 +208,8 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution
                 Highpass cutoff
     use_rtsq : bool
                Set true to rotate and translate
+    template : array
+               Template for translational alignment
     resolution : float
                  Resolution to filter data
     apix : float
@@ -200,17 +231,20 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution
           1D transformed image
     '''
     
+    var_one=True
     freq=None
     align = align[idx]
     m = align[1] > 179.99 if not flip_mirror else align[1] < 179.99
     if use_rtsq: img = eman2_utility.rot_shift2D(img, align[5], align[6], align[7], m)
     elif m:      img = eman2_utility.mirror(img)
-    if resolution > (2*apix):
-        #img = eman2_utility.gaussian_low_pass(img, apix/resolution, True)
-        bin_factor = max(1, min(8, resolution / (apix*2)))
+    if disable_bispec:
+        img = eman2_utility.gaussian_high_pass(img, hp_cutoff, True)
+    
+    bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    if template is not None: img = shift(img, template)
     if not disable_bispec:
-        ndimage_utility.normalize_standard(img, mask, True, img)
+        ndimage_utility.normalize_standard(img, mask, var_one, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
         bispec_lag = min(max(1, bispec_lag), img.ravel().shape[0])
@@ -234,9 +268,29 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, resolution
             img = img[idx[:, numpy.newaxis], idx]
             img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
     else:
-        ndimage_utility.normalize_standard(img, mask, True, img)
+        ndimage_utility.normalize_standard(img, mask, var_one, img)
         img = ndimage_utility.compress_image(img, mask)
     return img
+
+def shift(img, template):
+    ''' Shift an image to match the given template
+    :Parameters:
+    
+    img : array
+          Image to shift
+    template : array
+               Image to match
+    
+    :Returns:
+    
+    img : array
+          Shifted image
+    '''
+    
+    cc_map = ndimage_utility.cross_correlate(img, template)
+    #cc_map = ndimage_utility.cross_correlate(template, img)
+    y,x = numpy.unravel_index(numpy.argmax(cc_map), cc_map.shape)
+    return eman2_utility.fshift(img, x-img.shape[0]/2, y-img.shape[1]/2)
 
 def read_data(input_files, label, align, **extra):
     ''' Read images from a file and transform into a matrix
@@ -259,11 +313,54 @@ def read_data(input_files, label, align, **extra):
     '''
     
     label[:, 1]-=1
-    extra['hp_cutoff'] = extra['apix']/20 #'2.0/extra['pixel_diameter']
-    if 'mask' not in extra: extra['mask'] = create_tightmask(input_files, label, **extra)
-    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, align=align, **extra), extra['mask']
+    extra['hp_cutoff'] = extra['apix']/120 #'2.0/extra['pixel_diameter']
+    extra['hp_cutoff'] = 2.0/extra['pixel_diameter']
+    mask, template = None, None
+    if 'mask' not in extra: 
+        mask, template = create_tightmask(input_files, label, **extra)
+        #template = create_template(input_files, label, template, **extra)
+        resolution = extra['resolution']
+        apix = extra['apix']
+        bin_factor = min(8, resolution / (apix*2) ) if resolution > (apix*2) else 1.0
+        if bin_factor > 1: extra['mask'] = eman2_utility.decimate(mask, bin_factor)
+        if bin_factor > 1: extra['template'] = eman2_utility.decimate(template, bin_factor)
+    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, align=align, **extra), mask, template
 
-def create_tightmask(input_files, label, resolution, apix, **extra):
+def create_template(input_files, label, template, resolution, apix, hp_cutoff, **extra):
+    ''' Create a tight mask from a view average
+    
+    :Parameters:
+    
+    input_files : list
+                  List of input file stacks
+    label : array
+            2D array of particle labels (stack_id, particle_id)
+    template : array
+               Averaged view
+    resolution : float
+                 Resolution to filter data
+    apix : float
+           Pixel size
+    extra : dict
+            Unused key word arguments
+            
+    :Returns:
+    
+    mask : array
+           2D array image mask
+    '''
+    
+    avg2 = None
+    for img2 in ndimage_file.iter_images(input_files, label):
+        if avg2 is None: avg2 = numpy.zeros(img2.shape)
+        img2 = shift(img2, template)
+        avg2 += img2
+    avg2 /= len(label)
+    avg2 = eman2_utility.gaussian_low_pass(avg2, apix/resolution, True)
+    avg2 = eman2_utility.gaussian_high_pass(avg2, hp_cutoff, True)
+    return avg2
+
+def create_tightmask(input_files, label, resolution, apix, hp_cutoff, **extra):
     ''' Create a tight mask from a view average
     
     :Parameters:
@@ -285,16 +382,16 @@ def create_tightmask(input_files, label, resolution, apix, **extra):
            2D array image mask
     '''
     
-    bin_factor = min(8, resolution / (apix*2) ) if resolution > (apix*2) else 1.0
     avg2 = None
     for img2 in ndimage_file.iter_images(input_files, label):
-        if bin_factor > 1: img2 = eman2_utility.decimate(img2, bin_factor)
         if avg2 is None: avg2 = numpy.zeros(img2.shape)
         avg2 += img2
     avg2 /= len(label)
-    avg2 = eman2_utility.gaussian_low_pass(avg2, apix/80.0, True)
-    mask = ndimage_utility.segment(avg2)
-    return scipy.ndimage.morphology.binary_fill_holes(mask)
+    temp = eman2_utility.gaussian_low_pass(avg2, apix/80.0, True)
+    mask = ndimage_utility.segment(temp)
+    avg2 = eman2_utility.gaussian_low_pass(avg2, apix/resolution, True)
+    avg2 = eman2_utility.gaussian_high_pass(avg2, hp_cutoff, True)
+    return scipy.ndimage.morphology.binary_fill_holes(mask), avg2
 
 def read_alignment(files, alignment="", **extra):
     ''' Read alignment parameters
@@ -365,7 +462,7 @@ def read_alignment(files, alignment="", **extra):
         group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
     return group
 
-def compute_average3(input_files, label, align, selected=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, **extra):
+def compute_average3(input_files, label, align, template=None, selected=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, **extra):
     ''' Compute the average of a selected, unselected and all images
     
     :Parameters:
@@ -414,18 +511,20 @@ def compute_average3(input_files, label, align, selected=None, use_rtsq=False, s
     poff = 0
     noff = 0
     for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
+        if avgsel is None: avgsel = numpy.zeros(img.shape)
+        if avgunsel is None: avgunsel = numpy.zeros(img.shape)
         m = align[i, 1] > 180.0
         if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
         elif m:      img = eman2_utility.mirror(img)
+        if template is not None: img = shift(img, template)
+        
         if selected[i] > 0.5:
-            if avgsel is None: avgsel = img.copy()
-            else: avgsel += img
+            avgsel += img
             if poutput is not None and poutput != noutput:
                 ndimage_file.write_image(poutput, img, poff)
                 poff += 1
         else:
-            if avgunsel is None: avgunsel = img.copy()
-            else: avgunsel += img
+            avgunsel += img
             if noutput is not None and poutput != noutput:
                 ndimage_file.write_image(noutput, img, noff)
                 noff += 1
@@ -471,7 +570,7 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **ex
     for i in numpy.argwhere(sel):
         sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]))    
     output = format_utility.add_prefix(output, "avg_")
-    file_completed *= 3
+    file_completed *= len(avg3)
     for i in xrange(len(avg3)):
         ndimage_file.write_image(output, avg3[i], file_completed+i)
     _logger.info("Finished processing %d - %d,%d - Energy: %f, %d"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy[0], energy[1]))
@@ -494,7 +593,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     windows = ('none', 'uniform', 'sasaki', 'priestley', 'parzen', 'hamming', 'gaussian', 'daniell')
     view_stack = ('None', 'Positive', 'Negative', 'Both', 'Single')
     group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
-    group.add_option("", resolution=5.0,              help="Filter to given resolution - requires apix to be set")
+    group.add_option("", resolution=15.0,             help="Filter to given resolution - requires apix to be set")
     group.add_option("", use_rtsq=False,              help="Use alignment parameters to rotate projections in 2D")
     group.add_option("", neig=1.0,                    help="Number of eigen vectors to use")
     group.add_option("", disable_bispec=False,        help="Use the image data rather than the bispectrum")
