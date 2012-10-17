@@ -5,8 +5,20 @@
 '''
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.cm as cm
+import matplotlib._pylab_helpers
 from ..image import analysis
 import numpy
+
+def figure_list():
+    ''' Get a list of figures
+    
+    :Returns:
+    
+    figs : list
+           List of figures
+    '''
+    
+    return [manager.canvas.figure for manager in matplotlib._pylab_helpers.Gcf.get_all_fig_managers()]
 
 def nonoverlapping_subset(ax, x, y, radius, n):
     ''' Find a non-overlapping subset of points on the given axes
