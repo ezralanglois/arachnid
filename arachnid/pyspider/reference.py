@@ -90,6 +90,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility
+from ..core.parallel import mpi_utility
 from ..core.image import ndimage_file
 from ..core.spider import spider
 import filter_volume
@@ -128,13 +129,19 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
         if header['apix'] == 0: raise ValueError, "Pixel size of input volume is unknown - please use `--curr-apix` to set it"
         curr_apix = header['apix']
         _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
-    filename = ndimage_file.copy_to_spider(filename, spi.replace_ext('tmp_spi_file'))
+    tempfile = mpi_utility.safe_tempfile(spi.replace_ext('tmp_spi_file'))
+    try:
+        filename = ndimage_file.copy_to_spider(filename, tempfile)
+    except:
+        if os.path.dirname(tempfile) == "": raise
+        tempfile = mpi_utility.safe_tempfile(spi.replace_ext('tmp_spi_file'), False)
+        filename = ndimage_file.copy_to_spider(filename, tempfile)
     w, h, d = spi.fi_h(filename, ('NSAM', 'NROW', 'NSLICE'))
     if w != h: raise ValueError, "Width does not match height - requires box"
     if w != d: raise ValueError, "Width does not match depth - requires box"
     _logger.debug("Filtering volume")
     filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
-    if os.path.exists(spi.replace_ext('tmp_spi_file')): os.unlink(spi.replace_ext('tmp_spi_file'))
+    if os.path.exists(tempfile): os.unlink(tempfile)
     _logger.debug("Centering volume")
     filename = center_volume(filename, spi, output)
     _logger.debug("Resizing volume")
