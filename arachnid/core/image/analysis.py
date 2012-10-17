@@ -71,16 +71,18 @@ def resample(data, sample_num, sample_size, thread_count=0, operator=functools.p
              Result of operator over each sample
     '''
     
-    if length is None: length = data.shape[1]
+    if length is None: 
+        total, length = process_queue.recreate_global_dense_matrix(data).shape
+    else: total = len(process_queue.recreate_global_dense_matrix(data))
     sample, shmem_sample = process_queue.create_global_dense_matrix( ( sample_num, length )  )
-    total = len(process_queue.recreate_global_dense_matrix(data))
+    
     replace = sample_size == 0
     if sample_size == 0 : sample_size = total
     elif sample_size < 1.0: sample_size = int(sample_size*total)
-    process_queue.map_array(_resample_worker, thread_count, data, shmem_sample, sample_size, replace)
+    process_queue.map_array(_resample_worker, thread_count, data, operator, shmem_sample, sample_size, replace)
     return sample
 
-def _resample_worker(beg, end, operator, shmem_data, shmem_sample, sample_size, replace, weight=None):
+def _resample_worker(beg, end, shmem_data, operator, shmem_sample, sample_size, replace, weight=None):
     ''' Resample the dataset and store in a subset
     
     :Parameters:
@@ -130,7 +132,14 @@ def pca(trn, tst=None, frac=-1):
     mtrn = trn.mean(axis=0)
     trn = trn - mtrn
     if tst is None: tst = trn
-    else: tst = tst - mtrn
+    else: 
+        try:
+            tst = tst - mtrn
+        except:
+            print "tst:",tst.shape
+            print "mtrn:",mtrn.shape
+            print "trn:",trn.shape
+            raise
     U, d, V = scipy.linalg.svd(trn, False)
     t = d**2/trn.shape[0]
     t /= t.sum()
