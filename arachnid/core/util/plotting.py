@@ -7,7 +7,38 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 from ..image import analysis
-import numpy
+import numpy, pylab
+
+def plot_embedding(x, y, selected=None, dpi=80, **extra):
+    ''' Plot an embedding
+    
+    :Parameters:
+    
+    x : array
+        X coordindates
+    y : array
+        Y coordindates
+    selected : array, optional
+               Plot selected points
+    dpi : int
+          Figure resolution
+    extra : dict
+            Unused key word arguments
+    
+    :Returns:
+    
+    fig : Figure
+          Matplotlib figure
+    ax : Axes
+          Matplotlib axes
+    '''
+    
+    fig = pylab.figure(dpi=dpi)
+    ax = fig.add_subplot(111)
+    ax.plot(x, y, 'ro', ls='.', markersize=3, **extra)
+    if selected is not None:
+        ax.plot(x[selected], y[selected], 'k+', ls='.', markersize=2, **extra)
+    return fig, ax
 
 def figure_list():
     ''' Get a list of figures
