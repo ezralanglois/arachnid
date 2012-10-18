@@ -56,7 +56,7 @@ To run:
 from arachnid.core.metadata import format, format_utility
 from arachnid.core.orient import healpix
 import matplotlib, numpy, scipy
-matplotlib.use('Qt4Agg')
+#matplotlib.use('Qt4Agg')
 
 import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
