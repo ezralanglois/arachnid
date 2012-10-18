@@ -13,6 +13,17 @@ import functools
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def current_id():
+    ''' Get the current process id
+    
+    :Returns:
+    
+    id : int
+         Current process id
+    '''
+    
+    return multiprocessing.current_process().pid
+
 def shmem_as_ndarray(raw_array):
     ''' Create a numpy.ndarray view of a multiprocessing.RawArray
         
@@ -199,11 +210,11 @@ def map_array(worker_callback, thread_count, data, *args, **extra):
         extra : dict
                 Unused keyword arguments
     '''
+    if isinstance(data, tuple) and len(data) == 2:
+        size = len(recreate_global_dense_matrix(data))
+    else: size = len(data)
     
     if thread_count > 1:
-        if isinstance(data, tuple) and len(data) == 2:
-            size = len(recreate_global_dense_matrix(data))
-        else: size = len(data)
         counts = numpy.zeros(thread_count, dtype=numpy.int)
         for i in xrange(thread_count):
             counts[i] = ( (size / thread_count) + (size % thread_count > i) )
