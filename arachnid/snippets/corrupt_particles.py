@@ -17,18 +17,20 @@ from arachnid.core.metadata import format, spider_utility
 from arachnid.core.image import ndimage_file
 import numpy
 
-input_selection = ""
-stack_file = ""
-output_selection=""
 
-isel = format.read(input_selection)
-sel = []
-
-for s in isel:
+if __name__ == '__main__':
+    input_selection = ""
+    stack_file = ""
+    output_selection=""
     
-    filename, offset = spider_utility.relion_file(s.rlnImageName)
-    np = ndimage_file.read_image(filename, offset-1)
-    if numpy.isfinite(numpy.mean(np)):
-        sel.append(s)
-
-format.write(output_selection, sel)
+    isel = format.read(input_selection)
+    sel = []
+    
+    for s in isel:
+        
+        filename, offset = spider_utility.relion_file(s.rlnImageName)
+        np = ndimage_file.read_image(filename, offset-1)
+        if numpy.isfinite(numpy.mean(np)):
+            sel.append(s)
+    
+    format.write(output_selection, sel)
