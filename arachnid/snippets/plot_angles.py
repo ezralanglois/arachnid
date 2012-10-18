@@ -55,7 +55,8 @@ To run:
 '''
 from arachnid.core.metadata import format, format_utility
 from arachnid.core.orient import healpix
-import matplotlib, numpy, scipy
+import numpy, scipy
+#import matplotlib
 #matplotlib.use('Qt4Agg')
 
 import matplotlib.cm as cm
