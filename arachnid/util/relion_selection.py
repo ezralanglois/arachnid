@@ -78,6 +78,10 @@ Critical Options
 .. option:: -s<str>, --select <str>
     
     SPIDER selection file (Only required when the input is a relion selection file) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`
+
+.. option:: -m <INT>, --minimum-group <INT>
+    
+    Minimum number of particles per defocus group
     
 Useful Options
 ==============
@@ -170,7 +174,7 @@ def select_class_subset(vals, select, output, **extra):
         for mic,vals in micselect.iteritems():
             format.write(output, numpy.asarray(vals), header="id,select".split(','))
 
-def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", **extra):
+def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", minimum_group=20, **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
@@ -189,6 +193,8 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
                      Filename for input SPIDER Params file
         select : str
                  Filename for input optional selection file (for good particles in each stack)
+        minimum_group : int
+                        Minimum number of particles per defocus group
         extra : dict
                 Unused key word arguments
     '''
@@ -210,6 +216,7 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
     label = []
     idlen = len(str(ndimage_file.count_images(files)))
+    group = []
     for filename in files:
         mic = spider_utility.spider_id(filename)
         if select != "":
@@ -220,10 +227,43 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
                 select_vals = [s.id for s in select_vals if s.select > 0] if len(select_vals) > 0 and hasattr(select_vals[0], 'select') else [s.id for s in select_vals]
         else:
             select_vals = xrange(ndimage_file.count_images(filename))
-        if defocus_dict[mic].defocus < 1000: continue
+        if mic not in defocus_dict:
+            _logger.warn("Micrograph not found in defocus file: %d -- skipping"%mic)
+            continue
+        if defocus_dict[mic].defocus < 1000: 
+            _logger.warn("Micrograph %d defocus too small: %f -- skipping"%(mic, defocus_dict[mic].defocus))
+            continue
+        
+        group.append((defocus_dict[mic].defocus, len(select_vals), len(label)))
         for pid in select_vals:
-            label.append( ("%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont) )
-    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast".split(','))
+            label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
+    group = numpy.asarray(group)
+    
+    regroup = []
+    offset = 0
+    total = 0
+    groupmap = {}
+    idx = numpy.argsort(group[:, 0])
+    for i in idx:
+        if total <= minimum_group or total == 0:
+            groupmap[i]=offset+1
+            regroup.append(i)
+            total += group[i, 1]
+        if total >  minimum_group:
+            offset += 1
+            total = 0
+            regroup=[]
+    if total < minimum_group:
+        for i in regroup:
+            groupmap[i]=offset
+        offset-=1
+    
+    for i in xrange(len(label)):
+        label[i][6] = groupmap[label[i][6]]
+        label[i] = tuple(label[i])
+    _logger.info("Groups %d -> %d"%(len(group), offset+1))
+    
+    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(','))
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
@@ -234,6 +274,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
+    group.add_option("-m", minimum_group=20,                help="Minimum number of particles per defocus group", gui=dict(minimum=0, singleStep=1))
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
