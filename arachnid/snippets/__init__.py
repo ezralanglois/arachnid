@@ -18,4 +18,5 @@
     center_images
     plot_angles
     scale_align
+    corrupt_particles
 '''
