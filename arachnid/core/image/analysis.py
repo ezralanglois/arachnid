@@ -79,14 +79,30 @@ def resample(data, sample_num, sample_size, thread_count=0, operator=functools.p
     replace = sample_size == 0
     if sample_size == 0 : sample_size = total
     elif sample_size < 1.0: sample_size = int(sample_size*total)
-    process_queue.map_array(_resample_worker, thread_count, data, operator, shmem_sample, sample_size, replace)
+    process_queue.map_array(_resample_worker, thread_count, shmem_sample, operator, data, sample_size, replace)
     return sample
 
-def _resample_worker(beg, end, shmem_data, operator, shmem_sample, sample_size, replace, weight=None):
+def _resample_worker(beg, end, shmem_sample, operator, shmem_data, sample_size, replace, weight=None):
     ''' Resample the dataset and store in a subset
     
     :Parameters:
     
+    beg : int
+          Start of the sample range
+    end : int
+          End of the sample range
+    shmem_sample : array
+                   Array storing the samples 
+    operator : function
+               Generates a sample from a resampled distribution
+    shmem_data : array
+                 Array containing the data to resample
+    sample_size : int
+                  Size of the subset
+    replace : bool
+              Draw with replacement 
+    weight : array
+             Weight on each sample
     '''
     
     data = process_queue.recreate_global_dense_matrix(shmem_data)
@@ -95,9 +111,13 @@ def _resample_worker(beg, end, shmem_data, operator, shmem_sample, sample_size, 
     for i in xrange(beg, end):
         selected = numpy_ext.choice(index.copy(), size=sample_size, replace=replace, p=weight)
         subset = data[selected].squeeze()
-        sample[i, :] = operator(subset)
+        try:
+            sample[i, :] = operator(subset)
+        except:
+            _logger.error("%d > %d --- %d"%(i, len(sample), end))
+            raise
 
-def pca(trn, tst=None, frac=-1):
+def pca(trn, tst=None, frac=-1, mtrn=None):
     ''' Principal component analysis using SVD
     
     :Parameters:
@@ -129,7 +149,7 @@ def pca(trn, tst=None, frac=-1):
         `https://raw.github.com/scikit-learn/scikit-learn/master/sklearn/decomposition/pca.py`
     '''
     
-    mtrn = trn.mean(axis=0)
+    if mtrn is None: mtrn = trn.mean(axis=0)
     trn = trn - mtrn
     if tst is None: tst = trn
     else: 

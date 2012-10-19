@@ -50,6 +50,7 @@ __description__ = "Single Particle Data Analysis Suite"
 __url__ = "http://code.google.com/p/arachnid/"
 #__download_url__  = "http://www.columbia.edu/cu/franklab/autopart.zip"
 __keywords__ = "cryo-EM particle-picking image-processing"
+__platforms__ = "linux"
 __classifiers__ = [
     'Development Status :: 4 - Beta',
     'Environment :: Console',
