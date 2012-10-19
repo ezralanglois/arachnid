@@ -240,7 +240,7 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     rot_avg = spi.ro(power_spec)
     spi.de(output_roo)
     spi.li_d(rot_avg, 'R', 1, outputfile=output_roo+"_old", use_2d=use_2d)
-    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo+"_old"), numeric=True, header="id,amplitude,pixel,a,b"))[1:]
+    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo+"_old"), numeric=True, header="id,amplitude,pixel,a,b"))[:, 1:]
     if ro_arr.shape[1]!=4:
         _logger.error("ROO: %s"%str(ro_arr.shape))
     assert(ro_arr.shape[1]==4)
