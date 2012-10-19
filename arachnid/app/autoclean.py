@@ -3,11 +3,12 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
+from ..core.image.ndplot import pylab
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params
-from ..core.parallel import mpi_utility
-from ..core.image.ndplot import pylab
-import logging, numpy, os, scipy
+from ..core.parallel import mpi_utility, process_queue
+from arachnid.core.util import plotting
+import logging, numpy, os, scipy,itertools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -40,12 +41,11 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     
     output = spider_utility.spider_filename(output, input_vals[0])
     data, mask, avg = read_data(input_files, *input_vals[1:3], **extra)
-    data2 = data
+    #data2 = data
     #data2, mask = read_data(input_files, *input_vals[3:5], mask=mask, **extra)
     #_logger.error("test: %s == %s"%(str(data.shape), str(data2.shape)))
     #data2 = numpy.vstack((data, data2))
     #_logger.error("test2: %s == %s"%(str(data.shape), str(data2.shape)))
-    assert(data2.shape[1]==data.shape[1])
     eigs, sel, energy = classify_data(data, None, output=output, **extra)
     #sel = numpy.zeros((len(data2)))
     #sel[:len(data)]=1
@@ -53,15 +53,17 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     # Write 
     if eigs.ndim == 1: eigs = eigs.reshape((eigs.shape[0], 1))
     feat = numpy.hstack((sel[:, numpy.newaxis], eigs))
+    assert(feat.ndim > 1)
     #header=[]
     #for i in xrange(1, eigs.shape[1]+1): header.append('c%d'%i)
-    label = numpy.zeros((len(data2), 2))
+    nexamples = data.shape[0] if hasattr(data, 'shape') else data[1][0]
+    label = numpy.zeros((nexamples, 2))
     label[:, 0] = input_vals[0]
-    label[:, 1] = numpy.arange(1, len(data2)+1)
+    label[:, 1] = numpy.arange(1, nexamples+1)
     format.write_dataset(os.path.splitext(output)[0]+".csv", feat, input_vals[0], label, prefix="embed_", header="best")
     #format.write(os.path.splitext(output)[0]+".csv", feat, prefix="embed_", spiderid=input_vals[0], header=['select']+header)
     
-    
+    plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
     extra['poutput']=format_utility.new_filename(output, 'pos_') if write_view_stack == 1 or write_view_stack >= 3 else None
     extra['noutput']=format_utility.new_filename(output, 'neg_') if write_view_stack == 2 or write_view_stack == 3 else None
     if write_view_stack == 4: extra['noutput'] = extra['poutput']
@@ -69,9 +71,10 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     avg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, **extra)
     savg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, template=avg, **extra)
     
-    return input_vals, sel, avg3+savg3, energy
+    nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
+    return input_vals, sel, avg3+savg3, energy, nfeat
 
-def classify_data(data, test=None, output="", neig=1, **extra):
+def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, **extra):
     ''' Classify the aligned projection data grouped by view
     
     :Parameters:
@@ -82,6 +85,8 @@ def classify_data(data, test=None, output="", neig=1, **extra):
              Output filename for intermediary data
     neig : float
            Number of eigen vectors to use (or mode)
+    thread_count : int
+                    Number of threads
     extra : dict
             Unused key word arguments
             
@@ -93,100 +98,24 @@ def classify_data(data, test=None, output="", neig=1, **extra):
           1D array of selected images
     '''
     
-    from sklearn.covariance import EllipticEnvelope
-    
-    learner = EllipticEnvelope(contamination=0.261)
-
-def classify_data2(data, test=None, output="", neig=1, **extra):
-    ''' Classify the aligned projection data grouped by view
-    
-    :Parameters:
-    
-    data : array
-           2D array where each row is an aligned and transformed image
-    output : str
-             Output filename for intermediary data
-    neig : float
-           Number of eigen vectors to use (or mode)
-    extra : dict
-            Unused key word arguments
-            
-    :Returns:
-    
-    eigs : array
-           2D array of embedded images
-    sel : array
-          1D array of selected images
-    '''
-    
-    eigs, idx, vec,energy = analysis.pca(data, test, frac=neig) # Returns: val, idx, V[:idx], t[idx]
-    if test is not None: assert(eigs.shape[0] == test.shape[0])
-    idx;
-    vec;
-    if test is None: test = data
-    
-    assert(numpy.alltrue(numpy.isreal(eigs)))
-    # Sphere growing in Eigen Space
-    cent = numpy.median(eigs, axis=0)
-    eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    
-    # Variance Estimate
-    idx = numpy.argsort(eig_dist_cent)
-    #var = analysis.running_variance(data[idx], axis=1)
-    var = analysis.online_variance(test[idx], axis=0)
-    rvar = analysis.online_variance(test[idx[::-1]], axis=0)
-    #sel = numpy.argwhere(var[len(var)-1] < th).ravel()
-    
-    #slope = (var[len(var)-1, sel]-var[0, sel]) / len(var)
-    #min_slope = numpy.max(slope)
-    mvar = numpy.mean(var, axis=1)
-    mrvar = numpy.mean(rvar, axis=1)
-    
-    template = numpy.mean(test[idx[:int(0.3*test.shape[0])]], axis=0)
-    cc = numpy.sum(numpy.square(template-test[idx]), axis=1)
-    
-    if pylab is not None:
-        maxval = numpy.max(var)
-        pylab.clf()
-        pylab.plot(numpy.arange(1, len(var)+1), var)
-        pylab.savefig(format_utility.new_filename(output, "var_", ext="png"))
-        pylab.clf()
-        pylab.plot(numpy.arange(1, len(rvar)+1), rvar)
-        pylab.savefig(format_utility.new_filename(output, "rvar_", ext="png"))
-        pylab.clf()
-        pylab.plot(numpy.arange(1, len(mrvar)+1), mrvar)
-        pylab.savefig(format_utility.new_filename(output, "mrvar_", ext="png"))
-        pylab.clf()
-        pylab.plot(numpy.arange(1, len(var)+1), mvar, 'r-')
-        pylab.savefig(format_utility.new_filename(output, "mvar_", ext="png"))
-        pylab.clf()
-        pylab.plot(numpy.arange(1, len(var)+1), (mvar+mrvar)/2.0, 'r-')
-        pylab.savefig(format_utility.new_filename(output, "bvar_", ext="png"))
-        pylab.clf()
-        pylab.plot(numpy.arange(1, len(cc)+1), cc, 'r-')
-        pylab.savefig(format_utility.new_filename(output, "cc_", ext="png"))
-        
-    if pylab is not None:
+    sel = None
+    for i in xrange(1):
+        if resample > 0:
+            test = process_queue.recreate_global_dense_matrix(data)
+            train = analysis.resample(data, resample, sample_size, thread_count)
+        else: 
+            train = process_queue.recreate_global_dense_matrix(data)
+            test = data
+        if sel is not None: train = train[sel]
+        eigs, idx, vec,energy = analysis.pca(train, test, neig, test.mean(axis=0))
+        eigs2 = eigs.copy()
+        eigs2 -= eigs2.min(axis=0)
+        eigs2 /= eigs2.max(axis=0)
+        cent = numpy.median(eigs2, axis=0)
+        eig_dist_cent = scipy.spatial.distance.cdist(eigs2, cent.reshape((1, len(cent))), metric='euclidean').ravel()
         th = analysis.otsu(eig_dist_cent)
-        pylab.clf()
-        n = pylab.hist(eig_dist_cent, bins=int(numpy.sqrt(len(mvar))))[0]
-        maxval = sorted(n)[-1]
-        pylab.plot((th, th), (0, maxval))
-        pylab.savefig(format_utility.new_filename(output, "den_", ext="png"))
-        _logger.info("Total selected: %d"%numpy.sum(eig_dist_cent<th))
-    
-    if 1 == 1:
-        sel = eigs[:, 0] < 0
-    elif 1 == 1:
         sel = eig_dist_cent < th
-    elif 1 == 1:
-        sel = numpy.zeros(len(eigs), dtype=numpy.bool)
-        th = analysis.otsu(mvar)
-        sel[idx[mvar<th]]=1
-    else:
-        sel = numpy.zeros(len(eigs), dtype=numpy.bool)
-        sel[idx[:len(idx)/2]]=1
-    
+        _logger.info("Selected: %d - %f"%(numpy.sum(sel), energy))
     return eigs, sel, (energy, idx)
 
 def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, **extra):
@@ -234,7 +163,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     var_one=True
     freq=None
     align = align[idx]
-    m = align[1] > 179.99 if not flip_mirror else align[1] < 179.99
+    m = align[1] > 179.9999 if not flip_mirror else align[1] < 179.9999
     if use_rtsq: img = eman2_utility.rot_shift2D(img, align[5], align[6], align[7], m)
     elif m:      img = eman2_utility.mirror(img)
     if disable_bispec:
@@ -244,10 +173,10 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if template is not None: img = shift(img, template)
     if not disable_bispec:
-        ndimage_utility.normalize_standard(img, mask, var_one, img)
+        ndimage_utility.normalize_standard(img, mask*-1+1, var_one, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
-        bispec_lag = min(max(1, bispec_lag), img.ravel().shape[0])
+        bispec_lag = min(max(1, bispec_lag), img.shape[0]-1)
         img *= mask
         try:
             img, freq = ndimage_utility.bispectrum(img, bispec_lag, bispec_window, scale) # 1.0 = apix
@@ -255,8 +184,6 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             _logger.error("%d, %d"%(img.shape[0], bispec_lag))
             raise
         
-        # do this?
-        freq=numpy.abs(freq)
         idx = numpy.argwhere(numpy.logical_and(freq >= hp_cutoff, freq <= apix/resolution))
         if bispec_mode == 1: 
             img = img.real
@@ -274,6 +201,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
 
 def shift(img, template):
     ''' Shift an image to match the given template
+    
     :Parameters:
     
     img : array
@@ -312,19 +240,18 @@ def read_data(input_files, label, align, **extra):
            2D array of transformed image data, each row is a transformed image
     '''
     
-    label[:, 1]-=1
-    extra['hp_cutoff'] = extra['apix']/120 #'2.0/extra['pixel_diameter']
-    extra['hp_cutoff'] = 2.0/extra['pixel_diameter']
+    extra['hp_cutoff'] = extra['apix']/120 if extra['resolution_hi'] > 0.0 else 2.0/extra['pixel_diameter']
     mask, template = None, None
     if 'mask' not in extra: 
         mask, template = create_tightmask(input_files, label, **extra)
+        template = create_template(input_files, label, template, **extra)
         #template = create_template(input_files, label, template, **extra)
         resolution = extra['resolution']
         apix = extra['apix']
         bin_factor = min(8, resolution / (apix*2) ) if resolution > (apix*2) else 1.0
         if bin_factor > 1: extra['mask'] = eman2_utility.decimate(mask, bin_factor)
         if bin_factor > 1: extra['template'] = eman2_utility.decimate(template, bin_factor)
-    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, align=align, **extra), mask, template
+    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=True, align=align, **extra), mask, template
 
 def create_template(input_files, label, template, resolution, apix, hp_cutoff, **extra):
     ''' Create a tight mask from a view average
@@ -416,9 +343,9 @@ def read_alignment(files, alignment="", **extra):
         refidx = header.index('ref_num')
         label = numpy.zeros((len(align), 2), dtype=numpy.int)
         label[:, 0] = spider_utility.spider_id(files[0])
-        label[:, 1] = align[:, 4].astype(numpy.int)
-        if numpy.max(label[:, 1]) > ndimage_file.count_images(files[0]):
-            label[:, 1] = numpy.arange(1, len(align)+1)
+        label[:, 1] = align[:, 4].astype(numpy.int)-1
+        if numpy.max(label[:, 1]) >= ndimage_file.count_images(files[0]):
+            label[:, 1] = numpy.arange(0, len(align))
     else:
         align = None
         refidx = None
@@ -430,6 +357,7 @@ def read_alignment(files, alignment="", **extra):
             if len(align)>0 and 'stack_id' in set(header):
                 align = numpy.asarray(align)
                 label = align[:, 15:17].astype(numpy.int)
+                label[:, 1]-=1
             else:
                 align=None
         if align is None:
@@ -450,7 +378,7 @@ def read_alignment(files, alignment="", **extra):
                 label[total:end, 0] = spider_utility.spider_id(f)
                 label[total:end, 1] = align[total:end, 4].astype(numpy.int)
                 if numpy.max(label[total:end, 1]) > ndimage_file.count_images(f):
-                    label[:, 1] = numpy.arange(1, len(align[total:end])+1)
+                    label[:, 1] = numpy.arange(0, len(align[total:end]))
                 total = end
     ref = align[:, refidx].astype(numpy.int)
     refs = numpy.unique(ref)
@@ -513,9 +441,9 @@ def compute_average3(input_files, label, align, template=None, selected=None, us
     for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
         if avgsel is None: avgsel = numpy.zeros(img.shape)
         if avgunsel is None: avgunsel = numpy.zeros(img.shape)
-        m = align[i, 1] > 180.0
+        m = align[i, 1] > 179.999
         if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
-        elif m:      img = eman2_utility.mirror(img)
+        elif m:      img[:,:] = eman2_utility.mirror(img)
         if template is not None: img = shift(img, template)
         
         if selected[i] > 0.5:
@@ -538,6 +466,70 @@ def compute_average3(input_files, label, align, template=None, selected=None, us
     if cntunsel > 0: avgunsel /= cntunsel
     return avgsel, avgunsel, avgful / (cntsel+cntunsel)
 
+def test_variance(eigs, data, output, **extra):
+    '''
+    '''
+    
+    cent = numpy.median(eigs, axis=0)
+    eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    idx = numpy.argsort(eig_dist_cent)
+    var = analysis.online_variance(data[idx], axis=0)
+    rvar = analysis.online_variance(data[idx[::-1]], axis=0)
+    mvar = numpy.mean(var, axis=1)
+    mrvar = numpy.mean(rvar, axis=1)
+    pylab.clf()
+    pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
+    pylab.savefig(format_utility.new_filename(output, "mvar_", ext="png"))
+    pylab.clf()
+    pylab.plot(numpy.arange(1, len(mrvar)+1), mrvar)
+    pylab.savefig(format_utility.new_filename(output, "mrvar_", ext="png"))
+    
+    th = analysis.otsu(eig_dist_cent)
+    pylab.clf()
+    n = pylab.hist(eig_dist_cent, bins=int(numpy.sqrt(len(mvar))))[0]
+    maxval = sorted(n)[-1]
+    pylab.plot((th, th), (0, maxval))
+    pylab.savefig(format_utility.new_filename(output, "den_", ext="png"))
+    
+def plot_examples(filename, label, output, eigs, sel, dpi=200, **extra):
+    ''' Plot the manifold with example images
+    
+    :Parameters:
+    
+    filename : str
+               Stack filename
+    label : array
+            Stack label ids
+    output : str
+             Output filename
+    eigs : array
+           Eigen embedding
+    sel : array
+          Boolean selection
+    dpi : int
+          Figure resolution
+    '''
+    
+    if eigs.ndim == 1: return
+    if eigs.shape[1] == 1: return
+    filename = filename[0]
+    image_size=0.4
+    radius=20
+    
+    select = numpy.argwhere(sel < 0.5)
+    fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, dpi=dpi)
+    index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)]
+    iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+    plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+    fig.savefig(format_utility.new_filename(output, "neg_", ext="png"), dpi=dpi)
+    
+    select = numpy.argwhere(sel > 0.5)
+    fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, dpi=dpi)
+    index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)]
+    iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+    plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+    fig.savefig(format_utility.new_filename(output, "pos_", ext="png"), dpi=dpi)
+
 def initialize(files, param):
     # Initialize global parameters for the script
     
@@ -550,9 +542,9 @@ def initialize(files, param):
         group = read_alignment(files, **param)
         _logger.info("Cleaning bad particles from %d views"%len(group))
     group = mpi_utility.broadcast(group, **param)
-    if param['first_view']:
+    if param['single_view'] > 0:
         tmp=group
-        group = [tmp[0]]
+        group = [tmp[param['single_view']-1]]
     param['total'] = numpy.zeros((len(group), 3))
     param['sel_by_mic'] = {}
     
@@ -561,19 +553,20 @@ def initialize(files, param):
 def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
-    input, sel, avg3, energy = val
+    input, sel, avg3, energy, feat_cnt = val
     label = input[1]
     file_completed -= 1
     total[file_completed, 0] = input[0]
     total[file_completed, 1] = numpy.sum(sel)
     total[file_completed, 2] = len(sel)
     for i in numpy.argwhere(sel):
-        sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]))    
-    output = format_utility.add_prefix(output, "avg_")
+        sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))    
+    output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1)
     file_completed *= len(avg3)
     for i in xrange(len(avg3)):
         ndimage_file.write_image(output, avg3[i], file_completed+i)
-    _logger.info("Finished processing %d - %d,%d - Energy: %f, %d"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy[0], energy[1]))
+    # plot first 2 eigen vectors
+    _logger.info("Finished processing %d - %d,%d - Energy: %f, %d - Features: %d"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy[0], energy[1], feat_cnt))
     return input[0]
 
 def finalize(files, total, sel_by_mic, output, **extra):
@@ -593,7 +586,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     windows = ('none', 'uniform', 'sasaki', 'priestley', 'parzen', 'hamming', 'gaussian', 'daniell')
     view_stack = ('None', 'Positive', 'Negative', 'Both', 'Single')
     group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
+    group.add_option("", resample=0,                  help="Number of times to resample the images")
+    group.add_option("", sample_size=100,             help="Size of each bootstrapped sample")
     group.add_option("", resolution=15.0,             help="Filter to given resolution - requires apix to be set")
+    group.add_option("", resolution_hi=0.0,           help="High-pass filter to given resolution - requires apix to be set")
     group.add_option("", use_rtsq=False,              help="Use alignment parameters to rotate projections in 2D")
     group.add_option("", neig=1.0,                    help="Number of eigen vectors to use")
     group.add_option("", disable_bispec=False,        help="Use the image data rather than the bispectrum")
@@ -601,7 +597,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", bispec_biased=False,         help="Estimate biased bispectrum, default unbiased")
     group.add_option("", bispec_lag=0.314,            help="Percent of the signal to be used for lag")
     group.add_option("", bispec_mode=('Both', 'Amp', 'Phase'), help="Part of the bispectrum to use", default=0)
-    group.add_option("", first_view=False,            help="Test the algorithm on the first view")
+    group.add_option("", single_view=0,                help="Test the algorithm on a specific view")
     group.add_option("", write_view_stack=view_stack, help="Write out selected views to a stack where single means write both to a single stack", default=0)
     group.add_option("", sort_view_stack=False,       help="Sort the view stack by the first Eigen vector")
     

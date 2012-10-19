@@ -42,21 +42,73 @@ def process(filename, output, id_len=0, **extra):
     output = spider_utility.spider_filename(output, id)
     
     _logger.info("Processing %s"%filename)
-    if 1 == 1:
+    if 1 == 0:
         esimate_signal(filename, output, **extra)
         defocus = 0
     else:
+        _logger.info("Estimating power spectra")
         powerspec = powerspectra(filename, **extra)
+        spowerspec = ndimage_file.read_image(spider_utility.spider_filename("secA_prj/cluster/data/local/pow/pow_20483.dat", id))
+        numpy.testing.assert_allclose(spowerspec, powerspec)
         write_powerspectra(output, powerspec, **extra)
+        _logger.info("Estimating defocus")
         defocus = esimate_defocus(powerspec, **extra)
+        _logger.info("Defocus=%f"%defocus)
         plot_ctf(output, powerspec, defocus, **extra)
     
     # Calculate astig
     
     return filename, numpy.asarray((id, defocus, 0, 0, 0))
 
-
 def esimate_signal(filename, output, apix, window_size=500, overlap=0.5, pad=2, **extra):
+    ''' Estimate the signal based on two power spectra
+    
+    Use ellipse as a contraint
+    
+    1. modify the ring width
+    2. invert mask
+    3. rot avg
+    4. correlation between model and average - 1d to 2d
+    
+    noise window search
+    '''
+    step = max(1, window_size*overlap)
+    rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
+    rwin1 = rwin[::2]
+    rwin2 = rwin[1::2]
+    if rwin1.shape[0] > rwin2.shape[0]: rwin1 = rwin1[:rwin2.shape[0]]
+    elif rwin2.shape[0] > rwin1.shape[0]: rwin2 = rwin2[:rwin1.shape[0]]
+    avg1 = ndimage_utility.powerspec_avg(rwin1.reshape((rwin1.shape[0]*rwin1.shape[1], rwin1.shape[2], rwin1.shape[3])), pad)
+    avg2 = ndimage_utility.powerspec_avg(rwin2.reshape((rwin2.shape[0]*rwin2.shape[1], rwin2.shape[2], rwin2.shape[3])), pad)
+    
+    
+    #1. astig (remove? or correct?)
+    #2. Signal fall off - low resolution
+    #     compare average to model
+    #     global model for fall off
+    #3. Drift
+    #4. No rings
+    
+    ravg1 = ndimage_utility.mean_azimuthal(avg1)
+    ravg2 = ndimage_utility.mean_azimuthal(avg2)
+    
+    freq = numpy.arange(0, ravg1.shape[0], dtype=numpy.float)/(2.0*ravg1.shape[0])
+    #float(i)/float(2*inc);
+    
+    #scipy.spatial.distance.correlation(ravg1, ravg2)
+    #ravg1m = ravg1-numpy.mean(ravg1) 
+    #ravg2m = ravg2-numpy.mean(ravg2)
+    #fsc = 1.0 - (ravg1m*ravg2m) / ( numpy.sqrt(numpy.sum(numpy.square(ravg1m))) * numpy.sqrt(numpy.sum(numpy.square(ravg2m))) )
+    fsc = numpy.square(ravg1-ravg2)
+    fsc /= numpy.max(fsc)
+    resolution.plot_fsc(format_utility.add_prefix(output, 'rotavg_'), freq, fsc, apix)
+    
+    fsc = numpy.square(ravg1-ravg1[::-1])
+    fsc /= numpy.max(fsc)
+    resolution.plot_fsc(format_utility.add_prefix(output, 'rev_'), freq, fsc, apix)
+
+#
+def esimate_signal_old(filename, output, apix, window_size=500, overlap=0.5, pad=2, **extra):
     ''' Estimate the signal based on two power spectra
     
     Use ellipse as a contraint
@@ -153,29 +205,46 @@ def esimate_astigmatism(powerspec, ampcont, cs, voltage, **extra):
     
     pass
 
+def average_powerspec(powerspec, window_len=3):
+    '''
+    '''
+    
+    if powerspec.ndim == 1 or powerspec.shape[1] == 1: return powerspec
+    avgpowerspec = ndimage_utility.mean_azimuthal(powerspec)
+    
+    if 1 == 0:
+        b = ndimage_utility.rolling_window(avgpowerspec, window_len)
+        avg = b.mean(axis=-1)
+        avgpowerspec[1:len(avgpowerspec)-1] -= avg
+        avgpowerspec[0] -= avg[0]
+        avgpowerspec[len(avgpowerspec)-1] -= avg[len(avg)-1]
+    
+    return avgpowerspec
+    
+
 def esimate_defocus(powerspec, ampcont, cs, voltage, **extra):
     '''
     '''
     
     def errfunc(p, y, cs, lam, sfreq4, sfreq2, arcsin_ampcont, lam3): return y-ctf_model_err(p,cs, lam, sfreq4, sfreq2, arcsin_ampcont, lam3)
-    avgpowerspec = ndimage_utility.mean_azimuthal(powerspec)
+    avgpowerspec = average_powerspec(powerspec)
     p0 = [1000.0]
     lam = 12.398 / numpy.sqrt(voltage * (1022.0 + voltage))
-    sfreq = 0.5 / numpy.arange(avgpowerspec.shape[0])
-    avgpowerspec=avgpowerspec[1:]
-    sfreq=sfreq[1:]
+    sfreq = 0.5 / numpy.arange(1, avgpowerspec.shape[0]+1)
+    avgpowerspec=avgpowerspec[3:]
+    sfreq=sfreq[3:]
     sfreq4 = sfreq**4
     sfreq2 = sfreq**2
     lam3 = lam**3
     arcsin_ampcont = numpy.arcsin(ampcont)
-    return scipy.optimize.leastsq(errfunc,p0,args=(avgpowerspec, cs, lam, sfreq4, sfreq2, arcsin_ampcont, lam3))[0]
+    return scipy.optimize.leastsq(errfunc,p0,args=(avgpowerspec, cs, lam, sfreq4, sfreq2, arcsin_ampcont, lam3))[0][0]
 
 def ctf_model(n, defocus, ampcont, cs, voltage, **extra):
     '''
     '''
     
     lam = 12.398 / numpy.sqrt(voltage * (1022.0 + voltage))
-    sfreq = 0.5 / numpy.arange(n)
+    sfreq = 0.5 / numpy.arange(1, n+1)
     sfreq4 = sfreq**4
     sfreq2 = sfreq**2
     lam3 = lam**3
@@ -263,19 +332,31 @@ def plot_ctf(output, powerspec, defocus, **extra):
             Unused keyword arguments
     '''
     
-    if pylab is None: return
+    if pylab is None: 
+        _logger.info("No pylab")
+        return
     base = os.path.basename(output)
     output = os.path.dirname(output)
     output = os.path.join(output, 'plot')
     if not os.path.exists(output): os.makedirs(output)
     output = os.path.join(output, spider_utility.spider_filename('plot_', base))
     
-    avgpowerspec = ndimage_utility.mean_azimuthal(powerspec)
+    avgpowerspec = average_powerspec(powerspec)
     x, y = ctf_model(avgpowerspec.shape[0], defocus, **extra)
     pylab.clf()
-    pylab.plot(x, y, 'g.')
-    pylab.plot(x, avgpowerspec)
-    pylab.axis([0.0,0.5, 0.0,1.0])
+    print "x:", numpy.min(x), numpy.max(x)
+    print "y:", numpy.min(y), numpy.max(y)
+    print "d:", numpy.min(avgpowerspec), numpy.max(avgpowerspec)
+    fig = pylab.figure()
+    ax = fig.add_subplot(211)
+    ax.plot(x[3:], y[3:], 'g-.')
+    ax.set_xlim(ax.get_xlim()[::-1])
+    ax = fig.add_subplot(212)
+    #avgpowerspec -= avgpowerspec.min()
+    #avgpowerspec /= avgpowerspec.max()
+    ax.plot(x[10:], avgpowerspec[10:], 'r-.')
+    ax.set_xlim(ax.get_xlim()[::-1])
+    #pylab.axis([0.0,0.5, 0.0,1.0])
     pylab.xlabel('Normalized Frequency')
     pylab.ylabel('CTF')
     pylab.title('Contrast transfer function (CTF)')
