@@ -199,8 +199,11 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
                 if line == "": raise format_utility.ParseFormatError, "Unexpected end of header"
                 if line[0] != "_": break
                 line = line.strip()
+                idx = line.find('#')
+                if idx != -1:
+                    line = line[:idx].strip()
                 tmpheader.append(line[1:])
-            while line[0] == ';' or line[0] == '#':
+            while line[0] == ';' or line[0] == '#' or line == "":
                 line = fin.readline()
                 if line == "": raise format_utility.ParseFormatError, "Unexpected end of file"
                 line = line.strip()

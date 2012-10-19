@@ -13,11 +13,49 @@ import logging, os
 from ..app import tracing
 from formats import spider, eman_format as spider_writer
 from ..metadata import spider_utility 
+from ..parallel import process_tasks, process_queue
 import numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def read_image_mat(filename, label, image_processor, shared=False, **extra):
+    '''Create a matrix where each row is an image
+    
+    :Parameters:
+    
+    filename : str
+               Name of the file
+    label : array
+            Array of selected indicies
+    image_processor : function
+                      Extract features from the image 
+    shared : bool
+             If True create a shared memory array
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    mat : array
+          2D matrix where each row is an image
+    '''
+    
+    if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
+    if hasattr(label, 'ndim') and label.ndim == 2:
+        filename = spider_utility.spider_filename(filename, int(label[0, 0]))
+        index = int(label[0, 1])
+    else: index = int(label[0])
+    img1 = read_image(filename, index)
+    img = image_processor(img1, 0, **extra).ravel()
+    if shared:
+        mat, shmem_mat = process_queue.create_global_dense_matrix( ( len(label), img.shape[0] )  )
+    else:
+        mat = numpy.zeros((len(label), img.shape[0]))
+        shmem_mat = mat
+    for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, **extra):
+        mat[row, :] = data.ravel()[:img.shape[0]]
+    return shmem_mat
 
 def is_spider_format(filename):
     ''' Test if input file is in SPIDER format

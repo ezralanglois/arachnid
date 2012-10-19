@@ -225,7 +225,11 @@ def search(img, overlap_mult=1.2, disable_prune=False, **extra):
     index = numpy.argsort(peaks[:,0])[::-1]
     if index.shape[0] > 2000: index = index[:2000]
     index = index[::-1]
-    peaks = peaks[index].copy().squeeze()
+    try:
+        peaks = peaks[index].copy().squeeze()
+    except:
+        _logger.error("%d > %d"%(numpy.max(index), peaks.shape[0]))
+        raise
     if not disable_prune:
         _logger.debug("Classify peaks")
         sel = classify_windows(img, peaks, **extra)
@@ -317,7 +321,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.error("Eigen: %d"%idx)
-    dsel = analysis.one_class_classification(feat)
+    dsel = analysis.one_class_classification_old(feat)
     _logger.error("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
         sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))

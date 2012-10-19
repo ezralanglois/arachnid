@@ -6,7 +6,7 @@
 import numpy, logging
 import parallel_utility
 import process_tasks
-import socket
+import socket, os
 try:
     MPI=None
     from mpi4py import MPI
@@ -424,15 +424,67 @@ def get_size(comm=None, **extra):
     
     return 0 if comm is None else comm.Get_size()
 
-def get_rank(use_MPI=False, comm=None, **extra):
+def safe_tempfile(filename=None, shmem=True, **extra):
+    ''' Return a temp file safe for mutli-processing
+    
+    :Parameters:
+    
+    filename : str
+               File name template
+    shmem : bool
+            Use a shared memory mount if exists
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    filename : str
+               Temp filename
+    '''
+    
+    id = get_offset(**extra)
+    if filename is None:
+        filename = "temp_filename.dat"
+    base, ext = os.path.splitext(filename)
+    
+    filename = base+("_%d"%id)+ext
+    if shmem:
+        shm = os.path.join('/', 'dev', 'shm')
+        if os.path.exists(shm): filename = os.path.join(shm, os.path.basename(filename))
+    return filename
+    
+
+def get_offset(comm=None, process_number=0, **extra):
+    ''' Get the current rank and process offset
+    
+    :Parameters:
+    
+    comm : mpi4py.MPI.Intracomm
+           MPI communications object
+    process_number : int
+                     Current process number
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    size : int
+           Number of nodes
+    '''
+    
+    return get_size(comm)*get_rank(comm) + process_number
+
+def get_rank(comm=None, use_MPI=False, **extra):
     ''' Get rank of current node
     
     :Parameters:
     
-    use_MPI : bool
-              If True, create world communicator and check rank
     comm : mpi4py.MPI.Intracomm
            MPI communications object
+    use_MPI : bool
+              If True, create world communicator and check rank
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
     
