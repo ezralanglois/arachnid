@@ -188,6 +188,24 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
     #spider.throttle_mp(**extra)
     _logger.debug("create power spec")
     power_spec = create_powerspectra(filename, **extra)
+    
+    '''
+    if 1 == 1:
+        from ..core.image import ndimage_utility, ndimage_file
+        img = ndimage_file.read_image(filename)
+        bin_factor = extra['bin_factor']
+        window_size = extra['window_size']
+        overlap = extra['x_overlap']
+        if bin_factor != 1.0 and bin_factor != 0.0:
+            img = eman2_utility.decimate(img, bin_factor)
+        step = max(1, window_size*overlap)
+        rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
+        npowerspec = ndimage_utility.powerspec_avg(rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3])), extra['pad'])
+        spowerspec = ndimage_file.read_image(extra['spi'].replace_ext(power_spec))
+        numpy.testing.assert_allclose(spowerspec, npowerspec)
+        _logger.info("Power spec the same!")
+    '''
+    
     _logger.debug("mask power spec")
     power_spec = mask_power_spec(power_spec, output_pow=output_pow, **extra)
     _logger.debug("rotational average")
@@ -221,8 +239,11 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     window_size, = spi.fi_h(power_spec, ('NSAM', ))
     rot_avg = spi.ro(power_spec)
     spi.de(output_roo)
-    spi.li_d(rot_avg, 'R', 1, outputfile=output_roo, use_2d=use_2d)
-    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo), numeric=True))
+    spi.li_d(rot_avg, 'R', 1, outputfile=output_roo+"_old", use_2d=use_2d)
+    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo+"_old"), numeric=True, header="id,amplitude,pixel,a,b"))[1:]
+    if ro_arr.shape[1]!=4:
+        _logger.error("ROO: %s"%str(ro_arr.shape))
+    assert(ro_arr.shape[1]==4)
     ro_arr[:, 2] = ro_arr[:, 0]
     ro_arr[:, 0] = numpy.arange(1, len(ro_arr)+1)
     ro_arr[:, 1] = ro_arr[:, 0] / float(window_size)
@@ -269,7 +290,7 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
         mask_radius = int((2*float(apix)/ps_radius)*x_size)
         if ps_outer > 0: ps_outer=x_cent-ps_outer
         power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
-        if output_pow != "": spi.cp(power_spec, output_pow)
+    if output_pow != "": spi.cp(power_spec, output_pow)
     return power_spec
 
 def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], du_type=3, **extra):
