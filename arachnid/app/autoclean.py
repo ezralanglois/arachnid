@@ -173,7 +173,8 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if template is not None: img = shift(img, template)
     if not disable_bispec:
-        ndimage_utility.normalize_standard(img, mask*-1+1, var_one, img)
+        #ndimage_utility.normalize_standard(img, mask*-1+1, var_one, img)
+        ndimage_utility.normalize_standard(img, mask, var_one, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
         bispec_lag = min(max(1, bispec_lag), img.shape[0]-1)
