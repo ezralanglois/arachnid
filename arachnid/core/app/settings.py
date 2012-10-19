@@ -166,7 +166,7 @@ import datetime
 #from compiler.ast import Pass
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.WARN)
+_logger.setLevel(logging.INFO)
 _logger.addHandler(logging.StreamHandler())
 
 class Option(optparse.Option):
@@ -277,6 +277,7 @@ class Option(optparse.Option):
         if 'dependent' in kwargs:
             self._dependent = kwargs["dependent"]
             del kwargs["dependent"]
+        self._dependent = self._dependent and self.gui_hint['type'] != 'nogui'
         
         optparse.Option.__init__(self, *args, **kwargs)
         self.choices = kwargs['choices'] if choices is None and 'choices' in kwargs else choices
@@ -790,13 +791,13 @@ class OptionParser(optparse.OptionParser):
         output = os.path.splitext(output)[0]+".cfg"
         output = os.path.join(os.path.dirname(output), "cfg_"+os.path.basename(output))
         if os.path.exists(output):
-            values = vars(self.parse_file(fin=output))
             new_values = vars(options)
+            values = vars(self.parse_file(fin=output))
             changed=self.get_default_values()
             for key, val in new_values.iteritems():
                 if key == '_parser' or val is None: continue
                 if key not in values: continue
-                elif val == values[key]: setattr(changed, key, None)
+                if val == values[key]: setattr(changed, key, None)
                 else: setattr(changed, key, val)
             mode='a'
         else:
@@ -809,7 +810,7 @@ class OptionParser(optparse.OptionParser):
         
         dep_opts = set(self.collect_dependent_options())
         dep = [key for key,val in vars(changed).iteritems() if key in dep_opts and val is not None]
-        _logger.debug("Dependent options changed: %s"%str(dep))
+        _logger.info("Dependent options changed: %s"%str(dep))
         return VersionControl(output), len(dep) > 0
     
     def parse_all(self, args=sys.argv[1:], values=None, fin=None):
@@ -949,9 +950,15 @@ class OptionParser(optparse.OptionParser):
             if option is not None:
                 _logger.debug("config parser: %s = %s" % (key, val))
                 if option.action == "store_false":
-                    if val.lower() == "false": option.process(key, val, self.values, self)
+                    if val.lower() == "false": 
+                        option.process(key, val, self.values, self)
+                    else:
+                        setattr(self.values, option.dest, True)
                 elif option.action == "store_true":
-                    if val.lower() == "true": option.process(key, val, self.values, self)
+                    if val.lower() == "true": 
+                        option.process(key, val, self.values, self)
+                    else:
+                        setattr(self.values, option.dest, False)
                 else:
                     option.process(key, val, self.values, self)
                 if hasattr(self.values, 'output'): _logger.debug("Checking output file - value of output = \""+str(self.values.output)+"\"")
@@ -1005,9 +1012,9 @@ class OptionParser(optparse.OptionParser):
                  Option value container
         '''
         
-        for group in group.option_groups:
-            self._validate_options(group.option_list, values)
-            self._validate_option_group(group, values)
+        for cgroup in group.option_groups:
+            self._validate_options(cgroup.option_list, values)
+            self._validate_option_group(cgroup, values)
     
     def _validate_options(self, option_list, values):
         ''' Validate a list of options

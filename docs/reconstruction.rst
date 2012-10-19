@@ -347,7 +347,11 @@ Particle Windowing
 	
 	$ ara-crop -c auto.cfg
 
+Creating Relion Selection File
+------------------------------
 
-
+.. sourcecode:: sh
+	
+	$ ara-selrelion -i win/win_* -o relion_input.star -p params.dat -d defocus.dat
 
 

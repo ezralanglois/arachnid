@@ -308,11 +308,11 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     param['file_options'] = parser.collect_file_options()
     param['infile_deps'] = parser.collect_file_options(type='open')
     param['outfile_deps'] = parser.collect_file_options(type='save')
-    param.update(update_file_param(max_filename_len, **param))
+    param.update(update_file_param(max_filename_len, supports_MPI, **param))
     args = param['input_files'] #options.input_files
     return args, param
 
-def update_file_param(max_filename_len, file_options, home_prefix=None, local_temp="", shared_scratch="", local_scratch="", **extra):
+def update_file_param(max_filename_len, warning, file_options, home_prefix=None, local_temp="", shared_scratch="", local_scratch="", **extra):
     ''' Create a soft link to the home_prefix and change all filenames to
     reflect this short cut.
     
@@ -320,6 +320,8 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
     
     max_filename_len : int
                        Maximum length allowed for filename
+    warning : bool
+              Print warning if cannot update
     file_options : list
                    List of `dest` for the file options
     home_prefix : str
@@ -342,11 +344,12 @@ def update_file_param(max_filename_len, file_options, home_prefix=None, local_te
     param = {}
     if home_prefix is None or local_temp == "" or not os.path.exists(local_temp): 
         
-        # Test if file does not exist and is relative path, update
-        # based on config file path, if exists
-        if home_prefix is None: _logger.warn("--home-prefix not set - no file update")
-        if home_prefix is None: _logger.warn("--local-temp not set - no file update")
-        if home_prefix is None: _logger.warn("--local-temp does not exist - no file update")
+        if warning:
+            # Test if file does not exist and is relative path, update
+            # based on config file path, if exists
+            if home_prefix is None: _logger.warn("--home-prefix not set - no file update")
+            if home_prefix is None: _logger.warn("--local-temp not set - no file update")
+            if home_prefix is None: _logger.warn("--local-temp does not exist - no file update")
         
         return param
     if home_prefix == "":
@@ -410,7 +413,7 @@ def setup_program_options(parser, main_template, supports_MPI=False, supports_OM
         group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
         group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
         gen_group.add_option_group(group)
-    if supports_OMP and openmp.get_max_threads() > 1:
+    if supports_OMP:# and openmp.get_max_threads() > 1:
         prg_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment")
     tracing.setup_options(parser, gen_group)
     settings_editor.setup_options(parser, gen_group)

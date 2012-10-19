@@ -421,7 +421,7 @@ def read(filename, columns=None, header=None, **extra):
     try:
         return map(factory, format.reader(fin, header, lastline, **extra))
     except:
-        _logger.error("header: %s"%str(header))
+        _logger.debug("header: %s"%str(header))
         raise
 
 def write(filename, values, mode='w', **extra):
@@ -560,7 +560,7 @@ def write_dataset(output, feat, id=None, label=None, good=None, header=None, sor
         if hasattr(feat, 'ndim'): cols = feat.shape[1] if feat.ndim > 1 else 1
         else: cols = len(feat[0])
         cols -= len(mheader)
-        mheader = ",".join(mheader+["c"+str(i) for i in xrange(cols)]) if cols > 1 else "pred"
+        mheader = ",".join(mheader+["c"+str(i) for i in xrange(cols)]) if (cols+len(mheader)) > 1 else "pred"
     header = header+mheader
     try:
         vals = format_utility.create_namedtuple_list(feat, "Dataset", header, label, good)

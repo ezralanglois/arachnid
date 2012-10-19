@@ -53,6 +53,34 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
         logging.debug("Running with single process: %d"%len(vals))
         for i, val in enumerate(vals):
             yield i, process(val, **extra)
+            
+def map_reduce(for_func, map_worker, reduce_worker, shape, thread_count=0, **extra):
+    ''' Generator to process collection of arrays in parallel
+    
+    :Parameters:
+    
+    for_func : func
+               Generate a list of data
+    map_worker : function
+                 Map each image
+    reduce_worker : function
+                    Reduce the result
+    thread_count : int
+                   Number of threads
+    shape : int
+            Shape of worker result array
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    index : int
+            Yields index of output array
+    out : array
+          Yields output array of worker
+    '''
+    
+    pass
 
 def for_process_mp(for_func, worker, shape, thread_count=0, **extra):
     ''' Generator to process collection of arrays in parallel
@@ -90,25 +118,28 @@ def for_process_mp(for_func, worker, shape, thread_count=0, **extra):
         try:
             total = 0
             for i, val in enumerate(for_func):
-                if i > thread_count:
-                    pos = qout.get() if i > thread_count else i
+                if i >= thread_count:
+                    pos = qout.get() #if i > thread_count else i
                     if pos is None or pos == -1: raise ValueError, "Error occured in process: %d"%pos
                     pos, idx = pos
                     yield idx, res[pos]
+                else: 
+                    pos = i
                     total += 1
-                else: pos = i
                 res[pos, :] = val.ravel()
                 qin.put((pos,i))
-            for i in xrange(i, total):
+            for i in xrange(total):
                 pos = qout.get()
                 if pos is None or pos == -1: raise ValueError, "Error occured in process: %d"%pos
                 pos, idx = pos
                 yield idx, res[pos].reshape(shape)
         finally:
-            _logger.error("Terminating %d workers"%(thread_count))
+            #_logger.error("Terminating %d workers"%(thread_count))
             for i in xrange(thread_count): 
                 qin.put((-1, -1))
                 pos = qout.get()
+                if pos != -1:
+                    _logger.error("Wrong return value: %s"%str(pos))
                 assert(pos==-1)
     raise StopIteration
 
@@ -154,3 +185,4 @@ def process_worker(qin, qout, process_number, process_limit, worker, shmem_res, 
         _logger.debug("Worker %d of %d - finished"%(process_number, process_limit))
 
 
+    

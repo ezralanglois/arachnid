@@ -171,7 +171,7 @@ def classify_projections(alignvals, threshold_type=('None', 'Auto', 'CC', 'Total
     if threshold_by_view:
         return classify_projections_by_view(alignvals, threshold_type, cc_threshold, cc_total, view_resolution, threshold_bins, keep_low_cc, cull_overrep, cc_nstd)
     else:
-        return classify_projections_by_view(alignvals, threshold_type, cc_threshold, cc_total, threshold_bins, keep_low_cc, cc_nstd)
+        return classify_projections_overall(alignvals, threshold_type, cc_threshold, cc_total, threshold_bins, keep_low_cc, cc_nstd)
 
 def classify_projections_overall(alignvals, threshold_type=('None', 'Auto', 'CC', 'Total'), cc_threshold=0.0, cc_total=0.9, threshold_bins=0, keep_low_cc=False, cc_nstd=3, **extra):
     ''' Classify projections based on alignment parameters by view
@@ -204,13 +204,13 @@ def classify_projections_overall(alignvals, threshold_type=('None', 'Auto', 'CC'
     
     if threshold_type == 0: return None
     sel = analysis.one_class_selection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
-    cmp = numpy.greater if keep_low_cc else numpy.less
+    cmp = numpy.less if keep_low_cc else numpy.greater
     cc = alignvals[sel, 10]
     if threshold_type == 1:
         cc_threshold = analysis.otsu(cc, threshold_bins)
     elif threshold_type == 3:
         cc_threshold = analysis.threshold_from_total(cc, cc_total, keep_low_cc)
-    sel = numpy.logical_and(sel, cmp(cc_threshold, cc))
+    sel = numpy.logical_and(sel, cmp(cc, cc_threshold))
     _logger.info("Overall Threshold: %f -> %d of %d"%(cc_threshold, numpy.sum(sel), len(alignvals)))
     return sel
 
@@ -248,24 +248,28 @@ def classify_projections_by_view(alignvals, threshold_type=('None', 'Auto', 'CC'
       
     
     if threshold_type == 0: return None
+    cmp = numpy.less if keep_low_cc else numpy.greater
     sel = analysis.one_class_selection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
     view = healpix.ang2pix(view_resolution, numpy.deg2rad(alignvals[:, 1:3]))
     views = numpy.unique(view)
     maximum_views = 0
     if cull_overrep:
         vhist = numpy.histogram(view, len(views)+1)[0]
+        _logger.error("hist: %s"%str(vhist))
         maximum_views = numpy.mean(vhist[vhist>0])
     for v in views:
         vsel = numpy.logical_and(sel, v==view)
         vidx = numpy.argwhere(vsel).squeeze()
         cc = alignvals[vidx, 10]
+        if cc.shape[0] == 0: continue
         if threshold_type == 1:
             cc_threshold = analysis.otsu(cc, threshold_bins)
         elif threshold_type == 3:
             cc_threshold = analysis.threshold_from_total(cc, cc_total, keep_low_cc)
         if maximum_views > 0:
             cc_threshold = analysis.threshold_max(cc, cc_threshold, maximum_views, keep_low_cc)
-        vsel = numpy.logical_and(vsel, cmp(cc_threshold, cc))
+        csel = cmp(alignvals[:, 10], cc_threshold)
+        vsel = numpy.logical_and(vsel, csel)
         sel[numpy.argwhere(numpy.logical_not(vsel)).squeeze()] = 0
         _logger.info("View: %d -> Kept %d of %d"%(v, numpy.sum(sel[vidx]), cc.shape[0]))
     return sel

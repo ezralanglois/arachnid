@@ -78,6 +78,10 @@ Critical Options
 .. option:: -s<str>, --select <str>
     
     SPIDER selection file (Only required when the input is a relion selection file) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`
+
+.. option:: -m <INT>, --minimum-group <INT>
+    
+    Minimum number of particles per defocus group
     
 Useful Options
 ==============
@@ -104,7 +108,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
-from ..core.image import ndimage_utility, ndimage_file
+from ..core.image import eman2_utility, ndimage_file #, ndimage_utility
 import numpy, os, logging
 
 _logger = logging.getLogger(__name__)
@@ -170,7 +174,7 @@ def select_class_subset(vals, select, output, **extra):
         for mic,vals in micselect.iteritems():
             format.write(output, numpy.asarray(vals), header="id,select".split(','))
 
-def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", **extra):
+def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", minimum_group=20, **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
@@ -189,26 +193,30 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
                      Filename for input SPIDER Params file
         select : str
                  Filename for input optional selection file (for good particles in each stack)
+        minimum_group : int
+                        Minimum number of particles per defocus group
         extra : dict
                 Unused key word arguments
     '''
     
-    spider_params.read_spider_parameters_to_dict(param_file, extra)
+    spider_params.read(param_file, extra)
     pixel_radius = int(extra['pixel_diameter']/2.0)
     if img.shape[0]%2 != 0: raise ValueError, "Relion requires even sized images"
     if img.shape[0] != img.shape[0]: raise ValueError, "Relion requires square images"
     if pixel_radius > 0:
-        mask = ndimage_utility.model_disk(pixel_radius, img.shape[0])*-1+1
+        #mask = ndimage_utility.model_disk(pixel_radius, img.shape[0])*-1+1
+        mask = eman2_utility.model_circle(pixel_radius, img.shape[0], img.shape[1])*-1+1
         avg = numpy.mean(img*mask)
         if numpy.allclose(0.0, avg):
-            raise ValueError, "Relion requires the background to be zero normalized, not %f"%avg
+            _logger.warn("Relion requires the background to be zero normalized, not %g"%avg)
     
     defocus_dict = format.read(defocus, header=defocus_header, numeric=True)
     defocus_dict = format_utility.map_object_list(defocus_dict)
-    spider_params.read_spider_parameters_to_dict(param_file, extra)
+    spider_params.read(param_file, extra)
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
     label = []
     idlen = len(str(ndimage_file.count_images(files)))
+    group = []
     for filename in files:
         mic = spider_utility.spider_id(filename)
         if select != "":
@@ -219,19 +227,54 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
                 select_vals = [s.id for s in select_vals if s.select > 0] if len(select_vals) > 0 and hasattr(select_vals[0], 'select') else [s.id for s in select_vals]
         else:
             select_vals = xrange(ndimage_file.count_images(filename))
+        if mic not in defocus_dict:
+            _logger.warn("Micrograph not found in defocus file: %d -- skipping"%mic)
+            continue
+        if defocus_dict[mic].defocus < 1000: 
+            _logger.warn("Micrograph %d defocus too small: %f -- skipping"%(mic, defocus_dict[mic].defocus))
+            continue
+        
+        group.append((defocus_dict[mic].defocus, len(select_vals), len(label)))
         for pid in select_vals:
-            label.append( ("%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont) )
-    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast")
+            label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
+    group = numpy.asarray(group)
+    
+    regroup = []
+    offset = 0
+    total = 0
+    groupmap = {}
+    idx = numpy.argsort(group[:, 0])
+    for i in idx:
+        if total <= minimum_group or total == 0:
+            groupmap[i]=offset+1
+            regroup.append(i)
+            total += group[i, 1]
+        if total >  minimum_group:
+            offset += 1
+            total = 0
+            regroup=[]
+    if total < minimum_group:
+        for i in regroup:
+            groupmap[i]=offset
+        offset-=1
+    
+    for i in xrange(len(label)):
+        label[i][6] = groupmap[label[i][6]]
+        label[i] = tuple(label[i])
+    _logger.info("Groups %d -> %d"%(len(group), offset+1))
+    
+    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(','))
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
-    group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__) if pgroup is None else pgroup
-    group.add_option("-s", select="",                       help="SPIDER selection file (Only required when the input is a relion selection file) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`")
-    group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)")
-    group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)")
+    group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
+    group.add_option("-s", select="",                       help="SPIDER selection file (Only required when the input is a relion selection file) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
+    group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
+    group.add_option("-m", minimum_group=20,                help="Minimum number of particles per defocus group", gui=dict(minimum=0, singleStep=1))
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
@@ -246,7 +289,7 @@ def check_options(options, main_option=False):
     if ndimage_file.is_readable(options.input_files[0]):
         if options.defocus == "": raise OptionValueError, "No defocus file specified"
         if options.param_file == "": raise OptionValueError, "No parameter file specified"
-    if main_option:
+    elif main_option:
         if len(options.input_files) != 1: raise OptionValueError, "Only a single input file is supported"
 
 def main():

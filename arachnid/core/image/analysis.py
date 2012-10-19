@@ -8,12 +8,116 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import numpy, scipy.special, scipy.linalg
-import logging
+from ..parallel import process_queue
+from ..util import numpy_ext
+import logging, functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def pca(trn, tst=None, frac=-1):
+def subset_no_overlap(data, overlap, n=100):
+    ''' Select a non-overlapping subset of the data based on hyper-sphere exclusion
+    
+    :Parameters:
+    
+    data : array
+           Full set array
+    overlap : float
+              Exclusion distance
+    n : int
+        Maximum number in the subset
+    
+    :Returns:
+    
+    out : array
+          Indices of non-overlapping subset
+    '''
+    
+    k=1
+    out = numpy.zeros(n, dtype=numpy.int)
+    for i in xrange(1, len(data)):
+        ref = data[out[:k]]
+        if ref.ndim == 1: ref = ref.reshape((1, len(ref[0])))
+        mat = scipy.spatial.distance.cdist(ref, data[i].reshape((1, len(data[i]))), metric='euclidean')
+        val = numpy.min(mat)
+        if val > overlap:
+            out[k] = i
+            k+=1
+            if k >= n: break
+    return out[:k]
+
+def resample(data, sample_num, sample_size, thread_count=0, operator=functools.partial(numpy.mean, axis=0), length=None):
+    ''' Resample a dataset and apply the operator functor to each sample. The result is stored in
+    a 2D array.
+    
+    :Parameters:
+    
+    data : array
+           Data array
+    sample_num : int
+                 Number of times to resample
+    sample_size : int
+                  Number of random samples to draw 
+    thread_count : int
+                   Number of threads
+    operator : function
+               Function to apply to each random sample (Default mean operator)
+    length : int
+             Size of return result from operator
+    
+    :Returns:
+    
+    sample : array
+             Result of operator over each sample
+    '''
+    
+    if length is None: 
+        total, length = process_queue.recreate_global_dense_matrix(data).shape
+    else: total = len(process_queue.recreate_global_dense_matrix(data))
+    sample, shmem_sample = process_queue.create_global_dense_matrix( ( sample_num, length )  )
+    
+    replace = sample_size == 0
+    if sample_size == 0 : sample_size = total
+    elif sample_size < 1.0: sample_size = int(sample_size*total)
+    process_queue.map_array(_resample_worker, thread_count, shmem_sample, operator, data, sample_size, replace)
+    return sample
+
+def _resample_worker(beg, end, shmem_sample, operator, shmem_data, sample_size, replace, weight=None):
+    ''' Resample the dataset and store in a subset
+    
+    :Parameters:
+    
+    beg : int
+          Start of the sample range
+    end : int
+          End of the sample range
+    shmem_sample : array
+                   Array storing the samples 
+    operator : function
+               Generates a sample from a resampled distribution
+    shmem_data : array
+                 Array containing the data to resample
+    sample_size : int
+                  Size of the subset
+    replace : bool
+              Draw with replacement 
+    weight : array
+             Weight on each sample
+    '''
+    
+    data = process_queue.recreate_global_dense_matrix(shmem_data)
+    sample = process_queue.recreate_global_dense_matrix(shmem_sample)
+    index = numpy.arange(data.shape[0], dtype=numpy.int)
+    for i in xrange(beg, end):
+        selected = numpy_ext.choice(index.copy(), size=sample_size, replace=replace, p=weight)
+        subset = data[selected].squeeze()
+        try:
+            sample[i, :] = operator(subset)
+        except:
+            _logger.error("%d > %d --- %d"%(i, len(sample), end))
+            raise
+
+def pca(trn, tst=None, frac=-1, mtrn=None):
     ''' Principal component analysis using SVD
     
     :Parameters:
@@ -45,10 +149,17 @@ def pca(trn, tst=None, frac=-1):
         `https://raw.github.com/scikit-learn/scikit-learn/master/sklearn/decomposition/pca.py`
     '''
     
-    mtrn = trn.mean(axis=0)
+    if mtrn is None: mtrn = trn.mean(axis=0)
     trn = trn - mtrn
     if tst is None: tst = trn
-    else: tst = tst - mtrn
+    else: 
+        try:
+            tst = tst - mtrn
+        except:
+            print "tst:",tst.shape
+            print "mtrn:",mtrn.shape
+            print "trn:",trn.shape
+            raise
     U, d, V = scipy.linalg.svd(trn, False)
     t = d**2/trn.shape[0]
     t /= t.sum()
@@ -67,7 +178,7 @@ def pca(trn, tst=None, frac=-1):
     if idx >= len(d): idx = 1
     val = d[:idx]*numpy.dot(V[:idx], tst.T).T
     #_logger.error("pca2: %s -- %s"%(str(V.shape), str(tst.shape)))
-    return val, idx, V[:idx], t[idx]
+    return val, idx, V[:idx], numpy.sum(t[:idx])
 
 def _assess_dimension(spectrum, n_samples, n_features):
     '''Compute the likelihood of a rank ``rank`` dataset
@@ -417,6 +528,5 @@ def online_variance(data, axis=None):
     meanx = data.cumsum(axis)
     meanx /= numpy.arange(1, data.shape[axis]+1).reshape(data.shape[axis], 1)
     out = numpy.cumsum(numpy.square(data-meanx), axis=axis)
-    print data.shape, meanx.shape, out.shape
     return out/(len(data)-1)
 

@@ -188,6 +188,24 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
     #spider.throttle_mp(**extra)
     _logger.debug("create power spec")
     power_spec = create_powerspectra(filename, **extra)
+    
+    '''
+    if 1 == 1:
+        from ..core.image import ndimage_utility, ndimage_file
+        img = ndimage_file.read_image(filename)
+        bin_factor = extra['bin_factor']
+        window_size = extra['window_size']
+        overlap = extra['x_overlap']
+        if bin_factor != 1.0 and bin_factor != 0.0:
+            img = eman2_utility.decimate(img, bin_factor)
+        step = max(1, window_size*overlap)
+        rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
+        npowerspec = ndimage_utility.powerspec_avg(rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3])), extra['pad'])
+        spowerspec = ndimage_file.read_image(extra['spi'].replace_ext(power_spec))
+        numpy.testing.assert_allclose(spowerspec, npowerspec)
+        _logger.info("Power spec the same!")
+    '''
+    
     _logger.debug("mask power spec")
     power_spec = mask_power_spec(power_spec, output_pow=output_pow, **extra)
     _logger.debug("rotational average")
@@ -221,8 +239,11 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     window_size, = spi.fi_h(power_spec, ('NSAM', ))
     rot_avg = spi.ro(power_spec)
     spi.de(output_roo)
-    spi.li_d(rot_avg, 'R', 1, outputfile=output_roo, use_2d=use_2d)
-    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo), numeric=True))
+    spi.li_d(rot_avg, 'R', 1, outputfile=output_roo+"_old", use_2d=use_2d)
+    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo+"_old"), numeric=True, header="id,amplitude,pixel,a,b"))[1:]
+    if ro_arr.shape[1]!=4:
+        _logger.error("ROO: %s"%str(ro_arr.shape))
+    assert(ro_arr.shape[1]==4)
     ro_arr[:, 2] = ro_arr[:, 0]
     ro_arr[:, 0] = numpy.arange(1, len(ro_arr)+1)
     ro_arr[:, 1] = ro_arr[:, 0] / float(window_size)
@@ -269,7 +290,7 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
         mask_radius = int((2*float(apix)/ps_radius)*x_size)
         if ps_outer > 0: ps_outer=x_cent-ps_outer
         power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
-        if output_pow != "": spi.cp(power_spec, output_pow)
+    if output_pow != "": spi.cp(power_spec, output_pow)
     return power_spec
 
 def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], du_type=3, **extra):
@@ -406,6 +427,10 @@ def for_window_in_micrograph(spi, filename, window_size=512, x_overlap=50, y_ove
 def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
     ''' Read a micrograph file into core memory
     
+    .. todo:: find all places where spider files are written to send to spider
+    
+    .. todo:: find name of shmem in other linux flavors http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html
+    
     :Parameters:
     
     spi : spider.Session
@@ -426,9 +451,64 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, 
     '''
     
     if not os.path.exists(filename): filename = spi.replace_ext(filename)
+    
+    temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file")
+    try:
+        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+    except:
+        if os.path.dirname(temp_spider_file) == "": raise
+        temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False)
+        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+        
+    if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
+        w, h = spider.image_size(spi, filename)[:2]
+        corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
+        #corefile = spi.dc_s(filename, bin_factor, **extra) # Use iterpolation!
+    else:
+        corefile = spi.cp(filename, **extra)
+    if os.path.exists(temp_spider_file): 
+        os.unlink(temp_spider_file)
+    return corefile
+
+def read_micrograph_to_incore2(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
+    ''' Read a micrograph file into core memory
+    
+    .. todo:: find all places where spider files are written to send to spider
+    
+    .. todo:: find name of shmem in other linux flavors http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    filename : str
+               Input filename for the micrograph
+    bin_factor : int
+                 Decimation factor of the micrograph
+    disable_bin : bool
+                  Disable micrograph decimatation
+    local_scratch : str, optional
+                    Output filename for local scratch drive
+    
+    :Returns:
+    
+    corefile : spider_var
+               Image in SPIDER core memory
+    '''
+    
+    if not os.path.exists(filename): filename = spi.replace_ext(filename)
+    #
     temp_spider_file = "temp_spider_file"
+    shm = os.path.join('/', 'dev', 'shm') # .. todo:: check name for ubutu and others
+    if os.path.exists(shm): temp_spider_file = os.path.join(shm, temp_spider_file) # .todo:: find all places and do this
     if local_scratch != "" and os.path.exists(local_scratch): temp_spider_file = os.path.join(local_scratch, temp_spider_file)
-    filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+    try:
+        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+    except:
+        if temp_spider_file == "temp_spider_file": raise
+        temp_spider_file = "temp_spider_file"
+        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
+        
     if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
@@ -539,7 +619,7 @@ def initialize(files, param):
 def init_process(process_number, input_files, rank=0, **extra):
     # Initialize a child process
     
-    rank = mpi_utility.get_size(**extra)*rank + process_number
+    rank = mpi_utility.get_offset(**extra)
     param = {}
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param

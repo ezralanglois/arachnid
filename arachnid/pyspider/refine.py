@@ -202,7 +202,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, refine_step=
         refine_index += 1
     mpi_utility.barrier(**extra)
 
-def effective_resolution(theta_delta, apix, pixel_diamter, **extra):
+def effective_resolution(theta_delta, apix, pixel_diameter, **extra):
     ''' Estimate the effective resolution of the structure
     
     .. todo:: use for conservative filter
@@ -213,14 +213,14 @@ def effective_resolution(theta_delta, apix, pixel_diamter, **extra):
                   Estimate angular step size
     apix : float
           Pixel size
-    pixel_diamter : int
-                    Size of the particle in pixels
+    pixel_diameter : int
+                     Size of the particle in pixels
     extra : dict
             Unused keyword arguments
     
     '''
     
-    return numpy.tan(numpy.deg2rad(theta_delta/2))*apix*pixel_diamter
+    return numpy.tan(numpy.deg2rad(theta_delta/2))*apix*pixel_diameter
     
 def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
     ''' Recover the volume from the last refinement if it does not exist
@@ -285,8 +285,9 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_in
     resolution : float
                  Resolution of the current reconstruction (only for root node)
     '''
+    
     if refine_index > 0 and not keep_reference: 
-        extra['reference'] = output_volume
+        extra['reference'] = spider_utility.spider_filename(output_volume, refine_index)
         spi.iq_sync(extra['reference'])
     
     output = spider_utility.spider_filename(output, refine_index+1) 

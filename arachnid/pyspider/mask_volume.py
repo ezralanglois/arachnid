@@ -202,6 +202,7 @@ def spherical_mask(filename, outputfile, spi, volume_mask, mask_edge_width=10, p
                  Filename for masked volume
     '''
     
+    if filename == outputfile: filename = spi.cp(filename)
     if pixel_diameter is None: raise ValueError, "pixel_diameter must be set"
     width = spider.image_size(spi, filename)[0]/2+1
     radius = pixel_diameter/2+mask_edge_width/2 if volume_mask == 'C' else pixel_diameter/2+mask_edge_width
