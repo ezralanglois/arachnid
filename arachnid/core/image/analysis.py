@@ -152,14 +152,8 @@ def pca(trn, tst=None, frac=-1, mtrn=None):
     if mtrn is None: mtrn = trn.mean(axis=0)
     trn = trn - mtrn
     if tst is None: tst = trn
-    else: 
-        try:
-            tst = tst - mtrn
-        except:
-            print "tst:",tst.shape
-            print "mtrn:",mtrn.shape
-            print "trn:",trn.shape
-            raise
+    else: tst = tst - mtrn
+
     U, d, V = scipy.linalg.svd(trn, False)
     t = d**2/trn.shape[0]
     t /= t.sum()
