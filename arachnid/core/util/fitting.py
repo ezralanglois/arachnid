@@ -24,10 +24,30 @@ def fit_linear_interp(fsc_curve, fsc_value):
     
     idx = numpy.argsort(fsc_curve[:, 1])
     ridx = idx[numpy.searchsorted(fsc_curve[idx, 1], fsc_value, 'left')]
-    if fsc_curve[ridx, 1] > 0.5: lidx = ridx+1
-    else: lidx = ridx-1
+    if fsc_curve[ridx, 1] > 0.5 and ridx < len(fsc_curve): lidx = ridx+1
+    elif ridx > 0: lidx = ridx-1
+    else: lidx=ridx
     func = numpy.poly1d(numpy.polyfit([fsc_curve[ridx, 1], fsc_curve[lidx, 1]], [fsc_curve[ridx, 0], fsc_curve[lidx, 0]], 1))
     return func(fsc_value)
+
+def fit_sigmoid_interp(fsc_curve, fsc_value):
+    ''' Determine the spatial frequency raw from the FSC curve (parametric sigmoid model)
+    
+    :Parameters:
+    
+    fsc_curve : array
+                FSC curve
+    fsc_value : float
+                FSC value to choose spatial frequency
+    
+    :Returns:
+    
+    sp : float
+         Spatial frequency at fsc_value
+    '''
+    
+    coeff = fit_sigmoid(fsc_curve[:, 0], fsc_curve[:, 1])
+    return sigmoid(coeff, fsc_value)
 
 def fit_sigmoid(x, y):
     ''' Use non-linear least squares to fit x and y to a sigmoid-like function
