@@ -14,6 +14,34 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
+def relion_filename(filename, id):
+    '''Extract the filename and stack index
+    
+    This function extracts the spider ID as an integer.
+        
+    .. sourcecode:: py
+    
+        >>> relion_id("0001@basename00010.ext")
+        (basename00010.ext, 1)
+
+    :Parameters:
+    
+        filename : string
+                   A file name
+    
+    :Returns:
+        
+        return_val : Tuple 
+                     Micrograph ID, particle ID or Micrograph ID only
+    '''
+    
+    pid=""
+    if id.find('@') != -1:
+        pid,id = id.split('@')
+    if is_spider_filename(filename):
+        return pid+"@"+spider_filename(filename, id)
+    return pid+"@"+filename
+
 def relion_file(filename):
     '''Extract the filename and stack index
     
