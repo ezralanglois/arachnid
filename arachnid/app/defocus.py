@@ -41,15 +41,24 @@ def process(filename, output, id_len=0, **extra):
     id = spider_utility.spider_id(filename)
     output = spider_utility.spider_filename(output, id)
     
-    _logger.info("Processing %s"%filename)
+    _logger.info("Processing2 %s"%filename)
     if 1 == 0:
         esimate_signal(filename, output, **extra)
         defocus = 0
     else:
         _logger.info("Estimating power spectra")
         powerspec = powerspectra(filename, **extra)
-        spowerspec = ndimage_file.read_image(spider_utility.spider_filename("secA_prj/cluster/data/local/pow/pow_20483.dat", id))
-        numpy.testing.assert_allclose(spowerspec, powerspec)
+        #spowerspec = ndimage_file.read_image(spider_utility.spider_filename("secA_prj/cluster/data/local/pow/pow_20483.dat", id))
+        #numpy.testing.assert_allclose(spowerspec, powerspec)
+        '''
+         x: array([[ 0.09776067,  0.0975919 ,  0.09716196, ...,  0.09666254,
+         0.09716196,  0.0975919 ],
+       [ 0.09737622,  0.09700554,  0.09638637, ...,  0.09702981,...
+ y: array([[ 751.73982509,  752.446702  ,  755.05830071, ...,  760.38431899,
+         755.05830071,  752.446702  ],
+       [ 752.53202192,  761.48459767,  767.59839725, ...,  757.48932337,...
+
+        '''
         write_powerspectra(output, powerspec, **extra)
         _logger.info("Estimating defocus")
         defocus = esimate_defocus(powerspec, **extra)
@@ -210,7 +219,7 @@ def average_powerspec(powerspec, window_len=3):
     '''
     
     if powerspec.ndim == 1 or powerspec.shape[1] == 1: return powerspec
-    avgpowerspec = ndimage_utility.mean_azimuthal(powerspec)
+    avgpowerspec = ndimage_utility.sum_ring(powerspec)
     
     if 1 == 0:
         b = ndimage_utility.rolling_window(avgpowerspec, window_len)
@@ -231,8 +240,8 @@ def esimate_defocus(powerspec, ampcont, cs, voltage, **extra):
     p0 = [1000.0]
     lam = 12.398 / numpy.sqrt(voltage * (1022.0 + voltage))
     sfreq = 0.5 / numpy.arange(1, avgpowerspec.shape[0]+1)
-    avgpowerspec=avgpowerspec[3:]
-    sfreq=sfreq[3:]
+    avgpowerspec=avgpowerspec[1:]
+    sfreq=sfreq[1:]
     sfreq4 = sfreq**4
     sfreq2 = sfreq**2
     lam3 = lam**3
@@ -349,12 +358,12 @@ def plot_ctf(output, powerspec, defocus, **extra):
     print "d:", numpy.min(avgpowerspec), numpy.max(avgpowerspec)
     fig = pylab.figure()
     ax = fig.add_subplot(211)
-    ax.plot(x[3:], y[3:], 'g-.')
+    ax.plot(x[0:], numpy.log(y[0:]), 'g-.')
     ax.set_xlim(ax.get_xlim()[::-1])
     ax = fig.add_subplot(212)
     #avgpowerspec -= avgpowerspec.min()
     #avgpowerspec /= avgpowerspec.max()
-    ax.plot(x[10:], avgpowerspec[10:], 'r-.')
+    ax.plot(x[0:], numpy.log(avgpowerspec[0:]), 'r-.')
     ax.set_xlim(ax.get_xlim()[::-1])
     #pylab.axis([0.0,0.5, 0.0,1.0])
     pylab.xlabel('Normalized Frequency')
