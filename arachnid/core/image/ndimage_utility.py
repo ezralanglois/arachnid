@@ -5,6 +5,8 @@ custom wrapped fortran functions (taken from SPIDER).
 
 .. todo:: automatic inversion detection? for defocus? based on ctf
 
+.. todo:: butterworth: http://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
+
 .. Created on Jul 31, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -47,15 +49,6 @@ except:
     except:
         tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
 
-'''
-needtr = 0; if size(x,1) == 1; x = x(:); needtr = 1; end;
-N = size(x,1); 
-r = floor(N/2)+1; f = ((1:N)-r)/(N/2); 
-p = exp(-j*s*pi*f)'; 
-y = ifft(fft(x).*ifftshift(p)); if isreal(x); y = real(y); end;
-if needtr; y = y.'; end;
-'''
-
 
 """
 @_em2numpy2res
@@ -80,6 +73,106 @@ def find_peaks(cc, width):
     peaks = numpy.unravel_index(peaks, cc.shape)
     return numpy.hstack((ccv[:, numpy.newaxis], peaks))
 """
+
+def frc(img1, img2, pad=2):
+    '''
+    '''
+    
+    if pad is None or pad <= 0: pad = 1
+    pad_width = img1.shape[0]*pad
+    
+    fimg1 = scipy.fftpack.fftshift(scipy.fftpack.fft2(pad_image(img1, (pad_width, pad_width))))
+    fimg2 = scipy.fftpack.fftshift(scipy.fftpack.fft2(pad_image(img2, (pad_width, pad_width))))
+    
+    if 1 == 1:
+        num =sum_ring(numpy.abs(fimg1*fimg2.conjugate())).sum(axis=1)
+        den1=sum_ring((numpy.abs(fimg1)**2)).sum(axis=1)
+        den2=sum_ring((numpy.abs(fimg2)**2)).sum(axis=1)
+    elif 1 == 1:
+        center = (0, fimg1.shape[0]/2)
+        size = (fimg1.shape[0]/2+1, fimg1.shape[1])
+        num =polar(numpy.abs(fimg1*fimg2.conjugate())[fimg1.shape[0]/2:, :], center=center, size=size).sum(axis=1)
+        den1=polar((numpy.abs(fimg1)**2)[fimg1.shape[0]/2:, :], center=center, size=size).sum(axis=1)
+        den2=polar((numpy.abs(fimg2)**2)[fimg2.shape[0]/2:, :], center=center, size=size).sum(axis=1)
+    else:
+        num =polar(numpy.abs(fimg1*fimg2.conjugate())).sum(axis=1)
+        den1=polar((numpy.abs(fimg1)**2)).sum(axis=1)
+        den2=polar((numpy.abs(fimg2)**2)).sum(axis=1)
+
+    den1 = numpy.sqrt(den1*den2)
+    num /= den1
+    num[numpy.logical_not(numpy.isfinite(num))] = 0.0
+    num = num[:fimg1.shape[0]/2+1]
+    freq = numpy.arange(0,num.shape[0], dtype=numpy.float)/(num.shape[0]-1)/2
+    return numpy.hstack((freq[:,numpy.newaxis], num[:,numpy.newaxis]))
+
+def sum_ring(img, center=None):
+    ''' Calculate the sum of a 2D array along the azimuthal
+    
+    :Parameters:
+    
+    img : array-like
+          Image array
+    center : tuple, optional
+              Coordaintes of the image center
+    
+    :Returns:
+    
+    out : array
+          Sum over the radial lines of the image
+    
+    .. note::
+    
+        http://www.astrobetter.com/wiki/tiki-index.php?page=python_radial_profiles
+    '''
+    
+    y, x = numpy.indices(img.shape)
+    if center is None: center = numpy.array([(x.max()-x.min())/2.0, (x.max()-x.min())/2.0])
+    r = numpy.hypot(x - center[0], y - center[1])
+    ind = numpy.argsort(r.flat)
+    r_sorted = r.flat[ind]
+    i_sorted = img.flat[ind]
+
+    # Get the integer part of the radii (bin size = 1)
+    r_int = r_sorted.astype(int)
+
+    # Find all pixels that fall within each radial bin.
+    deltar = r_int[1:] - r_int[:-1]  # Assumes all radii represented
+    rind = numpy.where(deltar)[0]       # location of changed radius
+    nr = rind[1:] - rind[:-1]        # number of radius bin
+    
+    # Cumulative sum to figure out sums for each radius bin
+    csim = numpy.cumsum(i_sorted, dtype=float)
+    return (csim[rind[1:]] - csim[rind[:-1]])/nr
+
+def polar(img, center=None, size=None):
+    '''
+    '''
+    
+    ny, nx = img.shape[:2]
+    nr, nt = (nx, ny) if size is None else size
+    if center is None: origin_x, origin_y = nx // 2, ny // 2
+    else: origin_x, origin_y = center
+    x, y = numpy.meshgrid(numpy.arange(nx), numpy.arange(ny))
+    x -= origin_x
+    y -= origin_y
+    r = numpy.hypot(x, y)
+    theta = numpy.arctan2(y, x)
+    r_i = numpy.linspace(r.min(), r.max(), nr)
+    theta_i = numpy.linspace(theta.min(), theta.max(), nt)
+    theta_grid, r_grid = numpy.meshgrid(theta_i, r_i)
+    xi = r_grid * numpy.cos(theta_grid)
+    yi = r_grid * numpy.sin(theta_grid)
+    xi += origin_x # We need to shift the origin back to 
+    yi += origin_y # back to the lower-left corner...
+    xi, yi = xi.flatten(), yi.flatten()
+    coords = numpy.vstack((xi, yi)) # (map_coordinates requires a 2xn array)
+    zi = scipy.ndimage.map_coordinates(img, coords, order=1).reshape((nr, nt))
+    
+    #for i in xrange(zi.shape[0]-1):
+    #    zi[i] = zi[i]+zi[i+1]
+    
+    return zi
 
 def rotavg(img, out=None):
     ''' Create a 2D rotational average of the given image
@@ -137,7 +230,7 @@ def mean_azimuthal(img, center=None):
     i, j = i-center[0], j-center[1]
     k = (j**2+i**2)**.5
     k = k.astype(int)
-    return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel())
+    return numpy.bincount(k.ravel(), img.ravel()) #/numpy.bincount(k.ravel())
 
 @_em2numpy2res
 def find_peaks_fast(cc, width):
@@ -499,6 +592,8 @@ def powerspec_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
+        try: img=ramp(img)
+        except: pass
         fimg = fftamp(pad_image(img, (pad_width, pad_width)))
         #fimg = scipy.fftpack.fft2(pad_image(img, (pad_width, pad_width)))
         if avg is None: avg = fimg.copy()
@@ -748,6 +843,10 @@ def fftamp(img, out=None):
 
 def logpolar(image, angles=None, radii=None, out=None):
     '''Transform image into log-polar representation
+    
+    .. note::
+        
+        Taken from: http://www.lfd.uci.edu/~gohlke/code/imreg.py.html
     
     :Parameters:
     
