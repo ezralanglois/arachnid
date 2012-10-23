@@ -14,7 +14,7 @@ To run:
    :lines: 17-
    :linenos:
 '''
-from arachnid.core.metadata import format #, format_utility
+from arachnid.core.metadata import format, spider_utility
 
 if 1 == 0:
     import logging
@@ -30,11 +30,12 @@ if __name__ == '__main__':
     
     align_file = ""
     output_file = ""
+    stack_file = ""
     mult=2
     
     
     # Read an alignment file
-    align = format.read_alignment(align_file)
+    align = format.read(align_file)
     
     if hasattr(align[0], 'tx'):
         for i in xrange(len(align)):
@@ -45,6 +46,7 @@ if __name__ == '__main__':
         for i in xrange(len(align)):
             tx = align[i].rlnOriginX
             ty = align[i].rlnOriginY
-            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult)
+            fid = align[i].rlnImageName
+            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult, rlnImageName=spider_utility.relion_filename(stack_file, align[i].rlnImageName))
     
     format.write(output_file, align)
