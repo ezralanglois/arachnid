@@ -7,7 +7,7 @@ from ..core.image.ndplot import pylab
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, process_queue
-from arachnid.core.util import plotting
+from arachnid.core.util import plotting, fitting
 import logging, numpy, os, scipy,itertools
 
 _logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     '''
     
     output = spider_utility.spider_filename(output, input_vals[0])
-    data, mask, avg = read_data(input_files, *input_vals[1:3], **extra)
+    data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
     #data2 = data
     #data2, mask = read_data(input_files, *input_vals[3:5], mask=mask, **extra)
     #_logger.error("test: %s == %s"%(str(data.shape), str(data2.shape)))
@@ -68,11 +68,11 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     extra['noutput']=format_utility.new_filename(output, 'neg_') if write_view_stack == 2 or write_view_stack == 3 else None
     if write_view_stack == 4: extra['noutput'] = extra['poutput']
     extra['sort_by']=eigs[:, 0] if sort_view_stack else None
-    avg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, **extra)
-    savg3 = compute_average3(input_files, *input_vals[1:3], selected=sel, template=avg, **extra)
+    avg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, output=output, **extra)
+    savg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, template=template, output=output, **extra)
     
     nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
-    return input_vals, sel, avg3+savg3, energy, nfeat
+    return input_vals, sel, avg3[:3]+savg3[:3], energy, nfeat, avg3[3], savg3[3]
 
 def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -99,15 +99,24 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     '''
     
     sel = None
-    for i in xrange(1):
+    iter = 1
+    for i in xrange(iter):
         if resample > 0:
             test = process_queue.recreate_global_dense_matrix(data)
             train = analysis.resample(data, resample, sample_size, thread_count)
         else: 
             train = process_queue.recreate_global_dense_matrix(data)
-            test = data
+            test = train
         if sel is not None: train = train[sel]
-        eigs, idx, vec,energy = analysis.pca(train, test, neig, test.mean(axis=0))
+        
+        if 1 == 0:
+            from sklearn import decomposition
+            ica = decomposition.FastICA()
+            eigs = ica.fit(train).transform(test)[:, :2]
+            idx = 0
+            energy=0
+        else:
+            eigs, idx, vec,energy = analysis.pca(train, test, neig, test.mean(axis=0))
         eigs2 = eigs.copy()
         eigs2 -= eigs2.min(axis=0)
         eigs2 /= eigs2.max(axis=0)
@@ -115,10 +124,10 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         eig_dist_cent = scipy.spatial.distance.cdist(eigs2, cent.reshape((1, len(cent))), metric='euclidean').ravel()
         th = analysis.otsu(eig_dist_cent)
         sel = eig_dist_cent < th
-        _logger.info("Selected: %d - %f"%(numpy.sum(sel), energy))
+        if iter > 1: _logger.info("Selected: %d - %f"%(numpy.sum(sel), energy))
     return eigs, sel, (energy, idx)
 
-def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, **extra):
+def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
     
     .. todo:: add ctf correction
@@ -151,6 +160,8 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
                     Set true to estimate biased bispectrum
     bispec_lag : float
                  Percentage of the maximum lag
+    pixel_diameter : int
+                     Diameter of particle in pixels
     extra : dict
             Unused key word arguments
     
@@ -171,14 +182,14 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
-    if template is not None: img = shift(img, template)
+    if template is not None: img = shift(img, template, pixel_diameter/2)
     if not disable_bispec:
         #ndimage_utility.normalize_standard(img, mask*-1+1, var_one, img)
         ndimage_utility.normalize_standard(img, mask, var_one, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
         bispec_lag = min(max(1, bispec_lag), img.shape[0]-1)
-        img *= mask
+        #img *= mask
         try:
             img, freq = ndimage_utility.bispectrum(img, bispec_lag, bispec_window, scale) # 1.0 = apix
         except:
@@ -195,18 +206,21 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         else:
             img = img[idx[:, numpy.newaxis], idx]
             img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
+        ndimage_utility.normalize_standard(img, None, var_one, img)
     else:
         ndimage_utility.normalize_standard(img, mask, var_one, img)
         img = ndimage_utility.compress_image(img, mask)
     return img
 
-def shift(img, template):
+def shift(img, template, rad, shiftval=None):
     ''' Shift an image to match the given template
     
     :Parameters:
     
     img : array
           Image to shift
+    rad : pixel_radius
+           Search radius
     template : array
                Image to match
     
@@ -216,12 +230,14 @@ def shift(img, template):
           Shifted image
     '''
     
-    cc_map = ndimage_utility.cross_correlate(img, template)
-    #cc_map = ndimage_utility.cross_correlate(template, img)
-    y,x = numpy.unravel_index(numpy.argmax(cc_map), cc_map.shape)
+    #cc_map = ndimage_utility.cross_correlate(img, template)
+    cc_map = ndimage_utility.cross_correlate(template, img)
+    y,x = numpy.unravel_index(numpy.argmax(cc_map*eman2_utility.model_circle(rad, cc_map.shape[0], cc_map.shape[1])), cc_map.shape)
+    if shiftval is not None:
+        shiftval[:] = (x-img.shape[0]/2,y-img.shape[1]/2)
     return eman2_utility.fshift(img, x-img.shape[0]/2, y-img.shape[1]/2)
 
-def read_data(input_files, label, align, **extra):
+def read_data(input_files, label, align, shift_data=0, **extra):
     ''' Read images from a file and transform into a matrix
     
     :Parameters:
@@ -244,17 +260,21 @@ def read_data(input_files, label, align, **extra):
     extra['hp_cutoff'] = extra['apix']/120 if extra['resolution_hi'] > 0.0 else 2.0/extra['pixel_diameter']
     mask, template = None, None
     if 'mask' not in extra: 
-        mask, template = create_tightmask(input_files, label, **extra)
-        template = create_template(input_files, label, template, **extra)
-        #template = create_template(input_files, label, template, **extra)
+        mask, average = create_tightmask(input_files, label, **extra)
+        if shift_data > 0:
+            template = average
+            for i in xrange(1, shift_data):
+                template = create_template(input_files, label, template, **extra)
         resolution = extra['resolution']
         apix = extra['apix']
         bin_factor = min(8, resolution / (apix*2) ) if resolution > (apix*2) else 1.0
         if bin_factor > 1: extra['mask'] = eman2_utility.decimate(mask, bin_factor)
-        if bin_factor > 1: extra['template'] = eman2_utility.decimate(template, bin_factor)
-    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=True, align=align, **extra), mask, template
+        if shift_data > 0:
+            if bin_factor > 1: extra['template'] = eman2_utility.decimate(template, bin_factor)
+        else: extra['template']=None
+    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=True, align=align, **extra), mask, average, template
 
-def create_template(input_files, label, template, resolution, apix, hp_cutoff, **extra):
+def create_template(input_files, label, template, resolution, apix, hp_cutoff, pixel_diameter, **extra): #extra['pixel_diameter']
     ''' Create a tight mask from a view average
     
     :Parameters:
@@ -269,6 +289,8 @@ def create_template(input_files, label, template, resolution, apix, hp_cutoff, *
                  Resolution to filter data
     apix : float
            Pixel size
+    pixel_diameter : int
+                     Diameter of particle in pixels
     extra : dict
             Unused key word arguments
             
@@ -278,10 +300,11 @@ def create_template(input_files, label, template, resolution, apix, hp_cutoff, *
            2D array image mask
     '''
     
+    rad = pixel_diameter/2
     avg2 = None
     for img2 in ndimage_file.iter_images(input_files, label):
         if avg2 is None: avg2 = numpy.zeros(img2.shape)
-        img2 = shift(img2, template)
+        img2 = shift(img2, template, rad)
         avg2 += img2
     avg2 /= len(label)
     avg2 = eman2_utility.gaussian_low_pass(avg2, apix/resolution, True)
@@ -391,7 +414,7 @@ def read_alignment(files, alignment="", **extra):
         group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
     return group
 
-def compute_average3(input_files, label, align, template=None, selected=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, **extra):
+def compute_average3(input_files, label, align, template=None, selected=None, mask=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, pixel_diameter=None, output=None, **extra):
     ''' Compute the average of a selected, unselected and all images
     
     :Parameters:
@@ -414,6 +437,8 @@ def compute_average3(input_files, label, align, template=None, selected=None, us
               Output filename for selected negative stack
     poutput : str, optional
               Output filename for selected positive stack
+    pixel_diameter : int
+                     Diameter of particle in pixels
     extra : dict
             Unused key word arguments
     
@@ -434,38 +459,78 @@ def compute_average3(input_files, label, align, template=None, selected=None, us
         if selected is not None:
             selected = selected[idx]
     
+    rad = pixel_diameter/2
+    shiftval = numpy.zeros((label.shape[0], 2)) if template is not None else None
     avgsel, avgunsel = None, None
     cntsel  = numpy.sum(selected)
     cntunsel = selected.shape[0] - cntsel
     poff = 0
     noff = 0
     for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
-        if avgsel is None: avgsel = numpy.zeros(img.shape)
-        if avgunsel is None: avgunsel = numpy.zeros(img.shape)
+        if avgsel is None: avgsel = numpy.zeros((2, )+img.shape)
+        if avgunsel is None: avgunsel = numpy.zeros((2, )+img.shape)
         m = align[i, 1] > 179.999
         if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
         elif m:      img[:,:] = eman2_utility.mirror(img)
-        if template is not None: img = shift(img, template)
-        
+        if template is not None: img = shift(img, template, rad, shiftval)
+        idx = 1 if i%2==0 else 0
         if selected[i] > 0.5:
-            avgsel += img
+            avgsel[idx] += img
             if poutput is not None and poutput != noutput:
                 ndimage_file.write_image(poutput, img, poff)
-                poff += 1
+            poff += 1
         else:
-            avgunsel += img
+            avgunsel[idx] += img
             if noutput is not None and poutput != noutput:
                 ndimage_file.write_image(noutput, img, noff)
-                noff += 1
+            noff += 1
         if poutput is not None and poutput == noutput:
             ndimage_file.write_image(poutput, img, poff)
             poff += 1
     if avgunsel is None: avgunsel = numpy.zeros(img.shape)
     if avgsel is None: avgsel = numpy.zeros(img.shape)
     avgful = avgsel + avgunsel
-    if cntsel > 0: avgsel /= cntsel
-    if cntunsel > 0: avgunsel /= cntunsel
-    return avgsel, avgunsel, avgful / (cntsel+cntunsel)
+    avgsel2 = (avgsel[0]+avgsel[1])
+    avgunsel2 = (avgunsel[0]+avgunsel[1])
+    if numpy.sum(cntsel) > 0: avgsel2 /= numpy.sum(cntsel)
+    if numpy.sum(cntunsel) > 0: avgunsel2 /= numpy.sum(cntunsel)
+    avgful2 = avgsel2 + avgunsel2
+    if cntsel > 0: avgsel /= (cntsel/2)
+    if cntunsel > 0: avgunsel /= (cntunsel/2)
+    
+    if 1 == 1:
+        #fsc_all = extra['apix']/fitting.fit_linear_interp(ndimage_utility.frc(avgful[0], avgful[1]), 0.5)
+        #res = 
+        #fsc_all = extra['apix']/fitting.fit_sigmoid_interp(eman2_utility.fsc(avgful[0], avgful[1], complex=False), 0.5)
+        #fsc = ndimage_utility.frc(avgful[0]*mask, avgful[1]*mask, pad=1)
+        
+        #pylab.clf()
+        #pylab.plot(fsc[:, 0], fsc[:, 1], 'r-')
+        #pylab.savefig(format_utility.new_filename(output, "fsc_", ext="png"))
+        
+        fsc1 = eman2_utility.fsc(avgful[0]*mask, avgful[1]*mask)
+        fsc2 = eman2_utility.fsc(avgsel[0]*mask, avgsel[1]*mask)
+        fsc3 = eman2_utility.fsc(avgunsel[0]*mask, avgunsel[1]*mask)
+        fsc1 = extra['apix']/fitting.fit_linear_interp(fsc1, 0.5)
+        fsc2 = extra['apix']/fitting.fit_linear_interp(fsc2, 0.5)
+        fsc3 = extra['apix']/fitting.fit_linear_interp(fsc3, 0.5)
+        '''
+        _logger.info("Compare: %f -> %f, %f"%())
+        try:
+            numpy.testing.assert_allclose(fsc2[:, 0], fsc[:, 0])
+            numpy.testing.assert_allclose(fsc2[:, 1], fsc[:, 1])
+        except:
+            _logger.exception("Did not work")
+        '''
+        #_logger.info("fsc: %f, %f ... %f,%f,%f"%(fsc[0, 1], fsc[1, 1], fsc[len(fsc)-3, 1], fsc[len(fsc)-2, 1], fsc[len(fsc)-1, 1]))
+        #fsc_all = extra['apix']/fitting.fit_sigmoid_interp(fsc, 0.5)
+        #if fsc_all < 0 or fsc_all > 1000:
+        fsc_all = fsc1#extra['apix']/fitting.fit_linear_interp(fsc, 0.5)
+        #fsc_sel = fitting.fit_linear_interp(ndimage_utility.frc(avgsel[0], avgsel[1]), 0.5)
+        #fsc_uns = fitting.fit_linear_interp(ndimage_utility.frc(avgunsel[0], avgunsel[1]), 0.5)
+    else:
+        fsc_all = numpy.sum(numpy.abs(shiftval))/float(label.shape[0]) if shiftval is not None else 0
+    return avgsel2, avgunsel2, avgful2 / (cntsel+cntunsel), fsc_all
 
 def test_variance(eigs, data, output, **extra):
     '''
@@ -554,7 +619,7 @@ def initialize(files, param):
 def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
-    input, sel, avg3, energy, feat_cnt = val
+    input, sel, avg3, energy, feat_cnt, ndiff, sdiff = val
     label = input[1]
     file_completed -= 1
     total[file_completed, 0] = input[0]
@@ -563,11 +628,11 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **ex
     for i in numpy.argwhere(sel):
         sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))    
     output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1)
+    _logger.info("Finished processing %d - %d,%d (%d,%d) - Energy: %f, %d - Features: %d - Shift: %f,%f"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed, 2]), total[file_completed, 1], total[file_completed, 2], energy[0], energy[1], feat_cnt, ndiff, sdiff))
     file_completed *= len(avg3)
     for i in xrange(len(avg3)):
         ndimage_file.write_image(output, avg3[i], file_completed+i)
     # plot first 2 eigen vectors
-    _logger.info("Finished processing %d - %d,%d - Energy: %f, %d - Features: %d"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed+1, 2]), energy[0], energy[1], feat_cnt))
     return input[0]
 
 def finalize(files, total, sel_by_mic, output, **extra):
@@ -588,7 +653,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     view_stack = ('None', 'Positive', 'Negative', 'Both', 'Single')
     group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
     group.add_option("", resample=0,                  help="Number of times to resample the images")
-    group.add_option("", sample_size=100,             help="Size of each bootstrapped sample")
+    group.add_option("", sample_size=100.0,           help="Size of each bootstrapped sample")
     group.add_option("", resolution=15.0,             help="Filter to given resolution - requires apix to be set")
     group.add_option("", resolution_hi=0.0,           help="High-pass filter to given resolution - requires apix to be set")
     group.add_option("", use_rtsq=False,              help="Use alignment parameters to rotate projections in 2D")
@@ -601,6 +666,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", single_view=0,                help="Test the algorithm on a specific view")
     group.add_option("", write_view_stack=view_stack, help="Write out selected views to a stack where single means write both to a single stack", default=0)
     group.add_option("", sort_view_stack=False,       help="Sort the view stack by the first Eigen vector")
+    group.add_option("", shift_data=0,                help="Number of times to shift data")
     
     pgroup.add_option_group(group)
     if main_option:
