@@ -1,0 +1,194 @@
+
+
+
+template<class I, class T>
+void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, int offset, int k)
+{
+	typedef std::pair<T,I> index_dist;
+	typedef std::vector< index_dist > index_vector;
+#ifdef _OPENMP
+	index_vector vheap(omp_get_max_threads()*k);
+#else
+	index_vector vheap(k);
+#endif
+
+#	if defined(_OPENMP)
+#	pragma omp parallel for
+#	endif
+	for(int r=0;r<dr;++r)
+	{
+#ifdef _OPENMP
+		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
+#else
+		typename index_vector::iterator hbeg = vheap.begin(), hcur=hbeg, hend=hbeg+k;
+#endif
+		T* data_rk = data+r*k;
+		I* col_rk = col_ind+r*k;
+		int c=0;
+		if( offset > 0 )
+		{
+			for(int l=std::min(k, offset);c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+		}
+		for(c=0;hcur != hend && c<m;++c, ++hcur) *hcur = index_dist(dist2[r*m+c], offset+c);
+		assert(c==m || hcur == hend);
+		if( hcur == hend ) std::make_heap(hbeg, hend);
+		for(;c<m;++c)
+		{
+			T d = dist2[r*m+c];
+			if( d < hbeg->first )
+			{
+				*hbeg = index_dist(d, offset+c);
+				std::make_heap(hbeg, hbeg+k);
+			}
+		}
+		cur = hbeg;
+		for(c=0;c<k;++c, ++hcur)
+		{
+			data_rk[c] = hcur->first;
+			col_rk[c] = hcur->second;
+		}
+	}
+}
+
+template<class I, class T>
+void finalize_heap(T* data, int nd, I* col_ind, int nc, int k)
+{
+	typedef std::pair<T,I> index_dist;
+	typedef std::vector< index_dist > index_vector;
+#ifdef _OPENMP
+	index_vector vheap(omp_get_max_threads()*k);
+#else
+	index_vector vheap(k);
+#endif
+
+#	if defined(_OPENMP)
+#	pragma omp parallel for
+#	endif
+	for(int r=0;r<dr;++r)
+	{
+#ifdef _OPENMP
+		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg;
+#else
+		typename index_vector::iterator hbeg = vheap.begin(), hcur=hbeg;
+#endif
+		T* data_rk = data+r*k;
+		I* col_rk = col_ind+r*k;
+		for(int c=0;c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+		std::sort_heap(hbeg, hbeg+k);
+		hcur = hbeg;
+		for(int c=0;c<k;++c, ++hcur)
+		{
+			data_rk[c] = hcur->first;
+			col_rk[c] = hcur->second;
+		}
+	}
+}
+
+template<class I, class T>
+I select_subset_csr(T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr, I* selected, int scnt)
+{
+	nr-=1;
+	I cnt = 0, rc=1;
+	I* index_map = new I[nr];
+	for(I i=0;i<nr;++i) index_map[i]=-1;
+	for(I i=0;i<nidx;++i) index_map[index[i]]=i;
+
+	for(I s = 0;s<scnt;++s)
+	{
+		I r = selected[s];
+		for(int j=row_ptr[r];j<row_ptr[r+1];++j)
+		{
+			if( col_ind[j] != I(-1) )
+			{
+				data[cnt] = data[j];
+				col_ind[cnt] = col_ind[j];
+				cnt ++;
+			}
+		}
+		row_ptr[rc]=cnt;
+		rc++;
+	}
+	delete[] index_map;
+	return cnt;
+}
+
+template<class I, class T>
+void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr)
+{
+	nr-=1;
+	T* ndist = new T[nr];
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nr;i++)
+	{
+		ndist[i] = 0;
+	}
+	for(int i=0;i<nr;i++)
+	{
+		if ( ndist[Dc[i]] < data[i] )
+			ndist[Dc[i]] = data[i];
+	}
+	I* row_ind = new I[nc];
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int r=0;r<nr;++r)
+	{
+		for(int j=row_ptr[r];j<row_ptr[r+1];++j) row_ind[j]=r;
+	}
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nc;i++)
+	{
+		double den = 1.0;
+		if( ndist[row_ind[i]] != 0.0 ) den *= std::sqrt(double(ndist[row_ind[i]]));
+		if( ndist[col_ind[i]] != 0.0 ) den *= std::sqrt(double(ndist[col_ind[i]]));
+		if( den != 0.0 ) sdist[i] = std::exp( -data[i] / T(den) );
+		else sdist[i] = std::exp( -data[i] );
+	}
+	delete[] ndist, row_ind;
+}
+
+template<class I, class T>
+void normalize_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr)
+{
+	nr-=1;
+	T* ndist = new T[nr];
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nr;i++)
+	{
+		ndist[i] = 0;
+	}
+	for(int i=0;i<nr;i++)
+	{
+		ndist[Dc[i]] += data[i];
+	}
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nr;i++)
+	{
+		if( ndist[i] == 0.0 ) ndist[i] = 1.0;
+		else ndist[i] = T(1.0) / ndist[i];
+	}
+	I* row_ind = new I[nc];
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int r=0;r<nr;++r)
+	{
+		for(int j=row_ptr[r];j<row_ptr[r+1];++j) row_ind[j]=r;
+	}
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nc;i++)
+	{
+		sdist[i] = data[i]*ndist[row_ind[i]]*ndist[col_ind[i]];
+	}
+	delete[] ndist, row_ind;
+}

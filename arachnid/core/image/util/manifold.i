@@ -1,0 +1,190 @@
+%define DOCSTRING
+"This C/C++ Python extension defines an optimized set of utilities for manifold-learning.
+"
+%enddef
+
+%module manifold
+
+/* why does SWIG complain about int arrays? a typecheck is provided */
+#pragma SWIG nowarn=467
+
+%{
+#define SWIG_FILE_WITH_INIT
+#include "Python.h"
+#include "numpy/arrayobject.h"
+#include <limits>
+#include <cmath>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+#include "manifold.hpp"
+%}
+
+%include "manifold.h"
+
+%feature("autodoc", "0");
+
+%include "numpy.i"
+
+%init %{
+    import_array();
+%}
+
+%exception {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+    $action
+    } catch(...) {
+    PyEval_RestoreThread(_save);
+    PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+    return NULL;
+    }
+    Py_END_ALLOW_THREADS
+}
+
+
+/** Declare the numpy array data types
+ */
+ 
+%define DECLARE_DATA_TYPE2( dtype, itype )
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* dist2, int n, int m)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* data, int nd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, int ns)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* col_ind, int nc)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ptr, int nr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* selected, int scnt)};
+%enddef
+
+
+%define DECLARE_DATA_TYPE( itype )
+DECLARE_DATA_TYPE2(int, itype)
+DECLARE_DATA_TYPE2(float, itype)
+DECLARE_DATA_TYPE2(double, itype)
+%enddef
+
+DECLARE_DATA_TYPE(int)
+DECLARE_DATA_TYPE(long)
+DECLARE_DATA_TYPE(long long)
+DECLARE_DATA_TYPE(unsigned int)
+DECLARE_DATA_TYPE(unsigned long)
+DECLARE_DATA_TYPE(unsigned long long)
+
+
+/** Create a set of concrete functions from the templates
+ */
+%define INSTANTIATE_ALL_DATA( f_name, itype )
+//%template(f_name)   f_name<itype,short>;
+//%template(f_name)   f_name<itype,int>;
+%template(f_name)   f_name<itype,float>;
+%template(f_name)   f_name<itype,double>;
+%template(f_name)   f_name<itype,long double>; // bug in version 11 of pgi compiler fixed in 11.6
+%enddef
+
+%define INSTANTIATE_ALL( f_name )
+INSTANTIATE_ALL_DATA(f_name, int)
+INSTANTIATE_ALL_DATA(f_name, long)
+INSTANTIATE_ALL_DATA(f_name, long long)
+INSTANTIATE_ALL_DATA(f_name, unsigned int)
+INSTANTIATE_ALL_DATA(f_name, unsigned long)
+INSTANTIATE_ALL_DATA(f_name, unsigned long long)
+%enddef
+
+%define INSTANTIATE_DATA( f_name )
+//%template(f_name)   f_name<int>;
+%template(f_name)   f_name<float>;
+%template(f_name)   f_name<double>;
+%template(f_name)   f_name<long double>;
+%enddef
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function selects a subset of rows 
+		(and columns) from a CSR sparse matrix.
+
+		:Parameters:
+
+		data : array
+			   In/out 1D array of distances
+		col_ind :array
+			 	 In/out 1D array column indicies
+		row_ptr : array
+			   	  In/out 1D array row pointers
+		selected : array
+				   Input 1D array of selected rows
+		
+		:Returns:
+		
+		n : int
+			Number of sparse elements
+		");
+INSTANTIATE_ALL(select_subset_csr)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+
+		sdist : array
+			    Output 1D array of distances
+		data : array
+			   Input 1D array of distances
+		col_ind :array
+			 	 Input 1D array column indicies
+		row_ptr : array
+			   	  Input 1D array row pointers
+		");
+INSTANTIATE_ALL(self_tuning_gaussian_kernel_csr)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function normalizes a sparse matrix in CSR format.
+
+		:Parameters:
+
+		sdist : array
+			    Output 1D array of distances
+		data : array
+			   Input 1D array of distances
+		col_ind :array
+			 	 Input 1D array column indicies
+		row_ptr : array
+			   	  Input 1D array row pointers
+		");
+INSTANTIATE_ALL(normalize_csr)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function heaps sorts a partial distance matrix.
+
+		:Parameters:
+
+		dist2 : array
+			   Input 2D array of distances
+		data : array
+			   Output 1D array of distances
+		col_ind :array
+			 	 Output 1D array column indicies
+		offset : int
+				 Offset for the column index
+		k : int
+			Number of neighbors
+		");
+INSTANTIATE_ALL(push_to_heap)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function creates a sparse matrix from a heap sorted
+		distance matrix.
+
+		:Parameters:
+
+		data : array
+			   Output 1D array of distances
+		col_ind :array
+			 	 Output 1D array column indicies
+		k : int
+			Number of neighbors
+		");
+INSTANTIATE_ALL(finalize_heap)
