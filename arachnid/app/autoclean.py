@@ -110,6 +110,13 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         if sel is not None: train = train[sel]
         
         if 1 == 0:
+            from ..core.image import manifold
+            eigs, evals, index = manifold.diffusion_maps(test, 2, k=10, mutual=True, batch=10000)
+            _logger.info("Eigen values: %s"%",".join([str(v) for v in evals]))
+            if index is not None: _logger.info("Subset: %d of %d"%(index.shape[0], test.shape[0]))
+            idx = 0
+            energy=0
+        elif 1 == 0:
             from sklearn import decomposition
             ica = decomposition.FastICA()
             eigs = ica.fit(train).transform(test)[:, :2]
