@@ -7,6 +7,7 @@
 .. Created on Jul 19, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..app import tracing
 import numpy, scipy.special, scipy.linalg
 from ..parallel import process_queue
 from ..util import numpy_ext
@@ -148,13 +149,20 @@ def pca(trn, tst=None, frac=-1, mtrn=None):
         Code originally from:
         `https://raw.github.com/scikit-learn/scikit-learn/master/sklearn/decomposition/pca.py`
     '''
-    
+
+    use_svd=True
     if mtrn is None: mtrn = trn.mean(axis=0)
     trn = trn - mtrn
     if tst is None: tst = trn
     else: tst = tst - mtrn
 
     U, d, V = scipy.linalg.svd(trn, False)
+
+    if use_svd:
+        U, d, V = scipy.linalg.svd(trn, False)
+    else:
+        d, V = numpy.linalg.eig(numpy.corrcoef(trn, rowvar=0))
+
     t = d**2/trn.shape[0]
     t /= t.sum()
     if frac >= 1:
@@ -382,7 +390,11 @@ def threshold_max(data, threshold, max_num, reverse=False):
     if not reverse: idx = idx[::-1]
     threshold = numpy.searchsorted(data[idx], threshold)
     if threshold > max_num: threshold = max_num
-    return data[idx[threshold]]
+    try:
+        return data[idx[threshold]]
+    except:
+        _logger.error("%d > %d -> %d"%(threshold, idx.shape[0], max_num))
+        raise
 
 def threshold_from_total(data, total, reverse=False):
     ''' Find the threshold given the total number of elements kept.
@@ -405,7 +417,11 @@ def threshold_from_total(data, total, reverse=False):
     if total < 1.0: total = int(total*data.shape[0])
     idx = numpy.argsort(data)
     if not reverse: idx = idx[::-1]
-    return data[idx[total]]
+    try:
+        return data[idx[total]]
+    except:
+        _logger.error("%d > %d"%(total, idx.shape[0]))
+        raise
 
 def otsu(data, bins=0):
     ''' Otsu's threshold selection algorithm
