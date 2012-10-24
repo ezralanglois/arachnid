@@ -49,9 +49,13 @@
 %define DECLARE_DATA_TYPE2( dtype, itype )
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* dist2, int n, int m)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* data, int nd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdata, int snd)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, int ns)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* col_ind, int nc)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ptr, int nr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ind, int nr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* srow_ind, int snr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* scol_ind, int snc)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* selected, int scnt)};
 %enddef
 
@@ -188,3 +192,52 @@ INSTANTIATE_ALL(push_to_heap)
 			Number of neighbors
 		");
 INSTANTIATE_ALL(finalize_heap)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+		
+		data : array
+			   Input 1D array of distances
+		col_ind :array
+			 	 Input 1D array column indicies
+		row_ind : array
+			   	  Input 1D array row indicies
+		sdata : array
+			   Output 1D array of distances
+		scol_ind :array
+			 	 Output 1D array column indicies
+		srow_ind : array
+			   	  Output 1D array row indicies
+		d : int
+			Difference between old and new number of neighbors
+		k : int
+			New number of neighbors
+		");
+INSTANTIATE_ALL(knn_reduce)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+		
+		data : array
+			   In/out 1D array of distances
+		col_ind :array
+			 	 In/out 1D array column indicies
+		row_ind : array
+			   	  In/out 1D array row indicies
+		k : int
+			New number of neighbors
+		
+		:Returns:
+		
+		n : int
+			Number of sparse values
+		");
+INSTANTIATE_ALL(knn_mutual)

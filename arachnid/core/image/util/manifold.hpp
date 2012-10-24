@@ -1,5 +1,70 @@
 
 
+template<class I, class T>
+void knn_reduce(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, int d, int k)
+{
+	sdata[0]=data[0];
+	scol_ind[0]=col_ind[0];
+	srow_ind[0]=row_ind[0];
+	I j=0;
+	for(I r=1;r<snr;++r,++j)
+	{
+		if( r%k==0 ) j+=d;
+		sdata[r]=data[j];
+		scol_ind[r]=col_ind[j];
+		srow_ind[r]=row_ind[j];
+	}
+	assert(j==nd);
+}
+
+template<class I>
+I* find_mutual(I* b, I* e, I v)
+{
+	for(;b < e;++b) if( (*b) == v ) return b;
+	return 0;
+}
+
+template<class I, class T>
+I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
+{
+	I j=0;
+	for(I r=0;i<nr;++r)
+	{
+		if( long(col_ind[r]) > long(row_ind[r]) )
+		{
+			I c = col_ind[r];
+			if( c < 0 ) c = -c;
+			I* mc = find_mutual(col_ind+c*k, col_ind+(c+1)*k, row_ind[r]);
+			if( mc != 0 )
+			{
+				(*mc) = -((*mc)+1);
+				data[j] = data[r];
+				col_ind[j] = col_ind[r];
+				row_ind[j] = row_ind[r];
+				++j;
+			}
+		}
+		else if( long(col_ind[r]) < long(row_ind[r]) )
+		{
+			if( long(col_ind[r]) < 0 )
+			{
+				data[j] = data[r];
+				col_ind[j] = -(col_ind[r]+1);
+				row_ind[j] = row_ind[r];
+				j++;
+			}
+		}
+		else
+		{
+			data[j] = 0.0;
+			col_ind[j] = col_ind[r];
+			row_ind[j] = row_ind[r];
+		}
+
+	}
+	return j;
+}
+
 
 template<class I, class T>
 void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, int offset, int k)
