@@ -14,43 +14,42 @@ To run:
     
     You must have Arachnid and Matplotlib installed to run this script
 
-2D Map Plot:
+2D Map Plot: http://matplotlib.github.com/basemap/users/mapsetup.html
 
-    http://matplotlib.github.com/basemap/users/mapsetup.html
-    aeqd    Azimuthal Equidistant
-    poly    Polyconic
-    gnom    Gnomonic
-    moll    Mollweide
-    tmerc    Transverse Mercator
-    nplaea    North-Polar Lambert Azimuthal
-    gall    Gall Stereographic Cylindrical
-    mill    Miller Cylindrical
-    merc    Mercator
-    stere    Stereographic
-    npstere    North-Polar Stereographic
-    hammer    Hammer
-    geos    Geostationary
-    nsper    Near-Sided Perspective
-    vandg    van der Grinten
-    laea    Lambert Azimuthal Equal Area
-    mbtfpq    McBryde-Thomas Flat-Polar Quartic
-    sinu    Sinusoidal
-    spstere    South-Polar Stereographic
-    lcc    Lambert Conformal
-    npaeqd    North-Polar Azimuthal Equidistant
-    eqdc    Equidistant Conic
-    cyl    Cylindrical Equidistant
-    omerc    Oblique Mercator
-    aea    Albers Equal Area
-    spaeqd    South-Polar Azimuthal Equidistant
-    ortho    Orthographic
-    cass    Cassini-Soldner
-    splaea    South-Polar Lambert Azimuthal
-    robin    Robinson
+    - aeqd    Azimuthal Equidistant
+    - apoly    Polyconic
+    - agnom    Gnomonic
+    - amoll    Mollweide
+    - atmerc    Transverse Mercator
+    - anplaea    North-Polar Lambert Azimuthal
+    - agall    Gall Stereographic Cylindrical
+    - amill    Miller Cylindrical
+    - amerc    Mercator
+    - astere    Stereographic
+    - anpstere    North-Polar Stereographic
+    - ahammer    Hammer
+    - ageos    Geostationary
+    - ansper    Near-Sided Perspective
+    - avandg    van der Grinten
+    - alaea    Lambert Azimuthal Equal Area
+    - ambtfpq    McBryde-Thomas Flat-Polar Quartic
+    - asinu    Sinusoidal
+    - aspstere    South-Polar Stereographic
+    - alcc    Lambert Conformal
+    - anpaeqd    North-Polar Azimuthal Equidistant
+    - aeqdc    Equidistant Conic
+    - acyl    Cylindrical Equidistant
+    - aomerc    Oblique Mercator
+    - aaea    Albers Equal Area
+    - aspaeqd    South-Polar Azimuthal Equidistant
+    - aortho    Orthographic
+    - acass    Cassini-Soldner
+    - asplaea    South-Polar Lambert Azimuthal
+    - arobin    Robinson
 
 .. literalinclude:: ../../arachnid/snippets/plot_angles.py
    :language: python
-   :lines: 56-
+   :lines: 55-
    :linenos:
 '''
 from arachnid.core.metadata import format, format_utility
@@ -60,8 +59,8 @@ import numpy, scipy
 #matplotlib.use('Qt4Agg')
 
 import matplotlib.cm as cm
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.basemap import Basemap
+from mpl_toolkits import mplot3d
+from mpl_toolkits import basemap
 from matplotlib import pyplot
 import os
 
@@ -79,7 +78,7 @@ if __name__ == '__main__':
     align,header = format_utility.tuple2numpy(align)
     
     if use_3d:
-        ax = Axes3D(pyplot.figure(0))
+        ax = mplot3d.Axes3D(pyplot.figure(0))
         
         align = numpy.deg2rad(align[:, 1:3])
         if resolution > 0:
@@ -120,7 +119,7 @@ if __name__ == '__main__':
         
         # Create mapping object
         param = {} #dict(llcrnrlon=ll_lon, llcrnrlat=ll_lat, urcrnrlon=ur_lon, urcrnrlat=ur_lat)
-        m = Basemap(projection="ortho", lat_0=0.0, lon_0=0.0)#, **param)
+        m = basemap.Basemap(projection="ortho", lat_0=0.0, lon_0=0.0)#, **param)
         
         # Properly scale angles
         x, y = m(align[:, 1], 90.0-align[:, 0])
