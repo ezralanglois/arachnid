@@ -28,7 +28,7 @@ template<class I, class T>
 I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
 {
 	I j=0;
-	for(I r=0;i<nr;++r)
+	for(I r=0;r<nr;++r)
 	{
 		if( long(col_ind[r]) > long(row_ind[r]) )
 		{
@@ -80,7 +80,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<dr;++r)
+	for(int r=0;r<nc;++r)
 	{
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
@@ -106,7 +106,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 				std::make_heap(hbeg, hbeg+k);
 			}
 		}
-		cur = hbeg;
+		hcur = hbeg;
 		for(c=0;c<k;++c, ++hcur)
 		{
 			data_rk[c] = hcur->first;
@@ -129,7 +129,7 @@ void finalize_heap(T* data, int nd, I* col_ind, int nc, int k)
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<dr;++r)
+	for(int r=0;r<nc;++r)
 	{
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg;
@@ -156,7 +156,7 @@ I select_subset_csr(T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr, I* 
 	I cnt = 0, rc=1;
 	I* index_map = new I[nr];
 	for(I i=0;i<nr;++i) index_map[i]=-1;
-	for(I i=0;i<nidx;++i) index_map[index[i]]=i;
+	for(I i=0;i<scnt;++i) index_map[selected[i]]=i;
 
 	for(I s = 0;s<scnt;++s)
 	{
@@ -191,8 +191,8 @@ void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_i
 	}
 	for(int i=0;i<nr;i++)
 	{
-		if ( ndist[Dc[i]] < data[i] )
-			ndist[Dc[i]] = data[i];
+		if ( ndist[col_ind[i]] < data[i] )
+			ndist[col_ind[i]] = data[i];
 	}
 	I* row_ind = new I[nc];
 #	ifdef _OPENMP
@@ -230,7 +230,7 @@ void normalize_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row
 	}
 	for(int i=0;i<nr;i++)
 	{
-		ndist[Dc[i]] += data[i];
+		ndist[col_ind[i]] += data[i];
 	}
 #	ifdef _OPENMP
 #	pragma omp parallel for
