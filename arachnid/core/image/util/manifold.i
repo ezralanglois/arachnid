@@ -14,13 +14,14 @@
 #include "numpy/arrayobject.h"
 #include <limits>
 #include <cmath>
+#include <vector>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 #include "manifold.hpp"
 %}
 
-%include "manifold.h"
+%include "manifold.hpp"
 
 %feature("autodoc", "0");
 
