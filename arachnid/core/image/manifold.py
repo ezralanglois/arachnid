@@ -23,6 +23,38 @@ except:
         _manifold;
     except:
         tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
+        
+def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
+    ''' Embed the sample data into a low dimensional manifold using the
+    Diffusion Maps algorithm.
+    
+    :Parameters:
+    
+    samp : array
+           2D data array
+    dimension : int
+                Number of dimensions for embedding
+    k : int
+        Number of nearest neighbors
+    mutual : bool
+             Keep only mutal neighbors
+    batch : int
+            Size of temporary distance matrix to hold in memory
+    
+    :Returns:
+    
+    evecs : array
+            2D array of eigen vectors
+    evals : array
+            1D array of eigen values
+    index : array
+            Index array if a subset of from the largest connected 
+            component is used, otherwise None
+    '''
+    
+    dist2 = knn(samp, k, batch)
+    dist2 = knn_reduce(dist2, k, mutual)
+    return diffusion_maps_dist(dist2, dimension)
 
 def knn_reduce(dist2, k, mutual=False):
     '''Reduce k-nearest neighbor sparse matrix
@@ -48,7 +80,9 @@ def knn_reduce(dist2, k, mutual=False):
     row  = numpy.empty(n, dtype=dist2.row.dtype)
     col  = numpy.empty(n, dtype=dist2.col.dtype)
     d = dist2.data.shape[0]/dist2.shape[0] - k
-    _manifold.knn_reduce(dist2.data, dist2.row, dist2.col, data, row, col, d, k)
+    if d < 0: raise ValueError, "Cannot reduce from %d neighbors to %d"%(dist2.data.shape[0]/dist2.shape[0], k)
+    if d > 0:
+        _manifold.knn_reduce(dist2.data, dist2.row, dist2.col, data, row, col, d, k)
     if not mutual:
         m=dist2.shape[0]*k
         data[m:] = data[:m]
