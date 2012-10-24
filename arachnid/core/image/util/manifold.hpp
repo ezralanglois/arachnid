@@ -33,7 +33,7 @@ I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
 		if( long(col_ind[r]) > long(row_ind[r]) )
 		{
 			I c = col_ind[r];
-			if( c < 0 ) c = -c;
+			if( long(c) < 0 ) c = -c;
 			I* mc = find_mutual(col_ind+c*k, col_ind+(c+1)*k, row_ind[r]);
 			if( mc != 0 )
 			{

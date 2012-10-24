@@ -15,6 +15,7 @@
 #include <limits>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 #ifdef _OPENMP
 #include <omp.h>
 #endif

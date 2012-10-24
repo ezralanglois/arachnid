@@ -122,14 +122,18 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     col = numpy.empty(n, dtype=numpy.longlong)
     dense = numpy.empty((batch,batch), dtype=dtype)
     
+    gemm = scipy.linalg.fblas.dgemm
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
         for c in xrange(0, samp.shape[0], batch):
-            dist2 = gemm(-2.0, X, Y, trans_b=True, beta=0, c=dense, overwrite_c=1).T
+            dist2 = gemm(-2.0, samp[r*batch:(r+1)*batch], samp[c*batch:(c+1)*batch], trans_b=True, beta=0, c=dense, overwrite_c=1).T
             dist2 += a[r:r+batch, numpy.newaxis]
             dist2 += a[c:c+batch]
             _manifold.push_to_heap(dist2, data[r*batch*k:], col[r*batch*k:], c, k)
         _manifold.finalize_heap(data[r*batch*k:], col[r*batch*k:], k)
+        
+        #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
+        #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
             
     del dist2, dense
     row = numpy.empty(n, dtype=numpy.longlong)
@@ -186,8 +190,8 @@ def diffusion_maps_dist(dist2, dimension):
     
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
     dist2, index = largest_connected(dist2)
-    _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, data2.indptr)
-    _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, data2.indptr)
+    _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
+    _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
     D = scipy.power(dist2.sum(axis=0), -0.5)
     D[numpy.logical_not(numpy.isfinite(D))] = 1.0
     norm = scipy.sparse.dia_matrix((D, (0,)), shape=dist2.shape)
@@ -238,10 +242,10 @@ def largest_connected(dist2):
             for i in idx[:10]:
                 _logger.info("%d: %d"%(bins[i], count[i]))
         index = numpy.argwhere(comp == bins[numpy.argmax(count)])
-        n=_manifold.select_subset_csr(dist2.data, dist2.indices, data2.indptr, index)
+        n=_manifold.select_subset_csr(dist2.data, dist2.indices, dist2.indptr, index)
         dist2.data=dist2.data[:n]
         dist2.indices=dist2.indices[:n]
-        data2.indptr=data2.indptr[:index.shape[0]+1]
+        dist2.indptr=dist2.indptr[:index.shape[0]+1]
     return dist2, index
 
 
