@@ -7,7 +7,6 @@
 .. Created on Jul 19, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..app import tracing
 import numpy, scipy.special, scipy.linalg
 from ..parallel import process_queue
 from ..util import numpy_ext
