@@ -163,7 +163,7 @@ def process(filename, output, **extra):
     _logger.info("Resolution = %f - between %s and %s"%(res, filename[0], filename[1]))
     return filename, fsc, apix
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
@@ -192,6 +192,8 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
                  Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
     dpi : int
           Dots per inch for output plot
+    disable_sigmoid : bool
+                      Disable the sigmoid model fitting
     extra : dict 
             Unused keyword arguments
     
@@ -214,7 +216,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     _logger.debug("Found resolution at spatial frequency: %f"%sp)
     if pylab is not None:
         vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
-        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi)
+        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid)
     return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T, extra['apix']
 
 def ensure_pixel_size(spi, filename, **extra):
@@ -243,7 +245,7 @@ def ensure_pixel_size(spi, filename, **extra):
         _logger.warn("Changing pixel size: %f (%f/%f) -> %f"%(bin_factor, extra['window'], w, params['apix']))
     return params
 
-def plot_fsc(outputfile, x, y, apix, freq_rng=0.5, dpi=72):
+def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5):
     '''Write a resolution image plot to a file
     
     :Parameters:
@@ -256,21 +258,30 @@ def plot_fsc(outputfile, x, y, apix, freq_rng=0.5, dpi=72):
         FSC score
     apix : float
            Pixel size
+    dpi : int
+          Resolution of output plot
+    disable_sigmoid : bool
+                      Disable the sigmoid model fitting
     freq_rng : float, optional
                Spatial frequency range to plot
     '''
     
     if pylab is None: return 
     pylab.switch_backend('cairo.png')
-    try:
-        coeff = fitting.fit_sigmoid(x, y)
-    except: pass
+    coeff = None
+    if not disable_sigmoid:
+        try: coeff = fitting.fit_sigmoid(x, y)
+        except: _logger.warn("Failed to fit sigmoid, disabling model fitting")
     else:
         pylab.clf()
-        pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
+        if coeff is not None:
+            pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
         markers=['r--', 'b--']
         for i, yp in enumerate([0.5, 0.143]):
-            xp = fitting.sigmoid_inv(coeff, yp)
+            if coeff is not None:
+                xp = fitting.sigmoid_inv(coeff, yp)
+            else:
+                xp = fitting.fit_linear_interp((x,y), yp)
             if (apix/xp) < (2*apix) or not numpy.isfinite(xp):
                 xp = fitting.fit_linear_interp(numpy.hstack((x[:, numpy.newaxis], y[:, numpy.newaxis])), yp)
             if numpy.alltrue(numpy.isfinite(xp)):
@@ -396,6 +407,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-s", sliding=False,  help="Estimate resolution between each neighbor")
         pgroup.add_option("-g", group=False,    help="Group by SPIDER ID")
         pgroup.add_option("",   dpi=72,         help="Resolution of the output plot in dots per inch (DPI)")
+        pgroup.add_option("",   disable_sigmoid=False, help="Disable the sigmoid model fitting")
+        
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
     if main_option:
