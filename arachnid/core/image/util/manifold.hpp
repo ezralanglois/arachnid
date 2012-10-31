@@ -3,10 +3,13 @@
 template<class I, class T>
 void knn_reduce(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, int d, int k)
 {
-	sdata[0]=data[0];
-	scol_ind[0]=col_ind[0];
-	srow_ind[0]=row_ind[0];
-	I j=0;
+	if( snr > 0 )
+	{
+		sdata[0]=data[0];
+		scol_ind[0]=col_ind[0];
+		srow_ind[0]=row_ind[0];
+	}
+	I j=1;
 	for(I r=1;r<snr;++r,++j)
 	{
 		if( r%k==0 ) j+=d;
@@ -59,6 +62,7 @@ I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
 			data[j] = 0.0;
 			col_ind[j] = col_ind[r];
 			row_ind[j] = row_ind[r];
+			j++;
 		}
 
 	}
@@ -80,7 +84,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<nc;++r)
+	for(int r=0;r<n;++r)
 	{
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
@@ -112,6 +116,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 			data_rk[c] = hcur->first;
 			col_rk[c] = hcur->second;
 		}
+		//fprintf(stderr, "push_to_heap-5\n");
 	}
 }
 
@@ -163,10 +168,10 @@ I select_subset_csr(T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr, I* 
 		I r = selected[s];
 		for(int j=row_ptr[r];j<row_ptr[r+1];++j)
 		{
-			if( col_ind[j] != I(-1) )
+			if( index_map[col_ind[j]] != I(-1) )
 			{
 				data[cnt] = data[j];
-				col_ind[cnt] = col_ind[j];
+				col_ind[cnt] = index_map[col_ind[j]];
 				cnt ++;
 			}
 		}
@@ -200,7 +205,10 @@ void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_i
 #	endif
 	for(int r=0;r<nr;++r)
 	{
-		for(int j=row_ptr[r];j<row_ptr[r+1];++j) row_ind[j]=r;
+		for(int j=row_ptr[r];j<row_ptr[r+1];++j)
+		{
+			row_ind[j]=r;
+		}
 	}
 #	ifdef _OPENMP
 #	pragma omp parallel for

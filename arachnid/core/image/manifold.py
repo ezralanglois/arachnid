@@ -53,6 +53,7 @@ def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     '''
     
     dist2 = knn(samp, k, batch)
+    assert(dist2.shape[0]==samp.shape[0])
     dist2 = knn_reduce(dist2, k, mutual)
     return diffusion_maps_dist(dist2, dimension)
 
@@ -75,6 +76,7 @@ def knn_reduce(dist2, k, mutual=False):
             Sparse distance matrix in COO format
     '''
     
+    k+=1 # include self as a neighbor
     n = dist2.shape[0]*k if mutual else dist2.shape[0]*k*2
     data = numpy.empty(n, dtype=dist2.data.dtype)
     row  = numpy.empty(n, dtype=dist2.row.dtype)
@@ -82,18 +84,59 @@ def knn_reduce(dist2, k, mutual=False):
     d = dist2.data.shape[0]/dist2.shape[0] - k
     if d < 0: raise ValueError, "Cannot reduce from %d neighbors to %d"%(dist2.data.shape[0]/dist2.shape[0], k)
     if d > 0:
-        _manifold.knn_reduce(dist2.data, dist2.row, dist2.col, data, row, col, d, k)
+        _manifold.knn_reduce(dist2.data, dist2.col, dist2.row, data, col, row, d, k)
+    else:
+        data[:dist2.data.shape[0]] = dist2.data
+        row[:dist2.row.shape[0]] = dist2.row
+        col[:dist2.col.shape[0]] = dist2.col
+        
     if not mutual:
-        m=dist2.shape[0]*k
+        m = dist2.shape[0]*k
         data[m:] = data[:m]
         row[m:] = row[:m]
         col[m:] = col[:m]
     else:
-        n=_manifold.knn_mutual(data, row, col, k)
+        n=_manifold.knn_mutual(data, col, row, k)
         data = data[:n]
         col = col[:n]
         row = row[:n]
-    return scipy.sparse.coo_matrix( (data,(row, col)), shape=data.shape )
+    return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
+
+def knn_simple(samp, k, dtype=numpy.float):
+    ''' Calculate k-nearest neighbors and store in a sparse matrix
+    in the COO format.
+    
+    :Parameters:
+    
+    samp : array
+           2D data array
+    k : int
+        Number of nearest neighbors
+    batch : int
+            Size of temporary distance matrix to hold in memory
+    
+    :Returns:
+    
+    dist2 : sparse array
+            Sparse distance matrix in COO format
+    '''
+    import scipy.spatial
+    
+    k+=1 # include self as a neighbor
+    n = samp.shape[0]*k
+    data = numpy.empty(n, dtype=dtype)
+    col = numpy.empty(n, dtype=numpy.longlong)
+    dist = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(samp, 'sqeuclidean'))
+    
+    for r in xrange(samp.shape[0]):
+        idx = numpy.argsort(dist[r, :])
+        data[r*k:(r+1)*k] = dist[r, idx[:k]]
+        col[r*k:(r+1)*k] = idx[:k]
+    
+    row = numpy.empty(n, dtype=numpy.longlong)
+    for r in xrange(samp.shape[0]):
+        row[r*k:(r+1)*k]=r
+    return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def knn(samp, k, batch=10000, dtype=numpy.float):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
@@ -114,9 +157,9 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
             Sparse distance matrix in COO format
     '''
     
-    k+=1
+    k+=1 # include self as a neighbor
     n = samp.shape[0]*k
-    nbatch = int(samp.shape[0]/float(batch))
+    nbatch = max(1, int(samp.shape[0]/float(batch)))
     batch = int(samp.shape[0]/float(nbatch))
     data = numpy.empty(n, dtype=dtype)
     col = numpy.empty(n, dtype=numpy.longlong)
@@ -125,17 +168,16 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     gemm = scipy.linalg.fblas.dgemm
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
+        offset=r*batch*k
         for c in xrange(0, samp.shape[0], batch):
             dist2 = gemm(-2.0, samp[r*batch:(r+1)*batch], samp[c*batch:(c+1)*batch], trans_b=True, beta=0, c=dense, overwrite_c=1).T
             dist2 += a[r:r+batch, numpy.newaxis]
             dist2 += a[c:c+batch]
-            _manifold.push_to_heap(dist2, data[r*batch*k:], col[r*batch*k:], c, k)
-        _manifold.finalize_heap(data[r*batch*k:], col[r*batch*k:], k)
-        
-        #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
-        #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
-            
-    del dist2, dense
+            _manifold.push_to_heap(dist2, data[offset:offset+batch], col[offset:offset+batch], c, k)
+        _manifold.finalize_heap(data[offset:offset+batch], col[offset:offset+batch], k)
+    
+    dist2=None
+    del dense
     row = numpy.empty(n, dtype=numpy.longlong)
     for r in xrange(samp.shape[0]):
         row[r*k:(r+1)*k]=r
@@ -200,12 +242,16 @@ def diffusion_maps_dist(dist2, dimension):
     if hasattr(scipy.sparse.linalg, 'eigen_symmetric'):
         evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
     else:
-        evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1)
+        try:
+            evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1)
+        except:
+            _logger.error("%s --- %d"%(str(L.shape), dimension))
+            raise
     del L
     evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
-    index = numpy.argsort(evals)[-2:-2-dimension:-1]
-    evecs = D[:,numpy.newaxis] * evecs[:, index]
-    return evecs, evals[index].squeeze(), index
+    index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
+    evecs = D[:,numpy.newaxis] * evecs[:, index2]
+    return evecs, evals[index2].squeeze(), index
     
 def largest_connected(dist2):
     ''' Find the largest connected component in a graph
@@ -227,7 +273,7 @@ def largest_connected(dist2):
     tmp = (tmp + tmp.T)/2
     n, comp = scipy.sparse.csgraph.cs_graph_components(tmp)
     b = len(numpy.unique(comp))
-    _logger.debug("Check connected components: %d -- %d -- %d (%d)"%(n, b, dist2.shape[0], dist2.data.shape[0]))
+    _logger.info("Check connected components: %d -- %d -- %d (%d)"%(n, b, dist2.shape[0], dist2.data.shape[0]))
     n = b
     index = None
     if n > 1:
@@ -237,15 +283,14 @@ def largest_connected(dist2):
             if bins[i] > -1:
                 count[i] = numpy.sum(comp == bins[i])
         _logger.info("Number of components: %d"%(n))
-        if 1 == 0:
+        if 1 == 1:
             idx = numpy.argsort(count)[::-1]
             for i in idx[:10]:
                 _logger.info("%d: %d"%(bins[i], count[i]))
-        index = numpy.argwhere(comp == bins[numpy.argmax(count)])
+        index = numpy.argwhere(comp == bins[numpy.argmax(count)]).ravel()
+        index = index.astype(dist2.indices.dtype)
         n=_manifold.select_subset_csr(dist2.data, dist2.indices, dist2.indptr, index)
-        dist2.data=dist2.data[:n]
-        dist2.indices=dist2.indices[:n]
-        dist2.indptr=dist2.indptr[:index.shape[0]+1]
+        dist2=scipy.sparse.csr_matrix((dist2.data[:n],dist2.indices[:n], dist2.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
     return dist2, index
 
 
