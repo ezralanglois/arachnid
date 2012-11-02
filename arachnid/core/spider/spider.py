@@ -269,7 +269,19 @@ class Session(spider_session.Session):
         if not isinstance(ring_file, str) or ring_file == "":
             if isinstance(ring_file, int): ring_file = os.path.join(os.path.dirname(inputfile), "scratch_rings_%d"%ring_file)
             elif ring_file=="": ring_file = os.path.join(os.path.dirname(inputfile), "scratch_rings")
-        #test_mirror = '(1)' if test_mirror else '(0)'
+        if 1 == 0:
+            test_mirror = '(1)' if test_mirror else '(0)'
+        elif 1 == 1:
+            test_mirror = 'Y' if test_mirror else 'N'
+            
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror+=",Y"
+            #else:
+            #    test_mirror+=",N"
+        else:
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror = spider_tuple(test_mirror, 1)
+            else: test_mirror = spider_tuple(test_mirror)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
         session.invoke('ap ref', spider_stack(reference, ref_count), 
@@ -278,7 +290,7 @@ class Session(spider_session.Session):
                            spider_doc(refangles), spider_image(ring_file), spider_stack(inputfile, input_count), 
                            spider_select(inputselect), spider_doc(inputangles), 
                            spider_tuple(angle_range, angle_threshold),
-                           spider_tuple(test_mirror),
+                           test_mirror,
                            spider_doc(outputfile))
         return outputfile
     
@@ -346,13 +358,25 @@ class Session(spider_session.Session):
         session.de(outputfile)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
+        if 1 == 0:
+            test_mirror = '(1)' if test_mirror else '(0)'
+        elif 1 == 1:
+            test_mirror = 'Y' if test_mirror else 'N'
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror+=",Y"
+            #else:
+            #    test_mirror+=",N"
+        else:
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror = spider_tuple(test_mirror, 1)
+            else: test_mirror = spider_tuple(test_mirror)
         session.invoke('ap sh', spider_stack(reference, ref_count), 
                        spider_select(selectref), spider_tuple(trans_range, trans_step), 
                        spider_tuple(first_ring, ring_last, ring_step, ray_step), 
                        spider_doc(refangles), spider_stack(inputfile, input_count), 
                        spider_select(inputselect), spider_doc(inputangles), 
                        spider_tuple(angle_range, angle_threshold),
-                       spider_tuple(test_mirror),
+                       test_mirror,
                        spider_doc(outputfile))
         return outputfile
 
@@ -2621,6 +2645,40 @@ class Session(spider_session.Session):
         
         return spider_session.spider_command_fifo(session, 'wu', inputfile, outputfile, "Take square root of an image")
 
+def supports_internal_rtsq(session):
+    ''' TEst if the SPIDER version supports internal RTSQ
+    
+    :Parameters:
+        
+    session : Session
+              Current spider session
+    
+    :Returns:
+    
+    support : bool
+              True if the version support internal RTSQ
+    '''
+    
+    return session.version[0] >= 19 and session.version >= 11 and 1 ==0
+
+def max_translation_range(window, ring_last, **extra):
+    ''' Ensure a valid translation range
+    
+    :Pararameters:
+    
+    window : int
+             Size of the window
+    ring_last : int
+                Last alignment ring
+    
+    :Returns:
+    
+    trans_range : int
+                  Max translation range
+    '''
+    
+    return int(window/2.0) - ring_last - 3
+
 def ensure_proper_parameters(param):
     ''' Ensure certain SPIDER parameters have the proper values
     
@@ -2631,11 +2689,11 @@ def ensure_proper_parameters(param):
     '''
     
     if 'ring_last' in param:
-        if param['ring_last'] == 0: 
+        if param['ring_last'] == 0 or param['ring_last'] > (param['window']/2.0): 
             param['ring_last'] = int(param['pixel_diameter']/2.0)
         
         if (param['window']/2 - param['ring_last'] - param['trans_range']) < 3:
-            param['trans_range'] = int(param['window']/2.0) - param['ring_last'] - 3
+            param['trans_range'] = max_translation_range(**param)
             if (param['trans_range']%param['trans_step']) > 0:
                 val = param['trans_range']-(param['trans_range']%param['trans_step'])
                 if val > 3: param['trans_range']=val
@@ -2881,9 +2939,9 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
     if rank == 0: _logger.info("Generating phase flip stack")
     session.de(outputfile)
     
-    stack_count, = session.fi_h(outputfile, ('MAXIM', ))
-    for inputfile, outputfile in enumerate_stack(inputfile, stack_count, outputfile):
-        i = inputfile[1]
+    stack_count, = session.fi_h(spider_stack(inputfile), ('MAXIM', ))
+    for inputfile, outputfile in enumerate_stack(inputfile, int(stack_count), outputfile):
+        i = inputfile[1]-1
         if defocus != float(defocusvals[i]):
             defocus = float(defocusvals[i])
             if mult_ctf:
@@ -2897,6 +2955,8 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
 def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0):
     ''' Test if output file is the correct size and has the correct number of images, if not then
     copy the images in the correct size and number
+    
+    .. todo:: write selection file and compare when not writing
     
     :Parameters:
     
@@ -2925,10 +2985,16 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
         stack_count = int(stack_count)
         width = int(width)
     else: stack_count = 0
-    if stack_count != len(selection) or width != window:
+    selection_file = os.path.splitext(outputfile)[0]+'.csv'
+    selection_file = os.path.join(os.path.dirname(selection_file), "sel_"+os.path.basename(selection_file))
+    
+    remote_select = numpy.loadtxt(selection_file, delimiter=",") if os.path.exists(selection_file) else None
+    if stack_count != len(selection) or stack_count != remote_select.shape[0] or width != window or remote_select is None or not numpy.alltrue(remote_select == selection):
         if rank == 0:
-            if stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
-            else:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
+            if remote_select is None:  _logger.info("Transfering data to cache - selection file not found")
+            elif width != window:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
+            elif stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
+            else: _logger.info("Transfering data to cache - selection files do not match")
         input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
         width = session.fi_h(spider_stack(input), ('NSAM', ))
         if width != window:
@@ -2939,6 +3005,7 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
         if stack_count == 0: 
             import socket
             raise ValueError, "No images copied for %s"%socket.gethostname()
+        numpy.savetxt(selection_file, selection, delimiter=",")
         return True
     return False
 
