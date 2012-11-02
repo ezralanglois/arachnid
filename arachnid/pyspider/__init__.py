@@ -20,4 +20,5 @@
     filter_volume
     mask_volume
     resolution
+    legion_to_spider
 '''
