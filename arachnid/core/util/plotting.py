@@ -7,7 +7,10 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 from ..image import analysis
-import numpy, pylab
+import numpy, pylab, logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def plot_embedding(x, y, selected=None, dpi=80, **extra):
     ''' Plot an embedding
@@ -98,6 +101,10 @@ def plot_images(fig, img_iter, x, y, zoom, radius):
     
     for i, img in enumerate(img_iter):
         im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r)
-        ab = AnnotationBbox(im, (x[i], y[i]), xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        try:
+            ab = AnnotationBbox(im, (x[i], y[i]), xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        except:
+            _logger.error("%d < %d"%(i, len(x)))
+            raise
         fig.gca().add_artist(ab)
 
