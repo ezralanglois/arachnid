@@ -4,6 +4,10 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import numpy, scipy.optimize
+import logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 
 def fit_linear_interp(fsc_curve, fsc_value):
@@ -22,12 +26,21 @@ def fit_linear_interp(fsc_curve, fsc_value):
          Spatial frequency at fsc_value
     '''
     
-    idx = numpy.argsort(fsc_curve[:, 1])
-    ridx = idx[numpy.searchsorted(fsc_curve[idx, 1], fsc_value, 'left')]
-    if fsc_curve[ridx, 1] > 0.5 and ridx < len(fsc_curve): lidx = ridx+1
+    if isinstance(fsc_curve, tuple):
+        x, y = fsc_curve
+    else:
+        x, y = fsc_curve[:, 0], fsc_curve[:, 1]
+    
+    idx = numpy.argsort(y)
+    ridx = idx[numpy.searchsorted(y[idx], fsc_value, 'left')]
+    if y[ridx] > 0.5 and (ridx+1) < len(y): lidx = ridx+1
     elif ridx > 0: lidx = ridx-1
     else: lidx=ridx
-    func = numpy.poly1d(numpy.polyfit([fsc_curve[ridx, 1], fsc_curve[lidx, 1]], [fsc_curve[ridx, 0], fsc_curve[lidx, 0]], 1))
+    try:
+        func = numpy.poly1d(numpy.polyfit([y[ridx], y[lidx]], [x[ridx], x[lidx]], 1))
+    except:
+        _logger.error("%d > %d --- %d > %d"%(ridx, len(y), lidx, len(y)))
+        raise
     return func(fsc_value)
 
 def fit_sigmoid_interp(fsc_curve, fsc_value):

@@ -174,13 +174,13 @@ from ..core.metadata import spider_params, spider_utility
 from ..core.app import program
 from ..app import autopick
 from ..util import crop
-import reference, defocus, align, refine
+import reference, defocus, align, refine, legion_to_spider
 import os, glob, logging, re
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mpi_mode, mpi_command=None, **extra):
+def batch(files, output, mpi_mode, mpi_command=None, leginon_filename="", **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -196,6 +196,9 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     extra : dict
             Unused keyword arguments
     '''
+    
+    if legion_to_spider.is_legion_filename(files):
+        files = legion_to_spider.convert_to_spider(files, leginon_filename)
     
     if mpi_command == "": mpi_command = detect_MPI()
     run_single_node=\
@@ -495,6 +498,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",    local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    spider_path="",         help="Filename for SPIDER executable", gui=dict(filetype="open"))
+    group.add_option("",    leginon_filename="mapped_micrographs/mic_0000000", help="Filename used to map legion files to SPIDER filenames")
     parser.add_option_group(group)
     
 def check_options(options, main_option=False):

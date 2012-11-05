@@ -38,6 +38,7 @@ examples range from unstacking a SPIDER image stack to customizing the FSC plot.
     plot_angles
     scale_align
     corrupt_particles
+    phase_flip
  
 -------------------------------
 Application Programs Interface

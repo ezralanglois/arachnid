@@ -19,4 +19,5 @@
     plot_angles
     scale_align
     corrupt_particles
+    phase_flip
 '''
