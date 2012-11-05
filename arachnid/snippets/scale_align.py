@@ -35,7 +35,7 @@ if __name__ == '__main__':
     
     
     # Read an alignment file
-    align = format.read(align_file)
+    align = format.read(align_file, numeric=True)
     
     if hasattr(align[0], 'tx'):
         for i in xrange(len(align)):
