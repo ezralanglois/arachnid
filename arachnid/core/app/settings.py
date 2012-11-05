@@ -277,7 +277,7 @@ class Option(optparse.Option):
         if 'dependent' in kwargs:
             self._dependent = kwargs["dependent"]
             del kwargs["dependent"]
-        self._dependent = self._dependent and self.gui_hint['type'] != 'nogui'
+        self._dependent = self._dependent and ('type' not in self.gui_hint or self.gui_hint['type'] != 'nogui')
         
         optparse.Option.__init__(self, *args, **kwargs)
         self.choices = kwargs['choices'] if choices is None and 'choices' in kwargs else choices
