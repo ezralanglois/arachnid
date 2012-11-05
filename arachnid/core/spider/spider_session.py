@@ -305,8 +305,8 @@ class Session(object):
             try: os.remove(self.pipename)
             except: pass
         tmp_files = ['jnkASSIGN1', 'LOG.%s'%self.dataext, 'LOG.tmp']
-        if not self._results:
-            tmp_files.extend(glob.glob('results.%s.*'%self.dataext))
+        #if not self._results:
+        #    tmp_files.extend(glob.glob('results.%s.*'%self.dataext))
         tmp_files.extend(glob.glob('fort.*'))
         tmp_files.extend(glob.glob('_*.'+self.dataext))
         tmp_files.extend(glob.glob('_*.%s'%self.dataext))
@@ -394,11 +394,11 @@ class Session(object):
         if not self._results:
             self._invoke('MD', 'RESULTS ON', test_error=False)
             _logger.error("here: %f"%self[9])
-            self._invoke('MD', 'TERM ON', test_error=False) 
+            #self._invoke('MD', 'TERM ON', test_error=False) 
             self._invoke(*args, test_error=False)
             self._invoke('my fl', test_error=False)
             self._invoke('MD', 'RESULTS OFF', test_error=False)
-            self._invoke('MD', 'TERM OFF', test_error=False) 
+            #self._invoke('MD', 'TERM OFF', test_error=False) 
         
     
     def set(self, **kwargs):
