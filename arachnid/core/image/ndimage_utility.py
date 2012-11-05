@@ -727,7 +727,7 @@ def filter_gaussian_lp(img, sigma, out=None):
     return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect', output=out)
 
 def filter_butterworth_lp(img, low_cutoff, high_cutoff):
-    '''
+    ''' Not finished!
     
     ..todo:: finish this function
     
@@ -750,6 +750,103 @@ def filter_butterworth_lp(img, low_cutoff, high_cutoff):
     radius = numpy.sqrt((x**2)[numpy.newaxis] + (y**2)[:, numpy.newaxis])
     f = 1 / (1.0 + (radius / cutoff)**n);
     return filter_image(img, f)
+
+def filter_raised_cosine_lp(img, low_cutoff, high_cutoff, pad=1):
+    ''' Lowpass filter with a raised cosine edge
+    
+    :Parameters:
+    
+    img : array
+          Image to filter
+    low_cutoff : float
+                 Normalized cutoff frequency
+    high_cutoff : float
+                  Normalized cutoff frequency
+    pad : int
+          Amount of padding to use
+    
+    :Returns:
+    
+    out : array
+          Filtered image
+    
+    .. note:: 
+        
+        Taken from: XMIPP
+    
+    '''
+    
+    r1 = 0.5/low_cutoff
+    r2 = 0.5/high_cutoff
+    img = pad_image(img, numpy.asarray(img.shape)*pad)
+    rad = radial_matrix(numpy.asarray(img.shape))
+    f = rad.copy()
+    sel = numpy.logical_and(rad > low_cutoff, rad <= high_cutoff)
+    f[numpy.where(rad<=r1)] = 1.0
+    f[numpy.where(rad>r2)] = 0.0
+    f[sel] = 0.5*(1 + numpy.cos(numpy.pi/(high_cutoff-low_cutoff) * (rad[sel] - r1)));
+    return filter_image(img, f, pad)
+
+def radial_matrix(shape):
+    ''' Create a radial matrix
+    
+    .. todo:: 3d matrix
+    
+    :Parameters:
+    
+    shape : tuple
+            Shape of the radial matrix
+    
+    :Returns:
+    
+    rad : array
+          Radial matrix
+    '''
+    
+    try: n=len(shape)
+    except: n = 0
+    if n < 3:
+        if n == 1: shape=shape[0]
+        if n < 2:
+            beg = shape/2
+            end = beg + beg%2
+            beg2 = beg
+            end2 = end
+        else:
+            beg = shape[0]/2
+            end = beg + beg%2
+            beg2 = shape[1]/2
+            end2 = beg2 + beg2%2
+        [X,Y]=numpy.mgrid[-beg:end,-beg2:end2]
+        A=X+numpy.i*Y
+        return numpy.abs(A)
+    else:
+        #from util._new_numpy import meshgrid
+        
+        raise ValueError, "3D matrix not supported"
+
+def makeRadialMatrix(matrixSize, center=(0.0,0.0), radius=1.0):
+    """Generate a square matrix where each element val is
+    its distance from the centre of the matrix
+ 
+    :Parameters:
+        matrixSize: integer
+            the size of the resulting matrix on both dimensions (e.g 256)
+        radius:  float
+            scale factor to be applied to the mask (circle with radius of
+            [1,1] will extend just to the edge of the matrix). Radius can
+            be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
+        center:  2x1 tuple or list (default=[0.0,0.0])
+            the centre of the mask in the matrix ([1,1] is top-right
+            corner, [-1,-1] is bottom-left)
+    """
+    if type(radius) in [int, float]: radius = [radius,radius]
+ 
+    yy, xx = numpy.mgrid[0:matrixSize, 0:matrixSize]#NB need to add one step length because
+    xx = ((1.0- 2.0/matrixSize*xx)+center[0])/radius[0]
+    yy = ((1.0- 2.0/matrixSize*yy)+center[1])/radius[1]
+    rad = numpy.sqrt(numpy.power(xx,2) + numpy.power(yy,2))
+    return rad
 
 def filter_image(img, filt, pad=1):
     '''
