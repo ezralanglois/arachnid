@@ -123,7 +123,6 @@ def is_legion_filename(files):
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
-    from ..core.app.settings import OptionGroup
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
     pgroup.add_option("-o", output="mapped_micrographs/mic_0000000", help="Output filename for micrograph links", gui=dict(filetype="save"), required=True)
