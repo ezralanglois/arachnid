@@ -17,8 +17,11 @@ To run:
    :lines: 20-
    :linenos:
 '''
-from arachnid.core.metadata import spider_params, format, spider_utility
+from arachnid.core.metadata import spider_params, format
+from arachnid.core.parallel import mpi_utility
+from arachnid.core.image import ndimage_file
 from arachnid.core.spider import spider
+#import numpy
 
 if __name__ == '__main__':
     
@@ -26,18 +29,30 @@ if __name__ == '__main__':
     output_stack = ""
     defocus_file = ""
     params_file="params"
+    output_select=""
     
-    spi = spider.open_session([input_stack], spider_path="", thread_count=0, enable_results=False) # Create a SPIDER session using the extension of the input_volume
+    spi = spider.open_session([output_stack], spider_path="", thread_count=0, enable_results=False) # Create a SPIDER session using the extension of the input_volume
     params = spider_params.read(params_file)
     defocus = format.read(defocus_file, numeric=True)
     
+    ftimage = None
+    ctfimage = None
     ctf = None
-    for particle in defocus_file:
+    temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file")
+    outid=1
+    for particle in defocus:
         id, filename = particle.rlnImageName.split('@')
-        defocus = (particle.rlnDefocusU + rlnDefocusV) / 2.0
-        ctf = session.tf_ct(defocus=defocus, outputfile=ctf, **params)
-        ftimage = session.ft((filename, id), outputfile=ftimage)           # Fourier transform reference volume
-        ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)           # Multiply volume by the CTF
-        session.ft(ctfimage, outputfile=(output_stack, id))
+        id = int(id)
+        if hasattr(particle, 'rlnDefocusV'):
+            defocus = (particle.rlnDefocusU + particle.rlnDefocusV) / 2.0
+        else: defocus = particle.rlnDefocusU
+        ctf = spi.tf_ct(defocus=defocus, outputfile=ctf, **params)
+        #temp_spider_file
+        ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file), id-1)
+        ftimage = spi.ft(temp_spider_file, outputfile=ftimage)           # Fourier transform reference volume
+        ctfimage = spi.mu(ftimage, ctf, outputfile=ctfimage)           # Multiply volume by the CTF
+        spi.ft(ctfimage, outputfile=(output_stack, outid))
+        outid+=1
+    #format.write(output_select, numpy.hstack((numpy.arange(1, len(defocus)+1)[:, numpy.newaxis], numpy.ones(len(defocus), 1))))
 
 
