@@ -293,6 +293,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     _logger.debug("Writing SPIDER params file")
     spider_params.write(os.path.join(output, param['param_file']), **extra)
+    del extra['window_size']
     
     param.update(extra)
     param.update(invert=is_ccd)
@@ -474,7 +475,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
-    pgroup.add_option("-o", output="",          help="Output directory with project name", gui=dict(filetype="save"), required=True)
+    pgroup.add_option("-o", output=".",         help="Output directory with project name", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume", gui=dict(filetype="open"), required=True)
     pgroup.add_option("", is_ccd=False,         help="Set true if the micrographs were collected on a CCD (and have not been processed)", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1), required=True)
@@ -486,6 +487,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     # Additional options to change
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
+    group.add_option("",    window_size=0,          help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
     group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
     group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)
