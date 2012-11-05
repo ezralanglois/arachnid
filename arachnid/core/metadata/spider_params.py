@@ -131,7 +131,7 @@ def read(filename, extra=None):
     
     param = {}
     if 'comm' not in param or param['comm'] is None or param['comm'].Get_rank() == 0:
-        bin_factor = extra.get('bin_factor', 1.0)
+        bin_factor = extra.get('bin_factor', 1.0) if extra is not None else 1.0
         #      1    2     3      4      5    6     7    8          9            10        11      12             13         14    15    16   17         18         19  20
         keys="zip,format,width,height,apix,voltage,cs,source,defocus_spread,astigmatism,azimuth,ampcont,envelope_half_width,lam,maxfreq,dec,window,pixel_diameter,xmag,res".split(',')
         fin = file(filename, 'r')

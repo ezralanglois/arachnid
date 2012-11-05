@@ -125,7 +125,7 @@ The command above will create a directory called `ribosome_70s` with the followi
 	align.cfg  data  refine.cfg  refinement  win
 	
 	ribosome_70s/cluster/data:
-	paramslm1
+	params.spi
 	
 	ribosome_70s/cluster/refinement:
 	

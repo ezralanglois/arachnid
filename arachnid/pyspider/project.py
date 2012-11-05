@@ -174,13 +174,13 @@ from ..core.metadata import spider_params, spider_utility
 from ..core.app import program
 from ..app import autopick
 from ..util import crop
-import reference, defocus, align, refine
+import reference, defocus, align, refine, legion_to_spider
 import os, glob, logging, re
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mpi_mode, mpi_command=None, **extra):
+def batch(files, output, mpi_mode, mpi_command=None, leginon_filename="", **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -196,6 +196,9 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     extra : dict
             Unused keyword arguments
     '''
+    
+    if legion_to_spider.is_legion_filename(files):
+        files = legion_to_spider.convert_to_spider(files, leginon_filename)
     
     if mpi_command == "": mpi_command = detect_MPI()
     run_single_node=\
@@ -290,6 +293,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     _logger.debug("Writing SPIDER params file")
     spider_params.write(os.path.join(output, param['param_file']), **extra)
+    del extra['window_size']
     
     param.update(extra)
     param.update(invert=is_ccd)
@@ -471,7 +475,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
-    pgroup.add_option("-o", output="",          help="Output directory with project name", gui=dict(filetype="save"), required=True)
+    pgroup.add_option("-o", output=".",         help="Output directory with project name", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume", gui=dict(filetype="open"), required=True)
     pgroup.add_option("", is_ccd=False,         help="Set true if the micrographs were collected on a CCD (and have not been processed)", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1), required=True)
@@ -483,6 +487,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     # Additional options to change
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
+    group.add_option("",    window_size=0,          help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
     group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
     group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)
@@ -495,6 +500,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",    local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    spider_path="",         help="Filename for SPIDER executable", gui=dict(filetype="open"))
+    group.add_option("",    leginon_filename="mapped_micrographs/mic_0000000", help="Filename used to map legion files to SPIDER filenames")
     parser.add_option_group(group)
     
 def check_options(options, main_option=False):

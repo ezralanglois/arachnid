@@ -220,6 +220,7 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
     for filename in files:
         mic = spider_utility.spider_id(filename)
         if select != "":
+            if not os.path.exists(spider_utility.spider_filename(select, mic)): continue
             select_vals = format.read(select, spiderid=mic, numeric=True)
             if len(select_vals) > 0 and not hasattr(select_vals[0], 'id'):
                 raise ValueError, "Error with selection file (`--select`) missing `id` in header, return with `--select filename=id` or `--select filename=id,select` indicating which column has the id and select"

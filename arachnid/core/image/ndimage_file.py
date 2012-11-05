@@ -73,7 +73,7 @@ def is_spider_format(filename):
     
     return spider.is_readable(filename)
 
-def copy_to_spider(filename, tempfile):
+def copy_to_spider(filename, tempfile, index=None):
     ''' Test if input file is in SPIDER format, if not copy to tempfile
     
     :Parameters:
@@ -82,6 +82,8 @@ def copy_to_spider(filename, tempfile):
                Input filename to test
     tempfile : str
                Output filename (if input file not SPIDER format)
+    index : int, optional
+            Index of image in stack
     
     :Returns:
     
@@ -91,7 +93,7 @@ def copy_to_spider(filename, tempfile):
     
     if is_spider_format(filename): return filename
     
-    img = read_image(filename)
+    img = read_image(filename, index)
     spider_writer.write_image(tempfile, img)
     #for index, img in enumerate(iter_images(filename)):
     #    spider_writer.write_image(tempfile, img, index)
