@@ -155,7 +155,8 @@ def local_neighbor_average(samp, neigh):
     '''
     
     avgsamp = numpy.empty_like(samp)
-    if numpy.mod(samp.shape[0], neigh.col.shape[0]) != 0: raise ValueError, "Sample array does not match neighborhood: %d % %d = %d"%(samp.shape[0], neigh.col.shape[0], numpy.mod(samp.shape[0], neigh.col.shape[0]) )
+    mval = numpy.mod(samp.shape[0], neigh.col.shape[0]) 
+    if mval != 0 and mval != samp.shape[0]: raise ValueError, "Sample array does not match neighborhood: %d mod %d = %d"%(samp.shape[0], neigh.col.shape[0], mval )
     neighbors = neigh.col.shape[0]/samp.shape[0]
     b = 0
     for i in xrange(samp.shape[0]):
