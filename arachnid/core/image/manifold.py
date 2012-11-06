@@ -138,6 +138,32 @@ def knn_simple(samp, k, dtype=numpy.float):
         row[r*k:(r+1)*k]=r
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
+def local_neighbor_average(samp, neigh):
+    ''' Create a set of locally averaged samples
+    
+    :Parameters:
+    
+    samp : array
+           Sample
+    neigh : sparse matrix
+            Neighborhood
+    
+    :Returns:
+    
+    avg_samp : array
+               Locally averaged sample
+    '''
+    
+    avgsamp = numpy.empty_like(samp)
+    if (samp.shape[0]%neigh.col.shape[0]) != 0: raise ValueError, "Sample array does not match neighborhood"
+    neighbors = neigh.col.shape[0]/samp.shape[0]
+    b = 0
+    for i in xrange(samp.shape[0]):
+        e = b+neighbors
+        avgsamp[i] = numpy.mean(samp[neigh.col[b:e]])
+        b=e
+    return avgsamp
+
 def knn(samp, k, batch=10000, dtype=numpy.float):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
