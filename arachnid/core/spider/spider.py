@@ -1651,6 +1651,11 @@ class Session(spider_session.Session):
         _logger.debug("Create 2D projections of a 3D object")
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
         if outputfile is None: outputfile = session.ms(total_size, spider_image(inputfile))
+        elif int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
+            session.de(outputfile)
+            outputfile = session.ms(total_size, spider_image(inputfile), outputfile=outputfile)
+        #param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
+        
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
@@ -3129,11 +3134,16 @@ def interpolate_stack(session, inputfile, outputfile=None, window=0, **extra):
     '''
     
     if outputfile is not None and os.path.exists(session.replace_ext(outputfile)):
-        width, = session.fi_h(spider_stack(inputfile), ('NSAM'))
-        if window == width: return outputfile
-    width, = session.fi_h(spider_stack(inputfile), ('NSAM'))
+        width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
+        width, count = int(width), int(count)
+        if window == width and count == int(session.fi_h(spider_stack(session.replace_ext(outputfile)), ('MAXIM', ))[0]): return outputfile
+    width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
+    width, count = int(width), int(count)
     if window != width:
-        inputfile=session.ip(spider_stack(inputfile), (window, window), outputfile=outputfile)
+        session.de(outputfile)
+        for i in xrange(1, count+1):
+            session.ip(spider_image(inputfile, i), (window, window), outputfile=spider_image(outputfile, i))
+        return outputfile
     return inputfile
 
 def copy_safe(session, inputfile, window=0, **extra):
