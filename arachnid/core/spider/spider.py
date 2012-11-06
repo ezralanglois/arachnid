@@ -2952,6 +2952,50 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
         ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
         session.ft(ctfimage, outputfile=outputfile) 
 
+def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, **extra):
+    ''' Scale parameters that depend on the window size
+    
+    :Parameters:
+    
+    bin_factor : float
+                 Current decimation factor
+    dec_level : int
+                Previous decimation level    
+    pj_radius : int
+                Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
+    trans_range : float
+                  Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
+    trans_step : float
+                 Translation step size
+    first_ring : int
+                 First polar ring to analyze
+    ring_last : int
+                Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
+    ring_step : int
+                Polar ring step size
+    cg_radius : int
+                Radius of reconstructed object
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    param : dict
+            Dictionary of updated parameters
+    '''
+    
+    if dec_level == bin_factor: return {}
+    param = {}
+    factor = dec_level/bin_factor
+    if pj_radius > 0: param['pj_radius']=int(pj_radius*factor)
+    if trans_range > 1: param['trans_range']=max(1, int(trans_range*factor))
+    if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
+    if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
+    if ring_last > 0: param['ring_last']=int(ring_last*factor)
+    if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
+    if cg_radius > 0: param['cg_radius']=int(cg_radius*factor)
+    return param
+
 def cache_data(session, inputfile, selection, outputfile, window, rank=0):
     ''' Test if output file is the correct size and has the correct number of images, if not then
     copy the images in the correct size and number
