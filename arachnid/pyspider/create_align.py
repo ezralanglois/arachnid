@@ -75,6 +75,10 @@ Useful Options
     
     Header labelling important columns in the `stack-select` (Default: id:0,stack_id:1,micrograph:3)
 
+.. option:: --data-ext <STR>
+    
+    SPIDER extension for data files
+
 Other Options
 =============
 
@@ -94,7 +98,7 @@ import numpy, logging, glob, os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, **extra):
+def batch(files, output, data_ext, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -103,12 +107,15 @@ def batch(files, output, **extra):
                 List of input filenames
         output : str
                  Output filename for reconstructed volume
+        data_ext : str
+                   SPIDER extension
         extra : dict
                 Unused keyword arguments
     '''
     
-    alignvals = create_alignment(files, **extra)   
-    format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
+    alignvals = create_alignment(files, **extra)
+    if data_ext != "" and data_ext[0] != '.': output+='.'
+    format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
 
 def create_alignment(files, sort_align=False, **extra):
@@ -294,12 +301,14 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[],              help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("",   data_ext="spi",              help="SPIDER extension for data files")
     pgroup.add_option("-d", defocus_file ="",                help="Filename for the defocus_file values for each micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   defocus_file_header="id:0,defocus_file:1", help="Header labelling important columns in the `defocus_file` file")
     pgroup.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
     pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus_file file")
+    
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
     
