@@ -138,7 +138,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         eig_dist_cent = scipy.spatial.distance.cdist(eigs2, cent.reshape((1, len(cent))), metric='euclidean').ravel()
         th = analysis.otsu(eig_dist_cent)
         sel = eig_dist_cent < th
-        if 1 == 1:
+        if 1 == 0:
             from ..core.image import manifold
             feat, evals, index = manifold.diffusion_maps(test, 5, k=10, mutual=True, batch=10000)
             '''
@@ -591,13 +591,14 @@ def test_covariance(eigs, data, output, **extra):
     '''
     
     
-    
+    data = process_queue.recreate_global_dense_matrix(data)
     cent = numpy.median(eigs, axis=0)
     eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
     idx = numpy.argsort(eig_dist_cent)
     
+    
     dcov = numpy.cov(data)
-    ecov = numpy.cov(data)
+    ecov = numpy.cov(eigs)
     dmcov = numpy.zeros(idx.shape[0])
     emcov = numpy.zeros(idx.shape[0])
     for i in xrange(1, idx.shape[0]):
@@ -605,14 +606,12 @@ def test_covariance(eigs, data, output, **extra):
         emcov[i] = numpy.mean(ecov[idx, idx[:, numpy.newaxis]])
     x = numpy.arange(1, len(ecov)+1)
     pylab.clf()
-    pylab.plot(x, ecov, 'r-', x, emcov, 'g.-')
+    pylab.plot(x, ecov, 'r..', x, emcov, 'g.*')
     pylab.savefig(format_utility.new_filename(output, "cov_", ext="png"))
 
 def test_variance(eigs, data, output, **extra):
     '''
     '''
-    
-    numpy.cov(data)
     
     cent = numpy.median(eigs, axis=0)
     eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
