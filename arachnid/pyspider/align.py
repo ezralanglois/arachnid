@@ -303,8 +303,10 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
             Unused keyword arguments
     '''
     
+    extra.update(spider_params.update_params(**extra))
+    extra.update(spider.scale_parameters(**extra))
     angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
-    extra.update(prealign_input(spi, use_flip=use_flip, **extra))
+    extra.update(prealign_input(spi, align, use_flip=use_flip, **extra))
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
@@ -532,13 +534,15 @@ def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra
         return part_count < full_count
     return False
 
-def prealign_input(spi, input_stack, use_flip, flip_stack, dala_stack, inputangles, cache_file, **extra):
+def prealign_input(spi, align, input_stack, use_flip, flip_stack, dala_stack, inputangles, cache_file, **extra):
     ''' Select and pre align the proper input stack
     
     :Parameters:
     
     spi : spider.Session
           Current SPIDER session
+    align : array
+            Alignment values
     input_stack : str
                   Local input stack of projections
     use_flip : bool
@@ -564,6 +568,7 @@ def prealign_input(spi, input_stack, use_flip, flip_stack, dala_stack, inputangl
     input_stack = spider.interpolate_stack(input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
     if not spider.supports_internal_rtsq(spi) and inputangles is not None:
         if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
+        align.write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
         input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
     return dict(input_stack=input_stack)
 
