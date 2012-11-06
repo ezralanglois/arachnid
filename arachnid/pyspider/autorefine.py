@@ -188,8 +188,9 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     for refine_index in xrange(refine_index, num_iterations):
         # Angular restriction
         bin_factor = decimation_level(resolution_start, **extra)
-        extra.update(spider_params.update_params(bin_factor, **param))
         extra['bin_factor']=bin_factor
+        param['bin_factor']=bin_factor
+        extra.update(spider_params.update_params(**param))
         extra['trans_range'] = ensure_translation_range(**extra)
         extra['ring_last'] = int(param['pixel_diameter']/2.0)
         extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
