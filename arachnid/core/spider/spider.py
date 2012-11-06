@@ -2964,7 +2964,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     bin_factor : float
                  Current decimation factor
     dec_level : int
-                Previous decimation level    
+                Previous decimation level
     pj_radius : int
                 Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
     trans_range : float
@@ -2994,7 +2994,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     max_radius = int(window/2.0)
     param = {}
     factor = dec_level/bin_factor
-    _logger.error("ring_last = %d -> %d"%(ring_last, param['ring_last']))
+    #_logger.error("ring_last = %d -> %d"%(ring_last, param['ring_last']))
     if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
     if trans_range > 1: param['trans_range']=max(1, int(trans_range*factor))
     if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
@@ -3004,6 +3004,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
         if max_translation_range(**param) < 1: param['ring_last']=max_radius - 4
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
+    param['dec_level']=bin_factor
     return param
 
 def cache_data(session, inputfile, selection, outputfile, window, rank=0):
