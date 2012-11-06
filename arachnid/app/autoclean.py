@@ -77,7 +77,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
     return input_vals, sel, avg3[:3]+savg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
 
-def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, **extra):
+def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, **extra):
     ''' Classify the aligned projection data grouped by view
     
     :Parameters:
@@ -107,6 +107,10 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         if resample > 0:
             test = process_queue.recreate_global_dense_matrix(data)
             train = analysis.resample(data, resample, sample_size, thread_count)
+        elif local_neighbors > 0:
+            from ..core.image import manifold
+            test = process_queue.recreate_global_dense_matrix(data)
+            train = manifold.local_neighbor_average(test, manifold.knn(samp, local_neighbors))
         else: 
             train = process_queue.recreate_global_dense_matrix(data)
             test = train
@@ -606,7 +610,7 @@ def test_covariance(eigs, data, output, **extra):
         emcov[i] = numpy.mean(ecov[idx, idx[:, numpy.newaxis]])
     x = numpy.arange(1, len(ecov)+1)
     pylab.clf()
-    pylab.plot(x, ecov, 'r..', x, emcov, 'g.*')
+    pylab.plot(x, ecov, 'r+.', x, emcov, 'g*.')
     pylab.savefig(format_utility.new_filename(output, "cov_", ext="png"))
 
 def test_variance(eigs, data, output, **extra):
@@ -794,6 +798,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     windows = ('none', 'uniform', 'sasaki', 'priestley', 'parzen', 'hamming', 'gaussian', 'daniell')
     view_stack = ('None', 'Positive', 'Negative', 'Both', 'Single')
     group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
+    group.add_option("", local_neighbors=0,           help="Number of neighbors for local averaging of training set before PCA")
     group.add_option("", resample=0,                  help="Number of times to resample the images")
     group.add_option("", sample_size=100.0,           help="Size of each bootstrapped sample")
     group.add_option("", resolution=15.0,             help="Filter to given resolution - requires apix to be set")
