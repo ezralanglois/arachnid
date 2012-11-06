@@ -178,12 +178,13 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             Unused keyword arguments
     '''
     
-    refine_name = "theta_delta,angle_range,trans_range,use_apsh,min_resolution,apix".split(',')
+    refine_name = "theta_delta,angle_range,trans_range,use_apsh,min_resolution,apix,bin_factor,window".split(',')
     param=dict(extra)
     angle_range, trans_range = None, None
     extra['trans_range']=500
     extra['trans_step']=1
     theta_prev = None
+    extra['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     for refine_index in xrange(refine_index, num_iterations):
         # Angular restriction
@@ -191,11 +192,10 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         extra['bin_factor']=bin_factor
         param['bin_factor']=bin_factor
         extra.update(spider_params.update_params(**param))
-        extra['trans_range'] = ensure_translation_range(**extra)
         extra['ring_last'] = int(param['pixel_diameter']/2.0)
         extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
         shuffle_angles = extra['theta_delta'] == theta_prev and refine_index > 0
-        extra['min_resolution'] = filter_resolution(resolution_start, **extra)
+        extra['min_resolution'] = filter_resolution(**param)
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
         resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, shuffle_angles=shuffle_angles, **extra)
@@ -306,6 +306,7 @@ def ensure_translation_range(window, ring_last, trans_range, **extra):
     '''
     
     if (window/2 - ring_last - trans_range) < 3:
+        #_logger.warn("%d = %d, %d, %d"%((window/2 - ring_last - trans_range), window/2, ring_last, trans_range ))
         return spider.max_translation_range(window, ring_last)
     return trans_range
     
