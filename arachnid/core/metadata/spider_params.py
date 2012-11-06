@@ -177,15 +177,14 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
     '''
     
     if dec_level == bin_factor: return {}
+    factor = dec_level/bin_factor
     return dict(dec_level=bin_factor,
-                width=int(width/bin_factor), 
-                height=int(height/bin_factor), 
-                apix=apix*bin_factor, 
-                maxfreq=maxfreq/bin_factor, 
-                window=int(window/bin_factor), 
-                pixel_diameter=int(pixel_diameter/bin_factor))
-    
-    
+                width=int(width*factor), 
+                height=int(height*factor), 
+                apix=apix/factor, 
+                maxfreq=maxfreq*factor, 
+                window=int(window*factor), 
+                pixel_diameter=int(pixel_diameter*factor))
 
 def ctf_spider2EMAN(apix, ampcont, voltage, window, cs, bfactor=0.0, defocus=0.0, **extra):
     ''' Convert the Spider CTF to EMAN2
