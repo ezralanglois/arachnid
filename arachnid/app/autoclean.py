@@ -140,7 +140,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         sel = eig_dist_cent < th
         if 1 == 1:
             from ..core.image import manifold
-            feat, evals, index = manifold.diffusion_maps(test, 5, k=50, mutual=True, batch=10000)
+            feat, evals, index = manifold.diffusion_maps(test, 5, k=10, mutual=True, batch=10000)
             '''
             if index is not None:
                 index = numpy.argwhere(sel).squeeze()[index]
