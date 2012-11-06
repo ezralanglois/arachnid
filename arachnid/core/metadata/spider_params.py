@@ -171,7 +171,7 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
     pixel_diameter : int
                      Diameter of the particle in pixels
     dec_level : int
-                Current decimation level
+                Previous decimation level
     extra : dict
             Unused extra keyword arguments
     '''
