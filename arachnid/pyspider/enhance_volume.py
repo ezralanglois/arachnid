@@ -181,6 +181,7 @@ def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False
     if prefix is not None: outputfile = format_utility.add_prefix(outputfile, prefix)
     if filename == outputfile: filename = spi.cp(filename)
     
+    window, = spi.fi_h(filename, ('NSAM'))
     filter_limit = int(window*sp) # Thanks to Jesper Pallesen
     _logger.info("Enhancing with filter limit: %d"%(filter_limit))
     tmp_roo = format_utility.add_prefix(outputfile, 'roo')
