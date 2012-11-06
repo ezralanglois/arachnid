@@ -133,7 +133,7 @@ def read(filename, extra=None):
     if 'comm' not in param or param['comm'] is None or param['comm'].Get_rank() == 0:
         bin_factor = extra.get('bin_factor', 1.0) if extra is not None else 1.0
         #      1    2     3      4      5    6     7    8          9            10        11      12             13         14    15    16   17         18         19  20
-        keys="zip,format,width,height,apix,voltage,cs,source,defocus_spread,astigmatism,azimuth,ampcont,envelope_half_width,lam,maxfreq,dec,window,pixel_diameter,xmag,res".split(',')
+        keys="zip,format,width,height,apix,voltage,cs,source,defocus_spread,astigmatism,azimuth,ampcont,envelope_half_width,lam,maxfreq,dec_level,window,pixel_diameter,xmag,res".split(',')
         fin = file(filename, 'r')
         index = 0
         for line in fin:
@@ -142,8 +142,8 @@ def read(filename, extra=None):
             param[keys[index]] = float(line.split()[2])
             index += 1
         fin.close()
-        _logger.debug("Decimation: %d, %d"%(bin_factor, param['dec']))
-        if bin_factor > 1.0 and bin_factor != param['dec']:
+        _logger.debug("Decimation: %d, %d"%(bin_factor, param['dec_level']))
+        if bin_factor > 1.0 and bin_factor != param['dec_level']:
             param.update(update_params(bin_factor, **param))
         _logger.debug("apix: %f"%(param['apix']))
     if 'comm' in param and param['comm'] is not None:
@@ -151,7 +151,7 @@ def read(filename, extra=None):
     if extra is not None: extra.update(param)
     return param
 
-def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diameter, **extra):
+def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diameter, dec_level, **extra):
     ''' Update the SPIDER params based on the current decimation factor
     
     :Parameters:
@@ -170,11 +170,15 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
              Window size
     pixel_diameter : int
                      Diameter of the particle in pixels
+    dec_level : int
+                Current decimation level
     extra : dict
             Unused extra keyword arguments
     '''
     
-    return dict(width=int(width/bin_factor), 
+    if dec_level == bin_factor: return {}
+    return dict(dec_level=bin_factor,
+                width=int(width/bin_factor), 
                 height=int(height/bin_factor), 
                 apix=apix*bin_factor, 
                 maxfreq=maxfreq/bin_factor, 
