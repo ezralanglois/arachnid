@@ -270,7 +270,7 @@ def write_alignment(output, alignvals, apix=None):
     
     header = "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror"
     if apix is not None:
-        tmp = alignvals[curr_slice, :15].copy()
+        tmp = alignvals[:, :15].copy()
         tmp[:, 6:8] /= apix
         tmp[:, 12:14] /= apix
     elif alignvals.shape[1] > 15:
@@ -307,7 +307,7 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     extra.update(spider_params.update_params(**extra))
     extra.update(spider.scale_parameters(**extra))
     angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
-    extra.update(prealign_input(spi, align, use_flip=use_flip, **extra))
+    extra.update(prealign_input(spi, align[curr_slice], use_flip=use_flip, **extra))
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
