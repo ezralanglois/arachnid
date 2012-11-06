@@ -311,7 +311,7 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
-    prev = align[curr_slice, :3].copy()
+    prev = align[curr_slice, :3].copy() if numpy.any(align[curr_slice, 1]>0) else None
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
     if use_small_angle_alignment(spi, align[curr_slice], **extra):
@@ -351,7 +351,8 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     align[curr_slice, 8] = angle_num
     align[curr_slice, 6:8] *= extra['apix']
     align[curr_slice, 12:14] *= extra['apix']
-    align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
+    if prev is not None:
+        align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - started")
     mpi_utility.gather_array(align, align[curr_slice], **extra)
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - finished")
