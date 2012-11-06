@@ -175,6 +175,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, format, format_utility
+from ..core.orient import orient_utility
 from ..core.parallel import mpi_utility, parallel_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, create_align
@@ -202,8 +203,9 @@ def batch(files, output, **extra):
     extra.update(initalize(spi, files, align[curr_slice], **extra))
     align_to_reference(spi, align, curr_slice, **extra)
     if mpi_utility.is_root(**extra):
-        align2=align[numpy.argsort(align[:, 4]).reshape(align.shape[0])]
-        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc)
+        write_alignment(spi.replace_ext(output), align)
+        #align2=align[numpy.argsort(align[:, 4]).reshape(align.shape[0])]
+        #format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc)
     vols = reconstruct.reconstruct_classify(spi, align, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra):
         res = prepare_volume.post_process(vols, spi, output, **extra)
@@ -253,6 +255,30 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     spider.ensure_proper_parameters(extra)
     return extra
 
+def write_alignment(output, alignvals, apix=None):
+    ''' Write alignment values to a SPIDER file
+    
+    :Parameters:
+    
+    output : str
+             Output filename
+    alignvals : array
+                Alignment values
+    apix : float, optional
+           Pixel size to scale translation
+    '''
+    
+    header = "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror"
+    if apix is not None:
+        tmp = alignvals[curr_slice, :15].copy()
+        tmp[:, 6:8] /= apix
+        tmp[:, 12:14] /= apix
+    elif alignvals.shape[1] > 15:
+        tmp=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
+        header += ",micrograph,stack_id,defocus"
+    else: tmp = alignvals
+    format.write(output, tmp, header=header.split(','), format=format.spiderdoc)
+
 def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip, use_apsh, shuffle_angles=False, **extra):
     ''' Align a set of projections to the given reference
     
@@ -278,11 +304,14 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
             Unused keyword arguments
     '''
     
+    extra.update(spider_params.update_params(**extra))
+    extra.update(spider.scale_parameters(**extra))
     angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
-    extra['input_stack'] = prealign_input(spi, use_flip=use_flip, **extra)
+    extra.update(prealign_input(spi, align, use_flip=use_flip, **extra))
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
+    prev = align[curr_slice, :3].copy() if numpy.any(align[curr_slice, 1]>0) else None
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
     if use_small_angle_alignment(spi, align[curr_slice], **extra):
@@ -322,6 +351,8 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     align[curr_slice, 8] = angle_num
     align[curr_slice, 6:8] *= extra['apix']
     align[curr_slice, 12:14] *= extra['apix']
+    if prev is not None:
+        align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - started")
     mpi_utility.gather_array(align, align[curr_slice], **extra)
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - finished")
@@ -507,13 +538,15 @@ def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra
         return part_count < full_count
     return False
 
-def prealign_input(spi, input_stack, use_flip, flip_stack, dala_stack, inputangles, **extra):
+def prealign_input(spi, align, input_stack, use_flip, flip_stack, dala_stack, inputangles, cache_file, **extra):
     ''' Select and pre align the proper input stack
     
     :Parameters:
     
     spi : spider.Session
           Current SPIDER session
+    align : array
+            Alignment values
     input_stack : str
                   Local input stack of projections
     use_flip : bool
@@ -524,6 +557,8 @@ def prealign_input(spi, input_stack, use_flip, flip_stack, dala_stack, inputangl
                  Local aligned stack of projections
     inputangles : str
                  Document file with euler angles for each experimental projection (previous alignment)
+    cache_file : str
+                 Local cache file
     extra : dict
             Unused keyword arguments
             
@@ -533,12 +568,14 @@ def prealign_input(spi, input_stack, use_flip, flip_stack, dala_stack, inputangl
                   Input filename for the input stack
     '''
     
-    
     if use_flip and flip_stack is not None: input_stack = flip_stack
-    if not spider.supports_internal_rtsq(spi) and inputangles is not None:
-        if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
-        input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
-    return input_stack
+    input_stack = spider.interpolate_stack(input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
+    if inputangles is not None:
+        align.write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
+        if not spider.supports_internal_rtsq(spi):
+            if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
+            input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
+    return dict(input_stack=input_stack)
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing

@@ -334,6 +334,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], d
             swin, tmp = periodogram(spi, win, swin, tmp, pad, du_nstd, du_type)
             image_count += 1
         _logger.debug("set image count")
+        if image_count == 0: raise ValueError, "Periodogram failed"
         spi['v10'] = image_count
         _logger.debug("generating avg power spec")
         avg2 = spi.ar(swin, "P1/[v10]")
@@ -422,7 +423,9 @@ def for_window_in_micrograph(spi, filename, window_size=512, x_overlap=50, y_ove
     y_steps = int( float(y_overlap_norm) * ( (y_size-2*y_dist)/window_size-1)   )
     x_mult = window_size/x_overlap_norm
     y_mult = window_size/y_overlap_norm
+    if (y_steps+x_steps) == 0: raise ValueError, "Periodogram failed - window size: %d - width: %d - height: %d - bin_factor: "%(window_size, x_size, y_size, bin_factor)
     return for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps)
+
 
 def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
     ''' Read a micrograph file into core memory
@@ -452,12 +455,12 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, 
     
     if not os.path.exists(filename): filename = spi.replace_ext(filename)
     
-    temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file")
+    temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", **extra)
     try:
         filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
     except:
         if os.path.dirname(temp_spider_file) == "": raise
-        temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False)
+        temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
         filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
         
     if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
@@ -585,7 +588,9 @@ def initialize(files, param):
     if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_00000")
     if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_00000")
     if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_00000")
-    param['output_pow'] = default_path(param['output_pow'], param['output'])
+    
+    if os.path.dirname(param['output_pow']) == 'pow':
+        param['output_pow'] = default_path(param['output_pow'], param['output'])
     param['output_roo'] = default_path(param['output_roo'], os.path.dirname(param['output_pow']))
     param['output_ctf'] = default_path(param['output_ctf'],  os.path.dirname(param['output_pow']))
     if mpi_utility.is_root(**param):
@@ -616,14 +621,14 @@ def initialize(files, param):
             else:
                 _logger.info("No micrograph interpolation")
 
-def init_process(process_number, input_files, rank=0, **extra):
+def init_process(input_files, rank=0, **extra):
     # Initialize a child process
     
     rank = mpi_utility.get_offset(**extra)
     param = {}
+    _logger.error("Opening process specific spider: %d"%rank)
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
-    
 
 def reduce_all(filename, file_completed, file_count, output, **extra):
     # Process each input file in the main thread (for multi-threaded code)

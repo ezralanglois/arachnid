@@ -2509,6 +2509,7 @@ class Session(spider_session.Session):
         
         _logger.debug("Generating evenly space angles")
         if outputfile is None: 
+            assert(False)
             outputfile = session.sd_ic_new( (3, session.vo_ea_n(theta_delta, theta_start, theta_end, phi_start, phi_end)) )
         else:
             try: session.de(outputfile)
@@ -2952,6 +2953,104 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
         ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
         session.ft(ctfimage, outputfile=outputfile) 
 
+def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, **extra):
+    ''' Scale parameters that depend on the window size
+    
+    :Parameters:
+    
+    bin_factor : float
+                 Current decimation factor
+    dec_level : int
+                Previous decimation level    
+    pj_radius : int
+                Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
+    trans_range : float
+                  Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
+    trans_step : float
+                 Translation step size
+    first_ring : int
+                 First polar ring to analyze
+    ring_last : int
+                Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
+    ring_step : int
+                Polar ring step size
+    cg_radius : int
+                Radius of reconstructed object
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    param : dict
+            Dictionary of updated parameters
+    '''
+    
+    if dec_level == bin_factor: return {}
+    param = {}
+    factor = dec_level/bin_factor
+    if pj_radius > 0: param['pj_radius']=int(pj_radius*factor)
+    if trans_range > 1: param['trans_range']=max(1, int(trans_range*factor))
+    if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
+    if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
+    if ring_last > 0: param['ring_last']=int(ring_last*factor)
+    if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
+    if cg_radius > 0: param['cg_radius']=int(cg_radius*factor)
+    return param
+
+def cache_data(session, inputfile, selection, outputfile, window, rank=0):
+    ''' Test if output file is the correct size and has the correct number of images, if not then
+    copy the images in the correct size and number
+    
+    .. todo:: write selection file and compare when not writing
+    
+    :Parameters:
+    
+    session : Session
+              Current spider session
+    inputfile : str (or dict)
+                Input filename to iterate over
+    selection : int or array
+                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+    outputfile : str, optional
+                 Output filename to include
+    window : int
+             New size each window
+    rank : int
+            Current process rank
+    
+    :Returns:
+    
+    copied : bool
+             True if a copy was performed
+    '''
+    
+    window = int(window)
+    if not is_incore_filename(outputfile) and os.path.exists(session.replace_ext(outputfile)):
+        width, stack_count = session.fi_h(spider_stack(outputfile), ('NSAM', 'MAXIM'))
+        stack_count = int(stack_count)
+        width = int(width)
+    else: stack_count = 0
+    selection_file = os.path.splitext(outputfile)[0]+'.csv'
+    selection_file = os.path.join(os.path.dirname(selection_file), "sel_"+os.path.basename(selection_file))
+    
+    remote_select = numpy.loadtxt(selection_file, delimiter=",") if os.path.exists(selection_file) else None
+    if stack_count != len(selection) or stack_count != remote_select.shape[0] or width != window or remote_select is None or not numpy.alltrue(remote_select == selection):
+        if rank == 0:
+            if remote_select is None:  _logger.info("Transfering data to cache - selection file not found")
+            elif width != window:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
+            elif stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
+            else: _logger.info("Transfering data to cache - selection files do not match")
+        input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
+        width = session.fi_h(spider_stack(input), ('NSAM', ))
+        copy(session, inputfile, selection, outputfile)
+        stack_count,  = session.fi_h(spider_stack(outputfile), ('MAXIM', ))
+        if stack_count == 0: 
+            import socket
+            raise ValueError, "No images copied for %s"%socket.gethostname()
+        numpy.savetxt(selection_file, selection, delimiter=",")
+        return True
+    return False
+
 def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0):
     ''' Test if output file is the correct size and has the correct number of images, if not then
     copy the images in the correct size and number
@@ -3008,6 +3107,34 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
         numpy.savetxt(selection_file, selection, delimiter=",")
         return True
     return False
+
+def interpolate_stack(session, inputfile, outputfile=None, window=0, **extra):
+    ''' Safely copy the input image to match the proper window size
+    
+    :Parameters:
+    
+    session : Session
+              Current spider session
+    inputfile : str (or dict)
+                Input filename for image
+    outputfile : str, optional
+                 Output filename
+    window : int
+             New size each window
+    
+    :Returns:
+    
+    outputfile : str
+                 Filename of output image
+    '''
+    
+    if outputfile is not None and os.path.exists(session.replace_ext(outputfile)):
+        width, = session.fi_h(spider_stack(inputfile), ('NSAM'))
+        if window == width: return outputfile
+    width, = session.fi_h(spider_stack(inputfile), ('NSAM'))
+    if window != width:
+        inputfile=session.ip(spider_stack(inputfile), (window, window), outputfile=outputfile)
+    return inputfile
 
 def copy_safe(session, inputfile, window=0, **extra):
     ''' Safely copy the input image to match the proper window size

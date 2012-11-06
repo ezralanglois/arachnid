@@ -43,7 +43,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import spider_utility
+from ..core.metadata import spider_utility, format
 import os, logging
 
 _logger = logging.getLogger(__name__)
@@ -91,7 +91,8 @@ def convert_to_spider(files, output):
     mapping = []
     for i, f in enumerate(files):
         output_file = spider_utility.spider_filename(output, i+1)
-        os.symlink(os.path.abspath(f), output_file)
+        if not os.path.exists(output_file):
+            os.symlink(os.path.abspath(f), output_file)
         mapping.append((f, i+1))
         newfiles.append(output_file)
     format.write(base+".star", mapping, header="araLeginonFilename,araSpiderID".split(','), prefix="sel_")
