@@ -286,7 +286,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
             Unused keyword arguments
     '''
     
-    update = spider.cache_interpolate(spi, master_filename, master_select, input_stack, window, rank)
+    update = spider.cache_data(spi, master_filename, master_select, input_stack, window, rank)
     if flip_stack is not None and (update or not os.path.exists(spi.replace_ext(flip_stack))):  
         _logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
@@ -320,9 +320,9 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
                  Output file tuple for two half volumes and full volume
     '''
     
-    align = align.copy()
-    align[:, 6:8] /= extra['apix']
-    align[:, 12:14] /= extra['apix']
+    #align = align.copy()
+    #align[:, 6:8] /= extra['apix']
+    #align[:, 12:14] /= extra['apix']
     if mpi_utility.is_root(**extra):
         selection = classify.classify_projections(align, **extra)
     else: selection = 0
