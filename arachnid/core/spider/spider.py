@@ -2509,6 +2509,7 @@ class Session(spider_session.Session):
         
         _logger.debug("Generating evenly space angles")
         if outputfile is None: 
+            assert(False)
             outputfile = session.sd_ic_new( (3, session.vo_ea_n(theta_delta, theta_start, theta_end, phi_start, phi_end)) )
         else:
             try: session.de(outputfile)

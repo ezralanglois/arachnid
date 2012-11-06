@@ -175,6 +175,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, format, format_utility
+from ..core.orient import orient_utility
 from ..core.parallel import mpi_utility, parallel_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, create_align
@@ -269,7 +270,7 @@ def write_alignment(output, alignvals, apix=None):
     
     header = "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror"
     if apix is not None:
-        tmp = alignvals[curr_slice, :15].copy()
+        tmp = alignvals[:, :15].copy()
         tmp[:, 6:8] /= apix
         tmp[:, 12:14] /= apix
     elif alignvals.shape[1] > 15:
@@ -306,10 +307,11 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     extra.update(spider_params.update_params(**extra))
     extra.update(spider.scale_parameters(**extra))
     angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
-    extra.update(prealign_input(spi, align, use_flip=use_flip, **extra))
+    extra.update(prealign_input(spi, align[curr_slice], use_flip=use_flip, **extra))
     reference = spider.copy_safe(spi, reference, **extra)
     angle_cache = format_utility.add_prefix(extra['cache_file'], "angles_")
     align[curr_slice, 10] = 0.0
+    prev = align[curr_slice, :3].copy() if numpy.any(align[curr_slice, 1]>0) else None
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
     if use_small_angle_alignment(spi, align[curr_slice], **extra):
@@ -349,6 +351,8 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
     align[curr_slice, 8] = angle_num
     align[curr_slice, 6:8] *= extra['apix']
     align[curr_slice, 12:14] *= extra['apix']
+    if prev is not None:
+        align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - started")
     mpi_utility.gather_array(align, align[curr_slice], **extra)
     if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - finished")
