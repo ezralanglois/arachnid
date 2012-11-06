@@ -180,15 +180,16 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     
     refine_name = "theta_delta,angle_range,trans_range,use_apsh,min_resolution,apix".split(',')
     param=dict(extra)
+    angle_range, trans_range = None, None
     extra['trans_range']=500
     extra['trans_step']=1
     theta_prev = None
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     for refine_index in xrange(refine_index, num_iterations):
         # Angular restriction
-        # Undecimated reconstruction
         bin_factor = decimation_level(resolution_start, **extra)
         extra.update(spider_params.update_params(bin_factor, **param))
+        extra['bin_factor']=bin_factor
         extra['trans_range'] = ensure_translation_range(**extra)
         extra['ring_last'] = int(param['pixel_diameter']/2.0)
         extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
@@ -199,13 +200,41 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, shuffle_angles=shuffle_angles, **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            trans_range = translation_range(alignvals)
+            angle_range = angular_restriction(**extra)
+            trans_range = translation_range(alignvals, **extra)
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
         extra['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
+        extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
         theta_prev = extra['theta_delta']
     mpi_utility.barrier(**extra)
+
+def angular_restriction(alignvals, theta_delta, **extra):
+    ''' Determine the angular restriction to apply to each projection
     
+    :Parameters:
+    
+    theta_delta : float
+                  Angular sample rate
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    ang : float
+          Amount of angular restriction
+    '''
+    
+    if theta_delta > 7.9: return 0
+    gdist = alignvals[:, 9]
+    gdist = gdist[gdist > 0.0]
+    mang = numpy.median(gdist)
+    sang = numpy.std(gdist)
+    gdist = mang+sang*4
+    ang = max(gdist, 2*theta_delta)
+    if mpi_utility.is_root(**extra):
+        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
+    return ang
     
 def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, **extra):
     ''' Angular sampling rate
@@ -232,7 +261,9 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
     '''
     
     if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= 2:
-        return numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+        theta_delta =  numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+        if mpi_utility.is_root(**extra):
+            _logger.info("Angular Sampling: %f -- Resolution: %f -- Size: %f"%(theta_delta, resolution, pixel_diameter*apix))
     return theta_delta
     
 def decimation_level(resolution, apix, **extra):
@@ -277,7 +308,7 @@ def ensure_translation_range(window, ring_last, trans_range, **extra):
         return spider.max_translation_range(window, ring_last)
     return trans_range
     
-def translation_range(alignvals):
+def translation_range(alignvals, **extra):
     ''' Estimate the tail of the translation distribution
     
     :Parameters:
@@ -287,12 +318,17 @@ def translation_range(alignvals):
     
     :Returns:
     
-    range : float
+    trans_range : float
             New translation range
     '''
     
     t = numpy.abs(alignvals[:, 12:14].ravel())
-    return max(1, int(numpy.median(t)+numpy.std(t)*4))
+    mtrans = numpy.median(t)
+    strans = numpy.std(t)
+    trans_range= max(1, int(mtrans+strans*4))
+    if mpi_utility.is_root(**extra):
+        _logger.info("Translation Range: %f -- Median: %f -- STD: %f"%(trans_range, mtrans, strans))
+    return trans_range
     
 def filter_resolution(bin_factor, apix, **extra):
     ''' Resolution for conservative filtering
