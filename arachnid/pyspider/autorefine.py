@@ -284,7 +284,7 @@ def decimation_level(resolution, apix, **extra):
                  Level of decimation
     '''
     
-    return int( round( resolution / ( apix * 4 ) ) )
+    return min(6, resolution / ( apix * 4 ))
 
 def ensure_translation_range(window, ring_last, trans_range, **extra):
     ''' Ensure a valid translation range
