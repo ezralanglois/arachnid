@@ -2793,8 +2793,6 @@ def nonspi_file(session, filename, temp):
         session.cp(filename, temp)
         filename=temp
     return session.replace_ext(filename)
-        
-        
 
 def open_session(args, spider_path="", data_ext="", thread_count=0, enable_results=False, rank=None, local_temp=None, **extra):
     '''Opens a spider session
@@ -2958,7 +2956,7 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
         ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
         session.ft(ctfimage, outputfile=outputfile) 
 
-def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, **extra):
+def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, window=0, **extra):
     ''' Scale parameters that depend on the window size
     
     :Parameters:
@@ -2981,6 +2979,8 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
                 Polar ring step size
     cg_radius : int
                 Radius of reconstructed object
+    window : int
+             Current window size
     extra : dict
             Unused keyword arguments
             
@@ -2991,15 +2991,19 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     '''
     
     if dec_level == bin_factor: return {}
+    max_radius = int(window/2.0)
     param = {}
     factor = dec_level/bin_factor
-    if pj_radius > 0: param['pj_radius']=int(pj_radius*factor)
+    _logger.error("ring_last = %d -> %d"%(ring_last, param['ring_last']))
+    if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
     if trans_range > 1: param['trans_range']=max(1, int(trans_range*factor))
     if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
-    if ring_last > 0: param['ring_last']=int(ring_last*factor)
+    if ring_last > 0:
+        param['ring_last']=int(ring_last*factor)
+        if max_translation_range(**param) < 1: param['ring_last']=max_radius - 4
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
-    if cg_radius > 0: param['cg_radius']=int(cg_radius*factor)
+    if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     return param
 
 def cache_data(session, inputfile, selection, outputfile, window, rank=0):
