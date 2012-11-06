@@ -110,7 +110,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         elif local_neighbors > 0:
             from ..core.image import manifold
             test = process_queue.recreate_global_dense_matrix(data)
-            train = manifold.local_neighbor_average(test, manifold.knn(samp, local_neighbors))
+            train = manifold.local_neighbor_average(test, manifold.knn(test, local_neighbors))
         else: 
             train = process_queue.recreate_global_dense_matrix(data)
             test = train
