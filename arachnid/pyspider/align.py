@@ -304,7 +304,9 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
             Unused keyword arguments
     '''
     
+    dec_level=extra['dec_level']
     extra.update(spider_params.update_params(**extra))
+    extra['dec_level']=dec_level
     extra.update(spider.scale_parameters(**extra))
     angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
     extra.update(prealign_input(spi, align[curr_slice], use_flip=use_flip, **extra))
