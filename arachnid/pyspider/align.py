@@ -569,9 +569,9 @@ def prealign_input(spi, align, input_stack, use_flip, flip_stack, dala_stack, in
     '''
     
     if use_flip and flip_stack is not None: input_stack = flip_stack
-    input_stack = spider.interpolate_stack(input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
+    input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
     if inputangles is not None:
-        align.write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
+        write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
         if not spider.supports_internal_rtsq(spi):
             if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
             input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
