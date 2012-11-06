@@ -2994,7 +2994,6 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     max_radius = int(window/2.0)
     param = {}
     factor = dec_level/bin_factor
-    #_logger.error("ring_last = %d -> %d"%(ring_last, param['ring_last']))
     if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
     if trans_range > 1: param['trans_range']=max(1, int(trans_range*factor))
     if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
@@ -3005,6 +3004,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     param['dec_level']=bin_factor
+    _logger.error("ring_last = %d -> %d"%(ring_last, param['ring_last']))
     return param
 
 def cache_data(session, inputfile, selection, outputfile, window, rank=0):
