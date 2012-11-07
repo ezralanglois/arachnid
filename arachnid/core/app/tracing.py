@@ -283,7 +283,7 @@ def backup(filename):
         zf = zipfile.ZipFile(base+ext, mode='a')
         arcname = os.path.basename(backup_name(filename))
         try:
-            zf.write(filename, arcname=arcname, compress_type=zipfile.ZIP_STORED)
+            zf.write(filename, arcname=arcname)#, compress_type=zipfile.ZIP_STORED)
         finally: zf.close()
     return arcname
 

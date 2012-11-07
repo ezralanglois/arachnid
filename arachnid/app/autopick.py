@@ -253,12 +253,19 @@ def ccf_center(img, template):
              Cross-correlation map
     '''
     
-    emimg = img
-    img = eman2_utility.em2numpy(emimg)
-    emtemplate = template
-    template = eman2_utility.em2numpy(emtemplate)
+    if eman2_utility.is_em(img):
+        _logger.error("Template-matching-1")
+        emimg = img
+        img = eman2_utility.em2numpy(emimg)
+        _logger.error("Template-matching-2")
+    if eman2_utility.is_em(template):
+        emtemplate = template
+        template = eman2_utility.em2numpy(emtemplate)
+        _logger.error("Template-matching-3")
     cc_map = ndimage_utility.cross_correlate(img, template)
+    _logger.error("Template-matching-4")
     cc_map = eman2_utility.numpy2em(cc_map)
+    _logger.error("Template-matching-5")
     return cc_map
 
 def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, **extra):
@@ -286,7 +293,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     :Returns:
         
     sel : numpy.ndarray
-          Bool array of selected good windows
+          Bool array of selected good windows 
     '''
     
     _logger.error("Total particles: %d"%len(scoords))
@@ -299,9 +306,12 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
     vfeat = None #numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
+    if eman2_utility.is_em(mic):
+        emmic = mic
+        mic = eman2_utility.em2numpy(emmic)
     
     _logger.info("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(eman2_utility.em2numpy(mic), scoords, offset*2, bin_factor)):
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
         npdata[:, :] = win
         eman2_utility.ramp(emdata)
