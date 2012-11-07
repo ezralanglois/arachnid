@@ -1,5 +1,5 @@
 
-arachnid
+Arachnid
 ========
 
 Arachnid is Python software package for image processing in single particle reconstruction of
@@ -16,6 +16,10 @@ corresponding utilities.
 
 For more information, see the documents in `build/sphinx/html/`. HTML documentation can be built using
 `python setup.py build_sphinx`, which assumes you have the prerequisite Python libraries.
+
+How to cite
+===========
+
 
 
 Important links

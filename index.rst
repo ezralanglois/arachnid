@@ -3,7 +3,7 @@ Welcome to Arachnid
 ====================
 
 Arachnid is an open source software package written primarily in Python to perform image
-processing in single particle reconstruction. It has the following highlighted application
+processing in single-particle reconstruction. It has the following highlighted application
 and subpackage:
 
 - AutoPicker: Automated reference-free particle selection
@@ -31,6 +31,10 @@ Table of Contents
 	Developer's Guide <docs/development>
 	API <docs/api>
 	Attribution <docs/attribution>
+
+How to cite
+===========
+
 
 Important links
 ===============
