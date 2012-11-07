@@ -279,7 +279,7 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
     if 1 == 1:
         x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
         rad = min(int(0.5/extra['pixel_diameter']*x_size), 3)
-        mask = eman2_utility.model_circle(rad, int(x_size), int(y_size))       
+        mask = eman2_utility.model_circle(rad, int(x_size), int(y_size))*-1+1   
         temp_spider_file = mpi_utility.safe_tempfile("temp_mask_file", **extra)
         try:
             ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
