@@ -2990,7 +2990,6 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             Dictionary of updated parameters
     '''
     
-    _logger.error("scale = %d -> %d"%(dec_level, bin_factor))
     if dec_level == bin_factor: return {}
     max_radius = int(window/2.0)
     param = {}
@@ -3005,7 +3004,6 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     param['dec_level']=bin_factor
-    _logger.error("ring_last = %d -> %d"%(ring_last, param['ring_last']))
     return param
 
 def cache_data(session, inputfile, selection, outputfile, window, rank=0):
