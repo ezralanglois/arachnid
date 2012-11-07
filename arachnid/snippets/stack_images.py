@@ -15,7 +15,7 @@ To run:
 '''
 from arachnid.core.metadata import format, format_utility, spider_utility
 from arachnid.core.image import ndimage_file
-import glob, numpy
+import glob, numpy, os
 
 
 if __name__ == '__main__':
@@ -42,4 +42,9 @@ if __name__ == '__main__':
     
     if index > 0:
         format.write(format_utility.add_prefix(output_file, 'sel'), selection[:index], header=['id'])
+    
+    outputfile=format_utility.add_prefix(output_file, 'selall')
+    base, ext = os.path.splitext(outputfile)
+    outputfile = base+"b"+ext
+    format.write(outputfile, numpy.arange(1, stack_id+1), header=['id'])
     
