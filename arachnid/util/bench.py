@@ -94,6 +94,7 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by all scripts ... <shared-options>`
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
 
+.. todo:: add by defocus
 
 .. Created on Sep 24, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -187,8 +188,11 @@ def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
              Selected (x,y) coordinates
     '''
     
-    if good_coords == "" or not os.path.exists(spider_utility.spider_filename(good_coords, fid, id_len)): return None
-    coords, header = format_utility.tuple2numpy(format.read(good_coords, spiderid=fid, id_len=id_len, numeric=True))
+    if good_coords == "": return None
+    if not os.path.exists(spider_utility.spider_filename(good_coords, fid, id_len)):
+        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
+    else:
+        coords, header = format_utility.tuple2numpy(format.read(good_coords, spiderid=fid, id_len=id_len, numeric=True))
     if good != "":
         try:
             selected = format_utility.tuple2numpy(format.read(good, spiderid=fid, id_len=id_len, numeric=True))[0].astype(numpy.int)

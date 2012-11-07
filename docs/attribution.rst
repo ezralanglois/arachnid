@@ -125,4 +125,5 @@ Website: http://www.wadsworth.org/spider_doc/spider/docs/
 	:hidden:
 
 	../README
+	../CITE
 
