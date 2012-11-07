@@ -246,10 +246,20 @@ def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
                     Output filename for the volume
     '''
     
-    output_volume = spider_utility.spider_filename(format_utility.add_prefix(output, "vol_"), refine_index) 
+    # test for preparation
+    
+    output = spider_utility.spider_filename(output, refine_index)
+    output_volume = format_utility.add_prefix(output, "vol_")
     if refine_index > 0 and not os.path.exists(spi.replace_ext(output_volume)):
-        _logger.info("Reconstructing missing volume")
-        vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
+        if not os.path.exists(spi.replace_ext(format_utility.add_prefix(output, 'raw'))):
+            _logger.info("Reconstructing missing volume")
+            vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
+        else:
+            vols = [
+                format_utility.add_prefix(output, 'raw'),
+                format_utility.add_prefix(output, 'raw1'),
+                format_utility.add_prefix(output, 'raw2')
+            ]
         if mpi_utility.is_root(**extra): 
             res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
             _logger.info("Refinement finished: %d. %f"%(refine_index, res))
