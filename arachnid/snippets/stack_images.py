@@ -35,13 +35,13 @@ if __name__ == '__main__':
         selection[index, 0] = spider_utility.spider_id(filename)
         index += 1
         if index == stack_size:
-            format.write(format_utility.add_prefix(output_file, 'sel'), selection, header=['id', 'select'], default_format=format.spiderdoc)
+            format.write(format_utility.add_prefix(output_file, 'sel'), selection, header=['oid', 'select'], default_format=format.spiderdoc)
             stack_id += 1
             index = 0
             output_file = spider_utility.spider_filename(output_file, stack_id)
     
     if index > 0:
-        format.write(format_utility.add_prefix(output_file, 'sel'), selection[:index], header=['id', 'select'], default_format=format.spiderdoc)
+        format.write(format_utility.add_prefix(output_file, 'sel'), selection[:index], header=['oid', 'select'], default_format=format.spiderdoc)
     
     outputfile=format_utility.add_prefix(output_file, 'selall')
     base, ext = os.path.splitext(outputfile)
