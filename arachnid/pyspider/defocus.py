@@ -620,6 +620,8 @@ def initialize(files, param):
         _logger.info("Padding: %d"%param['pad'])
         _logger.info("Pixel size: %f"%(param['apix']))
         _logger.info("Window size: %d"%(param['window_size']/param['bin_factor']))
+        if param['invert']:
+            _logger.info("Inverting Micrograph - common for CCD")
         if param['bin_factor'] != 1.0:
             if not param['disable_bin']:
                 _logger.info("Interpolate micrograph with %f"%param['bin_factor'])
