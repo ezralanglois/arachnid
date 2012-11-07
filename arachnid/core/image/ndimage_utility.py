@@ -1355,11 +1355,16 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     '''
     
     if img.ndim != 2 and img.ndim != 3: raise ValueError, "Requires 2 or 3 dimensional images"
-    if threshold is None: threshold = analysis.otsu(img.ravel())
+    _logger.debug("Tight mask - started")
+    if threshold is None: 
+        _logger.debug("Finding threshold")
+        threshold = analysis.otsu(img.ravel())
     
+    _logger.debug("Finding biggest object")
     # Get largest component in the binary image
     out = biggest_object(img>threshold, out)
     
+    _logger.debug("Dilating")
     # Dilate the binary image
     elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
     out[:]=scipy.ndimage.binary_dilation(out, elem, ndilate)
@@ -1368,9 +1373,12 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     #return scipy.ndimage.filters.gaussian_filter(out, sigma, mode='reflect', output=out)
     
     if gk_size > 0 and gk_sigma > 0:
+        _logger.debug("Smoothing in real space")
         K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
         K /= (numpy.mean(K)*numpy.prod(K.shape))
+        _logger.debug("Smoothing in real space - convolution")
         out[:] = scipy.ndimage.convolve(out, K)
+    _logger.debug("Tight mask - finished")
     return out, threshold
 
 def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):

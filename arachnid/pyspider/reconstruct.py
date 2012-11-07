@@ -329,7 +329,9 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
     selection = mpi_utility.broadcast(selection, **extra)
     #if hasattr(selection, 'ndim'):
     #    selection = numpy.argwhere(selection)
-    return reconstruct(spi, align, selection, curr_slice, output, **extra)
+    val = reconstruct(spi, align, selection, curr_slice, output, **extra)
+    mpi_utility.barrier(**extra)
+    return val
 
 def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack=None, flip_stack=None, **extra):
     ''' Reconstruct a volume with the given alignment values

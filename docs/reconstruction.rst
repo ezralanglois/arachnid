@@ -281,6 +281,66 @@ procedure in the single-particle reconstruction workflow.
 	.. sourcecode:: sh
 	
 		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
+		
+Micrograph Selection
+--------------------
+
+Using ap-view (or view) (Frank Lab)
+
+1. Create micrograph stacks
+
+Decimate micrographs (on Linux)
+
+.. sourcecode:: sh
+
+	ap-prepare mic* -o mic_000000.ext -w decimate --bin-factor 8
+
+ap-view (also called view on mac and windows) requires a stack of images for 
+selection. After decimating your micrographs, you can stack them into small groups.
+
+To do this: Download :download:`stack_images.py <../../arachnid/snippets/stack_images.py>`, edit to
+set your micrograph file names and then run.
+
+If you set the output filename in stack_images.py as micrograph_stack_0001.spi, then you will have
+the following outputs:
+
+ -  micrograph_stack_0001.spi,  micrograph_stack_0002.spi ...  micrograph_stack_XXXX.spi
+ -  sel_micrograph_stack_0001.spi,  sel_micrograph_stack_0002.spi ...  sel_micrograph_stack_XXXX.spi
+ -  allsel_micrograph_stack_XXXXb.spi
+
+2. Load data into ap-view (or view)
+
+ - Open allsel_micrograph_stack_XXXXb.spi
+ - Open micrograph_stack_0001.spi
+ - Open sel_micrograph_stack_0001.spi
+ - Save project!
+ - Start selecting
+ - When finished Save as "*.sdat"
+
+3. Remap selection files
+
+On Linux, run the following command:
+
+.. sourcecode:: sh
+	
+	$ cat *.sdat > micrograph_selection.ext
+
+Power Spectra Selection
+-----------------------
+
+1. Stack all power spectra
+
+.. sourcecode:: sh
+
+	ap-stack pow_* -o pow_stack_01.ext --document pow_select_01.ext
+
+2. Load data into ap-view (or view)
+
+ - Open pow_stack_01.ext
+ - Open pow_select_01.ext
+ - Save project!
+ - Start selecting
+ - When finished Save as "*.sdat"
 
 Particle Selection
 ------------------

@@ -276,8 +276,7 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
                 Masked power spectra
     '''
     
-    spi.du(power_spec, 4, 3)
-    if 1 == 0:
+    if 1 == 1:
         if ps_radius == 0: return power_spec
         x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
         x_cent, y_cent = (x_size/2+1, y_size/2+1)
@@ -290,6 +289,8 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
         mask_radius = int((2*float(apix)/ps_radius)*x_size)
         if ps_outer > 0: ps_outer=x_cent-ps_outer
         power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
+    else:
+        spi.du(power_spec, 4, 3)
     if output_pow != "": spi.cp(power_spec, output_pow)
     return power_spec
 
@@ -426,8 +427,7 @@ def for_window_in_micrograph(spi, filename, window_size=512, x_overlap=50, y_ove
     if (y_steps+x_steps) == 0: raise ValueError, "Periodogram failed - window size: %d - width: %d - height: %d - bin_factor: "%(window_size, x_size, y_size, bin_factor)
     return for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps)
 
-
-def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
+def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, invert=False, local_scratch="", **extra):
     ''' Read a micrograph file into core memory
     
     .. todo:: find all places where spider files are written to send to spider
@@ -444,6 +444,8 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, 
                  Decimation factor of the micrograph
     disable_bin : bool
                   Disable micrograph decimatation
+    invert : bool
+             Invert the contrast of the micrograph
     local_scratch : str, optional
                     Output filename for local scratch drive
     
@@ -462,11 +464,13 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, 
         if os.path.dirname(temp_spider_file) == "": raise
         temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
         filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
-        
+    
     if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
+        if invert: filename = spi.neg_a(filename)
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
-        #corefile = spi.dc_s(filename, bin_factor, **extra) # Use iterpolation!
+    elif invert: 
+        corefile = spi.neg_a(filename, **extra)
     else:
         corefile = spi.cp(filename, **extra)
     if os.path.exists(temp_spider_file): 
@@ -615,6 +619,8 @@ def initialize(files, param):
         _logger.info("Padding: %d"%param['pad'])
         _logger.info("Pixel size: %f"%(param['apix']))
         _logger.info("Window size: %d"%(param['window_size']/param['bin_factor']))
+        if param['invert']:
+            _logger.info("Inverting Micrograph - common for CCD")
         if param['bin_factor'] != 1.0:
             if not param['disable_bin']:
                 _logger.info("Interpolate micrograph with %f"%param['bin_factor'])
@@ -657,6 +663,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
     group.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
     group.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
+    group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
     pgroup.add_option_group(group)
     
     setup_options_from_doc(parser, create_powerspectra, mask_power_spec, for_window_in_micrograph, group=pgroup)# classes=spider.Session

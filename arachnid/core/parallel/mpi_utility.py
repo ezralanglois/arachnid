@@ -44,7 +44,7 @@ def gather_array(vals, curvals=None, comm=None, **extra):
     
     if comm is not None:
         comm.barrier()
-        _logger.error("Start gather for node %d - %s"%(comm.Get_rank(), socket.gethostname()))
+        _logger.debug("Start gather for node %d - %s"%(comm.Get_rank(), socket.gethostname()))
         if 1 == 1:
             size = comm.Get_size()
             rank = comm.Get_rank()

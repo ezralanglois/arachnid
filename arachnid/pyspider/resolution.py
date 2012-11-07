@@ -236,7 +236,11 @@ def ensure_pixel_size(spi, filename, **extra):
     '''
     
     del extra['bin_factor']
-    w = spider.image_size(spi, filename)[0]
+    try:
+        w = spider.image_size(spi, filename)[0]
+    except:
+        _logger.error("Cannot read: %s -- %d"%(filename, os.path.exists(spi.replace_ext(filename))))
+        raise
     w = int(w)
     params = {}
     if extra['window'] != w:

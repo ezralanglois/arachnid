@@ -304,7 +304,9 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
             Unused keyword arguments
     '''
     
+    dec_level=extra['dec_level']
     extra.update(spider_params.update_params(**extra))
+    extra['dec_level']=dec_level
     extra.update(spider.scale_parameters(**extra))
     angle_rot = format_utility.add_prefix(extra['cache_file'], "rot_")
     extra.update(prealign_input(spi, align[curr_slice], use_flip=use_flip, **extra))
@@ -569,9 +571,9 @@ def prealign_input(spi, align, input_stack, use_flip, flip_stack, dala_stack, in
     '''
     
     if use_flip and flip_stack is not None: input_stack = flip_stack
-    input_stack = spider.interpolate_stack(input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
+    input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
     if inputangles is not None:
-        align.write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
+        write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
         if not spider.supports_internal_rtsq(spi):
             if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
             input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
