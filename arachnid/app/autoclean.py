@@ -605,14 +605,16 @@ def test_covariance(eigs, data, output, **extra):
     ecov = numpy.cov(eigs)
     dmcov = numpy.zeros(data.shape[0])
     emcov = numpy.zeros(data.shape[0])
-    for i in xrange(1, data.shape[0]):
-        dmcov[i] = numpy.mean(dcov[idx, idx[:, numpy.newaxis]])
-        emcov[i] = numpy.mean(ecov[idx, idx[:, numpy.newaxis]])
+    for i in xrange(3, data.shape[0]):
+        dmcov[i] = numpy.mean(dcov[idx[:i], idx[:i, numpy.newaxis]])
+        emcov[i] = numpy.mean(ecov[idx[:i], idx[:i, numpy.newaxis]])
     x = numpy.arange(1, len(ecov)+1)
     pylab.clf()
     pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
+    pylab.savefig(format_utility.new_filename(output, "dcov_", ext="png"))
+    pylab.clf()
     pylab.plot(x, emcov, linestyle='None', marker='+', color='g')
-    pylab.savefig(format_utility.new_filename(output, "cov_", ext="png"))
+    pylab.savefig(format_utility.new_filename(output, "ecov_", ext="png"))
 
 def test_variance(eigs, data, output, **extra):
     '''
