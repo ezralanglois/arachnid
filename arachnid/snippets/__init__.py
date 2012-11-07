@@ -20,4 +20,5 @@
     scale_align
     corrupt_particles
     phase_flip
+    stack_images
 '''
