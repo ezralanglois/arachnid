@@ -1490,6 +1490,30 @@ class Session(spider_session.Session):
         
         return spider_session.spider_command_multi_input(session, 'mu', "Multiply images", inputfile, *otherfiles, **extra)
     
+    def neg_a(session, inputfile, outputfile=None, **extra):
+        ''' Multiply a set of images
+                
+        `Original Spider (NEG A) <http://www.wadsworth.org/spider_doc/spider/docs/man/neg_a.html>`_
+        
+        :Parameters:
+            
+        session : Session
+                  Current spider session
+        inputfile : str
+                    Filename of input image
+        outputfile : str
+                     Filename for incore stack (Default: None)
+        extra : dict
+                Unused key word arguments
+        
+        :Returns:
+        
+        outputfile : str
+                     Filename of output image
+        '''
+        
+        return spider_session.spider_command_fifo(session, 'neg a', inputfile, outputfile, "Invert contrast")
+    
     OR_SH_TUPLE = collections.namedtuple("orsh", "psi,x,y,mirror,cc")
     def or_sh(session, inputfile, reference, trans_range=6, trans_step=2, ring_first=2, ring_last=15, test_mirror=True, window=None, **extra):
         '''Determines rotational and translational orientation between two images after resampling into 
