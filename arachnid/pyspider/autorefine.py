@@ -191,8 +191,13 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         bin_factor = decimation_level(resolution_start, **extra)
         extra['bin_factor']=bin_factor
         param['bin_factor']=bin_factor
-        extra.update(spider_params.update_params(**param))
-        extra['ring_last'] = int(param['pixel_diameter']/2.0)
+        
+        dec_level=extra['dec_level']
+        extra.update(spider_params.update_params(**extra))
+        extra['dec_level']=dec_level
+        extra.update(spider.scale_parameters(**extra))
+        
+        #extra['ring_last'] = int(param['pixel_diameter']/2.0)
         extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
         shuffle_angles = extra['theta_delta'] == theta_prev and refine_index > 0
         extra['min_resolution'] = filter_resolution(**param)
@@ -237,7 +242,7 @@ def angular_restriction(alignvals, theta_delta, **extra):
         _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
     return ang
     
-def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, **extra):
+def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, bin_factor, **extra):
     ''' Angular sampling rate
     
     :Parameters:
@@ -252,6 +257,8 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
                   Maximum translation range
     theta_delta : float
                   Current theta delta
+    bin_factor : float
+                 Decimation factor
     extra : dict
             Unused keyword arguments
            
