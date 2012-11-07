@@ -155,11 +155,31 @@ def read_image(filename, index=None):
           Array with header information in the file
     '''
     
+    filename = readlinkabs(filename)
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
     if format is None: 
         raise IOError, "Could not find format for %s"%filename
     return format.read_image(filename, index)
+
+def readlinkabs(link):
+    ''' Get the absolute path for the given symlink
+    
+    :Parameters:
+    
+    link : str
+           Link filename
+    
+    :Returns:
+    
+    filename : str
+               Absolute path of file link points
+    '''
+    
+    if not os.path.islink(link):  return link
+    p = os.readlink(l)
+    if os.path.isabs(p): return p
+    return os.path.join(os.path.dirname(link), p)
 
 def iter_images(filename, index=None):
     ''' Read a set of images from the given file
