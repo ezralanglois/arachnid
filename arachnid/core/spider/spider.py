@@ -3001,7 +3001,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
     if ring_last > 0:
         param['ring_last']=int(ring_last*factor)
-        if max_translation_range(**param) < 1: param['ring_last']=max_radius - 4
+        if max_translation_range(window, ring_last) < 1: param['ring_last']=max_radius - 4
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     param['dec_level']=bin_factor
