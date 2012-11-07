@@ -276,8 +276,7 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
                 Masked power spectra
     '''
     
-    spi.du(power_spec, 4, 3)
-    if 1 == 0:
+    if 1 == 1:
         if ps_radius == 0: return power_spec
         x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
         x_cent, y_cent = (x_size/2+1, y_size/2+1)
@@ -290,6 +289,8 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
         mask_radius = int((2*float(apix)/ps_radius)*x_size)
         if ps_outer > 0: ps_outer=x_cent-ps_outer
         power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
+    else:
+        spi.du(power_spec, 4, 3)
     if output_pow != "": spi.cp(power_spec, output_pow)
     return power_spec
 
@@ -464,12 +465,10 @@ def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, 
         temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
         filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
     
-    #if invert: NEG A
     if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
         w, h = spider.image_size(spi, filename)[:2]
         if invert: filename = spi.neg_a(filename)
         corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
-        #corefile = spi.dc_s(filename, bin_factor, **extra) # Use iterpolation!
     elif invert: 
         corefile = spi.neg_a(filename, **extra)
     else:
