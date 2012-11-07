@@ -127,7 +127,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replace image_reader
 if ndimage_file is None:
     from ..core.image import reader as image_reader
 from ..core.metadata import format_utility, format, spider_params, spider_utility
