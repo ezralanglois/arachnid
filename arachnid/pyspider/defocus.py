@@ -147,7 +147,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_params, spider_utility
-from ..core.image import ndimage_file
+from ..core.image import ndimage_file, eman2_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
 import os, numpy, logging
@@ -277,6 +277,18 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
     '''
     
     if 1 == 1:
+        x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
+        rad = min(int(0.5/extra['pixel_diameter']*x_size), 3)
+        mask = eman2_utility.model_circle(rad, int(x_size), int(y_size))       
+        temp_spider_file = mpi_utility.safe_tempfile("temp_mask_file", **extra)
+        try:
+            ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
+        except:
+            if os.path.dirname(temp_spider_file) == "": raise
+            temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
+            ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
+        power_spec = spi.mu(power_spec, temp_spider_file)
+    elif 1 == 1:
         if ps_radius == 0: return power_spec
         x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
         x_cent, y_cent = (x_size/2+1, y_size/2+1)
