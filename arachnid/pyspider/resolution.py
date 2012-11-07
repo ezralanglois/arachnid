@@ -246,7 +246,7 @@ def ensure_pixel_size(spi, filename, **extra):
     if extra['window'] != w:
         bin_factor = extra['window']/float(w)
         params = spider_params.update_params(bin_factor, **extra)
-        _logger.warn("Changing pixel size: %f (%f/%f) -> %f"%(bin_factor, extra['window'], w, params['apix']))
+        _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f"%(bin_factor, extra['window'], w, extra['apix'], params['apix']))
     return params
 
 def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5):

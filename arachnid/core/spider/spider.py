@@ -2590,7 +2590,7 @@ class Session(spider_session.Session):
         else:
             try: session.de(outputfile)
             except: pass
-        session.invoke('vo ras', spider_doc(inputfile), spider_tuple(*angle_num), spider_tuple(*psi_value), spider_doc(outputfile))
+        session.invoke('vo ras', spider_doc(inputfile), spider_tuple(angle_num), spider_tuple(*psi_value), spider_doc(outputfile))
         return outputfile
     
     def wi(session, inputfile, dimensions, coords=None, outputfile=None, **extra):

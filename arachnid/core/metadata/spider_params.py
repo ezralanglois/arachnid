@@ -177,7 +177,7 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
     '''
     
     if dec_level == bin_factor: return {}
-    factor = dec_level/bin_factor
+    factor = dec_level/bin_factor if bin_factor >= 1.0 else bin_factor
     return dict(dec_level=bin_factor,
                 width=int(width*factor), 
                 height=int(height*factor), 
