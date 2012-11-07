@@ -283,7 +283,7 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     '''
     
     if output_volume == "": output_volume = format_utility.add_prefix(output, "vol_")
-    sp, fsc, apix = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)[0]
+    sp, fsc, apix = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)
     extra['apix']=apix
     res = extra['apix']/sp
     if add_resolution > 0.0: 
