@@ -177,7 +177,7 @@ def readlinkabs(link):
     '''
     
     if not os.path.islink(link):  return link
-    p = os.readlink(l)
+    p = os.readlink(link)
     if os.path.isabs(p): return p
     return os.path.join(os.path.dirname(link), p)
 
