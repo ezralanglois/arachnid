@@ -306,11 +306,11 @@ the following outputs:
 
  -  micrograph_stack_0001.spi,  micrograph_stack_0002.spi ...  micrograph_stack_XXXX.spi
  -  sel_micrograph_stack_0001.spi,  sel_micrograph_stack_0002.spi ...  sel_micrograph_stack_XXXX.spi
- -  allsel_micrograph_stack_XXXXb.spi
+ -  selall_micrograph_stack_XXXXb.spi
 
 2. Load data into ap-view (or view)
 
- - Open allsel_micrograph_stack_XXXXb.spi
+ - Open selall_micrograph_stack_XXXXb.spi
  - Open micrograph_stack_0001.spi
  - Open sel_micrograph_stack_0001.spi
  - Save project!
