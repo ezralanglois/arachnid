@@ -205,7 +205,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, shuffle_angles=shuffle_angles, **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            angle_range = angular_restriction(**extra)
+            angle_range = angular_restriction(alignvals, **extra)
             trans_range = translation_range(alignvals, **extra)
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
         extra['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
