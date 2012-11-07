@@ -187,10 +187,9 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     for refine_index in xrange(refine_index, num_iterations):
-        # Angular restriction
-        bin_factor = decimation_level(resolution_start, **extra)
-        extra['bin_factor']=bin_factor
-        param['bin_factor']=bin_factor
+        
+        extra['bin_factor'] = decimation_level(resolution_start, **extra)
+        param['bin_factor']=extra['bin_factor']
         
         dec_level=extra['dec_level']
         extra.update(spider_params.update_params(**extra))
@@ -292,6 +291,7 @@ def decimation_level(resolution, apix, **extra):
                  Level of decimation
     '''
     
+    #return min(6, resolution*0.9 / ( apix * 4 ))
     return min(6, resolution / ( apix * 4 ))
 
 def ensure_translation_range(window, ring_last, trans_range, **extra):
