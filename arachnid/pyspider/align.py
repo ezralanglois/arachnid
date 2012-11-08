@@ -575,7 +575,7 @@ def prealign_input(spi, align, input_stack, use_flip, flip_stack, dala_stack, in
     if inputangles is not None:
         write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
         if not spider.supports_internal_rtsq(spi):
-            if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack")
+            if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack: %f"%extra['apix'])
             input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
     return dict(input_stack=input_stack)
 

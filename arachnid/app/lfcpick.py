@@ -127,7 +127,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file# - replace image_reader
 if ndimage_file is None:
     from ..core.image import reader as image_reader
 from ..core.metadata import format_utility, format, spider_params, spider_utility
@@ -297,7 +297,7 @@ def lfc(img, template, mask):
         mask = eman2_utility.em2numpy(emmask)
         cc_map = ndimage_utility.cross_correlate(img, template)
         cc_map /= ndimage_utility.local_variance(img, mask)
-        cc_map = eman2_utility.numpy2em(cc_map)
+        #cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
 def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, **extra):
@@ -329,6 +329,7 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     if ndimage_file is not None:
         mic = ndimage_file.read_image(filename)
     else:
+        assert(False)
         mic = image_reader.read_image(filename, emdata=emdata)
     if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: mic = ndimage_utility.invert(mic)

@@ -3019,11 +3019,10 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     param = {}
     factor = dec_level/bin_factor
     if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
-    if trans_range > 1: param['trans_range']=max(1, int(trans_range*factor))
+    param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else extra['trans_range']
     if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
-    if ring_last > 0:
-        param['ring_last']=min(max_radius - 4, int(ring_last*factor))
+    param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else extra['ring_last']
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
