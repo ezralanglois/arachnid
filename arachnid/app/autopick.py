@@ -254,18 +254,13 @@ def ccf_center(img, template):
     '''
     
     if eman2_utility.is_em(img):
-        _logger.error("Template-matching-1")
         emimg = img
         img = eman2_utility.em2numpy(emimg)
-        _logger.error("Template-matching-2")
     if eman2_utility.is_em(template):
         emtemplate = template
         template = eman2_utility.em2numpy(emtemplate)
-        _logger.error("Template-matching-3")
     cc_map = ndimage_utility.cross_correlate(img, template)
-    _logger.error("Template-matching-4")
-    cc_map = eman2_utility.numpy2em(cc_map)
-    _logger.error("Template-matching-5")
+    #cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
 def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, **extra):
@@ -296,7 +291,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
           Bool array of selected good windows 
     '''
     
-    _logger.error("Total particles: %d"%len(scoords))
+    _logger.debug("Total particles: %d"%len(scoords))
     radius, offset, bin_factor, tmp = lfcpick.init_param(**extra)
     del tmp
     emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
@@ -310,7 +305,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         emmic = mic
         mic = eman2_utility.em2numpy(emmic)
     
-    _logger.info("Windowing %d particles"%len(scoords))
+    _logger.debug("Windowing %d particles"%len(scoords))
     for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
         npdata[:, :] = win
@@ -330,18 +325,18 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
     assert(idx > 0)
     assert(feat.shape[0]>1)
-    _logger.error("Eigen: %d"%idx)
+    _logger.debug("Eigen: %d"%idx)
     dsel = analysis.one_class_classification_old(feat)
-    _logger.error("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
         sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-        _logger.error("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
+        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
     else: sel = dsel
     if not disable_threshold:
         tsel = classify_noise(scoords, dsel, sel)
-        _logger.error("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
+        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
-        _logger.error("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
+        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
     return sel
     
