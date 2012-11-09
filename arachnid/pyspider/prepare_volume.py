@@ -254,7 +254,7 @@ def process(filename, output, **extra):
     _logger.info("Resolution = %f"%res)
     return filename
 
-def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_resolution=0.0, enhance=False, **extra):
+def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_resolution=0.0, enhance=False, prep_thread=None, **extra):
     ''' Postprocess reconstructed volumes for next round of refinement
     
     :Parameters:
@@ -273,6 +273,8 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
                     Output filename for the reconstructed volume (if empty, `vol_$output` will be used). half volumes will be prefixed with `h1_` and `h2_` and the raw volume, `raw_`
     enhance : bool
               Output an enhanced density map
+    prep_thread : int
+                  Number of threads for post processing
     extra : dict
             Unused keyword arguments
     
@@ -283,7 +285,11 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     '''
     
     if output_volume == "": output_volume = format_utility.add_prefix(output, "vol_")
+    if prep_thread is not None:
+        _logger.info("Increasing thread count: %d"%prep_thread)
+        spider.throttle_mp(spi, prep_thread, **extra)
     sp, fsc, apix = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)
+    extra['pixel_diameter'] *= extra['apix']/apix
     extra['apix']=apix
     res = extra['apix']/sp
     if add_resolution > 0.0: 
@@ -295,6 +301,7 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     filename = mask_volume.mask_volume(filename, output_volume, spi, **extra)
     if enhance:
         enhance_volume.enhance_volume(filename, spi, extra['apix'] / res, output, prefix="enh_", **extra)
+    if prep_thread is not None: spider.release_mp(spi, **extra)
     return res
 
 def initialize(files, param):
