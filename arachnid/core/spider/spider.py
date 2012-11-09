@@ -3019,10 +3019,10 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     param = {}
     factor = dec_level/bin_factor
     if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
-    param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else extra['trans_range']
+    param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
     if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
-    param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else extra['ring_last']
+    param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
@@ -3030,7 +3030,12 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             param['trans_range'] = max(1, max_radius - param['ring_last'] - 3)
         if (max_radius - param['ring_last'] - param['trans_range']) < 3:
             param['ring_last'] = max(2, max_radius - param['trans_range'] - 3)
-        
+    if param['trans_range'] > 4:
+        param['trans_step'] = int(param['trans_range'] / 2.0)
+        param['trans_range'] = param['trans_step']*2
+    else: param['trans_step'] = 1
+    if param['ring_last'] < 2:
+        raise ValueError, "Invalid ring last: %d -- %f, %f -- %d"%(param['ring_last'], dec_level, bin_factor, param['trans_range']) 
     param['dec_level']=bin_factor
     return param
 
@@ -3285,20 +3290,22 @@ def angle_count(theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0
             count += 1
     return count
 
-def throttle_mp(spi, thread_count, **extra):
+def throttle_mp(spi, new_thread_count=1, thread_count=0, **extra):
     ''' Set number of cores in SPIDER to 1
     
     :Parameters:
     
     spi : spider.Session
           Current SPIDER session
+    new_thread_count : int
+                       Number of new threads to use
     thread_count : int
                    Number of threads to use
     extra : dict
             Unused keyword arguments 
     '''
     
-    if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
+    spi.md('SET MP', new_thread_count)
 
 def release_mp(spi, thread_count, **extra):
     ''' Reset number of cores in SPIDER to default
@@ -3313,7 +3320,7 @@ def release_mp(spi, thread_count, **extra):
             Unused keyword arguments 
     '''
     
-    if thread_count > 1 or thread_count == 0: spi.md('SET MP', thread_count)
+    spi.md('SET MP', thread_count)
 
 
 

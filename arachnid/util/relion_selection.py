@@ -82,6 +82,14 @@ Critical Options
 .. option:: -m <INT>, --minimum-group <INT>
     
     Minimum number of particles per defocus group
+
+.. option:: --stack_file <STR>
+
+    Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file
+
+.. option:: -scale <FLOAT>
+    
+    Used to scale the translations in a relion file (Default: 1.0)
     
 Useful Options
 ==============
@@ -109,7 +117,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image import eman2_utility, ndimage_file #, ndimage_utility
-import numpy, os, logging
+import numpy, os, logging, operator
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -118,11 +126,11 @@ def batch(files, **extra):
     '''Assign orientation to a set of noisy projections
     
     :Parameters:
-        
-        filename : tuple
-                   File index and input filename
-        extra : dict
-                Unused key word arguments
+    
+    filename : tuple
+               File index and input filename
+    extra : dict
+            Unused key word arguments
     '''
     
     if ndimage_file.is_readable(files[0]):
@@ -144,15 +152,15 @@ def select_class_subset(vals, select, output, **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
-        
-        vals : list
-               List of entries from a selection file
-        select : str
-                 Filename for good class selection file
-        output : str
-                Filename for output selection file
-        extra : dict
-                Unused key word arguments
+    
+    vals : list
+           List of entries from a selection file
+    select : str
+             Filename for good class selection file
+    output : str
+            Filename for output selection file
+    extra : dict
+            Unused key word arguments
     '''
     
     if select != "":
@@ -163,7 +171,9 @@ def select_class_subset(vals, select, output, **extra):
             if v.rlnClassNumber in select:
                 subset.append(v)
     else: subset = vals
-    if os.path.splitext(output)[1] == '.star':
+    if os.path.splitext(output)[1] == '.star':       
+        groupmap = regroup(build_group(subset), **extra)
+        update_parameters(subset, list(subset[0]._fields), groupmap, **extra)
         format.write(output, subset)
     else:
         micselect={}
@@ -174,31 +184,30 @@ def select_class_subset(vals, select, output, **extra):
         for mic,vals in micselect.iteritems():
             format.write(output, numpy.asarray(vals), header="id,select".split(','))
 
-def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", minimum_group=20, **extra):
+def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
-    
-        files : list
-                List of stack files
-        img : EMData
-              Image used to query size information
-        output : str
-                 Filename for output selection file
-        defocus : str
-                  Filename for input defocus file
-        defocus_header : str
-                         Header for defocus file
-        param_file : str
-                     Filename for input SPIDER Params file
-        select : str
-                 Filename for input optional selection file (for good particles in each stack)
-        minimum_group : int
-                        Minimum number of particles per defocus group
-        extra : dict
-                Unused key word arguments
+
+    files : list
+            List of stack files
+    img : EMData
+          Image used to query size information
+    output : str
+             Filename for output selection file
+    defocus : str
+              Filename for input defocus file
+    defocus_header : str
+                     Header for defocus file
+    param_file : str
+                 Filename for input SPIDER Params file
+    select : str
+             Filename for input optional selection file (for good particles in each stack)
+    extra : dict
+            Unused key word arguments
     '''
     
+    header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(',')
     spider_params.read(param_file, extra)
     pixel_radius = int(extra['pixel_diameter']/2.0)
     if img.shape[0]%2 != 0: raise ValueError, "Relion requires even sized images"
@@ -238,8 +247,62 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
         group.append((defocus_dict[mic].defocus, len(select_vals), len(label)))
         for pid in select_vals:
             label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
-    group = numpy.asarray(group)
     
+    groupmap = regroup(group, **extra)
+    update_parameters(label, header, groupmap, **extra)
+    
+    format.write(output, label, header=header)
+    
+def build_group(data):
+    ''' Build a grouping from a set of relion data
+    
+    :Parameters:
+    
+    data : list
+           List of alignment parameters
+    
+    :Returns:
+    
+    group : list
+            List of groups: defocus, size, offset
+    '''
+    
+    mic_index = list(data[0]._fields).index('rlnMicrographName')
+    def_index = list(data[0]._fields).index('rlnDefocusU')
+    data = sorted(data, key=operator.itemgetter(mic_index))
+    group = []
+    defocus = data[0][def_index]
+    last = data[0][mic_index]
+    total = 0
+    selected = 0
+    for d in data:
+        if d[mic_index] != last:
+            group.append((defocus, selected, total))
+            defocus = data[0][def_index]
+            total += selected
+            selected = 0
+        else:
+            selected += 1
+    group.append((defocus, selected, total))
+    return group
+    
+def regroup(group, minimum_group, **extra):
+    ''' Regroup micrographs by defocus
+    
+    :Parameters:
+    
+    group : list
+            Micrograph grouping
+    minimum_group : int
+                    Minimum size of defocus group
+    
+    :Returns:
+    
+    group_map : dict
+                Group mapping
+    '''
+    
+    group = numpy.asarray(group)
     regroup = []
     offset = 0
     total = 0
@@ -258,13 +321,48 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
         for i in regroup:
             groupmap[i]=offset
         offset-=1
-    
-    for i in xrange(len(label)):
-        label[i][6] = groupmap[label[i][6]]
-        label[i] = tuple(label[i])
     _logger.info("Groups %d -> %d"%(len(group), offset+1))
+    return groupmap
     
-    format.write(output, label, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(','))
+def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **extra):
+    ''' Update parameters in a relion selection file
+    
+    data : list
+           List of alignment parameters
+    header : list
+             List of column names
+    group_map : dict
+                Group mapping
+    scale : float
+            Scale factor for translations
+    stack_file : str
+                 Filename for image stack
+    extra : dict
+            Unused key word arguments
+    
+    :Returns:
+    
+    data : list
+           Updated data list
+    '''
+    
+    group_col = header.index('rlnMicrographName')
+    if scale != 1.0:
+        try:x_col = header.index('rlnOriginX')
+        except: x_col = -1
+        try:y_col = header.index('rlnOriginY')
+        except: y_col = -1
+    else: x_col, y_col = -1, -1
+    name_col = header.index('rlnImageName') if stack_file != "" else -1
+    for i in xrange(len(data)):
+        if group_col >= 0 and group_map is not None:
+            vals = data[i] if not isinstance(data[i], tuple) else list(data[i])
+            vals[group_col] = group_map[vals[group_col]]
+        if x_col > -1: vals[x_col]*= scale
+        if y_col > -1: vals[y_col]*= scale
+        if name_col > -1: vals[name_col] = spider_utility.relion_filename(stack_file, vals[name_col])
+        data[i] = tuple(vals)
+    return data
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
@@ -276,6 +374,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-d", defocus="",                      help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
     group.add_option("-m", minimum_group=20,                help="Minimum number of particles per defocus group", gui=dict(minimum=0, singleStep=1))
+    group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
+    group.add_option("",   scale=1.0,                       help="Used to scale the translations in a relion file")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))

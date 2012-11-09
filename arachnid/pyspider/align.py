@@ -78,6 +78,10 @@ Useful Options
 .. option:: --use-flip <BOOL>
     
     Use the phase flipped stack for alignment (Default: False)
+    
+.. option:: --prep-thread <INT>
+    
+    Number of threads to use for volume preparation (Default: 0, use all threads)
 
 Volume Projection Options
 =========================
@@ -595,6 +599,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   max_ref_proj=300,       help="Maximum number of reference projections in memory", gui=dict(minimum=10))
     group.add_option("",   use_apsh=False,         help="Set True to use AP SH instead of AP REF (trade speed for accuracy)")
     group.add_option("",   use_flip=False,         help="Use the phase flipped stack for alignment")
+    group.add_option("",   prep_thread=0,          help="Number of threads to use for volume preparation")
     pgroup.add_option_group(group)
     
     group = OptionGroup(parser, "Other Parameters", "Options controlling alignment", group_order=0,  id=__name__)
