@@ -115,7 +115,6 @@ def esimate_signal(filename, output, apix, window_size=500, overlap=0.5, pad=2, 
     fsc = numpy.square(ravg1-ravg1[::-1])
     fsc /= numpy.max(fsc)
     resolution.plot_fsc(format_utility.add_prefix(output, 'rev_'), freq, fsc, apix)
-
 #
 def esimate_signal_old(filename, output, apix, window_size=500, overlap=0.5, pad=2, **extra):
     ''' Estimate the signal based on two power spectra
