@@ -190,15 +190,15 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     if mpi_utility.is_root(**extra):
         resolution_file = spi.replace_ext(format_utility.add_prefix(output, 'res_refine'))
         if os.path.exists(resolution_file):
-            res_iteration = numpy.zeros(num_iterations+1)
+            res_iteration = numpy.zeros((num_iterations+1, 3))
             tmp = numpy.loadtxt(resolution_file, delimiter=",")
             res_iteration[:tmp.shape[0]]=tmp
-            resolution_start = res_iteration[refine_index-1]
-            #trans_range = min(int(translation_range(alignvals, **extra)/param['apix']), param['trans_range'])
-            #param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
+            resolution_start, param['trans_range'], extra['angle_range']  = res_iteration[refine_index]
         else:
-            res_iteration = numpy.zeros(num_iterations+1)
-        _logger.info("Starting refinement from %d iteration with resolution: %f"%(refine_index, resolution_start))
+            res_iteration = numpy.zeros((num_iterations+1, 3))
+        _logger.info("Starting refinement from %d iteration with resolution: %f - translation: %d - angle range: %d"%(refine_index, resolution_start, param['trans_range'], extra['angle_range'] ))
+    param['trans_range'] = mpi_utility.broadcast(param['trans_range'], **extra)
+    extra['angle_range'] = mpi_utility.broadcast(extra['angle_range'] , **extra)
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
@@ -212,7 +212,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         extra.update(spider.scale_parameters(**extra))
         
         extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
-        extra['shuffle_angles'] = extra['theta_delta'] == theta_prev and refine_index > 0
+        extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
         extra['min_resolution'] = resolution_start+1 #filter_resolution(**param)
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
@@ -222,40 +222,13 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = min(int(translation_range(alignvals, **extra)/param['apix']), param['trans_range'])
-            res_iteration[refine_index+1] = resolution_start
+            res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range)
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
         param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
         extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
         theta_prev = extra['theta_delta']
     mpi_utility.barrier(**extra)
-
-def angular_restriction(alignvals, theta_delta, **extra):
-    ''' Determine the angular restriction to apply to each projection
-    
-    :Parameters:
-    
-    theta_delta : float
-                  Angular sample rate
-    extra : dict
-            Unused keyword arguments
-            
-    :Returns:
-    
-    ang : float
-          Amount of angular restriction
-    '''
-    
-    if theta_delta > 7.9: return 0
-    gdist = alignvals[:, 9]
-    gdist = gdist[gdist > 0.0]
-    mang = numpy.median(gdist)
-    sang = numpy.std(gdist)
-    gdist = mang+sang*4
-    ang = max(gdist, 2*theta_delta)
-    if mpi_utility.is_root(**extra):
-        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
-    return ang
     
 def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, bin_factor, **extra):
     ''' Angular sampling rate
@@ -283,8 +256,8 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
                   Angular sampling rate
     '''
     
-    if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= 2:
-        theta_delta =  numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
+    if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= 3:
+        theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
         if mpi_utility.is_root(**extra):
             _logger.info("Angular Sampling: %f -- Resolution: %f -- Size: %f"%(theta_delta, resolution, pixel_diameter*apix))
     return min(15, theta_delta)
@@ -356,6 +329,33 @@ def translation_range(alignvals, **extra):
     if mpi_utility.is_root(**extra):
         _logger.info("Translation Range: %f -- Median: %f -- STD: %f"%(trans_range, mtrans, strans))
     return trans_range
+
+def angular_restriction(alignvals, theta_delta, **extra):
+    ''' Determine the angular restriction to apply to each projection
+    
+    :Parameters:
+    
+    theta_delta : float
+                  Angular sample rate
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    ang : float
+          Amount of angular restriction
+    '''
+    
+    if theta_delta > 7.9: return 0
+    gdist = alignvals[:, 9]
+    gdist = gdist[gdist > 0.0]
+    mang = numpy.median(gdist)
+    sang = numpy.std(gdist)
+    gdist = mang+sang*4
+    ang = max(gdist, 2*theta_delta)
+    if mpi_utility.is_root(**extra):
+        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
+    return ang
     
 def filter_resolution(bin_factor, apix, **extra):
     ''' Resolution for conservative filtering
