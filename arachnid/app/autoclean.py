@@ -185,7 +185,7 @@ def one_class_classification(feat):
     dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
     return dist_cent < analysis.otsu(dist_cent)
 
-def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
+def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
     
     .. todo:: add ctf correction
@@ -212,6 +212,8 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
            Pixel size
     disable_bispec : bool
                      Disable the bispectrum representation
+    use_radon : bool
+                Use radon transform
     bispec_window : str
                     Type of window to use for bispectrum
     bispec_biased : bool
@@ -241,8 +243,8 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if template is not None: img = shift(img, template, pixel_diameter/2)
+    ndimage_utility.normalize_standard(img, mask, var_one, img)
     if not disable_bispec:
-        #ndimage_utility.normalize_standard(img, mask*-1+1, var_one, img)
         ndimage_utility.normalize_standard(img, mask, var_one, img)
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
@@ -265,8 +267,9 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             img = img[idx[:, numpy.newaxis], idx]
             img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
         ndimage_utility.normalize_standard(img, None, var_one, img)
+    elif use_radon:
+        img = frt2(img*mask)
     else:
-        ndimage_utility.normalize_standard(img, mask, var_one, img)
         img = ndimage_utility.compress_image(img, mask)
     return img
 
@@ -590,6 +593,33 @@ def compute_average3(input_files, label, align, template=None, selected=None, ma
         fsc_all = numpy.sum(numpy.abs(shiftval))/float(label.shape[0]) if shiftval is not None else 0
     return avgsel2, avgunsel2, avgful2 / (cntsel+cntunsel), fsc_all
 
+def frt2(a):
+    """Compute the 2-dimensional finite radon transform (FRT) for an n x n
+    integer array.
+    
+    x-axis : angle
+    
+    http://pydoc.net/scikits-image/0.4.2/skimage.transform.finite_radon_transform
+    """
+    
+    ndimage_utility.normalize_min_max(a, 0, 2048, a)
+    a = a.astype(numpy.int32)
+    
+    if a.ndim != 2 or a.shape[0] != a.shape[1]:
+        raise ValueError("Input must be a square, 2-D array")
+ 
+    ai = a.copy()
+    n = ai.shape[0]
+    f = numpy.empty((n+1, n), numpy.uint32)
+    f[0] = ai.sum(axis=0)
+    for m in xrange(1, n):
+        # Roll the pth row of ai left by p places
+        for row in xrange(1, n):
+            ai[row] = numpy.roll(ai[row], -row)
+        f[m] = ai.sum(axis=0)
+    f[n] = ai.sum(axis=1)
+    return f
+
 def test_covariance(eigs, data, output, **extra):
     '''
     '''
@@ -609,12 +639,19 @@ def test_covariance(eigs, data, output, **extra):
             dmcov[i] = numpy.mean(dcov[idx[:i], idx[:i, numpy.newaxis]])
             emcov[i] = numpy.mean(ecov[idx[:i], idx[:i, numpy.newaxis]])
     else:
-        n=500
-        dcov = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
-        ecov = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
-        for i in xrange(0, data.shape[0]):
-            dmcov[i] = numpy.mean(dcov[idx[:i]])
-            emcov[i] = numpy.mean(ecov[idx[:i]])
+        n=60
+        if 1 == 0:
+            dcov = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
+            ecov = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
+            for i in xrange(0, data.shape[0]):
+                dmcov[i] = numpy.mean(numpy.std(data[dcov[idx[:i]]]))
+                emcov[i] = numpy.mean(numpy.std(eigs[ecov[idx[:i]]]))
+        else:
+            dcov = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
+            ecov = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
+            for i in xrange(0, data.shape[0]):
+                dmcov[i] = numpy.mean(dcov[idx[:i]])
+                emcov[i] = numpy.mean(ecov[idx[:i]])
     x = numpy.arange(1, len(ecov)+1)
     pylab.clf()
     pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
@@ -824,6 +861,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", write_view_stack=view_stack, help="Write out selected views to a stack where single means write both to a single stack", default=0)
     group.add_option("", sort_view_stack=False,       help="Sort the view stack by the first Eigen vector")
     group.add_option("", shift_data=0,                help="Number of times to shift data")
+    group.add_option("", use_radon=False,             help="Use the radon transform of the image")
     
     pgroup.add_option_group(group)
     if main_option:
