@@ -5,6 +5,8 @@ Supported formats:
      - :py:mod:`EMAN2/SPARX <formats.eman_format>`
      - :py:mod:`MRC <formats.mrc>`
      - :py:mod:`SPIDER <formats.spider>`
+     
+.. todo:: mrc format gives nans with direct detector data, disabled until fixed
 
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -358,8 +360,8 @@ def _load():
     ''' Import available formats
     '''
     
-    from formats import mrc
-    formats = [mrc]
+    #from formats import mrc
+    formats = []#mrc]
     try: from formats import eman_format
     except: tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
     else: formats.append(eman_format)
