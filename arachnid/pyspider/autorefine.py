@@ -184,7 +184,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     angle_range, trans_range = None, None
     param['trans_range']=500
     param['trans_step']=1
-    theta_prev = None
+    #theta_prev = None
     param['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra):
@@ -227,7 +227,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
         extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
-        theta_prev = extra['theta_delta']
+        #theta_prev = extra['theta_delta']
     mpi_utility.barrier(**extra)
     
 def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, bin_factor, **extra):
