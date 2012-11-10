@@ -7,6 +7,7 @@ from ..core.image.ndplot import pylab
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, process_queue
+from ..core.image import manifold
 from arachnid.core.util import plotting, fitting
 import logging, numpy, os, scipy,itertools
 
@@ -108,7 +109,6 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
             test = process_queue.recreate_global_dense_matrix(data)
             train = analysis.resample(data, resample, sample_size, thread_count)
         elif local_neighbors > 0:
-            from ..core.image import manifold
             test = process_queue.recreate_global_dense_matrix(data)
             train = manifold.local_neighbor_average(test, manifold.knn(test, local_neighbors))
         else: 
@@ -600,14 +600,21 @@ def test_covariance(eigs, data, output, **extra):
     eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
     idx = numpy.argsort(eig_dist_cent)
     
-    
-    dcov = numpy.cov(data)
-    ecov = numpy.cov(eigs)
     dmcov = numpy.zeros(data.shape[0])
     emcov = numpy.zeros(data.shape[0])
-    for i in xrange(3, data.shape[0]):
-        dmcov[i] = numpy.mean(dcov[idx[:i], idx[:i, numpy.newaxis]])
-        emcov[i] = numpy.mean(ecov[idx[:i], idx[:i, numpy.newaxis]])
+    if 1 == 0:
+        dcov = numpy.cov(data)
+        ecov = numpy.cov(eigs)
+        for i in xrange(3, data.shape[0]):
+            dmcov[i] = numpy.mean(dcov[idx[:i], idx[:i, numpy.newaxis]])
+            emcov[i] = numpy.mean(ecov[idx[:i], idx[:i, numpy.newaxis]])
+    else:
+        n=500
+        dcov = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
+        ecov = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
+        for i in xrange(0, data.shape[0]):
+            dmcov[i] = numpy.mean(dcov[idx[:i]])
+            emcov[i] = numpy.mean(ecov[idx[:i]])
     x = numpy.arange(1, len(ecov)+1)
     pylab.clf()
     pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
