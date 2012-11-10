@@ -355,7 +355,7 @@ def angular_restriction(alignvals, theta_delta, **extra):
     ang = max(gdist, 2*theta_delta)
     if mpi_utility.is_root(**extra):
         _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
-    return ang
+    return ( ang if theta_delta <= 7.9 else 0 )
     
 def filter_resolution(bin_factor, apix, **extra):
     ''' Resolution for conservative filtering
