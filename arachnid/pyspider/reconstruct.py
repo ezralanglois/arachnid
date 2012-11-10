@@ -241,6 +241,29 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     if not phase_flip: param['flip_stack'] = format_utility.add_prefix(local_scratch, 'flip_recon_')
     param['input_stack'] = spi.ms(len(align), window) if incore else format_utility.add_prefix(local_scratch, 'stack')
     
+    param['master_filename'], param['master_select'] = create_selection(files, align)
+    extra.update(param)
+    cache_local(spi, align, **extra)#, filename, select, window, param['input_stack'], param['flip_stack']
+    return param
+
+def create_selection(files, align):
+    ''' Create a selection file from the alignment file and list of files
+    
+    :Parameters:
+    
+    files : list
+            List of stack filenames
+    align : array
+            Aligment parameters
+    
+    :Returns:
+    
+    filename : dict or str
+               Stack template filename
+    select : array
+             Labels for the stacks and images
+    '''
+    
     if len(files) == 1:
         if align.shape[1] > 16:
             try:
@@ -254,12 +277,9 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
         if align.shape[1] < 17: raise ValueError, "Alignment of stacks requires alignment file with at least 17 columns: last two columns are stack_id, window_id, respectively"
         filename = spider_utility.file_map(files[0], align[:, 15], 0, True)
         select = align[:, 15:17]
-    param['master_filename'] = filename
-    param['master_select'] = select
-    
-    extra.update(param)
-    cache_local(spi, align, **extra)#, filename, select, window, param['input_stack'], param['flip_stack']
-    return param
+    return filename, select
+
+#def cache_recon
 
 def cache_local(spi, align, master_filename, master_select, window, input_stack=None, flip_stack=None, rank=0, **extra):
     ''' Distribution the data projections to scratch directories on each local node in a cluster

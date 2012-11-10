@@ -142,8 +142,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     if QtGui is None: return 
     
-    parser.add_option("-C", style_sheet="", help="Input filename for the style sheet the graphical user interface", gui=dict(nogui=True, filetype='open'))
-    parser.add_option("-X", ui=False,       help="Display the graphical user interface", gui=dict(nogui=True))
-    parser.add_option("-S", screen_shot="", help="Output filename for a screenshot of the UI", gui=dict(filetype="save", nogui=True))
+    parser.add_option("-C", style_sheet="", help="Input filename for the style sheet the graphical user interface", gui=dict(nogui=True, filetype='open'), dependent=False)
+    parser.add_option("-X", ui=False,       help="Display the graphical user interface", gui=dict(nogui=True), dependent=False)
+    parser.add_option("-S", screen_shot="", help="Output filename for a screenshot of the UI", gui=dict(filetype="save", nogui=True), dependent=False)
     # Launcher command option
  

@@ -147,10 +147,10 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_params, spider_utility
-from ..core.image import ndimage_file
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
-import os, numpy, logging
+import os, numpy, logging, itertools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -187,7 +187,7 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
     output_ctf = spider_utility.spider_filename(output_ctf, id)
     #spider.throttle_mp(**extra)
     _logger.debug("create power spec")
-    power_spec = create_powerspectra(filename, **extra)
+    power_spec = create_powerspectra(filename, output_pow=output_pow, **extra)
     
     '''
     if 1 == 1:
@@ -206,8 +206,8 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
         _logger.info("Power spec the same!")
     '''
     
-    _logger.debug("mask power spec")
-    power_spec = mask_power_spec(power_spec, output_pow=output_pow, **extra)
+    #_logger.debug("mask power spec")
+    #power_spec = mask_power_spec(power_spec, output_pow=output_pow, **extra)
     _logger.debug("rotational average")
     rotational_average(power_spec, output_roo=output_roo, **extra)
     _logger.debug("estimate defocus")
@@ -276,7 +276,19 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
                 Masked power spectra
     '''
     
-    if 1 == 1:
+    if 1 == 0:
+        x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
+        rad = min(int(0.5/extra['pixel_diameter']*x_size), 3)
+        mask = eman2_utility.model_circle(rad, int(x_size), int(y_size))*-1+1   
+        temp_spider_file = mpi_utility.safe_tempfile("temp_mask_file", **extra)
+        try:
+            ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
+        except:
+            if os.path.dirname(temp_spider_file) == "": raise
+            temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
+            ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
+        power_spec = spi.mu(power_spec, temp_spider_file)
+    elif 1 == 0:
         if ps_radius == 0: return power_spec
         x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
         x_cent, y_cent = (x_size/2+1, y_size/2+1)
@@ -294,7 +306,89 @@ def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, outpu
     if output_pow != "": spi.cp(power_spec, output_pow)
     return power_spec
 
-def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], du_type=3, **extra):
+def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], du_type=3, window_size=512, x_overlap=50, output_pow=None, bin_factor=None, invert=None, **extra):
+    ''' Calculate the power spectra from the given file
+    
+    :Parameters:
+    
+    filename : str
+               Input filename for the micrograph
+    spi : spider.Session
+          Current SPIDER session
+    use_powerspec : bool
+                    Set True if the input file is a power spectra
+    pad : int
+          Number of times to pad window before Fourier transform; if pad > window-size, then size of padded image (0 means none)
+    du_nstd : list
+              List of number of standard deviations for dedusting
+    du_type : int
+              Type of dedusting: (1) BOTTOM, (2) TOP, (3) BOTH SIDES: 3
+    window_size : int
+                  Size of the window to be cropped from the micrograph for the power spectra (Default: 500)
+    x_overlap : int
+                Percent overlap in the x-direction (Default: 50)
+    output_pow : str, optional
+                 Output file for power spectra
+    bin_factor : int
+                 Decimation factor of the micrograph
+    invert : bool
+             Invert the contrast of the micrograph
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    power_sec : spider_var
+                In-core reference to power spectra image
+    '''
+    
+    if not use_powerspec:
+        image_count = ndimage_file.count_images(filename)
+        if image_count > 1:
+            rwin = ndimage_file.iter_images(filename)
+            rwin = itertools.imap(prepare_micrograph, rwin, bin_factor, invert)
+        else:
+            mic = prepare_micrograph(ndimage_file.read_image(filename), bin_factor, invert)
+            window_size /= bin_factor
+            x_overlap_norm = 100.0 / (100-x_overlap)
+            step = max(1, window_size*x_overlap_norm)
+            rwin = ndimage_utility.rolling_window(mic, (window_size, window_size), (step, step))
+            rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
+        npowerspec = ndimage_utility.powerspec_avg(rwin, pad)
+        mask = eman2_utility.model_circle(npowerspec.shape[0]*(4.0/extra['pixel_diameter']), npowerspec.shape[0], npowerspec.shape[1])
+        sel = mask*-1+1
+        npowerspec[mask.astype(numpy.bool)] = numpy.mean(npowerspec[sel.astype(numpy.bool)])
+        assert(output_pow != "" and output_pow is not None)
+        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
+        power_spec = spi.cp(output_pow)
+    else:
+        power_spec = spi.cp(filename)
+    return power_spec
+
+def prepare_micrograph(mic, bin_factor, invert):
+    ''' Preprocess the micrograph
+    
+    :Parameters:
+    
+    mic : array
+          Micrograph image
+    bin_factor : float
+                 Number of times to decimate the micrograph
+    invert : bool
+             True if the micrograph should be inverted
+    
+    :Returns:
+    
+    mic : array
+          Preprocessed micrograph
+    '''
+    
+    if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+    if invert: ndimage_utility.invert(mic, mic)
+    return mic
+    
+
+def create_powerspectra_old(filename, spi, use_powerspec=False, pad=2, du_nstd=[], du_type=3, **extra):
     ''' Calculate the power spectra from the given file
     
     :Parameters:
@@ -666,7 +760,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
     pgroup.add_option_group(group)
     
-    setup_options_from_doc(parser, create_powerspectra, mask_power_spec, for_window_in_micrograph, group=pgroup)# classes=spider.Session
+    setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, mask_power_spec, for_window_in_micrograph
     if main_option:
         setup_options_from_doc(parser, spider.open_session)
         parser.change_default(thread_count=4, log_level=3, bin_factor=2)

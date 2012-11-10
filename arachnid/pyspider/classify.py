@@ -210,7 +210,7 @@ def classify_projections_overall(alignvals, threshold_type=('None', 'Auto', 'CC'
         cc_threshold = analysis.otsu(cc, threshold_bins)
     elif threshold_type == 3:
         cc_threshold = analysis.threshold_from_total(cc, cc_total, keep_low_cc)
-    sel = numpy.logical_and(sel, cmp(cc, cc_threshold))
+    sel = numpy.logical_and(sel, cmp(alignvals[:, 10], cc_threshold))
     _logger.info("Overall Threshold: %f -> %d of %d"%(cc_threshold, numpy.sum(sel), len(alignvals)))
     return sel
 
