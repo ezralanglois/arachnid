@@ -117,7 +117,6 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         if sel is not None: train = train[sel]
         
         if 1 == 0:
-            from ..core.image import manifold
             eigs, evals, index = manifold.diffusion_maps(test, 2, k=15, mutual=False, batch=10000)
             if index is not None:
                 eigs2 = eigs
@@ -143,7 +142,6 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         th = analysis.otsu(eig_dist_cent)
         sel = eig_dist_cent < th
         if 1 == 0:
-            from ..core.image import manifold
             feat, evals, index = manifold.diffusion_maps(test, 5, k=10, mutual=True, batch=10000)
             '''
             if index is not None:
@@ -640,12 +638,12 @@ def test_covariance(eigs, data, output, **extra):
             emcov[i] = numpy.mean(ecov[idx[:i], idx[:i, numpy.newaxis]])
     else:
         n=60
-        if 1 == 0:
+        if 1 == 1:
             dcov = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
             ecov = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
             for i in xrange(0, data.shape[0]):
-                dmcov[i] = numpy.mean(numpy.std(data[dcov[idx[:i]]]))
-                emcov[i] = numpy.mean(numpy.std(eigs[ecov[idx[:i]]]))
+                dmcov[i] = numpy.mean(numpy.std(data[dcov[idx[:i]]], axis=1))
+                emcov[i] = numpy.mean(numpy.std(eigs[ecov[idx[:i]]], axis=1))
         else:
             dcov = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
             ecov = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
