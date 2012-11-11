@@ -1633,7 +1633,7 @@ class Session(spider_session.Session):
         if background == 'N': additional.append( spider_tuple(background_value) )
         return spider_session.spider_command_fifo(session, 'pd', inputfile, outputfile, "Pad images", spider_tuple(*window_size), background, spider_tuple(*center_coord), *additional)
     
-    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, outputfile=None, **extra):
+    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, max_ref_proj=None, outputfile=None, **extra):
         '''Computes projection(s) of a 3D volume according to the three Eulerian angles.
         
         alias: project_3d
@@ -1661,6 +1661,8 @@ class Session(spider_session.Session):
                     Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
         pixel_diameter : int
                          Pixel diameter of the particle
+        max_ref_proj : int, optional
+                       Maximum number of projections in in-memory stack
         outputfile : str
                     Filename to store 2D projections (If none, temporary incore file is used and returned)
         extra : dict
@@ -1672,18 +1674,22 @@ class Session(spider_session.Session):
                     Tuple containing the output file and number of angles
         '''
         
+        assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
-        if outputfile is None: outputfile = session.ms(total_size, spider_image(inputfile))
+        if max_ref_proj is None: max_ref_proj = total_size
+        #_logger.error("Resizing the stack: %d == %d -- %d, %d"%(int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]), int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]), max_count, total_size))
+        if outputfile is None: outputfile = session.ms(max_ref_proj, spider_image(inputfile))
         elif int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
             session.de(outputfile)
-            outputfile = session.ms(total_size, spider_image(inputfile), outputfile=outputfile)
+            outputfile = session.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
         #param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
-        
+        #_logger.error("Resizing the stack2: %d"%pj_radius)
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
         session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+        #_logger.error("Resizing the stack3")
         return outputfile
     
     def pw(session, inputfile, outputfile=None, **extra):
@@ -3018,13 +3024,8 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     max_radius = int(window/2.0)
     param = {}
     factor = dec_level/bin_factor
-    if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
     param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
-    if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
-    if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
-    if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
-    if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
         if param['trans_range'] > 1:
             param['trans_range'] = max(1, max_radius - param['ring_last'] - 3)
@@ -3034,6 +3035,11 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
         param['trans_step'] = int(param['trans_range'] / 2.0)
         param['trans_range'] = param['trans_step']*2
     else: param['trans_step'] = 1
+    if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
+    if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
+    if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
+    if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
+    if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
     if param['ring_last'] < 2:
         raise ValueError, "Invalid ring last: %d -- %f, %f -- %d"%(param['ring_last'], dec_level, bin_factor, param['trans_range']) 
     param['dec_level']=bin_factor

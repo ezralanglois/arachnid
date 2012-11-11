@@ -298,11 +298,34 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     filename = files[0]
     filename = filter_volume.filter_volume_highpass(filename, spi, outputfile=output_volume, **extra)
     filename = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output_volume, **extra)
+    #filename = center_volume(filename, spi, output_volume)
     filename = mask_volume.mask_volume(filename, output_volume, spi, **extra)
     if enhance:
         enhance_volume.enhance_volume(filename, spi, extra['apix'] / res, output, prefix="enh_", **extra)
     if prep_thread is not None: spider.release_mp(spi, **extra)
     return res
+
+def center_volume(filename, spi, output):
+    ''' Center the volume in the box
+    
+    :Parameters:
+    
+    filename : str
+               Input volume file
+    spi : spider.Session
+          Current SPIDER session
+    output : str
+             Output centered volume file
+             
+    :Returns:
+    
+    output : str
+             Output centered volume file
+    '''
+    
+    if filename == output: filename = spi.cp(filename)
+    coords = spi.cg_ph(filename)
+    return spi.sh_f(filename, coords[3:], outputfile=output)
 
 def initialize(files, param):
     # Initialize global parameters for the script

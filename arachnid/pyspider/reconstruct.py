@@ -340,9 +340,9 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
                  Output file tuple for two half volumes and full volume
     '''
     
-    #align = align.copy()
-    #align[:, 6:8] /= extra['apix']
-    #align[:, 12:14] /= extra['apix']
+    align = align.copy()
+    align[:, 6:8] /= extra['apix']
+    align[:, 12:14] /= extra['apix']
     if mpi_utility.is_root(**extra):
         selection = classify.classify_projections(align, **extra)
     else: selection = 0
@@ -499,6 +499,7 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
         
     format.write(spi.replace_ext(align_file), align[curr_slice, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
+    input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(extra['cache_file'], "data_ip_"), **extra)
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
     dala_stack = spi.replace_ext(dala_stack)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)

@@ -283,7 +283,7 @@ def write_alignment(output, alignvals, apix=None):
     else: tmp = alignvals
     format.write(output, tmp, header=header.split(','), format=format.spiderdoc)
 
-def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip, use_apsh, shuffle_angles=False, **extra):
+def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, shuffle_angles=False, **extra):
     ''' Align a set of projections to the given reference
     
     :Parameters:
@@ -296,8 +296,6 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
                  Slice of align or selection arrays on current node
     reference : str or spider_var
                 Input filename for reference used in alignment
-    max_ref_proj : int
-                   Maximum number of reference projections allowed in memory
     use_flip : bool
                  Set true if the input stack is already phase flipped
     use_apsh : bool
@@ -308,6 +306,7 @@ def align_to_reference(spi, align, curr_slice, reference, max_ref_proj, use_flip
             Unused keyword arguments
     '''
     
+    max_ref_proj = extra['max_ref_proj']
     dec_level=extra['dec_level']
     extra.update(spider_params.update_params(**extra))
     extra['dec_level']=dec_level
