@@ -641,9 +641,11 @@ def test_covariance(eigs, data, output, **extra):
         if 1 == 1:
             dcov = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
             ecov = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
-            for i in xrange(0, data.shape[0]):
-                dmcov[i] = numpy.mean(numpy.std(data[dcov[idx[:i]]], axis=1))
-                emcov[i] = numpy.mean(numpy.std(eigs[ecov[idx[:i]]], axis=1))
+            for i in xrange(25, data.shape[0]-26):
+                dmcov[i] = numpy.mean(dcov[idx[i-25:i+25]])
+                emcov[i] = numpy.mean(ecov[idx[i-25:i+25]])
+                #dmcov[i] = numpy.mean(numpy.std(data[dcov[idx[i-25:i+25]]], axis=0))
+                #emcov[i] = numpy.mean(numpy.std(eigs[ecov[idx[i-25:i+25]]], axis=0))
         else:
             dcov = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
             ecov = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
