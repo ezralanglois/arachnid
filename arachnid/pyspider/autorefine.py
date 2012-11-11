@@ -211,7 +211,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         param['bin_factor']=1.0
         extra.update(spider.scale_parameters(**extra))
         
-        extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
+        extra['theta_delta'] = theta_delta_est(resolution_start*0.8, **extra)
         extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
         extra['min_resolution'] = resolution_start+1 #filter_resolution(**param)
         if mpi_utility.is_root(**extra):
