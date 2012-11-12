@@ -112,6 +112,7 @@ This is not a complete list of options available to this script, for additional 
     #. :mod:`See classify for more options... <arachnid.pyspider.classify>`
     #. :mod:`See align for more options... <arachnid.pyspider.align>`
 
+http://stackoverflow.com/questions/13101780/representing-a-simple-function-with-0th-bessel-function
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -188,7 +189,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     #theta_prev = None
     param['trans_range'] = ensure_translation_range(**param)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
-    param['min_bin_factor'] = int((param['window']-param['pixel_diameter'])/10.0) # min 2 pixel translation = (2+3)*2
+    param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
     
     if mpi_utility.is_root(**extra):
         resolution_file = spi.replace_ext(format_utility.add_prefix(output, 'res_refine'))
@@ -361,7 +362,8 @@ def angular_restriction(alignvals, theta_delta, **extra):
     ang = max(gdist, 2*theta_delta)
     if mpi_utility.is_root(**extra):
         _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
-    return ( ang if theta_delta <= 7.9 else 0 )
+    if theta_delta <= 7.9: return ang
+    return 0
     
 def filter_resolution(bin_factor, apix, **extra):
     ''' Resolution for conservative filtering
