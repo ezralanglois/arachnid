@@ -47,7 +47,8 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     #_logger.error("test: %s == %s"%(str(data.shape), str(data2.shape)))
     #data2 = numpy.vstack((data, data2))
     #_logger.error("test2: %s == %s"%(str(data.shape), str(data2.shape)))
-    eigs, sel, energy = classify_data(data, None, output=output, **extra)
+    ref = input_vals[3] if len(input_vals) > 3 else None
+    eigs, sel, energy = classify_data(data, ref, None, output=output, view=input_vals[0], **extra)
     test_covariance(eigs, data, output)
     #sel = numpy.zeros((len(data2)))
     #sel[:len(data)]=1
@@ -65,7 +66,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     format.write_dataset(os.path.splitext(output)[0]+".csv", feat, input_vals[0], label, prefix="embed_", header="best")
     #format.write(os.path.splitext(output)[0]+".csv", feat, prefix="embed_", spiderid=input_vals[0], header=['select']+header)
     
-    plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
+    plot_examples(input_files, input_vals[1], output, eigs, sel, ref, **extra)
     extra['poutput']=format_utility.new_filename(output, 'pos_') if write_view_stack == 1 or write_view_stack >= 3 else None
     extra['noutput']=format_utility.new_filename(output, 'neg_') if write_view_stack == 2 or write_view_stack == 3 else None
     if write_view_stack == 4: extra['noutput'] = extra['poutput']
@@ -76,9 +77,9 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     savg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, template=template, output=output, **extra)
     
     nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
-    return input_vals, sel, avg3[:3]+savg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
+    return input_vals, eigs, sel, avg3[:3]+savg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
 
-def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, **extra):
+def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
     
     :Parameters:
@@ -110,10 +111,21 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
             train = analysis.resample(data, resample, sample_size, thread_count)
         elif local_neighbors > 0:
             test = process_queue.recreate_global_dense_matrix(data)
-            train = manifold.local_neighbor_average(test, manifold.knn(test, local_neighbors))
+            if ref is not None:
+                train = numpy.empty_like(test)
+                refs = numpy.unique(ref)
+                offset = 0
+                for r in refs:
+                    train1 = manifold.local_neighbor_average(test[r==ref], manifold.knn(test[r==ref], local_neighbors))
+                    end = offset+train1.shape[0]
+                    train[offset:end] = train1
+                    offset = end
+            else:
+                train = manifold.local_neighbor_average(test, manifold.knn(test, local_neighbors))
         else: 
             train = process_queue.recreate_global_dense_matrix(data)
             test = train
+            train = train[:min_group]
         if sel is not None: train = train[sel]
         
         if 1 == 0:
@@ -135,12 +147,22 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         else:
             eigs, idx, vec,energy = analysis.pca(train, test, neig, test.mean(axis=0))
         eigs2 = eigs.copy()
-        eigs2 -= eigs2.min(axis=0)
-        eigs2 /= eigs2.max(axis=0)
+        #eigs2 -= eigs2.min(axis=0)
+        #eigs2 /= eigs2.max(axis=0)
         cent = numpy.median(eigs2, axis=0)
         eig_dist_cent = scipy.spatial.distance.cdist(eigs2, cent.reshape((1, len(cent))), metric='euclidean').ravel()
         th = analysis.otsu(eig_dist_cent)
+        _logger.info("Threshold(%d)=%f"%(view, th))
         sel = eig_dist_cent < th
+        
+        if 1 == 1:
+            nsel = numpy.logical_not(sel)
+            n = min(numpy.sum(nsel), numpy.sum(sel))
+            if train.shape[0] != test.shape[0]: train = test
+            penergy = analysis.pca_train(train[numpy.argwhere(sel).squeeze()[:n]], neig)[2]
+            nenergy = analysis.pca_train(train[numpy.argwhere(nsel).squeeze()[:n]], neig)[2]
+            _logger.info("Energy: %f -> p: %f | n: %f"%(energy, penergy, nenergy))
+        
         if 1 == 0:
             feat, evals, index = manifold.diffusion_maps(test, 5, k=10, mutual=True, batch=10000)
             '''
@@ -177,11 +199,12 @@ def one_class_classification(feat):
     '''
     
     feat = feat.copy()
-    feat -= feat.min(axis=0)
-    feat /= feat.max(axis=0)
+    #feat -= feat.min(axis=0)
+    #feat /= feat.max(axis=0)
     cent = numpy.median(feat, axis=0)
     dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    return dist_cent < analysis.otsu(dist_cent)
+    th = analysis.otsu(dist_cent)
+    return dist_cent < th, th
 
 def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
@@ -467,10 +490,27 @@ def read_alignment(files, alignment="", **extra):
     refs = numpy.unique(ref)
     
     group = []
-    for r in refs:
-        sel = r == ref
-        #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
-        group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
+    if 1 == 0:
+        r = 0
+        start = numpy.zeros(len(ref), dtype=numpy.bool)
+        while r < len(refs):
+            total = 0
+            sel = start
+            while r < len(refs) and numpy.sum(sel) < 5000:
+                sel = numpy.logical_or(ref == refs[r], sel)
+                r+=1
+            group.append((r, label[sel], align[sel]))
+        _logger.info("Number of groups: %d"%len(group))
+    elif 1 == 1 and extra['local_neighbors'] > 0:
+        for r in refs[1:]:
+            sel = numpy.logical_or(r == ref, refs[0]==ref)
+            #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
+            group.append((r, label[sel], align[sel], ref[sel]))#, label[sel2], align[sel2]))
+    else:
+        for r in refs:
+            sel = r == ref
+            #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
+            group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
     return group, align.shape[0]
 
 def compute_average3(input_files, label, align, template=None, selected=None, mask=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, pixel_diameter=None, output=None, **extra):
@@ -685,7 +725,7 @@ def test_variance(eigs, data, output, **extra):
     pylab.plot((th, th), (0, maxval))
     pylab.savefig(format_utility.new_filename(output, "den_", ext="png"))
     
-def plot_examples(filename, label, output, eigs, sel, dpi=200, **extra):
+def plot_examples(filename, label, output, eigs, sel, ref, dpi=200, **extra):
     ''' Plot the manifold with example images
     
     :Parameters:
@@ -711,7 +751,7 @@ def plot_examples(filename, label, output, eigs, sel, dpi=200, **extra):
     radius=20
     
     select = numpy.argwhere(sel < 0.5)
-    fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, dpi=dpi)
+    fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
     index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)].ravel()
     #_logger.error("selected: %s"%str(index.shape))
     iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
@@ -719,7 +759,7 @@ def plot_examples(filename, label, output, eigs, sel, dpi=200, **extra):
     fig.savefig(format_utility.new_filename(output, "neg_", ext="png"), dpi=dpi)
     
     select = numpy.argwhere(sel > 0.5)
-    fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, dpi=dpi)
+    fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
     index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)].ravel()
     if index.shape[0] > 1:
         iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
@@ -737,7 +777,15 @@ def initialize(files, param):
     group = None
     if mpi_utility.is_root(**param): 
         group, total = read_alignment(files, **param)
+        param['min_group'] = numpy.min([len(g[1]) for g in group])
         _logger.info("Cleaning bad particles from %d views"%len(group))
+        if len(group[0]) > 3:
+            param['global_label'] = None
+            param['global_feat'] = None
+        else:
+            param['global_label'] = numpy.zeros((total, 2))
+            param['global_feat'] = numpy.zeros((total, param['neig']))
+        param['global_offset'] = numpy.zeros((1))
     group = mpi_utility.broadcast(group, **param)
     if param['single_view'] > 0:
         tmp=group
@@ -747,11 +795,15 @@ def initialize(files, param):
     
     return group
 
-def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **extra):
+def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, global_label, global_feat, global_offset, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
-    input, sel, avg3, energy, feat_cnt, ndiff, sdiff = val
+    input, eigs, sel, avg3, energy, feat_cnt, ndiff, sdiff = val
     label = input[1]
+    if global_label is not None:
+        global_label[global_offset[0]:global_offset[0]+len(label)] = label
+        global_feat[global_offset[0]:global_offset[0]+len(eigs)] = eigs
+        global_offset[0]+=len(label)
     file_completed -= 1
     total[file_completed, 0] = input[0]
     total[file_completed, 1] = numpy.sum(sel)
@@ -766,77 +818,22 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, **ex
     # plot first 2 eigen vectors
     return input[0]
 
-def finalize(files, total, sel_by_mic, output, **extra):
+def finalize(files, total, sel_by_mic, output, global_label, global_feat, **extra):
     # Finalize global parameters for the script
     
+    #plot_examples
+    if global_label is not None:
+        sel, th = one_class_classification(global_feat)
+        _logger.info("Threshold(all)=%f"%th)
+        plot_examples(extra['input_files'], global_label, format_utility.add_prefix(output, "all"), global_feat, sel, **extra)
+        global_feat=numpy.hstack((sel[:, numpy.newaxis], global_feat))
+        format.write_dataset(os.path.splitext(output)[0]+".csv", global_feat, 1, global_label, prefix="embedall_", header="best")
     format.write(output, total, prefix="sel_avg_", header=['id', 'selected', 'total'], default_format=format.spiderdoc)
     for id, sel in sel_by_mic.iteritems():
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
     _logger.info("Selected %d out of %d"%(numpy.sum(total[:, 1]), numpy.sum(total[:, 2])))
     _logger.info("Completed")
-
-'''
-def initialize(files, param):
-    # Initialize global parameters for the script
-    
-    if mpi_utility.is_root(**param):
-        if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution: %f"%param['resolution'])
-        if param['use_rtsq']: _logger.info("Rotate and translate data stack")
-    
-    group = None
-    total=0
-    if mpi_utility.is_root(**param): 
-        group, total = read_alignment(files, **param)
-        _logger.info("Cleaning bad particles from %d views"%len(group))
-        param['global_label'] = numpy.zeros((total, 2))
-        assert(extra['neig']>=1)
-        param['global_feat'] = numpy.zeros((total, extra['neig']))
-        param['global_offset'] = numpy.zeros((1))
-    group = mpi_utility.broadcast(group, **param)
-    if param['single_view'] > 0:
-        tmp=group
-        group = [tmp[param['single_view']-1]]
-    
-    return group
-
-def reduce_all(val, input_files, global_label, global_feat, global_offset, output, file_completed, **extra):
-    # Process each input file in the main thread (for multi-threaded code)
-    
-    input, sel, avg3, eigs, label = val
-    label = input[1]
-    file_completed -= 1
-    global_label[global_offset[0]:global_offset[0]+len(label)] = label
-    global_feat[global_offset[0]:global_offset[0]+len(eigs)] = eigs
-    global_offset[0]+=len(label)
-
-    output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1)
-    _logger.info("Finished processing %d"%(input[0]))
-    file_completed *= len(avg3)
-    for i in xrange(len(avg3)):
-        ndimage_file.write_image(output, avg3[i], file_completed+i)
-    # plot first 2 eigen vectors
-    return input[0]
-
-def finalize(files, global_label, global_feat, output, **extra):
-    # Finalize global parameters for the script
-    
-    eigs2 = eigs.copy()
-    eigs2 -= eigs2.min(axis=0)
-    eigs2 /= eigs2.max(axis=0)
-    cent = numpy.median(eigs2, axis=0)
-    eig_dist_cent = scipy.spatial.distance.cdist(eigs2, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    th = analysis.otsu(eig_dist_cent)
-    sel = eig_dist_cent < th
-    
-    if 1 == 0:
-        format.write(output, total, prefix="sel_avg_", header=['id', 'selected', 'total'], default_format=format.spiderdoc)
-        for id, sel in sel_by_mic.iteritems():
-            sel = numpy.asarray(sel)
-            format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
-        _logger.info("Selected %d out of %d"%(numpy.sum(total[:, 1]), numpy.sum(total[:, 2])))
-    _logger.info("Completed")
-'''
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
