@@ -93,6 +93,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_utility, format_utility
 from ..core.image import ndimage_file
+from ..core.util import numpy_ext
 import numpy, logging, glob, os
 
 _logger = logging.getLogger(__name__)
@@ -118,7 +119,7 @@ def batch(files, output, data_ext, **extra):
     format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
 
-def create_alignment(files, sort_align=False, **extra):
+def create_alignment(files, sort_align=False, random_subset=0, **extra):
     ''' Create empty (unaligned) alignment array
     
     :Parameters:
@@ -127,6 +128,8 @@ def create_alignment(files, sort_align=False, **extra):
             List of input files
     sort_align : bool
                  Sort the alignment file by defocus_file
+    random_subset : int
+                    Size of random subset
     extra : dict
             Unused keyword arguments
     
@@ -147,6 +150,9 @@ def create_alignment(files, sort_align=False, **extra):
         align[:, 17] = [defocus_file.get(l[1], 0) for l in label]
         align = align[align[:, 17] > 0]
         if sort_align: align[:] = align[numpy.argsort(align[:, 17])].squeeze()
+    if random_subset > 0:
+        idx = numpy_ext.choice(numpy.arange(0, len(align)), random_subset, False)
+        align = align[idx]
     return align
     
 def select_subset(files, label, select_file, select_header="", **extra):
@@ -308,6 +314,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
     pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus_file file")
+    pgroup.add_option("",   random_subset=0,                help="Set of random subset of the given size")
     
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
