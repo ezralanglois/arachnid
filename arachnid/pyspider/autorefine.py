@@ -206,15 +206,16 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
-        extra['bin_factor'] = decimation_level(resolution_start, max_resolution, **param)
+        resolution_next = resolution_start*0.75 if (refine_index%2)==0 else resolution_start
+        extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
         dec_level=extra['dec_level']
         param['bin_factor']=extra['bin_factor']
         extra.update(spider_params.update_params(**param))
         extra['dec_level']=dec_level
         param['bin_factor']=1.0
         extra.update(spider.scale_parameters(**extra))
-        
-        extra['theta_delta'] = theta_delta_est(resolution_start, **extra)
+         
+        extra['theta_delta'] = theta_delta_est(resolution_next, **extra)
         extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
         extra['min_resolution'] = resolution_start #filter_resolution(**param)
         if mpi_utility.is_root(**extra):
