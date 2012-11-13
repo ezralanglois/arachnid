@@ -12,6 +12,9 @@ from operator import itemgetter
 from functools import partial 
 import os, logging
 
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
 __header_seperators = (',', ';', os.sep)
 
 class FormatError(StandardError):
@@ -33,6 +36,36 @@ class FormatUtilityError(StandardError):
     """Exception raised for errors in parsing values in the utility
     """
     pass
+
+def combine(vals):
+    ''' Combine values from different files (only include common columns)
+    
+    :Parameters:
+    
+    vals : list
+           List of lists of values
+    
+    :Returns:
+    
+    vals : list
+           List of combined values
+    '''
+    
+    header = {}
+    for v in vals:
+        for h in v[0]._fields:
+            header.setdefault(h, 0)
+            header[h] += 1
+    for key in header.keys():
+        if header[key] < len(vals): del header[key]
+    header = header.keys()
+    Tuple = namedtuple("CombinedArray", header)
+    retvals = []
+    for curr in vals:
+        for v in curr:
+            retvals.append(Tuple._make([getattr(v, h) for h in header]))
+    return retvals
+    
 
 try:
     import numpy
@@ -269,8 +302,15 @@ def create_named_list(values, header, name="SomeList"):
     if isinstance(header, list): header = ",".join(header)
     Tuple = namedtuple(name, header)
     retvals = []
+    index = 0
     for row in values:
-        retvals.append(Tuple._make(row))
+        try:
+            retvals.append(Tuple._make(row))
+        except:
+            _logger.error("Row(%d): %d"%(index, len(row)))
+            _logger.error("Row: %s"%(str(row)))
+            raise
+        index += 1
     return retvals
 
 def create_namedtuple_list(values, name, header, label=None, good=None):
