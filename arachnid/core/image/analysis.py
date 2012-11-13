@@ -209,6 +209,64 @@ def _resample_worker(beg, end, shmem_sample, operator, shmem_data, sample_size, 
             _logger.error("%d > %d --- %d"%(i, len(sample), end))
             raise
 
+def pca_train(trn, frac=-1, mtrn=None):
+    ''' Principal component analysis using SVD
+    
+    :Parameters:
+        
+    trn : numpy.ndarray
+          Matrix to decompose with PCA
+    tst : numpy.ndarray
+          Matrix to project into lower dimensional space (if not specified, then `trn` is projected)
+    frac : float
+           Number of Eigen vectors: frac < 0: fraction of variance, frac >= 1: number of components, frac == 0, automatically assessed
+    
+    :Returns:
+        
+    val : numpy.ndarray
+          Projected data
+    idx : int
+          Selected number of Eigen vectors
+    V : numpy.ndarray
+        Eigen vectors
+    spec : float
+           Explained variance
+               
+    .. note::
+        
+        Automatic Assessment is performed using an algorithm by `Thomas P. Minka:
+        Automatic Choice of Dimensionality for PCA. NIPS 2000: 598-604`
+        
+        Code originally from:
+        `https://raw.github.com/scikit-learn/scikit-learn/master/sklearn/decomposition/pca.py`
+    '''
+    
+    use_svd=True
+    if mtrn is None: mtrn = trn.mean(axis=0)
+    trn = trn - mtrn
+
+    if use_svd:
+        U, d, V = scipy.linalg.svd(trn, False)
+    else:
+        d, V = numpy.linalg.eig(numpy.corrcoef(trn, rowvar=0))
+
+    t = d**2/trn.shape[0]
+    t /= t.sum()
+    if frac >= 1:
+        idx = int(frac)
+    elif frac == 0.0:
+        if 1 == 0:
+            diff = numpy.abs(d[:len(d)-1]-d[1:])
+            idx = diff.argmax()+1
+        else:
+            idx = _assess_dimension(t, trn.shape[0], trn.shape[1])+1
+    elif frac > 0.0:
+        idx = numpy.sum(t.cumsum()<frac)+1
+    else: idx = d.shape[0]
+    #_logger.error("pca: %s -- %s"%(str(V.shape), str(idx)))
+    if idx >= len(d): idx = 1
+    return idx, V[:idx], numpy.sum(t[:idx])
+
 def pca(trn, tst=None, frac=-1, mtrn=None):
     ''' Principal component analysis using SVD
     
@@ -246,8 +304,6 @@ def pca(trn, tst=None, frac=-1, mtrn=None):
     trn = trn - mtrn
     if tst is None: tst = trn
     else: tst = tst - mtrn
-
-    U, d, V = scipy.linalg.svd(trn, False)
 
     if use_svd:
         U, d, V = scipy.linalg.svd(trn, False)
