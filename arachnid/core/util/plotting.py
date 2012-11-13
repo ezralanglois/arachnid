@@ -12,7 +12,7 @@ import numpy, pylab, logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def plot_embedding(x, y, selected=None, dpi=80, **extra):
+def plot_embedding(x, y, selected=None, group=None, dpi=80, **extra):
     ''' Plot an embedding
     
     :Parameters:
@@ -38,7 +38,16 @@ def plot_embedding(x, y, selected=None, dpi=80, **extra):
     
     fig = pylab.figure(dpi=dpi)
     ax = fig.add_subplot(111)
-    ax.plot(x, y, 'ro', ls='.', markersize=3, **extra)
+    if group is not None:
+        refs = numpy.unique(group)
+        beg, inc = 0.0, 1.0/len(refs)
+        for r in refs:
+            sel = r == group
+            color = cm.spectral(beg)
+            ax.plot(x[sel], y[sel], 'o', ls='.', markersize=3, c=color, **extra)
+            beg += inc
+    else:
+        ax.plot(x, y, 'ro', ls='.', markersize=3, **extra)
     if selected is not None:
         ax.plot(x[selected], y[selected], 'k+', ls='.', markersize=2, **extra)
     return fig, ax
