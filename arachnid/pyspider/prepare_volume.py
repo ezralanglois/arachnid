@@ -295,6 +295,7 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     if add_resolution > 0.0: 
         sp = extra['apix'] / (add_resolution+res)
     if (add_resolution+res) < min_resolution: sp = extra['apix']/min_resolution
+    if extra['pre_filter'] > 0 and res > extra['pre_filter']: extra['pre_filter'] = res
     filename = files[0]
     filename = filter_volume.filter_volume_highpass(filename, spi, outputfile=output_volume, **extra)
     filename = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output_volume, **extra)

@@ -349,8 +349,27 @@ def read_array_mpi(filename, numeric=True, sort_column=None, **extra):
         if sort_column < vals.shape[1]:
             vals[:] = vals[numpy.argsort(vals[:, sort_column]).squeeze()]
     return mpi_utility.broadcast(vals, **extra)
+ 
+def is_readable(filename, **extra):
+    ''' Test if file is readable by a metadata parser
     
+    :Parameters:
     
+    filename : string
+              Path of a file
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+    
+    readable : bool
+               True if file is readable
+    '''
+    
+    try:
+        get_format(filename, getformat=False, **extra)
+    except: return False
+    return True
     
 def read(filename, columns=None, header=None, **extra):
     '''Read a document from the specified file
@@ -486,6 +505,7 @@ def write(filename, values, mode='w', **extra):
     else:
         values = format_utility.flatten(values)
         if len(values) > 0 and not hasattr(values[0], '_fields'):
+            if 'header' not in extra: raise ValueError, "Cannot find header: %s"%str(values[0].__class__)
             values = format_utility.create_named_list(values, extra['header'], "DefaultFormat")
             
     if mode == 'a': format.write_values(fout, values, **extra)

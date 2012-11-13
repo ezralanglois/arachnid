@@ -145,7 +145,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility #, ndimage_file - replace image_reader and writer
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replace image_reader and writer
 from ..core.image import reader as image_reader, writer as image_writer
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.parallel import mpi_utility
@@ -198,7 +198,7 @@ def process(filename, output="", id_len=0, **extra):
             x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
             _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
         if ndimage_file is not None:
-            ndimage_file.write(mic_out, win, index)
+            ndimage_file.write_image(mic_out, win, index)
         else:
             image_writer.write_image(mic_out, win, index)
         index += 1
@@ -273,9 +273,15 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
         mic = eman2_utility.decimate(mic, bin_factor)
     if invert:
         _logger.debug("Invert micrograph")
-        mic = ndimage_utility.invert(mic)
+        if eman2_utility.is_em(mic):
+            npmic = eman2_utility.em2numpy(mic)
+            ndimage_utility.invert(npmic, npmic)
+        else: ndimage_utility.invert(mic, mic)
     if sigma > 0.0:
         mic = eman2_utility.gaussian_high_pass(mic, sigma/(2.0*offset), True)
+    if not eman2_utility.is_em(mic):
+        mic = eman2_utility.numpy2em(mic)
+    assert(eman2_utility.is_em(mic))
     return mic
             
 def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
@@ -319,6 +325,8 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     template.process_inplace("normalize.mask", {"mask": template, "no_sigma": True})
 
     # Define noise distribution
+    if not eman2_utility.is_em(mic):
+        mic = eman2_utility.numpy2em(mic)
     cc_map = mic.calc_ccf(template)
     cc_map.process_inplace("xform.phaseorigin.tocenter")
     np = eman2_utility.em2numpy(cc_map)
@@ -342,13 +350,13 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
         if std < best[0]: best = (std, win)
         if noise_stack and i < 11: 
             if ndimage_file is not None:
-                ndimage_file.write(noise_file, win, i)
+                ndimage_file.write_image(noise_file, win, i)
             else:
                 image_writer.write_image(noise_file, win, i)
     noise_win = best[1]
     if not noise_stack:
         if ndimage_file is not None:
-            ndimage_file.write(noise_file, noise_win)
+            ndimage_file.write_image(noise_file, noise_win)
         else:
             image_writer.write_image(noise_file, noise_win)
     return noise_win
