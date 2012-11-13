@@ -670,7 +670,11 @@ def test_covariance(eigs, data, output, **extra):
     
     dmcov = numpy.zeros(data.shape[0])
     emcov = numpy.zeros(data.shape[0])
-    if 1 == 0:
+    if 1 == 1:
+        for i in xrange(25, data.shape[0]-26):
+            dmcov[i] = numpy.mean(numpy.cov(data[idx[i-25:i+25]]))
+            emcov[i] = numpy.mean(numpy.cov(eigs[idx[i-25:i+25]]))
+    elif 1 == 0:
         dcov = numpy.cov(data)
         ecov = numpy.cov(eigs)
         for i in xrange(3, data.shape[0]):
