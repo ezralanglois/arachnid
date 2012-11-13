@@ -207,6 +207,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
         resolution_next = resolution_start*0.75 if (refine_index%2)==0 else resolution_start
+        _logger.error("here: %d -> %f"%(refine_index%2, resolution_next))
         extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
         dec_level=extra['dec_level']
         param['bin_factor']=extra['bin_factor']
