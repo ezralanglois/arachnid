@@ -204,10 +204,10 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     param['trans_range'] = mpi_utility.broadcast(param['trans_range'], **extra)
     extra['angle_range'] = mpi_utility.broadcast(extra['angle_range'] , **extra)
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
+    resolution_next=resolution_start
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
-        resolution_next = resolution_start*0.75 if (refine_index%2)==0 else resolution_start
-        _logger.error("here: %d -> %f"%(refine_index%2, resolution_next))
+        #resolution_next = resolution_start*0.75 if (refine_index%2)==1 else resolution_start
         extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
         dec_level=extra['dec_level']
         param['bin_factor']=extra['bin_factor']
@@ -217,6 +217,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         extra.update(spider.scale_parameters(**extra))
          
         extra['theta_delta'] = theta_delta_est(resolution_next, **extra)
+        if extra['theta_delta'] > 7.9: extra['angle_range'] = 0
         extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
         extra['min_resolution'] = resolution_start #filter_resolution(**param)
         if mpi_utility.is_root(**extra):
@@ -228,10 +229,15 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = min(int(translation_range(alignvals, **extra)/param['apix']), param['trans_range'])
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range)
+            #0 1
+            #1 2
+            #2 3
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
+            resolution_next = resolution_start*0.75 if refine_index > 0 and (res_iteration[refine_index, 0]-res_iteration[refine_index+1, 0])<1 else resolution_start
         param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
         extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
+        resolution_next = mpi_utility.broadcast(resolution_next, **extra)
         #theta_prev = extra['theta_delta']
     mpi_utility.barrier(**extra)
     
@@ -363,9 +369,9 @@ def angular_restriction(alignvals, theta_delta, **extra):
     gdist = mang+sang*4
     ang = max(gdist, 2*theta_delta)
     if mpi_utility.is_root(**extra):
-        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f"%(ang, mang, sang))
-    if theta_delta <= 7.9: return ang
-    return 0
+        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f -- theta: %f"%(ang, mang, sang, theta_delta))
+    if ang > 180.0: ang = 0
+    return ang
     
 def filter_resolution(bin_factor, apix, **extra):
     ''' Resolution for conservative filtering
