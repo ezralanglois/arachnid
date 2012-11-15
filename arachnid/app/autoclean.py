@@ -14,7 +14,7 @@ import logging, numpy, os, scipy,itertools
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack=False, **extra):
+def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack=False, id_len=0, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -29,6 +29,8 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
                        Write out views to a stack ('None', 'Positive', 'Negative', 'Both')
     sort_view_stack : bool
                       Write view stack sorted by first eigen vector
+    id_len : int
+             Max length of SPIDER ID
     extra : dict
             Unused key word arguments
                 
@@ -40,7 +42,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
             Coordinates found
     '''
     
-    output = spider_utility.spider_filename(output, input_vals[0])
+    output = spider_utility.spider_filename(output, input_vals[0], id_len)
     data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
     #data2 = data
     #data2, mask = read_data(input_files, *input_vals[3:5], mask=mask, **extra)
@@ -802,7 +804,7 @@ def initialize(files, param):
     
     return group
 
-def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, global_label, global_feat, global_offset, **extra):
+def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, global_label, global_feat, global_offset, id_len=0, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
     input, eigs, sel, avg3, energy, feat_cnt, ndiff, sdiff = val
@@ -817,7 +819,7 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, glob
     total[file_completed, 2] = len(sel)
     for i in numpy.argwhere(sel):
         sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))    
-    output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1)
+    output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1, id_len)
     _logger.info("Finished processing %d - %d,%d (%d,%d) - Energy: %f, %d - Features: %d - Range: %f,%f"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed, 2]), total[file_completed, 1], total[file_completed, 2], energy[0], energy[1], feat_cnt, ndiff, sdiff))
     file_completed *= len(avg3)
     for i in xrange(len(avg3)):
