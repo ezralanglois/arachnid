@@ -143,6 +143,8 @@ def log_import_error(message, logger=None):
 def setup_options(parser, pgroup=None):
     '''Add options to the given option parser
     
+    .. todo:: fix bug in OptionGroup - dependent update
+    
     :Parameters:
     
     parser : optparse.OptionParser
@@ -153,10 +155,10 @@ def setup_options(parser, pgroup=None):
     from settings import OptionGroup
     levels=tuple(log_level_val)
     group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__, dependent=False)
-    group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3)
-    group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True)
-    group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"))
-    group.add_option("",   disable_stderr=False, help="If true, output will only be written to the given log file")
+    group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3, dependent=False)
+    group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True, dependent=False)
+    group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"), dependent=False)
+    group.add_option("",   disable_stderr=False, help="If true, output will only be written to the given log file", dependent=False)
     if pgroup is not None:
         pgroup.add_option_group(group)
     else:
