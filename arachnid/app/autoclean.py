@@ -105,6 +105,44 @@ def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, samp
           1D array of selected images
     '''
     
+    from sklearn import mixture
+    
+    train = process_queue.recreate_global_dense_matrix(data)
+    test = train
+    eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
+    gmm = mixture.GMM(n_components=1, covariance_type='spherical')
+    gmm.fit(eigs)
+    sel = gmm.predict(eigs)
+    _logger.error("%s"%str(sel.shape))
+    sel = sel.squeeze() > 0.5
+    assert(len(sel)==len(eigs))
+    return eigs, sel, (energy, idx)
+    
+
+def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
+    ''' Classify the aligned projection data grouped by view
+    
+    :Parameters:
+    
+    data : array
+           2D array where each row is an aligned and transformed image
+    output : str
+             Output filename for intermediary data
+    neig : float
+           Number of eigen vectors to use (or mode)
+    thread_count : int
+                    Number of threads
+    extra : dict
+            Unused key word arguments
+            
+    :Returns:
+    
+    eigs : array
+           2D array of embedded images
+    sel : array
+          1D array of selected images
+    '''
+    
     sel = None
     iter = 1
     for i in xrange(iter):
@@ -734,7 +772,7 @@ def test_variance(eigs, data, output, **extra):
     pylab.plot((th, th), (0, maxval))
     pylab.savefig(format_utility.new_filename(output, "den_", ext="png"))
     
-def plot_examples(filename, label, output, eigs, sel, ref, dpi=200, **extra):
+def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra):
     ''' Plot the manifold with example images
     
     :Parameters:
@@ -761,18 +799,30 @@ def plot_examples(filename, label, output, eigs, sel, ref, dpi=200, **extra):
     
     select = numpy.argwhere(sel < 0.5)
     fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
-    index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)].ravel()
-    #_logger.error("selected: %s"%str(index.shape))
-    iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
-    plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+    vals = plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)
+    if len(vals) > 0:
+        try:
+            index = select[vals].ravel()
+        except:
+            _logger.error("%d-%d | %d"%(numpy.min(vals), numpy.max(vals), len(select)))
+        else:
+            #_logger.error("selected: %s"%str(index.shape))
+            iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+            plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
     fig.savefig(format_utility.new_filename(output, "neg_", ext="png"), dpi=dpi)
     
     select = numpy.argwhere(sel > 0.5)
     fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
-    index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)].ravel()
-    if index.shape[0] > 1:
-        iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
-        plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+    vals = plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)
+    if len(vals) > 0:
+        try:
+            index = select[vals].ravel()
+        except:
+            _logger.error("%d-%d | %d"%(numpy.min(vals), numpy.max(vals), len(select)))
+        else:
+            if index.shape[0] > 1:
+                iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+                plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
     fig.savefig(format_utility.new_filename(output, "pos_", ext="png"), dpi=dpi)
     
 ''''''
