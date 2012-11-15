@@ -306,8 +306,8 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             raise
     param = vars(options)
     param['file_options'] = parser.collect_file_options()
-    param['infile_deps'] = parser.collect_file_options(type='open')
-    param['outfile_deps'] = parser.collect_file_options(type='save')
+    param['infile_deps'] = parser.collect_dependent_file_options(type='open')
+    param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
     param.update(update_file_param(max_filename_len, supports_MPI, **param))
     args = param['input_files'] #options.input_files
     return args, param
