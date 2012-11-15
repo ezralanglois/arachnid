@@ -113,7 +113,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility
 from ..core.spider import spider
-import logging
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -138,12 +138,43 @@ def process(filename, output, resolution, **extra):
                Filename for correct location
     '''
     
+    extra.update(ensure_pixel_size(filename=filename, **extra))
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
     sp = extra['apix']/resolution
     output = filter_volume_highpass(filename, outputfile=output, **extra)
     output = filter_volume_lowpass(output, sp, outputfile=output, **extra)
     return filename
+
+def ensure_pixel_size(spi, filename, **extra):
+    ''' Ensure the proper pixel size
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    filename : str
+                Filename of the first input volume
+    
+    :Returns:
+    
+    params : dict
+             Updated SPIDER params
+    '''
+    
+    del extra['bin_factor']
+    try:
+        w = spider.image_size(spi, filename)[0]
+    except:
+        _logger.error("Cannot read: %s -- %d"%(filename, os.path.exists(spi.replace_ext(filename))))
+        raise
+    w = int(w)
+    params = {}
+    if extra['window'] != w:
+        bin_factor = extra['window']/float(w)
+        params = spider_params.update_params(bin_factor, **extra)
+        _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f"%(bin_factor, extra['window'], w, extra['apix'], params['apix']))
+    return params
 
 def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, bw_pass=0.05, bw_stop=0.05, outputfile=None, **extra):
     ''' Low-pass filter the specified volume
