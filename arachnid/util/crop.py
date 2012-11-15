@@ -154,7 +154,7 @@ import numpy, os, logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output="", id_len=0, **extra):
+def process(filename, id_len=0, **extra):
     '''Crop a set of particles from a micrograph file with the specified
     coordinate file and write particles to an image stack.
     
@@ -162,8 +162,6 @@ def process(filename, output="", id_len=0, **extra):
     
     filename : str
                Input filename
-    output : str
-             Output filename
     id_len : int
              Maximum length of ID
     extra : dict
@@ -175,11 +173,11 @@ def process(filename, output="", id_len=0, **extra):
           Current filename
     '''
     
-    try: coords = read_coordinates(fileid=filename, id_len=id_len, **extra)
+    fid = spider_utility.spider_id(filename, id_len)
+    spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file') 
+    try: coords = read_coordinates(**extra)
     except: return filename, 0
     
-    fid = spider_utility.spider_id(filename, id_len)
-    mic_out = spider_utility.spider_filename(output, fid)
     mic = read_micrograph(filename, **extra)    
     norm_mask=extra['mask']*-1+1
     noise=extra['noise']
@@ -189,7 +187,7 @@ def process(filename, output="", id_len=0, **extra):
     npdata = eman2_utility.em2numpy(emdata)
     
     test_coordinates(npmic, coords, bin_factor)
-    
+    output=extra['output']
     for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
         npdata[:, :] = win
         win = enhance_window(emdata, noise, norm_mask, **extra)
@@ -198,9 +196,9 @@ def process(filename, output="", id_len=0, **extra):
             x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
             _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
         if ndimage_file is not None:
-            ndimage_file.write_image(mic_out, win, index)
+            ndimage_file.write_image(output, win, index)
         else:
-            image_writer.write_image(mic_out, win, index)
+            image_writer.write_image(output, win, index)
         index += 1
     return filename, len(coords)
 
@@ -449,19 +447,15 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
         _logger.debug("Finished Enhancment")
     return win
 
-def read_coordinates(coordinate_file, fileid=None, selection_doc="", id_len=0, **extra):
+def read_coordinates(coordinate_file, selection_doc="", **extra):
     ''' Read a coordinate file (use `selection_doc` to select a subset if specified)
     
     :Parameters:
         
     coordinate_file : str
                       Filename for input coordinate file
-    fileid : str
-             SPIDER id for coordinate file
     selection_doc : str
                     Filename for input selection file
-    id_len : int
-             Maximum length of ID
     extra : dict
             Unused extra keyword arguments
     
@@ -472,20 +466,20 @@ def read_coordinates(coordinate_file, fileid=None, selection_doc="", id_len=0, *
     '''
     
     try:
-        select = format.read(selection_doc, spiderid=fileid, id_len=id_len, numeric=True) if selection_doc != "" and spider_utility.is_spider_filename(selection_doc) else None
+        select = format.read(selection_doc, numeric=True) if selection_doc != "" and spider_utility.is_spider_filename(selection_doc) else None
     except:
         if _logger.isEnabledFor(logging.DEBUG):
-            _logger.exception("Skipping: %s"%fileid)
+            _logger.exception("Skipping: %s"%selection_doc)
         else:
-            _logger.warn("Cannot find selection file: %s"%spider_utility.spider_filename(selection_doc, fileid, id_len))
+            _logger.warn("Cannot find selection file: %s"%selection_doc)
         raise
     try:
-        blobs = format.read(coordinate_file, spiderid=fileid, id_len=id_len, numeric=True)
+        blobs = format.read(coordinate_file, numeric=True)
     except:
         if _logger.isEnabledFor(logging.DEBUG):
-            _logger.exception("Skipping: %s"%fileid)
+            _logger.exception("Skipping: %s"%coordinate_file)
         else:
-            _logger.warn("Cannot find coordinate file: %s"%spider_utility.spider_filename(coordinate_file, fileid, id_len))
+            _logger.warn("Cannot find coordinate file: %s"%coordinate_file)
         raise
     if select is not None and 'id' in select[0]._fields:
         tmp = blobs
