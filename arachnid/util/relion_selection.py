@@ -131,7 +131,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 def batch(files, **extra):
-    '''Assign orientation to a set of noisy projections
+    '''Generate a relion selection file
     
     :Parameters:
     
