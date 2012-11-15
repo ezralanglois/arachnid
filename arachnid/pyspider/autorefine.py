@@ -1,7 +1,8 @@
-''' Refine the orientational assignment of a set of projections
+''' Automated passive-aggressive angular refinement
 
-This |spi| batch file (`spi-refine`) performs refines the orientational assignment of a set of projections against a
-continually improving reference.
+This |spi| batch file (`spi-refine`) refines the orientational assignment of a set of projections against a
+continually improving reference. Unlike traditional refinement algorithms, this script chooses all the 
+parameters for the user based on a few rules of thumb.
 
 Tips
 ====
@@ -52,10 +53,6 @@ Critical Options
     
     Path to SPIDER params file
 
-.. option:: --bin-factor <FLOAT>
-    
-    Number of times to decimate params file
-
 .. option:: --phase-flip <BOOL> 
     
     Set to True if your data stack(s) has already been phase flipped or CTF corrected (Default: False)
@@ -67,36 +64,21 @@ Critical Options
 .. option:: -a <FILENAME>, --alignment <FILENAME> 
     
     Filename for the alignment parameters
-
-.. option:: --refine-step <LIST>
-
-    List of value tuples where each tuple represents a round of refinement and 
-    contains a value for each parameter specified in the same order as `refine-name` 
-    for each round of refinement; each round is separated with a comma; each value by 
-    a colon, e.g. 15,10:0:6:1,8:0:4,1:3:1
     
 Useful Options
 ==============
 
-.. option:: --refine-name <LIST>
-
-    ist of option names to change in each round of refinement, values set in `refine-step` (Default: theta-delta, angle-range, trans-range, trans-step, use-apsh)
-
 .. option:: --refine-index <INT>
     
     Iteration to start refinment: -1 = start at last volume, 0 = start at begining, > 0 start after specific iteration (Default: -1)
-
-.. option:: --keep-reference <BOOL>
     
-    Do not change the reference - for tilt-pair analysis - second exposure
-
-.. option:: --min-resolution <FLOAT>
+.. option:: --resolution-start <FLOAT>
     
-    Minimum resolution to filter next input volume (Default: 0.0)
+    Starting resolution for the refinement (Default: 30.0)
 
-.. option:: --add-resolution <FLOAT>
+.. option:: --num-iterations <INT>
 
-    Additional amount to add to resolution before filtering the next reference (Default: 0.0)
+    Maximum number of iterations (Default: 10)
 
 Other Options
 =============
@@ -181,7 +163,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     '''
     
     max_resolution = resolution_start
-    refine_name = "theta_delta,angle_range,trans_range,trans_step,use_apsh,min_resolution,apix,bin_factor,window,shuffle_angles".split(',')
+    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,bin_factor,_resolution_next".split(',')
     param=dict(extra)
     angle_range, trans_range = None, None
     param['trans_range']=500
@@ -205,10 +187,11 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['angle_range'] = mpi_utility.broadcast(extra['angle_range'] , **extra)
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
     resolution_next=resolution_start
+    extra['_resolution_next']=resolution_next
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
         #resolution_next = resolution_start*0.75 if (refine_index%2)==1 else resolution_start
-        extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
+        extra['bin_factor'] = decimation_level(resolution_start, max_resolution, **param)
         dec_level=extra['dec_level']
         param['bin_factor']=extra['bin_factor']
         extra.update(spider_params.update_params(**param))
@@ -229,11 +212,12 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = min(int(translation_range(alignvals, **extra)/param['apix']), param['trans_range'])
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range)
+            resolution_next = resolution_next*0.75 if refine_index > 0 and (res_iteration[refine_index, 0]-resolution_start)<1 and extra['trans_range'] < 3 else resolution_start
+            extra['_resolution_next']=resolution_next
             #0 1
             #1 2
             #2 3
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
-            resolution_next = resolution_start*0.75 if refine_index > 0 and (res_iteration[refine_index, 0]-res_iteration[refine_index+1, 0])<1 else resolution_start
         param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
         extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
@@ -360,16 +344,16 @@ def angular_restriction(alignvals, theta_delta, **extra):
           Amount of angular restriction
     '''
     
-    #if theta_delta > 7.9: return 0
     gdist = alignvals[:, 9]
     gdist = gdist[gdist > 0.0]
     mang = numpy.median(gdist)
     sang = analysis.robust_sigma(gdist)
     #sang = numpy.std(gdist)
     gdist = mang+sang*4
-    ang = max(gdist, 2*theta_delta)
+    mdist = numpy.max(gdist)
+    ang = min(mdist, max(gdist, 2*theta_delta))
     if mpi_utility.is_root(**extra):
-        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f -- theta: %f"%(ang, mang, sang, theta_delta))
+        _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f -- theta: %f -- max: %f"%(ang, mang, sang, theta_delta, mdist))
     if ang > 180.0: ang = 0
     return ang
     
