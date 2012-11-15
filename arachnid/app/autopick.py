@@ -154,7 +154,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.image import eman2_utility, ndimage_utility, analysis
-from ..core.metadata import format_utility, format
+from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
 import numpy, scipy, logging
 import lfcpick
@@ -162,15 +162,13 @@ import lfcpick
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, confusion=[], **extra):
+def process(filename, id_len=0, confusion=[], **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
     
     filename : str
                Input filename
-    output : str
-             Filename for output file
     id_len : int, optional
              Maximum length of the ID
     extra : dict
@@ -184,13 +182,14 @@ def process(filename, output, id_len=0, confusion=[], **extra):
             Coordinates found
     '''
     
+    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good')  
     _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
     peaks = search(mic, **extra)
     _logger.debug("Write coordinates")
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
-    format.write(output, coords, spiderid=filename, id_len=id_len, default_format=format.spiderdoc)
+    format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
 def search(img, overlap_mult=1.2, disable_prune=False, **extra):

@@ -129,6 +129,7 @@ def process(filename, spi, output, resolution, **extra):
     '''
     
     # test if enh exists!
+    extra.update(filter_volume.ensure_pixel_size(spi, filename, **extra))
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
     sp = extra['apix']/resolution

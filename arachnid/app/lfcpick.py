@@ -138,15 +138,13 @@ import numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, **extra):
+def process(filename, id_len=0, **extra):
     '''Concatenate files and write to a single output file
     
     :Parameters:
         
     filename : str
                Input filename
-    output : str
-             Filename for output file
     id_len : int
              Maximum length of the ID
     extra : dict
@@ -160,10 +158,11 @@ def process(filename, output, id_len=0, **extra):
              List of peaks and coordinates
     '''
     
+    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good')    
     mic = read_micrograph(filename, **extra)
     peaks = search(mic, **extra)
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
-    format.write(output, coords, spiderid=filename, id_len=id_len, default_format=format.spiderdoc)
+    format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
 def search(img, use_spectrum=False, overlap_mult=1.2, limit=0, **extra):
@@ -411,7 +410,7 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
-def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
+def read_bench_coordinates(fid, good_coords="", good="", **extra):
     ''' Read benchmark coordinates
     
     :Parameters:
@@ -422,8 +421,6 @@ def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
                   Filename for input benchmark coordinates
     good : str
            Filename for optional selection file to select good coordinates
-    id_len : int
-             Maximum length of the ID
     extra : dict
             Unused keyword arguments
     
@@ -433,11 +430,11 @@ def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
              Selected (x,y) coordinates
     '''
     
-    if good_coords == "" or not os.path.exists(spider_utility.spider_filename(good_coords, fid, id_len)): return None
-    coords, header = format_utility.tuple2numpy(format.read(good_coords, spiderid=fid, id_len=id_len, numeric=True))
+    if good_coords == "" or not os.path.exists(good_coords): return None
+    coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
     if good != "":
         try:
-            selected = format_utility.tuple2numpy(format.read(good, spiderid=fid, id_len=id_len, numeric=True))[0].astype(numpy.int)
+            selected = format_utility.tuple2numpy(format.read(good, numeric=True))[0].astype(numpy.int)
         except:
             return None
         else:
@@ -547,9 +544,9 @@ def setup_options(parser, pgroup=None, main_option=False):
         # move next three options to benchmark
         
         bgroup = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
-        bgroup.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
-        bgroup.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        bgroup.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
+        bgroup.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"), dependent=False)
+        bgroup.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"), dependent=False)
+        bgroup.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"), dependent=False)
         pgroup.add_option_group(bgroup)
         parser.change_default(log_level=3)
         parser.change_default(window=1.4)
