@@ -205,7 +205,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         extra['min_resolution'] = resolution_start #filter_resolution(**param)
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_start*0.5, max_resolution, **param), **extra)
+        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_start*0.75, max_resolution, **param), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
