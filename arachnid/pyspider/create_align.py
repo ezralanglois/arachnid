@@ -115,6 +115,7 @@ def batch(files, output, data_ext, **extra):
     '''
     
     alignvals = create_alignment(files, **extra)
+    output = os.path.splitext(output)[0]
     if data_ext != "" and data_ext[0] != '.': output+='.'
     format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
@@ -207,6 +208,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
                 label[k]=label[i]
                 k+=1
         label = label[:k]
+        _logger.info("Selected %d micrographs"%(len(numpy.unique(label[:, 1]))))
     else:
         _logger.info("Assuming full stack selection file: --select-file %s"%select_file)
         select = format.read(select_file, header=select_header, numeric=True)
@@ -248,6 +250,10 @@ def create_stack_label(files, stack_select, stack_header, **extra):
     if len(files) == 1 and stack_select != "":
         sel = format.read(stack_select, header=stack_header, numeric=True)
         sel, header = format_utility.tuple2numpy(sel)
+        try:
+            label[:, 0] = sel[:, header.index('id')]
+        except:
+            raise ValueError, "Cannot find column labelled as `id` in `--stack-select` %s, please use `--stack-header` to label this column"%stack_select
         try:
             label[:, 1] = sel[:, header.index('micrograph')]
         except:

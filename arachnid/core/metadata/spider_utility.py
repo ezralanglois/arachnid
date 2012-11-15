@@ -14,6 +14,23 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
+def update_spider_files(map, id, *files):
+    ''' Update the list of files in the dictionary to the current ID
+    
+    :Parameters:
+    
+    map : dict
+          Dictionary mapping file param to value
+    id : int
+         SPIDER ID
+    files : list
+            List of files to update
+    '''
+    
+    for key in files:
+        if map[key] != "" and is_spider_filename(map[key]):
+            map[key] = spider_filename(map[key], id)
+
 def relion_filename(filename, id):
     '''Extract the filename and stack index
     

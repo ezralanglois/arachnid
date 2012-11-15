@@ -145,17 +145,24 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
-from ..core.metadata import format, spider_params, spider_utility
+from ..core.app import program, tracing
+from ..core.metadata import format, spider_params, spider_utility, format_utility
 from ..core.image import ndimage_file, eman2_utility, ndimage_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
-import os, numpy, logging, itertools
+import os, numpy, logging, itertools, scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00000", output_ctf="ctf/ctf_00000", **extra):
+try: 
+    import pylab
+    pylab;
+except:
+    tracing.log_import_error("Cannot import plotting libraries - plotting disabled", _logger)
+    pylab=None
+
+def process(filename, output, id_len=0, **extra):
     ''' Esimate the defocus of the given micrograph
     
     :Parameters:
@@ -164,12 +171,8 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
                Input micrograph, stack or power spectra file
     output : str
              Output defocus file
-    output_pow : str
-                 Output power spectra file
-    output_roo : str
-                 Output rotational average file
-    output_ctf : str
-                 Output CTF model file
+    id_len : int
+             Max length of SPIDER ID
     extra : dict
             Unused key word arguments
     
@@ -180,39 +183,21 @@ def process(filename, output, output_pow="pow/pow_00000", output_roo="roo/roo_00
     '''
     
     _logger.debug("Processing: %s"%filename)
-    id = spider_utility.spider_id(filename)
-    output = spider_utility.spider_filename(output, id)
-    output_pow = spider_utility.spider_filename(output_pow, id)
-    output_roo = spider_utility.spider_filename(output_roo, id)
-    output_ctf = spider_utility.spider_filename(output_ctf, id)
-    #spider.throttle_mp(**extra)
+    id = spider_utility.spider_id(filename, id_len)
+    spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf')  
     _logger.debug("create power spec")
-    power_spec = create_powerspectra(filename, output_pow=output_pow, **extra)
-    
-    '''
-    if 1 == 1:
-        from ..core.image import ndimage_utility, ndimage_file
-        img = ndimage_file.read_image(filename)
-        bin_factor = extra['bin_factor']
-        window_size = extra['window_size']
-        overlap = extra['x_overlap']
-        if bin_factor != 1.0 and bin_factor != 0.0:
-            img = eman2_utility.decimate(img, bin_factor)
-        step = max(1, window_size*overlap)
-        rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
-        npowerspec = ndimage_utility.powerspec_avg(rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3])), extra['pad'])
-        spowerspec = ndimage_file.read_image(extra['spi'].replace_ext(power_spec))
-        numpy.testing.assert_allclose(spowerspec, npowerspec)
-        _logger.info("Power spec the same!")
-    '''
-    
-    #_logger.debug("mask power spec")
-    #power_spec = mask_power_spec(power_spec, output_pow=output_pow, **extra)
+    power_spec = create_powerspectra(filename, **extra)
     _logger.debug("rotational average")
-    rotational_average(power_spec, output_roo=output_roo, **extra)
+    rotational_average(power_spec, **extra)
     _logger.debug("estimate defocus")
-    ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=output_ctf, **extra)
-    return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
+    ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
+    
+    pow = ndimage_file.read_image(extra['spi'].replace_ext(extra['output_pow']))
+    
+    mask = eman2_utility.model_circle(int(pow.shape[0]*(extra['apix']/8.0)), pow.shape[0], pow.shape[1])
+    pow *= mask
+    cc = scipy.spatial.distance.correlation(pow.ravel(), numpy.rot90(pow).ravel())
+    return filename, numpy.asarray([id, defocus, ang, mag, cutoff, cc])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     '''Compute the rotation average of the power spectra and store as an ndarray
@@ -240,7 +225,7 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     rot_avg = spi.ro(power_spec)
     spi.de(output_roo)
     spi.li_d(rot_avg, 'R', 1, outputfile=output_roo+"_old", use_2d=use_2d)
-    ro_arr = numpy.asarray(format.read(spi.replace_ext(output_roo+"_old"), numeric=True, header="id,amplitude,pixel,a,b"))[:, 1:]
+    ro_arr = numpy.asarray(format.read(output_roo+"_old"+ "." + spi.dataext, numeric=True, header="id,amplitude,pixel,a,b"))[:, 1:]
     if ro_arr.shape[1]!=4:
         _logger.error("ROO: %s"%str(ro_arr.shape))
     assert(ro_arr.shape[1]==4)
@@ -342,7 +327,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], d
                 In-core reference to power spectra image
     '''
     
-    if not use_powerspec:
+    if not use_powerspec:       
         image_count = ndimage_file.count_images(filename)
         if image_count > 1:
             rwin = ndimage_file.iter_images(filename)
@@ -355,12 +340,14 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=4, du_nstd=[], d
             rwin = ndimage_utility.rolling_window(mic, (window_size, window_size), (step, step))
             rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
         npowerspec = ndimage_utility.powerspec_avg(rwin, pad)
+        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
         mask = eman2_utility.model_circle(npowerspec.shape[0]*(4.0/extra['pixel_diameter']), npowerspec.shape[0], npowerspec.shape[1])
         sel = mask*-1+1
         npowerspec[mask.astype(numpy.bool)] = numpy.mean(npowerspec[sel.astype(numpy.bool)])
         assert(output_pow != "" and output_pow is not None)
-        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
         power_spec = spi.cp(output_pow)
+        spi.du(power_spec, 4, 3)
+        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
     else:
         power_spec = spi.cp(filename)
     return power_spec
@@ -386,7 +373,6 @@ def prepare_micrograph(mic, bin_factor, invert):
     if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
     return mic
-    
 
 def create_powerspectra_old(filename, spi, use_powerspec=False, pad=2, du_nstd=[], du_type=3, **extra):
     ''' Calculate the power spectra from the given file
@@ -707,6 +693,8 @@ def initialize(files, param):
         param['spi'] = None
     
     if mpi_utility.is_root(**param):
+        param['defocus_arr'] = numpy.zeros((len(files), 6))
+        _logger.info("Estimating defocus over %d files"%(len(files)))
         _logger.info("Writing power spectra to %s"%param['output_pow'])
         _logger.info("Writing defocus to %s"%param['output'])
         _logger.info("Bin factor: %f"%param['bin_factor'])
@@ -730,18 +718,43 @@ def init_process(input_files, rank=0, **extra):
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
 
-def reduce_all(filename, file_completed, file_count, output, **extra):
+def reduce_all(filename, file_completed, file_count, output, defocus_arr, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
     filename, defocus_vals = filename
+    defocus_arr[file_completed, :]=defocus_vals
     format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
-                 header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
+                 header="id,defocus,astig_ang,astig_mag,cutoff_freq,cc".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
     _logger.info("Finished processing: %s - %d of %d"%(os.path.basename(filename), file_completed, file_count))
     return filename
 
-def finalize(files, **extra):
+def finalize(files, defocus_arr, output, **extra):
     # Finalize global parameters for the script
+    
+    plot_histogram(output, defocus_arr[:, 1], 'Defocus')
+    plot_histogram(output, defocus_arr[:, 3], 'Astigmatism')
+    plot_histogram(output, defocus_arr[:, 5], 'CC')
     _logger.info("Completed")
+    
+def plot_histogram(output, vals, x_label, dpi=72):
+    ''' Plot a histogram of the distribution
+    '''
+    
+    if pylab is None: return
+    
+    fig = pylab.figure(dpi=dpi)
+    ax = fig.add_subplot(111)
+    ax.hist(vals, bins=numpy.sqrt(len(vals)))
+    pylab.xlabel(x_label)
+    pylab.ylabel('Number of Micrographs')
+    
+    '''
+    index = select[plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)].ravel()
+    iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+    plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+    '''
+    
+    fig.savefig(format_utility.new_filename(output, x_label.lower().replace(' ', '_')+"_", ext="png"), dpi=dpi)
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -782,7 +795,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Estimate the defocus of a set of micrographs or particle stacks
                         
                         http://guam/vispider/vispider/manual.html#module-vispider.batch.defocus

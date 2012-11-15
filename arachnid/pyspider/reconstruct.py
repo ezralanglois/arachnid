@@ -318,7 +318,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
     assert(spider.count_images(spi, flip_stack) == len(align))
     assert(spider.count_images(spi, input_stack) == len(align))
 
-def reconstruct_classify(spi, align, curr_slice, output, **extra):
+def reconstruct_classify(spi, align, curr_slice, output, target_bin=None, **extra):
     ''' Classify a set of projections and reconstruct a volume with the given alignment values
     
     :Parameters:
@@ -331,6 +331,8 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
                  Slice of align or selection arrays on current node
     output : str
              Output filename
+    target_bin : float, optional
+                 Target decimation factor
     extra : dict
             Unused keyword arguments
                  
@@ -340,6 +342,11 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
                  Output file tuple for two half volumes and full volume
     '''
     
+    if target_bin is not None:
+        extra['bin_factor']=target_bin
+        extra.update(spider_params.update_params(**extra))
+        if mpi_utility.is_root(**extra):
+            _logger.info("Reconstructing with pixel size: %f"%(extra['apix']))
     align = align.copy()
     align[:, 6:8] /= extra['apix']
     align[:, 12:14] /= extra['apix']
