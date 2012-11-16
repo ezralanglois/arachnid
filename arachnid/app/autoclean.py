@@ -110,7 +110,7 @@ def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, samp
     train = process_queue.recreate_global_dense_matrix(data)
     test = train
     eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
-    gmm = mixture.GMM(n_components=2, covariance_type='spherical')
+    gmm = mixture.GMM(n_components=2)#, covariance_type='spherical')
     gmm.fit(eigs)
     sel = gmm.predict(eigs)
     _logger.error("%s -- %s"%(str(sel.shape), str(numpy.unique(sel))))
