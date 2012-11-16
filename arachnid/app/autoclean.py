@@ -113,7 +113,7 @@ def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, samp
     gmm = mixture.GMM(n_components=1, covariance_type='spherical')
     gmm.fit(eigs)
     sel = gmm.predict(eigs)
-    _logger.error("%s"%str(sel.shape))
+    _logger.error("%s -- %s"%(str(sel.shape), str(numpy.unique(sel))))
     sel = sel.squeeze() > 0.5
     assert(len(sel)==len(eigs))
     return eigs, sel, (energy, idx)
