@@ -74,12 +74,12 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     if write_view_stack == 4: extra['noutput'] = extra['poutput']
     extra['sort_by']=eigs[:, 0] if sort_view_stack else None
     avg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, output=output, **extra)
-    extra['poutput']=None
-    extra['noutput']=None
-    savg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, template=template, output=output, **extra)
+    #extra['poutput']=None
+    #extra['noutput']=None
+    #savg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, template=template, output=output, **extra)
     
     nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
-    return input_vals, eigs, sel, avg3[:3]+savg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
+    return input_vals, eigs, sel, avg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
 
 def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -110,7 +110,7 @@ def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, samp
     train = process_queue.recreate_global_dense_matrix(data)
     test = train
     eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
-    gmm = mixture.GMM(n_components=1, covariance_type='spherical')
+    gmm = mixture.GMM(n_components=2, covariance_type='spherical')
     gmm.fit(eigs)
     sel = gmm.predict(eigs)
     _logger.error("%s -- %s"%(str(sel.shape), str(numpy.unique(sel))))
