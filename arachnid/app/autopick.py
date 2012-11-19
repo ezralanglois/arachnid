@@ -450,7 +450,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         group.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         pgroup.add_option_group(group)
-        parser.change_default(log_level=3)
+        parser.change_default(log_level=3, bin_factor=4)
         parser.change_default(window=1.35)
 
 def check_options(options, main_option=False):
