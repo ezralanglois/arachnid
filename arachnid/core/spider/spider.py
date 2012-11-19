@@ -1678,18 +1678,16 @@ class Session(spider_session.Session):
         _logger.debug("Create 2D projections of a 3D object")
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
         if max_ref_proj is None: max_ref_proj = total_size
-        #_logger.error("Resizing the stack: %d == %d -- %d, %d"%(int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]), int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]), max_count, total_size))
         if outputfile is None: outputfile = session.ms(max_ref_proj, spider_image(inputfile))
         elif int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
             session.de(outputfile)
             outputfile = session.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
-        #param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
-        #_logger.error("Resizing the stack2: %d"%pj_radius)
+        assert( int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) )
+        
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
         session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
-        #_logger.error("Resizing the stack3")
         return outputfile
     
     def pw(session, inputfile, outputfile=None, **extra):
@@ -3031,11 +3029,11 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             param['trans_range'] = max(1, max_radius - param['ring_last'] - 3)
         if (max_radius - param['ring_last'] - param['trans_range']) < 3:
             param['ring_last'] = max(2, max_radius - param['trans_range'] - 3)
-    if param['trans_range'] > 4:
-        param['trans_step'] = int(param['trans_range'] / 2.0)
+    if param['trans_range'] > 3:
+        param['trans_step'] = max(1, int(param['trans_range'] / 2.0))
         param['trans_range'] = param['trans_step']*2
     else: param['trans_step'] = 1
-    if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
+    #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
     if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
