@@ -226,7 +226,7 @@ def ramp(img, out=None):
           Ramped image
     '''
     
-    if out is None: out = img.copy()
+    if out is None: out = numpy.empty_like(img, dtype=numpy.float)
     if _spider_util is None: raise ImportError, 'Failed to load _spider_util.so module - function `ramp` is unavailable'
     _spider_util.ramp(out.T)
     return out
@@ -499,12 +499,18 @@ def powerspec_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
-        fimg = fftamp(pad_image(img, (pad_width, pad_width)))
-        #fimg = scipy.fftpack.fft2(pad_image(img, (pad_width, pad_width)))
+        #img = ramp(img)
+        img = img.copy()
+        img -= img.min()
+        img /= img.max()
+        img -= img.mean()
+        img /= img.std()
+        fimg = numpy.fft.fftn(pad_image(img, (pad_width, pad_width)))
+        fimg = fimg*fimg.conjugate()
         if avg is None: avg = fimg.copy()
         else: avg += fimg
         total += 1.0
-    avg = avg.real
+    avg = numpy.abs(numpy.fft.fftshift(avg))
     numpy.sqrt(avg, avg)
     numpy.divide(avg, total, avg)
     return avg #scipy.fftpack.fftshift(avg).real
@@ -602,7 +608,8 @@ def pad_image(img, shape, fill=0.0, out=None):
     if out is None: 
         if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
         out = numpy.zeros(shape)
-        if fill != 0: out[:, :] = fill
+        if fill == 'r': out[:, :] = numpy.random.normal(img.mean(), img.std(), shape)
+        elif fill != 0: out[:, :] = fill
     cx = (shape[0]-img.shape[0])/2
     cy = (shape[1]-img.shape[1])/2
     out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
@@ -724,7 +731,7 @@ def compress_image(img, mask, out=None):
     return out
 
 @_em2numpy2em
-def fftamp(img, out=None):
+def fftamp(img, s=None, out=None):
     ''' Calculate the power spectra of an image
     
     :Parameters:
@@ -740,7 +747,10 @@ def fftamp(img, out=None):
           Normalized image
     '''
     
-    fimg = numpy.fft.fft2(img)
+    
+    #fimg = scipy.fftpack.fft2(img, s)
+    #fimg = scipy.fftpack.fftshift(fimg)
+    fimg = numpy.fft.fftn(img, s)
     fimg = numpy.fft.fftshift(fimg)
     fimg = fimg*fimg.conjugate()
     out = numpy.abs(fimg, out)
@@ -1424,3 +1434,57 @@ def lagwind(lag,window):
         wind = numpy.ones(len(w1)+1)
         wind[1:len(wind)] = w1
     return wind
+
+
+def major_axis_angle(ellipse):
+    ''' Calculate the major axis angle
+    '''
+    
+    a, b, c, d, e, f = ellipse
+    
+    if b == 0:
+        if a < c: return 0
+        if a > c: return 0.5*numpy.pi
+    else:
+        if a < c: return 0.5*numpy.arctan(2*b/(a-c))
+        if a > c: return 0.5*numpy.pi + 0.5*numpy.arctan(2*b/(a-c))
+    raise ValueError, "Invalid ellipse parameters: %f, %f"%(a, c)
+
+
+def fit_ellipse(xy):
+  '''fit an ellipse to the points.
+
+  INPUT: 
+    xy -- N x 2 -- points in 2D
+    
+  OUTPUT:
+    A,B,C,D,E,F -- real numbers such that:
+      A * x**2 + B * x * y + C * y**2 + D * x + E * y + F =~= 0
+
+  This is an implementation of:
+
+  "Direct Least Square Fitting of Ellipses"
+  by Andrew Fitzgibbon, Maurizio Pilu, and Robert B. Fisher
+  IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE, 
+  VOL. 21, NO. 5, MAY 1999
+
+  Shai Revzen, U Penn, 2010  
+  '''
+  xy = numpy.asarray(xy)
+  N,w = xy.shape
+  if w != 2:
+    raise ValueError('Expected N x 2 data, got %d x %d' % (N,w))
+  x = xy[:,0]
+  y = xy[:,1]
+  D = numpy.c_[ x*x, x*y, y*y, x, y, numpy.ones_like(x) ]
+  S = numpy.dot(D.T,D)
+  C = numpy.zeros((6,6),D.dtype)
+  C[0,2]=-2
+  C[1,1]=1
+  C[2,0]=-2
+  geval,gevec = scipy.linalg.eig( S, C )
+  idx = numpy.nonzero( geval<0 & ~ numpy.isinf(geval) )
+  return tuple(gevec[:,idx].real)
+
+
+  
