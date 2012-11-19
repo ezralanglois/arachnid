@@ -43,7 +43,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import spider_utility, format
+from ..core.metadata import spider_utility, format, format_utility
 import os, logging
 
 _logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ def batch(files, output, **extra):
     
     convert_to_spider(files, output)
 
-def convert_to_spider(files, output):
+def convert_to_spider(files, output, offset=0):
     ''' Create a folder of soft links to each leginon micrograph and
     a selection file mapping each SPIDER file to the original leginon
     filename
@@ -84,19 +84,22 @@ def convert_to_spider(files, output):
     
     if len(files)==0: return files
     base = os.path.splitext(output)[0]
+    select = format_utility.add_prefix(base+".star", 'sel_')
     output = base+os.path.splitext(files[0])[1]
     if not os.path.exists(os.path.dirname(output)):
         os.makedirs(os.path.dirname(output))
-    newfiles = []
-    mapping = []
-    for i, f in enumerate(files):
-        output_file = spider_utility.spider_filename(output, i+1)
-        if not os.path.exists(output_file):
-            os.symlink(os.path.abspath(f), output_file)
-        mapping.append((f, i+1))
-        newfiles.append(output_file)
-    format.write(base+".star", mapping, header="araLeginonFilename,araSpiderID".split(','), prefix="sel_")
-    return newfiles
+    mapping = format.read(select, numeric=True) if os.path.exists(select) else []
+    mapped = dict([(v.araLeginonFilename, v.araSpiderID) for v in mapping])
+    update = [f for f in files if f not in mapped]
+    index = len(mapped)+offset
+    for f in update:
+        output_file = spider_utility.spider_filename(output, index+1)
+        if os.path.exists(output_file): os.unlink(output_file)
+        os.symlink(os.path.abspath(f), output_file)
+        mapping.append((f, index+1))
+        index += 1
+    format.write(select, mapping, header="araLeginonFilename,araSpiderID".split(','))
+    return [spider_utility.spider_filename(output, v) for v in xrange(1, len(mapping)+1)]
 
 def is_legion_filename(files):
     ''' Test if filename is in leginon format
