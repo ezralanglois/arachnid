@@ -1442,6 +1442,8 @@ def major_axis_angle(ellipse):
     
     a, b, c, d, e, f = ellipse
     
+    _logger.error("%s"%(str(a)))
+    
     if b == 0:
         if a < c: return 0
         if a > c: return 0.5*numpy.pi
