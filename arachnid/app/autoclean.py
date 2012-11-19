@@ -51,7 +51,8 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     #_logger.error("test2: %s == %s"%(str(data.shape), str(data2.shape)))
     ref = input_vals[3] if len(input_vals) > 3 else None
     eigs, sel, energy = classify_data(data, ref, None, output=output, view=input_vals[0], **extra)
-    test_covariance(eigs, data, output)
+    _logger.info("Testing cronbach's alpha")
+    test_cronbach_alpha(eigs, data, output)
     #sel = numpy.zeros((len(data2)))
     #sel[:len(data)]=1
     
@@ -110,14 +111,65 @@ def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, samp
     train = process_queue.recreate_global_dense_matrix(data)
     test = train
     eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
-    gmm = mixture.GMM(n_components=2)#, covariance_type='spherical')
-    gmm.fit(eigs)
-    sel = gmm.predict(eigs)
-    _logger.error("%s -- %s"%(str(sel.shape), str(numpy.unique(sel))))
-    sel = sel.squeeze() > 0.5
+    if 1 == 0:
+        gmm = mixture.GMM(n_components=2)#, covariance_type='spherical')
+        gmm.fit(eigs)
+        sel = gmm.predict(eigs)
+        _logger.error("%s -- %s"%(str(sel.shape), str(numpy.unique(sel))))
+        sel = sel.squeeze() > 0.5
+    else: 
+        sel, th = one_class_classification(eigs)
+    
+    
+    #
+    #numpy.mean(numpy.triu(numpy.corrcoef(eigs), 1))
+    
     assert(len(sel)==len(eigs))
     return eigs, sel, (energy, idx)
+
+def test_cronbach_alpha(eigs, data, output, **extra):
+    '''
+    '''
     
+    
+    data = process_queue.recreate_global_dense_matrix(data)
+    cent = numpy.median(eigs, axis=0)
+    eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    order = numpy.argsort(eig_dist_cent)
+    
+    n=5
+    dmcov = numpy.zeros(data.shape[0])
+    emcov = numpy.zeros(data.shape[0])
+    if 1 == 1:
+        dneigh = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
+        eneigh = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
+        for j in xrange(len(eigs)):
+            i = order[j]
+            emcov[j] = numpy.mean(eneigh[i, 1:])
+            dmcov[j] = numpy.mean(dneigh[i, 1:])
+            
+    else:
+        dneigh = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
+        eneigh = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
+        for j in xrange(len(eigs)):
+            i = order[j]
+            idx = eneigh[i, 1:]
+            r = numpy.mean(numpy.triu(numpy.corrcoef(eigs[idx]), 1))
+            k = idx.shape[0]
+            emcov[j] = (k*r) / (1+(k-1)*r)
+            
+            idx = dneigh[i, 1:]
+            r = numpy.mean(numpy.triu(numpy.corrcoef(data[idx]), 1))
+            k = idx.shape[0]
+            dmcov[j] = (k*r) / (1+(k-1)*r)
+    
+    x = numpy.arange(1, data.shape[0]+1)
+    pylab.clf()
+    pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
+    pylab.savefig(format_utility.new_filename(output, "dcov_", ext="png"))
+    pylab.clf()
+    pylab.plot(x, emcov, linestyle='None', marker='+', color='g')
+    pylab.savefig(format_utility.new_filename(output, "ecov_", ext="png"))
 
 def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -322,7 +374,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             img = img.real
             img = img[idx[:, numpy.newaxis], idx]
         elif bispec_mode == 2: 
-            img = img.imag
+            img = numpy.mod(numpy.angle(img), 2*numpy.pi) #img.imag
             img = img[idx[:, numpy.newaxis], idx]
         else:
             img = img[idx[:, numpy.newaxis], idx]
