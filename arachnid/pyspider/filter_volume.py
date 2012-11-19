@@ -142,8 +142,9 @@ def process(filename, output, resolution, **extra):
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
     sp = extra['apix']/resolution
-    output = filter_volume_highpass(filename, outputfile=output, **extra)
-    output = filter_volume_lowpass(output, sp, outputfile=output, **extra)
+    outputfile = filter_volume_highpass(filename, outputfile=output, **extra)
+    _logger.debug("Filter low pass: %s -> %s"%(output, output))
+    output = filter_volume_lowpass(outputfile, sp=sp, outputfile=output, **extra)
     return filename
 
 def ensure_pixel_size(spi, filename, **extra):
