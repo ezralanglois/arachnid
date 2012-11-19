@@ -200,7 +200,7 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", **extra):
             if mic not in micselect: micselect[mic]=[]
             micselect[mic].append((par, 1))
         for mic,vals in micselect.iteritems():
-            format.write(output, numpy.asarray(vals), header="id,select".split(','))
+            format.write(output, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), format=format.spidersel)
 
 def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", good="", **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
