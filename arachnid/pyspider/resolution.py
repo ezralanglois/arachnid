@@ -276,23 +276,22 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     if not disable_sigmoid:
         try: coeff = fitting.fit_sigmoid(x, y)
         except: _logger.warn("Failed to fit sigmoid, disabling model fitting")
-    else:
-        pylab.clf()
+    pylab.clf()
+    if coeff is not None:
+        pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
+    markers=['r--', 'b--']
+    for i, yp in enumerate([0.5, 0.143]):
         if coeff is not None:
-            pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
-        markers=['r--', 'b--']
-        for i, yp in enumerate([0.5, 0.143]):
-            if coeff is not None:
-                xp = fitting.sigmoid_inv(coeff, yp)
-            else:
-                xp = fitting.fit_linear_interp((x,y), yp)
-            if (apix/xp) < (2*apix) or not numpy.isfinite(xp):
-                xp = fitting.fit_linear_interp(numpy.hstack((x[:, numpy.newaxis], y[:, numpy.newaxis])), yp)
-            if numpy.alltrue(numpy.isfinite(xp)):
-                pylab.plot((x[0], xp), (yp, yp), markers[i])
-                pylab.plot((xp, xp), (0.0, yp), markers[i])
-                res = 0 if xp == 0 else apix/xp
-                pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, res))
+            xp = fitting.sigmoid_inv(coeff, yp)
+        else:
+            xp = fitting.fit_linear_interp((x,y), yp)
+        if (apix/xp) < (2*apix) or not numpy.isfinite(xp):
+            xp = fitting.fit_linear_interp(numpy.hstack((x[:, numpy.newaxis], y[:, numpy.newaxis])), yp)
+        if numpy.alltrue(numpy.isfinite(xp)):
+            pylab.plot((x[0], xp), (yp, yp), markers[i])
+            pylab.plot((xp, xp), (0.0, yp), markers[i])
+            res = 0 if xp == 0 else apix/xp
+            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, res))
     
     pylab.plot(x, y)
     pylab.axis([0.0,freq_rng, 0.0,1.0])

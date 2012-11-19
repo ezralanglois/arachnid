@@ -397,9 +397,9 @@ def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack
         format_utility.add_prefix(output, 'raw2')
     ]
     if engine > 0:
-        return reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, output_vol, **extra)
+        return reconstruct_SNI(spi, engine, flip_stack, align, selection, curr_slice, output_vol, **extra)
     else:
-        return reconstruct_MPI(spi, input_stack, align, selection, curr_slice, output_vol, **extra)
+        return reconstruct_MPI(spi, flip_stack, align, selection, curr_slice, output_vol, **extra)
 
 def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_output, shared_scratch, local_scratch, **extra):
     ''' Reconstruct a volume on a single node

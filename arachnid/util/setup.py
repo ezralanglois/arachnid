@@ -6,4 +6,5 @@ console_scripts = [
  'selrelion = arachnid.util.relion_selection:main',
  'bench = arachnid.util.bench:main',
  'convert2spi = arachnid.util.spider_prep:main',
+ 'micrographsel = arachnid.util.mic_select:main',
 ]

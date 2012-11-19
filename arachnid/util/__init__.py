@@ -11,4 +11,5 @@
     relion_selection
     bench
     spider_prep
+    mic_select
 '''

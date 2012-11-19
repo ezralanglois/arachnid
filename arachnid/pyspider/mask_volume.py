@@ -172,7 +172,9 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
     elif mask_type == 'N':
         if outputfile != filename: spi.cp(filename, outputfile)
     elif mask_type != "":
-        apply_mask(spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), spi.replace_ext(volume_mask))
+        width = spi.fi_h(filename, ('NSAM', ))[0]
+        volume_mask = spider.copy_safe(spi, volume_mask, width)
+        spi.mu(filename, volume_mask, outputfile=outputfile)
     else: return filename
     return outputfile
 
