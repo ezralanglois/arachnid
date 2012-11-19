@@ -344,13 +344,14 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
             if theta > 180.0: theta -= 180.0
             angle_doc=spi.vo_ras(angle_doc, angle_num, (psi, theta, phi), outputfile=angle_rot)
         angle_off = parallel_utility.partition_offsets(angle_num, int(numpy.ceil(float(angle_num)/max_ref_proj)))
+        angles = numpy.asarray(format.read(spi.replace_ext(angle_doc), numeric=True, header="id,psi,theta,phi".split(',')))
         if use_flip:
             if mpi_utility.is_root(**extra): _logger.info("Alignment on CTF-corrected stacks - started")
-            align_projections(spi, ap_sel, None, align[curr_slice], reference, angle_doc, angle_off, **extra)
+            align_projections(spi, ap_sel, None, align[curr_slice], reference, angles, angle_doc, angle_off, **extra)
             if mpi_utility.is_root(**extra): _logger.info("Alignment on CTF-corrected stacks - finished")
         else:
             if mpi_utility.is_root(**extra): _logger.info("Alignment on raw stacks - started")
-            align_projections_by_defocus(spi, ap_sel, align[curr_slice], reference, angle_doc, angle_off, **extra)
+            align_projections_by_defocus(spi, ap_sel, align[curr_slice], reference, angles, angle_doc, angle_off, **extra)
             if mpi_utility.is_root(**extra): _logger.info("Alignment on raw stacks - finished")
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("End alignment - %s"%mpi_utility.hostname())
     align[curr_slice, 8] = angle_num
@@ -436,7 +437,7 @@ def align_projections_by_defocus_sm(spi, ap_sel, align, reference, angle_doc, an
         align_projections_sm(spi, ap_sel, align[proj_beg-1:proj_end], dreference, angle_doc, angle_num, proj_beg-1, **extra)
         proj_beg = proj_end
     
-def align_projections_by_defocus(spi, ap_sel, align, reference, angle_doc, angle_rng, defocus_offset, **extra):
+def align_projections_by_defocus(spi, ap_sel, align, reference, angles, angle_doc, angle_rng, defocus_offset, **extra):
     ''' Align a set of projections to the given CTF-corrected reference
     
     :Parameters:
@@ -467,10 +468,10 @@ def align_projections_by_defocus(spi, ap_sel, align, reference, angle_doc, angle
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
-        align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end], dreference, angle_doc, angle_rng, **extra)
+        align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end], dreference, angles, angle_doc, angle_rng, **extra)
         proj_beg = proj_end
 
-def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, angle_rng, cache_file, input_stack, reference_stack, **extra):
+def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_doc, angle_rng, cache_file, input_stack, reference_stack, **extra):
     ''' Align a set of projections to the given reference
     
     :Parameters:
@@ -503,7 +504,9 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angle_doc, ang
     tmp_align = format_utility.add_prefix(cache_file, "align_")
     for i in xrange(1, angle_rng.shape[0]):
         angle_num = (angle_rng[i]-angle_rng[i-1])
-        spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
+        format.write(spi.replace_ext(angle_doc), angles[angle_rng[i-1]:angle_rng[i], 1:], format=format.spiderdoc, header="psi,theta,phi".split(','))
+        spi.pj_3q(reference, angle_doc, (1, angle_num), outputfile=reference_stack, **extra)
+        #spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
         # 1     2    3     4     5   6 7   8   9      10      11    12  13 14 15
         #epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror
