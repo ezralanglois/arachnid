@@ -121,6 +121,8 @@ log_formats = { 'critical': "%(asctime)s %(message)s",
                 'debug':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s",
                 'debug_more':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s" }
 
+_log_import_errors = []
+
 def log_import_error(message, logger=None):
     ''' Create a logger with a stream handler and log a warning in
      non-debug mode and and exception in debug mode
@@ -133,12 +135,15 @@ def log_import_error(message, logger=None):
              Specific logger to use
     '''
     
-    if logger is None: logger = logging.getLogger()
-    num_handlers=len(logger.handlers)
-    if num_handlers == 0: logger.addHandler(logging.StreamHandler())
-    if logger.isEnabledFor(logging.DEBUG): logger.exception(message)
-    else: logger.warn(message)
-    if num_handlers == 0: logger.removeHandler(logger.handlers[0])
+    if 1 == 0:
+        if logger is None: logger = logging.getLogger()
+        num_handlers=len(logger.handlers)
+        if num_handlers == 0: logger.addHandler(logging.StreamHandler())
+        if logger.isEnabledFor(logging.DEBUG): logger.exception(message)
+        else: logger.warn(message)
+        if num_handlers == 0: logger.removeHandler(logger.handlers[0])
+    else:
+        _log_import_errors.append(message)
     
 def setup_options(parser, pgroup=None):
     '''Add options to the given option parser
@@ -241,6 +246,10 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             root.addHandler(ch)
             ch.setLevel(level)
         root.setLevel(level)
+    
+    if rank == 0:
+        for errormsg in _log_import_errors:
+            logging.warn(errormsg)
 '''   
 def archive(parser, archives, archive_path, config_file, **extra):
     
