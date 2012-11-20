@@ -871,7 +871,7 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
     cent = numpy.median(eigs, axis=0)
     rad = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
     diff = eigs-cent
-    theta = numpy.arctan2(diff[:,1], diff[:0])
+    theta = numpy.arctan2(diff[:,1], diff[:, 0])
     fig, ax = plotting.plot_embedding(rad, theta, select, ref, dpi=dpi)
     fig.savefig(format_utility.new_filename(output, "polar_", ext="png"), dpi=dpi)
     
