@@ -866,7 +866,15 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
     image_size=0.4
     radius=20
     
+    
     select = numpy.argwhere(sel < 0.5)
+    cent = numpy.median(eigs, axis=0)
+    rad = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    diff = eigs-cent
+    theta = numpy.arctan2(diff[:,1], diff[:0])
+    fig, ax = plotting.plot_embedding(rad, theta, select, ref, dpi=dpi)
+    fig.savefig(format_utility.new_filename(output, "polar_", ext="png"), dpi=dpi)
+    
     fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
     vals = plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)
     if len(vals) > 0:
