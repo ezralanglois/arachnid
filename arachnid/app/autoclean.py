@@ -4,7 +4,7 @@
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.image.ndplot import pylab
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility
+from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, reconstruct
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, process_queue
 from ..core.image import manifold
@@ -131,7 +131,6 @@ def test_cronbach_alpha(eigs, data, output, **extra):
     '''
     '''
     
-    
     data = process_queue.recreate_global_dense_matrix(data)
     cent = numpy.median(eigs, axis=0)
     eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
@@ -140,14 +139,16 @@ def test_cronbach_alpha(eigs, data, output, **extra):
     n=5
     dmcov = numpy.zeros(data.shape[0])
     emcov = numpy.zeros(data.shape[0])
+    lerr = numpy.zeros(data.shape[0])
     if 1 == 1:
         dneigh = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
         eneigh = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
+        x = numpy.arange(data.shape[0])
         for j in xrange(len(eigs)):
             i = order[j]
             emcov[j] = numpy.mean(eneigh[i, 1:])
             dmcov[j] = numpy.mean(dneigh[i, 1:])
-            
+            lerr[j] = numpy.mean(numpy.polyfit(x[:j+1], emcov[:j+1], 1, full=True)[1][0])
     else:
         dneigh = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
         eneigh = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
@@ -165,10 +166,18 @@ def test_cronbach_alpha(eigs, data, output, **extra):
     
     x = numpy.arange(1, data.shape[0]+1)
     pylab.clf()
-    pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
+    pylab.plot(x, lerr, linestyle='None', marker='*', color='r')
     pylab.savefig(format_utility.new_filename(output, "dcov_", ext="png"))
     pylab.clf()
+    demcov = numpy.zeros(len(emcov))
+    demcov[1:] = numpy.diff(emcov)
+    d2emcov = numpy.zeros(len(demcov))
+    for i in xrange(1, len(demcov)-1):
+        d2emcov[i] = emcov[i+1] - 2*emcov[i] + emcov[i-1]
     pylab.plot(x, emcov, linestyle='None', marker='+', color='g')
+    pylab.plot(x, demcov, linestyle='None', marker='o', color='r')
+    pylab.plot(x, d2emcov, linestyle='None', marker='x', color='b')
+    pylab.xlim([1200,1600])
     pylab.savefig(format_utility.new_filename(output, "ecov_", ext="png"))
 
 def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
@@ -446,7 +455,13 @@ def read_data(input_files, label, align, shift_data=0, **extra):
         if shift_data > 0:
             if bin_factor > 1: extra['template'] = eman2_utility.decimate(template, bin_factor)
         else: extra['template']=None
-    return ndimage_file.read_image_mat(input_files, label, image_transform, shared=True, align=align, **extra), mask, average, template
+    data = ndimage_file.read_image_mat(input_files, label, image_transform, shared=True, align=align, **extra)
+    mat = process_queue.recreate_global_dense_matrix(data)
+    mat -= mat.min(axis=0)
+    mat /= mat.max(axis=0)
+    assert(numpy.alltrue(numpy.isfinite(mat)))
+    
+    return data, mask, average, template
 
 def create_template(input_files, label, template, resolution, apix, hp_cutoff, pixel_diameter, **extra): #extra['pixel_diameter']
     ''' Create a tight mask from a view average
@@ -578,6 +593,7 @@ def read_alignment(files, alignment="", **extra):
                 if numpy.max(label[total:end, 1]) > ndimage_file.count_images(f):
                     label[:, 1] = numpy.arange(0, len(align[total:end]))
                 total = end
+            align = numpy.asarray(alignvals)
     ref = align[:, refidx].astype(numpy.int)
     refs = numpy.unique(ref)
     
@@ -603,7 +619,7 @@ def read_alignment(files, alignment="", **extra):
             sel = r == ref
             #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
             group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
-    return group, align.shape[0]
+    return group, align
 
 def compute_average3(input_files, label, align, template=None, selected=None, mask=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, pixel_diameter=None, output=None, **extra):
     ''' Compute the average of a selected, unselected and all images
@@ -887,7 +903,8 @@ def initialize(files, param):
     
     group = None
     if mpi_utility.is_root(**param): 
-        group, total = read_alignment(files, **param)
+        group, align = read_alignment(files, **param)
+        total = len(align)
         param['min_group'] = numpy.min([len(g[1]) for g in group])
         _logger.info("Cleaning bad particles from %d views"%len(group))
         if len(group[0]) > 3:
@@ -896,6 +913,8 @@ def initialize(files, param):
         else:
             param['global_label'] = numpy.zeros((total, 2))
             param['global_feat'] = numpy.zeros((total, param['neig']))
+            param['global_rank'] = numpy.zeros((2, len(group), 5000/len(group)), dtype=numpy.int)
+            param['global_align'] = numpy.zeros((total, align.shape[1]))
         param['global_offset'] = numpy.zeros((1))
     group = mpi_utility.broadcast(group, **param)
     if param['single_view'] > 0:
@@ -906,14 +925,24 @@ def initialize(files, param):
     
     return group
 
-def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, global_label, global_feat, global_offset, id_len=0, **extra):
+def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, global_label, global_feat, global_offset, global_rank, global_align, id_len=0, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
     input, eigs, sel, avg3, energy, feat_cnt, ndiff, sdiff = val
     label = input[1]
+    align = input[2]
     if global_label is not None:
         global_label[global_offset[0]:global_offset[0]+len(label)] = label
         global_feat[global_offset[0]:global_offset[0]+len(eigs)] = eigs
+        global_align[global_offset[0]:global_offset[0]+len(eigs)] = align
+        
+        cent = numpy.median(eigs, axis=0)
+        dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+        idx = numpy.argsort(dist_cent)
+        idx += global_offset[0]
+        global_rank[0, file_completed, :] = idx[:global_rank.shape[2]]
+        idx = idx[::-1]
+        global_rank[1, file_completed, :] = idx[:global_rank.shape[2]]
         global_offset[0]+=len(label)
     file_completed -= 1
     total[file_completed, 0] = input[0]
@@ -929,8 +958,32 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, glob
     # plot first 2 eigen vectors
     return input[0]
 
-def finalize(files, total, sel_by_mic, output, global_label, global_feat, **extra):
+def reconstruct3(image_file, label, align, output):
+    '''
+    '''
+    
+    # Define two subsets - here even and odd
+    even = numpy.arange(0, len(align), 2, dtype=numpy.int)
+    odd = numpy.arange(1, len(align), 2, dtype=numpy.int)
+    iter_even = ndimage_file.iter_images(image_file, label[even])
+    iter_odd = ndimage_file.iter_images(image_file, label[odd])
+    vol,vol_even,vol_odd = reconstruct.reconstruct_nn4_3(iter_even, iter_odd, align[even], align[odd])
+    # Write volume to file
+    ndimage_file.write_image(output, vol)
+    ndimage_file.write_image(format_utility.add_prefix(output, "even_"), vol_even)
+    ndimage_file.write_image(format_utility.add_prefix(output, "odd_"), vol_odd)
+
+def finalize(files, total, sel_by_mic, output, global_label, global_feat, global_rank, global_align, input_files, **extra):
     # Finalize global parameters for the script
+    
+    if global_rank is not None:
+        idx = global_rank[0].ravel()
+        _logger.info("Reconstructing %d selected projections"%(idx.shape[0]))
+        reconstruct3(input_files[0], global_label[idx].copy(), global_align[idx].copy(), format_utility.add_prefix(output, "vol_sel_"))
+        idx = global_rank[1].ravel()
+        _logger.info("Reconstructing %d unselected projections"%(idx.shape[0]))
+        reconstruct3(input_files[0], global_label[idx].copy(), global_align[idx].copy(), format_utility.add_prefix(output, "vol_unsel_"))
+        _logger.info("Reconstructing - finished")
     
     #plot_examples
     if global_label is not None:
