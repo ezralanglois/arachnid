@@ -139,7 +139,7 @@ def test_cronbach_alpha(eigs, data, output, **extra):
     n=5
     dmcov = numpy.zeros(data.shape[0])
     emcov = numpy.zeros(data.shape[0])
-    lerr = numpy.zeros(data.shape[0])
+    #lerr = numpy.zeros(data.shape[0])
     if 1 == 1:
         dneigh = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
         eneigh = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
@@ -148,7 +148,7 @@ def test_cronbach_alpha(eigs, data, output, **extra):
             i = order[j]
             emcov[j] = numpy.mean(eneigh[i, 1:])
             dmcov[j] = numpy.mean(dneigh[i, 1:])
-            lerr[j] = numpy.mean(numpy.polyfit(x[:j+1], emcov[:j+1], 1, full=True)[1][0])
+            #lerr[j] = numpy.mean(numpy.polyfit(x[:j+1], emcov[:j+1], 1, full=True)[1][0])
     else:
         dneigh = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
         eneigh = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
@@ -166,7 +166,8 @@ def test_cronbach_alpha(eigs, data, output, **extra):
     
     x = numpy.arange(1, data.shape[0]+1)
     pylab.clf()
-    pylab.plot(x, lerr, linestyle='None', marker='*', color='r')
+    pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
+    #pylab.plot(x, lerr, linestyle='None', marker='*', color='r')
     pylab.savefig(format_utility.new_filename(output, "dcov_", ext="png"))
     pylab.clf()
     demcov = numpy.zeros(len(emcov))
