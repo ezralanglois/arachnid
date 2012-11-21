@@ -169,6 +169,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['trans_range']=500
     extra['trans_step']=1
     #theta_prev = None
+    extra['trans_max']=8
     extra['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
@@ -216,8 +217,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
             if refine_index > 0 and (numpy.min(res_iteration[:refine_index+1, 0])-resolution_start)<1 and trans_range < 3: 
                 resolution_next = resolution_next*0.85
-            else: resolution_next = resolution_start
-            #elif resolution_start < resolution_next: resolution_next = resolution_start
+            #else: resolution_next = resolution_start
+            elif resolution_start < resolution_next: resolution_next = resolution_start
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
             extra['_resolution_next']=resolution_next
             #0 1
@@ -231,7 +232,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         #theta_prev = extra['theta_delta']
     mpi_utility.barrier(**extra)
     
-def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, **extra):
+def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, trans_max=8, **extra):
     ''' Angular sampling rate
     
     :Parameters:
@@ -255,7 +256,7 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
                   Angular sampling rate
     '''
     
-    if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= 3:
+    if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= trans_max:
         theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) * 2
         if mpi_utility.is_root(**extra):
             _logger.info("Angular Sampling: %f -- Resolution: %f -- Size: %f"%(theta_delta, resolution, pixel_diameter*apix))
