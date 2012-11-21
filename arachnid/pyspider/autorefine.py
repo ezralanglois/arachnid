@@ -169,7 +169,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['trans_range']=500
     extra['trans_step']=1
     #theta_prev = None
-    extra['trans_max']=8
+    extra['trans_max']=7
     extra['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
@@ -216,9 +216,9 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
             if refine_index > 0 and (numpy.min(res_iteration[:refine_index+1, 0])-resolution_start)<1 and trans_range < 3: 
-                resolution_next = resolution_next*0.85
-            #else: resolution_next = resolution_start
+                resolution_next = resolution_next*0.8
             elif resolution_start < resolution_next: resolution_next = resolution_start
+            else: resolution_next = resolution_next*0.9
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
             extra['_resolution_next']=resolution_next
             #0 1
