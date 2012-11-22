@@ -875,6 +875,24 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
     fig, ax = plotting.plot_embedding(rad, theta, select, ref, dpi=dpi)
     fig.savefig(format_utility.new_filename(output, "polar_", ext="png"), dpi=dpi)
     
+    x=numpy.arange(1, len(eigs)+1)
+    try:
+        fig, ax = plotting.plot_embedding(x, eigs[:, 0], select, ref, dpi=dpi)
+    except:
+        _logger.error("%s -- %s"%(str(x.shape), str(eigs[:, 0].shape)))
+        raise
+    vals = plotting.nonoverlapping_subset(ax, x[select], eigs[select, 0], radius, 100)
+    if len(vals) > 0:
+        try:
+            index = select[vals].ravel()
+        except:
+            _logger.error("%d-%d | %d"%(numpy.min(vals), numpy.max(vals), len(select)))
+        else:
+            #_logger.error("selected: %s"%str(index.shape))
+            iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+            plotting.plot_images(fig, iter_single_images, x[index], eigs[index, 0], image_size, radius)
+    fig.savefig(format_utility.new_filename(output, "one_", ext="png"), dpi=dpi)
+    
     fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
     vals = plotting.nonoverlapping_subset(ax, eigs[select, 0], eigs[select, 1], radius, 100)
     if len(vals) > 0:
@@ -922,7 +940,7 @@ def initialize(files, param):
         else:
             param['global_label'] = numpy.zeros((total, 2))
             param['global_feat'] = numpy.zeros((total, param['neig']))
-            param['global_rank'] = numpy.zeros((2, len(group), 5000/len(group)), dtype=numpy.int)
+            param['global_rank'] = numpy.zeros((2, len(group), 50), dtype=numpy.int)
             param['global_align'] = numpy.zeros((total, align.shape[1]))
         param['global_offset'] = numpy.zeros((1))
     group = mpi_utility.broadcast(group, **param)
@@ -945,9 +963,12 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, glob
         global_feat[global_offset[0]:global_offset[0]+len(eigs)] = eigs
         global_align[global_offset[0]:global_offset[0]+len(eigs)] = align
         
-        cent = numpy.median(eigs, axis=0)
-        dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-        idx = numpy.argsort(dist_cent)
+        if 1 == 0:
+            cent = numpy.median(eigs, axis=0)
+            dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+            idx = numpy.argsort(dist_cent)
+        else:
+            idx = numpy.argsort(eigs[:, 0])
         idx += global_offset[0]
         global_rank[0, file_completed, :] = idx[:global_rank.shape[2]]
         idx = idx[::-1]
@@ -998,7 +1019,7 @@ def finalize(files, total, sel_by_mic, output, global_label, global_feat, global
     if global_label is not None:
         sel, th = one_class_classification(global_feat)
         _logger.info("Threshold(all)=%f"%th)
-        plot_examples(extra['input_files'], global_label, format_utility.add_prefix(output, "all"), global_feat, sel, **extra)
+        plot_examples(input_files, global_label, format_utility.add_prefix(output, "all"), global_feat, sel, **extra)
         global_feat=numpy.hstack((sel[:, numpy.newaxis], global_feat))
         format.write_dataset(os.path.splitext(output)[0]+".csv", global_feat, 1, global_label, prefix="embedall_", header="best")
     format.write(output, total, prefix="sel_avg_", header=['id', 'selected', 'total'], default_format=format.spiderdoc)
