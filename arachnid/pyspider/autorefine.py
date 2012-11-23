@@ -215,11 +215,11 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
-            if refine_index > 0 and (numpy.min(res_iteration[:refine_index+1, 0])-resolution_start)<1 and trans_range < 3: 
+            if refine_index > 0 and (numpy.min(res_iteration[:refine_index+1, 0])-resolution_start)<0.5 and trans_range < 3:
                 resolution_next = resolution_next*0.8
-            elif resolution_start < resolution_next: resolution_next = resolution_start
-            else: resolution_next = resolution_next*0.9
+            else: resolution_next = resolution_start*0.8
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
+            trans_range = int(round(trans_range / extra['dec_level']))
             extra['_resolution_next']=resolution_next
             #0 1
             #1 2
