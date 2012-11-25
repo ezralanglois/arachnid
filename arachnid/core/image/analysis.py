@@ -15,6 +15,15 @@ import logging, functools
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def robust_rejection(data, nsigma=2.67):
+    ''' Robust outlier rejection
+    '''
+    
+    m = numpy.median(data)
+    s = robust_sigma(data)
+    
+    return m+s*nsigma
+
 def robust_sigma(in_y, zero=0):
    """
    Calculate a resistant estimate of the dispersion of

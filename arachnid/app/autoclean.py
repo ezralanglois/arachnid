@@ -48,18 +48,10 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     
     write_dataset(output, eigs, sel, input_vals[0])
     
-    plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
-    extra['poutput']=format_utility.new_filename(output, 'pos_') if write_view_stack == 1 or write_view_stack >= 3 else None
-    extra['noutput']=format_utility.new_filename(output, 'neg_') if write_view_stack == 2 or write_view_stack == 3 else None
-    if write_view_stack == 4: extra['noutput'] = extra['poutput']
-    extra['sort_by']=eigs[:, 0] if sort_view_stack else None
-    avg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, output=output, **extra)
-    #extra['poutput']=None
-    #extra['noutput']=None
-    #savg3 = compute_average3(input_files, *input_vals[1:3], mask=mask, selected=sel, template=template, output=output, **extra)
+    #plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
     
     nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
-    return input_vals, eigs, sel, avg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
+    return input_vals, eigs, sel, avg3[:3], "Energy: %f"%(energy)
 
 def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -90,21 +82,45 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     train = process_queue.recreate_global_dense_matrix(data)
     test = train
     eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
-    if 1 == 0:
-        gmm = mixture.GMM(n_components=2)#, covariance_type='spherical')
-        gmm.fit(eigs)
-        sel = gmm.predict(eigs)
-        _logger.error("%s -- %s"%(str(sel.shape), str(numpy.unique(sel))))
-        sel = sel.squeeze() > 0.5
-    else: 
-        sel, th = one_class_classification(eigs)
-    
-    
-    #
-    #numpy.mean(numpy.triu(numpy.corrcoef(eigs), 1))
-    
-    assert(len(sel)==len(eigs))
+    sel = one_class_classification(eigs)
     return eigs, sel, (energy, idx)
+
+def one_class_classification(feat):
+    ''' Perform one-class classification using Otsu's algorithm
+    
+    :Parameters:
+    
+    feat : array
+           Feature space
+    
+    :Returns:
+    
+    sel : array
+          Selected samples
+    '''
+    
+    feat = feat.copy()
+    cent = numpy.median(feat, axis=0)
+    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    sel = analysis.robust_rejection(dist_cent)
+    return sel
+
+def comput_average(input_files, label, align, subset=None, use_rtsq=False, **extra):
+    '''
+    '''
+    
+    if subset is not None:
+        label = label[subset]
+        align = align[subset]
+    
+    avg = None
+    for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
+        if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
+        elif m:      img[:,:] = eman2_utility.mirror(img)
+        if avg is None: avg = numpy.zeros(img.shape)
+        avg += img
+    avg /= (i+1)
+    return avg
 
 def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -211,27 +227,7 @@ def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sam
         assert(eigs.shape[0]==test.shape[0])
     return eigs, sel, (energy, idx)
 
-def one_class_classification(feat):
-    ''' Perform one-class classification using Otsu's algorithm
-    
-    :Parameters:
-    
-    feat : array
-           Feature space
-    
-    :Returns:
-    
-    sel : array
-          Selected samples
-    '''
-    
-    feat = feat.copy()
-    #feat -= feat.min(axis=0)
-    #feat /= feat.max(axis=0)
-    cent = numpy.median(feat, axis=0)
-    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    th = analysis.otsu(dist_cent)
-    return dist_cent < th, th
+
 
 def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
@@ -431,193 +427,6 @@ def create_tightmask(input_files, label, resolution, apix, hp_cutoff, **extra):
     avg2 = eman2_utility.gaussian_high_pass(avg2, hp_cutoff, True)
     return scipy.ndimage.morphology.binary_fill_holes(mask), avg2
 
-def read_alignment(files, alignment="", **extra):
-    ''' Read alignment parameters
-    
-    :Parameters:
-    
-    files : list
-            List of input files containing particle stacks
-    alignment : str
-                Input filename containing alignment parameters
-    
-    :Returns:
-    
-    group : list
-            List of tuples, one for each view containing: view id, image labels and alignment parameters
-    '''
-    
-    if len(files) == 1:
-        spiderid = files[0] if not os.path.exists(alignment) else None
-        align = format.read_alignment(alignment, spiderid=spiderid)
-        align, header = format_utility.tuple2numpy(align)
-        refidx = header.index('ref_num')
-        label = numpy.zeros((len(align), 2), dtype=numpy.int)
-        label[:, 0] = spider_utility.spider_id(files[0])
-        label[:, 1] = align[:, 4].astype(numpy.int)-1
-        if numpy.max(label[:, 1]) >= ndimage_file.count_images(files[0]):
-            label[:, 1] = numpy.arange(0, len(align))
-    else:
-        align = None
-        refidx = None
-        if os.path.exists(alignment):
-            _logger.debug("Alignment exists")
-            align = format.read_alignment(alignment)
-            align, header = format_utility.tuple2numpy(align)
-            refidx = header.index('ref_num')
-            if len(align)>0 and 'stack_id' in set(header):
-                align = numpy.asarray(align)
-                label = align[:, 15:17].astype(numpy.int)
-                label[:, 1]-=1
-            else:
-                align=None
-        if align is None:
-            alignvals = []
-            total = 0 
-            for f in files:
-                aligncur = format.read_alignment(alignment, spiderid=f)
-                aligncur, header = format_utility.tuple2numpy(aligncur)
-                if refidx is None: refidx = header.index('ref_num')
-                alignvals.append((f, aligncur))
-                total += len(aligncur)
-            label = numpy.zeros((total, 2), dtype=numpy.int)
-            align = numpy.zeros((total, aligncur.shape[1]))
-            total = 0
-            for f, cur in alignvals:
-                end = total+cur.shape[0]
-                align[total:end, :] = cur
-                label[total:end, 0] = spider_utility.spider_id(f)
-                label[total:end, 1] = align[total:end, 4].astype(numpy.int)
-                if numpy.max(label[total:end, 1]) > ndimage_file.count_images(f):
-                    label[:, 1] = numpy.arange(0, len(align[total:end]))
-                total = end
-            align = numpy.asarray(alignvals)
-    ref = align[:, refidx].astype(numpy.int)
-    refs = numpy.unique(ref)
-    
-    group = []
-    for r in refs:
-        sel = r == ref
-        group.append((r, label[sel], align[sel]))
-    return group, align
-
-def compute_average3(input_files, label, align, template=None, selected=None, mask=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, pixel_diameter=None, output=None, **extra):
-    ''' Compute the average of a selected, unselected and all images
-    
-    :Parameters:
-    
-    input_files : list
-                  List of input file stacks
-    label : array
-            2D array of particle labels (stack_id, particle_id)
-    align : array
-            2D array of alignment parameters
-    selected : array, optional
-               Selected values to be included
-    use_rtsq : bool
-               Set true to rotate and translate
-    output : str, optional
-             Output filename for unseleced particles
-    sort_by : bool
-              Array to sort the output selected view stacks by
-    noutput : str, optional
-              Output filename for selected negative stack
-    poutput : str, optional
-              Output filename for selected positive stack
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    extra : dict
-            Unused key word arguments
-    
-    :Returns:
-    
-    avgsel : array
-             Averaged over selected images
-    avgunsel : array
-             Averaged over unselected images
-    avgful : array
-             Averaged over all images
-    '''
-    
-    if sort_by is not None:
-        idx = numpy.argsort(sort_by)
-        label = label[idx]
-        align = align[idx]
-        if selected is not None:
-            selected = selected[idx]
-    
-    shiftval = numpy.zeros((label.shape[0], 2)) if template is not None else None
-    avgsel, avgunsel = None, None
-    cntsel  = numpy.sum(selected)
-    cntunsel = selected.shape[0] - cntsel
-    poff = 0
-    noff = 0
-    for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
-        if avgsel is None: avgsel = numpy.zeros((2, )+img.shape)
-        if avgunsel is None: avgunsel = numpy.zeros((2, )+img.shape)
-        m = align[i, 1] > 179.999
-        if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
-        elif m:      img[:,:] = eman2_utility.mirror(img)
-        idx = 1 if i%2==0 else 0
-        if selected[i] > 0.5:
-            avgsel[idx] += img
-            if poutput is not None and poutput != noutput:
-                ndimage_file.write_image(poutput, img, poff)
-                poff += 1
-        else:
-            avgunsel[idx] += img
-            if noutput is not None and poutput != noutput:
-                ndimage_file.write_image(noutput, img, noff)
-                noff += 1
-        if poutput is not None and poutput == noutput:
-            ndimage_file.write_image(poutput, img, poff)
-            poff += 1
-    if avgunsel is None: avgunsel = numpy.zeros(img.shape)
-    if avgsel is None: avgsel = numpy.zeros(img.shape)
-    avgful = avgsel + avgunsel
-    avgsel2 = (avgsel[0]+avgsel[1])
-    avgunsel2 = (avgunsel[0]+avgunsel[1])
-    if numpy.sum(cntsel) > 0: avgsel2 /= numpy.sum(cntsel)
-    if numpy.sum(cntunsel) > 0: avgunsel2 /= numpy.sum(cntunsel)
-    avgful2 = avgsel2 + avgunsel2
-    if cntsel > 0: avgsel /= (cntsel/2)
-    if cntunsel > 0: avgunsel /= (cntunsel/2)
-    
-    if 1 == 1:
-        #fsc_all = extra['apix']/fitting.fit_linear_interp(ndimage_utility.frc(avgful[0], avgful[1]), 0.5)
-        #res = 
-        #fsc_all = extra['apix']/fitting.fit_sigmoid_interp(eman2_utility.fsc(avgful[0], avgful[1], complex=False), 0.5)
-        #fsc = ndimage_utility.frc(avgful[0]*mask, avgful[1]*mask, pad=1)
-        
-        #pylab.clf()
-        #pylab.plot(fsc[:, 0], fsc[:, 1], 'r-')
-        #pylab.savefig(format_utility.new_filename(output, "fsc_", ext="png"))
-        
-        fsc1 = eman2_utility.fsc(avgful[0]*mask, avgful[1]*mask)
-        fsc2 = eman2_utility.fsc(avgsel[0]*mask, avgsel[1]*mask)
-        fsc3 = eman2_utility.fsc(avgunsel[0]*mask, avgunsel[1]*mask)
-        fsc1 = extra['apix']/fitting.fit_linear_interp(fsc1, 0.5)
-        fsc2 = extra['apix']/fitting.fit_linear_interp(fsc2, 0.5)
-        fsc3 = extra['apix']/fitting.fit_linear_interp(fsc3, 0.5)
-        '''
-        _logger.info("Compare: %f -> %f, %f"%())
-        try:
-            numpy.testing.assert_allclose(fsc2[:, 0], fsc[:, 0])
-            numpy.testing.assert_allclose(fsc2[:, 1], fsc[:, 1])
-        except:
-            _logger.exception("Did not work")
-        '''
-        #_logger.info("fsc: %f, %f ... %f,%f,%f"%(fsc[0, 1], fsc[1, 1], fsc[len(fsc)-3, 1], fsc[len(fsc)-2, 1], fsc[len(fsc)-1, 1]))
-        #fsc_all = extra['apix']/fitting.fit_sigmoid_interp(fsc, 0.5)
-        #if fsc_all < 0 or fsc_all > 1000:
-        fsc_all = fsc1#extra['apix']/fitting.fit_linear_interp(fsc, 0.5)
-        #fsc_sel = fitting.fit_linear_interp(ndimage_utility.frc(avgsel[0], avgsel[1]), 0.5)
-        #fsc_uns = fitting.fit_linear_interp(ndimage_utility.frc(avgunsel[0], avgunsel[1]), 0.5)
-    else:
-        fsc_all = numpy.sum(numpy.abs(shiftval))/float(label.shape[0]) if shiftval is not None else 0
-    return avgsel2, avgunsel2, avgful2 / (cntsel+cntunsel), fsc_all
-
-    
 def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra):
     ''' Plot the manifold with example images
     
@@ -708,7 +517,76 @@ def write_dataset(output, eigs, sel, id):
     label[:, 1] = numpy.arange(1, len(eigs)+1)
     format.write_dataset(os.path.splitext(output)[0]+".csv", feat, id, label, prefix="embed_", header="best")
     
-''''''
+def read_alignment(files, alignment="", **extra):
+    ''' Read alignment parameters
+    
+    :Parameters:
+    
+    files : list
+            List of input files containing particle stacks
+    alignment : str
+                Input filename containing alignment parameters
+    
+    :Returns:
+    
+    group : list
+            List of tuples, one for each view containing: view id, image labels and alignment parameters
+    '''
+    
+    if len(files) == 1:
+        spiderid = files[0] if not os.path.exists(alignment) else None
+        align = format.read_alignment(alignment, spiderid=spiderid)
+        align, header = format_utility.tuple2numpy(align)
+        refidx = header.index('ref_num')
+        label = numpy.zeros((len(align), 2), dtype=numpy.int)
+        label[:, 0] = spider_utility.spider_id(files[0])
+        label[:, 1] = align[:, 4].astype(numpy.int)-1
+        if numpy.max(label[:, 1]) >= ndimage_file.count_images(files[0]):
+            label[:, 1] = numpy.arange(0, len(align))
+    else:
+        align = None
+        refidx = None
+        if os.path.exists(alignment):
+            _logger.debug("Alignment exists")
+            align = format.read_alignment(alignment)
+            align, header = format_utility.tuple2numpy(align)
+            refidx = header.index('ref_num')
+            if len(align)>0 and 'stack_id' in set(header):
+                align = numpy.asarray(align)
+                label = align[:, 15:17].astype(numpy.int)
+                label[:, 1]-=1
+            else:
+                align=None
+        if align is None:
+            alignvals = []
+            total = 0 
+            for f in files:
+                aligncur = format.read_alignment(alignment, spiderid=f)
+                aligncur, header = format_utility.tuple2numpy(aligncur)
+                if refidx is None: refidx = header.index('ref_num')
+                alignvals.append((f, aligncur))
+                total += len(aligncur)
+            label = numpy.zeros((total, 2), dtype=numpy.int)
+            align = numpy.zeros((total, aligncur.shape[1]))
+            total = 0
+            for f, cur in alignvals:
+                end = total+cur.shape[0]
+                align[total:end, :] = cur
+                label[total:end, 0] = spider_utility.spider_id(f)
+                label[total:end, 1] = align[total:end, 4].astype(numpy.int)
+                if numpy.max(label[total:end, 1]) > ndimage_file.count_images(f):
+                    label[:, 1] = numpy.arange(0, len(align[total:end]))
+                total = end
+            align = numpy.asarray(alignvals)
+    ref = align[:, refidx].astype(numpy.int)
+    refs = numpy.unique(ref)
+    
+    group = []
+    for r in refs:
+        sel = r == ref
+        group.append((r, label[sel], align[sel], numpy.argwhere(sel)))
+    return group, align, header
+
 def initialize(files, param):
     # Initialize global parameters for the script
     
@@ -718,19 +596,13 @@ def initialize(files, param):
     
     group = None
     if mpi_utility.is_root(**param): 
-        group, align = read_alignment(files, **param)
-        total = len(align)
-        param['min_group'] = numpy.min([len(g[1]) for g in group])
+        group, align, header = read_alignment(files, **param)
+        #total = len(align)
+        #param['min_group'] = numpy.min([len(g[1]) for g in group])
+        param['alignheader'] = header
+        param['alignment'] = align
+        param['selected'] = numpy.zeros(len(align), dtype=numpy.bool)
         _logger.info("Cleaning bad particles from %d views"%len(group))
-        if len(group[0]) > 3:
-            param['global_label'] = None
-            param['global_feat'] = None
-        else:
-            param['global_label'] = numpy.zeros((total, 2))
-            param['global_feat'] = numpy.zeros((total, param['neig']))
-            param['global_rank'] = numpy.zeros((2, len(group), 50), dtype=numpy.int)
-            param['global_align'] = numpy.zeros((total, align.shape[1]))
-        param['global_offset'] = numpy.zeros((1))
     group = mpi_utility.broadcast(group, **param)
     if param['single_view'] > 0:
         tmp=group
@@ -740,28 +612,13 @@ def initialize(files, param):
     
     return group
 
-def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, global_label, global_feat, global_offset, global_rank, global_align, id_len=0, **extra):
+def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, selected, id_len=0, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
-    input, eigs, sel, avg3, energy, feat_cnt, ndiff, sdiff = val
+    input, eigs, sel, avg3, msg = val
     label = input[1]
-    align = input[2]
-    if global_label is not None:
-        global_label[global_offset[0]:global_offset[0]+len(label)] = label
-        global_feat[global_offset[0]:global_offset[0]+len(eigs)] = eigs
-        global_align[global_offset[0]:global_offset[0]+len(eigs)] = align
-        
-        if 1 == 0:
-            cent = numpy.median(eigs, axis=0)
-            dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-            idx = numpy.argsort(dist_cent)
-        else:
-            idx = numpy.argsort(eigs[:, 0])
-        idx += global_offset[0]
-        global_rank[0, file_completed, :] = idx[:global_rank.shape[2]]
-        idx = idx[::-1]
-        global_rank[1, file_completed, :] = idx[:global_rank.shape[2]]
-        global_offset[0]+=len(label)
+    index = input[2]
+    selected[index] = sel
     file_completed -= 1
     total[file_completed, 0] = input[0]
     total[file_completed, 1] = numpy.sum(sel)
@@ -769,7 +626,7 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, glob
     for i in numpy.argwhere(sel):
         sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))    
     output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1, id_len)
-    _logger.info("Finished processing %d - %d,%d (%d,%d) - Energy: %f, %d - Features: %d - Range: %f,%f"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed, 2]), total[file_completed, 1], total[file_completed, 2], energy[0], energy[1], feat_cnt, ndiff, sdiff))
+    _logger.info("Finished processing %d - %d,%d (%d,%d) - %s"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed, 2]), total[file_completed, 1], total[file_completed, 2], msg))
     file_completed *= len(avg3)
     for i in xrange(len(avg3)):
         ndimage_file.write_image(output, avg3[i], file_completed+i)
@@ -791,9 +648,10 @@ def reconstruct3(image_file, label, align, output):
     ndimage_file.write_image(format_utility.add_prefix(output, "even_"), vol_even)
     ndimage_file.write_image(format_utility.add_prefix(output, "odd_"), vol_odd)
 
-def finalize(files, total, sel_by_mic, output, global_label, global_feat, global_rank, global_align, input_files, **extra):
+def finalize(files, total, sel_by_mic, output, input_files, selected, align, alignheader, **extra):
     # Finalize global parameters for the script
     
+    '''
     if global_rank is not None:
         idx1 = global_rank[0].ravel()
         idx2 = global_rank[1].ravel()
@@ -806,14 +664,10 @@ def finalize(files, total, sel_by_mic, output, global_label, global_feat, global
         _logger.info("Reconstructing %d unselected projections"%(idx2.shape[0]))
         reconstruct3(input_files[0], global_label[idx2].copy(), global_align[idx2].copy(), format_utility.add_prefix(output, "vol_unsel_"))
         _logger.info("Reconstructing - finished")
+    '''
     
-    #plot_examples
-    if global_label is not None:
-        sel, th = one_class_classification(global_feat)
-        _logger.info("Threshold(all)=%f"%th)
-        plot_examples(input_files, global_label, format_utility.add_prefix(output, "all"), global_feat, sel, **extra)
-        global_feat=numpy.hstack((sel[:, numpy.newaxis], global_feat))
-        format.write_dataset(os.path.splitext(output)[0]+".csv", global_feat, 1, global_label, prefix="embedall_", header="best")
+    format.write(output, align[selected], prefix="sel_align_", default_format=format.spiderdoc, header=alignheader)
+    format.write(output, align[numpy.logical_not(selected)], prefix="unsel_align_", default_format=format.spiderdoc, header=alignheader)
     format.write(output, total, prefix="sel_avg_", header=['id', 'selected', 'total'], default_format=format.spiderdoc)
     for id, sel in sel_by_mic.iteritems():
         sel = numpy.asarray(sel)
