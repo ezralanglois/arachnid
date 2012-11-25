@@ -94,6 +94,7 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by all scripts ... <shared-options>`
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
 
+.. todo:: add by defocus
 
 .. Created on Sep 24, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -107,7 +108,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, **extra):
+def process(filename, output, id_len=0, **extra):
     '''Concatenate files and write to a single output file
     
     :Parameters:
@@ -116,6 +117,8 @@ def process(filename, output, **extra):
                Input filename
     output : str
              Filename for output file
+    id_len : int
+             Maximum length of the ID
     extra : dict
             Unused key word arguments
                 
@@ -127,6 +130,7 @@ def process(filename, output, **extra):
              List of peaks and coordinates
     '''
     
+    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'good_output', 'good')
     coords = format.read(filename, numeric=True)
     confusion = benchmark(coords, filename, **extra)
     return filename, confusion
@@ -158,14 +162,14 @@ def benchmark(coords, fid, good_output="", **extra):
         x, y = header.index('x'), header.index('y')
         overlap = find_overlap(numpy.vstack((coords[:, x], coords[:, y])).T, bench, **extra)
     else:
-        selected = format_utility.tuple2numpy(format.read(extra['good'], spiderid=fid, id_len=extra['id_len'], numeric=True))[0].astype(numpy.int)
+        selected = format_utility.tuple2numpy(format.read(extra['good'], numeric=True))[0].astype(numpy.int)
         overlap = coords[selected].copy().squeeze()
     if good_output != "":
-        format.write(spider_utility.spider_filename(good_output, fid), overlap, header=header)
+        format.write(good_output, overlap, header=header)
            #    TP            FP                        TN         FN
     return ( len(overlap), len(coords)-len(overlap),    0,  len(selected)-len(overlap) )
     
-def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
+def read_bench_coordinates(fid, good_coords="", good="", **extra):
     ''' Read benchmark coordinates
     
     :Parameters:
@@ -176,8 +180,6 @@ def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
                   Filename for input benchmark coordinates
     good : str
            Filename for optional selection file to select good coordinates
-    id_len : int
-             Maximum length of the ID
     extra : dict
             Unused keyword arguments
     
@@ -187,11 +189,14 @@ def read_bench_coordinates(fid, good_coords="", good="", id_len=0, **extra):
              Selected (x,y) coordinates
     '''
     
-    if good_coords == "" or not os.path.exists(spider_utility.spider_filename(good_coords, fid, id_len)): return None
-    coords, header = format_utility.tuple2numpy(format.read(good_coords, spiderid=fid, id_len=id_len, numeric=True))
+    if good_coords == "": return None
+    if not os.path.exists(good_coords):
+        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
+    else:
+        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
     if good != "":
         try:
-            selected = format_utility.tuple2numpy(format.read(good, spiderid=fid, id_len=id_len, numeric=True))[0].astype(numpy.int)
+            selected = format_utility.tuple2numpy(format.read(good, numeric=True))[0].astype(numpy.int)
         except:
             return None
         else:

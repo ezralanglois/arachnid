@@ -14,6 +14,51 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
+def update_spider_files(map, id, *files):
+    ''' Update the list of files in the dictionary to the current ID
+    
+    :Parameters:
+    
+    map : dict
+          Dictionary mapping file param to value
+    id : int
+         SPIDER ID
+    files : list
+            List of files to update
+    '''
+    
+    for key in files:
+        if map[key] != "" and is_spider_filename(map[key]):
+            map[key] = spider_filename(map[key], id)
+
+def relion_filename(filename, id):
+    '''Extract the filename and stack index
+    
+    This function extracts the spider ID as an integer.
+        
+    .. sourcecode:: py
+    
+        >>> relion_id("0001@basename00010.ext")
+        (basename00010.ext, 1)
+
+    :Parameters:
+    
+        filename : string
+                   A file name
+    
+    :Returns:
+        
+        return_val : Tuple 
+                     Micrograph ID, particle ID or Micrograph ID only
+    '''
+    
+    pid=""
+    if id.find('@') != -1:
+        pid,id = id.split('@')
+    if is_spider_filename(filename):
+        return pid+"@"+spider_filename(filename, id)
+    return pid+"@"+filename
+
 def relion_file(filename):
     '''Extract the filename and stack index
     

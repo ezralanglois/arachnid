@@ -102,7 +102,7 @@ def reconstruct_nn4_3(gen1, gen2, align1=None, align2=None, npad=2, sym='c1', we
             return eman2_utility.finalize_nn4(recon1)
         return None
     else:
-        vol = eman2_utility.finalize_nn4(recon1, recon)
+        vol = eman2_utility.finalize_nn4(recon1, recon, npad=npad, sym=sym, weighting=weighting)
         vol1 = eman2_utility.finalize_nn4(recon1)
         vol2 = eman2_utility.finalize_nn4(recon)
         return (vol, vol1, vol2)

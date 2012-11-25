@@ -121,6 +121,8 @@ log_formats = { 'critical': "%(asctime)s %(message)s",
                 'debug':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s",
                 'debug_more':    "%(asctime)s:%(lineno)d:%(name)s:%(levelname)s - %(message)s" }
 
+_log_import_errors = []
+
 def log_import_error(message, logger=None):
     ''' Create a logger with a stream handler and log a warning in
      non-debug mode and and exception in debug mode
@@ -133,15 +135,20 @@ def log_import_error(message, logger=None):
              Specific logger to use
     '''
     
-    if logger is None: logger = logging.getLogger()
-    num_handlers=len(logger.handlers)
-    if num_handlers == 0: logger.addHandler(logging.StreamHandler())
-    if logger.isEnabledFor(logging.DEBUG): logger.exception(message)
-    else: logger.warn(message)
-    if num_handlers == 0: logger.removeHandler(logger.handlers[0])
+    if 1 == 0:
+        if logger is None: logger = logging.getLogger()
+        num_handlers=len(logger.handlers)
+        if num_handlers == 0: logger.addHandler(logging.StreamHandler())
+        if logger.isEnabledFor(logging.DEBUG): logger.exception(message)
+        else: logger.warn(message)
+        if num_handlers == 0: logger.removeHandler(logger.handlers[0])
+    else:
+        _log_import_errors.append(message)
     
 def setup_options(parser, pgroup=None):
     '''Add options to the given option parser
+    
+    .. todo:: fix bug in OptionGroup - dependent update
     
     :Parameters:
     
@@ -153,10 +160,10 @@ def setup_options(parser, pgroup=None):
     from settings import OptionGroup
     levels=tuple(log_level_val)
     group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__, dependent=False)
-    group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3)
-    group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True)
-    group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"))
-    group.add_option("",   disable_stderr=False, help="If true, output will only be written to the given log file")
+    group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3, dependent=False)
+    group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True, dependent=False)
+    group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"), dependent=False)
+    group.add_option("",   disable_stderr=False, help="If true, output will only be written to the given log file", dependent=False)
     if pgroup is not None:
         pgroup.add_option_group(group)
     else:
@@ -239,6 +246,10 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             root.addHandler(ch)
             ch.setLevel(level)
         root.setLevel(level)
+    
+    if rank == 0:
+        for errormsg in _log_import_errors:
+            logging.warn(errormsg)
 '''   
 def archive(parser, archives, archive_path, config_file, **extra):
     
@@ -283,7 +294,7 @@ def backup(filename):
         zf = zipfile.ZipFile(base+ext, mode='a')
         arcname = os.path.basename(backup_name(filename))
         try:
-            zf.write(filename, arcname=arcname, compress_type=zipfile.ZIP_STORED)
+            zf.write(filename, arcname=arcname)#, compress_type=zipfile.ZIP_STORED)
         finally: zf.close()
     return arcname
 

@@ -73,6 +73,10 @@ class Session(object):
         self.dataext = ext if ext[0] != '.' else ext[1:]
         self.version = None
         self._results = True
+        self.spider_proc = None
+        self.rank = rank
+        self.enable_results = enable_results
+        self.thread_count = thread_count
         
         if tmp_path is not None and tmp_path != "" and not os.path.exists(tmp_path):
             _logger.warn("Local path (--local-temp) does not exist: %s"%tmp_path)
@@ -125,12 +129,14 @@ class Session(object):
         _logger.debug("Using PIPE = %s"%self.pipename)
         os.mkfifo(self.pipename)
         if tmp_path == "": tmp_path = None
+        self.tmp_path = tmp_path
         if 1 == 0:
             self.spider_err = tempfile.NamedTemporaryFile(prefix='SPIDER_ERR_%d'%rank, dir=tmp_path, delete=True)
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=self.spider_err.fileno()) #stdout=subprocess.PIPE
         else:
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             self.spider_err = self.spider.stderr
+        self.spider_proc = len(Session.PROCESSES)
         Session.PROCESSES.append(self.spider)
         self.spider_poll = io_select.poll()
         self.spider_poll.register(self.spider_err.fileno())
@@ -151,6 +157,50 @@ class Session(object):
         self.register_poll.register(self.registers.fileno())
         self.incore_imgs = spider_var.spider_var_pool()
         self.incore_docs = spider_var.spider_var_pool()
+        
+        if is_linux():
+            try:
+                self._invoke("[i] = 3.241","PI REG", "[i]") #, skip=True)
+            except: pass
+            response = ''
+            while len(response) < 9:
+                response += self.registers.readline()
+            struct.unpack('ffc',response)
+    
+    def relaunch(self):
+        '''
+        '''
+        
+        try: self.close()
+        except: pass
+        
+        if os.path.exists(self.pipename):
+            try: os.remove(self.pipename)
+            except: pass
+        os.mkfifo(self.pipename)
+        self.spider = subprocess.Popen(self.spiderexec, cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.spider_err = self.spider.stderr
+        if self.spider_proc is None:
+            Session.PROCESSES.append(self.spider)
+        else:
+            Session.PROCESSES[self.spider_proc] = self.spider
+        self.spider_poll = io_select.poll()
+        self.spider_poll.register(self.spider_err.fileno())
+        self._invoke(self.dataext)
+        if self.enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
+            #self._invoke('MD', 'RESULTS ON')
+            self._invoke('MD', 'TERM OFF')
+            if self.rank == 0: _logger.warn("Result enabled")
+        else: 
+            self._invoke('MD', 'RESULTS OFF')
+            self._invoke('MD', 'TERM OFF') 
+            self._results = False
+        self._invoke('MD', 'PIPE', self.pipename)
+        self._invoke('MD', 'SET MP', self.thread_count)
+        
+        self.registers = open(self.pipename, 'r')
+        self.register_poll = io_select.poll()
+        self.register_poll.register(self.registers.fileno())
         
         if is_linux():
             try:
@@ -305,8 +355,8 @@ class Session(object):
             try: os.remove(self.pipename)
             except: pass
         tmp_files = ['jnkASSIGN1', 'LOG.%s'%self.dataext, 'LOG.tmp']
-        if not self._results:
-            tmp_files.extend(glob.glob('results.%s.*'%self.dataext))
+        #if not self._results:
+        #    tmp_files.extend(glob.glob('results.%s.*'%self.dataext))
         tmp_files.extend(glob.glob('fort.*'))
         tmp_files.extend(glob.glob('_*.'+self.dataext))
         tmp_files.extend(glob.glob('_*.%s'%self.dataext))
@@ -394,11 +444,11 @@ class Session(object):
         if not self._results:
             self._invoke('MD', 'RESULTS ON', test_error=False)
             _logger.error("here: %f"%self[9])
-            self._invoke('MD', 'TERM ON', test_error=False) 
+            #self._invoke('MD', 'TERM ON', test_error=False) 
             self._invoke(*args, test_error=False)
             self._invoke('my fl', test_error=False)
             self._invoke('MD', 'RESULTS OFF', test_error=False)
-            self._invoke('MD', 'TERM OFF', test_error=False) 
+            #self._invoke('MD', 'TERM OFF', test_error=False) 
         
     
     def set(self, **kwargs):
@@ -435,7 +485,7 @@ class Session(object):
         res = ''
         #self.register_poll
         while self.spider_poll.poll(10) or len(res) < 13:
-            if self.spider.poll(): raise StandardError, "SPIDER has terminated"
+            if self.spider.poll(): raise SpiderCrashed, "SPIDER has terminated"
             res += self.registers.readline()
         
         #while len(res) < 13:
@@ -760,6 +810,11 @@ def unpack_register_other(data):
 
 if is_linux(): unpack_register = unpack_register_linux
 else: unpack_register = unpack_register_other
+
+class SpiderCrashed(StandardError):
+    ''' Exception is raised when SPIDER terminates unexpectedly
+    '''
+    pass
 
 class SpiderCommandError(StandardError): 
     ''' Exception is raised when SPIDER reports an error after

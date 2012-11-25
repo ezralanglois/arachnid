@@ -254,7 +254,7 @@ def process(filename, output, **extra):
     _logger.info("Resolution = %f"%res)
     return filename
 
-def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_resolution=0.0, enhance=False, **extra):
+def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_resolution=0.0, enhance=False, prep_thread=None, **extra):
     ''' Postprocess reconstructed volumes for next round of refinement
     
     :Parameters:
@@ -273,6 +273,8 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
                     Output filename for the reconstructed volume (if empty, `vol_$output` will be used). half volumes will be prefixed with `h1_` and `h2_` and the raw volume, `raw_`
     enhance : bool
               Output an enhanced density map
+    prep_thread : int
+                  Number of threads for post processing
     extra : dict
             Unused keyword arguments
     
@@ -283,18 +285,48 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
     '''
     
     if output_volume == "": output_volume = format_utility.add_prefix(output, "vol_")
-    sp = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)[0]
+    if prep_thread is not None:
+        _logger.info("Increasing thread count: %d"%prep_thread)
+        spider.throttle_mp(spi, prep_thread, **extra)
+    sp, fsc, apix = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)
+    extra['pixel_diameter'] *= extra['apix']/apix
+    extra['apix']=apix
     res = extra['apix']/sp
     if add_resolution > 0.0: 
         sp = extra['apix'] / (add_resolution+res)
     if (add_resolution+res) < min_resolution: sp = extra['apix']/min_resolution
+    if extra['pre_filter'] > 0 and res > extra['pre_filter']: extra['pre_filter'] = res
     filename = files[0]
     filename = filter_volume.filter_volume_highpass(filename, spi, outputfile=output_volume, **extra)
     filename = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output_volume, **extra)
+    #filename = center_volume(filename, spi, output_volume)
     filename = mask_volume.mask_volume(filename, output_volume, spi, **extra)
     if enhance:
         enhance_volume.enhance_volume(filename, spi, extra['apix'] / res, output, prefix="enh_", **extra)
+    if prep_thread is not None: spider.release_mp(spi, **extra)
     return res
+
+def center_volume(filename, spi, output):
+    ''' Center the volume in the box
+    
+    :Parameters:
+    
+    filename : str
+               Input volume file
+    spi : spider.Session
+          Current SPIDER session
+    output : str
+             Output centered volume file
+             
+    :Returns:
+    
+    output : str
+             Output centered volume file
+    '''
+    
+    if filename == output: filename = spi.cp(filename)
+    coords = spi.cg_ph(filename)
+    return spi.sh_f(filename, coords[3:], outputfile=output)
 
 def initialize(files, param):
     # Initialize global parameters for the script

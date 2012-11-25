@@ -160,8 +160,10 @@ def read_image(filename, index=None, header=None, cache=None):
     if header is not None: _update_header(emdata.todict(), header, eman2ara)
     type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
-        try: mrc_label = emdata.get_attr('MRC.label0')
-        except: mrc_label = ""
+        if emdata.get_attr('MRC.nlabels') > 0:
+            try: mrc_label = emdata.get_attr('MRC.label0')
+            except: mrc_label = ""
+        else: mrc_label = ""
         if (mrc_label.find('IMAGIC') != -1 and mrc_label.find('SPIDER') != -1):
             _logger.debug("Flipping MRC")
             emdata.process_inplace("xform.flip",{"axis":"y"})

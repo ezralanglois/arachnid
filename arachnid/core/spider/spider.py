@@ -79,8 +79,10 @@ Run the decimate command with the given parameters
 '''
 import spider_session
 from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename
+from spider_session import SpiderCrashed
 import collections
 import logging, os, numpy
+SpiderCrashed;
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -269,7 +271,19 @@ class Session(spider_session.Session):
         if not isinstance(ring_file, str) or ring_file == "":
             if isinstance(ring_file, int): ring_file = os.path.join(os.path.dirname(inputfile), "scratch_rings_%d"%ring_file)
             elif ring_file=="": ring_file = os.path.join(os.path.dirname(inputfile), "scratch_rings")
-        #test_mirror = '(1)' if test_mirror else '(0)'
+        if 1 == 0:
+            test_mirror = '(1)' if test_mirror else '(0)'
+        elif 1 == 1:
+            test_mirror = 'Y' if test_mirror else 'N'
+            
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror+=",Y"
+            #else:
+            #    test_mirror+=",N"
+        else:
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror = spider_tuple(test_mirror, 1)
+            else: test_mirror = spider_tuple(test_mirror)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
         session.invoke('ap ref', spider_stack(reference, ref_count), 
@@ -278,7 +292,7 @@ class Session(spider_session.Session):
                            spider_doc(refangles), spider_image(ring_file), spider_stack(inputfile, input_count), 
                            spider_select(inputselect), spider_doc(inputangles), 
                            spider_tuple(angle_range, angle_threshold),
-                           spider_tuple(test_mirror),
+                           test_mirror,
                            spider_doc(outputfile))
         return outputfile
     
@@ -346,13 +360,25 @@ class Session(spider_session.Session):
         session.de(outputfile)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
+        if 1 == 0:
+            test_mirror = '(1)' if test_mirror else '(0)'
+        elif 1 == 1:
+            test_mirror = 'Y' if test_mirror else 'N'
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror+=",Y"
+            #else:
+            #    test_mirror+=",N"
+        else:
+            if supports_internal_rtsq(session) and inputangles is not None:
+                test_mirror = spider_tuple(test_mirror, 1)
+            else: test_mirror = spider_tuple(test_mirror)
         session.invoke('ap sh', spider_stack(reference, ref_count), 
                        spider_select(selectref), spider_tuple(trans_range, trans_step), 
                        spider_tuple(first_ring, ring_last, ring_step, ray_step), 
                        spider_doc(refangles), spider_stack(inputfile, input_count), 
                        spider_select(inputselect), spider_doc(inputangles), 
                        spider_tuple(angle_range, angle_threshold),
-                       spider_tuple(test_mirror),
+                       test_mirror,
                        spider_doc(outputfile))
         return outputfile
 
@@ -1466,6 +1492,30 @@ class Session(spider_session.Session):
         
         return spider_session.spider_command_multi_input(session, 'mu', "Multiply images", inputfile, *otherfiles, **extra)
     
+    def neg_a(session, inputfile, outputfile=None, **extra):
+        ''' Multiply a set of images
+                
+        `Original Spider (NEG A) <http://www.wadsworth.org/spider_doc/spider/docs/man/neg_a.html>`_
+        
+        :Parameters:
+            
+        session : Session
+                  Current spider session
+        inputfile : str
+                    Filename of input image
+        outputfile : str
+                     Filename for incore stack (Default: None)
+        extra : dict
+                Unused key word arguments
+        
+        :Returns:
+        
+        outputfile : str
+                     Filename of output image
+        '''
+        
+        return spider_session.spider_command_fifo(session, 'neg a', inputfile, outputfile, "Invert contrast")
+    
     OR_SH_TUPLE = collections.namedtuple("orsh", "psi,x,y,mirror,cc")
     def or_sh(session, inputfile, reference, trans_range=6, trans_step=2, ring_first=2, ring_last=15, test_mirror=True, window=None, **extra):
         '''Determines rotational and translational orientation between two images after resampling into 
@@ -1585,7 +1635,7 @@ class Session(spider_session.Session):
         if background == 'N': additional.append( spider_tuple(background_value) )
         return spider_session.spider_command_fifo(session, 'pd', inputfile, outputfile, "Pad images", spider_tuple(*window_size), background, spider_tuple(*center_coord), *additional)
     
-    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, outputfile=None, **extra):
+    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, max_ref_proj=None, outputfile=None, **extra):
         '''Computes projection(s) of a 3D volume according to the three Eulerian angles.
         
         alias: project_3d
@@ -1613,6 +1663,8 @@ class Session(spider_session.Session):
                     Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
         pixel_diameter : int
                          Pixel diameter of the particle
+        max_ref_proj : int, optional
+                       Maximum number of projections in in-memory stack
         outputfile : str
                     Filename to store 2D projections (If none, temporary incore file is used and returned)
         extra : dict
@@ -1624,9 +1676,16 @@ class Session(spider_session.Session):
                     Tuple containing the output file and number of angles
         '''
         
+        assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
-        if outputfile is None: outputfile = session.ms(total_size, spider_image(inputfile))
+        if max_ref_proj is None: max_ref_proj = total_size
+        if outputfile is None: outputfile = session.ms(max_ref_proj, spider_image(inputfile))
+        elif int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
+            session.de(outputfile)
+            outputfile = session.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
+        assert( int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) )
+        
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
@@ -2485,6 +2544,7 @@ class Session(spider_session.Session):
         
         _logger.debug("Generating evenly space angles")
         if outputfile is None: 
+            assert(False)
             outputfile = session.sd_ic_new( (3, session.vo_ea_n(theta_delta, theta_start, theta_end, phi_start, phi_end)) )
         else:
             try: session.de(outputfile)
@@ -2536,7 +2596,7 @@ class Session(spider_session.Session):
         else:
             try: session.de(outputfile)
             except: pass
-        session.invoke('vo ras', spider_doc(inputfile), spider_tuple(*angle_num), spider_tuple(*psi_value), spider_doc(outputfile))
+        session.invoke('vo ras', spider_doc(inputfile), spider_tuple(angle_num), spider_tuple(*psi_value), spider_doc(outputfile))
         return outputfile
     
     def wi(session, inputfile, dimensions, coords=None, outputfile=None, **extra):
@@ -2621,6 +2681,40 @@ class Session(spider_session.Session):
         
         return spider_session.spider_command_fifo(session, 'wu', inputfile, outputfile, "Take square root of an image")
 
+def supports_internal_rtsq(session):
+    ''' TEst if the SPIDER version supports internal RTSQ
+    
+    :Parameters:
+        
+    session : Session
+              Current spider session
+    
+    :Returns:
+    
+    support : bool
+              True if the version support internal RTSQ
+    '''
+    
+    return session.version[0] >= 19 and session.version >= 11 and 1 ==0
+
+def max_translation_range(window, ring_last, **extra):
+    ''' Ensure a valid translation range
+    
+    :Pararameters:
+    
+    window : int
+             Size of the window
+    ring_last : int
+                Last alignment ring
+    
+    :Returns:
+    
+    trans_range : int
+                  Max translation range
+    '''
+    
+    return int(window/2.0) - ring_last - 3
+
 def ensure_proper_parameters(param):
     ''' Ensure certain SPIDER parameters have the proper values
     
@@ -2631,11 +2725,11 @@ def ensure_proper_parameters(param):
     '''
     
     if 'ring_last' in param:
-        if param['ring_last'] == 0: 
+        if param['ring_last'] == 0 or param['ring_last'] > (param['window']/2.0): 
             param['ring_last'] = int(param['pixel_diameter']/2.0)
         
         if (param['window']/2 - param['ring_last'] - param['trans_range']) < 3:
-            param['trans_range'] = int(param['window']/2.0) - param['ring_last'] - 3
+            param['trans_range'] = max_translation_range(**param)
             if (param['trans_range']%param['trans_step']) > 0:
                 val = param['trans_range']-(param['trans_range']%param['trans_step'])
                 if val > 3: param['trans_range']=val
@@ -2729,8 +2823,6 @@ def nonspi_file(session, filename, temp):
         session.cp(filename, temp)
         filename=temp
     return session.replace_ext(filename)
-        
-        
 
 def open_session(args, spider_path="", data_ext="", thread_count=0, enable_results=False, rank=None, local_temp=None, **extra):
     '''Opens a spider session
@@ -2881,9 +2973,9 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
     if rank == 0: _logger.info("Generating phase flip stack")
     session.de(outputfile)
     
-    stack_count, = session.fi_h(outputfile, ('MAXIM', ))
-    for inputfile, outputfile in enumerate_stack(inputfile, stack_count, outputfile):
-        i = inputfile[1]
+    stack_count, = session.fi_h(spider_stack(inputfile), ('MAXIM', ))
+    for inputfile, outputfile in enumerate_stack(inputfile, int(stack_count), outputfile):
+        i = inputfile[1]-1
         if defocus != float(defocusvals[i]):
             defocus = float(defocusvals[i])
             if mult_ctf:
@@ -2894,9 +2986,72 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
         ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
         session.ft(ctfimage, outputfile=outputfile) 
 
-def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0):
+def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, window=0, trans_max=8, **extra):
+    ''' Scale parameters that depend on the window size
+    
+    :Parameters:
+    
+    bin_factor : float
+                 Current decimation factor
+    dec_level : int
+                Previous decimation level
+    pj_radius : int
+                Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
+    trans_range : float
+                  Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
+    trans_step : float
+                 Translation step size
+    first_ring : int
+                 First polar ring to analyze
+    ring_last : int
+                Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
+    ring_step : int
+                Polar ring step size
+    cg_radius : int
+                Radius of reconstructed object
+    window : int
+             Current window size
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    param : dict
+            Dictionary of updated parameters
+    '''
+    
+    if dec_level == bin_factor: return {}
+    max_radius = int(window/2.0)
+    param = {}
+    factor = dec_level/bin_factor
+    param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
+    param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
+    if (max_radius - param['ring_last'] - param['trans_range']) < 3:
+        if param['trans_range'] > 1:
+            param['trans_range'] = max(1, max_radius - param['ring_last'] - 3)
+        if (max_radius - param['ring_last'] - param['trans_range']) < 3:
+            param['ring_last'] = max(2, max_radius - param['trans_range'] - 3)
+    assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
+    if param['trans_range'] > trans_max:
+        param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
+        param['trans_range'] = min(2, param['trans_step']*trans_max)
+    else: param['trans_step'] = 1
+    assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
+    #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
+    if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
+    if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
+    if cg_radius > 0: param['cg_radius']=min(int(cg_radius*factor), max_radius)
+    if pj_radius > 0: param['pj_radius']=min(int(pj_radius*factor), max_radius)
+    if param['ring_last'] < 2:
+        raise ValueError, "Invalid ring last: %d -- %f, %f -- %d"%(param['ring_last'], dec_level, bin_factor, param['trans_range']) 
+    param['dec_level']=bin_factor
+    return param
+
+def cache_data(session, inputfile, selection, outputfile, window, rank=0):
     ''' Test if output file is the correct size and has the correct number of images, if not then
     copy the images in the correct size and number
+    
+    .. todo:: write selection file and compare when not writing
     
     :Parameters:
     
@@ -2925,10 +3080,70 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
         stack_count = int(stack_count)
         width = int(width)
     else: stack_count = 0
-    if stack_count != len(selection) or width != window:
+    selection_file = os.path.splitext(outputfile)[0]+'.csv'
+    selection_file = os.path.join(os.path.dirname(selection_file), "sel_"+os.path.basename(selection_file))
+    
+    remote_select = numpy.loadtxt(selection_file, delimiter=",") if os.path.exists(selection_file) else None
+    if stack_count != len(selection) or stack_count != remote_select.shape[0] or width != window or remote_select is None or not numpy.alltrue(remote_select == selection):
         if rank == 0:
-            if stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
-            else:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
+            if remote_select is None:  _logger.info("Transfering data to cache - selection file not found")
+            elif width != window:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
+            elif stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
+            else: _logger.info("Transfering data to cache - selection files do not match")
+        input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
+        width = session.fi_h(spider_stack(input), ('NSAM', ))
+        copy(session, inputfile, selection, outputfile)
+        stack_count,  = session.fi_h(spider_stack(outputfile), ('MAXIM', ))
+        if stack_count == 0: 
+            import socket
+            raise ValueError, "No images copied for %s"%socket.gethostname()
+        numpy.savetxt(selection_file, selection, delimiter=",")
+        return True
+    return False
+
+def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0):
+    ''' Test if output file is the correct size and has the correct number of images, if not then
+    copy the images in the correct size and number
+    
+    .. todo:: write selection file and compare when not writing
+    
+    :Parameters:
+    
+    session : Session
+              Current spider session
+    inputfile : str (or dict)
+                Input filename to iterate over
+    selection : int or array
+                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+    outputfile : str, optional
+                 Output filename to include
+    window : int
+             New size each window
+    rank : int
+            Current process rank
+    
+    :Returns:
+    
+    copied : bool
+             True if a copy was performed
+    '''
+    
+    window = int(window)
+    if not is_incore_filename(outputfile) and os.path.exists(session.replace_ext(outputfile)):
+        width, stack_count = session.fi_h(spider_stack(outputfile), ('NSAM', 'MAXIM'))
+        stack_count = int(stack_count)
+        width = int(width)
+    else: stack_count = 0
+    selection_file = os.path.splitext(outputfile)[0]+'.csv'
+    selection_file = os.path.join(os.path.dirname(selection_file), "sel_"+os.path.basename(selection_file))
+    
+    remote_select = numpy.loadtxt(selection_file, delimiter=",") if os.path.exists(selection_file) else None
+    if stack_count != len(selection) or stack_count != remote_select.shape[0] or width != window or remote_select is None or not numpy.alltrue(remote_select == selection):
+        if rank == 0:
+            if remote_select is None:  _logger.info("Transfering data to cache - selection file not found")
+            elif width != window:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
+            elif stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
+            else: _logger.info("Transfering data to cache - selection files do not match")
         input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
         width = session.fi_h(spider_stack(input), ('NSAM', ))
         if width != window:
@@ -2939,8 +3154,42 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
         if stack_count == 0: 
             import socket
             raise ValueError, "No images copied for %s"%socket.gethostname()
+        numpy.savetxt(selection_file, selection, delimiter=",")
         return True
     return False
+
+def interpolate_stack(session, inputfile, outputfile=None, window=0, **extra):
+    ''' Safely copy the input image to match the proper window size
+    
+    :Parameters:
+    
+    session : Session
+              Current spider session
+    inputfile : str (or dict)
+                Input filename for image
+    outputfile : str, optional
+                 Output filename
+    window : int
+             New size each window
+    
+    :Returns:
+    
+    outputfile : str
+                 Filename of output image
+    '''
+    
+    if outputfile is not None and os.path.exists(session.replace_ext(outputfile)):
+        width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
+        width, count = int(width), int(count)
+        if window == width and count == int(session.fi_h(spider_stack(session.replace_ext(outputfile)), ('MAXIM', ))[0]): return outputfile
+    width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
+    width, count = int(width), int(count)
+    if window != width:
+        session.de(outputfile)
+        for i in xrange(1, count+1):
+            session.ip(spider_image(inputfile, i), (window, window), outputfile=spider_image(outputfile, i))
+        return outputfile
+    return inputfile
 
 def copy_safe(session, inputfile, window=0, **extra):
     ''' Safely copy the input image to match the proper window size
@@ -3049,20 +3298,22 @@ def angle_count(theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0
             count += 1
     return count
 
-def throttle_mp(spi, thread_count, **extra):
+def throttle_mp(spi, new_thread_count=1, thread_count=0, **extra):
     ''' Set number of cores in SPIDER to 1
     
     :Parameters:
     
     spi : spider.Session
           Current SPIDER session
+    new_thread_count : int
+                       Number of new threads to use
     thread_count : int
                    Number of threads to use
     extra : dict
             Unused keyword arguments 
     '''
     
-    if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
+    spi.md('SET MP', new_thread_count)
 
 def release_mp(spi, thread_count, **extra):
     ''' Reset number of cores in SPIDER to default
@@ -3077,7 +3328,7 @@ def release_mp(spi, thread_count, **extra):
             Unused keyword arguments 
     '''
     
-    if thread_count > 1 or thread_count == 0: spi.md('SET MP', thread_count)
+    spi.md('SET MP', thread_count)
 
 
 

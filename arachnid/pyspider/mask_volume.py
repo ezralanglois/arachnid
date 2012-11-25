@@ -172,7 +172,9 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
     elif mask_type == 'N':
         if outputfile != filename: spi.cp(filename, outputfile)
     elif mask_type != "":
-        apply_mask(spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), spi.replace_ext(volume_mask))
+        width = spi.fi_h(filename, ('NSAM', ))[0]
+        volume_mask = spider.copy_safe(spi, volume_mask, width)
+        spi.mu(filename, volume_mask, outputfile=outputfile)
     else: return filename
     return outputfile
 
@@ -208,7 +210,7 @@ def spherical_mask(filename, outputfile, spi, volume_mask, mask_edge_width=10, p
     radius = pixel_diameter/2+mask_edge_width/2 if volume_mask == 'C' else pixel_diameter/2+mask_edge_width
     return spi.ma(filename, radius, (width, width, width), volume_mask, 'C', mask_edge_width, outputfile=outputfile)
 
-def tightmask(spi, filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigma=3.0, pre_filter=0.0, apix=1.0, mask_output=None, **extra):
+def tightmask(spi, filename, outputfile, threshold=0.0, ndilate=1, gk_size=3, gk_sigma=3.0, pre_filter=0.0, apix=None, mask_output=None, **extra):
     ''' Tight mask the input volume and write to outputfile
     
     :Parameters:

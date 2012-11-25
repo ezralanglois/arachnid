@@ -246,10 +246,20 @@ def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
                     Output filename for the volume
     '''
     
-    output_volume = spider_utility.spider_filename(format_utility.add_prefix(output, "vol_"), refine_index) 
+    # test for preparation
+    
+    output = spider_utility.spider_filename(output, refine_index)
+    output_volume = format_utility.add_prefix(output, "vol_")
     if refine_index > 0 and not os.path.exists(spi.replace_ext(output_volume)):
-        _logger.info("Reconstructing missing volume")
-        vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
+        if not os.path.exists(spi.replace_ext(format_utility.add_prefix(output, 'raw'))):
+            _logger.info("Reconstructing missing volume")
+            vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
+        else:
+            vols = [
+                format_utility.add_prefix(output, 'raw'),
+                format_utility.add_prefix(output, 'raw1'),
+                format_utility.add_prefix(output, 'raw2')
+            ]
         if mpi_utility.is_root(**extra): 
             res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
             _logger.info("Refinement finished: %d. %f"%(refine_index, res))
@@ -292,23 +302,20 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_in
     
     output = spider_utility.spider_filename(output, refine_index+1) 
     output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
-    # move to before reconstruct, pass parameter for undecimate for next round
-    # undecimate all params file values!
-    # add function to spider params!
-    reconstruct.cache_local(spi, alignvals[curr_slice], **extra)
+    
     tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
-    tmp = alignvals[curr_slice, :15].copy()
-    tmp[:, 6:8] /= extra['apix']
-    tmp[:, 12:14] /= extra['apix']
-    format.write(spi.replace_ext(tmp_align), tmp, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
+    #align.write_alignment(spi.replace_ext(tmp_align), alignvals, extra['apix'])
+    #tmp = alignvals[curr_slice, :15].copy()
+    #tmp[:, 6:8] /= extra['apix']
+    #tmp[:, 12:14] /= extra['apix']
+    #format.write(spi.replace_ext(tmp_align), tmp, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
     spider.release_mp(spi, **extra)
-    
     align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, **extra)
-    
     spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra):
-        align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
-        format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
+        align.write_alignment(spi.replace_ext(output), alignvals)
+        #align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
+        #format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
     spider.release_mp(spi, **extra)
     vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
@@ -357,7 +364,7 @@ def get_refinement_start(alignment, refine_index=-1, output="", **extra):
             refine_index += 1
         refine_index -= 1
     elif refine_index > 0:
-        if os.path.exists(spider_utility.spider_filename(output, refine_index)):
+        if not os.path.exists(spider_utility.spider_filename(output, refine_index)):
             raise IOError, "Specified refinement file does not exist: %s"%spider_utility.spider_filename(output, refine_index+1)
     if refine_index == 0:
         if not os.path.exists(alignment):

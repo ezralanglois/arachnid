@@ -51,12 +51,12 @@ def test_rolling_window():
             b += step
         b1 += step
 
-def powerspec_avg():
+def test_powerspec_avg():
     '''
     '''
     
-    orig = numpy.random.rand(50,50,10)
-    avg = ndimage_utility.powerspec_avg(orig, 64)
+    orig = numpy.random.rand(10,10,2)
+    avg = ndimage_utility.powerspec_avg(orig, 6)
     avg;
 
 def test_biggest_object():

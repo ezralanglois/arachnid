@@ -5,6 +5,8 @@ Supported formats:
      - :py:mod:`EMAN2/SPARX <formats.eman_format>`
      - :py:mod:`MRC <formats.mrc>`
      - :py:mod:`SPIDER <formats.spider>`
+     
+.. todo:: mrc format gives nans with direct detector data, disabled until fixed
 
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -73,7 +75,7 @@ def is_spider_format(filename):
     
     return spider.is_readable(filename)
 
-def copy_to_spider(filename, tempfile):
+def copy_to_spider(filename, tempfile, index=None):
     ''' Test if input file is in SPIDER format, if not copy to tempfile
     
     :Parameters:
@@ -82,6 +84,8 @@ def copy_to_spider(filename, tempfile):
                Input filename to test
     tempfile : str
                Output filename (if input file not SPIDER format)
+    index : int, optional
+            Index of image in stack
     
     :Returns:
     
@@ -91,7 +95,7 @@ def copy_to_spider(filename, tempfile):
     
     if is_spider_format(filename): return filename
     
-    img = read_image(filename)
+    img = read_image(filename, index)
     spider_writer.write_image(tempfile, img)
     #for index, img in enumerate(iter_images(filename)):
     #    spider_writer.write_image(tempfile, img, index)
@@ -153,11 +157,31 @@ def read_image(filename, index=None):
           Array with header information in the file
     '''
     
+    filename = readlinkabs(filename)
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
     if format is None: 
         raise IOError, "Could not find format for %s"%filename
     return format.read_image(filename, index)
+
+def readlinkabs(link):
+    ''' Get the absolute path for the given symlink
+    
+    :Parameters:
+    
+    link : str
+           Link filename
+    
+    :Returns:
+    
+    filename : str
+               Absolute path of file link points
+    '''
+    
+    if not os.path.islink(link):  return link
+    p = os.readlink(link)
+    if os.path.isabs(p): return p
+    return os.path.join(os.path.dirname(link), p)
 
 def iter_images(filename, index=None):
     ''' Read a set of images from the given file
@@ -336,8 +360,8 @@ def _load():
     ''' Import available formats
     '''
     
-    from formats import mrc
-    formats = [mrc]
+    #from formats import mrc
+    formats = []#mrc]
     try: from formats import eman_format
     except: tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
     else: formats.append(eman_format)

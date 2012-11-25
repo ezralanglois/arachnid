@@ -42,7 +42,7 @@ Tips
 
  #. It is recommended you set :option:`shared_scratch`, :option:`home_prefix`, and :option:`local_scratch` for MPI jobs
  
- #. Set `--is-ccd` to True if the micrographs were collected on CCD and have not been processed.
+ #. Set `--is-film` to True if the micrographs were collected on FILM or the CCD micrographs have been processed (inverted).
 
 Examples
 ========
@@ -55,11 +55,11 @@ Examples
     
     # Create a project directory and scripts using 4 cores
     
-    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
+    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --is-film
     
     # Create a project directory and scripts for micrographs collected on CCD using 4 cores
     
-    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --is-ccd
+    $ spi-project mic_*.tif -o ~/my-projects/project01 -r emd_1001.map -e ter -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
 
 Critical Options
 ================
@@ -81,9 +81,9 @@ Critical Options
     
     Raw reference volume
 
-.. option:: --is-ccd <BOOL>
+.. option:: --is-film <BOOL>
 
-    Set true if the micrographs were collected on a CCD (and have not been processed)
+    Set true if the micrographs were collected on a FILM (or have been processed)
 
 .. option:: --apix <FLOAT>
     
@@ -173,14 +173,14 @@ from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility
 from ..core.app import program
 from ..app import autopick
-from ..util import crop
-import reference, defocus, align, refine
+from ..util import crop #, mic_select
+import reference, defocus, align, refine, legion_to_spider
 import os, glob, logging, re
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mpi_mode, mpi_command=None, **extra):
+def batch(files, output, mpi_mode, mpi_command=None, leginon_filename="", leginon_offset=0, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -193,9 +193,21 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
                MPI mode for the header of each script
     mpi_command : str
                   MPI command to run in MPI scripts
+    leginon_filename : str
+                       Template for SPIDER softlink
+    leginon_offset : int
+                     Offset for SPIDER ID
     extra : dict
             Unused keyword arguments
     '''
+    
+    if legion_to_spider.is_legion_filename(files):
+        data_ext = extra['ext']
+        if data_ext[0]!='.': data_ext = '.'+data_ext
+        leginon_filename = os.path.splitext(leginon_filename)[0]+data_ext
+        old = files
+        files = legion_to_spider.convert_to_spider(files, leginon_filename, leginon_offset)
+        _logger.info("Added %d new files of %d"%(len(files), len(old)))
     
     if mpi_command == "": mpi_command = detect_MPI()
     run_single_node=\
@@ -230,7 +242,7 @@ def batch(files, output, mpi_mode, mpi_command=None, **extra):
     write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, **extra)
     _logger.info("Completed")
     
-def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, raw_reference, ext, is_ccd, **extra):
+def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, raw_reference, ext, is_film, **extra):
     ''' Write out a configuration file for each script in the reconstruction protocol
     
     :Parameters:
@@ -253,8 +265,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
              Output directory root
     raw_reference : str
                     Filenam for raw input reference
-    is_ccd : bool
-             True if micrographs were collected on a CCD
+    is_film : bool
+              True if micrographs were collected on a CCD
     ext : str
           Extension for SPIDER files
     extra : dict
@@ -267,12 +279,15 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     mn_base = os.path.basename(mn_path)
     sn_base = os.path.basename(sn_path)
     id_len = spider_utility.spider_id_length(os.path.splitext(files[0])[0])
+    if id_len == 0: raise ValueError, "Input file not a SPIDER file - id length 0"
     param = dict(
         param_file = os.path.join(mn_base, 'data', 'params'+ext),
         reference = os.path.join(mn_base, 'data', 'reference'),
         defocus_file = os.path.join(mn_base, 'data', 'defocus'),
         coordinate_file = os.path.join(sn_base, 'coords', 'sndc_'+"".zfill(id_len)+ext),
         output_pow = os.path.join(sn_base, "pow", "pow_"+"".zfill(id_len)+ext),
+        output_mic = os.path.join(sn_base, "mic", "mic_dec_"+"".zfill(id_len)+ext),
+        #mic_select = os.path.join(sn_base, "mic_select", "mic_dec_"+"".zfill(id_len)+ext),
         stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+ext),
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
     )
@@ -290,9 +305,11 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
     _logger.debug("Writing SPIDER params file")
     spider_params.write(os.path.join(output, param['param_file']), **extra)
+    del extra['window_size']
     
     param.update(extra)
-    param.update(invert=is_ccd)
+    param.update(invert=not is_film)
+    param.update(is_film=is_film)
     del param['input_files']
     
     for i in xrange(len(files)):
@@ -301,7 +318,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
     raw_reference = os.path.abspath(raw_reference)
     
     tmp = os.path.commonprefix(files)+'*'
-    if len(glob.glob(tmp)) == len(files): files = [tmp]
+    if len(glob.glob(tmp)) == len(files): files = [tmp] #['"'+tmp+'"']
     if extra['scattering_doc'] == "ribosome":
         scattering_doc = os.path.join(mn_path, 'data', 'scattering8'+ext)
         if not os.path.exists(scattering_doc):
@@ -325,6 +342,13 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         extra['scattering_doc'] = scattering_doc
     
     param['data_ext'] = data_ext
+    '''
+   (mic_select, dict(input_files=files,
+                   output=param['mic_select'],
+                   config_path = hb_path,
+                   supports_MPI=False,
+                    )),
+    '''
     modules = [(reference, dict(input_files=[raw_reference],
                                output=param['reference'],
                                description=run_single_node,
@@ -338,7 +362,6 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                                supports_MPI=True,
                                #restart_file
                                )),
-                               
                (autopick, dict(input_files=files,
                                output=param['coordinate_file'],
                                description=run_hybrid_node, 
@@ -358,7 +381,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
                                description = run_multi_node, 
                                config_path = mn_path,
                                supports_MPI=True,
-                               #selection_file
+                               #select_file=format_utility.add_prefix(param['defocus_file'], "mic_select_")
                                )), 
                (refine,    dict(input_files=stk.sub('*', param['stacks']),
                                output = param['alignment'],
@@ -385,6 +408,7 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
         module_type[type].append(mod)
     
     #map = program.map_module_to_program()
+    boutput = os.path.basename(output)
     for path, modules in module_type.iteritems():
         type = os.path.basename(path)
         _logger.info("Writing script %s"%os.path.join(output, 'run_%s'%type))
@@ -401,7 +425,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             # count nodes
             # export environment variable
         for mod in modules:
-            fout.write('sh %s\n'%os.path.join('..', map[mod.__name__]))
+            prog = os.path.join('..', map[mod.__name__]) if boutput != '.' and boutput != '' else map[mod.__name__]
+            fout.write('sh %s\n'%prog)
             fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\n')
         fout.close()
 
@@ -471,9 +496,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
-    pgroup.add_option("-o", output="",          help="Output directory with project name", gui=dict(filetype="save"), required=True)
+    pgroup.add_option("-o", output=".",         help="Output directory with project name", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume", gui=dict(filetype="open"), required=True)
-    pgroup.add_option("", is_ccd=False,         help="Set true if the micrographs were collected on a CCD (and have not been processed)", required=True)
+    pgroup.add_option("", is_film=False,        help="Set true if the micrographs were collected on film (or have been processed)", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0), required=True)
     pgroup.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels", gui=dict(minimum=0), required=True)
@@ -483,11 +508,11 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     # Additional options to change
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
+    group.add_option("",    window_size=0,          help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
     group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
     group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)
     group.add_option("",    mpi_command="",         help="Command used to invoked MPI, if empty, then attempt to detect version of MPI and provide the command")
-    group.add_option("",    bin_factor=1.0,         help="Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified", gui=dict(minimum=1e-3, decimals=3, singleStep=1.0))
     group.add_option("-w",  worker_count=0,         help="Set number of  workers to process files in parallel",  gui=dict(minimum=0))
     group.add_option("-t",  thread_count=0,         help="Set number of threads to run in parallel, if not set then SPIDER uses all cores",  gui=dict(minimum=0))
     group.add_option("",    shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
@@ -495,6 +520,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",    local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
     group.add_option("",    spider_path="",         help="Filename for SPIDER executable", gui=dict(filetype="open"))
+    group.add_option("",    leginon_filename="mapped_micrographs/mic_0000000", help="Filename used to map legion files to SPIDER filenames")
+    group.add_option("",    leginon_offset=0,       help="Offset for SPIDER id")
     parser.add_option_group(group)
     
 def check_options(options, main_option=False):

@@ -277,7 +277,7 @@ class Option(optparse.Option):
         if 'dependent' in kwargs:
             self._dependent = kwargs["dependent"]
             del kwargs["dependent"]
-        self._dependent = self._dependent and self.gui_hint['type'] != 'nogui'
+        self._dependent = self._dependent and ('type' not in self.gui_hint or self.gui_hint['type'] != 'nogui')
         
         optparse.Option.__init__(self, *args, **kwargs)
         self.choices = kwargs['choices'] if choices is None and 'choices' in kwargs else choices
@@ -1292,6 +1292,32 @@ class OptionParser(optparse.OptionParser):
         def is_dependent(opt):
             return opt._dependent and opt.dest != self.add_input_files
         return self.collect_options(is_dependent)
+        
+    def collect_dependent_file_options(self, type=None):
+        ''' Collect all the options that point to file names
+        
+        :Parameters:
+        
+        type : str
+               Type of the file to collect: open or save
+        
+        :Returns:
+        
+        names : list
+                List of file option destinations
+        '''
+        
+        def is_dependent(opt):
+            return opt._dependent and opt.dest != self.add_input_files
+        if type is None:
+            def is_file(opt):
+                return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint and is_dependent(opt)
+            is_file_test = is_file
+        else:
+            def is_file_type(opt):
+                return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type and is_dependent(opt)
+            is_file_test = is_file_type
+        return list(set(self.collect_options(is_file_test)))
         
     def collect_file_options(self, type=None):
         ''' Collect all the options that point to file names

@@ -3,13 +3,35 @@
 .. Created on Oct 16, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+try:
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+except:
+    print "Cannot import offset, upgrade matplotlib"
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 from ..image import analysis
-import numpy, pylab
+import numpy, pylab, logging
 
-def plot_embedding(x, y, selected=None, dpi=80, **extra):
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
+def save_as_image(fig):
+    '''
+    '''
+    
+    fig.canvas.draw()
+    data = numpy.fromstring(fig.canvas.tostring_rgb(), dtype=numpy.uint8, sep='')
+    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return rgb2gray(data)
+
+def rgb2gray(rgb):
+    '''
+    '''
+    
+    r, g, b = numpy.rollaxis(rgb[...,:3], axis = -1)
+    return 0.299 * r + 0.587 * g + 0.114 * b
+
+def plot_embedding(x, y, selected=None, group=None, dpi=80, **extra):
     ''' Plot an embedding
     
     :Parameters:
@@ -35,7 +57,16 @@ def plot_embedding(x, y, selected=None, dpi=80, **extra):
     
     fig = pylab.figure(dpi=dpi)
     ax = fig.add_subplot(111)
-    ax.plot(x, y, 'ro', ls='.', markersize=3, **extra)
+    if group is not None:
+        refs = numpy.unique(group)
+        beg, inc = 0.0, 1.0/len(refs)
+        for r in refs:
+            sel = r == group
+            color = cm.spectral(beg)
+            ax.plot(x[sel], y[sel], 'o', ls='.', markersize=3, c=color, **extra)
+            beg += inc
+    else:
+        ax.plot(x, y, 'ro', ls='.', markersize=3, **extra)
     if selected is not None:
         ax.plot(x[selected], y[selected], 'k+', ls='.', markersize=2, **extra)
     return fig, ax
@@ -98,6 +129,10 @@ def plot_images(fig, img_iter, x, y, zoom, radius):
     
     for i, img in enumerate(img_iter):
         im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r)
-        ab = AnnotationBbox(im, (x[i], y[i]), xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        try:
+            ab = AnnotationBbox(im, (x[i], y[i]), xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        except:
+            _logger.error("%d < %d"%(i, len(x)))
+            raise
         fig.gca().add_artist(ab)
 

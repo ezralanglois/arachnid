@@ -87,7 +87,10 @@ def main(files, module, restart_file="", **extra):
     process, initialize, finalize, reduce_all, init_process = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None)
     
     if mpi_utility.is_root(**extra):
+        _logger.debug("Test dependencies1: %d"%len(files))
         files = check_dependencies(files, **extra)
+        extra['input_files']=files
+        _logger.debug("Test dependencies2: %d"%len(files))
         #if len(files) > 1: files = restart(restart_file, files)
     files = mpi_utility.broadcast(files, **extra)
     
@@ -176,7 +179,7 @@ def restart(filename, files):
         return [f for f in files if f not in last]
     return files
 
-def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, **extra):
+def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
     output files.
     
@@ -195,6 +198,8 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
                   If true, then options have changed; restart from beginning
     force : bool
             Force the program to restart from the beginning
+    id_len : int
+             Max length of SPIDER ID
     extra : dict
             Unused extra keyword arguments
     '''
@@ -205,15 +210,18 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
         return files
     unfinished = []
     for f in files:
-        deps = [spider_utility.spider_filename(out, f) for out in outfile_deps]
+        deps = [spider_utility.spider_filename(extra[out], f, id_len) for out in outfile_deps if out != "" and spider_utility.is_spider_filename(extra[out])]
         exists = [os.path.exists(out) for out in deps]
         if not numpy.alltrue(exists):
-            _logger.debug("Adding: %s because %s does not exist"%(f, outfile_deps[numpy.argmin(exists)]))
+            _logger.debug("Adding: %s because %s does not exist"%(f, deps[numpy.argmin(exists)]))
             unfinished.append(f)
             continue
         mods = [os.path.getctime(out) for out in deps]
+        if len(mods) == 0:
+            unfinished.append(f)
+            continue
         first_output = numpy.min( mods )
-        deps = [f]+[spider_utility.spider_filename(input, f) for input in infile_deps]
+        deps = [f]+[spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])]
         mods = [os.path.getctime(input) for input in deps]
         last_input = numpy.max( mods )
         if last_input >= first_output:
@@ -230,7 +238,7 @@ def setup_options(parser, pgroup=None):
     group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(maximum=sys.maxint, minimum=0))
     group.add_option("",   restart_file="",   help="Set the restart file backing up processed files",     gui=dict(filetype="open"), dependent=False)
     group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
-    #group.add_option("",   force=False,       help="Force the program to run from the start")
+    group.add_option("",   force=False,       help="Force the program to run from the start")
     pgroup.add_option_group(group)
 
 def check_options(options):

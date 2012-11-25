@@ -75,6 +75,10 @@ Useful Options
     
     Header labelling important columns in the `stack-select` (Default: id:0,stack_id:1,micrograph:3)
 
+.. option:: --data-ext <STR>
+    
+    SPIDER extension for data files
+
 Other Options
 =============
 
@@ -89,12 +93,13 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_utility, format_utility
 from ..core.image import ndimage_file
+from ..core.util import numpy_ext
 import numpy, logging, glob, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, **extra):
+def batch(files, output, data_ext, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -103,15 +108,19 @@ def batch(files, output, **extra):
                 List of input filenames
         output : str
                  Output filename for reconstructed volume
+        data_ext : str
+                   SPIDER extension
         extra : dict
                 Unused keyword arguments
     '''
     
-    alignvals = create_alignment(files, **extra)   
-    format.write(output, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
+    alignvals = create_alignment(files, **extra)
+    output = os.path.splitext(output)[0]
+    if data_ext != "" and data_ext[0] != '.': output+='.'
+    format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
 
-def create_alignment(files, sort_align=False, **extra):
+def create_alignment(files, sort_align=False, random_subset=0, min_defocus=0, max_defocus=0, **extra):
     ''' Create empty (unaligned) alignment array
     
     :Parameters:
@@ -120,6 +129,8 @@ def create_alignment(files, sort_align=False, **extra):
             List of input files
     sort_align : bool
                  Sort the alignment file by defocus_file
+    random_subset : int
+                    Size of random subset
     extra : dict
             Unused keyword arguments
     
@@ -138,8 +149,11 @@ def create_alignment(files, sort_align=False, **extra):
     align[:, 16] = label[:, 2]
     if len(defocus_file) > 0:
         align[:, 17] = [defocus_file.get(l[1], 0) for l in label]
-        align = align[align[:, 17] > 0]
+        align = align[numpy.logical_and(align[:, 17] > min_defocus, align[:, 17] < max_defocus)]
         if sort_align: align[:] = align[numpy.argsort(align[:, 17])].squeeze()
+    if random_subset > 0:
+        idx = numpy_ext.choice(numpy.arange(0, len(align)), random_subset, False)
+        align = align[idx]
     return align
     
 def select_subset(files, label, select_file, select_header="", **extra):
@@ -194,6 +208,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
                 label[k]=label[i]
                 k+=1
         label = label[:k]
+        _logger.info("Selected %d micrographs"%(len(numpy.unique(label[:, 1]))))
     else:
         _logger.info("Assuming full stack selection file: --select-file %s"%select_file)
         select = format.read(select_file, header=select_header, numeric=True)
@@ -235,6 +250,10 @@ def create_stack_label(files, stack_select, stack_header, **extra):
     if len(files) == 1 and stack_select != "":
         sel = format.read(stack_select, header=stack_header, numeric=True)
         sel, header = format_utility.tuple2numpy(sel)
+        try:
+            label[:, 0] = sel[:, header.index('id')]
+        except:
+            raise ValueError, "Cannot find column labelled as `id` in `--stack-select` %s, please use `--stack-header` to label this column"%stack_select
         try:
             label[:, 1] = sel[:, header.index('micrograph')]
         except:
@@ -294,12 +313,17 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[],              help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("",   data_ext="spi",              help="SPIDER extension for data files")
     pgroup.add_option("-d", defocus_file ="",                help="Filename for the defocus_file values for each micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   defocus_file_header="id:0,defocus_file:1", help="Header labelling important columns in the `defocus_file` file")
     pgroup.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
     pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus_file file")
+    pgroup.add_option("",   min_defocus=14000, help="Minimum defocus")
+    pgroup.add_option("",   max_defocus=50000, help="Maximum defocus")
+    pgroup.add_option("",   random_subset=0,                help="Set of random subset of the given size")
+    
     if main_option:
         parser.change_default(thread_count=4, log_level=3)
     

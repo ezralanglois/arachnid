@@ -241,6 +241,29 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     if not phase_flip: param['flip_stack'] = format_utility.add_prefix(local_scratch, 'flip_recon_')
     param['input_stack'] = spi.ms(len(align), window) if incore else format_utility.add_prefix(local_scratch, 'stack')
     
+    param['master_filename'], param['master_select'] = create_selection(files, align)
+    extra.update(param)
+    cache_local(spi, align, **extra)#, filename, select, window, param['input_stack'], param['flip_stack']
+    return param
+
+def create_selection(files, align):
+    ''' Create a selection file from the alignment file and list of files
+    
+    :Parameters:
+    
+    files : list
+            List of stack filenames
+    align : array
+            Aligment parameters
+    
+    :Returns:
+    
+    filename : dict or str
+               Stack template filename
+    select : array
+             Labels for the stacks and images
+    '''
+    
     if len(files) == 1:
         if align.shape[1] > 16:
             try:
@@ -254,12 +277,9 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
         if align.shape[1] < 17: raise ValueError, "Alignment of stacks requires alignment file with at least 17 columns: last two columns are stack_id, window_id, respectively"
         filename = spider_utility.file_map(files[0], align[:, 15], 0, True)
         select = align[:, 15:17]
-    param['master_filename'] = filename
-    param['master_select'] = select
-    
-    extra.update(param)
-    cache_local(spi, align, **extra)#, filename, select, window, param['input_stack'], param['flip_stack']
-    return param
+    return filename, select
+
+#def cache_recon
 
 def cache_local(spi, align, master_filename, master_select, window, input_stack=None, flip_stack=None, rank=0, **extra):
     ''' Distribution the data projections to scratch directories on each local node in a cluster
@@ -286,7 +306,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
             Unused keyword arguments
     '''
     
-    update = spider.cache_interpolate(spi, master_filename, master_select, input_stack, window, rank)
+    update = spider.cache_data(spi, master_filename, master_select, input_stack, window, rank)
     if flip_stack is not None and (update or not os.path.exists(spi.replace_ext(flip_stack))):  
         _logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
@@ -298,7 +318,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
     assert(spider.count_images(spi, flip_stack) == len(align))
     assert(spider.count_images(spi, input_stack) == len(align))
 
-def reconstruct_classify(spi, align, curr_slice, output, **extra):
+def reconstruct_classify(spi, align, curr_slice, output, target_bin=None, **extra):
     ''' Classify a set of projections and reconstruct a volume with the given alignment values
     
     :Parameters:
@@ -311,6 +331,8 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
                  Slice of align or selection arrays on current node
     output : str
              Output filename
+    target_bin : float, optional
+                 Target decimation factor
     extra : dict
             Unused keyword arguments
                  
@@ -320,6 +342,11 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
                  Output file tuple for two half volumes and full volume
     '''
     
+    if target_bin is not None:
+        extra['bin_factor']=target_bin
+        extra.update(spider_params.update_params(**extra))
+        if mpi_utility.is_root(**extra):
+            _logger.info("Reconstructing with pixel size: %f"%(extra['apix']))
     align = align.copy()
     align[:, 6:8] /= extra['apix']
     align[:, 12:14] /= extra['apix']
@@ -329,7 +356,9 @@ def reconstruct_classify(spi, align, curr_slice, output, **extra):
     selection = mpi_utility.broadcast(selection, **extra)
     #if hasattr(selection, 'ndim'):
     #    selection = numpy.argwhere(selection)
-    return reconstruct(spi, align, selection, curr_slice, output, **extra)
+    val = reconstruct(spi, align, selection, curr_slice, output, **extra)
+    mpi_utility.barrier(**extra)
+    return val
 
 def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack=None, flip_stack=None, **extra):
     ''' Reconstruct a volume with the given alignment values
@@ -368,9 +397,9 @@ def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack
         format_utility.add_prefix(output, 'raw2')
     ]
     if engine > 0:
-        return reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, output_vol, **extra)
+        return reconstruct_SNI(spi, engine, flip_stack, align, selection, curr_slice, output_vol, **extra)
     else:
-        return reconstruct_MPI(spi, input_stack, align, selection, curr_slice, output_vol, **extra)
+        return reconstruct_MPI(spi, flip_stack, align, selection, curr_slice, output_vol, **extra)
 
 def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_output, shared_scratch, local_scratch, **extra):
     ''' Reconstruct a volume on a single node
@@ -477,6 +506,7 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
         
     format.write(spi.replace_ext(align_file), align[curr_slice, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
+    input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(extra['cache_file'], "data_ip_"), **extra)
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
     dala_stack = spi.replace_ext(dala_stack)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)

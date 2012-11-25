@@ -154,7 +154,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.image import eman2_utility, ndimage_utility, analysis
-from ..core.metadata import format_utility, format
+from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
 import numpy, scipy, logging
 import lfcpick
@@ -162,15 +162,13 @@ import lfcpick
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, confusion=[], **extra):
+def process(filename, id_len=0, confusion=[], **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
     
     filename : str
                Input filename
-    output : str
-             Filename for output file
     id_len : int, optional
              Maximum length of the ID
     extra : dict
@@ -184,13 +182,14 @@ def process(filename, output, id_len=0, confusion=[], **extra):
             Coordinates found
     '''
     
+    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good')  
     _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
     peaks = search(mic, **extra)
     _logger.debug("Write coordinates")
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
-    format.write(output, coords, spiderid=filename, id_len=id_len, default_format=format.spiderdoc)
+    format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
 def search(img, overlap_mult=1.2, disable_prune=False, **extra):
@@ -253,12 +252,14 @@ def ccf_center(img, template):
              Cross-correlation map
     '''
     
-    emimg = img
-    img = eman2_utility.em2numpy(emimg)
-    emtemplate = template
-    template = eman2_utility.em2numpy(emtemplate)
+    if eman2_utility.is_em(img):
+        emimg = img
+        img = eman2_utility.em2numpy(emimg)
+    if eman2_utility.is_em(template):
+        emtemplate = template
+        template = eman2_utility.em2numpy(emtemplate)
     cc_map = ndimage_utility.cross_correlate(img, template)
-    cc_map = eman2_utility.numpy2em(cc_map)
+    #cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
 def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, **extra):
@@ -286,10 +287,10 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     :Returns:
         
     sel : numpy.ndarray
-          Bool array of selected good windows
+          Bool array of selected good windows 
     '''
     
-    _logger.error("Total particles: %d"%len(scoords))
+    _logger.debug("Total particles: %d"%len(scoords))
     radius, offset, bin_factor, tmp = lfcpick.init_param(**extra)
     del tmp
     emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
@@ -299,9 +300,12 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
     vfeat = None #numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
+    if eman2_utility.is_em(mic):
+        emmic = mic
+        mic = eman2_utility.em2numpy(emmic)
     
-    _logger.info("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(eman2_utility.em2numpy(mic), scoords, offset*2, bin_factor)):
+    _logger.debug("Windowing %d particles"%len(scoords))
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
         npdata[:, :] = win
         eman2_utility.ramp(emdata)
@@ -320,18 +324,18 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
     assert(idx > 0)
     assert(feat.shape[0]>1)
-    _logger.error("Eigen: %d"%idx)
+    _logger.debug("Eigen: %d"%idx)
     dsel = analysis.one_class_classification_old(feat)
-    _logger.error("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
         sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-        _logger.error("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
+        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
     else: sel = dsel
     if not disable_threshold:
         tsel = classify_noise(scoords, dsel, sel)
-        _logger.error("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
+        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
-        _logger.error("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
+        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
     return sel
     
@@ -435,7 +439,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   disable_prune=False,         help="Disable bad particle removal")
     group.add_option("",   disable_threshold=False,     help="Disable noise thresholding")
     group.add_option("",   remove_aggregates=False,     help="Use difference of Gaussian to remove possible aggergates (only use this option if there are many)")
-    group.add_option("",   pca_mode=0.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
+    group.add_option("",   pca_mode=1.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
@@ -446,7 +450,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         group.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         pgroup.add_option_group(group)
-        parser.change_default(log_level=3)
+        parser.change_default(log_level=3, bin_factor=4)
         parser.change_default(window=1.35)
 
 def check_options(options, main_option=False):
