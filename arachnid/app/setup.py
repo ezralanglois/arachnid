@@ -6,4 +6,5 @@ console_scripts = [
  'lfcpick = arachnid.app.lfcpick:main',
  'defocus = arachnid.app.defocus:main',
  'autoclean = arachnid.app.autoclean:main',
+ 'ctf-select = arachnid.app.ctf_select:main',
 ]
