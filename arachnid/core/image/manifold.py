@@ -179,11 +179,14 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
         for c in xrange(0, samp.shape[0], batch):
-            dist2 = gemm(-2.0, samp[r*batch:(r+1)*batch], samp[c*batch:(c+1)*batch], trans_b=True, beta=0, c=dense, overwrite_c=1).T
+            s1 = samp[r:r+batch]
+            s2 = samp[c:c+batch]
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2 += a[r:r+batch, numpy.newaxis]
             dist2 += a[c:c+batch]
-            _manifold.push_to_heap(dist2, data[r*batch*k:], col[r*batch*k:], c, k)
-        _manifold.finalize_heap(data[r*batch*k:], col[r*batch*k:], k)
+            _manifold.push_to_heap(dist2, data[r*k:], col[r*batch*k:], c/batch, k)
+        _manifold.finalize_heap(data[r*k:], col[r*k:], k)
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
