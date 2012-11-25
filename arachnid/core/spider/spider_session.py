@@ -74,7 +74,6 @@ class Session(object):
         self.version = None
         self._results = True
         self.spider_proc = None
-        self.tmp_path = tmp_path
         self.rank = rank
         self.enable_results = enable_results
         self.thread_count = thread_count
@@ -130,6 +129,7 @@ class Session(object):
         _logger.debug("Using PIPE = %s"%self.pipename)
         os.mkfifo(self.pipename)
         if tmp_path == "": tmp_path = None
+        self.tmp_path = tmp_path
         if 1 == 0:
             self.spider_err = tempfile.NamedTemporaryFile(prefix='SPIDER_ERR_%d'%rank, dir=tmp_path, delete=True)
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=self.spider_err.fileno()) #stdout=subprocess.PIPE

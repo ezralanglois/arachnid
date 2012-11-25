@@ -78,7 +78,8 @@ Run the decimate command with the given parameters
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import spider_session
-from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename, SpiderCrashed
+from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename
+from spider_session import SpiderCrashed
 import collections
 import logging, os, numpy
 SpiderCrashed;
@@ -2985,7 +2986,7 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
         ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
         session.ft(ctfimage, outputfile=outputfile) 
 
-def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, window=0, **extra):
+def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, window=0, trans_max=8, **extra):
     ''' Scale parameters that depend on the window size
     
     :Parameters:
@@ -3030,10 +3031,12 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             param['trans_range'] = max(1, max_radius - param['ring_last'] - 3)
         if (max_radius - param['ring_last'] - param['trans_range']) < 3:
             param['ring_last'] = max(2, max_radius - param['trans_range'] - 3)
-    if param['trans_range'] > 3:
-        param['trans_step'] = max(1, int(param['trans_range'] / 2.0))
-        param['trans_range'] = param['trans_step']*2
+    assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
+    if param['trans_range'] > trans_max:
+        param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
+        param['trans_range'] = param['trans_step']*trans_max
     else: param['trans_step'] = 1
+    assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))

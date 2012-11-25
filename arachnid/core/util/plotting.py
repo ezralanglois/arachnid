@@ -3,7 +3,10 @@
 .. Created on Oct 16, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+try:
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+except:
+    print "Cannot import offset, upgrade matplotlib"
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 from ..image import analysis
@@ -11,6 +14,22 @@ import numpy, pylab, logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+def save_as_image(fig):
+    '''
+    '''
+    
+    fig.canvas.draw()
+    data = numpy.fromstring(fig.canvas.tostring_rgb(), dtype=numpy.uint8, sep='')
+    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return rgb2gray(data)
+
+def rgb2gray(rgb):
+    '''
+    '''
+    
+    r, g, b = numpy.rollaxis(rgb[...,:3], axis = -1)
+    return 0.299 * r + 0.587 * g + 0.114 * b
 
 def plot_embedding(x, y, selected=None, group=None, dpi=80, **extra):
     ''' Plot an embedding

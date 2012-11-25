@@ -150,7 +150,8 @@ from ..core.metadata import format, spider_params, spider_utility, format_utilit
 from ..core.image import ndimage_file, eman2_utility, ndimage_utility, analysis
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
-import os, numpy, logging, itertools, scipy
+from ..core.util import plotting
+import os, numpy, logging, itertools #, scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -186,9 +187,9 @@ def process(filename, output, id_len=0, **extra):
     id = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
     _logger.debug("create power spec")
-    power_spec = create_powerspectra(filename, **extra)
+    power_spec, powm = create_powerspectra(filename, **extra)
     _logger.debug("rotational average")
-    ro_arr = rotational_average(power_spec, **extra)
+    rotational_average(power_spec, **extra) #ro_arr = 
     _logger.debug("estimate defocus")
     try:
         ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
@@ -198,109 +199,8 @@ def process(filename, output, id_len=0, **extra):
     except:
         _logger.error("Failed to estimate defocus for %s"%filename)
         raise
-    
-    pow = ndimage_file.read_image(extra['spi'].replace_ext(extra['output_pow']))
-    maxidx =  maxima(ro_arr)
-    if 1 == 0:
-        mask = eman2_utility.model_circle(int(pow.shape[0]*(extra['apix']/9.0)), pow.shape[0], pow.shape[1])*(eman2_utility.model_circle(int(pow.shape[0]*(extra['apix']/30.0)), pow.shape[0], pow.shape[1])*-1+1)
-        n = pow.shape[0]/2-2
-        ul = ndimage_utility.compress_image(pow[:n, :n], mask[:n, :n])
-        #powr = numpy.rot90(pow)
-        powr = ndimage_utility.rotavg(pow)
-        ulr = ndimage_utility.compress_image(powr[:n, :n], mask[:n, :n])
-        amp6 = scipy.spatial.distance.correlation(ul, ulr)
-    
-    #offset = int(pow.shape[0]*(extra['apix']/7.0))
-    #amp6 = numpy.sum(ro_arr[offset-2:offset+3, 2])
-    #beg = numpy.searchsorted(ro_arr[:, 1], extra['apix']/15.0)
-    #end = numpy.searchsorted(ro_arr[:, 1], extra['apix']/10.0)
-    minidx =  minima(ro_arr)
-    cc = maxidx.shape[0]
-    
-    if 1 == 0:
-        vals = diff(ro_arr, maxidx, minidx)
-        amp6 = numpy.min(vals) if len(vals) > 0 else 0
-    else:
-        '''
-        freq = ro_arr[:, 1]
-        lo = extra['apix']/25
-        hi = extra['apix']/10
-        '''
-        #count_elliptical_rings(pow, minidx, maxidx)
-        amp6 = 0 #ring_for_ray(pow, maxidx) #numpy.argwhere(numpy.logical_and(freq > lo, freq < hi)))
-    return filename, numpy.asarray([id, defocus, ang, mag, cutoff, cc, amp6])
 
-
-def count_elliptical_rings(pow, minidx, maxidx):
-    '''
-    '''
-    
-    _logger.error("count_elliptical_rings")
-    direct = numpy.zeros(max(len(maxidx), len(minidx)))
-    idx = 0
-    for i in xrange(min(len(maxidx), len(minidx))-1):
-        maxval=int(maxidx[i])
-        minval=int(minidx[i])
-        if maxval < minval: 
-            maxval = int(maxidx[i+1])
-        mask = eman2_utility.model_circle(maxval, pow.shape[0], pow.shape[1])*(eman2_utility.model_circle(minval, pow.shape[0], pow.shape[1])*-1+1)
-        ring = pow*mask
-        points = ndimage_utility.segment(ring)
-        y, x = numpy.unravel_index(numpy.nonzero(points)[0], pow.shape)
-        ellipse = ndimage_utility.fit_ellipse(numpy.hstack((x[:, numpy.newaxis], y[:, numpy.newaxis])))
-        direct[idx] = ndimage_utility.major_axis_angle(ellipse)
-        _logger.error("angle = %d"%numpy.rad2deg(direct[idx]))
-        idx += 1
-
-
-def ring_for_ray(pow, index):
-    '''
-    '''
-    
-    n = pow.shape[0]/2
-    ro_arr = ndimage_utility.mean_azimuthal(pow)[:n]
-    pow = ndimage_utility.logpolar(pow[:, n:])[0]
-    cc = numpy.zeros(index.shape[0])
-    for i, j in enumerate(index.squeeze()):
-        cc[i] = scipy.spatial.distance.correlation(ro_arr, pow[j])
-    return numpy.max(cc)-numpy.min(cc)
-
-def diff(ro_arr, maxidx_arr, minidx_arr):
-    '''
-    '''
-    
-    diff = []
-    for i in xrange(1, min(len(maxidx_arr), len(minidx_arr))-1):
-        maxidx=maxidx_arr[i]
-        minidx=minidx_arr[i]
-        if maxidx > minidx:
-            denom = (ro_arr[minidx, 2]+ro_arr[minidx+1, 2])/2.0
-        else:
-            denom = (ro_arr[minidx-1, 2]+ro_arr[minidx, 2])/2.0
-        if denom==0.0: denom=1.0
-        diff.append(ro_arr[maxidx, 2]/denom)
-    return numpy.asarray(diff) 
-
-def maxima(ro_arr):
-    '''
-    '''
-    
-    idx = []
-    for i in xrange(1, len(ro_arr)-1):
-        if ro_arr[i, 2] > ro_arr[i-1, 2] and ro_arr[i, 2] > ro_arr[i+1, 2]:
-            idx.append(i)
-    return numpy.asarray(idx)
-
-def minima(ro_arr):
-    '''
-    '''
-    
-    idx = []
-    for i in xrange(1, len(ro_arr)-1):
-        if ro_arr[i, 2] < ro_arr[i-1, 2] and ro_arr[i, 2] < ro_arr[i+1, 2]:
-            idx.append(i)
-    return numpy.asarray(idx)
-    
+    return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     '''Compute the rotation average of the power spectra and store as an ndarray
@@ -324,6 +224,7 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
            Rotational average of power spectra
     '''
     
+    #ma = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
     window_size, = spi.fi_h(power_spec, ('NSAM', ))
     rot_avg = spi.ro(power_spec)
     spi.de(output_roo)
@@ -336,63 +237,7 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     ro_arr[:, 0] = numpy.arange(1, len(ro_arr)+1)
     ro_arr[:, 1] = ro_arr[:, 0] / float(window_size)
     format.write(spi.replace_ext(output_roo), ro_arr[:, :3], default_format=format.spiderdoc, header="index,spatial_freq,amplitude".split(','))
-    return ro_arr[:, :3]
-
-def mask_power_spec(power_spec, spi, ps_radius=225, ps_outer=0, apix=None, output_pow=None, **extra):
-    '''Mask the power spectra
-    
-    :Parameters:
-        
-    power_spec : spider_var
-                 In-core power spectra
-    spi : spider.Session
-          Current SPIDER session
-    ps_radius : int
-                Power spectrum mask radius 
-    ps_outer : int
-               Power spectrum outer mask radius
-    apix : float
-           Pixel size in angstroms
-    output_pow : str, optional
-                 Output file for power spectra
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-    
-    masked_ps : spider_var
-                Masked power spectra
-    '''
-    
-    if 1 == 0:
-        x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
-        rad = min(int(0.5/extra['pixel_diameter']*x_size), 3)
-        mask = eman2_utility.model_circle(rad, int(x_size), int(y_size))*-1+1   
-        temp_spider_file = mpi_utility.safe_tempfile("temp_mask_file", **extra)
-        try:
-            ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
-        except:
-            if os.path.dirname(temp_spider_file) == "": raise
-            temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
-            ndimage_file.write_image(spi.replace_ext(temp_spider_file), mask)
-        power_spec = spi.mu(power_spec, temp_spider_file)
-    elif 1 == 0:
-        if ps_radius == 0: return power_spec
-        x_size, y_size, z_size = spi.fi_h(power_spec, ('NSAM', 'NROW', 'NSLICE'))
-        x_cent, y_cent = (x_size/2+1, y_size/2+1)
-        if z_size > 1:
-            center = (x_cent, y_cent, z_size/2+1)
-            p_val = spi.gp(power_spec, (x_cent+10, 5, 5))
-        else: 
-            center = (x_cent, y_cent)
-            p_val = spi.gp(power_spec, (x_cent+10, 5))
-        mask_radius = int((2*float(apix)/ps_radius)*x_size)
-        if ps_outer > 0: ps_outer=x_cent-ps_outer
-        power_spec = spi.ma(power_spec, (ps_outer, mask_radius), center, background_type='E', background=p_val)
-    else:
-        spi.du(power_spec, 4, 3)
-    if output_pow != "": spi.cp(power_spec, output_pow)
-    return power_spec
+    return ro_arr[:, 1:3]
 
 def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], du_type=3, window_size=256, x_overlap=50, output_pow=None, bin_factor=None, invert=None, output_mic=None, bin_micrograph=None, **extra):
     ''' Calculate the power spectra from the given file
@@ -466,7 +311,8 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
         power_spec = spi.cp(output_pow)
     else:
         power_spec = spi.cp(filename)
-    return power_spec
+        npowerspec = ndimage_file.read_image(spi.replace_ext(filename))
+    return power_spec, npowerspec
 
 def prepare_micrograph(mic, bin_factor, invert):
     ''' Preprocess the micrograph
@@ -489,277 +335,6 @@ def prepare_micrograph(mic, bin_factor, invert):
     if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
     return mic
-
-def create_powerspectra_old(filename, spi, use_powerspec=False, pad=2, du_nstd=[], du_type=3, **extra):
-    ''' Calculate the power spectra from the given file
-    
-    :Parameters:
-    
-    filename : str
-               Input filename for the micrograph
-    spi : spider.Session
-          Current SPIDER session
-    use_powerspec : bool
-                    Set True if the input file is a power spectra
-    pad : int
-          Number of times to pad window before Fourier transform; if pad > window-size, then size of padded image (0 means none)
-    du_nstd : list
-              List of number of standard deviations for dedusting
-    du_type : int
-              Type of dedusting: (1) BOTTOM, (2) TOP, (3) BOTH SIDES: 3
-    
-    :Returns:
-    
-    power_sec : spider_var
-                In-core reference to power spectra image
-    '''
-    
-    if not use_powerspec:
-        image_count = ndimage_file.count_images(filename)
-        #image_count = spider.count_images(spi, filename)
-        for_win = spider.for_image(spi, filename, image_count) \
-                  if image_count > 1 else \
-                  for_window_in_micrograph(spi, filename, **extra)
-        image_count = 0
-        swin = None
-        tmp = None
-        _logger.debug("generating summed power spec")
-        for win in for_win:
-            if tmp is None:
-                window_size, = spi.fi_h(win, ('NSAM', ))
-                if pad > 1 and pad < window_size: pad = pad*window_size
-            swin, tmp = periodogram(spi, win, swin, tmp, pad, du_nstd, du_type)
-            image_count += 1
-        _logger.debug("set image count")
-        if image_count == 0: raise ValueError, "Periodogram failed"
-        spi['v10'] = image_count
-        _logger.debug("generating avg power spec")
-        avg2 = spi.ar(swin, "P1/[v10]")
-        _logger.debug("generating std power spec")
-        return spi.wu(avg2)
-    else:
-        power_spec = spi.cp(filename)
-    return power_spec
-
-def periodogram(spi, win, swin, tmp, pad=1024, du_nstd=[], du_type=3):
-    ''' Calculate an cummulative powerspectra image
-    
-    :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    win : spider_var
-          Current window to add
-    swin : spider_var
-           Cummulative powerspectra
-    tmp : spider_var
-          Temporary memory
-    pad : int
-          New padded window size
-    du_nstd : list
-              List of number of standard deviations for dedusting
-    du_type : int
-              Type of dedusting
-              
-    :Returns:
-    
-    swin : spider_var
-           Cummulative powerspectra
-    tmp : spider_var
-          Temporary memory
-    '''
-    
-    for nstd in du_nstd:  spi.du(win, int(nstd), du_type)
-    rwin = spi.ra(win)
-    tmp = spi.pd(rwin, pad, background='B', outputfile=tmp) if pad > 1 else rwin
-    pwin = spi.pw(tmp, outputfile=tmp)
-    win2 = spi.sq(pwin, outputfile=tmp)
-    swin = spi.ad(win2, swin, outputfile=swin)
-    return swin, tmp
-
-def for_window_in_micrograph(spi, filename, window_size=512, x_overlap=50, y_overlap=50, x_dist=0, y_dist=0, bin_factor=None, **extra):
-    ''' Window out successive sliding windows along the micrograph
-    
-    :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    filename : str
-               Input filename for the micrograph
-    window_size : int
-                  Size of the window to be cropped from the micrograph for the power spectra (Default: 500)
-    x_overlap : int
-                Percent overlap in the x-direction (Default: 50)
-    y_overlap : int
-                Percent overlap in the y-direction (Default: 50)
-    x_dist : int
-             Distance from the edge in the x-direction (Default: 0)
-    y_dist : int
-             Distance from the edge in the y-direction (Default: 0)
-    bin_factor : int
-                 Decimation factor of the micrograph
-    extra : dict
-            Unused keyword arguments
-                     
-    :Returns:
-    
-    window : spider_var
-             Incore file containing the current window
-    '''
-    
-    corefile = read_micrograph_to_incore(spi, filename, bin_factor, **extra)
-    window_size /= bin_factor
-    if not x_dist: x_dist = window_size
-    else: x_dist /= bin_factor
-    if not y_dist: y_dist = window_size
-    else: y_dist /= bin_factor
-    x_size, y_size = spi.fi_h(corefile, ('NSAM', 'NROW'))
-    x_overlap_norm = 100.0 / (100-x_overlap)
-    y_overlap_norm = 100.0 / (100-y_overlap)
-    x_steps = int( float(x_overlap_norm) * ( (x_size-2*x_dist)/window_size-1)   )
-    y_steps = int( float(y_overlap_norm) * ( (y_size-2*y_dist)/window_size-1)   )
-    x_mult = window_size/x_overlap_norm
-    y_mult = window_size/y_overlap_norm
-    if (y_steps+x_steps) == 0: raise ValueError, "Periodogram failed - window size: %d - width: %d - height: %d - bin_factor: "%(window_size, x_size, y_size, bin_factor)
-    return for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps)
-
-def read_micrograph_to_incore(spi, filename, bin_factor=1.0, disable_bin=False, invert=False, local_scratch="", **extra):
-    ''' Read a micrograph file into core memory
-    
-    .. todo:: find all places where spider files are written to send to spider
-    
-    .. todo:: find name of shmem in other linux flavors http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html
-    
-    :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    filename : str
-               Input filename for the micrograph
-    bin_factor : int
-                 Decimation factor of the micrograph
-    disable_bin : bool
-                  Disable micrograph decimatation
-    invert : bool
-             Invert the contrast of the micrograph
-    local_scratch : str, optional
-                    Output filename for local scratch drive
-    
-    :Returns:
-    
-    corefile : spider_var
-               Image in SPIDER core memory
-    '''
-    
-    if not os.path.exists(filename): filename = spi.replace_ext(filename)
-    
-    temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", **extra)
-    try:
-        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
-    except:
-        if os.path.dirname(temp_spider_file) == "": raise
-        temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file", False, **extra)
-        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
-    
-    if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
-        w, h = spider.image_size(spi, filename)[:2]
-        if invert: filename = spi.neg_a(filename)
-        corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
-    elif invert: 
-        corefile = spi.neg_a(filename, **extra)
-    else:
-        corefile = spi.cp(filename, **extra)
-    if os.path.exists(temp_spider_file): 
-        os.unlink(temp_spider_file)
-    return corefile
-
-def read_micrograph_to_incore2(spi, filename, bin_factor=1.0, disable_bin=False, local_scratch="", **extra):
-    ''' Read a micrograph file into core memory
-    
-    .. todo:: find all places where spider files are written to send to spider
-    
-    .. todo:: find name of shmem in other linux flavors http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html
-    
-    :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    filename : str
-               Input filename for the micrograph
-    bin_factor : int
-                 Decimation factor of the micrograph
-    disable_bin : bool
-                  Disable micrograph decimatation
-    local_scratch : str, optional
-                    Output filename for local scratch drive
-    
-    :Returns:
-    
-    corefile : spider_var
-               Image in SPIDER core memory
-    '''
-    
-    if not os.path.exists(filename): filename = spi.replace_ext(filename)
-    #
-    temp_spider_file = "temp_spider_file"
-    shm = os.path.join('/', 'dev', 'shm') # .. todo:: check name for ubutu and others
-    if os.path.exists(shm): temp_spider_file = os.path.join(shm, temp_spider_file) # .todo:: find all places and do this
-    if local_scratch != "" and os.path.exists(local_scratch): temp_spider_file = os.path.join(local_scratch, temp_spider_file)
-    try:
-        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
-    except:
-        if temp_spider_file == "temp_spider_file": raise
-        temp_spider_file = "temp_spider_file"
-        filename = ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file))
-        
-    if not disable_bin and bin_factor != 1.0 and bin_factor != 0.0:
-        w, h = spider.image_size(spi, filename)[:2]
-        corefile = spi.ip(filename, (int(w/bin_factor), int(h/bin_factor)))
-        #corefile = spi.dc_s(filename, bin_factor, **extra) # Use iterpolation!
-    else:
-        corefile = spi.cp(filename, **extra)
-    if os.path.exists(spi.replace_ext(temp_spider_file)): os.unlink(spi.replace_ext(temp_spider_file))
-    return corefile
-
-def for_window_in_section(spi, corefile, window_size, x_mult, y_mult, x_dist, y_dist, x_steps, y_steps):
-    ''' Window out successive sliding windows along a section of the micrograph
-    
-    :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    filename : spider_var
-               In-core micrograph reference
-    window_size : int
-                  Size of the window for the power spectra
-    x_mult : int
-              Number of pixels to move at each step in the x-direction
-    y_mult : int
-              Number of pixels to move at each step in the y-direction
-    x_dist : int
-             Distance from the edge in the x-direction
-    y_dist : int
-             Distance from the edge in the y-direction
-    x_steps : int
-              Number of steps in the x-direction
-    y_steps : int
-              Number of steps in the y-direction
-                     
-    :Returns:
-    
-    window : spider_var
-             Incore file containing the current window
-    '''
-    
-    tmp = None
-    _logger.debug("Steps: %d, %d - %d"%(y_steps, x_steps, window_size))
-    for y in xrange(y_steps):
-        _logger.debug("%d of %d"%(y, y_steps))
-        yu = x_mult * y + y_dist
-        for x in xrange(x_steps):
-            xu = y_mult * x + x_dist
-            win = spi.wi(corefile, (window_size,window_size), (xu,yu), outputfile=tmp)
-            yield win
 
 def default_path(filename, output):    
     ''' If the filename is not absolute, then append the path of output file
@@ -794,7 +369,7 @@ def initialize(files, param):
         param['output_pow'] = default_path(param['output_pow'], param['output'])
     param['output_roo'] = default_path(param['output_roo'], os.path.dirname(param['output_pow']))
     param['output_ctf'] = default_path(param['output_ctf'],  os.path.dirname(param['output_pow']))
-    param['output_mic'] = default_path(param['output_ctf'],  os.path.dirname(param['output_pow']))
+    param['output_mic'] = default_path(param['output_mic'],  os.path.dirname(param['output_pow']))
     if mpi_utility.is_root(**param):
         try: os.makedirs(os.path.dirname(param['output_pow'])) 
         except: pass
@@ -806,14 +381,21 @@ def initialize(files, param):
     param['spi'] = spider.open_session(files, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     param['output'] = param['spi'].replace_ext(param['output'])
+    param['output_pow'] = param['spi'].replace_ext(param['output_pow'])
+    param['output_roo'] = param['spi'].replace_ext(param['output_roo'])
+    param['output_ctf'] = param['spi'].replace_ext(param['output_ctf'])
+    param['output_mic'] = param['spi'].replace_ext(param['output_mic'])
+    
     if len(files) > 1 and param['worker_count'] > 1: 
         param['spi'].close()
         param['spi'] = None
     
     if mpi_utility.is_root(**param):
-        param['defocus_arr'] = numpy.zeros((len(files), 7))
+        param['defocus_arr'] = numpy.zeros((len(files), 5))
         _logger.info("Estimating defocus over %d files"%(len(files)))
         _logger.info("Writing power spectra to %s"%param['output_pow'])
+        if param['output_mic'] != "": 
+            _logger.info("Writing decimated micrographs to %s"%param['output_mic'])
         _logger.info("Writing defocus to %s"%param['output'])
         _logger.info("Bin factor: %f"%param['bin_factor'])
         _logger.info("Padding: %d"%param['pad'])
@@ -847,75 +429,86 @@ def reduce_all(filename, file_completed, file_count, output, defocus_arr, **extr
         _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
         raise
     format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
-                 header="id,defocus,astig_ang,astig_mag,cutoff_freq,cc,amp6".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
+                 header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
     _logger.info("Finished processing: %s - %d of %d"%(os.path.basename(filename), file_completed, file_count))
     return filename
 
-def finalize(files, defocus_arr, output, output_pow, **extra):
+def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, summary=False, **extra):
     # Finalize global parameters for the script
     
-    th = analysis.otsu(defocus_arr[:, 5]) if len(defocus_arr) > 3 else 0
     plot_histogram(output, defocus_arr[:, 1], 'Defocus')
     plot_histogram(output, defocus_arr[:, 3], 'Astigmatism')
-    plot_histogram(output, defocus_arr[:, 5], 'CC')
-    plot_histogram(output, defocus_arr[:, 6], 'STD', th)
-    plot_scatter(output, defocus_arr[:, 1], 'Defocus', defocus_arr[:, 6], 'STD')
-    plot_scatter(output, defocus_arr[:, 1], 'Defocus', defocus_arr[:, 5], 'CC')
-    plot_scatter(output, defocus_arr[:, 5], 'CC', defocus_arr[:, 6], 'STD')
-    #amp6
     
-    if len(defocus_arr) > 1:
-        sel = th < defocus_arr[:, 5]
-        id = defocus_arr[:, 0].squeeze()
-        _logger.info("Selecting %d micrographs with cc > %f"%(numpy.sum(sel), th))
-        format.write(output, numpy.hstack((id[:, numpy.newaxis], sel[:, numpy.newaxis])), header="id,select".split(','), prefix="mic_select_", format=format.spiderdoc)
-    
-    idx = numpy.argsort(defocus_arr[:, 6])
-    for i, j in enumerate(idx):
-        pow = ndimage_file.read_image(spider_utility.spider_filename(output_pow, int(defocus_arr[j, 0])))
-        pow = label_image(pow, defocus_arr[j])
-        ndimage_file.write_image(format_utility.add_prefix(output, 'stack'), pow, int(i))
+    if summary:
+        idx = numpy.argsort(defocus_arr[:, 1])
+        for i, j in enumerate(idx):
+            id =  int(defocus_arr[j, 0])
+            roo = numpy.asarray(format.read(output_roo, numeric=True, spiderid=id))
+            ctf = numpy.asarray(format.read(output_ctf, numeric=True, spiderid=id))
+            pow = ndimage_file.read_image(spider_utility.spider_filename(output_pow, id))
+            remove_line(pow)
+            pow = label_image(pow, defocus_arr[j], roo[:, 2:], ctf[:, 3], **extra)
+            ndimage_file.write_image(format_utility.add_prefix(output, 'stack'), pow, int(i))
     
     _logger.info("Completed")
     
 def remove_line(img):
     ''' Remove the line artifact in the center of the power spec
+    
+    877-242-7372
+    1446237624
     '''
     
     m = img.shape[0]/2
     b, e = m-3, m+4
     #idx = range(b-2,b) + range(e,e+2)
-    img[b:e, :] = img[e+5, :] #numpy.mean(img[idx, :], axis=0)
+    #img[b:e, :] = img[e+5, :] #numpy.mean(img[idx, :], axis=0)
     img[:, b:e] = img[:, e+5][:, numpy.newaxis] #numpy.mean(img[:, idx], axis=1)[:, numpy.newaxis]
     return img
-    
-def label_image(img, label, dpi=72):
+
+def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     ''' Create a labeled power spectra for display
     '''
     
     if pylab is None: return img
     fig = pylab.figure(dpi=dpi, facecolor='white')
     ax = pylab.axes(frameon=False)
+    newax = ax.twinx()
     
-    remove_line(img)
+    start = img.shape[0]*(8.0/pixel_diameter)
+    start = min_freq(ctf[start:])+start
+    mask = eman2_utility.model_circle(start, img.shape[0], img.shape[1])
+    sel = mask*-1+1
+    img[mask.astype(numpy.bool)] = numpy.mean(img[sel.astype(numpy.bool)])
     ax.imshow(img, cmap=pylab.cm.gray)
-    #ax.imshow(img[:, :img.shape[0]/2-2], cmap=pylab.cm.gray)
-    ax.text(3, 8, r'%d - %.2f - %.3f - %.2f'%(label[0], label[1], label[5], label[6]), color='white')
-    #ax.text(5, 30, r'%.3f'%(label[6]), color='white')
+    ax.text(3, 15, r'%d - %.2f (%.2f)'%(label[0], label[1], label[3]), color='white')  
+    
+    #freq = numpy.arange(len(roo))+len(roo)
+    #newax.plot(freq[start:], roo[start:, 1], c='w')
+    freq = numpy.arange(len(roo))[:len(roo)-start+1]
+    newax.plot(freq, ctf[start:][::-1], c='w')  
+    val = numpy.max(numpy.abs(ctf[start:]))*4
+    newax.set_ylim(-val, val)
+    
+    
     ax.get_xaxis().tick_bottom()
     ax.get_yaxis().tick_left()
     ax.axes.get_xaxis().set_visible(False)
     ax.axes.get_yaxis().set_visible(False)
+    newax.get_yaxis().tick_left()
+    newax.axes.get_yaxis().set_visible(False)
     pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
-    fig.canvas.draw()
-    data = numpy.fromstring(fig.canvas.tostring_rgb(), dtype=numpy.uint8, sep='')
-    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-    data = rgb2gray(data)
-    return data
+    
+    return plotting.save_as_image(fig)
 
-def rgb2gray(rgb):
-    r, g, b = numpy.rollaxis(rgb[...,:3], axis = -1)
-    return 0.299 * r + 0.587 * g + 0.114 * b
+def min_freq(roo):
+    '''
+    '''
+    
+    cut = numpy.median(numpy.abs(roo)) + analysis.robust_sigma(numpy.abs(roo))*2
+    sel = numpy.abs(roo) < cut
+    off = numpy.argwhere(sel).squeeze()[0]
+    return off
 
 def plot_scatter(output, x, x_label, y, y_label, dpi=72):
     ''' Plot a histogram of the distribution
@@ -971,15 +564,16 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Additional", "Options to customize defocus estimation", group_order=0,  id=__name__)
     group.add_option("",   disable_bin=False,                              help="Disable micrograph decimation")
     group.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
-    group.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"))
-    group.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"))
-    group.add_option("",   output_mic="",                                  help="Filename for output for decimated micrograph", gui=dict(filetype="save"))
+    group.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"), dependent=False)
+    group.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"), dependent=False)
+    group.add_option("",   output_mic="",                                  help="Filename for output for decimated micrograph", gui=dict(filetype="save"), dependent=False)
     group.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
     group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
     group.add_option("",   bin_micrograph=8.0,                             help="Number of times to decimate the micrograph")
+    group.add_option("",   summary=False,                                  help="Write out a summary for the power spectra")
     pgroup.add_option_group(group)
     
-    setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, mask_power_spec, for_window_in_micrograph
+    setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, for_window_in_micrograph
     if main_option:
         setup_options_from_doc(parser, spider.open_session)
         parser.change_default(thread_count=4, log_level=3, bin_factor=2)

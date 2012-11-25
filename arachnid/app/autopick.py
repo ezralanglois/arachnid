@@ -439,7 +439,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   disable_prune=False,         help="Disable bad particle removal")
     group.add_option("",   disable_threshold=False,     help="Disable noise thresholding")
     group.add_option("",   remove_aggregates=False,     help="Use difference of Gaussian to remove possible aggergates (only use this option if there are many)")
-    group.add_option("",   pca_mode=0.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
+    group.add_option("",   pca_mode=1.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
