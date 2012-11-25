@@ -23,6 +23,7 @@ except:
         _manifold;
     except:
         tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
+        _manifold = None
         
 def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     ''' Embed the sample data into a low dimensional manifold using the
@@ -94,6 +95,62 @@ def knn_reduce(dist2, k, mutual=False):
         col = col[:n]
         row = row[:n]
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=data.shape )
+
+def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
+    ''' Calculate k-nearest neighbors and store in a sparse matrix
+    in the COO format.
+    
+    :Parameters:
+    
+    samp : array
+           2D data array
+    k : int
+        Number of nearest neighbors
+    batch : int
+            Size of temporary distance matrix to hold in memory
+    
+    :Returns:
+    
+    dist2 : sparse array
+            Sparse distance matrix in COO format
+    '''
+    
+    if _manifold is None: raise ValueError('Failed to import manifold')
+    if samp.ndim != 2: raise ValueError('Expects 2D array')
+    if samp.shape[1] != 4: raise ValueError('Expects matrix of quaternions')
+    
+    k+=1
+    n = samp.shape[0]*k
+    nbatch = int(samp.shape[0]/float(batch))
+    batch = int(samp.shape[0]/float(nbatch))
+    data = numpy.empty(n, dtype=dtype)
+    col = numpy.empty(n, dtype=numpy.longlong)
+    dense = numpy.empty((batch,batch), dtype=dtype)
+    
+    gemm = scipy.linalg.fblas.dgemm
+    for r in xrange(0, samp.shape[0], batch):
+        for c in xrange(0, samp.shape[0], batch):
+            _logger.error("here1")
+            dist2 = gemm(-2.0, samp[r*batch:(r+1)*batch], samp[c*batch:(c+1)*batch], trans_b=True, beta=0, c=dense, overwrite_c=1).T
+            _logger.error("here2")
+            numpy.arccos(dist2, dist2)
+            _logger.error("here3")
+            dist2[numpy.logical_not(numpy.isfinite(dist2))]=numpy.pi
+            _logger.error("here4")
+            _manifold.push_to_heap(dist2, data[r*batch*k:], col[r*batch*k:], c, k)
+            _logger.error("here5")
+        _logger.error("here6")
+        _manifold.finalize_heap(data[r*batch*k:], col[r*batch*k:], k)
+        _logger.error("here7")
+        
+        #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
+        #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
+            
+    del dist2, dense
+    row = numpy.empty(n, dtype=numpy.longlong)
+    for r in xrange(samp.shape[0]):
+        row[r*k:(r+1)*k]=r
+    return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def knn(samp, k, batch=10000, dtype=numpy.float):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
