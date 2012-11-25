@@ -364,7 +364,7 @@ def get_refinement_start(alignment, refine_index=-1, output="", **extra):
             refine_index += 1
         refine_index -= 1
     elif refine_index > 0:
-        if os.path.exists(spider_utility.spider_filename(output, refine_index)):
+        if not os.path.exists(spider_utility.spider_filename(output, refine_index)):
             raise IOError, "Specified refinement file does not exist: %s"%spider_utility.spider_filename(output, refine_index+1)
     if refine_index == 0:
         if not os.path.exists(alignment):

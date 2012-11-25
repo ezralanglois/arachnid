@@ -352,7 +352,7 @@ def write_header(fout, values, factory=namedtuple_factory, **extra):
     
     header = factory.get_header(values, **extra)
     fout.write(";   ")
-    for h in header: fout.write(" "+h.rjust(11))
+    for h in header: fout.write("  "+h.rjust(11))
     fout.write("\n")
 
 def write_values(fout, values, factory=namedtuple_factory, header=None, write_offset=1, **extra):

@@ -504,7 +504,7 @@ def setup_nn4(image_size, npad=2, sym='c1', weighting=1):
     param = {"size":image_size, "npad":npad, "symmetry":sym, "weighting":weighting, "fftvol": fftvol, "weight": weight}
     r = EMAN2.Reconstructors.get("nn4", param)
     r.setup()
-    return (r, fftvol, weight), em2numpy(fftvol), em2numpy(weight)
+    return (r, fftvol, weight), em2numpy(fftvol), em2numpy(weight), image_size
 
 def backproject_nn4(img, align=None, recon=None, **extra):
     ''' Add the given image and alignment or generator of image/alignment pairs
@@ -543,7 +543,7 @@ def backproject_nn4(img, align=None, recon=None, **extra):
         recon[0][0].insert_slice(img, xform_proj)
     return recon
 
-def finalize_nn4(recon):
+def finalize_nn4(recon, recon2=None, npad=2, sym='c1', weighting=1):
     ''' Inverse Fourier transform the Fourier volume
     
     :Parameters:
@@ -556,6 +556,16 @@ def finalize_nn4(recon):
     vol : array
           Volume as a numpy array
     '''
+    
+    if recon2 is not None:
+        fftvol = recon[1]+recon2[1]
+        weight = recon[2]+recon2[2]
+        fftvol = numpy2em(fftvol)
+        weight = numpy2em(weight)
+        param = {"size":recon[3], "npad":npad, "symmetry":sym, "weighting":weighting, "fftvol": fftvol, "weight": weight}
+        r = EMAN2.Reconstructors.get("nn4", param)
+        r.setup()
+        return em2numpy(r.finish()).copy()
     
     return em2numpy(recon[0][0].finish()).copy()
 

@@ -120,7 +120,7 @@ def batch(files, output, data_ext, **extra):
     format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
 
-def create_alignment(files, sort_align=False, random_subset=0, **extra):
+def create_alignment(files, sort_align=False, random_subset=0, min_defocus=0, max_defocus=0, **extra):
     ''' Create empty (unaligned) alignment array
     
     :Parameters:
@@ -149,7 +149,7 @@ def create_alignment(files, sort_align=False, random_subset=0, **extra):
     align[:, 16] = label[:, 2]
     if len(defocus_file) > 0:
         align[:, 17] = [defocus_file.get(l[1], 0) for l in label]
-        align = align[align[:, 17] > 0]
+        align = align[numpy.logical_and(align[:, 17] > min_defocus, align[:, 17] < max_defocus)]
         if sort_align: align[:] = align[numpy.argsort(align[:, 17])].squeeze()
     if random_subset > 0:
         idx = numpy_ext.choice(numpy.arange(0, len(align)), random_subset, False)
@@ -320,6 +320,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
     pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   stack_header="id:0,stack_id:1,micrograph:3", help="Header labelling important columns in the defocus_file file")
+    pgroup.add_option("",   min_defocus=14000, help="Minimum defocus")
+    pgroup.add_option("",   max_defocus=50000, help="Maximum defocus")
     pgroup.add_option("",   random_subset=0,                help="Set of random subset of the given size")
     
     if main_option:
