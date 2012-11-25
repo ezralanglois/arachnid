@@ -587,6 +587,7 @@ class NumericProperty(Property):
         self.minimum = extended.editorHints["minimum"] if hasattr(extended, 'editorHints') and "minimum" in extended.editorHints else -sys.maxint
         self.maximum = extended.editorHints["maximum"] if hasattr(extended, 'editorHints') and "maximum" in extended.editorHints else sys.maxint
         _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.minimum)))
+        _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.maximum)))
         if self.value().type() == QtCore.QVariant.Int:
             self.singleStep = extended.editorHints["singleStep"] if hasattr(extended, 'editorHints') and "singleStep" in extended.editorHints else 1
         else:
