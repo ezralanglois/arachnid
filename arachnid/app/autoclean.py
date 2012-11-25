@@ -3,7 +3,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.image.ndplot import pylab
+#from ..core.image.ndplot import pylab
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, reconstruct
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, process_queue
@@ -44,32 +44,11 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     
     output = spider_utility.spider_filename(output, input_vals[0], id_len)
     data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
-    #data2 = data
-    #data2, mask = read_data(input_files, *input_vals[3:5], mask=mask, **extra)
-    #_logger.error("test: %s == %s"%(str(data.shape), str(data2.shape)))
-    #data2 = numpy.vstack((data, data2))
-    #_logger.error("test2: %s == %s"%(str(data.shape), str(data2.shape)))
-    ref = input_vals[3] if len(input_vals) > 3 else None
-    eigs, sel, energy = classify_data(data, ref, None, output=output, view=input_vals[0], **extra)
-    _logger.info("Testing cronbach's alpha")
-    test_cronbach_alpha(eigs, data, output)
-    #sel = numpy.zeros((len(data2)))
-    #sel[:len(data)]=1
+    eigs, sel, energy = classify_data(data, None, output=output, view=input_vals[0], **extra)
     
-    # Write 
-    if eigs.ndim == 1: eigs = eigs.reshape((eigs.shape[0], 1))
-    feat = numpy.hstack((sel[:, numpy.newaxis], eigs))
-    assert(feat.ndim > 1)
-    #header=[]
-    #for i in xrange(1, eigs.shape[1]+1): header.append('c%d'%i)
-    nexamples = data.shape[0] if hasattr(data, 'shape') else data[1][0]
-    label = numpy.zeros((nexamples, 2))
-    label[:, 0] = input_vals[0]
-    label[:, 1] = numpy.arange(1, nexamples+1)
-    format.write_dataset(os.path.splitext(output)[0]+".csv", feat, input_vals[0], label, prefix="embed_", header="best")
-    #format.write(os.path.splitext(output)[0]+".csv", feat, prefix="embed_", spiderid=input_vals[0], header=['select']+header)
+    write_dataset(output, eigs, sel, input_vals[0])
     
-    plot_examples(input_files, input_vals[1], output, eigs, sel, ref, **extra)
+    plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
     extra['poutput']=format_utility.new_filename(output, 'pos_') if write_view_stack == 1 or write_view_stack >= 3 else None
     extra['noutput']=format_utility.new_filename(output, 'neg_') if write_view_stack == 2 or write_view_stack == 3 else None
     if write_view_stack == 4: extra['noutput'] = extra['poutput']
@@ -82,7 +61,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
     return input_vals, eigs, sel, avg3[:3], energy, nfeat, numpy.min(eigs), numpy.max(eigs) #avg3[3], savg3[3]
 
-def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
+def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
     
     :Parameters:
@@ -126,60 +105,6 @@ def classify_data(data, ref, test=None, neig=1, thread_count=1, resample=0, samp
     
     assert(len(sel)==len(eigs))
     return eigs, sel, (energy, idx)
-
-def test_cronbach_alpha(eigs, data, output, **extra):
-    '''
-    '''
-    
-    data = process_queue.recreate_global_dense_matrix(data)
-    cent = numpy.median(eigs, axis=0)
-    eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    order = numpy.argsort(eig_dist_cent)
-    
-    n=5
-    dmcov = numpy.zeros(data.shape[0])
-    emcov = numpy.zeros(data.shape[0])
-    #lerr = numpy.zeros(data.shape[0])
-    if 1 == 1:
-        dneigh = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
-        eneigh = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
-        x = numpy.arange(data.shape[0])
-        for j in xrange(len(eigs)):
-            i = order[j]
-            emcov[j] = numpy.mean(eneigh[i, 1:])
-            dmcov[j] = numpy.mean(dneigh[i, 1:])
-            #lerr[j] = numpy.mean(numpy.polyfit(x[:j+1], emcov[:j+1], 1, full=True)[1][0])
-    else:
-        dneigh = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
-        eneigh = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
-        for j in xrange(len(eigs)):
-            i = order[j]
-            idx = eneigh[i, 1:]
-            r = numpy.mean(numpy.triu(numpy.corrcoef(eigs[idx]), 1))
-            k = idx.shape[0]
-            emcov[j] = (k*r) / (1+(k-1)*r)
-            
-            idx = dneigh[i, 1:]
-            r = numpy.mean(numpy.triu(numpy.corrcoef(data[idx]), 1))
-            k = idx.shape[0]
-            dmcov[j] = (k*r) / (1+(k-1)*r)
-    
-    x = numpy.arange(1, data.shape[0]+1)
-    pylab.clf()
-    pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
-    #pylab.plot(x, lerr, linestyle='None', marker='*', color='r')
-    pylab.savefig(format_utility.new_filename(output, "dcov_", ext="png"))
-    pylab.clf()
-    demcov = numpy.zeros(len(emcov))
-    demcov[1:] = numpy.diff(emcov)
-    d2emcov = numpy.zeros(len(demcov))
-    for i in xrange(1, len(demcov)-1):
-        d2emcov[i] = emcov[i+1] - 2*emcov[i] + emcov[i-1]
-    pylab.plot(x, emcov, linestyle='None', marker='+', color='g')
-    pylab.plot(x, demcov, linestyle='None', marker='o', color='r')
-    pylab.plot(x, d2emcov, linestyle='None', marker='x', color='b')
-    pylab.xlim([1200,1600])
-    pylab.savefig(format_utility.new_filename(output, "ecov_", ext="png"))
 
 def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -365,7 +290,6 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
-    if template is not None: img = shift(img, template, pixel_diameter/2)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     if not disable_bispec:
         ndimage_utility.normalize_standard(img, mask, var_one, img)
@@ -391,35 +315,10 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
         ndimage_utility.normalize_standard(img, None, var_one, img)
     elif use_radon:
-        img = frt2(img*mask)
+        img = ndimage_utility.frt2(img*mask)
     else:
         img = ndimage_utility.compress_image(img, mask)
     return img
-
-def shift(img, template, rad, shiftval=None):
-    ''' Shift an image to match the given template
-    
-    :Parameters:
-    
-    img : array
-          Image to shift
-    rad : pixel_radius
-           Search radius
-    template : array
-               Image to match
-    
-    :Returns:
-    
-    img : array
-          Shifted image
-    '''
-    
-    #cc_map = ndimage_utility.cross_correlate(img, template)
-    cc_map = ndimage_utility.cross_correlate(template, img)
-    y,x = numpy.unravel_index(numpy.argmax(cc_map*eman2_utility.model_circle(rad, cc_map.shape[0], cc_map.shape[1])), cc_map.shape)
-    if shiftval is not None:
-        shiftval[:] = (x-img.shape[0]/2,y-img.shape[1]/2)
-    return eman2_utility.fshift(img, x-img.shape[0]/2, y-img.shape[1]/2)
 
 def read_data(input_files, label, align, shift_data=0, **extra):
     ''' Read images from a file and transform into a matrix
@@ -490,11 +389,9 @@ def create_template(input_files, label, template, resolution, apix, hp_cutoff, p
            2D array image mask
     '''
     
-    rad = pixel_diameter/2
     avg2 = None
     for img2 in ndimage_file.iter_images(input_files, label):
         if avg2 is None: avg2 = numpy.zeros(img2.shape)
-        img2 = shift(img2, template, rad)
         avg2 += img2
     avg2 /= len(label)
     avg2 = eman2_utility.gaussian_low_pass(avg2, apix/resolution, True)
@@ -599,27 +496,9 @@ def read_alignment(files, alignment="", **extra):
     refs = numpy.unique(ref)
     
     group = []
-    if 1 == 0:
-        r = 0
-        start = numpy.zeros(len(ref), dtype=numpy.bool)
-        while r < len(refs):
-            total = 0
-            sel = start
-            while r < len(refs) and numpy.sum(sel) < 5000:
-                sel = numpy.logical_or(ref == refs[r], sel)
-                r+=1
-            group.append((r, label[sel], align[sel]))
-        _logger.info("Number of groups: %d"%len(group))
-    elif 1 == 1 and extra['local_neighbors'] > 0:
-        for r in refs[1:]:
-            sel = numpy.logical_or(r == ref, refs[0]==ref)
-            #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
-            group.append((r, label[sel], align[sel], ref[sel]))#, label[sel2], align[sel2]))
-    else:
-        for r in refs:
-            sel = r == ref
-            #sel2 = refs[0] == ref if r != refs[0] else refs[1] == ref
-            group.append((r, label[sel], align[sel]))#, label[sel2], align[sel2]))
+    for r in refs:
+        sel = r == ref
+        group.append((r, label[sel], align[sel]))
     return group, align
 
 def compute_average3(input_files, label, align, template=None, selected=None, mask=None, use_rtsq=False, sort_by=None, noutput=None, poutput=None, pixel_diameter=None, output=None, **extra):
@@ -667,7 +546,6 @@ def compute_average3(input_files, label, align, template=None, selected=None, ma
         if selected is not None:
             selected = selected[idx]
     
-    rad = pixel_diameter/2
     shiftval = numpy.zeros((label.shape[0], 2)) if template is not None else None
     avgsel, avgunsel = None, None
     cntsel  = numpy.sum(selected)
@@ -680,7 +558,6 @@ def compute_average3(input_files, label, align, template=None, selected=None, ma
         m = align[i, 1] > 179.999
         if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
         elif m:      img[:,:] = eman2_utility.mirror(img)
-        if template is not None: img = shift(img, template, rad, shiftval)
         idx = 1 if i%2==0 else 0
         if selected[i] > 0.5:
             avgsel[idx] += img
@@ -740,106 +617,6 @@ def compute_average3(input_files, label, align, template=None, selected=None, ma
         fsc_all = numpy.sum(numpy.abs(shiftval))/float(label.shape[0]) if shiftval is not None else 0
     return avgsel2, avgunsel2, avgful2 / (cntsel+cntunsel), fsc_all
 
-def frt2(a):
-    """Compute the 2-dimensional finite radon transform (FRT) for an n x n
-    integer array.
-    
-    x-axis : angle
-    
-    http://pydoc.net/scikits-image/0.4.2/skimage.transform.finite_radon_transform
-    """
-    
-    ndimage_utility.normalize_min_max(a, 0, 2048, a)
-    a = a.astype(numpy.int32)
-    
-    if a.ndim != 2 or a.shape[0] != a.shape[1]:
-        raise ValueError("Input must be a square, 2-D array")
- 
-    ai = a.copy()
-    n = ai.shape[0]
-    f = numpy.empty((n+1, n), numpy.uint32)
-    f[0] = ai.sum(axis=0)
-    for m in xrange(1, n):
-        # Roll the pth row of ai left by p places
-        for row in xrange(1, n):
-            ai[row] = numpy.roll(ai[row], -row)
-        f[m] = ai.sum(axis=0)
-    f[n] = ai.sum(axis=1)
-    return f
-
-def test_covariance(eigs, data, output, **extra):
-    '''
-    '''
-    
-    
-    data = process_queue.recreate_global_dense_matrix(data)
-    cent = numpy.median(eigs, axis=0)
-    eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    idx = numpy.argsort(eig_dist_cent)
-    
-    dmcov = numpy.zeros(data.shape[0])
-    emcov = numpy.zeros(data.shape[0])
-    if 1 == 1:
-        idx2 = numpy.arange(75, dtype=numpy.int)
-        idx2[25:] = numpy.arange(50, dtype=numpy.int)
-        for i in xrange(25, data.shape[0]-26):
-            dmcov[i] = numpy.mean(numpy.cov(data[idx[idx2]]))
-            emcov[i] = numpy.mean(numpy.cov(eigs[idx[idx2]]))
-            idx2[25:] += 1
-    elif 1 == 0:
-        dcov = numpy.cov(data)
-        ecov = numpy.cov(eigs)
-        for i in xrange(3, data.shape[0]):
-            dmcov[i] = numpy.mean(dcov[idx[:i], idx[:i, numpy.newaxis]])
-            emcov[i] = numpy.mean(ecov[idx[:i], idx[:i, numpy.newaxis]])
-    else:
-        n=60
-        if 1 == 1:
-            dcov = manifold.knn(data, n).col.reshape((data.shape[0], n+1))
-            ecov = manifold.knn(eigs, n).col.reshape((eigs.shape[0], n+1))
-            for i in xrange(25, data.shape[0]-26):
-                dmcov[i] = numpy.mean(dcov[idx[i-25:i+25]])
-                emcov[i] = numpy.mean(ecov[idx[i-25:i+25]])
-                #dmcov[i] = numpy.mean(numpy.std(data[dcov[idx[i-25:i+25]]], axis=0))
-                #emcov[i] = numpy.mean(numpy.std(eigs[ecov[idx[i-25:i+25]]], axis=0))
-        else:
-            dcov = manifold.knn(data, n).data.reshape((data.shape[0], n+1))
-            ecov = manifold.knn(eigs, n).data.reshape((eigs.shape[0], n+1))
-            for i in xrange(0, data.shape[0]):
-                dmcov[i] = numpy.mean(dcov[idx[:i]])
-                emcov[i] = numpy.mean(ecov[idx[:i]])
-    x = numpy.arange(1, data.shape[0]+1)
-    pylab.clf()
-    pylab.plot(x, dmcov, linestyle='None', marker='*', color='r')
-    pylab.savefig(format_utility.new_filename(output, "dcov_", ext="png"))
-    pylab.clf()
-    pylab.plot(x, emcov, linestyle='None', marker='+', color='g')
-    pylab.savefig(format_utility.new_filename(output, "ecov_", ext="png"))
-
-def test_variance(eigs, data, output, **extra):
-    '''
-    '''
-    
-    cent = numpy.median(eigs, axis=0)
-    eig_dist_cent = scipy.spatial.distance.cdist(eigs, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    idx = numpy.argsort(eig_dist_cent)
-    var = analysis.online_variance(data[idx], axis=0)
-    rvar = analysis.online_variance(data[idx[::-1]], axis=0)
-    mvar = numpy.mean(var, axis=1)
-    mrvar = numpy.mean(rvar, axis=1)
-    pylab.clf()
-    pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
-    pylab.savefig(format_utility.new_filename(output, "mvar_", ext="png"))
-    pylab.clf()
-    pylab.plot(numpy.arange(1, len(mrvar)+1), mrvar)
-    pylab.savefig(format_utility.new_filename(output, "mrvar_", ext="png"))
-    
-    th = analysis.otsu(eig_dist_cent)
-    pylab.clf()
-    n = pylab.hist(eig_dist_cent, bins=int(numpy.sqrt(len(mvar))))[0]
-    maxval = sorted(n)[-1]
-    pylab.plot((th, th), (0, maxval))
-    pylab.savefig(format_utility.new_filename(output, "den_", ext="png"))
     
 def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra):
     ''' Plot the manifold with example images
@@ -919,6 +696,17 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
                 iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
                 plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
     fig.savefig(format_utility.new_filename(output, "pos_", ext="png"), dpi=dpi)
+
+def write_dataset(output, eigs, sel, id):
+    '''
+    '''
+    
+    if eigs.ndim == 1: eigs = eigs.reshape((eigs.shape[0], 1))
+    feat = numpy.hstack((sel[:, numpy.newaxis], eigs))
+    label = numpy.zeros((len(eigs), 2))
+    label[:, 0] = id
+    label[:, 1] = numpy.arange(1, len(eigs)+1)
+    format.write_dataset(os.path.splitext(output)[0]+".csv", feat, id, label, prefix="embed_", header="best")
     
 ''''''
 def initialize(files, param):
@@ -1007,12 +795,16 @@ def finalize(files, total, sel_by_mic, output, global_label, global_feat, global
     # Finalize global parameters for the script
     
     if global_rank is not None:
-        idx = global_rank[0].ravel()
-        _logger.info("Reconstructing %d selected projections"%(idx.shape[0]))
-        reconstruct3(input_files[0], global_label[idx].copy(), global_align[idx].copy(), format_utility.add_prefix(output, "vol_sel_"))
-        idx = global_rank[1].ravel()
-        _logger.info("Reconstructing %d unselected projections"%(idx.shape[0]))
-        reconstruct3(input_files[0], global_label[idx].copy(), global_align[idx].copy(), format_utility.add_prefix(output, "vol_unsel_"))
+        idx1 = global_rank[0].ravel()
+        idx2 = global_rank[1].ravel()
+        idx1 = numpy.argsort(global_feat[:, 0])
+        idx2 = idx1[::-1]
+        idx1 = idx1[:5000]
+        idx2 = idx2[:5000]
+        _logger.info("Reconstructing %d selected projections"%(idx1.shape[0]))
+        reconstruct3(input_files[0], global_label[idx1].copy(), global_align[idx1].copy(), format_utility.add_prefix(output, "vol_sel_"))
+        _logger.info("Reconstructing %d unselected projections"%(idx2.shape[0]))
+        reconstruct3(input_files[0], global_label[idx2].copy(), global_align[idx2].copy(), format_utility.add_prefix(output, "vol_unsel_"))
         _logger.info("Reconstructing - finished")
     
     #plot_examples
