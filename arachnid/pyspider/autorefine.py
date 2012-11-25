@@ -195,7 +195,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
         #resolution_next = resolution_start*0.75 if (refine_index%2)==1 else resolution_start
-        extra['bin_factor'] = decimation_level(resolution_start, max_resolution, **param)
+        extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
         dec_level=extra['dec_level']
         param['bin_factor']=extra['bin_factor']
         extra.update(spider_params.update_params(**param))
@@ -209,15 +209,17 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         extra['min_resolution'] = resolution_start #filter_resolution(**param)
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next*0.75, max_resolution, **param), **extra)
+        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next, max_resolution, **param), **extra)
+        #resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next*0.75, max_resolution, **param), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            _logger.info("Refinement finished: %d. %f (%f)"%(refine_index+1, resolution_start, res_iteration[refine_index, 0]))
+            num_iter_unchanged = numpy.sum( (numpy.min(res_iteration[:, 0])-resolution_start)<0.5 )
+            _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
-            if refine_index > 0 and numpy.sum( (numpy.min(res_iteration[:, 0])-resolution_start)<0.5 ) > 1 and trans_range < 3:
+            if refine_index > 0 and num_iter_unchanged > 1 and trans_range < 3:
                 resolution_next = resolution_next*0.5
-            else: resolution_next = resolution_start*0.9
+            else: resolution_next = resolution_start*0.8
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
             extra['_resolution_next']=resolution_next
             #0 1
