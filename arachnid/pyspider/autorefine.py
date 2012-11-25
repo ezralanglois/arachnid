@@ -213,10 +213,10 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         #resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next*0.75, max_resolution, **param), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            num_iter_unchanged = numpy.sum( (numpy.min(res_iteration[:, 0])-resolution_start)<0.5 )
+            num_iter_unchanged = numpy.sum( (numpy.min(res_iteration[1:, 0])-resolution_start)<0.5 )
             _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
-            trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
+            trans_range = max(2, int(translation_range(alignvals, **extra)/extra['apix'])) #min(, param['trans_range'])
             if refine_index > 0 and num_iter_unchanged > 1 and trans_range < 3:
                 resolution_next = resolution_next*0.5
             else: resolution_next = resolution_start*0.8
@@ -329,7 +329,7 @@ def translation_range(alignvals, **extra):
     mtrans = numpy.median(t)
     #strans = numpy.std(t)
     strans = analysis.robust_sigma(t)
-    trans_range= max(1, int(mtrans+strans*4))
+    trans_range= int(mtrans+strans*4)
     if mpi_utility.is_root(**extra):
         _logger.info("Translation Range: %f -- Median: %f -- STD: %f"%(trans_range, mtrans, strans))
     return trans_range
