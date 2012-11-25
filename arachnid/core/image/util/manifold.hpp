@@ -1,5 +1,22 @@
 
 
+/*
+inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE transa, const enum CBLAS_TRANSPOSE transb, const int m, const int n, const int k, const float alpha, const float* A, const int lda, const float* B, const int ldb, const float beta, float* C, const int ldc)
+{
+	cblas_sgemm(order, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+}
+inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE transa, const enum CBLAS_TRANSPOSE transb, const int m, const int n, const int k, const double alpha, const double* A, const int lda, const double* B, const int ldb, const double beta, double* C, const int ldc)
+{
+	cblas_dgemm(order, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+}
+
+template<class T>
+void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* dist2, int n, int m, T alpha, T beta)
+{
+	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, cn, alpha, samp1, cn, samp2, cn, beta, dist2, n2);
+}
+*/
+
 template<class I, class T>
 void knn_reduce(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, int d, int k)
 {
@@ -80,7 +97,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<nc;++r)
+	for(int r=0;r<n;++r)
 	{
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
