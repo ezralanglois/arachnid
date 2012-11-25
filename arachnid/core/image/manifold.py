@@ -130,18 +130,14 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
     gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
         for c in xrange(0, samp.shape[0], batch):
-            _logger.error("here1")
-            dist2 = gemm(-2.0, samp[r*batch:(r+1)*batch], samp[c*batch:(c+1)*batch], trans_b=True, beta=0, c=dense, overwrite_c=1).T
-            _logger.error("here2")
+            s1 = samp[r:r+batch]
+            s2 = samp[c:c+batch]
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             numpy.arccos(dist2, dist2)
-            _logger.error("here3")
-            dist2[numpy.logical_not(numpy.isfinite(dist2))]=numpy.pi
-            _logger.error("here4")
-            _manifold.push_to_heap(dist2, data[r*batch*k:], col[r*batch*k:], c, k)
-            _logger.error("here5")
-        _logger.error("here6")
-        _manifold.finalize_heap(data[r*batch*k:], col[r*batch*k:], k)
-        _logger.error("here7")
+            #dist2.ravel()[numpy.logical_not(numpy.isfinite(dist2.ravel()))]=numpy.pi
+            _manifold.push_to_heap(dist2, data[r*k:], col[r*k:], c/batch, k)
+        _manifold.finalize_heap(data[r*k:], col[r*k:], k)
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
