@@ -143,10 +143,12 @@ void finalize_heap(T* data, int nd, I* col_ind, int nc, int k)
 	index_vector vheap(k);
 #endif
 
+	int e = nd/k;
+
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<nc;++r)
+	for(int r=0;r<e;++r)
 	{
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg;

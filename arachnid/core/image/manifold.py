@@ -127,7 +127,6 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
     col = numpy.empty(n, dtype=numpy.longlong)
     dense = numpy.empty((batch,batch), dtype=dtype)
     
-    _logger.error("here0: %d"%(samp.shape[0])) 
     gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
         for c in xrange(0, samp.shape[0], batch):
@@ -138,9 +137,7 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
             numpy.arccos(dist2, dist2)
             #dist2.ravel()[numpy.logical_not(numpy.isfinite(dist2.ravel()))]=numpy.pi
             _manifold.push_to_heap(dist2, data[r*k:], col[r*k:], c/batch, k)
-        _logger.error("here1: %d %d"%(r, samp.shape[0])) 
         _manifold.finalize_heap(data[r*k:], col[r*k:], k)
-        _logger.error("here2: %d %d"%(r, samp.shape[0])) 
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
