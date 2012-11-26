@@ -2,6 +2,9 @@
 .. Created on Sep 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+import matplotlib
+matplotlib.use("Agg")
+
 from ..core.app.program import run_hybrid_program
 #from ..core.image.ndplot import pylab
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, reconstruct
@@ -54,7 +57,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     avg3.append( comput_average(input_files, input_vals[1], input_vals[2], subset=sel, **extra) )
     avg3.append( comput_average(input_files, input_vals[1], input_vals[2], subset=numpy.logical_not(sel), **extra) )
     
-    return input_vals, eigs, sel, avg3[:3], "Energy: %f"%(energy)
+    return input_vals, eigs, sel, avg3[:3], "Energy: %f - Num Eigen: %d"%energy
 
 def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
