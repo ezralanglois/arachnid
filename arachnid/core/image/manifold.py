@@ -130,28 +130,26 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
     gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
         for c in xrange(0, samp.shape[0], batch):
-            s1 = samp[r:r+batch]
-            s2 = samp[c:c+batch]
+            s1 = samp[r:min(r+batch, samp.shape[0])]
+            s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
             dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             numpy.arccos(dist2, dist2)
             #dist2.ravel()[numpy.logical_not(numpy.isfinite(dist2.ravel()))]=numpy.pi
-            _manifold.push_to_heap(dist2, data[r*k:], col[r*k:], c/batch, k)
-        _manifold.finalize_heap(data[r*k:], col[r*k:], k)
+            s = r/batch*k
+            _manifold.push_to_heap(dist2, data[s:], col[s:], c/batch, k)
+        s, e = r/batch*k, (r+1)/batch*k
+        _manifold.finalize_heap(data[s:e], col[s:e], k)
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
             
-    _logger.error("here1") 
     del dist2
-    _logger.error("here2") 
     del dense
-    _logger.error("here3") 
     row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
         tmp[r, :]=r
-    _logger.error("here4") 
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def knn(samp, k, batch=10000, dtype=numpy.float):
@@ -185,21 +183,24 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
         for c in xrange(0, samp.shape[0], batch):
-            s1 = samp[r:r+batch]
-            s2 = samp[c:c+batch]
+            s1 = samp[r:min(r+batch, samp.shape[0])]
+            s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
             dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2 += a[r:r+batch, numpy.newaxis]
             dist2 += a[c:c+batch]
-            _manifold.push_to_heap(dist2, data[r*k:], col[r*batch*k:], c/batch, k)
-        _manifold.finalize_heap(data[r*k:], col[r*k:], k)
+            s = r/batch*k
+            _manifold.push_to_heap(dist2, data[s:], col[s:], c/batch, k)
+        s, e = r/batch*k, (r+1)/batch*k
+        _manifold.finalize_heap(data[s:e], col[s:e], k)
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
     del dense
     row = numpy.empty(n, dtype=numpy.longlong)
+    tmp = row.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
-        row[r*k:(r+1)*k]=r
+        tmp[r, :]=r
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def euclidean_distance2(X, Y):

@@ -143,7 +143,7 @@ void finalize_heap(T* data, int nd, I* col_ind, int nc, int k)
 	index_vector vheap(k);
 #endif
 
-	int e = nd/k;
+	I e = I(T(nd)/k);
 
 #	if defined(_OPENMP)
 #	pragma omp parallel for
