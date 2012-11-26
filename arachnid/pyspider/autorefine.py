@@ -135,7 +135,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     assert(alignvals.shape[1]==18)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))
-    if mpi_utility.is_root(**extra): refine.setup_log(output)
+    if mpi_utility.is_root(**extra): refine.setup_log(output, [_logger])
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
