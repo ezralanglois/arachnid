@@ -213,7 +213,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         #resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next*0.75, max_resolution, **param), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            num_iter_unchanged = numpy.sum( (numpy.min(res_iteration[1:refine_index+1, 0])-resolution_start)<0.5 )
+            num_iter_unchanged = numpy.sum((res_iteration[1:refine_index+1, 0]-resolution_start)<0.5)
             _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = max(2, int(translation_range(alignvals, **extra)/extra['apix'])) #min(, param['trans_range'])
