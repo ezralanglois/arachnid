@@ -15,7 +15,7 @@ import numpy, scipy, math, logging, scipy.ndimage
 import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
-import eman2_utility
+#import eman2_utility
 '''
 try: 
     from scipy.signal import find_peaks_cwt
@@ -501,7 +501,7 @@ def powerspec_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
-        img = eman2_utility.ramp(img)
+        #img = eman2_utility.ramp(img)
         img = img.copy()
         img -= img.min()
         img /= img.max()
