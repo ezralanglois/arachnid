@@ -8,7 +8,7 @@ from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility,
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, process_queue
 from ..core.image import manifold
-from arachnid.core.util import plotting, fitting
+from arachnid.core.util import plotting #, fitting
 import logging, numpy, os, scipy,itertools
 
 _logger = logging.getLogger(__name__)
@@ -48,9 +48,12 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     
     write_dataset(output, eigs, sel, input_vals[0])
     
-    #plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
+    plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
     
-    nfeat = data.shape[1] if hasattr(data, 'shape') else data[1][1]
+    avg3 = []
+    avg3.append( comput_average(input_files, input_vals[1], input_vals[2], subset=sel, **extra) )
+    avg3.append( comput_average(input_files, input_vals[1], input_vals[2], subset=numpy.logical_not(sel), **extra) )
+    
     return input_vals, eigs, sel, avg3[:3], "Energy: %f"%(energy)
 
 def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
@@ -77,7 +80,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
           1D array of selected images
     '''
     
-    from sklearn import mixture
+    #from sklearn import mixture
     
     train = process_queue.recreate_global_dense_matrix(data)
     test = train
@@ -115,6 +118,7 @@ def comput_average(input_files, label, align, subset=None, use_rtsq=False, **ext
     
     avg = None
     for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
+        m = align[i, 1] > 179.999
         if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
         elif m:      img[:,:] = eman2_utility.mirror(img)
         if avg is None: avg = numpy.zeros(img.shape)
@@ -309,6 +313,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         else:
             img = img[idx[:, numpy.newaxis], idx]
             img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
+        #numpy.log10(img, img)
         ndimage_utility.normalize_standard(img, None, var_one, img)
     elif use_radon:
         img = ndimage_utility.frt2(img*mask)
