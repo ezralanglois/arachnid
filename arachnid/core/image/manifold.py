@@ -175,6 +175,7 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     col = numpy.empty(n, dtype=numpy.longlong)
     dense = numpy.empty((batch,batch), dtype=dtype)
     
+    _logger.error("here0: %d"%(samp.shape[0])) 
     gemm = scipy.linalg.fblas.dgemm
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
@@ -186,15 +187,18 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
             dist2 += a[r:r+batch, numpy.newaxis]
             dist2 += a[c:c+batch]
             _manifold.push_to_heap(dist2, data[r*k:], col[r*batch*k:], c/batch, k)
+        _logger.error("here1: %d %d"%(r, samp.shape[0])) 
         _manifold.finalize_heap(data[r*k:], col[r*k:], k)
+        _logger.error("here2: %d %d"%(r, samp.shape[0])) 
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
-            
-    del dist2, dense
+    _logger.error("here1") 
+    del dense
     row = numpy.empty(n, dtype=numpy.longlong)
     for r in xrange(samp.shape[0]):
         row[r*k:(r+1)*k]=r
+    _logger.error("here2") 
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def euclidean_distance2(X, Y):
