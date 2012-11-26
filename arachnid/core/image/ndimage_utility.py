@@ -81,6 +81,43 @@ def find_peaks(cc, width):
     return numpy.hstack((ccv[:, numpy.newaxis], peaks))
 """
 
+def frt2(a):
+    """Compute the 2-dimensional finite radon transform (FRT) for an n x n
+    integer array.
+    
+    .. note::
+        
+        http://pydoc.net/scikits-image/0.4.2/skimage.transform.finite_radon_transform
+    
+    :Parameters:
+    
+    a : array
+        Input image
+    
+    :Returns:
+    
+    out : array
+          Discreet radon transform
+    """
+    
+    normalize_min_max(a, 0, 2048, a)
+    a = a.astype(numpy.int32)
+    
+    if a.ndim != 2 or a.shape[0] != a.shape[1]:
+        raise ValueError("Input must be a square, 2-D array")
+ 
+    ai = a.copy()
+    n = ai.shape[0]
+    f = numpy.empty((n+1, n), numpy.uint32)
+    f[0] = ai.sum(axis=0)
+    for m in xrange(1, n):
+        # Roll the pth row of ai left by p places
+        for row in xrange(1, n):
+            ai[row] = numpy.roll(ai[row], -row)
+        f[m] = ai.sum(axis=0)
+    f[n] = ai.sum(axis=1)
+    return f
+
 def rotavg(img, out=None):
     ''' Create a 2D rotational average of the given image
     
