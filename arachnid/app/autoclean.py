@@ -625,7 +625,7 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, sele
     
     input, eigs, sel, avg3, msg = val
     label = input[1]
-    index = input[2]
+    index = input[3]
     selected[index] = sel
     file_completed -= 1
     total[file_completed, 0] = input[0]
