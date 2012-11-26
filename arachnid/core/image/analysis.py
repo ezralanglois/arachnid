@@ -22,7 +22,7 @@ def robust_rejection(data, nsigma=2.67):
     m = numpy.median(data)
     s = robust_sigma(data)
     
-    return m+s*nsigma
+    return data < m+s*nsigma
 
 def robust_sigma(in_y, zero=0):
    """
