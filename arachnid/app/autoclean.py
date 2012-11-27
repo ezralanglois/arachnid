@@ -81,14 +81,18 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
            2D array of embedded images
     sel : array
           1D array of selected images
-    '''
-    
+    '''    
     #from sklearn import mixture
     
     train = process_queue.recreate_global_dense_matrix(data)
     test = train
     eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
     sel = one_class_classification(eigs)
+    
+    if 1 == 1:
+        feat = manifold.diffusion_maps(train, 2, 20, True)
+        eigs = numpy.hstack((eigs, feat))
+    
     return eigs, sel, (energy, idx)
 
 def one_class_classification(feat):
@@ -308,15 +312,18 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         
         idx = numpy.argwhere(numpy.logical_and(freq >= hp_cutoff, freq <= apix/resolution))
         if bispec_mode == 1: 
-            img = img.real
+            img = numpy.log10(numpy.abs(img.real))
             img = img[idx[:, numpy.newaxis], idx]
         elif bispec_mode == 2: 
             img = numpy.mod(numpy.angle(img), 2*numpy.pi) #img.imag
             img = img[idx[:, numpy.newaxis], idx]
         else:
             img = img[idx[:, numpy.newaxis], idx]
-            img = numpy.hstack((img.real.ravel()[:, numpy.newaxis], img.imag.ravel()[:, numpy.newaxis]))
-        #numpy.log10(img, img)
+            sel = img.real < 0
+            amp = numpy.log10(numpy.abs(img).real)
+            img.imag[sel] = numpy.pi-img.imag[sel]
+            pha = numpy.mod(numpy.angle(img), 2*numpy.pi)
+            img = numpy.hstack((amp[:, numpy.newaxis], pha[:, numpy.newaxis]))
         ndimage_utility.normalize_standard(img, None, var_one, img)
     elif use_radon:
         img = ndimage_utility.frt2(img*mask)
