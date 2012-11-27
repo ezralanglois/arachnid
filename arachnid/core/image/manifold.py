@@ -23,6 +23,7 @@ except:
         _manifold;
     except:
         tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
+        _manifold = None
         
 def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     ''' Embed the sample data into a low dimensional manifold using the
@@ -165,6 +166,62 @@ def local_neighbor_average(samp, neigh):
         b=e
     return avgsamp
 
+def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
+    ''' Calculate k-nearest neighbors and store in a sparse matrix
+    in the COO format.
+    
+    :Parameters:
+    
+    samp : array
+           2D data array
+    k : int
+        Number of nearest neighbors
+    batch : int
+            Size of temporary distance matrix to hold in memory
+    
+    :Returns:
+    
+    dist2 : sparse array
+            Sparse distance matrix in COO format
+    '''
+    
+    if _manifold is None: raise ValueError('Failed to import manifold')
+    if samp.ndim != 2: raise ValueError('Expects 2D array')
+    if samp.shape[1] != 4: raise ValueError('Expects matrix of quaternions')
+    
+    k+=1
+    n = samp.shape[0]*k
+    nbatch = int(samp.shape[0]/float(batch))
+    batch = int(samp.shape[0]/float(nbatch))
+    data = numpy.empty(n, dtype=dtype)
+    col = numpy.empty(n, dtype=numpy.longlong)
+    dense = numpy.empty((batch,batch), dtype=dtype)
+    
+    gemm = scipy.linalg.fblas.dgemm
+    for r in xrange(0, samp.shape[0], batch):
+        for c in xrange(0, samp.shape[0], batch):
+            s1 = samp[r:min(r+batch, samp.shape[0])]
+            s2 = samp[c:min(c+batch, samp.shape[0])]
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
+            numpy.arccos(dist2, dist2)
+            #dist2.ravel()[numpy.logical_not(numpy.isfinite(dist2.ravel()))]=numpy.pi
+            s = r/batch*k
+            _manifold.push_to_heap(dist2, data[s:], col[s:], c/batch, k)
+        s, e = r/batch*k, (r+1)/batch*k
+        _manifold.finalize_heap(data[s:e], col[s:e], k)
+        
+        #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
+        #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
+            
+    del dist2
+    del dense
+    row = numpy.empty(n, dtype=numpy.longlong)
+    tmp = row.reshape((samp.shape[0], k))
+    for r in xrange(samp.shape[0]):
+        tmp[r, :]=r
+    return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
+
 def knn(samp, k, batch=10000, dtype=numpy.float):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
@@ -195,19 +252,22 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     gemm = scipy.linalg.fblas.dgemm
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
-        offset=r*batch*k
+        beg=r/batch*k
+        end=(r+1)/batch*k
         for c in xrange(0, samp.shape[0], batch):
-            dist2 = gemm(-2.0, samp[r*batch:(r+1)*batch], samp[c*batch:(c+1)*batch], trans_b=True, beta=0, c=dense, overwrite_c=1).T
+            s1 = samp[r:min(r+batch, samp.shape[0])]
+            s2 = samp[c:min(c+batch, samp.shape[0])]
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2 += a[r:r+batch, numpy.newaxis]
             dist2 += a[c:c+batch]
-            _manifold.push_to_heap(dist2, data[offset:offset+batch], col[offset:offset+batch], c, k)
-        _manifold.finalize_heap(data[offset:offset+batch], col[offset:offset+batch], k)
-    
-    dist2=None
-    del dense
+            _manifold.push_to_heap(dist2, data[beg:], col[beg:], c/batch, k)
+        _manifold.finalize_heap(data[beg:end], col[beg:end], k)
+    del dist2, dense
     row = numpy.empty(n, dtype=numpy.longlong)
+    tmp = row.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
-        row[r*k:(r+1)*k]=r
+        tmp[r, :]=r
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def euclidean_distance2(X, Y):

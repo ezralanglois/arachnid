@@ -176,7 +176,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
           Current SPIDER session
     outputfile : str
                  Filename for output resolution file (also masks `res_mh1_$outputfile` and `res_mh2_$outputfile` and resolution image `plot_$outputfile.png`)
-    resolution_mask : str
+    resolution_mask : infile
                       Spherical mask: Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filepath for external mask
     res_edge_width : int
                      Spherical mask: Set edge with of the mask (for Gaussian this is the half-width)
