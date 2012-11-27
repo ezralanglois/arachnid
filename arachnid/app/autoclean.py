@@ -656,7 +656,7 @@ def reconstruct3(image_file, label, align, output):
     ndimage_file.write_image(format_utility.add_prefix(output, "even_"), vol_even)
     ndimage_file.write_image(format_utility.add_prefix(output, "odd_"), vol_odd)
 
-def finalize(files, total, sel_by_mic, output, input_files, selected, align, alignheader, **extra):
+def finalize(files, total, sel_by_mic, output, input_files, selected, alignment, alignheader, **extra):
     # Finalize global parameters for the script
     
     '''
@@ -674,8 +674,8 @@ def finalize(files, total, sel_by_mic, output, input_files, selected, align, ali
         _logger.info("Reconstructing - finished")
     '''
     
-    format.write(output, align[selected], prefix="sel_align_", default_format=format.spiderdoc, header=alignheader)
-    format.write(output, align[numpy.logical_not(selected)], prefix="unsel_align_", default_format=format.spiderdoc, header=alignheader)
+    format.write(output, alignment[selected], prefix="sel_align_", default_format=format.spiderdoc, header=alignheader)
+    format.write(output, alignment[numpy.logical_not(selected)], prefix="unsel_align_", default_format=format.spiderdoc, header=alignheader)
     format.write(output, total, prefix="sel_avg_", header=['id', 'selected', 'total'], default_format=format.spiderdoc)
     for id, sel in sel_by_mic.iteritems():
         sel = numpy.asarray(sel)
