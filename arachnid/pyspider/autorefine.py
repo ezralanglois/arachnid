@@ -194,39 +194,31 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['_resolution_next']=resolution_next
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
-        #resolution_next = resolution_start*0.75 if (refine_index%2)==1 else resolution_start
-        extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
-        dec_level=extra['dec_level']
-        param['bin_factor']=extra['bin_factor']
+        param['bin_factor']=extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
         extra.update(spider_params.update_params(**param))
-        extra['dec_level']=dec_level
-        param['bin_factor']=1.0
-        extra.update(spider.scale_parameters(**extra))
+        extra.update(spider.scale_parameters(**param))
          
         extra['theta_delta'] = theta_delta_est(resolution_next, **extra)
         if extra['theta_delta'] > 7.9: extra['angle_range'] = 0
-        extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
-        extra['min_resolution'] = resolution_start #filter_resolution(**param)
+        #extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
+        extra['min_resolution'] = resolution_start
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next, max_resolution, **param), **extra)
+        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=param['bin_factor'], **extra)
         #resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next*0.75, max_resolution, **param), **extra)
         mpi_utility.barrier(**extra)
         if mpi_utility.is_root(**extra): 
-            num_iter_unchanged = numpy.sum((res_iteration[1:refine_index+1, 0]-resolution_start)<0.5)
+            num_iter_unchanged = numpy.sum((res_iteration[1:refine_index+1, 0]-resolution_start)<resolution_start/30)
             _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
-            trans_range = max(2, int(translation_range(alignvals, **extra)/extra['apix'])) #min(, param['trans_range'])
+            trans_range = int(translation_range(alignvals, **extra)/extra['apix']*param['apix']) #min(, param['trans_range'])
             if refine_index > 0 and num_iter_unchanged > 1 and trans_range < 3:
                 resolution_next = resolution_next*0.5
             else: resolution_next = resolution_start*0.8
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
             extra['_resolution_next']=resolution_next
-            #0 1
-            #1 2
-            #2 3
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
-        extra['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
+        param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
         extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
         resolution_next = mpi_utility.broadcast(resolution_next, **extra)
