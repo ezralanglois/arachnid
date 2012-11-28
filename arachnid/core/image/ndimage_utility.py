@@ -581,6 +581,33 @@ def moving_average(img, window=3, out=None):
         return out
     b = rolling_window(img, window)
     avg = b.mean(axis=-1)
+    out[off:len(img)-off] -= avg
+    out[:off] -= avg[0]
+    out[off:] -= avg[len(avg)-1]
+    return out
+
+def moving_minimum(img, window=3, out=None):
+    ''' Estimate a moving average with a uniform distribution and given window size
+    
+    :Parameters:
+    
+    img : array
+          1-D rotational average
+    window : int
+             Window size
+    out : array, optional
+          Output array
+    
+    :Returns:
+    
+    out : array, optional
+          Output array
+    '''
+    
+    if out is None: out = img.copy()
+    off = int(window/2.0)
+    b = rolling_window(img, window)
+    avg = b.mean(axis=1)
     out[off:len(img)-off] = avg
     out[:off] = avg[0]
     out[off:] = avg[len(avg)-1]
