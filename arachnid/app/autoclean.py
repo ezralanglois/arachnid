@@ -318,11 +318,15 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             img = numpy.mod(numpy.angle(img), 2*numpy.pi) #img.imag
             img = img[idx[:, numpy.newaxis], idx]
         else:
-            img = img[idx[:, numpy.newaxis], idx]
-            sel = img.real < 0
-            amp = numpy.log10(numpy.abs(img).real)
-            img.imag[sel] = numpy.pi-img.imag[sel]
-            pha = numpy.mod(numpy.angle(img), 2*numpy.pi)
+            if 1 == 0:
+                img = img[idx[:, numpy.newaxis], idx]
+                sel = img.real < 0
+                amp = numpy.log10(numpy.abs(img).real)
+                img.imag[sel] = numpy.pi-img.imag[sel]
+                pha = numpy.mod(numpy.angle(img), 2*numpy.pi)
+            else:
+                amp = img.real
+                pha = img.imag
             img = numpy.hstack((amp[:, numpy.newaxis], pha[:, numpy.newaxis]))
         ndimage_utility.normalize_standard(img, None, var_one, img)
     elif use_radon:
