@@ -197,7 +197,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         param['bin_factor']=extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
         extra.update(spider_params.update_params(**param))
         extra.update(spider.scale_parameters(**param))
-         
+        
+        extra['trans_range'] = max(extra['trans_range'], 2)
         extra['theta_delta'] = theta_delta_est(resolution_next, **extra)
         if extra['theta_delta'] > 7.9: extra['angle_range'] = 0
         #extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
