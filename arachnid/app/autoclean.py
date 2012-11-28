@@ -90,7 +90,11 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     sel = one_class_classification(eigs)
     
     if 1 == 1:
-        feat = manifold.diffusion_maps(train, 2, 20, False)
+        feat, evals, index = manifold.diffusion_maps(train, 2, 20, False)
+        if index is not None:
+            feat_old = feat
+            feat = numpy.zeros((train.shape[0], feat.shape[1]))
+            feat[index] = feat_old
         eigs = numpy.hstack((eigs, feat))
     
     return eigs, sel, (energy, idx)
