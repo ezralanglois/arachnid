@@ -203,11 +203,8 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
             s1 = samp[r:min(r+batch, samp.shape[0])]
             s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
-            _logger.error("s1=%f"%numpy.sum(s1))
             dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
-            _logger.error("dist1=%f"%numpy.sum(dist2))
             numpy.arccos(dist2, dist2)
-            _logger.error("dist2=%f"%numpy.sum(dist2))
             #dist2.ravel()[numpy.logical_not(numpy.isfinite(dist2.ravel()))]=numpy.pi
             s = r/batch*k
             _manifold.push_to_heap(dist2, data[s:], col[s:], c/batch, k)

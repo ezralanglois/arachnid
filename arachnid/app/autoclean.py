@@ -47,7 +47,8 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     
     output = spider_utility.spider_filename(output, input_vals[0], id_len)
     data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
-    eigs, sel, energy = classify_data(data, None, output=output, view=input_vals[0], **extra)
+    udata = read_data(input_files, *input_vals[1:3], unaligned=True, **extra)[0]
+    eigs, sel, energy = classify_data(data, udata, output=output, view=input_vals[0], **extra)
     
     write_dataset(output, eigs, sel, input_vals[0])
     
@@ -85,8 +86,13 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     #from sklearn import mixture
     
     train = process_queue.recreate_global_dense_matrix(data)
-    test = train
-    eigs, idx, vec, energy = analysis.pca(train, test, neig, test.mean(axis=0))
+    if test is not None:
+        test = process_queue.recreate_global_dense_matrix(test)
+        eigs_tst, idx, vec, energy = analysis.pca(train, test, neig, train.mean(axis=0))
+    else:
+        test = train
+        eigs_tst = None
+    eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
     sel = one_class_classification(eigs)
     
     if 1 == 1:
@@ -95,7 +101,10 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
             feat_old = feat
             feat = numpy.zeros((train.shape[0], feat.shape[1]))
             feat[index] = feat_old
-        eigs = numpy.hstack((eigs, feat))
+        if eigs_tst is not None:
+            eigs = numpy.hstack((eigs, eigs_tst, eigs-eigs_tst, feat))
+        else:
+            eigs = numpy.hstack((eigs, feat))
     
     return eigs, sel, (energy, idx)
 
@@ -244,7 +253,7 @@ def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sam
 
 
 
-def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
+def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, unaligned=False, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
     
     .. todo:: add ctf correction
@@ -293,9 +302,13 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
     var_one=True
     freq=None
     align = align[idx]
-    m = align[1] > 179.9999 if not flip_mirror else align[1] < 179.9999
-    if use_rtsq: img = eman2_utility.rot_shift2D(img, align[5], align[6], align[7], m)
-    elif m:      img = eman2_utility.mirror(img)
+    if unaligned:
+        if not use_rtsq:
+            img = eman2_utility.rot_shift2D(img, -align[5], 0, 0, 0)
+    else:
+        m = align[1] > 179.9999 if not flip_mirror else align[1] < 179.9999
+        if use_rtsq: img = eman2_utility.rot_shift2D(img, align[5], align[6], align[7], m)
+        elif m:      img = eman2_utility.mirror(img)
     if disable_bispec:
         img = eman2_utility.gaussian_high_pass(img, hp_cutoff, True)
     
@@ -472,7 +485,7 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
     if eigs.ndim == 1: return
     if eigs.shape[1] == 1: return
     filename = filename[0]
-    image_size=0.4
+    image_size=0.2
     radius=20
     
     
@@ -528,6 +541,29 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
                 iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
                 plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
     fig.savefig(format_utility.new_filename(output, "pos_", ext="png"), dpi=dpi)
+    
+    plot_embedded(eigs[:, 2], eigs[:, 3], "unaligned", label, filename, output, image_size, radius, ref, dpi)
+    plot_embedded(eigs[:, 4], eigs[:, 5], "diff", label, filename, output, image_size, radius, ref, dpi)
+    plot_embedded(eigs[:, 6], eigs[:, 7], "man", label, filename, output, image_size, radius, ref, dpi)
+    
+def plot_embedded(x, y, title, label, filename, output, image_size, radius, ref=None, dpi=72, select=None):
+    '''
+    '''
+    
+    xs = x[select] if select is not None else x
+    ys = y[select] if select is not None else y
+    fig, ax = plotting.plot_embedding(x, y, select, ref, dpi=dpi)
+    vals = plotting.nonoverlapping_subset(ax, xs, ys, radius, 100)
+    if len(vals) > 0:
+        try:
+            index = select[vals].ravel() if select is not None else vals
+        except:
+            _logger.error("%d-%d | %d"%(numpy.min(vals), numpy.max(vals), len(select)))
+        else:
+            if index.shape[0] > 1:
+                iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
+                plotting.plot_images(fig, iter_single_images, x[index], y[index], image_size, radius)
+    fig.savefig(format_utility.new_filename(output, title, ext="png"), dpi=dpi)
 
 def write_dataset(output, eigs, sel, id):
     '''
