@@ -3024,7 +3024,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     max_radius = int(window/2.0)
     param = {}
     factor = dec_level/bin_factor
-    param['trans_range']=max(2, int(trans_range*factor)) if trans_range > 1 else trans_range
+    param['trans_range']=max(2, int(trans_range*factor))
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
         if param['trans_range'] > 1:
