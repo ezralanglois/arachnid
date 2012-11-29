@@ -199,17 +199,31 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
     
     gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
+        rnext = min(r+batch, samp.shape[0])
+        beg, end = r*k, rnext*k
         for c in xrange(0, samp.shape[0], batch):
-            s1 = samp[r:min(r+batch, samp.shape[0])]
+            s1 = samp[r:rnext]
             s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
             dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
+            
+            dist2[dist2>1.0]=1.0
+            if 1 == 0:
+                #unravel_index(a.argmax(), a.shape)
+                idx = numpy.unravel_index(numpy.argmax(dist2), dist2.shape)
+                _logger.error("Bad0: %s\n%s"%(str(s1[idx[0]]), str(s2[idx[1]])))
+                _logger.error("Bad0b: %f"%(dist2[idx[0], idx[1]]))
+                
+                _logger.error("Bad1: %d"%numpy.sum(numpy.abs(dist2.ravel()) > 1.0))
+            
+            
             numpy.arccos(dist2, dist2)
+            
+            
+            #_logger.error("Bad2: %d"%numpy.sum(numpy.logical_not(numpy.isfinite(dist2.ravel()))))
             #dist2.ravel()[numpy.logical_not(numpy.isfinite(dist2.ravel()))]=numpy.pi
-            s = r/batch*k
-            _manifold.push_to_heap(dist2, data[s:], col[s:], c/batch, k)
-        s, e = r/batch*k, (r+1)/batch*k
-        _manifold.finalize_heap(data[s:e], col[s:e], k)
+            _manifold.push_to_heap(dist2, data[beg:], col[beg:], c/batch, k)
+        _manifold.finalize_heap(data[beg:end], col[beg:end], k)
         
         #csamp2 = csamp2.reshape((counts[i], samp.shape[1]))
         #tdist2 = tdist[:samp.shape[0]*csamp2.shape[0]].reshape((csamp2.shape[0], samp.shape[0]))
@@ -252,10 +266,10 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     gemm = scipy.linalg.fblas.dgemm
     a = (samp**2).sum(axis=1)
     for r in xrange(0, samp.shape[0], batch):
-        beg=r/batch*k
-        end=(r+1)/batch*k
+        rnext = min(r+batch, samp.shape[0])
+        beg, end = r*k, rnext*k
         for c in xrange(0, samp.shape[0], batch):
-            s1 = samp[r:min(r+batch, samp.shape[0])]
+            s1 = samp[r:rnext]
             s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
             dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
