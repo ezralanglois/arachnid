@@ -3020,7 +3020,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             Dictionary of updated parameters
     '''
     
-    if dec_level == bin_factor: return {}
+    if dec_level == bin_factor and bin_factor != 1.0: return {}
     max_radius = int(window/2.0)
     param = {}
     factor = dec_level/bin_factor
