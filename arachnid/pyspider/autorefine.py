@@ -215,8 +215,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
             b = decimation_level(resolution_next*0.8, max_resolution, **param)
             if refine_index > 0 and num_iter_unchanged > 1 and (trans_range/b) < 3:
-                resolution_next = resolution_next*0.8
-            else: resolution_next = resolution_start*0.8
+                resolution_next = resolution_next*0.9
+            else: resolution_next = resolution_start #*0.8
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
             extra['_resolution_next']=resolution_next
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
