@@ -186,7 +186,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             res_iteration = numpy.zeros((num_iterations+1, 4))
             resolution_next=resolution_start
         _logger.info("Starting refinement from %d iteration with resolution: %f - translation: %d - angle range: %d - min-bin: %d"%(refine_index, resolution_start, extra['trans_range'], extra['angle_range'], param['min_bin_factor']))
-    extra['trans_range'] = mpi_utility.broadcast(extra['trans_range'], **extra)
+    param['trans_range'] = mpi_utility.broadcast(extra['trans_range'], **extra)
     extra['angle_range'] = mpi_utility.broadcast(extra['angle_range'] , **extra)
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
     resolution_next = mpi_utility.broadcast(resolution_next, **extra)
