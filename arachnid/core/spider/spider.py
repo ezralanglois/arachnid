@@ -3021,21 +3021,37 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     '''
     
     if dec_level == bin_factor and bin_factor != 1.0: return {}
-    max_radius = int(window/2.0)
-    param = {}
     factor = dec_level/bin_factor
+    window=int(window*factor)
+    max_radius = int(window/2.0)
+    
+    param = {}
+    param['dec_level'] = bin_factor
+    param['width'] = int(extra['width']*factor)
+    param['height'] = int(extra['height']*factor)
+    param['apix'] = extra['apix']/factor
+    param['maxfreq'] = extra['maxfreq']*factor
+    param['window'] = window
+    param['pixel_diameter'] = int(extra['pixel_diameter']*factor)
+    
+    _logger.error("trans_range=%d"%trans_range)
     param['trans_range']=max(2, int(trans_range*factor))
+    _logger.error("trans_range-2=%d"%trans_range)
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
         if param['trans_range'] > 1:
             param['trans_range'] = max(1, max_radius - param['ring_last'] - 3)
         if (max_radius - param['ring_last'] - param['trans_range']) < 3:
             param['ring_last'] = max(2, max_radius - param['trans_range'] - 3)
+    _logger.error("trans_range-3=%d"%trans_range)
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     if param['trans_range'] > trans_max:
         param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
         param['trans_range'] = min(2, param['trans_step']*trans_max)
     else: param['trans_step'] = 1
+    _logger.error("trans_range-4=%d"%trans_range)
+    assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
+    _logger.error("Trans: %d - max_radius: %d - ring_last: %d - window: %d"%(param['trans_range'], max_radius, param['ring_last'], window))
     #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
     if first_ring > 1: param['first_ring']=max(1, int(first_ring*factor))
     if ring_step > 1: param['ring_step']=max(1, int(ring_step*factor))
