@@ -46,8 +46,11 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     '''
     
     output = spider_utility.spider_filename(output, input_vals[0], id_len)
-    data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
-    udata = read_data(input_files, *input_vals[1:3], unaligned=True, **extra)[0]
+    if 1 == 1:
+        udata, mask, avg, template = read_data(input_files, *input_vals[1:3], unaligned=True, **extra)
+        data = read_data(input_files, *input_vals[1:3], mask=mask, **extra)[0]
+    else:
+        data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
     eigs, sel, energy = classify_data(data, udata, output=output, view=input_vals[0], **extra)
     
     write_dataset(output, eigs, sel, input_vals[0])
@@ -95,7 +98,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
     sel = one_class_classification(eigs)
     
-    if 1 == 0:
+    if 1 == 1:
         feat, evals, index = manifold.diffusion_maps(train, 2, 20, False)
         if index is not None:
             feat_old = feat
@@ -128,7 +131,7 @@ def one_class_classification(feat):
     feat = feat.copy()
     cent = numpy.median(feat, axis=0)
     dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    sel = analysis.robust_rejection(dist_cent)
+    sel = analysis.robust_rejection(dist_cent, 2)
     return sel
 
 def comput_average(input_files, label, align, subset=None, use_rtsq=False, **extra):
@@ -253,8 +256,6 @@ def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sam
         if iter > 1: _logger.info("Selected: %d - %f"%(numpy.sum(sel), energy))
         assert(eigs.shape[0]==test.shape[0])
     return eigs, sel, (energy, idx)
-
-
 
 def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, unaligned=False, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
@@ -390,6 +391,14 @@ def read_data(input_files, label, align, shift_data=0, **extra):
         if shift_data > 0:
             if bin_factor > 1: extra['template'] = eman2_utility.decimate(template, bin_factor)
         else: extra['template']=None
+    else:
+        mask = extra['mask']
+        resolution = extra['resolution']
+        apix = extra['apix']
+        bin_factor = min(8, resolution / (apix*2) ) if resolution > (apix*2) else 1.0
+        if bin_factor > 1: extra['mask'] = eman2_utility.decimate(extra['mask'], bin_factor)
+        average=None
+        template=None
     data = ndimage_file.read_image_mat(input_files, label, image_transform, shared=True, align=align, **extra)
     mat = process_queue.recreate_global_dense_matrix(data)
     mat -= mat.min(axis=0)
@@ -489,7 +498,7 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
     if eigs.shape[1] == 1: return
     filename = filename[0]
     image_size=0.4
-    radius=60
+    radius=40
     
     
     select = numpy.argwhere(sel < 0.5)
