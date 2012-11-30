@@ -313,8 +313,6 @@ def pca(trn, tst=None, frac=-1, mtrn=None):
     use_svd=True
     if mtrn is None: mtrn = trn.mean(axis=0)
     trn = trn - mtrn
-    if tst is None: tst = trn
-    else: tst = tst - mtrn
 
     if use_svd:
         U, d, V = scipy.linalg.svd(trn, False)
@@ -336,7 +334,17 @@ def pca(trn, tst=None, frac=-1, mtrn=None):
     else: idx = d.shape[0]
     #_logger.error("pca: %s -- %s"%(str(V.shape), str(idx)))
     if idx >= len(d): idx = 1
-    val = d[:idx]*numpy.dot(V[:idx], tst.T).T
+    
+    if isinstance(tst, tuple):
+        val = []
+        for t in tst:
+            t = t - mtrn
+            val.append(d[:idx]*numpy.dot(V[:idx], tst.T).T)
+        val = tuple(val)
+    else:
+        if tst is None: tst = trn
+        else: tst = tst - mtrn
+        val = d[:idx]*numpy.dot(V[:idx], tst.T).T
     #_logger.error("pca2: %s -- %s"%(str(V.shape), str(tst.shape)))
     return val, idx, V[:idx], numpy.sum(t[:idx])
 
