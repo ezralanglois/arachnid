@@ -95,7 +95,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
     sel = one_class_classification(eigs)
     
-    if 1 == 1:
+    if 1 == 0:
         feat, evals, index = manifold.diffusion_maps(train, 2, 20, False)
         if index is not None:
             feat_old = feat
@@ -105,6 +105,9 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
             eigs = numpy.hstack((eigs, eigs_tst, eigs-eigs_tst, feat))
         else:
             eigs = numpy.hstack((eigs, feat))
+    else:
+        if eigs_tst is not None:
+            eigs = numpy.hstack((eigs, eigs_tst, eigs-eigs_tst))
     
     return eigs, sel, (energy, idx)
 
@@ -542,9 +545,12 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
                 plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
     fig.savefig(format_utility.new_filename(output, "pos_", ext="png"), dpi=dpi)
     
-    plot_embedded(eigs[:, 2], eigs[:, 3], "unaligned", label, filename, output, image_size, radius, ref, dpi)
-    plot_embedded(eigs[:, 4], eigs[:, 5], "diff", label, filename, output, image_size, radius, ref, dpi)
-    plot_embedded(eigs[:, 6], eigs[:, 7], "man", label, filename, output, image_size, radius, ref, dpi)
+    if eigs.shape[1] > 3:
+        plot_embedded(eigs[:, 2], eigs[:, 3], "unaligned", label, filename, output, image_size, radius, ref, dpi)
+    if eigs.shape[1] > 5:
+        plot_embedded(eigs[:, 4], eigs[:, 5], "diff", label, filename, output, image_size, radius, ref, dpi)
+    if eigs.shape[1] > 7:
+        plot_embedded(eigs[:, 6], eigs[:, 7], "man", label, filename, output, image_size, radius, ref, dpi)
     
 def plot_embedded(x, y, title, label, filename, output, image_size, radius, ref=None, dpi=72, select=None):
     '''
