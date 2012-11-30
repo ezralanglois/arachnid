@@ -107,9 +107,10 @@ class Session(object):
             _logger.debug("Using spider: %s"%self.spiderexec)
         if not os.path.exists(self.spiderexec): raise ValueError, "Cannot find spider executable: "+self.spiderexec
         self.get_version(tmp_path)
+        assert(len(self.dataext)==3)
         if rank == 0:
             _logger.info("SPIDER Version = %d.%d"%self.version)
-        
+        _logger.warn("Using command: %s"%self.spiderexec)
         if os.path.exists(os.path.join(os.path.dirname(self.spiderexec), 'Nextresults')):
             os.environ['SPBIN_DIR'] = os.path.dirname(self.spiderexec) + os.sep
             _logger.debug("SPBIN_DIR = %s"%os.environ['SPBIN_DIR'])
@@ -134,6 +135,7 @@ class Session(object):
             self.spider_err = tempfile.NamedTemporaryFile(prefix='SPIDER_ERR_%d'%rank, dir=tmp_path, delete=True)
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=self.spider_err.fileno()) #stdout=subprocess.PIPE
         else:
+            #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             self.spider_err = self.spider.stderr
         self.spider_proc = len(Session.PROCESSES)
@@ -171,6 +173,9 @@ class Session(object):
         '''
         '''
         
+        _logger.warn("Using command: %s"%self.spiderexec)
+        _logger.warn("Using ext: %s"%self.dataext)
+        assert(len(self.dataext)==3)
         try: self.close()
         except: pass
         
@@ -179,6 +184,7 @@ class Session(object):
             except: pass
         os.mkfifo(self.pipename)
         self.spider = subprocess.Popen(self.spiderexec, cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         self.spider_err = self.spider.stderr
         if self.spider_proc is None:
             Session.PROCESSES.append(self.spider)
@@ -227,6 +233,7 @@ class Session(object):
         
         if self.version is None:
             if tmp_path == "": tmp_path = None
+            #spider_version = subprocess.Popen([self.spiderexec, "spi/dat"], cwd=tmp_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             spider_version = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             spider_version.stdin.write('tmp\n')
             spider_version.stdin.write('en d\n')

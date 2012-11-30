@@ -311,12 +311,18 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
         _logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
+    
     if spider.count_images(spi, flip_stack) != len(align):
-        _logger.error("flip: %d == %d"%(spider.count_images(spi, flip_stack), len(align)))
-    if spider.count_images(spi, input_stack) != len(align):
-        _logger.error("input: %d == %d"%(spider.count_images(spi, input_stack), len(align)))
-    assert(spider.count_images(spi, flip_stack) == len(align))
-    assert(spider.count_images(spi, input_stack) == len(align))
+        _logger.warn("Rerunning phase flip: %s"%mpi_utility.hostname())
+        spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
+    
+    if 1 == 0:
+        if spider.count_images(spi, flip_stack) != len(align):
+            _logger.error("flip: %d == %d"%(spider.count_images(spi, flip_stack), len(align)))
+        if spider.count_images(spi, input_stack) != len(align):
+            _logger.error("input: %d == %d"%(spider.count_images(spi, input_stack), len(align)))
+        assert(spider.count_images(spi, flip_stack) == len(align))
+        assert(spider.count_images(spi, input_stack) == len(align))
 
 def reconstruct_classify(spi, align, curr_slice, output, target_bin=None, **extra):
     ''' Classify a set of projections and reconstruct a volume with the given alignment values

@@ -194,6 +194,7 @@ def process(filename, output, id_len=0, **extra):
     try:
         ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
     except spider.SpiderCrashed:
+        _logger.warn("SPIDER crashed - attempting to restart")
         extra['spi'].relaunch()
         ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
     except:
@@ -296,8 +297,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
             rwin = ndimage_utility.rolling_window(mic, (window_size, window_size), (step, step))
             rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
         npowerspec = ndimage_utility.powerspec_avg(rwin, pad)
-        
-        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
+        mpowerspec = npowerspec.copy()
         #power_spec = spi.cp(output_pow)
         #spi.du(power_spec, 4, 3)
         
@@ -305,10 +305,12 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
         mask = eman2_utility.model_circle(npowerspec.shape[0]*(4.0/extra['pixel_diameter']), npowerspec.shape[0], npowerspec.shape[1])
         sel = mask*-1+1
         npowerspec[mask.astype(numpy.bool)] = numpy.mean(npowerspec[sel.astype(numpy.bool)])
-        
-        assert(output_pow != "" and output_pow is not None)
         ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
         power_spec = spi.cp(output_pow)
+        
+        
+        assert(output_pow != "" and output_pow is not None)
+        ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec)
     else:
         power_spec = spi.cp(filename)
         npowerspec = ndimage_file.read_image(spi.replace_ext(filename))
@@ -389,6 +391,32 @@ def initialize(files, param):
     if len(files) > 1 and param['worker_count'] > 1: 
         param['spi'].close()
         param['spi'] = None
+        
+    if mpi_utility.is_root(**param):
+        try:
+            defvals = format.read(param['output'], numeric=True)
+        except:
+            param['output_offset']=0
+        else:
+            _logger.info("Restarting from defocus file")
+            newvals = []
+            if param['use_powerspec']:
+                newvals = defvals
+                defvals = format_utility.map_object_list(defvals)
+                oldfiles = list(files)
+                files = []
+                for f in oldfiles:
+                    if spider_utility.spider_id(f, param['id_len']) not in defvals:
+                        files.append(f)
+                _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
+            else:
+                ids = set([spider_utility.spider_id(f, param['id_len']) for f in files])
+                for d in defvals:
+                    if d.id not in ids:
+                        newvals.append(d)
+            if len(newvals) > 0:
+                format.write(param['output'], newvals, default_format=format.spiderdoc)
+            param['output_offset']=len(newvals)
     
     if mpi_utility.is_root(**param):
         param['defocus_arr'] = numpy.zeros((len(files), 5))
@@ -419,8 +447,8 @@ def init_process(input_files, rank=0, **extra):
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
 
-def reduce_all(filename, file_completed, file_count, output, defocus_arr, **extra):
-    # Process each input file in the main thread (for multi-threaded code)
+def reduce_all(filename, file_completed, file_count, output, defocus_arr, output_offset=0, **extra):
+    # Process each input file in the main thread (for multi-threaded code) 38.25 - 3:45
     
     filename, defocus_vals = filename
     try:
@@ -429,7 +457,7 @@ def reduce_all(filename, file_completed, file_count, output, defocus_arr, **extr
         _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
         raise
     format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
-                 header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
+                 header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if (file_completed+output_offset) > 1 else 'w', write_offset=file_completed+output_offset)
     _logger.info("Finished processing: %s - %d of %d"%(os.path.basename(filename), file_completed, file_count))
     return filename
 
@@ -588,7 +616,7 @@ def check_options(options, main_option=False):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
         for f in options.input_files:
             if not ndimage_file.is_readable(f): 
-                raise OptionValueError, "Unrecognized image format for input-file: %s"%f
+                raise OptionValueError, "Unrecognized image format for input-file: %s \n Check if you have permission to access this file and this file is in an acceptable format"%f
         if ndimage_file.is_spider_format(options.input_files[0]) and options.data_ext == "":
             raise OptionValueError, "You must set --data-ext when the input file is not in SPIDER format"
 
