@@ -10,6 +10,7 @@ custom wrapped fortran functions (taken from SPIDER).
 '''
 from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
+import eman2_utility
 import analysis
 import numpy, scipy, math, logging, scipy.ndimage
 import scipy.fftpack, scipy.signal
@@ -537,7 +538,7 @@ def powerspec_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
-        #img = ramp(img)
+        img = eman2_utility.ramp(img)
         img = img.copy()
         img -= img.min()
         img /= img.max()
