@@ -574,14 +574,15 @@ def moving_average(img, window=3, out=None):
     
     if out is None: out = img.copy()
     off = int(window/2.0)
-    if 1 == 1:
+    if 1 == 0:
         weightings = numpy.ones(window)
         weightings /= weightings.sum()
         out[off:len(img)-off]=numpy.convolve(img, weightings)[window-1:-(window-1)]
         return out
     b = rolling_window(img, window)
     avg = b.mean(axis=-1)
-    out[off:len(img)-off] -= avg
+    #avg = b.min(axis=-1)
+    out[off:len(img)-off] = avg
     out[:off] -= avg[0]
     out[off:] -= avg[len(avg)-1]
     return out
