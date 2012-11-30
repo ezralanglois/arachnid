@@ -247,9 +247,15 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             ch.setLevel(level)
         root.setLevel(level)
     
-    if rank == 0:
-        for errormsg in _log_import_errors:
-            logging.warn(errormsg)
+    if rank == 0: print_import_warnings()
+
+def print_import_warnings():
+    '''
+    '''
+    
+    for errormsg in _log_import_errors:
+        logging.warn(errormsg)
+    
 '''   
 def archive(parser, archives, archive_path, config_file, **extra):
     
