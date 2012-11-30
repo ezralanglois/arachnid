@@ -93,6 +93,8 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     if supports_OMP and openmp.get_max_threads() > 1:
         if param['thread_count'] > 0:
             openmp.set_thread_count(param['thread_count'])
+        elif 'worker_count' in param and param['worker_count'] > 1:
+            openmp.set_thread_count(0)
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
     try:
         if main_template is not None: main_template.main(args, main_module, **param)
@@ -408,10 +410,10 @@ def setup_program_options(parser, main_template, supports_MPI=False, supports_OM
     if supports_MPI and mpi_utility.supports_MPI():
         group = settings.OptionGroup(parser, "MPI", "Options to control MPI",  id=__name__, dependent=False)
         group.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
-        group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
-        group.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"))
-        group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
-        group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"))
+        group.add_option("",   shared_scratch="",      help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"), dependent=False)
+        group.add_option("",   home_prefix="",         help="File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="open"), dependent=False)
+        group.add_option("",   local_scratch="",       help="File directory on local node to copy files (optional but recommended for MPI jobs)", gui=dict(filetype="save"), dependent=False)
+        group.add_option("",   local_temp="",          help="File directory on local node for temporary files (optional but recommended for MPI jobs)", gui=dict(filetype="save"), dependent=False)
         gen_group.add_option_group(group)
     if supports_OMP:# and openmp.get_max_threads() > 1:
         prg_group.add_option("-t",   thread_count=0, help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
