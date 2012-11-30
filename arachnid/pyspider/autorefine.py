@@ -212,11 +212,11 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             num_iter_unchanged = numpy.sum((res_iteration[1:refine_index+1, 0]-resolution_start)<resolution_start/30)
             _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
-            trans_range = int(translation_range(alignvals, **extra)/extra['apix']) #min(, param['trans_range'])
-            b = decimation_level(resolution_next*0.8, max_resolution, **param)
+            trans_range = int(translation_range(alignvals, param['apix'], **extra)) #min(, param['trans_range'])
+            b = decimation_level(resolution_next*0.9, max_resolution, **param)
             if refine_index > 0 and num_iter_unchanged > 1 and (trans_range/b) < 3:
                 resolution_next = resolution_next*0.9
-            else: resolution_next = resolution_start #*0.8
+            else: resolution_next = resolution_start*0.8
             res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
             extra['_resolution_next']=resolution_next
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
@@ -305,7 +305,7 @@ def ensure_translation_range(window, ring_last, trans_range, **extra):
         return spider.max_translation_range(window, ring_last)
     return trans_range
     
-def translation_range(alignvals, **extra):
+def translation_range(alignvals, apix2, **extra):
     ''' Estimate the tail of the translation distribution
     
     :Parameters:
@@ -319,7 +319,7 @@ def translation_range(alignvals, **extra):
             New translation range
     '''
     
-    t = numpy.abs(alignvals[:, 12:14].ravel())
+    t = numpy.abs(alignvals[:, 12:14].ravel())/apix2
     mtrans = numpy.median(t)
     #strans = numpy.std(t)
     strans = analysis.robust_sigma(t)
