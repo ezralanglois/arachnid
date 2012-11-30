@@ -312,7 +312,8 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     if os.path.exists(noise_file):
         _logger.warn("Found cached noise file: %s - delete if you want to regenerate"%noise_file)
         if ndimage_file is not None:
-            return ndimage_file.read_image(noise)
+            img = ndimage_file.read_image(noise_file)
+            return eman2_utility.numpy2em(img)
         return image_reader.read_image(noise_file)
     mic = read_micrograph(filename, **extra)
     rad, offset = init_param(**extra)[:2]
@@ -439,7 +440,7 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
             _logger.debug("Removing outlier pixels")
             win = ndimage_utility.replace_outlier(win, clamp_window)
         if win.get_attr("minimum") == win.get_attr("maximum"): return win
-        if noise_win: 
+        if noise_win is not None: 
             _logger.debug("Improving contrast with histogram fitting: (%f,%f,%f,%f) (%f,%f,%f,%f)"%(win.get_attr("mean"), win.get_attr("sigma"), win.get_attr("minimum"), win.get_attr("maximum"), noise_win.get_attr("mean"), noise_win.get_attr("sigma"), noise_win.get_attr("minimum"), noise_win.get_attr("maximum")))
             win = eman2_utility.histfit(win, mask, noise_win)
         if not disable_normalize and norm_mask is not None:
