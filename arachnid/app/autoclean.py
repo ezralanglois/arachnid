@@ -488,8 +488,8 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
     if eigs.ndim == 1: return
     if eigs.shape[1] == 1: return
     filename = filename[0]
-    image_size=0.2
-    radius=20
+    image_size=0.4
+    radius=60
     
     
     select = numpy.argwhere(sel < 0.5)
