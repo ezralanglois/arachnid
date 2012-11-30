@@ -497,6 +497,8 @@ def write(filename, values, mode='w', **extra):
            Path to file created by this function
     '''
     
+    if len(values) == 0: raise ValueError, "Nothing to write - array has length 0"
+    
     format = get_format_by_ext(filename, **extra)
     filename, fout = open_file(filename, mode=mode, **extra)
     if hasattr(values, 'shape'):

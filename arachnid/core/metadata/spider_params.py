@@ -176,7 +176,7 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
             Unused extra keyword arguments
     '''
     
-    if dec_level == bin_factor: return {}
+    if dec_level == bin_factor and bin_factor != 1.0: return {}
     if bin_factor >= 1.0:
         factor = dec_level/bin_factor
     else: 

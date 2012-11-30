@@ -7,10 +7,15 @@ try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 except:
     print "Cannot import offset, upgrade matplotlib"
+from ..image import analysis
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
-from ..image import analysis
-import numpy, pylab, logging
+import numpy, logging
+
+try:
+    import pylab
+    pylab;
+except: pylab=None
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

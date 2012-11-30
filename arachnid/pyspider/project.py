@@ -273,6 +273,8 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             Unused keyword arguments
     '''
     
+    if extra['worker_count'] > 1 and extra['thread_count'] == 0: extra['thread_count']=1
+    
     data_ext = ext
     if ext[0] != '.': ext = '.'+ext
     else: data_ext = ext[1:]
