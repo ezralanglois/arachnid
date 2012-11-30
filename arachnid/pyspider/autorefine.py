@@ -170,7 +170,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['trans_step']=1
     #theta_prev = None
     extra['trans_max']=7
-    extra['trans_range'] = ensure_translation_range(**extra)
+    param['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
     resolution_next=None
@@ -181,12 +181,12 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             res_iteration = numpy.zeros((num_iterations+1, 4))
             tmp = numpy.loadtxt(resolution_file, delimiter=",")
             res_iteration[:tmp.shape[0]]=tmp
-            resolution_start, extra['trans_range'], extra['angle_range'], resolution_next  = res_iteration[refine_index]
+            resolution_start, param['trans_range'], extra['angle_range'], resolution_next  = res_iteration[refine_index]
         else:
             res_iteration = numpy.zeros((num_iterations+1, 4))
             resolution_next=resolution_start
         _logger.info("Starting refinement from %d iteration with resolution: %f - translation: %d - angle range: %d - min-bin: %d"%(refine_index, resolution_start, extra['trans_range'], extra['angle_range'], param['min_bin_factor']))
-    param['trans_range'] = mpi_utility.broadcast(extra['trans_range'], **extra)
+    param['trans_range'] = mpi_utility.broadcast(param['trans_range'], **extra)
     extra['angle_range'] = mpi_utility.broadcast(extra['angle_range'] , **extra)
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
     resolution_next = mpi_utility.broadcast(resolution_next, **extra)
@@ -195,7 +195,6 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
     for refine_index in xrange(refine_index, num_iterations):
         param['bin_factor']=extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
-        extra.update(spider_params.update_params(**param))
         extra.update(spider.scale_parameters(**param))
         
         extra['trans_range'] = max(extra['trans_range'], 2)
@@ -212,7 +211,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             num_iter_unchanged = numpy.sum((res_iteration[1:refine_index+1, 0]-resolution_start)<resolution_start/30)
             _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
-            trans_range = int(translation_range(alignvals, param['apix'], **extra)) #min(, param['trans_range'])
+            trans_range = int(translation_range(alignvals, param['apix'], **extra))
             b = decimation_level(resolution_next*0.9, max_resolution, **param)
             if refine_index > 0 and num_iter_unchanged > 1 and (trans_range/b) < 3:
                 resolution_next = resolution_next*0.9
