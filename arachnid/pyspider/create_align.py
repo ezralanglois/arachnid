@@ -7,7 +7,7 @@ Tips
 ====
 
  #. For a single stack, use `--stack-select` to assign the micrograph and stack_id number. This
-    is especially important when assigning defocus_file to each projection.
+    is especially important when assigning defocus to each projection.
  
  #. If the filename value for `--select-file` has a number before the extension (is
     a valid SPIDER filename), e.g. select_01.spi, then the filename is treated as
@@ -15,7 +15,7 @@ Tips
     a selection file over the full stack (for single stack) or micrograph selection
     file for multiple-stacks.
 
- #. Any projection with defocus_file 0 or not found in the defocus_file file will be automatically
+ #. Any projection with defocus 0 or not found in the defocus file will be automatically
     skipped.
 
 Examples
@@ -27,10 +27,10 @@ Examples
     
     $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
-    # Create an 'empty' alignment file (i.e. rotation values 0) with defocus_file values from a
+    # Create an 'empty' alignment file (i.e. rotation values 0) with defocus values from a
     # set of stacks
     
-    $ spi-create-align stack_*.spi -o align.spi --defocus_file defocus_file.spi
+    $ spi-create-align stack_*.spi -o align.spi --defocus-file defocus_file.spi
     
 Critical Options
 ================
@@ -51,11 +51,11 @@ Critical Options
 Useful Options
 ==============
 
-.. option:: -d <FILENAME>, --defocus_file <FILENAME>
+.. option:: -d <FILENAME>, --defocus-file <FILENAME>
     
-    Filename for the defocus_file values for each micrograph
+    Filename for the defocus values for each micrograph
 
-.. option:: --defocus_file-header <STR>
+.. option:: --defocus-file-header <STR>
     
     Header labelling important columns in the `defocus_file` file (Default: id:0,defocus_file:1)
 
@@ -117,7 +117,7 @@ def batch(files, output, data_ext, **extra):
     alignvals = create_alignment(files, **extra)
     output = os.path.splitext(output)[0]
     if data_ext != "" and data_ext[0] != '.': output+='.'
-    format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus_file".split(','), format=format.spiderdoc) 
+    format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
 
 def create_alignment(files, sort_align=False, random_subset=0, min_defocus=0, max_defocus=0, **extra):
@@ -128,7 +128,7 @@ def create_alignment(files, sort_align=False, random_subset=0, min_defocus=0, ma
     files : list
             List of input files
     sort_align : bool
-                 Sort the alignment file by defocus_file
+                 Sort the alignment file by defocus
     random_subset : int
                     Size of random subset
     extra : dict
@@ -266,8 +266,8 @@ def create_stack_label(files, stack_select, stack_header, **extra):
         label[:, 0] = numpy.arange(1, len(label)+1)
     return label
 
-def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1", data_ext="", **extra):
-    '''Parsing a selection that maps each micrograph to its defocus_file
+def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus:1", data_ext="", **extra):
+    '''Parsing a selection that maps each micrograph to its defocus
     
     .. Order=-1
     
@@ -299,7 +299,7 @@ def read_defocus_file(defocus_file="", defocus_file_header="id:0,defocus_file:1"
     defocus_file_dict = format_utility.map_object_list(defocus_file_dict)
     for key in defocus_file_dict.iterkeys():
         try:
-            defocus_file_dict[key] = defocus_file_dict[key].defocus_file
+            defocus_file_dict[key] = defocus_file_dict[key].defocus
         except:
             _logger.error("Unexpected defocus_file error: %s - %s - %s"%(str(key), str(defocus_file_dict[key]._fields), str(defocus_file_header)))
             raise
@@ -315,7 +315,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("",   data_ext="spi",              help="SPIDER extension for data files")
     pgroup.add_option("-d", defocus_file ="",                help="Filename for the defocus_file values for each micrograph", gui=dict(filetype="open"), required_file=False)
-    pgroup.add_option("",   defocus_file_header="id:0,defocus_file:1", help="Header labelling important columns in the `defocus_file` file")
+    pgroup.add_option("",   defocus_file_header="id:0,defocus:1", help="Header labelling important columns in the `defocus_file` file")
     pgroup.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   select_header="",                help="Header labelling important columns in the `select-file`")
     pgroup.add_option("",   stack_select ="",                help="Filename with micrograph and stack_id labels for a single full stack", gui=dict(filetype="open"), required_file=False)
