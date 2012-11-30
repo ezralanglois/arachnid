@@ -322,7 +322,7 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_in
     else: spider.throttle_mp(spi, **extra)
     return None
 
-def setup_log(output):
+def setup_log(output, loggers=[]):
     ''' Setup the refinement progress log file
     
     :Parameters:
@@ -335,6 +335,8 @@ def setup_log(output):
     tracing.backup(log_file)
     ch = logging.FileHandler(log_file, mode='a')
     _logger.addHandler(ch)
+    for log in loggers:
+        log.addHandler(ch)
     ch.setLevel(logging.INFO)
     ch.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
     
