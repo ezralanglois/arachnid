@@ -6,7 +6,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 from ..core.app.program import run_hybrid_program
-#from ..core.image.ndplot import pylab
+from ..core.image.ndplot import pylab
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, reconstruct
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, process_queue
@@ -51,9 +51,11 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
         data = read_data(input_files, *input_vals[1:3], mask=mask, **extra)[0]
     else:
         data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
+        udata = None
     eigs, sel, energy = classify_data(data, udata, output=output, view=input_vals[0], **extra)
     
     write_dataset(output, eigs, sel, input_vals[0])
+    write_stack(input_files, input_vals[1], input_vals[2], format_utility.add_prefix(output, "stack_"), **extra)
     
     plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
     
@@ -96,10 +98,13 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         test = train
         eigs_tst = None
     eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
-    sel = one_class_classification(eigs)
+    sel = one_class_classification(eigs, train)
     
     if 1 == 1:
-        feat, evals, index = manifold.diffusion_maps(train, 2, 20, False)
+        if local_neighbors > 0:
+            train = manifold.local_neighbor_average(train, manifold.knn(train, local_neighbors))
+        feat, evals, index = manifold.diffusion_maps(train, 5, 60, True)
+        _logger.info("Eigen values: %s"%",".join([str(v) for v in evals]))
         if index is not None:
             feat_old = feat
             feat = numpy.zeros((train.shape[0], feat.shape[1]))
@@ -114,7 +119,22 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     
     return eigs, sel, (energy, idx)
 
-def one_class_classification(feat):
+def write_stack(input_files, label, align, output, subset=None, use_rtsq=False, single_view=False, **extra):
+    '''
+    '''
+    
+    if not single_view: return
+    if subset is not None:
+        label = label[subset]
+        align = align[subset]
+    
+    for i, img in enumerate(ndimage_file.iter_images(input_files, label)):
+        m = align[i, 1] > 179.999
+        if use_rtsq: img = eman2_utility.rot_shift2D(img, align[i, 5], align[i, 6], align[i, 7], m)
+        elif m:      img[:,:] = eman2_utility.mirror(img)
+        ndimage_file.write_image(output, img, i)
+
+def one_class_classification(feat, samp):
     ''' Perform one-class classification using Otsu's algorithm
     
     :Parameters:
@@ -131,7 +151,39 @@ def one_class_classification(feat):
     feat = feat.copy()
     cent = numpy.median(feat, axis=0)
     dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    sel = analysis.robust_rejection(dist_cent, 2)
+    
+    if 1 == 0:
+        idx = numpy.argsort(dist_cent)
+        window = 25
+        mvar = numpy.zeros((len(idx)))
+        for i in xrange(window, len(idx)-window-1):
+            mvar[idx[i]] = numpy.mean(numpy.std(feat[i-window:i+window+1], axis=0))
+        pylab.clf()
+        pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
+        pylab.savefig(format_utility.new_filename("test_eigs.png", "mvar_", ext="png"))
+        
+        for i in xrange(window, len(idx)-window-1):
+            mvar[idx[i]] = numpy.mean(numpy.std(samp[i-window:i+window+1], axis=0))
+        pylab.clf()
+        pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
+        pylab.savefig(format_utility.new_filename("test_samp.png", "mvar_", ext="png"))
+        
+        idx = numpy.argsort(feat[:, 0])
+        template = numpy.mean(samp, axis=0)
+        for i in xrange(window, len(idx)-window-1):
+            mvar[idx[i]] = numpy.sum(numpy.square(numpy.mean(samp[i-window:i+window+1], axis=0)-template))
+        pylab.clf()
+        pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
+        pylab.savefig(format_utility.new_filename("test_samp0.png", "mvar_", ext="png"))
+        
+        idx = numpy.argsort(feat[:, feat.shape[1]-1])
+        for i in xrange(window, len(idx)-window-1):
+            mvar[idx[i]] = numpy.sum(numpy.square(numpy.mean(samp[i-window:i+window+1], axis=0)-template))
+        pylab.clf()
+        pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
+        pylab.savefig(format_utility.new_filename("test_samp7.png", "mvar_", ext="png"))
+    
+    sel = analysis.robust_rejection(dist_cent, 1.5)
     return sel
 
 def comput_average(input_files, label, align, subset=None, use_rtsq=False, **extra):
@@ -348,6 +400,8 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             else:
                 amp = img.real
                 pha = img.imag
+                assert(numpy.alltrue(numpy.isfinite(amp)))
+                assert(numpy.alltrue(numpy.isfinite(pha)))
             img = numpy.hstack((amp[:, numpy.newaxis], pha[:, numpy.newaxis]))
         ndimage_utility.normalize_standard(img, None, var_one, img)
     elif use_radon:
