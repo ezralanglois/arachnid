@@ -167,7 +167,7 @@ def local_neighbor_average(samp, neigh):
         b=e
     return avgsamp
 
-def knn_geodesic(samp, k, batch=10000, dtype=numpy.float, shared=False):
+def knn_geodesic(samp, k, batch=10000, shared=False):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
     
@@ -190,16 +190,18 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float, shared=False):
     if samp.ndim != 2: raise ValueError('Expects 2D array')
     if samp.shape[1] != 4: raise ValueError('Expects matrix of quaternions')
     
+    dtype = samp.dtype
+    k = int(k)
     k+=1
     n = samp.shape[0]*k
     nbatch = int(samp.shape[0]/float(batch))
     batch = int(samp.shape[0]/float(nbatch))
     
     data, shm_data = process_queue.create_global_dense_matrix(n, dtype, shared)
-    col, shm_col = process_queue.create_global_dense_matrix(n, dtype, shared)
+    col, shm_col = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     #data = numpy.empty(n, dtype=dtype)
     #col = numpy.empty(n, dtype=numpy.longlong)
-    dense = numpy.empty((batch,batch), dtype=dtype)
+    dense = numpy.empty((batch,batch), dtype=data.dtype)
     
     gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
@@ -212,12 +214,16 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float, shared=False):
             dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2[dist2>1.0]=1.0
             numpy.arccos(dist2, dist2)
-            _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c/batch), k)
+            try:
+                _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c/batch), k)
+            except:
+                _logger.error("dist2.dtype=%s | data.dtype=%s | col.dtype=%s"%(str(dist2.dtype), str(data.dtype), str(col.dtype)))
+                raise
         _manifold.finalize_heap(data[beg:end], col[beg:end], k)
             
     del dist2
     del dense
-    row, shm_row = process_queue.create_global_dense_matrix(n, dtype, shared)
+    row, shm_row = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     #row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
