@@ -7,4 +7,5 @@ console_scripts = [
  'defocus = arachnid.app.defocus:main',
  'autoclean = arachnid.app.autoclean:main',
  'ctf-select = arachnid.app.ctf_select:main',
+ 'classify3d = arachnid.app.classify3d:main',
 ]
