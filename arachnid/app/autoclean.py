@@ -590,7 +590,8 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
         else:
             #_logger.error("selected: %s"%str(index.shape))
             iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
-            plotting.plot_images(fig, iter_single_images, x[index], eigs[index, 0], image_size, radius)
+            try: plotting.plot_images(fig, iter_single_images, x[index], eigs[index, 0], image_size, radius)
+            except: pass
     fig.savefig(format_utility.new_filename(output, "one_", ext="png"), dpi=dpi)
     
     fig, ax = plotting.plot_embedding(eigs[:, 0], eigs[:, 1], select, ref, dpi=dpi)
@@ -603,7 +604,8 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
         else:
             #_logger.error("selected: %s"%str(index.shape))
             iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
-            plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+            try: plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+            except: pass
     fig.savefig(format_utility.new_filename(output, "neg_", ext="png"), dpi=dpi)
     
     select = numpy.argwhere(sel > 0.5)
@@ -617,7 +619,8 @@ def plot_examples(filename, label, output, eigs, sel, ref=None, dpi=200, **extra
         else:
             if index.shape[0] > 1:
                 iter_single_images = itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, label[index].squeeze()))
-                plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+                try: plotting.plot_images(fig, iter_single_images, eigs[index, 0], eigs[index, 1], image_size, radius)
+                except: pass
     fig.savefig(format_utility.new_filename(output, "pos_", ext="png"), dpi=dpi)
     
     if eigs.shape[1] > 3:
