@@ -7,7 +7,7 @@ from ..app import tracing
 import logging, numpy, scipy
 import scipy.linalg
 import scipy.sparse.linalg
-#from ..parallel import process_queue
+from ..parallel import process_queue
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -162,11 +162,12 @@ def local_neighbor_average(samp, neigh):
     b = 0
     for i in xrange(samp.shape[0]):
         e = b+neighbors
+        assert( neigh.row[b] == neigh.col[b] )
         avgsamp[i] = numpy.mean(samp[neigh.col[b:e]])
         b=e
     return avgsamp
 
-def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
+def knn_geodesic(samp, k, batch=10000, dtype=numpy.float, shared=False):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
     
@@ -193,8 +194,11 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
     n = samp.shape[0]*k
     nbatch = int(samp.shape[0]/float(batch))
     batch = int(samp.shape[0]/float(nbatch))
-    data = numpy.empty(n, dtype=dtype)
-    col = numpy.empty(n, dtype=numpy.longlong)
+    
+    data, shm_data = process_queue.create_global_dense_matrix(n, dtype, shared)
+    col, shm_col = process_queue.create_global_dense_matrix(n, dtype, shared)
+    #data = numpy.empty(n, dtype=dtype)
+    #col = numpy.empty(n, dtype=numpy.longlong)
     dense = numpy.empty((batch,batch), dtype=dtype)
     
     gemm = scipy.linalg.fblas.dgemm
@@ -213,11 +217,14 @@ def knn_geodesic(samp, k, batch=10000, dtype=numpy.float):
             
     del dist2
     del dense
-    row = numpy.empty(n, dtype=numpy.longlong)
+    row, shm_row = process_queue.create_global_dense_matrix(n, dtype, shared)
+    #row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
         tmp[r, :]=r
-    return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
+    mat = scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
+    mat.shmem = (shm_data, shm_row, shm_col, (samp.shape[0], samp.shape[0]))
+    return mat
 
 def knn(samp, k, batch=10000, dtype=numpy.float):
     ''' Calculate k-nearest neighbors and store in a sparse matrix

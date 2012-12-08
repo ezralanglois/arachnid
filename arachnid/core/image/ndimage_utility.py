@@ -1061,7 +1061,7 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
           Normalized image
     '''
     
-    mdata = img*mask if mask is not None else img
+    mdata = img[mask.astype(numpy.bool)] if mask is not None else img
     out = numpy.subtract(img, numpy.mean(mdata), out)
     if var_one:
         numpy.divide(out, numpy.std(mdata), out)

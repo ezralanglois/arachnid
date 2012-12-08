@@ -46,7 +46,7 @@ def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack
     '''
     
     output = spider_utility.spider_filename(output, input_vals[0], id_len)
-    if 1 == 1:
+    if 1 == 0:
         udata, mask, avg, template = read_data(input_files, *input_vals[1:3], unaligned=True, **extra)
         data = read_data(input_files, *input_vals[1:3], mask=mask, **extra)[0]
     else:
@@ -92,15 +92,27 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     
     train = process_queue.recreate_global_dense_matrix(data)
     if test is not None:
+        if local_neighbors > 0:
+            train = manifold.local_neighbor_average(train, manifold.knn(train, local_neighbors))
         test = process_queue.recreate_global_dense_matrix(test)
         eigs_tst, idx, vec, energy = analysis.pca(train, test, neig, train.mean(axis=0))
+        _logger.info("Test energy: %f"%energy)
     else:
-        test = train
+        test = train.copy()
         eigs_tst = None
-    eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
-    sel = one_class_classification(eigs, train)
+        if local_neighbors > 0:
+            train = manifold.local_neighbor_average(train, manifold.knn(train, local_neighbors))
+    try:
+        eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
+    except:
+        eigs = numpy.zeros((len(train), neig))
+        sel = numpy.zeros(len(train))
+        energy = -1.0
+        idx = 0
+    else:
+        sel = one_class_classification(eigs, train)
     
-    if 1 == 1:
+    if 1 == 0:
         if local_neighbors > 0:
             train = manifold.local_neighbor_average(train, manifold.knn(train, local_neighbors))
         feat, evals, index = manifold.diffusion_maps(train, 5, 60, True)
@@ -110,12 +122,12 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
             feat = numpy.zeros((train.shape[0], feat.shape[1]))
             feat[index] = feat_old
         if eigs_tst is not None:
-            eigs = numpy.hstack((eigs, eigs_tst, eigs-eigs_tst, feat))
+            eigs = numpy.hstack((eigs, eigs_tst, eigs*eigs_tst, feat))
         else:
             eigs = numpy.hstack((eigs, feat))
     else:
         if eigs_tst is not None:
-            eigs = numpy.hstack((eigs, eigs_tst, eigs-eigs_tst))
+            eigs = numpy.hstack((eigs, eigs_tst, eigs*eigs_tst))
     
     return eigs, sel, (energy, idx)
 
@@ -385,16 +397,16 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         
         idx = numpy.argwhere(numpy.logical_and(freq >= hp_cutoff, freq <= apix/resolution))
         if bispec_mode == 1: 
-            img = numpy.log10(numpy.abs(img.real))
-            img = img[idx[:, numpy.newaxis], idx]
+            img = numpy.log10(numpy.sqrt(numpy.abs(img.real+1)))
+            if idx is not None: img = img[idx[:, numpy.newaxis], idx]
         elif bispec_mode == 2: 
             img = numpy.mod(numpy.angle(img), 2*numpy.pi) #img.imag
-            img = img[idx[:, numpy.newaxis], idx]
+            if idx is not None: img = img[idx[:, numpy.newaxis], idx]
         else:
-            if 1 == 0:
-                img = img[idx[:, numpy.newaxis], idx]
+            if idx is not None: img = img[idx[:, numpy.newaxis], idx]
+            if 1 == 1:
                 sel = img.real < 0
-                amp = numpy.log10(numpy.abs(img).real)
+                amp = numpy.log10(numpy.sqrt(numpy.abs(img).real+1))
                 img.imag[sel] = numpy.pi-img.imag[sel]
                 pha = numpy.mod(numpy.angle(img), 2*numpy.pi)
             else:
@@ -737,10 +749,11 @@ def initialize(files, param):
         group = [tmp[param['single_view']-1]]
     param['total'] = numpy.zeros((len(group), 3))
     param['sel_by_mic'] = {}
+    param['unsel_by_mic'] = {}
     
     return group
 
-def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, selected, id_len=0, **extra):
+def reduce_all(val, input_files, total, sel_by_mic, unsel_by_mic, output, file_completed, selected, id_len=0, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
     input, eigs, sel, avg3, msg = val
@@ -752,7 +765,10 @@ def reduce_all(val, input_files, total, sel_by_mic, output, file_completed, sele
     total[file_completed, 1] = numpy.sum(sel)
     total[file_completed, 2] = len(sel)
     for i in numpy.argwhere(sel):
-        sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))    
+        sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))   
+    sel = numpy.logical_not(sel) 
+    for i in numpy.argwhere(sel):
+        unsel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))   
     output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1, id_len)
     _logger.info("Finished processing %d - %d,%d (%d,%d) - %s"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed, 2]), total[file_completed, 1], total[file_completed, 2], msg))
     file_completed *= len(avg3)
@@ -776,7 +792,7 @@ def reconstruct3(image_file, label, align, output):
     ndimage_file.write_image(format_utility.add_prefix(output, "even_"), vol_even)
     ndimage_file.write_image(format_utility.add_prefix(output, "odd_"), vol_odd)
 
-def finalize(files, total, sel_by_mic, output, input_files, selected, alignment, alignheader, **extra):
+def finalize(files, total, sel_by_mic, unsel_by_mic, output, input_files, selected, alignment, alignheader, **extra):
     # Finalize global parameters for the script
     
     '''
@@ -800,6 +816,9 @@ def finalize(files, total, sel_by_mic, output, input_files, selected, alignment,
     for id, sel in sel_by_mic.iteritems():
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
+    for id, sel in unsel_by_mic.iteritems():
+        sel = numpy.asarray(sel)
+        format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="unsel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
     _logger.info("Selected %d out of %d"%(numpy.sum(total[:, 1]), numpy.sum(total[:, 2])))
     _logger.info("Completed")
 
