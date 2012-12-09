@@ -288,7 +288,7 @@ class Session(spider_session.Session):
             else: test_mirror = spider_tuple(test_mirror)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
-        if interpolation.upper() == "FS": session.md('FBS ON')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS ON')
         session.invoke('ap ref', spider_stack(reference, ref_count), 
                            spider_select(selectref), spider_tuple(trans_range), #, trans_step), 
                            spider_tuple(first_ring, ring_last, ring_step), #, ray_step), 
@@ -297,7 +297,7 @@ class Session(spider_session.Session):
                            spider_tuple(angle_range, angle_threshold),
                            test_mirror,
                            spider_doc(outputfile))
-        if interpolation.upper() == "FS": session.md('FBS OFF')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS OFF')
         return outputfile
     
     def ap_sh(session, inputfile, inputselect, reference, selectref, angle_range=0.0, 
@@ -378,7 +378,7 @@ class Session(spider_session.Session):
             if supports_internal_rtsq(session) and inputangles is not None:
                 test_mirror = spider_tuple(test_mirror, 1)
             else: test_mirror = spider_tuple(test_mirror)
-        if interpolation.upper() == "FS": session.md('FBS ON')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS ON')
         session.invoke('ap sh', spider_stack(reference, ref_count), 
                        spider_select(selectref), spider_tuple(trans_range, trans_step), 
                        spider_tuple(first_ring, ring_last, ring_step, ray_step), 
@@ -387,7 +387,7 @@ class Session(spider_session.Session):
                        spider_tuple(angle_range, angle_threshold),
                        test_mirror,
                        spider_doc(outputfile))
-        if interpolation.upper() == "FS": session.md('FBS OFF')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS OFF')
         return outputfile
 
     def ar(session, inputfile, operation, outputfile=None, **extra):
@@ -1699,7 +1699,7 @@ class Session(spider_session.Session):
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
-        if interpolation.upper() == "FS":
+        if interpolation is not None and interpolation.upper() == "FS":
             session.invoke('pj 3f', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         else:
             session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
@@ -1974,7 +1974,7 @@ class Session(spider_session.Session):
         input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
         assert(count > 1)
         if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
-        if interpolation.upper() == "FS":
+        if interpolation is not None and interpolation.upper() == "FS":
             session.invoke('rt sf', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
         else:
             session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
@@ -3038,21 +3038,11 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             Dictionary of updated parameters
     '''
     
-    if dec_level == bin_factor and bin_factor != 1.0: return {}
-    factor = dec_level/bin_factor
-    window=int(window*factor)
+    if dec_level == bin_factor: return {}
     max_radius = int(window/2.0)
-    
     param = {}
-    param['dec_level'] = bin_factor
-    param['width'] = int(extra['width']*factor)
-    param['height'] = int(extra['height']*factor)
-    param['apix'] = extra['apix']/factor
-    param['maxfreq'] = extra['maxfreq']*factor
-    param['window'] = window
-    param['pixel_diameter'] = int(extra['pixel_diameter']*factor)
-    
-    param['trans_range']=max(2, int(trans_range*factor))
+    factor = dec_level/bin_factor
+    param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
         if param['trans_range'] > 1:
@@ -3062,7 +3052,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     if param['trans_range'] > trans_max:
         param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
-        param['trans_range'] = max(2, param['trans_step']*trans_max)
+        param['trans_range'] = min(2, param['trans_step']*trans_max)
     else: param['trans_step'] = 1
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
