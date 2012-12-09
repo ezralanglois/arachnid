@@ -208,7 +208,7 @@ class Session(spider_session.Session):
     
     def ap_ref(session, inputfile, inputselect, reference, selectref, ring_file="", angle_range=0.0, 
                angle_threshold=1.0, trans_range=16, first_ring=5, ring_last=0, ring_step=1, test_mirror=True, refangles=None, 
-               inputangles=None, outputfile=None, **extra):
+               inputangles=None, interpolation=None, outputfile=None, **extra):
         '''Compares a set of experimental images with a set of reference images. For each 
         experimental image, it finds the in-plane Euler rotation which aligns the experimental 
         image with the most-similar reference image. Then, if translation search is specifed, 
@@ -254,6 +254,8 @@ class Session(spider_session.Session):
                     Document file with euler angles for each reference
         inputangles : str
                       Document file with euler angles for each experimental projection (previous alignment)
+        interpolation : str, optional
+                        Set interpolation type
         outputfile : str
                      Filename of output image (If none, temporary incore file is used and returned)
         extra : dict
@@ -286,6 +288,7 @@ class Session(spider_session.Session):
             else: test_mirror = spider_tuple(test_mirror)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
+        if interpolation.upper() == "FS": session.md('FBS ON')
         session.invoke('ap ref', spider_stack(reference, ref_count), 
                            spider_select(selectref), spider_tuple(trans_range), #, trans_step), 
                            spider_tuple(first_ring, ring_last, ring_step), #, ray_step), 
@@ -294,11 +297,12 @@ class Session(spider_session.Session):
                            spider_tuple(angle_range, angle_threshold),
                            test_mirror,
                            spider_doc(outputfile))
+        if interpolation.upper() == "FS": session.md('FBS OFF')
         return outputfile
     
     def ap_sh(session, inputfile, inputselect, reference, selectref, angle_range=0.0, 
               angle_threshold=1.0, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, 
-              ray_step=1, test_mirror=True, refangles=None, inputangles=None, outputfile=None, **extra):
+              ray_step=1, test_mirror=True, refangles=None, inputangles=None, interpolation=None, outputfile=None, **extra):
         '''Compares a series of experimental images with a series of reference images. For each experimental 
         image, it finds the in-plane Euler rotation angle, and X, Y translational shifts which align the image 
         with the most-similar reference image. Exhaustively checks all requested rotations and shifts. Can 
@@ -344,6 +348,8 @@ class Session(spider_session.Session):
                     Document file with euler angles for each reference
         inputangles : str
                       Document file with euler angles for each experimental projection (previous alignment)
+        interpolation : str, optional
+                        Set interpolation type
         outputfile : str
                      Filename of output image (If none, temporary incore file is used and returned)
         extra : dict
@@ -372,6 +378,7 @@ class Session(spider_session.Session):
             if supports_internal_rtsq(session) and inputangles is not None:
                 test_mirror = spider_tuple(test_mirror, 1)
             else: test_mirror = spider_tuple(test_mirror)
+        if interpolation.upper() == "FS": session.md('FBS ON')
         session.invoke('ap sh', spider_stack(reference, ref_count), 
                        spider_select(selectref), spider_tuple(trans_range, trans_step), 
                        spider_tuple(first_ring, ring_last, ring_step, ray_step), 
@@ -380,6 +387,7 @@ class Session(spider_session.Session):
                        spider_tuple(angle_range, angle_threshold),
                        test_mirror,
                        spider_doc(outputfile))
+        if interpolation.upper() == "FS": session.md('FBS OFF')
         return outputfile
 
     def ar(session, inputfile, operation, outputfile=None, **extra):
@@ -1635,7 +1643,7 @@ class Session(spider_session.Session):
         if background == 'N': additional.append( spider_tuple(background_value) )
         return spider_session.spider_command_fifo(session, 'pd', inputfile, outputfile, "Pad images", spider_tuple(*window_size), background, spider_tuple(*center_coord), *additional)
     
-    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, max_ref_proj=None, outputfile=None, **extra):
+    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, max_ref_proj=None, interpolation=None, outputfile=None, **extra):
         '''Computes projection(s) of a 3D volume according to the three Eulerian angles.
         
         alias: project_3d
@@ -1665,6 +1673,8 @@ class Session(spider_session.Session):
                          Pixel diameter of the particle
         max_ref_proj : int, optional
                        Maximum number of projections in in-memory stack
+        interpolation : str, optional
+                        Type of interpolation
         outputfile : str
                     Filename to store 2D projections (If none, temporary incore file is used and returned)
         extra : dict
@@ -1689,7 +1699,10 @@ class Session(spider_session.Session):
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
-        session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+        if interpolation.upper() == "FS":
+            session.invoke('pj 3f', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+        else:
+            session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         return outputfile
     
     def pw(session, inputfile, outputfile=None, **extra):
@@ -1920,7 +1933,7 @@ class Session(spider_session.Session):
         session.invoke('rtd sq', spider_stack(inputfile, stack_total), spider_select(select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, stack_total), spider_select(outputsel))
         return outputfile
     
-    def rt_sq(session, inputfile, alignment, input_select=None, alignment_cols=(6,0,7,8), outputfile=None, **extra):
+    def rt_sq(session, inputfile, alignment, input_select=None, alignment_cols=(6,0,7,8), interpolation=None, outputfile=None, **extra):
         '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
         around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
         terms "clockwise" and "counter-clockwise" refer to the mirrored x-y system used for 
@@ -1945,6 +1958,8 @@ class Session(spider_session.Session):
                        Input selection file
         alignment_cols : tuple
                          List of alignment columns
+        interpolation : str, optional
+                        Type of interpolation
         outputfile : str
                      Filename of output image (If none, temporary incore file is used and returned)
         extra : dict
@@ -1959,7 +1974,10 @@ class Session(spider_session.Session):
         input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
         assert(count > 1)
         if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
-        session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
+        if interpolation.upper() == "FS":
+            session.invoke('rt sf', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
+        else:
+            session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
         return outputfile
         
     def sd_e(session, outputfile, **extra):
