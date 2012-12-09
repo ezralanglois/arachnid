@@ -170,7 +170,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra['trans_step']=1
     #theta_prev = None
     extra['trans_max']=7
-    param['trans_range'] = ensure_translation_range(**extra)
+    extra['trans_range'] = param['trans_range'] = ensure_translation_range(**extra)
     output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
     resolution_next=None
@@ -182,6 +182,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             tmp = numpy.loadtxt(resolution_file, delimiter=",")
             res_iteration[:tmp.shape[0]]=tmp
             resolution_start, param['trans_range'], extra['angle_range'], resolution_next  = res_iteration[refine_index]
+            _logger.info("Restarting from iteration %d with %f, %d, %f, %f"%(refine_index, resolution_start, param['trans_range'], extra['angle_range'], resolution_next))
         else:
             res_iteration = numpy.zeros((num_iterations+1, 4))
             resolution_next=resolution_start
