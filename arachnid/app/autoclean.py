@@ -213,7 +213,7 @@ def comput_average(input_files, label, align, subset=None, use_rtsq=False, **ext
         elif m:      img[:,:] = eman2_utility.mirror(img)
         if avg is None: avg = numpy.zeros(img.shape)
         avg += img
-    avg /= (i+1)
+    if len(label) > 0: avg /= (i+1)
     return avg
 
 def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
