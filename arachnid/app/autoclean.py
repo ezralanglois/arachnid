@@ -106,7 +106,7 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
         eigs, idx, vec, energy = analysis.pca(train, train, neig, train.mean(axis=0))
     except:
         eigs = numpy.zeros((len(train), neig))
-        sel = numpy.zeros(len(train))
+        sel = numpy.ones(len(train), dtype=numpy.bool)
         energy = -1.0
         idx = 0
     else:
