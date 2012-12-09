@@ -216,12 +216,14 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
             dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             _logger.error("Matrix-done: %d,%d"%(r, c))
             dist2[dist2>1.0]=1.0
+            _logger.error("Matrix-heap: %d,%d"%(r, c))
             numpy.arccos(dist2, dist2)
             try:
                 _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c/batch), k)
             except:
                 _logger.error("dist2.dtype=%s | data.dtype=%s | col.dtype=%s"%(str(dist2.dtype), str(data.dtype), str(col.dtype)))
                 raise
+            _logger.error("Matrix-heap-done: %d,%d"%(r, c))
         _logger.error("Finalizing: %d"%r)
         _manifold.finalize_heap(data[beg:end], col[beg:end], k)
             
