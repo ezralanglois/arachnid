@@ -111,13 +111,17 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		T* data_rk = data+r*k;
 		I* col_rk = col_ind+r*k;
 		int c=0;
+		fprintf(stderr, "here1\n");
 		if( offset > 0 )
 		{
 			for(int l=std::min(k, offset);c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		}
+		fprintf(stderr, "here2\n");
 		for(c=0;hcur != hend && c<m;++c, ++hcur) *hcur = index_dist(dist2[r*m+c], offset+c);
+		fprintf(stderr, "here3\n");
 		assert(c==m || hcur == hend);
 		if( hcur == hend ) std::make_heap(hbeg, hend);
+		fprintf(stderr, "here4\n");
 		for(;c<m;++c)
 		{
 			T d = dist2[r*m+c];
@@ -127,12 +131,14 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 				std::make_heap(hbeg, hbeg+k);
 			}
 		}
+		fprintf(stderr, "here5\n");
 		hcur = hbeg;
 		for(c=0;c<k;++c, ++hcur)
 		{
 			data_rk[c] = hcur->first;
 			col_rk[c] = hcur->second;
 		}
+		fprintf(stderr, "here6\n");
 		//fprintf(stderr, "push_to_heap-5\n");
 	}
 }
