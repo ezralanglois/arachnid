@@ -205,13 +205,16 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
     
     gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
+        _logger.error("Processing: %d"%r)
         rnext = min(r+batch, samp.shape[0])
         beg, end = r*k, rnext*k
         s2 = samp[r:rnext]
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            _logger.error("Matrix-start: %d,%d"%(r, c))
             dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
+            _logger.error("Matrix-done: %d,%d"%(r, c))
             dist2[dist2>1.0]=1.0
             numpy.arccos(dist2, dist2)
             try:
@@ -219,6 +222,7 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
             except:
                 _logger.error("dist2.dtype=%s | data.dtype=%s | col.dtype=%s"%(str(dist2.dtype), str(data.dtype), str(col.dtype)))
                 raise
+        _logger.error("Finalizing: %d"%r)
         _manifold.finalize_heap(data[beg:end], col[beg:end], k)
             
     del dist2
