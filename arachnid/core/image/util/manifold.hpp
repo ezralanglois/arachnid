@@ -92,6 +92,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 {
 	typedef std::pair<T,I> index_dist;
 	typedef std::vector< index_dist > index_vector;
+	fprintf(stderr, "here0 - %d, %d\n", omp_get_max_threads(), k);
 #ifdef _OPENMP
 	index_vector vheap(omp_get_max_threads()*k);
 #else
@@ -116,7 +117,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		{
 			for(int l=std::min(k, offset);c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		}
-		fprintf(stderr, "here2\n");
+		fprintf(stderr, "here2 -- %d, %d, %d\n", hend-hbeg, hend-hcur, hcur-hbeg);
 		for(c=0;hcur != hend && c<m;++c, ++hcur) *hcur = index_dist(dist2[r*m+c], offset+c);
 		fprintf(stderr, "here3\n");
 		assert(c==m || hcur == hend);
