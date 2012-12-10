@@ -92,55 +92,52 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 {
 	typedef std::pair<T,I> index_dist;
 	typedef std::vector< index_dist > index_vector;
-	fprintf(stderr, "here0 - %d, %d\n", omp_get_max_threads(), k);
 #ifdef _OPENMP
 	index_vector vheap(omp_get_max_threads()*k);
 #else
 	index_vector vheap(k);
 #endif
 
+	unsigned long m1=m;
+
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
 	for(int r=0;r<n;++r)
 	{
+		unsigned long rm = r*m;
+		unsigned long rk = r*k;
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
 #else
 		typename index_vector::iterator hbeg = vheap.begin(), hcur=hbeg, hend=hbeg+k;
 #endif
-		T* data_rk = data+r*k;
-		I* col_rk = col_ind+r*k;
-		int c=0;
-		fprintf(stderr, "here1\n");
+		T* data_rk = data+rk;
+		I* col_rk = col_ind+rk;
+		//fprintf(stderr, "r: %d | data: %p - col: %p - hbeg: %p - dist2: %p\n", r, data_rk, col_rk, &(*hbeg), dist2);
+		unsigned long c=0;
 		if( offset > 0 )
 		{
-			for(int l=std::min(k, offset);c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+			for(unsigned long l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		}
-		fprintf(stderr, "here2 -- %d, %d, %d\n", hend-hbeg, hend-hcur, hcur-hbeg);
-		for(c=0;hcur != hend && c<m;++c, ++hcur) *hcur = index_dist(dist2[r*m+c], offset+c);
-		fprintf(stderr, "here3\n");
+		for(c=0;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
 		assert(c==m || hcur == hend);
 		if( hcur == hend ) std::make_heap(hbeg, hend);
-		fprintf(stderr, "here4\n");
-		for(;c<m;++c)
+		for(;c<m1;++c)
 		{
-			T d = dist2[r*m+c];
+			T d = dist2[rm+c];
 			if( d < hbeg->first )
 			{
 				*hbeg = index_dist(d, offset+c);
-				std::make_heap(hbeg, hbeg+k);
+				std::make_heap(hbeg, hend);
 			}
 		}
-		fprintf(stderr, "here5\n");
 		hcur = hbeg;
 		for(c=0;c<k;++c, ++hcur)
 		{
 			data_rk[c] = hcur->first;
 			col_rk[c] = hcur->second;
 		}
-		fprintf(stderr, "here6\n");
-		//fprintf(stderr, "push_to_heap-5\n");
 	}
 }
 
