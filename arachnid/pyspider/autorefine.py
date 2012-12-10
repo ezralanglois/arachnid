@@ -183,6 +183,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             res_iteration[:tmp.shape[0]]=tmp
             resolution_start, param['trans_range'], extra['angle_range'], resolution_next  = res_iteration[refine_index]
             _logger.info("Restarting from iteration %d with %f, %d, %f, %f"%(refine_index, resolution_start, param['trans_range'], extra['angle_range'], resolution_next))
+            extra['trans_range'] = param['trans_range']
         else:
             res_iteration = numpy.zeros((num_iterations+1, 4))
             resolution_next=resolution_start
