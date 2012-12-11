@@ -3040,9 +3040,18 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     '''
     
     if dec_level == bin_factor: return {}
-    max_radius = int(window/2.0)
-    param = {}
+    
+    
     factor = dec_level/bin_factor
+    param = dict(dec_level=bin_factor,
+                width=int(extra['width']*factor), 
+                height=int(extra['height']*factor), 
+                apix=extra['apix']/factor, 
+                maxfreq=extra['maxfreq']*factor, 
+                window=int(window*factor), 
+                pixel_diameter=int(extra['pixel_diameter']*factor))
+    window = param['window']
+    max_radius = int(window/2.0)
     param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
