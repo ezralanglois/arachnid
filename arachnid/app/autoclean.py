@@ -388,7 +388,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         scale = 'biased' if bispec_biased else 'unbiased'
         bispec_lag = int(bispec_lag*img.shape[0])
         bispec_lag = min(max(1, bispec_lag), img.shape[0]-1)
-        #img *= mask
+        img *= mask
         try:
             img, freq = ndimage_utility.bispectrum(img, bispec_lag, bispec_window, scale) # 1.0 = apix
         except:

@@ -201,34 +201,33 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
     col, shm_col = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     #data = numpy.empty(n, dtype=dtype)
     #col = numpy.empty(n, dtype=numpy.longlong)
-    dense = numpy.empty((batch,batch), dtype=data.dtype)
+    dense = numpy.empty((batch,batch), dtype=data.dtype, order="F")
     
     gemm = scipy.linalg.fblas.dgemm
+    #gemm = scipy.linalg.cblas.dgemm
+    #gemm, = scipy.linalg.get_blas_funcs(('gemm',), (dense,))
+    samp = numpy.asarray(samp, order="F")
     for r in xrange(0, samp.shape[0], batch):
-        _logger.error("Processing: %d"%r)
         rnext = min(r+batch, samp.shape[0])
         beg, end = r*k, rnext*k
         s2 = samp[r:rnext]
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
-            _logger.error("Matrix-start: %d,%d"%(r, c))
-            dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
-            _logger.error("Matrix-done: %d,%d"%(r, c))
+            dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0).T #, c=tmp, overwrite_c=1).T
+            #dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2[dist2>1.0]=1.0
-            _logger.error("Matrix-heap: %d,%d"%(r, c))
             numpy.arccos(dist2, dist2)
             try:
                 _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c/batch), k)
             except:
                 _logger.error("dist2.dtype=%s | data.dtype=%s | col.dtype=%s"%(str(dist2.dtype), str(data.dtype), str(col.dtype)))
                 raise
-            _logger.error("Matrix-heap-done: %d,%d"%(r, c))
-        _logger.error("Finalizing: %d"%r)
+            dist2=None
         _manifold.finalize_heap(data[beg:end], col[beg:end], k)
             
     del dist2
-    del dense
+    #del dense
     row, shm_row = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     #row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
