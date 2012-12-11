@@ -1318,8 +1318,9 @@ class Session(spider_session.Session):
         '''
         
         additional = []
-        if mode == 'SET MP': additional.append(spider_tuple(value))
-        else: raise ValueError, "Only SET MP supported"
+        if value is not None:
+            if mode == 'SET MP': additional.append(spider_tuple(value))
+            else: raise ValueError, "Only SET MP supported"
         session.invoke('md', mode, *additional)
     
     def mo(session, image_size, model="T", background_constant=12.0, circle_radius=12, gaus_center=(12.0, 12.0), gaus_std=4.2, gaus_mean=1.0, rand_gauss=False, outputfile=None, **extra):
