@@ -3039,8 +3039,6 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             Dictionary of updated parameters
     '''
     
-    if dec_level == bin_factor: return {}
-    
     
     factor = dec_level/bin_factor
     param = dict(dec_level=bin_factor,
