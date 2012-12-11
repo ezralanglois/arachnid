@@ -5,8 +5,9 @@
 '''
 from ..app import tracing
 import logging, numpy, scipy
-import scipy.linalg
+import scipy.linalg, scipy.io
 import scipy.sparse.linalg
+from ..metadata import format_utility
 from ..parallel import process_queue
 
 _logger = logging.getLogger(__name__)
@@ -167,6 +168,63 @@ def local_neighbor_average(samp, neigh):
         b=e
     return avgsamp
 
+def knn_geodesic_cache(samp, k, batch=10000, shared=False, cache_file=None):
+    ''' Calculate k-nearest neighbors and store in a sparse matrix
+    in the COO format or load from a pre-calculated file.
+    
+    :Parameters:
+    
+    samp : array
+           2D data array
+    k : int
+        Number of nearest neighbors
+    batch : int
+            Size of temporary distance matrix to hold in memory
+    
+    :Returns:
+    
+    dist2 : sparse array
+            Sparse distance matrix in COO format
+    '''
+    
+    if cache_file is not None:
+        cache_file = format_utility.new_filename(cache_file, ext=".mat")
+        cache_dat = format_utility.new_filename(cache_file, suffix="_coo", ext=".bin")
+        cache_row = format_utility.new_filename(cache_file, suffix="_row", ext=".bin")
+        cache_col = format_utility.new_filename(cache_file, suffix="_col", ext=".bin")
+        if format_utility.os.path.exists(cache_file):
+            mat = scipy.io.loadmat(cache_file)
+            
+            if mat['coo'][0] == samp.shape[0] and mat['total'] == ((k+1)*samp.shape[0]):
+                dtype_coo = mat['dtype_coo'][0]
+                dtype_col = mat['dtype_col'][0]
+                if dtype_coo[0] == '[': dtype_coo = dtype_coo[2:len(dtype_coo)-2]
+                if dtype_col[0] == '[': dtype_col = dtype_col[2:len(dtype_col)-2]
+                if shared:
+                    n = mat['total']
+                    data, shm_data = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_coo), shared)
+                    col, shm_col = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_col), shared)
+                    row, shm_row = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_col), shared)
+                    data[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
+                    row[:] = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_coo))
+                    col[:] = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_coo))
+                    mat = scipy.sparse.coo_matrix( (data.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) ) 
+                    mat.shmem = (shm_data, shm_row, shm_col, tuple(mat['coo']))
+                    return mat
+                else:
+                    coo = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
+                    row = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
+                    col = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_col))
+                    return scipy.sparse.coo_matrix( (coo.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) )    
+    mat = knn_geodesic(samp, k, batch, shared)
+    if cache_file is not None:
+        scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=mat.col.dtype), total=mat.data.shape[0], dtype_coo=mat.data.dtype.name, dtype_col=mat.col.dtype.name), oned_as='column', format='5')
+        mat.data.tofile(cache_dat)
+        mat.row.tofile(cache_row)
+        mat.col.tofile(cache_col)
+    return mat
+    
+
 def knn_geodesic(samp, k, batch=10000, shared=False):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
@@ -209,36 +267,30 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
-            #dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0).T #, c=tmp, overwrite_c=1).T
-            assert(s1.T.flags.f_contiguous)
-            assert(s2.T.flags.f_contiguous)
-            assert(tmp.T.flags.f_contiguous)
             dist2 = gemm(1.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
-            assert(dist2.flags.c_contiguous)
-            _logger.error("dist2 = %s"%str(dist2.shape))
-            assert(dist2.shape[0] == s2.shape[0])
             dist2[dist2>1.0]=1.0
+            if r == 0 and c == 0:
+                _logger.error("1. 0,0 = %f"%dist2[0, 0])
             numpy.arccos(dist2, dist2)
-            try:
-                _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c/batch), k)
-            except:
-                _logger.error("dist2.dtype=%s | data.dtype=%s | col.dtype=%s"%(str(dist2.dtype), str(data.dtype), str(col.dtype)))
-                raise
-            dist2=None
-        _manifold.finalize_heap(data[beg:end], col[beg:end], k)
-            
-    del dist2
-    #del dense
+            if r == 0 and c == 0:
+                _logger.error("2. 0,0 = %f --- %f"%(dist2[0, 0], numpy.rad2deg(dist2[0,0])))
+            _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c), k)
+        _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
+    del dist2, dense
     row, shm_row = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
-    #row = numpy.empty(n, dtype=numpy.longlong)
-    tmp = row.reshape((samp.shape[0], k))
+    rtmp = row.reshape((samp.shape[0], k))
+    ctmp = col.reshape((samp.shape[0], k))
+    dtmp = data.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
-        tmp[r, :]=r
+        rtmp[r, :]=r
+        if ctmp[r, 0]!=r:
+            _logger.error("%d == %d --> %f"%(ctmp[r, 0], r, dtmp[r, 0]))
+        assert(ctmp[r, 0]==r)
     mat = scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
     mat.shmem = (shm_data, shm_row, shm_col, (samp.shape[0], samp.shape[0]))
     return mat
 
-def knn(samp, k, batch=10000, dtype=numpy.float):
+def knn(samp, k, batch=10000):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
     
@@ -259,6 +311,7 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
     
     k+=1 # include self as a neighbor
     n = samp.shape[0]*k
+    dtype = samp.dtype
     nbatch = max(1, int(samp.shape[0]/float(batch)))
     batch = int(samp.shape[0]/float(nbatch))
     data = numpy.empty(n, dtype=dtype)
@@ -273,8 +326,9 @@ def knn(samp, k, batch=10000, dtype=numpy.float):
         s2 = samp[r:rnext]
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
-            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
-            dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
+            dist2 = gemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            #dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2 += a[c:c+batch, numpy.newaxis]
             dist2 += a[r:rnext]
             _manifold.push_to_heap(dist2, data[beg:], col[beg:], c/batch, k)

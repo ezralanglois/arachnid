@@ -120,9 +120,14 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		{
 			for(unsigned long l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		}
-		for(c=0;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
+		for(;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
 		assert(c==m || hcur == hend);
 		if( hcur == hend ) std::make_heap(hbeg, hend);
+		/*if ( r == 0)
+		{
+			if( std::min_element(hbeg, hend)->first > 0 )
+				fprintf(stderr, "heap invalid-1: r(%d): %f (%d, %d) - offset: %d\n", r, std::min_element(hbeg, hend)->first, hcur == hend, c==m, offset);
+		}*/
 		for(;c<m1;++c)
 		{
 			T d = dist2[rm+c];
@@ -132,6 +137,11 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 				std::make_heap(hbeg, hend);
 			}
 		}
+		/*if ( r == 0)
+		{
+			if( std::min_element(hbeg, hend)->first > 0 )
+				fprintf(stderr, "heap invalid-2: r(%d): %f (%d, %d) - offset: %d\n", r, std::min_element(hbeg, hend)->first, hcur == hend, c==m, offset);
+		}*/
 		hcur = hbeg;
 		for(c=0;c<k;++c, ++hcur)
 		{
@@ -142,7 +152,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 }
 
 template<class I, class T>
-void finalize_heap(T* data, int nd, I* col_ind, int nc, int k)
+void finalize_heap(T* data, int nd, I* col_ind, int nc, int offset, int k)
 {
 	typedef std::pair<T,I> index_dist;
 	typedef std::vector< index_dist > index_vector;
@@ -169,7 +179,14 @@ void finalize_heap(T* data, int nd, I* col_ind, int nc, int k)
 		for(int c=0;c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		std::sort_heap(hbeg, hbeg+k);
 		hcur = hbeg;
-		for(int c=0;c<k;++c, ++hcur)
+		int c=0;
+		if (hcur->second != (r+offset)) // Ensure that the first neighbor is itself
+		{
+			data_rk[c] = 0;
+			col_rk[c] = r+offset;
+			c++;
+		}
+		for(;c<k;++c, ++hcur)
 		{
 			data_rk[c] = hcur->first;
 			col_rk[c] = hcur->second;
