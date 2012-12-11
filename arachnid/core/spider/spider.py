@@ -3062,7 +3062,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     if param['trans_range'] > trans_max:
         param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
-        param['trans_range'] = min(2, param['trans_step']*trans_max)
+        param['trans_range'] = max(2, param['trans_step']*trans_max)
     else: param['trans_step'] = 1
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
