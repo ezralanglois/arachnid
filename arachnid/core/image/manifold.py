@@ -201,21 +201,26 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
     col, shm_col = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     #data = numpy.empty(n, dtype=dtype)
     #col = numpy.empty(n, dtype=numpy.longlong)
-    dense = numpy.empty((batch,batch), dtype=data.dtype, order="F")
+    dense = numpy.empty((batch,batch), dtype=data.dtype)
     
     gemm = scipy.linalg.fblas.dgemm
     #gemm = scipy.linalg.cblas.dgemm
     #gemm, = scipy.linalg.get_blas_funcs(('gemm',), (dense,))
-    samp = numpy.asarray(samp, order="F")
+    #samp = numpy.asarray(samp, order="F")
     for r in xrange(0, samp.shape[0], batch):
         rnext = min(r+batch, samp.shape[0])
         beg, end = r*k, rnext*k
         s2 = samp[r:rnext]
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
-            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
-            dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0).T #, c=tmp, overwrite_c=1).T
-            #dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
+            #dist2 = gemm(1.0, s1, s2, trans_b=True, beta=0).T #, c=tmp, overwrite_c=1).T
+            assert(s1.T.flags.f_contiguous)
+            assert(s2.T.flags.f_contiguous)
+            assert(tmp.T.flags.f_contiguous)
+            dist2 = gemm(1.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            _logger.error("dist2 = %s"%str(dist2.shape))
+            assert(dist2.shape[0] == s1.shape[0])
             dist2[dist2>1.0]=1.0
             numpy.arccos(dist2, dist2)
             try:
