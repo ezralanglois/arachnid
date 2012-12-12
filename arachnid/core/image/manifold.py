@@ -206,11 +206,11 @@ def knn_geodesic_cache(samp, k, batch=10000, shared=False, cache_file=None):
                     col, shm_col = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_col), shared)
                     row, shm_row = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_col), shared)
                     data[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
-                    row[:] = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_coo))
-                    col[:] = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_coo))
-                    mat = scipy.sparse.coo_matrix( (data.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) ) 
-                    mat.shmem = (shm_data, shm_row, shm_col, tuple(mat['coo']))
-                    return mat
+                    row[:] = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
+                    col[:] = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_col))
+                    smat = scipy.sparse.coo_matrix( (data.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) ) 
+                    smat.shmem = (shm_data, shm_row, shm_col, tuple(mat['coo']))
+                    return smat
                 else:
                     coo = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
                     row = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
@@ -269,11 +269,7 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
             dist2 = gemm(1.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
             dist2[dist2>1.0]=1.0
-            if r == 0 and c == 0:
-                _logger.error("1. 0,0 = %f"%dist2[0, 0])
             numpy.arccos(dist2, dist2)
-            if r == 0 and c == 0:
-                _logger.error("2. 0,0 = %f --- %f"%(dist2[0, 0], numpy.rad2deg(dist2[0,0])))
             _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c), k)
         _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
     del dist2, dense
@@ -326,13 +322,13 @@ def knn(samp, k, batch=10000):
         s2 = samp[r:rnext]
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
-            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0])) 
             dist2 = gemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
             #dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             dist2 += a[c:c+batch, numpy.newaxis]
             dist2 += a[r:rnext]
             _manifold.push_to_heap(dist2, data[beg:], col[beg:], c/batch, k)
-        _manifold.finalize_heap(data[beg:end], col[beg:end], k)
+        _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
     del dist2, dense
     row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
