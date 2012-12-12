@@ -160,6 +160,10 @@ def one_class_classification(feat, samp):
           Selected samples
     '''
     
+    if 1 == 0:
+        sel = analysis.robust_rejection(-feat[:, 0], 1.5)
+        return sel
+    
     feat = feat.copy()
     cent = numpy.median(feat, axis=0)
     dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
@@ -195,7 +199,7 @@ def one_class_classification(feat, samp):
         pylab.plot(numpy.arange(1, len(mvar)+1), mvar)
         pylab.savefig(format_utility.new_filename("test_samp7.png", "mvar_", ext="png"))
     
-    sel = analysis.robust_rejection(dist_cent, 1.5)
+    sel = analysis.robust_rejection(dist_cent, 2.5)
     return sel
 
 def comput_average(input_files, label, align, subset=None, use_rtsq=False, **extra):
