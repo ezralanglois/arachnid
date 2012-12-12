@@ -267,6 +267,10 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
+        
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
         else: session.de(outputfile)
@@ -360,6 +364,10 @@ class Session(spider_session.Session):
         outputfile : str
                      Filename of output image
         '''
+        
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
         
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
@@ -1686,6 +1694,9 @@ class Session(spider_session.Session):
         outputfile : str
                     Tuple containing the output file and number of angles
         '''
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
         
         assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
@@ -1971,6 +1982,10 @@ class Session(spider_session.Session):
             outputfile : str
                          Filename of output image
         '''
+        
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
         
         input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
         assert(count > 1)
