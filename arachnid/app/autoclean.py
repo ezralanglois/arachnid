@@ -1,4 +1,7 @@
 '''
+
+http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
+
 .. Created on Sep 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -7,63 +10,181 @@ matplotlib.use("Agg")
 
 from ..core.app.program import run_hybrid_program
 from ..core.image.ndplot import pylab
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, reconstruct
+from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility #, reconstruct
 from ..core.metadata import spider_utility, format, format_utility, spider_params
-from ..core.parallel import mpi_utility, process_queue
+from ..core.parallel import process_queue #, mpi_utility
 from ..core.image import manifold
 from arachnid.core.util import plotting #, fitting
-import logging, numpy, os, scipy,itertools
+import logging, numpy, os, scipy,itertools, sys
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+    
+    
 
-def process(input_vals, input_files, output, write_view_stack=0, sort_view_stack=False, id_len=0, **extra):
-    '''Concatenate files and write to a single output file
-        
-    :Parameters:
-    
-    input_vals : list 
-                 Tuple(view id, image labels and alignment parameters)
-    input_files : list
-                  List of input file stacks
-    output : str
-             Filename for output file
-    write_view_stack : int
-                       Write out views to a stack ('None', 'Positive', 'Negative', 'Both')
-    sort_view_stack : bool
-                      Write view stack sorted by first eigen vector
-    id_len : int
-             Max length of SPIDER ID
-    extra : dict
-            Unused key word arguments
-                
-    :Returns:
-    
-    filename : str
-               Current filename
-    peaks : str
-            Coordinates found
+def batch(files, output, local_neighbors=10, **extra):
+    '''
     '''
     
-    output = spider_utility.spider_filename(output, input_vals[0], id_len)
+    _logger.info("Read alignment file")
+    label, align, ref = read_alignment(files, **extra)
+    if 1 == 1:
+        sel = numpy.logical_or(numpy.logical_or(ref == 1, ref == 2), ref==3)
+        label = label[sel]
+        align = align[sel]
+        ref = ref[sel]
+    _logger.info("Read %d images"%len(label))
+    mask = create_mask(files, **extra)
+    data = ndimage_file.read_image_mat(files, label, image_transform, shared=False, mask=mask, cache_file=None, align=align, **extra)
+    assert(data.shape[0] == ref.shape[0])
+    
     if 1 == 0:
-        udata, mask, avg, template = read_data(input_files, *input_vals[1:3], unaligned=True, **extra)
-        data = read_data(input_files, *input_vals[1:3], mask=mask, **extra)[0]
+        tst = data-data.mean(0)
+        U, d, V = scipy.linalg.svd(tst, False)
+        feat = d*numpy.dot(V, tst.T).T
+        t = d**2/tst.shape[0]
+        t /= t.sum()
+        best = (1e20, None)
+        for idx in xrange(1, 100):
+            val = feat[:, :idx]
+            neigh = manifold.knn(val.copy(), 10)
+            err = 0
+            cerr = 0
+            col = neigh.col.reshape((len(val), 11))
+            for i in xrange(len(col)):
+                cnt = numpy.sum( (ref[col[i, 0]] - ref[col[i, 1:]]) != 0 )
+                err += cnt
+                if cnt <= 5: cerr += 1
+            if err < best[0]: best=(err, idx)
+            _logger.info("PCA(%d) = %f - %f - %f"%(idx, err, float(cerr)/len(col), numpy.sum(t[:idx])))
+        err, idx = best
+        neigh = manifold.knn(val.copy(), 10)
+        col = neigh.col.reshape((len(val), 11))
+        cnt = numpy.zeros(len(col))
+        for i in xrange(len(col)):
+            cnt[i] = numpy.sum( (ref[col[i, 0]] - ref[col[i, 1:]]) == 0 )
+        order = numpy.argsort(cnt)[::-1]
+        for i, img in enumerate(ndimage_file.iter_images(files[0], label[order])):
+            ndimage_file.write_image("test_stack_01.spi", img, i)
+        feat2=feat[:, :idx]
+        if 1 == 1:
+            from sklearn.manifold import locally_linear
+            feat = locally_linear.locally_linear_embedding(feat[:, :idx], local_neighbors, 3)[0]
+            index=None
+        else:
+            feat, evals, index = manifold.diffusion_maps(feat[:, :idx].copy(), 3, local_neighbors, True)
+            _logger.info("Eigen: %s"%str(evals))
+        label[:, 0] = 1
+        label[order.squeeze(), 1] = numpy.arange(1, len(order)+1)
+        if index is not None:
+            index = index.squeeze()
+            label = label[index]
+            ref = ref[index]
+            feat2 = feat2[index]
+        format.write_dataset(output, numpy.hstack((feat, feat2)), 1, label, ref, prefix="pca_")
+    elif 1 == 0:
+        classify_outliers(label, data, ref, output)
+        
+    if 1 == 0:
+        ref -= ref.min()
+        _logger.info("Image Size: %d"%(int(numpy.sqrt(data.shape[1]))))
+        if 1 == 0:
+            from ..core.learn.deep import dA
+            data -= data.min(axis=0)
+            data /= data.max(axis=0)
+            dA.apply_dA(data)
+        else:
+            from ..core.learn.deep import SdA
+            data -= data.min(axis=0)
+            data /= data.max(axis=0)
+            ha = len(data)/2 
+            tr = 2*ha/3
+            va = ha/3 + tr
+            _logger.error("n=%d -- tr=%d -- va=%d"%(len(data), tr, va))
+            SdA.apply_SdA(((data[:tr], ref[:tr]), (data[tr:va], ref[tr:va]), (data[va:], ref[va:])))
+            sys.stdout.flush()
+        
+    if 1 == 1:
+        from sklearn.manifold import locally_linear
+        index=None
+        for i, img in enumerate(ndimage_file.iter_images(files[0], label)):
+            if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
+            ndimage_file.write_image("lle_stack_01.spi", img, i)
+        #neigh = manifold.knn(data, local_neighbors)
+        #feat = locally_linear.locally_linear_embedding(neigh, local_neighbors, 5)[0]
+        feat = locally_linear.locally_linear_embedding(data, local_neighbors, 5)[0]
     else:
-        data, mask, avg, template = read_data(input_files, *input_vals[1:3], **extra)
-        udata = None
-    eigs, sel, energy = classify_data(data, udata, output=output, view=input_vals[0], **extra)
+        _logger.info("Embedding manifold on %d data points"%len(label))
+        feat, evals, index = manifold.diffusion_maps(data, 9, local_neighbors, True)
+    image_size=0.4
+    radius=40
+    plot_embedded(feat[:, 0], feat[:, 1], "manifold", label, files[0], output, image_size, radius, ref, 400)
+    _logger.info("Write embedding")
+    if 1 == 1:
+        label[:, 0] = 1
+        label[:, 1] = numpy.arange(1, len(label)+1)
+    if index is not None:
+        label = label[index]
+        ref = ref[index]
+    format.write_dataset(output, feat, 1, label, ref)
+    _logger.info("Completed")
+
+def classify_outliers(label, data, select, output):
+    '''
+    '''
     
-    write_dataset(output, eigs, sel, input_vals[0])
-    write_stack(input_files, input_vals[1], input_vals[2], format_utility.add_prefix(output, "stack_"), **extra)
+    for i in xrange(3):
+        tst = data-data.mean(0)
+        U, d, V = scipy.linalg.svd(tst, False)
+        feat = d*numpy.dot(V, tst.T).T
+        best = (1e20, None)
+        for idx in xrange(1, 20):
+            neigh = manifold.knn(feat[:, :idx].copy(), 10)
+            err = 0
+            col = neigh.col.reshape((len(feat), 11))
+            for i in xrange(len(col)):
+                cnt = numpy.sum( (select[col[i, 0]] - select[col[i, 1:]]) != 0 )
+                err += cnt
+            if err < best[0]: best=(err, idx)
+        err, idx = best
+        feat = feat[:, :idx]
+        classes = numpy.unique(select)
+        good = None
+        for c in classes:
+            csel = select == c
+            featc = feat[csel]
+            sel = analysis.robust_rejection(featc, 3)
+            csel[numpy.logical_not(sel)]=0
+            if good is None: good = csel
+            else: good = numpy.logical_or(good, csel)
+        format.write_dataset(output, feat, 1, label, select, prefix="pca_%d_"%(i+1))
+        data = data[good].copy()
+        select = select[good].copy()
+        label = label[good].copy()
     
-    plot_examples(input_files, input_vals[1], output, eigs, sel, **extra)
+def create_mask(files, pixel_diameter, resolution, apix, **extra):
+    '''
+    '''
     
-    avg3 = []
-    avg3.append( comput_average(input_files, input_vals[1], input_vals[2], subset=sel, **extra) )
-    avg3.append( comput_average(input_files, input_vals[1], input_vals[2], subset=numpy.logical_not(sel), **extra) )
+    img = ndimage_file.read_image(files[0])
+    mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
+    bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
+    _logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor, resolution, apix))
+    if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
+    return mask
+
+def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, **extra):
+    '''
+    '''
     
-    return input_vals, eigs, sel, avg3[:3], "Energy: %f - Num Eigen: %d"%energy
+    assert(align[i, 0]==0)
+    if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
+    ndimage_utility.vst(img, img)
+    bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
+    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    ndimage_utility.normalize_standard(img, mask, var_one, img)
+    #img = ndimage_utility.compress_image(img, mask)
+    return img
 
 def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
     ''' Classify the aligned projection data grouped by view
@@ -112,10 +233,10 @@ def classify_data(data, test=None, neig=1, thread_count=1, resample=0, sample_si
     else:
         sel = one_class_classification(eigs, train)
     
-    if 1 == 0:
+    if 1 == 1:
         if local_neighbors > 0:
             train = manifold.local_neighbor_average(train, manifold.knn(train, local_neighbors))
-        feat, evals, index = manifold.diffusion_maps(train, 5, 60, True)
+        feat, evals, index = manifold.diffusion_maps(train, 2, 40, True)
         _logger.info("Eigen values: %s"%",".join([str(v) for v in evals]))
         if index is not None:
             feat_old = feat
@@ -220,112 +341,9 @@ def comput_average(input_files, label, align, subset=None, use_rtsq=False, **ext
     if len(label) > 0: avg /= (i+1)
     return avg
 
-def classify_data2(data, ref, test=None, neig=1, thread_count=1, resample=0, sample_size=0, local_neighbors=0, min_group=None, view=0, **extra):
-    ''' Classify the aligned projection data grouped by view
-    
-    :Parameters:
-    
-    data : array
-           2D array where each row is an aligned and transformed image
-    output : str
-             Output filename for intermediary data
-    neig : float
-           Number of eigen vectors to use (or mode)
-    thread_count : int
-                    Number of threads
-    extra : dict
-            Unused key word arguments
-            
-    :Returns:
-    
-    eigs : array
-           2D array of embedded images
-    sel : array
-          1D array of selected images
-    '''
-    
-    sel = None
-    iter = 1
-    for i in xrange(iter):
-        if resample > 0:
-            test = process_queue.recreate_global_dense_matrix(data)
-            train = analysis.resample(data, resample, sample_size, thread_count)
-        elif local_neighbors > 0:
-            test = process_queue.recreate_global_dense_matrix(data)
-            if ref is not None:
-                train = numpy.empty_like(test)
-                refs = numpy.unique(ref)
-                offset = 0
-                for r in refs:
-                    train1 = manifold.local_neighbor_average(test[r==ref], manifold.knn(test[r==ref], local_neighbors))
-                    end = offset+train1.shape[0]
-                    train[offset:end] = train1
-                    offset = end
-            else:
-                train = manifold.local_neighbor_average(test, manifold.knn(test, local_neighbors))
-        else: 
-            train = process_queue.recreate_global_dense_matrix(data)
-            test = train
-            train = train[:min_group]
-        if sel is not None: train = train[sel]
-        
-        if 1 == 0:
-            eigs, evals, index = manifold.diffusion_maps(test, 2, k=15, mutual=False, batch=10000)
-            if index is not None:
-                eigs2 = eigs
-                eigs = numpy.zeros((test.shape[0], eigs2.shape[1]))
-                eigs[index.squeeze()] = eigs2
-            _logger.info("Eigen values: %s"%",".join([str(v) for v in evals]))
-            if index is not None: _logger.info("Subset: %d of %d"%(index.shape[0], test.shape[0]))
-            idx = 0
-            energy=0
-        elif 1 == 0:
-            from sklearn import decomposition
-            ica = decomposition.FastICA()
-            eigs = ica.fit(train).transform(test)[:, :2]
-            idx = 0
-            energy=0
-        else:
-            eigs, idx, vec,energy = analysis.pca(train, test, neig, test.mean(axis=0))
-        eigs2 = eigs.copy()
-        #eigs2 -= eigs2.min(axis=0)
-        #eigs2 /= eigs2.max(axis=0)
-        cent = numpy.median(eigs2, axis=0)
-        eig_dist_cent = scipy.spatial.distance.cdist(eigs2, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-        th = analysis.otsu(eig_dist_cent)
-        _logger.info("Threshold(%d)=%f"%(view, th))
-        sel = eig_dist_cent < th
-        
-        if 1 == 1:
-            nsel = numpy.logical_not(sel)
-            n = min(numpy.sum(nsel), numpy.sum(sel))
-            if train.shape[0] != test.shape[0]: train = test
-            penergy = analysis.pca_train(train[numpy.argwhere(sel).squeeze()[:n]], neig)[2]
-            nenergy = analysis.pca_train(train[numpy.argwhere(nsel).squeeze()[:n]], neig)[2]
-            _logger.info("Energy: %f -> p: %f | n: %f"%(energy, penergy, nenergy))
-        
-        if 1 == 0:
-            feat, evals, index = manifold.diffusion_maps(test, 5, k=10, mutual=True, batch=10000)
-            '''
-            if index is not None:
-                index = numpy.argwhere(sel).squeeze()[index]
-            else: index = numpy.argwhere(sel).squeeze()
-            '''
-            if index is not None:
-                feat_old = feat
-                feat = numpy.zeros((eigs2.shape[0], feat.shape[1]))
-                try:
-                    feat[index.squeeze()] = feat_old
-                except:
-                    _logger.error("%s != %s - %s"%(str(feat.shape), str(feat_old.shape), str(index.shape)))
-                    raise
-            _logger.info("Eigen values: %s"%",".join([str(v) for v in evals]))
-            eigs = numpy.hstack((eigs, feat))
-        if iter > 1: _logger.info("Selected: %d - %f"%(numpy.sum(sel), energy))
-        assert(eigs.shape[0]==test.shape[0])
-    return eigs, sel, (energy, idx)
 
-def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, unaligned=False, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
+
+def image_transform2(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=None, resolution=0.0, apix=None, unaligned=False, disable_bispec=False, use_radon=False, bispec_window='gaussian', bispec_biased=False, bispec_lag=0.0081, bispec_mode=0, flip_mirror=False, pixel_diameter=None, **extra):
     ''' Transform an image
     
     .. todo:: add ctf correction
@@ -401,7 +419,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
         
         idx = numpy.argwhere(numpy.logical_and(freq >= hp_cutoff, freq <= apix/resolution))
         if bispec_mode == 1: 
-            img = numpy.log10(numpy.sqrt(numpy.abs(img.real+1)))
+            img = numpy.log10(numpy.abs(img.real+1))
             if idx is not None: img = img[idx[:, numpy.newaxis], idx]
         elif bispec_mode == 2: 
             img = numpy.mod(numpy.angle(img), 2*numpy.pi) #img.imag
@@ -410,7 +428,7 @@ def image_transform(img, idx, align, mask, hp_cutoff, use_rtsq=False, template=N
             if idx is not None: img = img[idx[:, numpy.newaxis], idx]
             if 1 == 1:
                 sel = img.real < 0
-                amp = numpy.log10(numpy.sqrt(numpy.abs(img).real+1))
+                amp = numpy.log10(numpy.abs(img).real+1)
                 img.imag[sel] = numpy.pi-img.imag[sel]
                 pha = numpy.mod(numpy.angle(img), 2*numpy.pi)
             else:
@@ -726,108 +744,9 @@ def read_alignment(files, alignment="", **extra):
                 total = end
             align = numpy.asarray(alignvals)
     ref = align[:, refidx].astype(numpy.int)
-    refs = numpy.unique(ref)
-    
-    group = []
-    for r in refs:
-        sel = r == ref
-        group.append((r, label[sel], align[sel], numpy.argwhere(sel)))
-    return group, align, header
+    #refs = numpy.unique(ref)
+    return label, align, ref
 
-def initialize(files, param):
-    # Initialize global parameters for the script
-    
-    if mpi_utility.is_root(**param):
-        if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution: %f"%param['resolution'])
-        if param['use_rtsq']: _logger.info("Rotate and translate data stack")
-    
-    group = None
-    if mpi_utility.is_root(**param): 
-        group, align, header = read_alignment(files, **param)
-        #total = len(align)
-        #param['min_group'] = numpy.min([len(g[1]) for g in group])
-        param['alignheader'] = header
-        param['alignment'] = align
-        param['selected'] = numpy.zeros(len(align), dtype=numpy.bool)
-        _logger.info("Cleaning bad particles from %d views"%len(group))
-    group = mpi_utility.broadcast(group, **param)
-    if param['single_view'] > 0:
-        tmp=group
-        group = [tmp[param['single_view']-1]]
-    param['total'] = numpy.zeros((len(group), 3))
-    param['sel_by_mic'] = {}
-    param['unsel_by_mic'] = {}
-    
-    return group
-
-def reduce_all(val, input_files, total, sel_by_mic, unsel_by_mic, output, file_completed, selected, id_len=0, **extra):
-    # Process each input file in the main thread (for multi-threaded code)
-    
-    input, eigs, sel, avg3, msg = val
-    label = input[1]
-    index = input[3]
-    selected[index] = sel
-    file_completed -= 1
-    total[file_completed, 0] = input[0]
-    total[file_completed, 1] = numpy.sum(sel)
-    total[file_completed, 2] = len(sel)
-    for i in numpy.argwhere(sel):
-        sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))   
-    sel = numpy.logical_not(sel) 
-    for i in numpy.argwhere(sel):
-        unsel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))   
-    output = spider_utility.spider_filename(format_utility.add_prefix(output, "avg_"), 1, id_len)
-    _logger.info("Finished processing %d - %d,%d (%d,%d) - %s"%(input[0], numpy.sum(total[:file_completed+1, 1]), numpy.sum(total[:file_completed, 2]), total[file_completed, 1], total[file_completed, 2], msg))
-    file_completed *= len(avg3)
-    for i in xrange(len(avg3)):
-        ndimage_file.write_image(output, avg3[i], file_completed+i)
-    # plot first 2 eigen vectors
-    return input[0]
-
-def reconstruct3(image_file, label, align, output):
-    '''
-    '''
-    
-    # Define two subsets - here even and odd
-    even = numpy.arange(0, len(align), 2, dtype=numpy.int)
-    odd = numpy.arange(1, len(align), 2, dtype=numpy.int)
-    iter_even = ndimage_file.iter_images(image_file, label[even])
-    iter_odd = ndimage_file.iter_images(image_file, label[odd])
-    vol,vol_even,vol_odd = reconstruct.reconstruct_nn4_3(iter_even, iter_odd, align[even], align[odd])
-    # Write volume to file
-    ndimage_file.write_image(output, vol)
-    ndimage_file.write_image(format_utility.add_prefix(output, "even_"), vol_even)
-    ndimage_file.write_image(format_utility.add_prefix(output, "odd_"), vol_odd)
-
-def finalize(files, total, sel_by_mic, unsel_by_mic, output, input_files, selected, alignment, alignheader, **extra):
-    # Finalize global parameters for the script
-    
-    '''
-    if global_rank is not None:
-        idx1 = global_rank[0].ravel()
-        idx2 = global_rank[1].ravel()
-        idx1 = numpy.argsort(global_feat[:, 0])
-        idx2 = idx1[::-1]
-        idx1 = idx1[:5000]
-        idx2 = idx2[:5000]
-        _logger.info("Reconstructing %d selected projections"%(idx1.shape[0]))
-        reconstruct3(input_files[0], global_label[idx1].copy(), global_align[idx1].copy(), format_utility.add_prefix(output, "vol_sel_"))
-        _logger.info("Reconstructing %d unselected projections"%(idx2.shape[0]))
-        reconstruct3(input_files[0], global_label[idx2].copy(), global_align[idx2].copy(), format_utility.add_prefix(output, "vol_unsel_"))
-        _logger.info("Reconstructing - finished")
-    '''
-    
-    format.write(output, alignment[selected], prefix="sel_align_", default_format=format.spiderdoc, header=alignheader)
-    format.write(output, alignment[numpy.logical_not(selected)], prefix="unsel_align_", default_format=format.spiderdoc, header=alignheader)
-    format.write(output, total, prefix="sel_avg_", header=['id', 'selected', 'total'], default_format=format.spiderdoc)
-    for id, sel in sel_by_mic.iteritems():
-        sel = numpy.asarray(sel)
-        format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
-    for id, sel in unsel_by_mic.iteritems():
-        sel = numpy.asarray(sel)
-        format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="unsel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
-    _logger.info("Selected %d out of %d"%(numpy.sum(total[:, 1]), numpy.sum(total[:, 2])))
-    _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
