@@ -278,7 +278,7 @@ def pca_train(trn, frac=-1, mtrn=None):
     if idx >= len(d): idx = 1
     return idx, V[:idx], numpy.sum(t[:idx])
 
-def pca(trn, tst=None, frac=-1, mtrn=None):
+def pca(trn, tst=None, frac=-1, mtrn=None, use_svd=True):
     ''' Principal component analysis using SVD
     
     :Parameters:
@@ -310,14 +310,14 @@ def pca(trn, tst=None, frac=-1, mtrn=None):
         `https://raw.github.com/scikit-learn/scikit-learn/master/sklearn/decomposition/pca.py`
     '''
 
-    use_svd=True
+    
     if mtrn is None: mtrn = trn.mean(axis=0)
     trn = trn - mtrn
 
     if use_svd:
         U, d, V = scipy.linalg.svd(trn, False)
     else:
-        d, V = numpy.linalg.eig(numpy.corrcoef(trn, rowvar=0))
+        d, V = numpy.linalg.eig(numpy.cov(trn))
 
     t = d**2/trn.shape[0]
     t /= t.sum()
