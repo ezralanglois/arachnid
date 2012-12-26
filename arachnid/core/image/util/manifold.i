@@ -16,6 +16,13 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#define USE_BLAS
+#ifdef USE_BLAS
+extern "C" {
+#include "cblas.h"
+}
+#endif
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -52,6 +59,7 @@
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* dist2, int n, int m)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* data, int nd)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdata, int snd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* cdata, int cnd)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, int ns)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* col_ind, int nc)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ptr, int nr)};
@@ -59,6 +67,8 @@
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* srow_ind, int snr)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* scol_ind, int snc)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* selected, int scnt)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* samp1, int n1, int m1)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* samp2, int n2, int m2)};
 %enddef
 
 
@@ -101,6 +111,31 @@ INSTANTIATE_ALL_DATA(f_name, unsigned long long)
 %template(f_name)   f_name<double>;
 %template(f_name)   f_name<long double>;
 %enddef
+
+%define INSTANTIATE_DATA2( f_name )
+%template(f_name)   f_name<float>;
+%template(f_name)   f_name<double>;
+%enddef
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function selects a subset of rows 
+		(and columns) from a CSR sparse matrix.
+
+		:Parameters:
+
+		samp1 : array
+			   In/out 1D array of values
+		samp2 :array
+			   In/out 1D array of values
+		dist2 : array
+			   	Output matrix
+		alpha : float
+				Value to mulitply by result
+		beta : float
+			   Value to add to result
+		");
+INSTANTIATE_DATA2(gemm)
 
 %feature("autodoc", "");
 %feature("docstring",
@@ -220,6 +255,58 @@ INSTANTIATE_ALL(finalize_heap)
 			New number of neighbors
 		");
 INSTANTIATE_ALL(knn_reduce)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+		
+		data : array
+			   Input 1D array of distances
+		col_ind :array
+			 	 Input 1D array column indicies
+		row_ind : array
+			   	  Input 1D array row indicies
+		sdata : array
+			   Output 1D array of distances
+		scol_ind :array
+			 	 Output 1D array column indicies
+		srow_ind : array
+			   	  Output 1D array row indicies
+		eps : float
+			  Maximum allowed distance between neighbors
+		");
+INSTANTIATE_ALL(knn_reduce_eps)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+		
+		data : array
+			   Input 1D array of distances
+		col_ind :array
+			 	 Input 1D array column indicies
+		row_ind : array
+			   	  Input 1D array row indicies
+		sdata : array
+			   Output 1D array of distances
+		scol_ind :array
+			 	 Output 1D array column indicies
+		srow_ind : array
+			   	  Output 1D array row indicies
+		cdata : array
+			    Input 1D array of distances used for comparison
+		eps : float
+			  Maximum allowed distance between neighbors
+		");
+INSTANTIATE_ALL(knn_reduce_eps_cmp)
+
+
 
 %feature("autodoc", "");
 %feature("docstring",

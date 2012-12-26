@@ -8,7 +8,14 @@ This setup file defines a build script for C/C++ or Fortran extensions.
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
+    from numpy.distutils.system_info import get_info
     import os
+    
+    try:
+        blas_opt = get_info('blas_opt',notfound_action=2)
+    except:
+        blas_opt = get_info('blas')
+    
     config = Configuration('util', parent_package, top_path)
     if 1 == 1:
         config.add_library('spider_util', sources=['spider_lib.f90'],  define_macros=[('SP_LIBFFTW3', 1)])
@@ -19,7 +26,7 @@ def configuration(parent_package='',top_path=None):
 
     config.add_extension('_spider_util', sources=['spider_util.f90'], libraries=['spider_util'])
     config.add_extension('_image_utility', sources=['image_utility.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['image_utility.h'], swig_opts=['-c++'])
-    config.add_extension('_manifold', sources=['manifold.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['manifold.hpp'], swig_opts=['-c++'])
+    config.add_extension('_manifold', sources=['manifold.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['manifold.hpp'], swig_opts=['-c++'], extra_info = blas_opt)
     config.add_include_dirs(os.path.dirname(__file__))
     return config
 

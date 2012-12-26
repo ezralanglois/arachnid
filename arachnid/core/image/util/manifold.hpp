@@ -1,6 +1,7 @@
 
 
-/*
+#define USE_BLAS
+#ifdef USE_BLAS
 inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE transa, const enum CBLAS_TRANSPOSE transb, const int m, const int n, const int k, const float alpha, const float* A, const int lda, const float* B, const int ldb, const float beta, float* C, const int ldc)
 {
 	cblas_sgemm(order, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
@@ -13,9 +14,46 @@ inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE tran
 template<class T>
 void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* dist2, int n, int m, T alpha, T beta)
 {
-	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, cn, alpha, samp1, cn, samp2, cn, beta, dist2, n2);
+	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, alpha, samp1, m1, samp2, m1, beta, dist2, n2);
 }
-*/
+#endif
+
+template<class I, class T>
+I knn_reduce_eps_cmp(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, T* cdata, int cnd, float eps)
+{
+	I j=0;
+	for(I r=0;r<snr;++r)
+	{
+		//if( r < 20 ) fprintf(stderr, "data[%d]=%f < %f\n", r, data[r], eps);
+		if( cdata[r] < eps )
+		{
+			sdata[j]=data[r];
+			scol_ind[j]=col_ind[r];
+			srow_ind[j]=row_ind[r];
+			++j;
+		}
+	}
+	return j;
+}
+
+
+template<class I, class T>
+I knn_reduce_eps(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, float eps)
+{
+	I j=0;
+	for(I r=0;r<snr;++r)
+	{
+		//if( r < 20 ) fprintf(stderr, "data[%d]=%f < %f\n", r, data[r], eps);
+		if( data[r] < eps )
+		{
+			sdata[j]=data[r];
+			scol_ind[j]=col_ind[r];
+			srow_ind[j]=row_ind[r];
+			++j;
+		}
+	}
+	return j;
+}
 
 template<class I, class T>
 void knn_reduce(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, int d, int k)
@@ -55,6 +93,13 @@ I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
 			I c = col_ind[r];
 			if( long(c) < 0 ) c = -c;
 			I* mc = find_mutual(col_ind+c*k, col_ind+(c+1)*k, row_ind[r]);
+			/*if( r < 50 )
+			{
+				fprintf(stderr, "%d (%d): ", row_ind[r], c);
+				for(I* beg1 = col_ind+c*k, *end1=col_ind+(c+1)*k;beg1 != end1;++beg1)
+					fprintf(stderr, "%d, ", *beg1);
+				fprintf(stderr, " -- %d\n", mc != 0);
+			}*/
 			if( mc != 0 )
 			{
 				(*mc) = -((*mc)+1);
@@ -116,13 +161,16 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		I* col_rk = col_ind+rk;
 		//fprintf(stderr, "r: %d | data: %p - col: %p - hbeg: %p - dist2: %p\n", r, data_rk, col_rk, &(*hbeg), dist2);
 		unsigned long c=0;
+		fprintf(stderr, "here-1 %d\n", r);
 		if( offset > 0 )
 		{
 			for(unsigned long l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		}
+		assert(hcur<hend);
 		for(;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
 		assert(c==m || hcur == hend);
 		if( hcur == hend ) std::make_heap(hbeg, hend);
+		fprintf(stderr, "here-2 %d\n", r);
 		/*if ( r == 0)
 		{
 			if( std::min_element(hbeg, hend)->first > 0 )
@@ -137,6 +185,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 				std::make_heap(hbeg, hend);
 			}
 		}
+		fprintf(stderr, "here-3 %d\n", r);
 		/*if ( r == 0)
 		{
 			if( std::min_element(hbeg, hend)->first > 0 )
@@ -148,6 +197,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 			data_rk[c] = hcur->first;
 			col_rk[c] = hcur->second;
 		}
+		fprintf(stderr, "here-4 %d\n", r);
 	}
 }
 
@@ -256,9 +306,9 @@ void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_i
 	for(int i=0;i<nc;i++)
 	{
 		double den = 1.0;
-		if( ndist[row_ind[i]] != 0.0 ) den *= std::sqrt(double(ndist[row_ind[i]]));
-		if( ndist[col_ind[i]] != 0.0 ) den *= std::sqrt(double(ndist[col_ind[i]]));
-		if( den != 0.0 ) sdist[i] = std::exp( -data[i] / T(den) );
+		den *= std::sqrt(double(ndist[row_ind[i]]));
+		den *= std::sqrt(double(ndist[col_ind[i]]));
+		if( den != 0.0 ) sdist[i] = std::exp( -data[i] / T(den+1e-12) );
 		else sdist[i] = std::exp( -data[i] );
 	}
 	delete[] ndist, row_ind;
@@ -285,8 +335,7 @@ void normalize_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row
 #	endif
 	for(int i=0;i<nr;i++)
 	{
-		if( ndist[i] == 0.0 ) ndist[i] = 1.0;
-		else ndist[i] = T(1.0) / ndist[i];
+		ndist[i] = T(1.0) / (ndist[i]+1e-12);
 	}
 	I* row_ind = new I[nc];
 #	ifdef _OPENMP

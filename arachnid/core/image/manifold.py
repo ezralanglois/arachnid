@@ -8,7 +8,7 @@ import logging, numpy, scipy
 import scipy.linalg, scipy.io
 import scipy.sparse.linalg
 from ..metadata import format_utility
-from ..parallel import process_queue
+from ..parallel import process_queue #, openmp
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -25,6 +25,7 @@ except:
     except:
         tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
         _manifold = None
+
         
 def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     ''' Embed the sample data into a low dimensional manifold using the
@@ -59,6 +60,38 @@ def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     dist2 = knn_reduce(dist2, k, mutual)
     return diffusion_maps_dist(dist2, dimension)
 
+def knn_reduce_eps(dist2, eps, epsdata=None):
+    '''Reduce k-nearest neighbor sparse matrix
+    in the COO format to one with less neighbors.
+    
+    :Parameters:
+    
+    dist2 : sparse array
+            Sparse distance matrix in COO format
+    eps : float
+          Maximum allowed distance between neighbors
+    epsdata : array, optional
+              Data vector used for comparison (not copied)
+                
+    :Returns:
+    
+    dist2 : sparse array
+            Sparse distance matrix in COO format
+    '''
+    
+    data = dist2.data.copy()
+    row  = dist2.row.copy()
+    col  = dist2.col.copy()
+    if epsdata is not None:
+        n = _manifold.knn_reduce_eps_cmp(dist2.data, dist2.col, dist2.row, data, col, row, epsdata, eps)
+    else:
+        n = _manifold.knn_reduce_eps(dist2.data, dist2.col, dist2.row, data, col, row, eps)
+    _logger.error("n=%d from %d"%(n, dist2.data.shape[0]))
+    data = data[:n]
+    col = col[:n]
+    row = row[:n]
+    return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
+
 def knn_reduce(dist2, k, mutual=False):
     '''Reduce k-nearest neighbor sparse matrix
     in the COO format to one with less neighbors.
@@ -91,6 +124,8 @@ def knn_reduce(dist2, k, mutual=False):
         data[:dist2.data.shape[0]] = dist2.data
         row[:dist2.row.shape[0]] = dist2.row
         col[:dist2.col.shape[0]] = dist2.col
+        _logger.error("col1: %s"%str(dist2.col[:10]))
+        _logger.error("col2: %s"%str(col[:10]))
         
     if not mutual:
         m = dist2.shape[0]*k
@@ -99,9 +134,11 @@ def knn_reduce(dist2, k, mutual=False):
         col[m:] = col[:m]
     else:
         n=_manifold.knn_mutual(data, col, row, k)
+        _logger.error("No reduction: k=%d, n=%d"%(k, n))
         data = data[:n]
         col = col[:n]
         row = row[:n]
+    _logger.error("len -> %d == %d"%(data.shape[0], dist2.data.shape[0]))
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
 
 def knn_simple(samp, k, dtype=numpy.float):
@@ -167,6 +204,62 @@ def local_neighbor_average(samp, neigh):
         avgsamp[i] = numpy.mean(samp[neigh.col[b:e]])
         b=e
     return avgsamp
+
+"""
+def load_from_cache(cache_file, n, suffix=""):
+    '''
+    '''
+    
+    if cache_file is None: return None
+    
+    cache_file = format_utility.new_filename(cache_file, ext=".mat")
+    cache_dat = format_utility.new_filename(cache_file, suffix="_coo"+suffix, ext=".bin")
+    cache_row = format_utility.new_filename(cache_file, suffix="_row"+suffix, ext=".bin")
+    cache_col = format_utility.new_filename(cache_file, suffix="_col"+suffix, ext=".bin")
+    if format_utility.os.path.exists(cache_file):
+        mat = scipy.io.loadmat(cache_file)
+        
+        if mat['coo'][0] == samp.shape[0] and mat['total'] == n:
+            dtype_coo = mat['dtype_coo'][0]
+            dtype_col = mat['dtype_col'][0]
+            if dtype_coo[0] == '[': dtype_coo = dtype_coo[2:len(dtype_coo)-2]
+            if dtype_col[0] == '[': dtype_col = dtype_col[2:len(dtype_col)-2]
+            coo = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
+            row = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
+            col = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_col))
+            return scipy.sparse.coo_matrix( (coo.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) )
+    return None
+"""
+
+def eps_range(neigh, neighbors=None):
+    ''' Estimate the epsilon nearest neighbor range for a given range of neighbors
+    
+    :Parameters:
+    
+    neigh : sparse matrix
+            Sparse matrix with nearest neighbors
+    neighbors : int, optional
+                Number of nearest neighbors
+                
+    :Returns:
+    
+    eps_max : flaot
+              Maximum EPS value
+    eps_min : float
+              Minimum EPS value
+    '''
+    
+    if neighbors is None:
+        neighbors = neigh.data.shape[0]/neigh.shape[0]
+    else: neighbors += 1
+    
+    data = neigh.data.reshape((neigh.shape[0], neighbors))
+    maxvals = data.max(axis=1)
+    eps_max = maxvals.min()
+    maxvals = data.min(axis=1)
+    eps_min = maxvals.max()
+    
+    return eps_max, eps_min
 
 def knn_geodesic_cache(samp, k, batch=10000, shared=False, cache_file=None):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
@@ -259,7 +352,7 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
     col, shm_col = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     dense = numpy.empty((batch,batch), dtype=data.dtype)
     
-    gemm = scipy.linalg.fblas.dgemm
+    #gemm = scipy.linalg.fblas.dgemm
     for r in xrange(0, samp.shape[0], batch):
         rnext = min(r+batch, samp.shape[0])
         beg, end = r*k, rnext*k
@@ -267,12 +360,21 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
-            dist2 = gemm(1.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            #dist2 = gemm(1.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            _manifold.gemm(s1, s2, tmp, 1.0, 0.0)
+            dist2=tmp
             dist2[dist2>1.0]=1.0
             numpy.arccos(dist2, dist2)
+            _logger.error("push_to_heap-1")
             _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c), k)
+            _logger.error("push_to_heap-2")
+        _logger.error("finalize_heap-1")
         _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
+        _logger.error("finalize_heap-2")
+    
+    _logger.error("del-1")
     del dist2, dense
+    _logger.error("del-2")
     row, shm_row = process_queue.create_global_dense_matrix(n, numpy.longlong, shared)
     rtmp = row.reshape((samp.shape[0], k))
     ctmp = col.reshape((samp.shape[0], k))
@@ -314,20 +416,29 @@ def knn(samp, k, batch=10000):
     col = numpy.empty(n, dtype=numpy.longlong)
     dense = numpy.empty((batch,batch), dtype=dtype)
     
-    gemm = scipy.linalg.fblas.dgemm
+    #gemm = scipy.linalg.fblas.dgemm
     a = (samp**2).sum(axis=1)
+    assert(a.shape[0]==samp.shape[0])
     for r in xrange(0, samp.shape[0], batch):
         rnext = min(r+batch, samp.shape[0])
         beg, end = r*k, rnext*k
         s2 = samp[r:rnext]
         for c in xrange(0, samp.shape[0], batch):
             s1 = samp[c:min(c+batch, samp.shape[0])]
-            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0])) 
-            dist2 = gemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
+            #dist2 = numpy.dot(s1, s2.T)
+            #dist2 *= -2.0
+            _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
+            dist2=tmp
+            #dist2 = gemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
             #dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
-            dist2 += a[c:c+batch, numpy.newaxis]
-            dist2 += a[r:rnext]
-            _manifold.push_to_heap(dist2, data[beg:], col[beg:], c/batch, k)
+            try:
+                dist2 += a[c:c+batch]#, numpy.newaxis]
+            except:
+                _logger.error("dist2.shape=%s -- a.shape=%s -- %d,%d,%d"%(str(dist2.shape), str(a.shape), c, c+batch, batch))
+                raise
+            dist2 += a[r:rnext, numpy.newaxis]
+            _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c), k)
         _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
     del dist2, dense
     row = numpy.empty(n, dtype=numpy.longlong)
@@ -386,12 +497,16 @@ def diffusion_maps_dist(dist2, dimension):
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
     dist2, index = largest_connected(dist2)
     _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
-    _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
-    D = scipy.power(dist2.sum(axis=0), -0.5)
-    D[numpy.logical_not(numpy.isfinite(D))] = 1.0
+    _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr) # problem here
+    assert(numpy.alltrue(numpy.isfinite(dist2.data)))
+    D = scipy.power(dist2.sum(axis=0)+1e-12, -0.5)
+    assert(numpy.alltrue(numpy.isfinite(D)))
+    #D[numpy.logical_not(numpy.isfinite(D))] = 1.0
     norm = scipy.sparse.dia_matrix((D, (0,)), shape=dist2.shape)
     L = norm * dist2 * norm
     del norm
+    #openmp.set_thread_count(1)
+    #assert(numpy.alltrue(numpy.isfinite(L.data)))
     if hasattr(scipy.sparse.linalg, 'eigen_symmetric'):
         evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
     else:
@@ -403,8 +518,8 @@ def diffusion_maps_dist(dist2, dimension):
     del L
     evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
     index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
-    evecs = D[:,numpy.newaxis] * evecs[:, index2]
-    return evecs, evals[index2].squeeze(), index
+    evecs = D[:,numpy.newaxis] * evecs #[:, index2]
+    return evecs[:, index2], evals[index2].squeeze(), index
     
 def largest_connected(dist2):
     ''' Find the largest connected component in a graph
@@ -423,8 +538,8 @@ def largest_connected(dist2):
     '''
     
     tmp = dist2.tocsr() if not scipy.sparse.isspmatrix_csr(dist2) else dist2
-    tmp = (tmp + tmp.T)/2
-    n, comp = scipy.sparse.csgraph.cs_graph_components(tmp)
+    #tmp = (tmp + tmp.T)/2
+    n, comp = scipy.sparse.csgraph.cs_graph_components(tmp, connection='strong')
     b = len(numpy.unique(comp))
     _logger.info("Check connected components: %d -- %d -- %d (%d)"%(n, b, dist2.shape[0], dist2.data.shape[0]))
     n = b
@@ -444,6 +559,7 @@ def largest_connected(dist2):
         index = index.astype(dist2.indices.dtype)
         n=_manifold.select_subset_csr(dist2.data, dist2.indices, dist2.indptr, index)
         dist2=scipy.sparse.csr_matrix((dist2.data[:n],dist2.indices[:n], dist2.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
+    assert(scipy.sparse.csgraph.cs_graph_components(dist2.tocsr())[0]==1)
     return dist2, index
 
 
