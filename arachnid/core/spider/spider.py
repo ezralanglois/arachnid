@@ -267,6 +267,10 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
+        
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
         else: session.de(outputfile)
@@ -360,6 +364,10 @@ class Session(spider_session.Session):
         outputfile : str
                      Filename of output image
         '''
+        
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
         
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
@@ -1318,8 +1326,9 @@ class Session(spider_session.Session):
         '''
         
         additional = []
-        if mode == 'SET MP': additional.append(spider_tuple(value))
-        else: raise ValueError, "Only SET MP supported"
+        if value is not None:
+            if mode == 'SET MP': additional.append(spider_tuple(value))
+            else: raise ValueError, "Only SET MP supported"
         session.invoke('md', mode, *additional)
     
     def mo(session, image_size, model="T", background_constant=12.0, circle_radius=12, gaus_center=(12.0, 12.0), gaus_std=4.2, gaus_mean=1.0, rand_gauss=False, outputfile=None, **extra):
@@ -1685,6 +1694,9 @@ class Session(spider_session.Session):
         outputfile : str
                     Tuple containing the output file and number of angles
         '''
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
         
         assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
@@ -1970,6 +1982,10 @@ class Session(spider_session.Session):
             outputfile : str
                          Filename of output image
         '''
+        
+        if interpolation is not None:
+            v = self.get_version()
+            if v[0] < 20: interpolation = None
         
         input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
         assert(count > 1)
@@ -3038,10 +3054,17 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             Dictionary of updated parameters
     '''
     
-    if dec_level == bin_factor: return {}
-    max_radius = int(window/2.0)
-    param = {}
+    
     factor = dec_level/bin_factor
+    param = dict(dec_level=bin_factor,
+                width=int(extra['width']*factor), 
+                height=int(extra['height']*factor), 
+                apix=extra['apix']/factor, 
+                maxfreq=extra['maxfreq']*factor, 
+                window=int(window*factor), 
+                pixel_diameter=int(extra['pixel_diameter']*factor))
+    window = param['window']
+    max_radius = int(window/2.0)
     param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
@@ -3052,7 +3075,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     if param['trans_range'] > trans_max:
         param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
-        param['trans_range'] = min(2, param['trans_step']*trans_max)
+        param['trans_range'] = max(2, param['trans_step']*trans_max)
     else: param['trans_step'] = 1
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
