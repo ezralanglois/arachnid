@@ -44,7 +44,7 @@ import format
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def write(output, apix, voltage, cs, xmag, pixel_diameter, window_size=0, ampcont=0.1, res=7, envelope_half_width=10000.00, **extra):
+def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window_size=0, ampcont=0.1, res=7, envelope_half_width=10000.00, particle_diameter=None, **extra):
     ''' Create a SPIDER params file from a set of parameters
     
     :Parameters:
@@ -73,9 +73,13 @@ def write(output, apix, voltage, cs, xmag, pixel_diameter, window_size=0, ampcon
             Unused keyword arguments
     '''
     
+    if pixel_diameter is None:
+        if particle_diameter is None: raise ValueError, "Requires pixel_diameter or particle_diameter"
+        pixel_diameter = particle_diameter/apix
+    
     if window_size == 0:
-        window_size = pixel_diameter * 1.3
-        if (window_size%2)==0: window_size += 1
+        window_size = int(pixel_diameter * 1.3)
+        if (window_size%2)==1: window_size += 1
             
     vals = numpy.zeros(20)
     # 1 - Zip flag (0 = Do not unzip, 1 = Needs to be unzipped)
@@ -151,6 +155,27 @@ def read(filename, extra=None):
     if extra is not None: extra.update(param)
     return param
 
+def write_update(output, **extra):
+    '''
+    '''
+    
+    try:
+        param = read(output)
+    except: param={}
+    
+    writeflag=len(param)==0
+    for key, val in param.iteritems():
+        if key not in extra: continue
+        if val != extra[key]:
+            _logger.info("Writing updated params file: %s changed from %s to %s"%(key, str(val), str(extra[key])))
+            writeflag=True
+            break
+    
+    if writeflag:
+        write(output, **extra)
+    
+    
+
 def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diameter, dec_level, **extra):
     ''' Update the SPIDER params based on the current decimation factor
     
@@ -177,6 +202,7 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
     '''
     
     if dec_level == bin_factor and bin_factor != 1.0: return {}
+    if dec_level == 0: dec_level = 1.0
     if bin_factor >= 1.0:
         factor = dec_level/bin_factor
     else: 
@@ -237,7 +263,7 @@ def setup_options(parser, pgroup=None, required=False):
     from ..app.settings import OptionGroup
     group = OptionGroup(parser, "Params", "Options to control basic SPIDER parameters", id=__name__, gui=dict(root=True, stacked="prepComboBox"))
     group.add_option("-p", param_file="",  help="Spider parameter file describing a Cryo-EM experiment", required_file=required, gui=dict(filetype="open"))
-    group.add_option("-b", bin_factor=1.0, help="Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified")
+    group.add_option("-b", bin_factor=1.0, help="Decimatation factor for the script: changes size of images, parameters such as pixel_size or window unless otherwise specified")
     if pgroup is not None:
         pgroup.add_option_group(group)
     else:
