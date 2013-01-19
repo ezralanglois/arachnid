@@ -163,7 +163,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     '''
     
     max_resolution = resolution_start
-    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,bin_factor,_resolution_next".split(',')
+    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,_resolution_next".split(',')
     param=dict(extra)
     angle_range, trans_range = None, None
     extra['trans_range']=500
@@ -175,17 +175,20 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
     resolution_next=None
     
+    extra['hp_type'] = 3
+    extra['hp_radius'] = extra['pixel_diameter']*extra['apix']
+    
     if mpi_utility.is_root(**extra):
         resolution_file = spi.replace_ext(format_utility.add_prefix(output, 'res_refine'))
         if os.path.exists(resolution_file):
-            res_iteration = numpy.zeros((num_iterations+1, 4))
+            res_iteration = numpy.zeros((num_iterations+1, 5))
             tmp = numpy.loadtxt(resolution_file, delimiter=",")
             res_iteration[:tmp.shape[0]]=tmp
-            resolution_start, param['trans_range'], extra['angle_range'], resolution_next  = res_iteration[refine_index]
+            resolution_start, param['trans_range'], extra['angle_range'], extra['hp_radius'], resolution_next  = res_iteration[refine_index]
             _logger.info("Restarting from iteration %d with %f, %d, %f, %f"%(refine_index, resolution_start, param['trans_range'], extra['angle_range'], resolution_next))
             extra['trans_range'] = param['trans_range']
         else:
-            res_iteration = numpy.zeros((num_iterations+1, 4))
+            res_iteration = numpy.zeros((num_iterations+1, 5))
             resolution_next=resolution_start
         _logger.info("Starting refinement from %d iteration with resolution: %f - translation: %d - angle range: %d - min-bin: %d"%(refine_index, resolution_start, extra['trans_range'], extra['angle_range'], param['min_bin_factor']))
     param['trans_range'] = mpi_utility.broadcast(param['trans_range'], **extra)
@@ -215,11 +218,20 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
             angle_range = angular_restriction(alignvals, **extra)
             trans_range = int(translation_range(alignvals, param['apix'], **extra))
-            b = decimation_level(resolution_next*0.9, max_resolution, **param)
-            if refine_index > 0 and num_iter_unchanged > 1 and (trans_range/b) < 3:
-                resolution_next = resolution_next*0.9
-            else: resolution_next = resolution_start*0.8
-            res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, resolution_next)
+            if refine_index > 0 and num_iter_unchanged > 1:
+                if extra['hp_radius'] == 0: extra['hp_radius'] = extra['pixel_diameter']*param['apix']
+                extra['hp_radius'] /= 1.1
+                if extra['hp_radius'] < (2.0*resolution_start):
+                    _logger.info("Refinement converged early")
+                    break
+            if 1 == 0:
+                resolution_next = resolution_start*0.8
+            else:
+                b = decimation_level(resolution_next*0.9, max_resolution, **param)
+                if refine_index > 0 and num_iter_unchanged > 1 and (trans_range/b) < 3:
+                    resolution_next = resolution_next*0.9
+                else: resolution_next = resolution_start*0.8
+            res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, extra['hp_radius'], resolution_next)
             extra['_resolution_next']=resolution_next
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
         param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
