@@ -17,12 +17,13 @@ import logging, functools
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def robust_rejection(data, nsigma=2.67):
+def robust_rejection(data, nsigma=2.67, mdata=None):
     ''' Robust outlier rejection
     '''
     
-    m = numpy.median(data)
-    s = robust_sigma(data)
+    if mdata is None: mdata=data
+    m = numpy.median(mdata)
+    s = robust_sigma(mdata)
     
     return data < m+s*nsigma
 
@@ -47,25 +48,25 @@ def robust_sigma(in_y, zero=0):
        * Replace MED call with MEDIAN(/EVEN), W. Landsman, December 2001
        * Converted to Python by P. L. Lim, 11/2009
 
-   Examples
-   --------
+   Examples:
+   
    >>> result = robust_sigma(in_y, zero=1)
 
    :Parameters:
    
    in_y: array_like
-       Vector of quantity for which the dispersion is
-       to be calculated
+         Vector of quantity for which the dispersion is
+         to be calculated
 
    zero: int
-       If set, the dispersion is calculated w.r.t. 0.0
-       rather than the central value of the vector. If
-       Y is a vector of residuals, this should be set.
+          If set, the dispersion is calculated w.r.t. 0.0
+          rather than the central value of the vector. If
+          Y is a vector of residuals, this should be set.
 
    :Returns:
    
    out_val: float
-       Dispersion value. If failed, returns -1.
+            Dispersion value. If failed, returns -1.
 
    """
    # Flatten array
@@ -409,7 +410,7 @@ def _assess_dimension(spectrum, n_samples, n_features):
 
     return max_ll[1]
 
-def one_class_classification_old(data, nstd_min=3):
+def one_class_classification_old(data, nstd_min=3, sel=None):
     ''' Classify a set of data into one-class and outliers
     
     :Parameters:
@@ -425,8 +426,8 @@ def one_class_classification_old(data, nstd_min=3):
           Distance of each point in data from the center
     '''
     
-    dist = one_class_distance(data, nstd_min)
-    dsel = one_class_selection(dist, 4)
+    dist = one_class_distance(data, nstd_min, sel)
+    dsel = one_class_selection(dist, 4, sel)
     #th = otsu(dist, len(dist)/16)
     #th = otsu(dist, numpy.sqrt(len(dist)))
     #dsel = dist < th
@@ -460,7 +461,7 @@ def one_class_classification(data_reduced,raveled_im,plot):
     '''
     return cut
 
-def one_class_distance(data, nstd_min=3):
+def one_class_distance(data, nstd_min=3, sel=None):
     ''' Calculate the distance from the median center of the data
     
     :Parameters:
@@ -476,7 +477,7 @@ def one_class_distance(data, nstd_min=3):
           Distance of each point in data from the center
     '''
     
-    sel = one_class_selection(data, nstd_min)
+    sel = one_class_selection(data, nstd_min, sel)
     axis = 0 if data.ndim == 2 else None
     m = numpy.median(data[sel], axis=axis)
     axis = 1 if data.ndim == 2 else None
@@ -485,7 +486,7 @@ def one_class_distance(data, nstd_min=3):
     assert(dist.ndim==1)
     return dist
 
-def one_class_selection(data, nstd_min=3):
+def one_class_selection(data, nstd_min=3, sel=None):
     ''' Select a set of non-outlier projections
     
     This code starts at 10 (max) standard deviations from the median
@@ -512,7 +513,7 @@ def one_class_selection(data, nstd_min=3):
     maxval = numpy.max(data, axis=axis)
     minval = numpy.min(data, axis=axis)
     
-    sel = numpy.ones(len(data), dtype=numpy.bool)    
+    if sel is None: sel = numpy.ones(len(data), dtype=numpy.bool)    
     start = int(min(10, max(numpy.max((maxval-m)/s),numpy.max((m-minval)/s))))
     for nstd in xrange(start, nstd_min-1, -1):
         m=numpy.median(data[sel], axis=axis)
