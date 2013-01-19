@@ -14,6 +14,32 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
+def select_subset(files, select, id_len=0):
+    ''' Create a list of files based on the given selection
+    
+    :Parameters:
+    
+    files : list
+            List of filenames
+    select : array
+             Array of file ids
+    id_len : int
+             Maximum length of SPIDER id
+             
+    :Returns:
+    
+    out : list
+          List of selected filenames
+    '''
+    
+    if len(select) == 0: return []
+    if hasattr(select[0], 'select'):
+        return [spider_filename(files[0], s.id) for s in select if s.select > 0]
+    elif hasattr(select[0], 'id'):
+        return [spider_filename(files[0], s.id) for s in select]
+    else:
+        return [spider_filename(files[0], s[0]) for s in select]
+
 def update_spider_files(map, id, *files):
     ''' Update the list of files in the dictionary to the current ID
     
@@ -29,7 +55,11 @@ def update_spider_files(map, id, *files):
     
     for key in files:
         if map[key] != "" and is_spider_filename(map[key]):
-            map[key] = spider_filename(map[key], id)
+            header = ""
+            if map[key].find('=') != -1:
+                map[key], header = map[key].split('=')
+                header = '='+header
+            map[key] = spider_filename(map[key], id)+header
 
 def relion_filename(filename, id):
     '''Extract the filename and stack index
@@ -114,7 +144,9 @@ def relion_id(filename, idlen=0, use_int=True):
     if filename.find('@') != -1:
         pid,mid = filename.split('@')
         if use_int: pid = int(pid)
-        return (spider_id(mid, idlen, use_int), pid)
+        try:
+            return (spider_id(mid, idlen, use_int), pid)
+        except: return (None, pid)
     return (spider_id(filename, idlen, use_int), None)
 
 def spider_header_vals(line):
@@ -404,6 +436,32 @@ def tuple2id(tvals, filename=None, id_len=0):
             vals[i, 0] = object_id(tvals[i].id)
     return vals
 
+def spider_template(filename, template, idlen=0):
+    ''' Generate a new spider filename with the same id length and extension
+    
+    :Parameters:
+    
+    filename : str
+               Path and base name for new SPIDER template
+    template : str
+               SPIDER template
+    idlen : int
+            ID length to use
+    
+    :Returns:
+    
+    filename : str
+               New SPIDER template
+    '''
+    
+    if filename.find('.') != -1:
+        filename = os.path.splitext(filename)[0]
+    ext = os.path.splitext(template)[1]
+    if idlen == 0: idlen = spider_id_length(os.path.splitext(template)[0])
+    filename+="0".zfill(idlen)
+    return filename + ext
+    
+
 def spider_filename(filename, id, idlen=0):
     '''Create a Spider filename with given filepath and ID
     
@@ -429,7 +487,6 @@ def spider_filename(filename, id, idlen=0):
                  A new spider file name
     '''
     
-    
     if filename.find('=') != -1:
         filename = filename.split('=', 1)[0]
     
@@ -437,14 +494,15 @@ def spider_filename(filename, id, idlen=0):
         filename, ext = os.path.splitext(filename)
         id = extract_id(id)
         return filename+str(id)+ext
-    
     filename, ext = os.path.splitext(filename)
     n = spider_id_length(filename)
     if idlen == 0 or n < idlen: idlen = n
     if not is_int(id):
         id = os.path.splitext(id)[0]
         n = spider_id_length(id)
-        if n < idlen: idlen = n
+        #if n < idlen: n=idlen
+        #idn = id[len(id)-n:]
+        if n < idlen: idlen=n
         idn = id[len(id)-idlen:]
     else: idn = id
     try:
