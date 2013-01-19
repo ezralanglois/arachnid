@@ -298,7 +298,7 @@ Decimate micrographs (on Linux)
 ap-view (also called view on mac and windows) requires a stack of images for 
 selection. After decimating your micrographs, you can stack them into small groups.
 
-To do this: Download :download:`stack_images.py <../../arachnid/snippets/stack_images.py>`, edit to
+To do this: Download :download:`stack_images.py <../arachnid/snippets/stack_images.py>`, edit to
 set your micrograph file names and then run.
 
 .. sourcecode:: sh
@@ -319,13 +319,13 @@ the following outputs:
  - Open sel_micrograph_stack_0001.spi
  - Save project!
  - Start selecting
- - When finished Save as "*.sdat"
+ - When finished Save as ".sdat"
 
 3. Remap selection files
 
 On Linux, run the following command:
 
-To do this: Download :download:`postporcess_mic_select <../../arachnid/snippets/postporcess_mic_select.py>`, edit to
+To do this: Download :download:`postporcess_mic_select <../arachnid/snippets/postprocess_mic_select.py>`, edit to
 set your micrograph file names and then run.
 
 .. sourcecode:: sh
@@ -347,7 +347,7 @@ Power Spectra Selection
  - Open pow_select_01.ext
  - Save project!
  - Start selecting
- - When finished Save as "*.sdat"
+ - When finished Save as ".sdat"
 
 Particle Selection
 ------------------
