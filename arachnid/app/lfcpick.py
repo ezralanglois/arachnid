@@ -127,7 +127,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility, ndimage_file# - replace image_reader
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replace image_reader
 if ndimage_file is None:
     from ..core.image import reader as image_reader
 from ..core.metadata import format_utility, format, spider_params, spider_utility
@@ -165,7 +165,7 @@ def process(filename, id_len=0, **extra):
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
-def search(img, use_spectrum=False, overlap_mult=1.2, limit=0, **extra):
+def search(img, use_spectrum=False, overlap_mult=1.2, limit=0, noise=False, **extra):
     ''' Search a micrograph for particles using a template
     
     :Parameters:
@@ -187,15 +187,32 @@ def search(img, use_spectrum=False, overlap_mult=1.2, limit=0, **extra):
     
     template = create_template(**extra)
     radius, offset, bin_factor, mask = init_param(**extra)
-    if use_spectrum: cc_map = scf_center(img, template, mask)
+    if noise:
+        if eman2_utility.is_em(img):
+            emimg = img
+            img = eman2_utility.em2numpy(emimg)
+        if eman2_utility.is_em(template):
+            emtemplate = template
+            template = eman2_utility.em2numpy(emtemplate)
+        cc_map = ndimage_utility.cross_correlate(img, template)
+    elif use_spectrum: cc_map = scf_center(img, template, mask)
     else: cc_map = lfc(img, template, mask)
+    if noise: 
+        numpy.fabs(cc_map, cc_map)
+        cc_map -= numpy.max(cc_map)
+        cc_map *= -1
     peaks = search_peaks(cc_map, radius, overlap_mult)
     peaks = numpy.asarray(peaks).squeeze()
+    if peaks.shape[0] < 2: raise ValueError, "No peaks found"
     if peaks.ndim == 1: peaks = peaks.reshape((len(peaks)/3, 3))
     peaks[:, 1:3] *= bin_factor
     index = numpy.argsort(peaks[:,0])[::-1]
     if limit > 0 and len(index) > limit: index = index[:limit]
-    peaks = peaks[index].copy().squeeze()
+    try:
+        peaks = peaks[index].copy().squeeze()
+    except:
+        _logger.error("peaks: %s != %s"%(str(peaks.shape), str(index.shape))) # --- %d, %d", numpy.min(index), numpy.max(index)))
+        raise
     return peaks
 
 def search_peaks(cc_map, radius, overlap_mult, peak_last=None):
@@ -222,6 +239,7 @@ def search_peaks(cc_map, radius, overlap_mult, peak_last=None):
         peaks = cc_map.peak_ccf(radius*overlap_mult)
         if peak_last is not None: peaks = eman2_utility.EMAN2.Util.merge_peaks(peak_last, peaks, 2*radius)
     else:
+        #noise
         peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
         if peak_last is not None:
             cc_map[:, :] = 0
@@ -288,12 +306,15 @@ def lfc(img, template, mask):
         else: inv_sigma_image = mask
         cc_map.mult(inv_sigma_image)
     else:
-        emimg = img
-        img = eman2_utility.em2numpy(emimg)
-        emtemplate = template
-        template = eman2_utility.em2numpy(emtemplate)
-        emmask = mask
-        mask = eman2_utility.em2numpy(emmask)
+        if eman2_utility.is_em(img):
+            emimg = img
+            img = eman2_utility.em2numpy(emimg)
+        if eman2_utility.is_em(template):
+            emtemplate = template
+            template = eman2_utility.em2numpy(emtemplate)
+        if eman2_utility.is_em(mask):
+            emmask = mask
+            mask = eman2_utility.em2numpy(emmask)
         cc_map = ndimage_utility.cross_correlate(img, template)
         cc_map /= ndimage_utility.local_variance(img, mask)
         #cc_map = eman2_utility.numpy2em(cc_map)
@@ -326,7 +347,7 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     '''
     
     if ndimage_file is not None:
-        mic = ndimage_file.read_image(filename)
+        mic = ndimage_file.read_image(filename, cache=emdata)
     else:
         assert(False)
         mic = image_reader.read_image(filename, emdata=emdata)
@@ -485,8 +506,9 @@ def initialize(files, param):
     param["confusion"] = numpy.zeros((len(files), 4))
     
     if mpi_utility.is_root(**param):
-        if not os.path.exists(os.path.dirname(param['output'])):
-            os.makedirs(os.path.dirname(param['output']))
+        if os.path.dirname(param['output']) != "":
+            if not os.path.exists(os.path.dirname(param['output'])):
+                os.makedirs(os.path.dirname(param['output']))
         radius, offset, bin_factor, param['mask'] = init_param(**param)
         _logger.info("Pixel radius: %d"%radius)
         _logger.info("Window size: %d"%(offset*2))
@@ -512,8 +534,7 @@ def reduce_all(val, confusion, file_index, **extra):
         sen = float(len(overlap)) / len(bench) if len(bench)> 0 else 0
         info = " - %d,%d,%d - precision: %f, recall: %f"%(len(coords), len(bench), len(overlap), pre, sen)
     else: info = ""
-    _logger.info("Finished processing: %s%s"%(os.path.basename(filename), info))
-    return filename
+    return filename+info
 
 def finalize(files, confusion, output, **extra):
     # Finalize global parameters for the script
@@ -541,6 +562,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         group.add_option("",   limit=2000,      help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
+        group.add_option("",   noise=False,     help="Search out noise windows in the micrograph")
         # move next three options to benchmark
         
         bgroup = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
