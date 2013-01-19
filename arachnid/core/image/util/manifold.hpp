@@ -240,7 +240,7 @@ void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type of
 		}
 		for(;hcur != hend;++hcur)
 		{
-			if(hcur->second != (r+offset))
+			if(hcur->second != (r+offset) || c == 0)
 			{
 				assert(c<nc);
 				data_rk[c] = hcur->first;
