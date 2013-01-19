@@ -6,6 +6,28 @@
 import numpy
 import transforms
 
+def spider_to_quaternion(euler, out=None):
+    ''' Convert SPIDER rotations to quaternions
+    
+    :Parameters:
+    
+    euler : array
+            Array of euler angles
+    out : array, optional
+           Array of quaternions
+    
+    :Returns:
+    
+    out : array
+           Array of quaternions
+    '''
+    
+    if out is None: out = numpy.zeros((len(euler), 4))
+    for i in xrange(out.shape[0]):
+        euler1 = numpy.deg2rad(euler[i, :3])
+        out[i, :] = transforms.quaternion_from_euler(euler1[0], euler1[1], euler1[2], 'rzyz')
+    return out
+
 def euler_geodesic_distance(euler1, euler2):
     ''' Calculate the geodesic distance between two unit quaternions
     
