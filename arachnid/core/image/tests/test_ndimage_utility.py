@@ -139,6 +139,7 @@ def test_histogram_match():
     #img = numpy.random.gamma(8, 2, (width,width))
     img = numpy.random.normal(8, 4, (width,width))
     noise = numpy.random.normal(8, 2, (width,width))
+    old=img.copy()
     out = ndimage_utility.histogram_match(img, mask, noise)
     
     
@@ -163,8 +164,8 @@ def test_histogram_match():
         pylab.savefig("h3.png")
         raise
     '''
-    #win = eman2_utility.histfit(eman2_utility.numpy2em(img), eman2_utility.numpy2em(mask), eman2_utility.numpy2em(noise))
-    #numpy.testing.assert_allclose(img, eman2_utility.em2numpy(win))
+    win = eman2_utility.histfit(eman2_utility.numpy2em(old), eman2_utility.numpy2em(mask), eman2_utility.numpy2em(noise), True)
+    numpy.testing.assert_allclose(out, eman2_utility.em2numpy(win))
     
 def test_find_peaks_fast():
     '''
