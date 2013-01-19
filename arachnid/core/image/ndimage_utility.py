@@ -10,11 +10,13 @@ custom wrapped fortran functions (taken from SPIDER).
 '''
 from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
+import eman2_utility
 import analysis
 import numpy, scipy, math, logging, scipy.ndimage
 import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
+#import eman2_utility
 '''
 try: 
     from scipy.signal import find_peaks_cwt
@@ -170,7 +172,7 @@ def mean_azimuthal(img, center=None):
     img = numpy.asanyarray(img)
     if img.ndim != 2: raise ValueError, "Input array must be 2D: %s"%str(img.shape)
     #img = normalize_min_max(img)*255
-    if center is None: center = (img.shape[0]/2, img.shape[1]/2)
+    if center is None: center = (img.shape[0]/2+img.shape[0]%2, img.shape[1]/2+img.shape[0]%2)
     i, j = numpy.arange(img.shape[0])[:, None], numpy.arange(img.shape[1])[None, :]   
     i, j = i-center[0], j-center[1]
     k = (j**2+i**2)**.5
@@ -516,6 +518,24 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
 
     return numpy.lib.stride_tricks.as_strided(array, shape=new_shape, strides=new_strides)
 
+def powerspec1d(img):
+    ''' Calculated a 1D power spectra of an image
+    
+    :Parameters:
+    
+    img : array
+          Image
+    
+    :Returns:
+    
+    roo : array
+          1D rotational average of the power spectra
+    '''
+    
+    fimg = numpy.fft.fftn(img)
+    fimg = fimg*fimg.conjugate()
+    return mean_azimuthal(numpy.abs(numpy.fft.fftshift(fimg)))[1:fimg.shape[0]/2]
+
 def powerspec_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
     
@@ -537,7 +557,7 @@ def powerspec_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
-        #img = ramp(img)
+        img = eman2_utility.ramp(img)
         img = img.copy()
         img -= img.min()
         img /= img.max()
@@ -580,6 +600,33 @@ def moving_average(img, window=3, out=None):
         return out
     b = rolling_window(img, window)
     avg = b.mean(axis=-1)
+    out[off:len(img)-off] = avg
+    out[:off] = avg[0]
+    out[off:] = avg[len(avg)-1]
+    return out
+
+def moving_minimum(img, window=3, out=None):
+    ''' Estimate a moving average with a uniform distribution and given window size
+    
+    :Parameters:
+    
+    img : array
+          1-D rotational average
+    window : int
+             Window size
+    out : array, optional
+          Output array
+    
+    :Returns:
+    
+    out : array, optional
+          Output array
+    '''
+    
+    if out is None: out = img.copy()
+    off = int(window/2.0)
+    b = rolling_window(img, window)
+    avg = b.mean(axis=1)
     out[off:len(img)-off] = avg
     out[:off] = avg[0]
     out[off:] = avg[len(avg)-1]
@@ -746,7 +793,7 @@ def filter_image(img, filt, pad=1):
     return scipy.fftpack.ifft2(scipy.fftpack.ifftshift(fimg)).real
 
 @_em2numpy2em
-def histogram_match(img, mask, ref, bins=0, iter_max=100, out=None):
+def histogram_match(img, mask, ref, bins=0, iter_max=500, out=None):
     '''Remove change in illumination across an image
     
     :Parameters:
@@ -773,7 +820,7 @@ def histogram_match(img, mask, ref, bins=0, iter_max=100, out=None):
     if out is None: out = img.copy()
     if _spider_util is None: raise ImportError, 'Failed to load _spider_util.so module - function `histogram_match` is unavailable'
     if mask.dtype != numpy.bool: mask = mask>0.5
-    if bins == 0: bins = len(out.ravel())/16
+    if bins == 0: bins = min(len(out.ravel())/16, 256)
     _spider_util.histc2(out.ravel(), mask.ravel(), ref.ravel(), int(bins), int(iter_max))
     return out
 
@@ -1032,7 +1079,7 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
           Normalized image
     '''
     
-    mdata = img*mask if mask is not None else img
+    mdata = img[mask>0.5] if mask is not None else img
     out = numpy.subtract(img, numpy.mean(mdata), out)
     if var_one:
         numpy.divide(out, numpy.std(mdata), out)
@@ -1158,6 +1205,8 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     if dust_sigma > 0: dust_sigma = -dust_sigma
     lcut = avg+std*dust_sigma
     hcut = avg+std*xray_sigma
+    if replace == 'mean':
+        replace = numpy.mean(out[numpy.logical_and(out > lcut, out < hcut)])
     if vmin < lcut:
         sel = img < lcut
         if replace is None:
