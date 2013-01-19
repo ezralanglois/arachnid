@@ -34,6 +34,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 void ang2pix_ring( const long nside, double theta, double phi, long *ipix) {
   /*
     c=======================================================================
