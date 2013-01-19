@@ -58,6 +58,7 @@ def shmem_as_ndarray(raw_array):
                         ctypes.c_float : numpy.float32,
                         ctypes.c_double : numpy.float64
                         }
+    if isinstance(raw_array, tuple): raw_array = raw_array[0]
     address = raw_array._wrapper.get_address()
     size = raw_array._wrapper.get_size()
     dtype = _ctypes_to_numpy[raw_array._type_]
@@ -73,7 +74,7 @@ def shmem_as_ndarray(raw_array):
                              }                            
     return numpy.asarray(d).view(dtype=dtype)
 
-def create_global_dense_matrix(shape, dtype=numpy.float, use_local=False):
+def create_global_dense_matrix(shape, dtype=numpy.float, shared=True):
     ''' Create a special shared memory array that keeps its shape
     
     :Parameters:
@@ -92,6 +93,11 @@ def create_global_dense_matrix(shape, dtype=numpy.float, use_local=False):
     shmem : multiprocessing.RawArray
             shared memory array
     '''
+    
+    if 1 == 1:
+        import shmarray
+        data = shmarray.zeros(shape, dtype=dtype)
+        return data, data
 
     _numpy_to_ctypes = {
                         #numpy.int8: ctypes.c_char,
@@ -111,15 +117,20 @@ def create_global_dense_matrix(shape, dtype=numpy.float, use_local=False):
                         numpy.float : ctypes.c_double
                         }
     if not isinstance(shape, tuple): shape = (shape, )
-    if not use_local:
-        tot = 1
-        for s in shape: tot *= s
+    if hasattr(dtype, 'type'): dtype = dtype.type
+    if shared:
+        tot = numpy.prod(shape)
         shmem_data = multiprocessing.RawArray(_numpy_to_ctypes[dtype], tot)
-        data = shmem_as_ndarray(shmem_data).reshape(shape)
+        data = shmem_as_ndarray(shmem_data)
+        try:
+            data = data.reshape(shape)
+        except:
+            _logger.error("n=%d, data.shape=%s --- shape: %s"%(tot, str(data.shape), str(shape)))
+            raise
         shmem = (shmem_data, shape)
     else:
-        data = numpy.ndarray(shape, dtype)
-        shmem = None
+        data = numpy.empty(shape, dtype)
+        shmem = data
     return data, shmem
 
 def create_global_sparse_matrix(n, neighbors, use_local=False):
@@ -141,6 +152,13 @@ def create_global_sparse_matrix(n, neighbors, use_local=False):
     '''
     
     tot = n*(neighbors+1)
+    if 1 == 1:
+        import shmarray
+        data = shmarray.zeros(tot)
+        row = shmarray.zeros(tot, dtype=numpy.longlong)
+        col = shmarray.zeros(tot, dtype=numpy.longlong)
+        return scipy.sparse.coo_matrix( (data,(row, col)), shape=(n, n) )
+    
     if not use_local:
         shmem_data = multiprocessing.RawArray(ctypes.c_double, tot)
         shmem_row = multiprocessing.RawArray(ctypes.c_int, tot)
@@ -171,6 +189,7 @@ def recreate_global_dense_matrix(shmem):
            ndarray view of the shared memory
     '''
     
+    if hasattr(shmem, 'ndim'): return shmem
     return shmem_as_ndarray(shmem[0]).reshape(shmem[1])
 
 def recreate_global_sparse_matrix(shmem, shape=None):
@@ -189,6 +208,7 @@ def recreate_global_sparse_matrix(shmem, shape=None):
           Sparse matrix
     '''
     
+    if hasattr(shmem, 'shape'): return shmem
     data = shmem_as_ndarray(shmem[0])
     row = shmem_as_ndarray(shmem[1])
     col = shmem_as_ndarray(shmem[2])
@@ -200,17 +220,18 @@ def map_array(worker_callback, thread_count, data, *args, **extra):
     '''Start workers and set the worker callback function
     
     :Parameters:
-    
-        worker_callback : function
-                          Worker callback function to process an item
-        data : array
-               Array to map
-        args : list
-               Unused positional arguments
-        extra : dict
-                Unused keyword arguments
+
+    worker_callback : function
+                      Worker callback function to process an item
+    data : array
+           Array to map
+    args : list
+           Unused positional arguments
+    extra : dict
+            Unused keyword arguments
     '''
-    if isinstance(data, tuple) and len(data) == 2:
+    if isinstance(data, int): size = data
+    elif isinstance(data, tuple) and len(data) == 2:
         size = len(recreate_global_dense_matrix(data))
     else: size = len(data)
     
@@ -220,11 +241,46 @@ def map_array(worker_callback, thread_count, data, *args, **extra):
             counts[i] = ( (size / thread_count) + (size % thread_count > i) )
         offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
         numpy.cumsum(counts, out=offsets[1:])
-        processes = [multiprocessing.Process(target=functools.partial(worker_callback, **extra), args=(offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
+        processes = [multiprocessing.Process(target=functools.partial(worker_callback, process_number=i, **extra), args=(offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
         for p in processes: p.start()
         for p in processes: p.join()
     else:
         worker_callback(0, size, data, *args, **extra)
+        
+def map_reduce_array(worker_callback, thread_count, data, *args, **extra):
+    '''Start workers and set the worker callback function
+    
+    :Parameters:
+
+    worker_callback : function
+                      Worker callback function to process an item
+    data : array
+           Array to map
+    args : list
+           Unused positional arguments
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    def reduce_worker(qout, *args, **kwargs):
+        val = worker_callback(*args, **kwargs)
+        qout.put(val)
+        if hasattr(qout, "task_done"): qout.task_done()
+    
+    size = len(data)
+    if thread_count > 1:
+        counts = numpy.zeros(thread_count, dtype=numpy.int)
+        for i in xrange(thread_count):
+            counts[i] = ( (size / thread_count) + (size % thread_count > i) )
+        offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
+        numpy.cumsum(counts, out=offsets[1:])
+        qout = multiprocessing.Queue()
+        processes = [multiprocessing.Process(target=functools.partial(reduce_worker, process_number=i, **extra), args=(qout, offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
+        for p in processes: p.start()
+        for i in xrange(thread_count):
+            yield qout.get()
+    else:
+        yield worker_callback(0, size, data, *args, **extra)
 
 def start_workers_with_output(items, worker_callback, n, init_process=None, **extra):
     '''Start workers and distribute tasks
@@ -410,7 +466,7 @@ def start_raw_enum_workers(worker_callback, n, total=-1, *args, **extra):
     '''
     
     if n == 0: return None, None
-    qin = multiprocessing.Queue(total)
+    qin = multiprocessing.JoinableQueue(total)
     qout = multiprocessing.Queue(total)
     for i in xrange(n):
         target = functools.partial(worker_callback, **extra)
