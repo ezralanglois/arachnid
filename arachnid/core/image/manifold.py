@@ -361,7 +361,9 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
             s1 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
             #dist2 = gemm(1.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            _logger.error("gemm-1")
             _manifold.gemm(s1, s2, tmp, 1.0, 0.0)
+            _logger.error("gemm-2")
             dist2=tmp
             dist2[dist2>1.0]=1.0
             numpy.arccos(dist2, dist2)
@@ -409,6 +411,7 @@ def knn(samp, k, batch=10000):
     
     k+=1 # include self as a neighbor
     n = samp.shape[0]*k
+    _logger.error("%d * %d = %d"%(samp.shape[0], k, n))
     dtype = samp.dtype
     nbatch = max(1, int(samp.shape[0]/float(batch)))
     batch = int(samp.shape[0]/float(nbatch))
@@ -443,8 +446,14 @@ def knn(samp, k, batch=10000):
     del dist2, dense
     row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
+    
+    ctmp = col.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
         tmp[r, :]=r
+        if ctmp.shape[1]!=len(set(ctmp[r, :])):
+            _logger.error("row: %d - %s"%(r, str(ctmp[r, :])))
+            assert(False)
+    _logger.error("here1: %d"%(data.shape[0]))
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def euclidean_distance2(X, Y):
@@ -495,15 +504,23 @@ def diffusion_maps_dist(dist2, dimension):
     '''
     
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
+    _logger.error("here1")
     dist2, index = largest_connected(dist2)
+    _logger.error("here2")
+    dist2 = (dist2 + dist2.T)/2
     _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
+    _logger.error("here3")
     _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr) # problem here
+    _logger.error("here4")
     assert(numpy.alltrue(numpy.isfinite(dist2.data)))
     D = scipy.power(dist2.sum(axis=0)+1e-12, -0.5)
+    _logger.error("here5")
     assert(numpy.alltrue(numpy.isfinite(D)))
     #D[numpy.logical_not(numpy.isfinite(D))] = 1.0
     norm = scipy.sparse.dia_matrix((D, (0,)), shape=dist2.shape)
+    _logger.error("here6")
     L = norm * dist2 * norm
+    _logger.error("here7")
     del norm
     #openmp.set_thread_count(1)
     #assert(numpy.alltrue(numpy.isfinite(L.data)))
@@ -515,6 +532,7 @@ def diffusion_maps_dist(dist2, dimension):
         except:
             _logger.error("%s --- %d"%(str(L.shape), dimension))
             raise
+    _logger.error("here8")
     del L
     evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
     index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
@@ -539,7 +557,9 @@ def largest_connected(dist2):
     
     tmp = dist2.tocsr() if not scipy.sparse.isspmatrix_csr(dist2) else dist2
     #tmp = (tmp + tmp.T)/2
-    n, comp = scipy.sparse.csgraph.cs_graph_components(tmp, connection='strong')
+    _logger.error("connect1")
+    n, comp = scipy.sparse.csgraph.connected_components(tmp)
+    _logger.error("connect2: %d == %d"%(n, scipy.sparse.csgraph.cs_graph_components(tmp)[0]))
     b = len(numpy.unique(comp))
     _logger.info("Check connected components: %d -- %d -- %d (%d)"%(n, b, dist2.shape[0], dist2.data.shape[0]))
     n = b
@@ -559,7 +579,7 @@ def largest_connected(dist2):
         index = index.astype(dist2.indices.dtype)
         n=_manifold.select_subset_csr(dist2.data, dist2.indices, dist2.indptr, index)
         dist2=scipy.sparse.csr_matrix((dist2.data[:n],dist2.indices[:n], dist2.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
-    assert(scipy.sparse.csgraph.cs_graph_components(dist2.tocsr())[0]==1)
+    #assert(scipy.sparse.csgraph.cs_graph_components(dist2.tocsr())[0]==1)
     return dist2, index
 
 

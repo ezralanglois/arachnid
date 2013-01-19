@@ -1,4 +1,4 @@
-
+typedef long size_type;
 
 #define USE_BLAS
 #ifdef USE_BLAS
@@ -12,14 +12,14 @@ inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE tran
 }
 
 template<class T>
-void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* dist2, int n, int m, T alpha, T beta)
+void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n3, int m3, T alpha, T beta)
 {
-	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, alpha, samp1, m1, samp2, m1, beta, dist2, n2);
+	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, alpha, samp1, m1, samp2, m1, beta, distm, n2);
 }
 #endif
 
 template<class I, class T>
-I knn_reduce_eps_cmp(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, T* cdata, int cnd, float eps)
+I knn_reduce_eps_cmp(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, T* cdata, size_type cnd, float eps)
 {
 	I j=0;
 	for(I r=0;r<snr;++r)
@@ -38,7 +38,7 @@ I knn_reduce_eps_cmp(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T*
 
 
 template<class I, class T>
-I knn_reduce_eps(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, float eps)
+I knn_reduce_eps(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, float eps)
 {
 	I j=0;
 	for(I r=0;r<snr;++r)
@@ -56,7 +56,7 @@ I knn_reduce_eps(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sda
 }
 
 template<class I, class T>
-void knn_reduce(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, T* sdata, int snd, I* scol_ind, int snc, I* srow_ind, int snr, int d, int k)
+void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int d, int k)
 {
 	if( snr > 0 )
 	{
@@ -83,7 +83,7 @@ I* find_mutual(I* b, I* e, I v)
 }
 
 template<class I, class T>
-I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
+I knn_mutual(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, int k)
 {
 	I j=0;
 	for(I r=0;r<nr;++r)
@@ -133,7 +133,7 @@ I knn_mutual(T* data, int nd, I* col_ind, int nc, I* row_ind, int nr, int k)
 
 
 template<class I, class T>
-void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, int offset, int k)
+void push_to_heap(T* dist2, size_type n, size_type m, T* data, size_type nd, I* col_ind, size_type nc, size_type offset, size_type k)
 {
 	typedef std::pair<T,I> index_dist;
 	typedef std::vector< index_dist > index_vector;
@@ -144,11 +144,13 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 #endif
 
 	unsigned long m1=m;
+	unsigned long n1=n;
+	unsigned long t=m1*n1;
 
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<n;++r)
+	for(size_type r=0;r<n1;++r)
 	{
 		unsigned long rm = r*m;
 		unsigned long rk = r*k;
@@ -161,16 +163,13 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		I* col_rk = col_ind+rk;
 		//fprintf(stderr, "r: %d | data: %p - col: %p - hbeg: %p - dist2: %p\n", r, data_rk, col_rk, &(*hbeg), dist2);
 		unsigned long c=0;
-		fprintf(stderr, "here-1 %d\n", r);
-		if( offset > 0 )
-		{
-			for(unsigned long l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
-		}
-		assert(hcur<hend);
+		//fprintf(stderr, "here-1 %ld -- %ld, %ld < %ld -- %ld, %ld < %ld\n", r, rm, rk, n*m1, k, offset, std::distance(hcur, hend));
+		for(unsigned long l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+		assert(hcur<=hend);
 		for(;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
 		assert(c==m || hcur == hend);
 		if( hcur == hend ) std::make_heap(hbeg, hend);
-		fprintf(stderr, "here-2 %d\n", r);
+		//fprintf(stderr, "here-2 %d\n", r);
 		/*if ( r == 0)
 		{
 			if( std::min_element(hbeg, hend)->first > 0 )
@@ -178,6 +177,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		}*/
 		for(;c<m1;++c)
 		{
+			assert((rm+c)<t);
 			T d = dist2[rm+c];
 			if( d < hbeg->first )
 			{
@@ -185,7 +185,7 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 				std::make_heap(hbeg, hend);
 			}
 		}
-		fprintf(stderr, "here-3 %d\n", r);
+		//fprintf(stderr, "here-3 %d\n", r);
 		/*if ( r == 0)
 		{
 			if( std::min_element(hbeg, hend)->first > 0 )
@@ -194,15 +194,16 @@ void push_to_heap(T* dist2, int n, int m, T* data, int nd, I* col_ind, int nc, i
 		hcur = hbeg;
 		for(c=0;c<k;++c, ++hcur)
 		{
+			assert(c<nc);
 			data_rk[c] = hcur->first;
 			col_rk[c] = hcur->second;
 		}
-		fprintf(stderr, "here-4 %d\n", r);
+		//fprintf(stderr, "here-4 %d\n", r);
 	}
 }
 
 template<class I, class T>
-void finalize_heap(T* data, int nd, I* col_ind, int nc, int offset, int k)
+void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type offset, int k)
 {
 	typedef std::pair<T,I> index_dist;
 	typedef std::vector< index_dist > index_vector;
@@ -217,35 +218,48 @@ void finalize_heap(T* data, int nd, I* col_ind, int nc, int offset, int k)
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<e;++r)
+	for(size_type r=0;r<e;++r)
 	{
 #ifdef _OPENMP
-		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg;
+		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
 #else
-		typename index_vector::iterator hbeg = vheap.begin(), hcur=hbeg;
+		typename index_vector::iterator hbeg = vheap.begin(), hcur=hbeg, hend=hbeg+k;
 #endif
 		T* data_rk = data+r*k;
 		I* col_rk = col_ind+r*k;
-		for(int c=0;c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+		for(size_type c=0;c<k;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		std::sort_heap(hbeg, hbeg+k);
 		hcur = hbeg;
-		int c=0;
+		size_type c=0;
 		if (hcur->second != (r+offset)) // Ensure that the first neighbor is itself
 		{
+			assert(c<nc);
 			data_rk[c] = 0;
 			col_rk[c] = r+offset;
 			c++;
 		}
-		for(;c<k;++c, ++hcur)
+		for(;hcur != hend;++hcur)
 		{
-			data_rk[c] = hcur->first;
-			col_rk[c] = hcur->second;
+			if(hcur->second != (r+offset))
+			{
+				assert(c<nc);
+				data_rk[c] = hcur->first;
+				col_rk[c] = hcur->second;
+				++c;
+				if( c == k ) break;
+			}
+		}
+		if( c != k )
+		{
+			fprintf(stderr, "Bug for row: %d -- %d == %d\n", r+offset, c, k);
+			for(hcur=hbeg;hcur != hend;++hcur) fprintf(stderr, "%f - %d\n", hcur->first, hcur->second);
+			exit(1);
 		}
 	}
 }
 
 template<class I, class T>
-I select_subset_csr(T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr, I* selected, int scnt)
+I select_subset_csr(T* data, size_type nd, I* col_ind, size_type nc, I* row_ptr, size_type nr, I* selected, size_type scnt)
 {
 	nr-=1;
 	I cnt = 0, rc=1;
@@ -256,7 +270,7 @@ I select_subset_csr(T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr, I* 
 	for(I s = 0;s<scnt;++s)
 	{
 		I r = selected[s];
-		for(int j=row_ptr[r];j<row_ptr[r+1];++j)
+		for(size_type j=row_ptr[r];j<row_ptr[r+1];++j)
 		{
 			if( index_map[col_ind[j]] != I(-1) )
 			{
@@ -273,18 +287,18 @@ I select_subset_csr(T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr, I* 
 }
 
 template<class I, class T>
-void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr)
+void self_tuning_gaussian_kernel_csr(T* sdist, size_type ns, T* data, size_type nd, I* col_ind, size_type nc, I* row_ptr, size_type nr)
 {
 	nr-=1;
 	T* ndist = new T[nr];
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int i=0;i<nr;i++)
+	for(size_type i=0;i<nr;i++)
 	{
 		ndist[i] = 0;
 	}
-	for(int i=0;i<nr;i++)
+	for(size_type i=0;i<nr;i++)
 	{
 		if ( ndist[col_ind[i]] < data[i] )
 			ndist[col_ind[i]] = data[i];
@@ -293,9 +307,9 @@ void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_i
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<nr;++r)
+	for(size_type r=0;r<nr;++r)
 	{
-		for(int j=row_ptr[r];j<row_ptr[r+1];++j)
+		for(I j=row_ptr[r];j<row_ptr[r+1];++j)
 		{
 			row_ind[j]=r;
 		}
@@ -303,7 +317,7 @@ void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_i
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int i=0;i<nc;i++)
+	for(size_type i=0;i<nc;i++)
 	{
 		double den = 1.0;
 		den *= std::sqrt(double(ndist[row_ind[i]]));
@@ -315,25 +329,25 @@ void self_tuning_gaussian_kernel_csr(T* sdist, int ns, T* data, int nd, I* col_i
 }
 
 template<class I, class T>
-void normalize_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row_ptr, int nr)
+void normalize_csr(T* sdist, size_type ns, T* data, size_type nd, I* col_ind, size_type nc, I* row_ptr, size_type nr)
 {
 	nr-=1;
 	T* ndist = new T[nr];
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int i=0;i<nr;i++)
+	for(size_type i=0;i<nr;i++)
 	{
 		ndist[i] = 0;
 	}
-	for(int i=0;i<nr;i++)
+	for(size_type i=0;i<nr;i++)
 	{
 		ndist[col_ind[i]] += data[i];
 	}
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int i=0;i<nr;i++)
+	for(size_type i=0;i<nr;i++)
 	{
 		ndist[i] = T(1.0) / (ndist[i]+1e-12);
 	}
@@ -341,14 +355,14 @@ void normalize_csr(T* sdist, int ns, T* data, int nd, I* col_ind, int nc, I* row
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int r=0;r<nr;++r)
+	for(size_type r=0;r<nr;++r)
 	{
-		for(int j=row_ptr[r];j<row_ptr[r+1];++j) row_ind[j]=r;
+		for(I j=row_ptr[r];j<row_ptr[r+1];++j) row_ind[j]=r;
 	}
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
-	for(int i=0;i<nc;i++)
+	for(size_type i=0;i<nc;i++)
 	{
 		sdist[i] = data[i]*ndist[row_ind[i]]*ndist[col_ind[i]];
 	}

@@ -51,24 +51,29 @@ extern "C" {
     Py_END_ALLOW_THREADS
 }
 
+%inline %{
+typedef long size_type;
+%}
+
 
 /** Declare the numpy array data types
  */
  
 %define DECLARE_DATA_TYPE2( dtype, itype )
-%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* dist2, int n, int m)};
-%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* data, int nd)};
-%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdata, int snd)};
-%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* cdata, int cnd)};
-%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, int ns)};
-%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* col_ind, int nc)};
-%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ptr, int nr)};
-%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ind, int nr)};
-%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* srow_ind, int snr)};
-%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* scol_ind, int snc)};
-%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* selected, int scnt)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* dist2, size_type n, size_type m)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* data, size_type nd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdata, size_type snd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* cdata, size_type cnd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, size_type ns)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* col_ind, size_type nc)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ptr, size_type nr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ind, size_type nr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* srow_ind, size_type snr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* scol_ind, size_type snc)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* selected, size_type scnt)};
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* samp1, int n1, int m1)};
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* samp2, int n2, int m2)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* distm, int n3, int m3)};
 %enddef
 
 
@@ -83,7 +88,7 @@ DECLARE_DATA_TYPE(long)
 DECLARE_DATA_TYPE(long long)
 DECLARE_DATA_TYPE(unsigned int)
 DECLARE_DATA_TYPE(unsigned long)
-DECLARE_DATA_TYPE(unsigned long long)
+//DECLARE_DATA_TYPE(unsigned long long)
 
 
 /** Create a set of concrete functions from the templates
@@ -97,6 +102,7 @@ DECLARE_DATA_TYPE(unsigned long long)
 %enddef
 
 %define INSTANTIATE_ALL( f_name )
+INSTANTIATE_ALL_DATA(f_name, short)
 INSTANTIATE_ALL_DATA(f_name, int)
 INSTANTIATE_ALL_DATA(f_name, long)
 INSTANTIATE_ALL_DATA(f_name, long long)
