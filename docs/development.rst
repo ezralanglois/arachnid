@@ -40,6 +40,15 @@ examples range from unstacking a SPIDER image stack to customizing the FSC plot.
     corrupt_particles
     phase_flip
     stack_images
+    postprocess_mic_select
+    merge_select
+    fsc_spi_to_emdb
+    defocus_group
+    normalize
+    uniform_view_subset
+    relion_traceback
+    box_micrograph
+    transform_image
  
 -------------------------------
 Application Programs Interface

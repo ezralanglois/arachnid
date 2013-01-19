@@ -301,6 +301,10 @@ selection. After decimating your micrographs, you can stack them into small grou
 To do this: Download :download:`stack_images.py <../../arachnid/snippets/stack_images.py>`, edit to
 set your micrograph file names and then run.
 
+.. sourcecode:: sh
+	
+	$ python stack_images.py
+
 If you set the output filename in stack_images.py as micrograph_stack_0001.spi, then you will have
 the following outputs:
 
@@ -321,9 +325,12 @@ the following outputs:
 
 On Linux, run the following command:
 
+To do this: Download :download:`postporcess_mic_select <../../arachnid/snippets/postporcess_mic_select.py>`, edit to
+set your micrograph file names and then run.
+
 .. sourcecode:: sh
 	
-	$ cat *.sdat > micrograph_selection.ext
+	$ python postporcess_mic_select.py
 
 Power Spectra Selection
 -----------------------
