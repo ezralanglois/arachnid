@@ -17,12 +17,7 @@ import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
 #import eman2_utility
-'''
-try: 
-    from scipy.signal import find_peaks_cwt
-    find_peaks_cwt;
-except: from util._peak_finding import find_peaks_cwt
-'''
+
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 try: 
@@ -48,40 +43,6 @@ except:
         _image_utility;
     except:
         tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
-
-'''
-needtr = 0; if size(x,1) == 1; x = x(:); needtr = 1; end;
-N = size(x,1); 
-r = floor(N/2)+1; f = ((1:N)-r)/(N/2); 
-p = exp(-j*s*pi*f)'; 
-y = ifft(fft(x).*ifftshift(p)); if isreal(x); y = real(y); end;
-if needtr; y = y.'; end;
-'''
-
-
-"""
-@_em2numpy2res
-def find_peaks(cc, width):
-    ''' Find peaks in a cross-correlation map
-    
-    :Parameters:
-    
-    cc : array
-         Cross-correlation image
-    width : float
-            Expected width of the peaks
-    
-    :Returns:
-    
-    peaks : array (Nx3)
-            Array of peaks (peak, x, y)
-    '''
-    
-    peaks = find_peaks_cwt(cc.ravel(), numpy.asarray([width]))
-    ccv = cc[peaks].copy().squeeze()
-    peaks = numpy.unravel_index(peaks, cc.shape)
-    return numpy.hstack((ccv[:, numpy.newaxis], peaks))
-"""
 
 def frt2(a):
     """Compute the 2-dimensional finite radon transform (FRT) for an n x n
