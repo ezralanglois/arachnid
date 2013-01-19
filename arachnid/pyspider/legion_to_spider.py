@@ -116,7 +116,12 @@ def is_legion_filename(files):
     '''
     
     found = set()
+    base = None
     for f in files:
+        if base is None:
+            base = spider_utility.spider_basename(f)
+        elif base != spider_utility.spider_basename(f):
+            return True
         try:
             id = spider_utility.spider_id(f)
         except: return True

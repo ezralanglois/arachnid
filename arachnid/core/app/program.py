@@ -90,6 +90,11 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         return
     
     mpi_utility.mpi_init(param, **param)
+    if supports_OMP:
+        if openmp.get_max_threads() > 1:
+            _logger.info("Multi-threading with OpenMP - enabled")
+        else:
+            _logger.info("Multi-threading with OpenMP - disabled")
     if supports_OMP and openmp.get_max_threads() > 1:
         if param['thread_count'] > 0:
             openmp.set_thread_count(param['thread_count'])
@@ -108,6 +113,36 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
+
+def generate_settings(main_module, property, object, description="", supports_MPI=False, supports_OMP=False, **extra):
+    ''' Write a configuration file to an output file
+    
+    :Parameters:
+    
+    main_module : module
+                   Reference to main module
+    property : PyqtProperty
+               Subclass of  PyqtProperty
+    object : QObject
+             QObject class
+    description : str
+                  Header on configuration
+    supports_MPI : bool
+                   Set True if the script supports MPI
+    supports_OMP : bool
+                   If True, add OpenMP capability
+                   
+    :Returns:
+    
+    output : str
+             Output filename of the configuration file
+    '''
+    
+    main_template = file_processor if file_processor.supports(main_module) else None
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    parser.change_default(**extra)
+    values = parser.get_default_values()
+    return parser.create_property_tree(values, property, object), values
         
 def write_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
     ''' Write a configuration file to an output file
@@ -143,6 +178,80 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     else: output = name+".cfg"
     parser.write(output) #, options)
     return output
+
+def update_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
+    ''' Write a configuration file to an output file
+    
+    :Parameters:
+    
+    main_module : module
+                   Reference to main module
+    description : str
+                  Header on configuration
+    config_path : str, optional
+                  Path to write configuration file
+    supports_MPI : bool
+                   Set True if the script supports MPI
+    supports_OMP : bool
+                   If True, add OpenMP capability
+                   
+    :Returns:
+    
+    output : str
+             Output filename of the configuration file
+    '''
+    
+    name = main_module.__name__
+    off = name.rfind('.')
+    if off != -1: name = name[off+1:]
+    if config_path is not None:
+        output = os.path.join(config_path, name+".cfg")
+    else: output = name+".cfg"
+    param = read_config(main_module, description, config_path, supports_MPI, supports_OMP, **extra)
+    if len(param)==0: return ""
+    for key,val in param.iteritems():
+        if key not in extra:
+            _logger.info("Updating %s config - option %s new"%(name, key))
+            return ""
+        if str(val) != str(extra[key]):
+            _logger.info("Updating %s config - option %s changed from '%s' to '%s'"%(name, key, str(val), str(extra[key])))
+            return ""
+    return output
+            
+
+def read_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
+    ''' Write a configuration file to an output file
+    
+    :Parameters:
+    
+    main_module : module
+                   Reference to main module
+    description : str
+                  Header on configuration
+    config_path : str, optional
+                  Path to write configuration file
+    supports_MPI : bool
+                   Set True if the script supports MPI
+    supports_OMP : bool
+                   If True, add OpenMP capability
+                   
+    :Returns:
+    
+    output : str
+             Output filename of the configuration file
+    '''
+    
+    _logger.addHandler(logging.StreamHandler())
+    main_template = file_processor if file_processor.supports(main_module) else None
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    name = main_module.__name__
+    off = name.rfind('.')
+    if off != -1: name = name[off+1:]
+    if config_path is not None:
+        output = os.path.join(config_path, name+".cfg")
+    else: output = name+".cfg"
+    if not os.path.exists(output): return {}
+    return vars(parser.parse_file(fin=output))
     
 def map_module_to_program(key=None):
     ''' Create a dictionary that maps each module name to 
@@ -206,12 +315,12 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     except:
         _logger.error("Module name: %s"%str(main_module))
         raise
-    if hasattr(main_module, "setup_main_options"): main_module.setup_main_options(parser, group)
     mgroup.add_option_group(group)
     parser.add_option_group(mgroup)
     group = settings.OptionGroup(parser, "Dependent", "Options require by dependents of the program", group_order=0,  id=__name__)
     for module in dependents:
         module.setup_options(parser, group)
+    if hasattr(main_module, "setup_main_options"): main_module.setup_main_options(parser, group)
     if len(group.option_list) > 0 or len(group.option_groups) > 0: parser.add_option_group(group)
     if main_template == main_module: main_template = None
     setup_program_options(parser, main_template, supports_MPI, supports_OMP, output_option)

@@ -1,12 +1,14 @@
 import app.setup
 import util.setup
 import pyspider.setup
+import core.gui.setup
 
 gui_scripts = []
 console_scripts = []
 console_scripts.extend(["ara-"+script for script in app.setup.console_scripts])
 console_scripts.extend(["ara-"+script for script in util.setup.console_scripts])
 console_scripts.extend(["sp-"+script for script in pyspider.setup.console_scripts])
+gui_scripts.extend(["ara-"+script for script in core.gui.setup.gui_scripts])
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration

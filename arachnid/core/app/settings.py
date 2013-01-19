@@ -803,6 +803,10 @@ class OptionParser(optparse.OptionParser):
         else:
             changed = options
             mode='w'
+        if not os.path.exists(os.path.dirname(output)):
+            try:
+                os.makedirs(os.path.dirname(output))
+            except: pass
         fout = file(output, mode)
         fout.write("# %s - %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), str(self.version)))
         self.write(fout, changed, comments=False)
@@ -810,7 +814,7 @@ class OptionParser(optparse.OptionParser):
         
         dep_opts = set(self.collect_dependent_options())
         dep = [key for key,val in vars(changed).iteritems() if key in dep_opts and val is not None]
-        _logger.info("Dependent options changed: %s"%str(dep))
+        _logger.debug("Dependent options changed: %s"%str(dep))
         return VersionControl(output), len(dep) > 0
     
     def parse_all(self, args=sys.argv[1:], values=None, fin=None):
@@ -901,7 +905,9 @@ class OptionParser(optparse.OptionParser):
                             f = os.path.join(values.local_root, f)
                             if not os.path.exists(f): files = glob.glob(f)
                         if len(files) > 0: args.extend(files)
-                        else: args.append(f)
+                        else: 
+                            raise OptionValueError, "Input file regular expression failed: "+f
+                            #args.append(f)
                     else: 
                         args.append(f)
             options.input_files = optlist(args)

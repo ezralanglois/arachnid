@@ -34,6 +34,10 @@ Running Script
     
     $ ara-selrelion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star
     
+    # Example usage - Generate a ReLion selection file from a set of stacks with a stack (or micrograph or power spectra) selection file (first column holds the ID key)
+    
+    $ ara-selrelion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star -s select_file.spi=id:0
+    
     # Example usage - Generate a ReLion selection file from a set of stacks with manual selection
     
     $ ara-selrelion win/win_*.spi --defocus def_avg.spi --param-file params.spi -o relion_selection.star --good good_00000.spi
@@ -98,9 +102,9 @@ Useful Options
 
 .. option:: -m <INT>, --minimum-group <INT>
     
-    Minimum number of particles per defocus group
+    Minimum number of particles per defocus group (regroups using the micrograph name)
 
-.. option:: --stack_file <STR>
+.. option:: --stack-file <STR>
 
     Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file
 
@@ -178,10 +182,22 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", **extra):
     '''
     
     if len(vals) == 0: raise ValueError, "No values read"
+    
+    tmp = numpy.asarray(vals)
+    header = list(vals[0]._fields)
+    if column in set(header):
+        tmp = numpy.asarray([getattr(v, column) for v in vals])
+        clazzes = numpy.unique(tmp)
+        for cl in clazzes:
+            _logger.info("Class: %d has %d projections"%(cl, numpy.sum(cl==tmp)))
+    
     if select != "":
-        select = format.read(select, numeric=True)
-        select = set([s.id for s in select if s.select > 0])
-        subset=[]
+        try: select=int(select)
+        except:
+            select = format.read(select, numeric=True)
+            select = set([s.id for s in select if s.select > 0])
+            subset=[]
+        else: select=set([select])
         for v in vals:
             id = getattr(v, column)
             try: id = int(id)
@@ -199,10 +215,14 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", **extra):
             mic,par = spider_utility.relion_id(v.rlnImageName)
             if mic not in micselect: micselect[mic]=[]
             micselect[mic].append((par, 1))
-        for mic,vals in micselect.iteritems():
-            format.write(output, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), format=format.spidersel)
+        prefix=None
+        if spider_utility.is_spider_filename(output):
+            for mic,vals in micselect.iteritems():
+                format.write(output, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), format=format.spidersel)
+            prefix='mic_'
+        format.write(output, numpy.hstack((numpy.asarray(micselect.keys())[:, numpy.newaxis], numpy.ones(len(micselect.keys()))[:, numpy.newaxis])), header="id,select".split(','), format=format.spidersel, prefix=prefix)
 
-def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", good="", **extra):
+def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", good="", test_all=False, **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
@@ -237,10 +257,19 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
         if numpy.allclose(0.0, avg):
             _logger.warn("Relion requires the background to be zero normalized, not %g"%avg)
     
+    if test_all:
+        mask = eman2_utility.model_circle(pixel_radius, img.shape[0], img.shape[1])*-1+1
+        for img in ndimage_file.iter_images(files):
+             avg = numpy.mean(img*mask)
+             std = numpy.std(img*mask)
+             if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f"%(avg, std)
+             if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f"%(avg, std)
+    
     defocus_dict = format.read(defocus, header=defocus_header, numeric=True)
     defocus_dict = format_utility.map_object_list(defocus_dict)
     if select != "": 
         select = format.read(select, numeric=True)
+        files = spider_utility.select_subset(files, select)
         old = defocus_dict
         defocus_dict = {}
         for s in select: defocus_dict[s.id]=old[s.id]
@@ -269,6 +298,7 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
         
         group.append((defocus_dict[mic].defocus, len(select_vals), len(label), mic))
         for pid in select_vals:
+            #label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, mic] )
             label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
     if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
     groupmap = regroup(group, **extra)
@@ -418,6 +448,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
     group.add_option("",   scale=1.0,                       help="Used to scale the translations in a relion file")
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
+    group.add_option("",   test_all=False,                  help="Test the normalization of all the images")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))

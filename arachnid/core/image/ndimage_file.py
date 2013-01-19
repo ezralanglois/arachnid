@@ -14,14 +14,49 @@ Supported formats:
 import logging, os
 from ..app import tracing
 from formats import spider, eman_format as spider_writer
-from ..metadata import spider_utility 
-from ..parallel import process_tasks, process_queue
+from ..metadata import spider_utility, format_utility
+from ..parallel import process_tasks, process_queue, mpi_utility
+import scipy.io
 import numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def read_image_mat(filename, label, image_processor, shared=False, **extra):
+def copy_local(filename, selection, local_file, **extra):
+    ''' Copy a stack or set of stacks to a single stack on a remote drive.
+    MPI only
+    
+    :Parameters:
+    
+    filename : str
+               Input filename template
+    selection : array
+                Selection ids
+    local_file : str
+                 Output filename template
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    local_file : str
+                 Local filename based on rank of node and process id
+    '''
+    
+    if mpi_utility.get_size(**extra) == 0: return filename
+    
+    local_file = mpi_utility.safe_tempfile(local_file, shmem=False, **extra)
+    selection_file = format_utility.add_prefix(local_file, 'sel_')
+    if os.path.exists(local_file) and os.path.exists(selection_file):
+        remote_select = numpy.loadtxt(selection_file, delimiter=",")
+        if remote_select.shape[0]==selection.shape[0] and numpy.alltrue(remote_select==selection) and count_images(local_file) == selection.shape[0]: return local_file
+    
+    for i, img in enumerate(iter_images(filename, selection)):
+        write_image(local_file, img, i)
+    numpy.savetxt(selection_file, selection, delimiter=",")
+    return local_file
+    
+def read_image_mat(filename, label, image_processor, shared=False, cache_file=None, **extra):
     '''Create a matrix where each row is an image
     
     :Parameters:
@@ -50,13 +85,33 @@ def read_image_mat(filename, label, image_processor, shared=False, **extra):
     else: index = int(label[0])
     img1 = read_image(filename, index)
     img = image_processor(img1, 0, **extra).ravel()
+    
+    if cache_file is not None:
+        cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
+        cache_dat = format_utility.new_filename(cache_file, suffix="_read_data", ext=".bin")
+        if format_utility.os.path.exists(cache_file):
+            mat = scipy.io.loadmat(cache_file)
+            dtype = mat['dtype'][0]
+            if dtype[0] == '[': dtype = dtype[2:len(dtype)-2]
+            n = numpy.prod(mat['coo'])
+            if n == (img.shape[0]*label.shape[0]):
+                if shared:
+                    mat, shmem_mat = process_queue.create_global_dense_matrix( tuple(mat['coo']) )
+                    mat[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype))
+                    return shmem_mat
+                else:
+                    return numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype)).reshape((len(label), img.shape[0]))
+    
     if shared:
         mat, shmem_mat = process_queue.create_global_dense_matrix( ( len(label), img.shape[0] )  )
     else:
         mat = numpy.zeros((len(label), img.shape[0]))
         shmem_mat = mat
-    for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, **extra):
+    for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, queue_limit=100, **extra):
         mat[row, :] = data.ravel()[:img.shape[0]]
+    if cache_file is not None:
+        scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=numpy.int), dtype=mat.dtype.name), oned_as='column', format='5')
+        mat.tofile(cache_dat)
     return shmem_mat
 
 def is_spider_format(filename):
@@ -93,7 +148,7 @@ def copy_to_spider(filename, tempfile, index=None):
                   Name of a file containing the image in SPIDER format
     '''
     
-    if is_spider_format(filename): return filename
+    if is_spider_format(filename) and os.path.splitext(filename)[1] == os.path.splitext(tempfile)[1]: return filename
     
     img = read_image(filename, index)
     spider_writer.write_image(tempfile, img)
@@ -141,7 +196,7 @@ def read_header(filename, index=None):
         raise IOError, "Could not find format for %s"%filename
     return format.read_header(filename, index)
 
-def read_image(filename, index=None):
+def read_image(filename, index=None, **extra):
     '''Read an image from the given file
     
     :Parameters:
@@ -162,7 +217,7 @@ def read_image(filename, index=None):
     format = get_read_format(filename)
     if format is None: 
         raise IOError, "Could not find format for %s"%filename
-    return format.read_image(filename, index)
+    return format.read_image(filename, index, **extra)
 
 def readlinkabs(link):
     ''' Get the absolute path for the given symlink
@@ -201,8 +256,21 @@ def iter_images(filename, index=None):
     .. todo:: iter single images
     '''
     
-    if index is not None and hasattr(index, 'ndim'):
-        if index.ndim == 2 and index.shape[1]>1:
+    if index is None and isinstance(filename, list):
+        for f in filename:
+            for img in iter_images(f):
+                yield img
+        return
+    elif index is not None and hasattr(index, 'ndim'):
+        if hasattr(filename, 'find') and count_images(filename) == 1:
+            for i in xrange(len(index)):
+                if index.ndim == 2:
+                    filename = spider_utility.spider_filename(filename, int(index[i, 0]))
+                else:
+                    filename = spider_utility.spider_filename(filename, int(index[i]))
+                yield read_image(filename)
+            return
+        elif index.ndim == 2 and index.shape[1]>1:
             beg = 0
             tot = len(numpy.unique(index[:, 0].astype(numpy.int)))
             if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
@@ -225,6 +293,7 @@ def iter_images(filename, index=None):
                     yield img
             '''
             return
+    
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     format = get_read_format(filename)
     if format is None: raise IOError, "Could not find format for %s"%filename

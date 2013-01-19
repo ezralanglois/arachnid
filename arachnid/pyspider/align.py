@@ -505,12 +505,16 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
     for i in xrange(1, angle_rng.shape[0]):
         angle_num = (angle_rng[i]-angle_rng[i-1])
         format.write(spi.replace_ext(angle_doc), angles[angle_rng[i-1]:angle_rng[i], 1:], format=format.spiderdoc, header="psi,theta,phi".split(','))
+        _logger.debug("Generating reference projections: %d-%d"%(i, angle_rng.shape[0]))
         spi.pj_3q(reference, angle_doc, (1, angle_num), outputfile=reference_stack, **extra)
+        _logger.debug("Aligning particle projections")
         #spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
+        _logger.debug("Aligning particle projections - finished")
         # 1     2    3     4     5   6 7   8   9      10      11    12  13 14 15
         #epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror
         vals = numpy.asarray(format.read(spi.replace_ext(tmp_align), numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
+        _logger.debug("Read - finished")
         assert(vals.shape[1]==15)
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
         align[sel, :4] = vals[sel, :4]
@@ -577,11 +581,12 @@ def prealign_input(spi, align, input_stack, use_flip, flip_stack, dala_stack, in
     '''
     
     if use_flip and flip_stack is not None: input_stack = flip_stack
+    if mpi_utility.is_root(**extra): _logger.info("Dala stack: %f - %s"%(extra['apix'], input_stack))
     input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(cache_file, "data_ip_"), **extra)
     if inputangles is not None:
         write_alignment(spi.replace_ext(inputangles), align, extra['apix'])
         if not spider.supports_internal_rtsq(spi):
-            if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack: %f"%extra['apix'])
+            if mpi_utility.is_root(**extra): _logger.info("Generating pre-align dala stack: %f - %s"%(extra['apix'], input_stack))
             input_stack = spi.rt_sq(input_stack, inputangles, outputfile=dala_stack)
     return dict(input_stack=input_stack)
 

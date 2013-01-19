@@ -8,6 +8,7 @@ try:
 except:
     print "Cannot import offset, upgrade matplotlib"
 from ..image import analysis
+from ..metadata import format_utility
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 import numpy, logging
@@ -20,10 +21,82 @@ except: pylab=None
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def is_plotting_disabled(): return pylab is None
+
+def plot_scatter(output, x, x_label, y, y_label, color=None, dpi=72):
+    ''' Plot a scatter plot
+    '''
+    
+    if pylab is None: return
+    
+    fig = pylab.figure(dpi=dpi)
+    ax = fig.add_subplot(111)
+    if color is not None:
+        sc = ax.scatter(x, y, cmap=pylab.cm.cool, c=color)
+        v1 = min(numpy.min(x),numpy.min(y))
+        v2 = max(numpy.max(x),numpy.max(y))
+        ax.plot(numpy.asarray([v1, v2]), numpy.asarray([v1, v2]))
+        pylab.colorbar(sc)
+    else:
+        ax.scatter(x, y)
+    pylab.xlabel(x_label)
+    pylab.ylabel(y_label)
+    
+    fig.savefig(format_utility.new_filename(output, x_label.lower().replace(' ', '_')+"_"+y_label.lower().replace(' ', '_')+"_summary_", ext="png"), dpi=dpi)
+
+def plot_histogram_cum(output, vals, x_label, y_label, th=None, dpi=72):
+    ''' Plot a histogram of the distribution
+    '''
+    
+    if pylab is None: return
+    
+    fig = pylab.figure(dpi=dpi)
+    ax = fig.add_subplot(111)
+    vals = ax.hist(-vals, bins=numpy.sqrt(len(vals)), cumulative=True)
+    if th is not None:
+        h = pylab.gca().get_ylim()[1]
+        pylab.plot((th, th), (0, h))
+    pylab.xlabel(x_label)
+    pylab.ylabel('Cumulative '+y_label)
+    
+    fig.savefig(format_utility.new_filename(output, x_label.lower().replace(' ', '_')+"_"+y_label.lower().replace(' ', '_')+"_summary_", ext="png"), dpi=dpi)
+
+def trim():
+    '''
+    '''
+    
+    pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+    
+def draw_image(img, label=None, dpi=72, facecolor='white', **extra):
+    '''
+    '''
+    
+    fig = pylab.figure(0, dpi=dpi, facecolor=facecolor)
+    img -= img.min()
+    img /= img.max()
+    
+    #fig.set_size_inches(10, 10)
+    #ax = pylab.Axes(fig, [0., 0., 10., 10.])
+    #ax.set_axis_off()
+    #fig.add_axes(ax)
+    
+    ax = pylab.axes(frameon=False)
+    ax.set_axis_off()
+    ax.imshow(img, cmap=pylab.cm.gray)#, aspect = 'normal')
+    if label is not None:
+        ax.text(10, 20, label, color='black', backgroundcolor='white', fontsize=8)
+    return fig, ax
+
+def forceAspect(ax,aspect=1):
+    im = ax.get_images()
+    extent =  im[0].get_extent()
+    ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
 def save_as_image(fig):
     '''
     '''
     
+    pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
     fig.canvas.draw()
     data = numpy.fromstring(fig.canvas.tostring_rgb(), dtype=numpy.uint8, sep='')
     data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))

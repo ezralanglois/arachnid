@@ -35,14 +35,14 @@ When writing out a document, the format will be chosen based on the extension.
 .. Created on Jun 8, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from formats import csv, prediction, project, spiderdoc, spidersel, star
+from formats import csv, prediction, project, spiderdoc, spidersel, star, frealign
 from format_utility import ParseFormatError, WriteFormatError
 from spider_utility import spider_filename, split_spider_id
 from ..parallel import mpi_utility
 import format_utility
 import os, numpy, logging
 
-__formats = [star, spiderdoc, spidersel, project, csv, prediction]
+__formats = [star, spiderdoc, spidersel, project, csv, frealign, prediction]
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 #_logger.setLevel(logging.DEBUG)
@@ -207,7 +207,7 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     if mode != 'r': return filename, fin
     return filename, fin, header
 
-def get_format_by_ext(filename, format=None, formats=None, default_format=None, **extra):
+def get_format_by_ext(filename, format=None, formats=None, default_format=spiderdoc, **extra):
     '''Find appropriate format for a filename using the file extension
     
     .. sourcecode:: py

@@ -285,7 +285,7 @@ def em2numpy(im):
     
     return EMAN2.EMNumPy.em2numpy(im)
 
-def numpy2em(im):
+def numpy2em(im, e=None):
     '''Convert NumPy array to an EMAN2 image object
     
     This convenience method converts a numpy.ndarray object into an EMAN2.EMData
@@ -309,7 +309,7 @@ def numpy2em(im):
     '''
         
     try:
-        e = EMAN2.EMData()
+        if e is None: e = EMAN2.EMData()
         EMAN2.EMNumPy.numpy2em(im, e)
         return e
     except:
@@ -361,11 +361,14 @@ def ramp(img, inplace=True):
           Ramped Image
     '''
     
+    orig = img
+    if not is_em(img): img = numpy2em(img)
     if inplace: img.process_inplace("filter.ramp")
     else: img = img.process("filter.ramp")
+    if not is_em(orig): img = em2numpy(img).copy()
     return img
 
-def histfit(img, mask, noise):
+def histfit(img, mask, noise, debug=False):
     '''Contrast enhancement using histogram fitting (ce_fit in Spider).
     
     :Parameters:
@@ -383,7 +386,12 @@ def histfit(img, mask, noise):
           Enhanced image
     '''
     
-    return utilities.ce_fit(img, noise, mask)[2]
+    if debug:
+        info, tag, img = utilities.ce_fit(img, noise, mask)
+        print info, tag
+        return img
+    else:
+        return utilities.ce_fit(img, noise, mask)[2]
     
 def decimate(img, bin_factor=0, force_even=False, **extra):
     '''Decimate the image
@@ -423,6 +431,33 @@ def decimate(img, bin_factor=0, force_even=False, **extra):
     if not is_em(orig): 
         orig = img
         img = em2numpy(orig).copy()
+    return img
+
+def butterworth_band_pass(img, bw_lo, bw_hi, bw_falloff, pad=False, **extra):
+    ''' Filter an image with the Gaussian high pass filter
+    
+    :Parameters:
+
+    img : EMAN2.EMData
+          Image requiring filtering
+    ghp_sigma : float
+                Frequency range
+    pad : bool
+          Pad image
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+
+    val : EMAN2.EMData
+          Filtered image
+    '''
+    
+    orig = img
+    if not is_em(img): img = numpy2em(img)
+    img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_HIGH_PASS,   "low_cutoff_frequency": bw_hi+bw_falloff, "high_cutoff_frequency": bw_hi, "dopad" : pad})
+    img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_LOW_PASS,    "low_cutoff_frequency": bw_lo, "high_cutoff_frequency": bw_lo+bw_falloff, "dopad" : pad})
+    if not is_em(orig): img = em2numpy(img).copy()
     return img
 
 def gaussian_high_pass(img, ghp_sigma=0.1, pad=False, **extra):
@@ -479,7 +514,7 @@ def gaussian_low_pass(img, glp_sigma=0.1, pad=False, **extra):
     if not is_em(orig): img = em2numpy(img).copy()
     return img
 
-def setup_nn4(image_size, npad=2, sym='c1', weighting=1):
+def setup_nn4(image_size, npad=2, sym='c1', weighting=1, **extra):
     ''' Initalize a reconstruction object
     
     :Parameters:
@@ -506,6 +541,89 @@ def setup_nn4(image_size, npad=2, sym='c1', weighting=1):
     r.setup()
     return (r, fftvol, weight), em2numpy(fftvol), em2numpy(weight), image_size
 
+def backproject_nn4_queue(qin, qout, shmem, shape, process_limit, process_number, align=None, **extra):
+    ''' Add the given image and alignment or generator of image/alignment pairs
+    to the current reconstruction
+    
+    :Parameters:
+    
+    img : array or EMData
+          Image of projection to backproject into reconstruction
+    align : array, optional
+            Array of alignment parameters (not required if img is generator of images and alignments)
+    recon : tuple
+            Reconstructor, Fourier volume, Weight Volume, and numpy versions
+    extra : dict
+            Keyword arguments to be passed to setup_nn4 if recon is None
+    
+    :Returns:
+    
+    recon : tuple
+            Reconstructor, Fourier volume, Weight Volume, and numpy versions
+    '''
+    
+    npad, sym, weighting = extra.get('npad', 2), extra.get('sym', 'c1'), extra.get('weighting', 1)
+    e = EMAN2.EMData()
+    recon=None
+    while True:
+        pos = qin.get()
+        if pos is None or pos[0] == -1: 
+            if hasattr(qin, "task_done"):  qin.task_done()
+            break
+        pos, idx = pos
+        a = align[idx]
+        img = shmem[pos].reshape(shape)
+        xform_proj = EMAN2.Transform({"type":"spider","phi":a[2],"theta":a[1],"psi":a[0]})
+        if not is_em(img): img = numpy2em(img, e)
+        if recon is None: recon = setup_nn4(img.get_xsize(), npad, sym, weighting)
+        recon[0][0].insert_slice(img, xform_proj)
+        qout.put((process_number, idx))
+    return recon[0], recon[1], recon[2]
+
+def backproject_nn4_new(img, align=None, recon=None, **extra):
+    ''' Add the given image and alignment or generator of image/alignment pairs
+    to the current reconstruction
+    
+    :Parameters:
+    
+    img : array or EMData
+          Image of projection to backproject into reconstruction
+    align : array, optional
+            Array of alignment parameters (not required if img is generator of images and alignments)
+    recon : tuple
+            Reconstructor, Fourier volume, Weight Volume, and numpy versions
+    extra : dict
+            Keyword arguments to be passed to setup_nn4 if recon is None
+    
+    :Returns:
+    
+    recon : tuple
+            Reconstructor, Fourier volume, Weight Volume, and numpy versions
+    '''
+    
+    npad, sym, weighting = extra.get('npad', 2), extra.get('sym', 'c1'), extra.get('weighting', 1)
+    e = EMAN2.EMData()
+    if not hasattr(img, 'ndim'):
+        for i, val in img:
+            a = align[i]
+            '''
+            if a[4] != (i+1):
+                _logger.error("mismatch: %d != %d -- %s"%(a[4], i+1, str(align[:5])))
+            assert(a[4]==(i+1))
+            '''
+            xform_proj = EMAN2.Transform({"type":"spider","phi":a[2],"theta":a[1],"psi":a[0]})
+            if not is_em(val): val = numpy2em(val, e)
+            if recon is None: recon = setup_nn4(val.get_xsize(), npad, sym, weighting)
+            recon[0][0].insert_slice(val, xform_proj)
+    else:
+        xform_proj = EMAN2.Transform({"type":"spider","phi":align[2],"theta":align[1],"psi":align[0]})
+        if not is_em(img):img = numpy2em(img)
+        if recon is None: recon = setup_nn4(val.get_xsize(), npad, sym, weighting)
+        recon[0][0].insert_slice(img, xform_proj)
+    val1 = recon[1].copy()
+    val2 = recon[2].copy()
+    return val1, val2
+    
 def backproject_nn4(img, align=None, recon=None, **extra):
     ''' Add the given image and alignment or generator of image/alignment pairs
     to the current reconstruction
@@ -567,5 +685,7 @@ def finalize_nn4(recon, recon2=None, npad=2, sym='c1', weighting=1):
         r.setup()
         return em2numpy(r.finish()).copy()
     
-    return em2numpy(recon[0][0].finish()).copy()
+    if isinstance(recon, tuple): recon = recon[0]
+    if isinstance(recon, tuple): recon = recon[0]
+    return em2numpy(recon.finish()).copy()
 

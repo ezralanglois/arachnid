@@ -92,7 +92,9 @@ def write_values(fout, values, factory=namedtuple_factory, header=None, **extra)
     header = factory.get_header(values, offset=False, header=header, **extra)
     
     try:
-        sel = header.index("select")
+        if len(values) > 0:
+            sel = list(values[0]._fields).index("select")
+        else: sel = -1
     except:
         logging.error("select not found in list: "+str(header))
         raise
@@ -100,9 +102,11 @@ def write_values(fout, values, factory=namedtuple_factory, header=None, **extra)
     index = 1
     count = len(header)
     header = factory.get_header(values, header=header, offset=True, **extra)
-
+    
+    print len(values)
     for v in values:
         #if v.select > 0:
+        print v, "index:", sel
         if int(float(v[sel])) > 0:
             vals = factory.get_values(v, header, float_format="%11g", **extra)
             fout.write("%d %2d " % (index, count))

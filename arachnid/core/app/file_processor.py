@@ -32,6 +32,7 @@ The bench script has the following inheritable parameters:
 from ..parallel import mpi_utility
 from ..metadata import spider_utility
 import os, logging, sys, numpy
+from progress import progress
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -88,11 +89,13 @@ def main(files, module, restart_file="", **extra):
     
     if mpi_utility.is_root(**extra):
         _logger.debug("Test dependencies1: %d"%len(files))
-        files = check_dependencies(files, **extra)
+        files, finished = check_dependencies(files, **extra)
+        extra['finished'] = finished
         extra['input_files']=files
         _logger.debug("Test dependencies2: %d"%len(files))
         #if len(files) > 1: files = restart(restart_file, files)
     files = mpi_utility.broadcast(files, **extra)
+        
     
     '''
     if mpi_utility.is_root(**extra):
@@ -104,17 +107,31 @@ def main(files, module, restart_file="", **extra):
         #    write_dependencies(fout, files, **extras)
     '''
     
+    extra['finished'] = mpi_utility.broadcast(extra['finished'], **extra)
     if initialize is not None:
-        f = initialize(files, extra)
-        if f is not None: files = f
+        if mpi_utility.is_root(**extra):
+            f = initialize(files, extra)
+            if f is not None: files = f
+            monitor = progress(len(files))
+    files = mpi_utility.broadcast(files, **extra)
+    if len(files) == 0:
+        if mpi_utility.is_root(**extra):
+            if finalize is not None: finalize(files, **extra)
+        return
     
     current = 0
+    
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
         if mpi_utility.is_root(**extra):
+            #_logger.critical("progress-report: %d,%d"%(current, len(files)))
             try:
+                monitor.update()
                 if reduce_all is not None:
                     current += 1
                     filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
+                    _logger.info("Finished: %d,%d - Time left: %s - %s"%(current, len(files), monitor.time_remaining(True), str(filename)))
+                else:
+                    _logger.info("Finished: %d,%d - Time left: %s"%(current, len(files), monitor.time_remaining(True)))
                 '''
                 if fout is not None:
                     if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
@@ -123,9 +140,10 @@ def main(files, module, restart_file="", **extra):
                     fout.flush()
                 '''
             except:
-                _logger.exception("Error in root")
+                _logger.exception("Error in root process")
                 del files[:]
-    
+    if len(files) == 0:
+        raise ValueError, "Error in root process"
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
     '''
@@ -179,7 +197,7 @@ def restart(filename, files):
         return [f for f in files if f not in last]
     return files
 
-def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, **extra):
+def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
     output files.
     
@@ -207,10 +225,25 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
     if opt_changed or force:
         msg = "configuration file changed" if opt_changed else "--force option specified"
         _logger.info("Restarting from the beginning - %s"%msg)
-        return files
+        return files, []
     unfinished = []
+    finished = []
+    if data_ext is not None and data_ext=="" and len(files) > 0:
+        data_ext = os.path.splitext(files[0])[1]
+        if len(data_ext) > 0: data_ext=data_ext[1:]
     for f in files:
-        deps = [spider_utility.spider_filename(extra[out], f, id_len) for out in outfile_deps if out != "" and spider_utility.is_spider_filename(extra[out])]
+        if len(files) == 1:
+            deps = []
+            for out in outfile_deps:
+                if out == "": continue
+                if spider_utility.is_spider_filename(extra[out]) and spider_utility.is_spider_filename(f):
+                    deps.append(spider_utility.spider_filename(extra[out], f, id_len))
+                else: deps.append(extra[out])
+        else:
+            deps = [spider_utility.spider_filename(extra[out], f, id_len) for out in outfile_deps if out != "" and spider_utility.is_spider_filename(extra[out])]
+        if data_ext is not None:
+            for i in xrange(len(deps)):
+                if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
         exists = [os.path.exists(out) for out in deps]
         if not numpy.alltrue(exists):
             _logger.debug("Adding: %s because %s does not exist"%(f, deps[numpy.argmin(exists)]))
@@ -218,18 +251,34 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
             continue
         mods = [os.path.getctime(out) for out in deps]
         if len(mods) == 0:
+            _logger.debug("Adding: %s because no dependencies exist"%(f))
             unfinished.append(f)
             continue
         first_output = numpy.min( mods )
-        deps = [f]+[spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])]
-        mods = [os.path.getctime(input) for input in deps]
+        if len(files) == 1:
+            deps = [f]
+            for input in infile_deps:
+                if input == "": continue
+                if spider_utility.is_spider_filename(extra[input]) and spider_utility.is_spider_filename(f):
+                    deps.append(spider_utility.spider_filename(extra[input], f, id_len))
+                else: 
+                    deps.append(extra[input])
+        else:
+            deps = [f]+[spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])]
+        if data_ext is not None:
+            for i in xrange(len(deps)):
+                if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
+        mods = [os.path.getctime(input) for input in deps if input != ""]
         last_input = numpy.max( mods )
         if last_input >= first_output:
             _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))
             unfinished.append(f)
             continue
-        _logger.info("Skipping: %s all dependencies satisfied (use --force or force: True to reprocess)"%f)
-    return unfinished
+        else: finished.append(f)
+    if len(finished) > 0:
+        #_logger.info("Skipping: %s all dependencies satisfied (use --force or force: True to reprocess)"%f)
+        _logger.info("Skipping %d files - all dependencies satisfied (use --force or force: True to reprocess)"%len(finished))
+    return unfinished, finished
 
 def setup_options(parser, pgroup=None):
     # Options added to OptionParser by core.app.program

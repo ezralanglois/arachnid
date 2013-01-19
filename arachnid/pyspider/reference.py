@@ -122,6 +122,7 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
     '''
     
     _logger.info("Processing: %s"%os.path.basename(filename))
+    _logger.info("Finished: %d,%d"%(0,5))
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
     header = ndimage_file.read_header(filename)
@@ -139,13 +140,17 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
     w, h, d = spi.fi_h(filename, ('NSAM', 'NROW', 'NSLICE'))
     if w != h: raise ValueError, "Width does not match height - requires box"
     if w != d: raise ValueError, "Width does not match depth - requires box"
+    _logger.info("Finished: %d,%d"%(1,5))
     _logger.debug("Filtering volume")
     filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
     if os.path.exists(tempfile): os.unlink(tempfile)
+    _logger.info("Finished: %d,%d"%(2,5))
     _logger.debug("Centering volume")
     filename = center_volume(filename, spi, output)
+    _logger.info("Finished: %d,%d"%(3,5))
     _logger.debug("Resizing volume")
     filename = resize_volume(filename, spi, curr_apix, outputfile=output, **extra)
+    _logger.info("Finished: %d,%d"%(4,5))
     return filename
 
 def center_volume(filename, spi, output):
@@ -216,7 +221,10 @@ def resize_volume(filename, spi, curr_apix, apix, window, outputfile=None, **ext
 def initialize(files, param):
     # Initialize global parameters for the script
     
+    if len(files) == 0: return
     param['spi'] = spider.open_session(files, **param)
+    if param['new_window'] > 0:
+        param['bin_factor'] = float(param['window'])/param['new_window']
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     
 def finalize(files, **extra):
@@ -233,6 +241,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
         pgroup.add_option("",   curr_apix=0.0,          help="Current pixel size of the input volume (only necessary if not MRC)")
+        pgroup.add_option("",   new_window=0.0,         help="Set bin_factor based on new window size")
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         parser.change_default(thread_count=4, log_level=3)
 

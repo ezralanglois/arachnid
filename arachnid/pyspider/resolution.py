@@ -214,10 +214,23 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     _logger.debug("Found resolution at spatial frequency: %f"%sp)
+    vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
+    write_xml(os.path.splitext(outputfile)[0]+'.xml', vals[:, 1], vals[:, 3])
     if pylab is not None:
-        vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
         plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid)
     return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T, extra['apix']
+
+def write_xml(output, x, y):
+    '''
+    '''
+    fout = open(output, 'w')
+    fout.write('<?xml version="1.0" encoding="UTF-8"?>\n') #header
+    fout.write('<fsc title="%s" xaxis="%s" yaxis="%s">\n'%('FSC Plot', 'Normalized Spatial Frequency', 'Fourier Shell Correlation')) #FSC Tag
+    
+    for i in xrange(len(x)):
+        fout.write('\t<coordinate>\n\t\t<x>%f</x>\n\t\t<y>%f</y>\n\t</coordinate>\n'%(x[i], y[i]))
+    fout.write('</fsc>') #FSC Tag end
+    fout.close()
 
 def ensure_pixel_size(spi, filename, **extra):
     ''' Ensure the proper pixel size

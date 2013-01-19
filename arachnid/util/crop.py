@@ -149,7 +149,7 @@ from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replac
 from ..core.image import reader as image_reader, writer as image_writer
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.parallel import mpi_utility
-import numpy, os, logging
+import numpy, os, logging, psutil
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -176,16 +176,19 @@ def process(filename, id_len=0, **extra):
     fid = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file') 
     try: coords = read_coordinates(**extra)
-    except: return filename, 0
+    except: 
+        _logger.exception("Ignore this")
+        return filename, 0, os.getpid()
     
     mic = read_micrograph(filename, **extra)    
     norm_mask=extra['mask']*-1+1
     noise=extra['noise']
     radius, offset, bin_factor, tmp = init_param(**extra)
-    npmic = eman2_utility.em2numpy(mic)
+    npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
     emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
     npdata = eman2_utility.em2numpy(emdata)
     
+    #if extra['experimental']: return filename, len(coords)
     test_coordinates(npmic, coords, bin_factor)
     output=extra['output']
     for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
@@ -195,12 +198,17 @@ def process(filename, id_len=0, **extra):
             coord = coords[index]
             x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
             _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
+        
+        if 1 == 0:
+            assert(numpy.allclose(0.0, numpy.mean(win*norm_mask)))
+            assert(numpy.allclose(1.0, numpy.std(win*norm_mask)))
+        
         if ndimage_file is not None:
             ndimage_file.write_image(output, win, index)
         else:
             image_writer.write_image(output, win, index)
         index += 1
-    return filename, len(coords)
+    return filename, len(coords), os.getpid()
 
 def test_coordinates(npmic, coords, bin_factor):
     ''' Test if the coordinates cover the micrograph properly
@@ -236,7 +244,7 @@ def test_coordinates(npmic, coords, bin_factor):
     if numpy.max(coords[:, y])*2 < npmic.shape[0]: 
         _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.max(coords[:, y]))
 
-def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, **extra):
+def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, experimental=False, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
@@ -264,7 +272,7 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     
     offset = init_param(bin_factor=bin_factor, **extra)[1]
     if ndimage_file is not None:
-        mic = ndimage_file.read_image(filename)
+        mic = ndimage_file.read_image(filename, cache=emdata)
     else:
         mic = image_reader.read_image(filename, emdata=emdata)
     if bin_factor > 1.0 and not disable_bin: 
@@ -277,12 +285,13 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
         else: ndimage_utility.invert(mic, mic)
     if sigma > 0.0:
         mic = eman2_utility.gaussian_high_pass(mic, sigma/(2.0*offset), True)
-    if not eman2_utility.is_em(mic):
+    if not eman2_utility.is_em(mic) and not experimental:
         mic = eman2_utility.numpy2em(mic)
-    assert(eman2_utility.is_em(mic))
+    if experimental:
+        assert(not eman2_utility.is_em(mic))
     return mic
             
-def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
+def generate_noise(filename, noise="", output="", noise_stack=True, experimental=False, **extra):
     ''' Automatically generate a stack of noise windows and by default choose the first
     
     :Parameters:
@@ -324,17 +333,28 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     template.process_inplace("normalize.mask", {"mask": template, "no_sigma": True})
 
     # Define noise distribution
-    if not eman2_utility.is_em(mic):
+    if not eman2_utility.is_em(mic) and not experimental:
         mic = eman2_utility.numpy2em(mic)
-    cc_map = mic.calc_ccf(template)
-    cc_map.process_inplace("xform.phaseorigin.tocenter")
-    np = eman2_utility.em2numpy(cc_map)
-    numpy.fabs(np, np)
-    cc_map.update()
-    cc_map -= float(numpy.max(np))
-    cc_map *= -1
-    peak1 = cc_map.peak_ccf(offset)
-    peak1 = numpy.asarray(peak1).reshape((len(peak1)/3, 3))
+    
+    if experimental:
+        etemplate = template
+        template = eman2_utility.em2numpy(etemplate)
+        cc_map = ndimage_utility.cross_correlate(mic, template)
+        numpy.fabs(cc_map, cc_map)
+        cc_map -= float(numpy.max(cc_map))
+        cc_map *= -1
+        peak1 = ndimage_utility.find_peaks_fast(cc_map, offset)
+        peak1 = numpy.asarray(peak1).squeeze()
+    else:
+        cc_map = mic.calc_ccf(template)
+        cc_map.process_inplace("xform.phaseorigin.tocenter")
+        np = eman2_utility.em2numpy(cc_map)
+        numpy.fabs(np, np)
+        cc_map.update()
+        cc_map -= float(numpy.max(np))
+        cc_map *= -1
+        peak1 = cc_map.peak_ccf(offset)
+        peak1 = numpy.asarray(peak1).reshape((len(peak1)/3, 3))
     index = numpy.argsort(peak1[:,0])[::-1]
     peak1 = peak1[index].copy().squeeze()
     
@@ -401,7 +421,7 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
-def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, use_vst=False, **extra):
+def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, use_vst=False, experimental=False, **extra):
     '''Enhance the window with a set of filtering and normalization routines
     
     :Parameters:
@@ -432,19 +452,32 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
     '''
     
     if not disable_enhance:
+        np = eman2_utility.em2numpy(win)
         #assert(noise_win.get_attr("minimum")<noise_win.get_attr("maximum"))
         _logger.debug("Removing ramp from window")
+        
         eman2_utility.ramp(win)
-        if use_vst: win = ndimage_utility.vst(win)
+        if use_vst: ndimage_utility.vst(np, np)
         if clamp_window > 0: 
             _logger.debug("Removing outlier pixels")
-            win = ndimage_utility.replace_outlier(win, clamp_window)
+            ndimage_utility.replace_outlier(np, clamp_window, out=np)
         if win.get_attr("minimum") == win.get_attr("maximum"): return win
+    
         if noise_win is not None: 
             _logger.debug("Improving contrast with histogram fitting: (%f,%f,%f,%f) (%f,%f,%f,%f)"%(win.get_attr("mean"), win.get_attr("sigma"), win.get_attr("minimum"), win.get_attr("maximum"), noise_win.get_attr("mean"), noise_win.get_attr("sigma"), noise_win.get_attr("minimum"), noise_win.get_attr("maximum")))
-            win = eman2_utility.histfit(win, mask, noise_win)
+            if not experimental:
+                _logger.debug("using old")
+                win = eman2_utility.histfit(win, mask, noise_win)
+            else:
+                nref = eman2_utility.em2numpy(noise_win) if eman2_utility.is_em(noise_win) else noise_win
+                nmask = eman2_utility.em2numpy(mask) if eman2_utility.is_em(mask) else mask
+                ndimage_utility.histogram_match(np, nmask, nref, out=np)
         if not disable_normalize and norm_mask is not None:
-            win.process_inplace("normalize.mask", {"mask": norm_mask, "no_sigma": 1})
+            #if mask is None:
+            #    mask = eman2_utility.model_circle(radius, img.shape[0], img.shape[1])*-1+1
+            #img = ndimage_utility.normalize_standard(img, mask)
+            #win.process_inplace("normalize.mask", {"mask": norm_mask, "no_sigma": 0})
+            ndimage_utility.normalize_standard(np, eman2_utility.em2numpy(norm_mask), out=np)
         _logger.debug("Finished Enhancment")
     return win
 
@@ -525,15 +558,30 @@ def initialize(files, param):
             select = format.read(param['selection_doc'], numeric=True)
             file_count = len(files)
             if len(select) > 0:
-                filename = files[0]
+                select = set([s.id for s in select])
+                old_files = files
                 files = []
-                for s in select:
-                    files.append(spider_utility.spider_filename(filename, s.id))
+                for filename in old_files:
+                    if spider_utility.spider_id(filename, param['id_len']) in select:
+                        files.append(filename)
+                finished = param['finished']
+                param['finished'] = []
+                for filename in finished:
+                    if spider_utility.spider_id(filename, param['id_len']) in select:
+                        param['finished'].append(filename)
             _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_doc, len(files), file_count))
+        for filename in param['finished']:
+            ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=filename, id_len=param['id_len']))
+            nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], filename, param['id_len']))
+            if nimage != ncoord: 
+                _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
+                files.append(filename)
                 
     files = mpi_utility.broadcast(files, **param)
     
-    if param['noise'] == "":
+    if len(files) == 0:
+        param['noise']=None
+    elif param['noise'] == "":
         if isinstance(files[0], tuple): files = files[0]
         
         if mpi_utility.is_root(**param):
@@ -550,14 +598,13 @@ def initialize(files, param):
     param['emdata'] = eman2_utility.EMAN2.EMData()
     return files
 
-def reduce_all(val, count, **extra):
+def reduce_all(val, count, id_len, **extra):
     # Process each input file in the main thread (for multi-threaded code)
 
-    filename, total = val
+    filename, total, pid = val
     count[0]+= total
     count[1]+= 1
-    _logger.info("Finished Processing: %d with %d windows - %d windows in total in %d files"%(spider_utility.spider_id(filename), total, count[0], count[1]))
-    return filename
+    return filename+" - %d windows - %d windows in total in %d files - %d gigs"%(total, count[0], count[1], psutil.Process(pid).get_memory_info().rss/131072)
 
 def finalize(files, count, **extra):
     # Finalize global parameters for the script
@@ -580,6 +627,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", noise="",                 help="Use specified noise file")
     group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
     group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
+    group.add_option("", experimental=False,       help="Use new experimental code for memory management")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))

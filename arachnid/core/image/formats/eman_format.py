@@ -194,7 +194,7 @@ def iter_images(filename, index=None, header=None):
     if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     if index is None: index = 0
-    emdata = eman2_utility.EMAN2.EMData()
+    #emdata = eman2_utility.EMAN2.EMData()
     count = count_images(filename)
     if numpy.any(index >= count):
         if hasattr(index, '__iter__'): 
@@ -206,7 +206,7 @@ def iter_images(filename, index=None, header=None):
     
     update_header=True
     for i in index:
-        img = read_image(filename, i, header, emdata)
+        img = read_image(filename, i, header)#, emdata)
         if update_header:
             update_header=False
         yield img
@@ -290,7 +290,7 @@ def write_image(filename, img, index=None, header=None, type=None):
             _logger.debug("Type SPIDER stack - switch to SINGLE spider")
             type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
         index = 0
-    img.write_image_c(filename, index, type)
+    img.write_image_c(filename, int(index), type)
     # Workaround for buggy Montage from doc viewer
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
         _logger.debug("Hacking spider file")

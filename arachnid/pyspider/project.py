@@ -116,10 +116,6 @@ Advanced Options
     
     Magnification, optional (Default: 0)
 
-.. option:: --bin-factor <float>
-    
-    Number of times to decimate params file, and parameters: `window-size`, `x-dist, and `x-dist` and optionally the micrograph
-
 .. option:: --worker-count <INT>
     
     Set number of  workers to process files in parallel (Default: 0)
@@ -180,7 +176,7 @@ import os, glob, logging, re
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mpi_mode, mpi_command=None, leginon_filename="", leginon_offset=0, **extra):
+def batch(files, output, leginon_filename="", leginon_offset=0, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -189,10 +185,6 @@ def batch(files, output, mpi_mode, mpi_command=None, leginon_filename="", legino
             List of input filenames
     output : str
              Output directory ending with name of project
-    mpi_mode : int
-               MPI mode for the header of each script
-    mpi_command : str
-                  MPI command to run in MPI scripts
     leginon_filename : str
                        Template for SPIDER softlink
     leginon_offset : int
@@ -209,212 +201,80 @@ def batch(files, output, mpi_mode, mpi_command=None, leginon_filename="", legino
         files = legion_to_spider.convert_to_spider(files, leginon_filename, leginon_offset)
         _logger.info("Added %d new files of %d"%(len(files), len(old)))
     
-    if mpi_command == "": mpi_command = detect_MPI()
-    run_single_node=\
-    '''
-     %(prog)s -c $PWD/$0 > `basename $0 cfg`log
-     exit $?
-    '''
-    run_multi_node=\
-    '''
-     %s %s -c $PWD/$0 --use-MPI < /dev/null > .`basename $0 cfg`log
-     exit $?
-    '''%(mpi_command, '%(prog)s')
-    run_hybrid_node = run_single_node
     
     _logger.info("Writing project to %s"%output)
-    sn_path = os.path.join(output, 'local')
-    mn_path = os.path.join(output, 'cluster')
-    hb_path = sn_path
     
-    if mpi_mode == 1:
-        run_hybrid_node = run_multi_node
-        hb_path = mn_path
+    if extra['mpi_mode'] == 1:
         _logger.info("Creating multi-node project")
-    elif mpi_mode == 2:
-        run_multi_node = run_single_node
+    elif extra['mpi_mode'] == 2:
         _logger.info("Creating single-node project")
-        mn_path = sn_path
     else:
         _logger.info("Creating hybrid project")
+
     
+    if extra['worker_count'] > 1 and extra['thread_count'] == 0: extra['thread_count']=1
+    del extra['input_files']
     
-    write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, **extra)
+    id_len = spider_utility.spider_id_length(os.path.splitext(files[0])[0])
+    if id_len == 0: raise ValueError, "Input file not a SPIDER file - id length 0"
+    modules, param, config_path = workflow(compress_filenames(files), output, id_len, **extra)
+    
+    write_config(modules, param, config_path, output, **extra)
     _logger.info("Completed")
     
-def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_path, hb_path, mn_path, output, raw_reference, ext, is_film, **extra):
+def write_config(modules, param, config_path, output, **extra):
     ''' Write out a configuration file for each script in the reconstruction protocol
     
     :Parameters:
     
     files : list
-            List of input filenames\
-    run_single_node : str
-                      Command to run single node scripts
-    run_hybrid_node : str
-                      Command to run hybrid single/MPI scripts 
-    run_multi_node : str
-                     Command to run MPI scripts
-    sn_path : str
-              Path to files used in single node scripts only
-    hb_path : str
-              Path to files used in hybrid scripts only
-    mn_path : str
-              Path to files used in both MPI and single node scripts
+            List of input filenames
     output : str
              Output directory root
     raw_reference : str
                     Filenam for raw input reference
-    is_film : bool
-              True if micrographs were collected on a CCD
     ext : str
           Extension for SPIDER files
     extra : dict
             Unused keyword arguments
     '''
     
-    if extra['worker_count'] > 1 and extra['thread_count'] == 0: extra['thread_count']=1
-    
-    data_ext = ext
-    if ext[0] != '.': ext = '.'+ext
-    else: data_ext = ext[1:]
-    mn_base = os.path.basename(mn_path)
-    sn_base = os.path.basename(sn_path)
-    id_len = spider_utility.spider_id_length(os.path.splitext(files[0])[0])
-    if id_len == 0: raise ValueError, "Input file not a SPIDER file - id length 0"
-    param = dict(
-        param_file = os.path.join(mn_base, 'data', 'params'+ext),
-        reference = os.path.join(mn_base, 'data', 'reference'),
-        defocus_file = os.path.join(mn_base, 'data', 'defocus'),
-        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_'+"".zfill(id_len)+ext),
-        output_pow = os.path.join(sn_base, "pow", "pow_"+"".zfill(id_len)+ext),
-        output_mic = os.path.join(sn_base, "mic", "mic_dec_"+"".zfill(id_len)+ext),
-        #mic_select = os.path.join(sn_base, "mic_select", "mic_dec_"+"".zfill(id_len)+ext),
-        stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+ext),
-        alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
-    )
-    
-    if spider_utility.is_spider_filename(raw_reference):
-        param.update(reference=spider_utility.spider_filename(param['reference'], raw_reference))
-    
-    stk = re.compile('0+')
-    if extra['home_prefix'] == "":
-        extra['home_prefix'] = os.path.abspath(output)
-    elif os.path.exists(os.path.join(extra['home_prefix'], output)):
-        extra['home_prefix'] = os.path.join(extra['home_prefix'], output)
-    
+    description_map = script_header(**extra)
     _logger.info("Creating directories")
-    create_directories(output, param.values()+[os.path.join(sn_base, 'log', 'dummy'), os.path.join(mn_base, 'log', 'dummy')])
+    create_directories(output, param.values()+[os.path.join(os.path.basename(config_path['SN']), 'log', 'dummy'), os.path.join(os.path.basename(config_path['MN']), 'log', 'dummy')])
+    
     _logger.debug("Writing SPIDER params file")
-    spider_params.write(os.path.join(output, param['param_file']), **extra)
-    del extra['window_size']
-    
-    param.update(extra)
-    param.update(invert=not is_film)
-    param.update(is_film=is_film)
-    del param['input_files']
-    
-    for i in xrange(len(files)):
-        if not os.path.isabs(files[i]):
-            files[i] = os.path.abspath(files[i])
-    raw_reference = os.path.abspath(raw_reference)
-    
-    tmp = os.path.commonprefix(files)+'*'
-    if len(glob.glob(tmp)) == len(files): files = [tmp] #['"'+tmp+'"']
-    if extra['scattering_doc'] == "ribosome":
-        scattering_doc = os.path.join(mn_path, 'data', 'scattering8'+ext)
-        if not os.path.exists(scattering_doc):
-            _logger.info("Downloading scattering doc")
-            extra['scattering_doc'] = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(mn_path, 'data'))
-            if ext != os.path.splitext(extra['scattering_doc'])[1]:
-                os.rename(extra['scattering_doc'], scattering_doc)
-                extra['scattering_doc'] = scattering_doc
-        else:
-            _logger.info("Downloading scattering doc - skipping, already found")
-    elif extra['scattering_doc'] == "":
-        _logger.warn("No scattering document file specified: `--scattering-doc`")
-    else:
-        _logger.info("Copying scattering doc")
-        scattering_doc = os.path.join(mn_path, 'data', os.path.splitext(os.path.basename(extra['scattering_doc']))[0]+ext)
-        fin = open(extra['scattering_doc'], 'r')
-        fout = open(scattering_doc, 'w')
-        for line in fin: fout.write(line)
-        fin.close()
-        fout.close
-        extra['scattering_doc'] = scattering_doc
-    
-    param['data_ext'] = data_ext
-    '''
-   (mic_select, dict(input_files=files,
-                   output=param['mic_select'],
-                   config_path = hb_path,
-                   supports_MPI=False,
-                    )),
-    '''
-    modules = [(reference, dict(input_files=[raw_reference],
-                               output=param['reference'],
-                               description=run_single_node,
-                               config_path = sn_path,
-                               #restart_file
-                               )), 
-               (defocus,  dict(input_files=files,
-                               output=param['defocus_file'],
-                               description=run_hybrid_node, 
-                               config_path = hb_path,
-                               supports_MPI=True,
-                               #restart_file
-                               )),
-               (autopick, dict(input_files=files,
-                               output=param['coordinate_file'],
-                               description=run_hybrid_node, 
-                               config_path = hb_path,
-                               supports_MPI=True,
-                               #restart_file
-                               )), 
-               (crop,     dict(input_files=files,
-                               output = param['stacks'],
-                               description=run_hybrid_node, 
-                               config_path = hb_path,
-                               supports_MPI=True,
-                               #restart_file
-                               )), 
-               (align,    dict(input_files=stk.sub('*', param['stacks']),
-                               output = param['alignment'],
-                               description = run_multi_node, 
-                               config_path = mn_path,
-                               supports_MPI=True,
-                               #select_file=format_utility.add_prefix(param['defocus_file'], "mic_select_")
-                               )), 
-               (refine,    dict(input_files=stk.sub('*', param['stacks']),
-                               output = param['alignment'],
-                               description = run_multi_node, 
-                               config_path = mn_path,
-                               supports_MPI=True,
-                               #selection_file
-                               )),
-                ]
+    spider_params.write_update(os.path.join(output, param['param_file']), **extra)
+
     map = {}
     for mod, extra in modules:
         param.update(extra)
-        name = mod.__name__
-        idx = name.rfind('.')
-        if idx != -1: name = name[idx+1:]
-        param.update(log_file=os.path.join(os.path.basename(extra['config_path']), 'log', name+'.log'))
-        _logger.info("Writing config file for %s"%name)
-        map[mod.__name__] = program.write_config(mod, **param)
+        param.update(description=description_map[extra['run_type']])
+        _logger.info("Writing config file for %s"%module_name(mod))
+        map[mod.__name__] = program.update_config(mod, **param)
+        if map[mod.__name__] == "":
+            map[mod.__name__] = program.write_config(mod, **param)
     
     module_type = {}
+    module_key=[]
     for mod, extra in modules:
         type = extra['config_path']
-        if type not in module_type: module_type[type]=[]
+        
+        if type not in module_type: 
+            module_key.append(type)
+            module_type[type]=[]
         module_type[type].append(mod)
     
+    scripts = []
     #map = program.map_module_to_program()
     boutput = os.path.basename(output)
-    for path, modules in module_type.iteritems():
+    for path in module_key:
+        modules = module_type[path]
         type = os.path.basename(path)
         _logger.info("Writing script %s"%os.path.join(output, 'run_%s'%type))
         fout = open(os.path.join(output, 'run_%s'%type), 'w')
+        progress_file = os.path.join(output, 'progress_%s.txt'%type)
+        scripts.append((os.path.join(output, 'run_%s'%type), progress_file))
         fout.write("#!/bin/bash\n")
         if type == 'cluster':
             fout.write('MACHINEFILE="machinefile"\n')
@@ -426,11 +286,160 @@ def write_config(files, run_single_node, run_hybrid_node, run_multi_node, sn_pat
             fout.write('export nodes MACHINEFILE\n')
             # count nodes
             # export environment variable
+        fout.write('echo -n >%s\n'%(progress_file))
         for mod in modules:
             prog = os.path.join('..', map[mod.__name__]) if boutput != '.' and boutput != '' else map[mod.__name__]
             fout.write('sh %s\n'%prog)
-            fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\n')
+            fout.write('if [ "$?" != "0" ] ; then\nexit 1\nfi\necho "%s">>%s\n'%(prog, progress_file))
         fout.close()
+    return scripts
+
+def workflow(input_files, output, id_len, raw_reference, ext='dat', **extra):
+    ''' Define the project workflow
+    
+    :Parameters:
+    
+    param : dict
+            Parameter/value dictionary
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    modules : list
+              List of tuples, modules and their specific parameters
+    '''
+    
+    data_ext = ext
+    if ext[0] != '.': ext = '.'+ext
+    else: data_ext = ext[1:]
+    
+    config_path=dict(
+    SN = os.path.join(output, 'local'),
+    MN = os.path.join(output, 'cluster'))
+    setup_mpi_mode(config_path, **extra)
+    
+    mn_base = os.path.basename(config_path['MN'])
+    sn_base = os.path.basename(config_path['SN'])
+    param = dict(
+        param_file = os.path.join(mn_base, 'data', 'params'+ext),
+        reference = os.path.join(mn_base, 'data', 'reference'),
+        defocus_file = os.path.join(mn_base, 'data', 'defocus'),
+        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_'+"".zfill(id_len)+ext),
+        output_pow = os.path.join(sn_base, "pow", "pow_"+"".zfill(id_len)+ext),
+        output_mic = os.path.join(sn_base, "mic", "mic_dec_"+"".zfill(id_len)+ext),
+        stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+ext),
+        alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
+    )
+    
+    if spider_utility.is_spider_filename(raw_reference):
+        param.update(reference=spider_utility.spider_filename(param['reference'], raw_reference))
+    
+    raw_reference = os.path.abspath(raw_reference)
+    
+    stk = re.compile('0+')
+    modules = [(reference, dict(input_files=[raw_reference],
+                               output=param['reference'],
+                               run_type='SN',
+                               )), 
+               (defocus,  dict(input_files=input_files,
+                               output=param['defocus_file'],
+                               run_type='HB',
+                               supports_MPI=True,
+                               #restart_file
+                               )),
+               (autopick, dict(input_files=input_files,
+                               output=param['coordinate_file'],
+                               run_type='HB',
+                               supports_MPI=True,
+                               #restart_file
+                               )), 
+               (crop,     dict(input_files=input_files,
+                               output = param['stacks'],
+                               run_type='HB',
+                               supports_MPI=True,
+                               #restart_file
+                               )), 
+               (align,    dict(input_files=stk.sub('*', param['stacks']),
+                               output = param['alignment'],
+                               run_type='MN',
+                               supports_MPI=True,
+                               #select_file=format_utility.add_prefix(param['defocus_file'], "mic_select_")
+                               )), 
+               (refine,    dict(input_files=stk.sub('*', param['stacks']),
+                               output = param['alignment'],
+                               run_type='MN',
+                               supports_MPI=True,
+                               #selection_file
+                               )),
+                ]
+    
+    del extra['window_size']
+    
+    if 'home_prefix' in extra:
+        if extra['home_prefix'] == "":
+            extra['home_prefix'] = os.path.abspath(output)
+        elif os.path.exists(os.path.join(extra['home_prefix'], output)):
+            extra['home_prefix'] = os.path.join(extra['home_prefix'], output)
+    
+    extra['scattering_doc'] = copy_scattering_doc(config_path['MN'], **extra)
+    
+    for mod, settings in modules:
+        # read config file
+        prev=dict(settings)
+        try: settings.update(program.read_config(mod, config_path=config_path[settings['run_type']]))
+        except: _logger.exception("bug")
+        settings.update(prev)
+        settings.update(extra)
+        settings.update(param)
+        settings.update(invert=not extra['is_film'], data_ext=data_ext)
+        settings.update(config_path=config_path[settings['run_type']])
+        settings.update(log_file=os.path.join(os.path.basename(settings['config_path']), 'log', module_name(mod)+'.log'))
+    
+    return modules, param, config_path
+
+def compress_filenames(files):
+    ''' Test if all filenames have a similar prefix and replace the suffix
+    with a wildcard ('*'). 
+    
+    :Parameters:
+    
+    files : list
+            List of filenames
+    
+    :Returns:
+    
+    files : list
+            List of filenames - possibly single entry with wild card
+    '''
+    
+    for i in xrange(len(files)):
+        if not os.path.isabs(files[i]):
+            files[i] = os.path.abspath(files[i])
+    
+    tmp = os.path.commonprefix(files)+'*'
+    if len(glob.glob(tmp)) == len(files): files = [tmp]
+    return files
+
+def module_name(mod):
+    ''' Return the name of the module
+    
+    :Parameters:
+    
+    mod : module
+          Module to format
+    
+    :Returns:
+    
+    name : str
+           Name of the module
+    '''
+    
+    name = mod.__name__
+    idx = name.rfind('.')
+    if idx != -1: name = name[idx+1:]
+    return name
+    
 
 def create_directories(output, files):
     ''' Create directories for a set of files
@@ -466,6 +475,95 @@ def detect_MPI():
     if ret == 0: # Detected OpenMPI
         return "mpiexec -stdin none -n $nodes -machinefile $MACHINEFILE"
     return "mpiexec -n $nodes -machinefile $MACHINEFILE"
+    
+def script_header(mpi_command="", **extra):
+    '''
+    
+    :Parameters:
+    
+    mpi_command : str
+                  MPI command to run in MPI scripts
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    header : str
+             Header used to run the script
+    '''
+    
+    if mpi_command == "": mpi_command = detect_MPI()
+    description_map=dict( SN='''
+     %(prog)s -c $PWD/$0 > `basename $0 cfg`log
+     exit $?
+    ''',
+    
+    MN='''
+     %s %s -c $PWD/$0 --use-MPI < /dev/null > .`basename $0 cfg`log
+     exit $?
+    '''%(mpi_command, '%(prog)s')
+    )
+    setup_mpi_mode(description_map, **extra)
+    
+    return description_map
+        
+def setup_mpi_mode(mode_map, mpi_mode=0, **extra):
+    ''' Configure an MPI mode map
+    
+    :Parameters:
+    
+    mode_map : dict
+               Dictionary to setup
+    mpi_mode : int
+               MPI mode for the header of each script
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    mode_map.update(HB=mode_map['SN'])
+    if mpi_mode == 1: mode_map.update(HB=mode_map['MN'])
+    elif mpi_mode == 2: mode_map.update(MN=mode_map['SN'])
+
+def copy_scattering_doc(output, scattering_doc="", ext="dat", **extra):
+    ''' Download or copy a scattering document file to the proper location
+    
+    :Parameters:
+    
+    output : str
+             Output dirctory for scattering doc
+    scattering_doc : str, optional
+                     Filename for scattering doc
+    ext : str, optional
+          Extension for SPIDER data files
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    scattering_doc : str
+                     Filename for scattering doc
+    '''
+    
+    if scattering_doc == "ribosome":
+        scattering_doc = os.path.join(output, 'data', 'scattering8'+ext)
+        if not os.path.exists(scattering_doc):
+            _logger.info("Downloading scattering doc")
+            tmp = download("http://www.wadsworth.org/spider_doc/spider/docs/techs/xray/scattering8.tst", os.path.join(output, 'data'))
+            if ext != os.path.splitext(tmp)[1]:
+                os.rename(tmp, scattering_doc)
+        else:
+            _logger.info("Downloading scattering doc - skipping, already found")
+    elif scattering_doc == "":
+        _logger.warn("No scattering document file specified: `--scattering-doc`")
+    else:
+        _logger.info("Copying scattering doc")
+        fin = open(scattering_doc, 'r')
+        scattering_doc = os.path.join(output, 'data', os.path.splitext(os.path.basename(scattering_doc))[0]+ext)
+        fout = open(scattering_doc, 'w')
+        for line in fin: fout.write(line)
+        fin.close()
+        fout.close
+    return scattering_doc
 
 def download(urlpath, filepath):
     '''Download the file at the given URL to the local filepath
@@ -549,12 +647,11 @@ def main():
     run_hybrid_program(__name__,
         description = '''Generate all the scripts and directories for a pySPIDER project 
                         
-                        $ %prog micrograph_files* -o project-name -r raw-reference -e extension -p params -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
+                        $ %prog micrograph_files* -o project-name -r raw-reference -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
                       ''',
         supports_MPI=False,
         use_version = False,
         max_filename_len = 78,
     )
 if __name__ == "__main__": main()
-
 

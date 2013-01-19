@@ -45,7 +45,7 @@ C
 C23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 C--*********************************************************************
 
-         SUBROUTINE  RAMP(IMG,NSAM,NROW,RETVAL)
+		 SUBROUTINE  RAMP(IMG,NSAM,NROW,RETVAL)
 
          DOUBLE PRECISION IMG(NSAM,NROW)
          DOUBLE PRECISION BETAI
@@ -167,7 +167,8 @@ C--*********************************************************************
 
          SUBROUTINE  HISTC2(QK2,NSR1,QK6,NSR2,QK1,N,LENH,ITRMAX)
 
-         DOUBLE PRECISION       ::  QK1(N),QK2(NSR1)
+C         DOUBLE PRECISION       ::  QK1(N),QK2(NSR1)
+         REAL       ::  QK1(N),QK2(NSR1)
          LOGICAL   ::  QK6(NSR2)
 
          REAL      ::  QK4(3*LENH),QK5(3*LENH)
@@ -248,16 +249,24 @@ C        rxi = xima - ximi
          N2  = 2
          EPS = 0.0001
 
+C		print *, 'A=',A
+C		print *, 'B=',B
+C		print *, 'CHI=', Y(2)
+
          CALL AMOEBA2(P,Y,N2,EPS,FHT2,ITER,ITRMAX,PR,PRR,PBAR,
      &               NSR1,LENH,QK2,QK4,QK5,QK6,RXR,XRMI)
 
 C        do  6  i=1,4
 C6          print  203,(p(i,j),j=1,3)
 C203     format(3(3x,e12.5))
-
+C		print *, 'P(2,1)=',P(2,1)
+C		print *, 'P(2,2)=',P(2,2)
+C		print *, 'ITER=',ITER
+C		print *, 'CHI=', Y(2)
          DO I=1,NSR1
             QK2(I) = QK2(I) * P(2,1) + P(2,2)
 	 	 ENDDO
 
          END
+
 

@@ -36,6 +36,7 @@ class FormatUtilityError(StandardError):
     """Exception raised for errors in parsing values in the utility
     """
     pass
+    
 
 def combine(vals):
     ''' Combine values from different files (only include common columns)
@@ -162,7 +163,7 @@ try:
         return create_namedtuple_list(values, "Selection", header=header)
 except: pass
 
-def new_filename(filename, prefix, suffix=None, ext=None):
+def new_filename(filename, prefix=None, suffix=None, ext=None, subdir=None):
     '''Add a prefix, suffix and/or extension to the given filename
     
     .. sourcecode:: py
@@ -181,6 +182,8 @@ def new_filename(filename, prefix, suffix=None, ext=None):
              Suffix to add to a filename
     ext : str
           Extension to add to a filename
+    subdir : str
+             New subdirectory
     
     :Returns:
     
@@ -188,6 +191,7 @@ def new_filename(filename, prefix, suffix=None, ext=None):
                Filename with prefix
     '''
     
+    if subdir is not None: filename = os.path.join(os.path.dirname(filename), subdir, os.path.basename(filename))
     if prefix is not None: filename = add_prefix(filename, prefix)
     if suffix is not None: filename = add_suffix(filename, suffix)
     if ext is not None:
@@ -247,7 +251,7 @@ def add_suffix(filename, suffix):
     
     if suffix is not None and suffix != "":
         base, ext = os.path.splitext(filename)
-        return base+suffix+"."+ext
+        return base+suffix+ext
     return filename
 
 def has_extension(filename):
@@ -499,7 +503,7 @@ def split_id(id, numeric=False):
                 Object ID
     '''
     
-    ids = id.replace('/', ' ').replace(':', ' ').replace(',', ' ').split()
+    ids = id.replace('/', ' ').replace(':', ' ').replace(',', ' ').replace('@', ' ').split()
     if numeric: ids = [int(i) for i in ids]
     return ids
 

@@ -550,6 +550,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     rgroup.add_option("",   sym=('c1',),                            help="Symmetry for the reconstruction")
     rgroup.add_option("",   mult_ctf=False,                         help="Multiply by the CTF rather than phase flip before backprojection")
     rgroup.add_option("",   engine=('MPI_nn4', 'BPCG', 'BP32F'),    help="Type of reconstruction engine to use", default=0)
+    rgroup.add_option("",   interpolation="Q",                       help="Type of interpolation to use: (Q) quadratic and (FS) Fourier Spline")
     setup_options_from_doc(parser, 'bp_cg_3', classes=spider.Session, group=rgroup)
     pgroup.add_option_group(rgroup)
     

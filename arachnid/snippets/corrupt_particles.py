@@ -1,5 +1,17 @@
 ''' Find and remove corrupt particles using a selection file
 
+When you see the following message from relion, then run this script and use the new selection file to run relion again
+
+.. sourcecode:: sh
+
+    Check for dimension: 1
+    MultidimArray shape:  Check for dimension: 1
+    MultidimArray shape:  Empty MultidimArray!
+    
+    Check called from file ./src/multidim_array.h line 3329
+     Empty MultidimArray!
+
+
 Download to edit and run: :download:`corrupt_particles.py <../../arachnid/snippets/corrupt_particles.py>`
 
 To run:
@@ -10,7 +22,7 @@ To run:
 
 .. literalinclude:: ../../arachnid/snippets/corrupt_particles.py
    :language: python
-   :lines: 16-
+   :lines: 28-
    :linenos:
 '''
 from arachnid.core.metadata import format, spider_utility
@@ -21,7 +33,6 @@ import numpy, logging
 
 if __name__ == '__main__':
     input_selection = ""
-    stack_file = ""
     output_selection=""
     mrc_stack=False
     
