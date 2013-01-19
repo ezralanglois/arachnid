@@ -9,7 +9,7 @@ Original Author: Volker Wiendl with Enhancements by Roman alias banal
 '''
 from ButtonDelegate import FontDialogWidget, FileDialogWidget, WorkflowWidget #, CheckboxWidget
 from PyQt4 import QtGui, QtCore
-import sys, re, logging
+import re, logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -584,8 +584,9 @@ class NumericProperty(Property):
         
         Property.__init__(self, name, group, property, extended, parent)
         #editorHints
-        self.minimum = extended.editorHints["minimum"] if hasattr(extended, 'editorHints') and "minimum" in extended.editorHints else -sys.maxint
-        self.maximum = extended.editorHints["maximum"] if hasattr(extended, 'editorHints') and "maximum" in extended.editorHints else sys.maxint
+        self.minimum = extended.editorHints["minimum"] if hasattr(extended, 'editorHints') and "minimum" in extended.editorHints else -32767
+        self.maximum = extended.editorHints["maximum"] if hasattr(extended, 'editorHints') and "maximum" in extended.editorHints else 32767
+        
         _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.minimum)))
         _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.maximum)))
         if self.value().type() == QtCore.QVariant.Int:
