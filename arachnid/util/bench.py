@@ -159,10 +159,13 @@ def benchmark(coords, fid, good_output="", **extra):
     bench = read_bench_coordinates(fid, **extra)
     if bench is not None:
         selected = bench
-        x, y = header.index('x'), header.index('y')
-        overlap = find_overlap(numpy.vstack((coords[:, x], coords[:, y])).T, bench, **extra)
+        if len(selected)>0:
+            x, y = header.index('x'), header.index('y')
+            overlap = find_overlap(numpy.vstack((coords[:, x], coords[:, y])).T, bench, **extra)
+        else:
+            return (0, 0, 0, 0)
     else:
-        selected = format_utility.tuple2numpy(format.read(extra['good'], numeric=True))[0].astype(numpy.int)
+        selected = format_utility.tuple2numpy(format.read(extra['good'], numeric=True))[0].astype(numpy.int)-1
         overlap = coords[selected].copy().squeeze()
     if good_output != "":
         format.write(good_output, overlap, header=header)
@@ -190,16 +193,18 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
     '''
     
     if good_coords == "": return None
-    if not os.path.exists(good_coords):
+    if os.path.exists(format_utility.parse_header(good_coords)[0]):
         coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
     else:
-        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
+        return []
     if good != "":
         try:
             selected = format_utility.tuple2numpy(format.read(good, numeric=True))[0].astype(numpy.int)
         except:
-            return None
+            return []
         else:
+            print good, selected.shape
+            assert(selected.shape[1]==2)
             selected = selected[:, 0]-1
             coords = coords[selected].copy().squeeze()
     x, y = header.index('x'), header.index('y')
@@ -262,7 +267,7 @@ def precision(tp, fp, tn, fn):
                 Esimated precision
     '''
     
-    return numpy.divide(tp, fp+tp)
+    return numpy.divide(tp, float(fp+tp))
 
 def recall(tp, fp, tn, fn):
     ''' Estimate the recall from a confusion matrix
@@ -286,7 +291,7 @@ def recall(tp, fp, tn, fn):
                 Esimated precision
     '''
     
-    return numpy.divide(tp, fn+tp)
+    return numpy.divide(tp, float(fn+tp))
 
 def initialize(files, param):
     # Initialize global parameters for the script
@@ -306,10 +311,9 @@ def reduce_all(val, confusion, file_index, **extra):
         confusion[file_index, :] = conf
         pre = precision(*conf)
         sen = recall(*conf)
-        info = " - %d,%d,%d - precision: %f, recall: %f"%(conf[0]+conf[1], conf[0]+conf[3], conf[0], pre, sen)
+        info = " - %d,%d,%d - precision: %.2f, recall: %.2f"%(conf[0]+conf[1], conf[0]+conf[3], conf[0], pre, sen)
     else: info=""
-    _logger.info("Finished processing: %s%s"%(os.path.basename(filename), info))
-    return filename
+    return filename+info
 
 def finalize(files, confusion, output, **extra):
     # Finalize global parameters for the script
