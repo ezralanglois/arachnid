@@ -267,6 +267,10 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
+        if interpolation is not None:
+            v = session.get_version()
+            if v[0] < 20: interpolation = None
+        
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
         else: session.de(outputfile)
@@ -288,7 +292,7 @@ class Session(spider_session.Session):
             else: test_mirror = spider_tuple(test_mirror)
         inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
         selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
-        if interpolation.upper() == "FS": session.md('FBS ON')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS ON')
         session.invoke('ap ref', spider_stack(reference, ref_count), 
                            spider_select(selectref), spider_tuple(trans_range), #, trans_step), 
                            spider_tuple(first_ring, ring_last, ring_step), #, ray_step), 
@@ -297,7 +301,7 @@ class Session(spider_session.Session):
                            spider_tuple(angle_range, angle_threshold),
                            test_mirror,
                            spider_doc(outputfile))
-        if interpolation.upper() == "FS": session.md('FBS OFF')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS OFF')
         return outputfile
     
     def ap_sh(session, inputfile, inputselect, reference, selectref, angle_range=0.0, 
@@ -361,6 +365,10 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
+        if interpolation is not None:
+            v = session.get_version()
+            if v[0] < 20: interpolation = None
+        
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
         session.de(outputfile)
@@ -378,7 +386,7 @@ class Session(spider_session.Session):
             if supports_internal_rtsq(session) and inputangles is not None:
                 test_mirror = spider_tuple(test_mirror, 1)
             else: test_mirror = spider_tuple(test_mirror)
-        if interpolation.upper() == "FS": session.md('FBS ON')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS ON')
         session.invoke('ap sh', spider_stack(reference, ref_count), 
                        spider_select(selectref), spider_tuple(trans_range, trans_step), 
                        spider_tuple(first_ring, ring_last, ring_step, ray_step), 
@@ -387,7 +395,7 @@ class Session(spider_session.Session):
                        spider_tuple(angle_range, angle_threshold),
                        test_mirror,
                        spider_doc(outputfile))
-        if interpolation.upper() == "FS": session.md('FBS OFF')
+        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS OFF')
         return outputfile
 
     def ar(session, inputfile, operation, outputfile=None, **extra):
@@ -1318,8 +1326,9 @@ class Session(spider_session.Session):
         '''
         
         additional = []
-        if mode == 'SET MP': additional.append(spider_tuple(value))
-        else: raise ValueError, "Only SET MP supported"
+        if value is not None:
+            if mode == 'SET MP': additional.append(spider_tuple(value))
+            else: raise ValueError, "Only SET MP supported"
         session.invoke('md', mode, *additional)
     
     def mo(session, image_size, model="T", background_constant=12.0, circle_radius=12, gaus_center=(12.0, 12.0), gaus_std=4.2, gaus_mean=1.0, rand_gauss=False, outputfile=None, **extra):
@@ -1685,6 +1694,9 @@ class Session(spider_session.Session):
         outputfile : str
                     Tuple containing the output file and number of angles
         '''
+        if interpolation is not None:
+            v = session.get_version()
+            if v[0] < 20: interpolation = None
         
         assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
@@ -1699,10 +1711,10 @@ class Session(spider_session.Session):
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
-        if interpolation.upper() == "FS":
-            session.invoke('pj 3f', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+        if interpolation is not None and interpolation.upper() == "FS":
+            session.invoke('pj 3f', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         else:
-            session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+            session.invoke('pj 3q', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         return outputfile
     
     def pw(session, inputfile, outputfile=None, **extra):
@@ -1971,10 +1983,14 @@ class Session(spider_session.Session):
                          Filename of output image
         '''
         
+        if interpolation is not None:
+            v = session.get_version()
+            if v[0] < 20: interpolation = None
+        
         input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
         assert(count > 1)
         if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
-        if interpolation.upper() == "FS":
+        if interpolation is not None and interpolation.upper() == "FS":
             session.invoke('rt sf', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
         else:
             session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
@@ -2846,32 +2862,33 @@ def open_session(args, spider_path="", data_ext="", thread_count=0, enable_resul
     '''Opens a spider session
     
     :Parameters:
-        
-        args : list
-               List of input file names
-        spider_path : str
-                      File path to spider executable
-        data_ext : str
-                   Extension of spider data files
-        thread_count : int, noupdate
-                       Number of threads per machine, 0 means use all cores
-        enable_results : bool, noupdate
-                         If set true, print results file to terminal
-        rank : int
-               MPI node rank
-        local_temp : str
-                     Path to start SPIDER
-        extra : dict
-                Unused keyword arguments
+    
+    args : list
+           List of input file names
+    spider_path : str
+                  File path to spider executable
+    data_ext : str
+               Extension of spider data files
+    thread_count : int, noupdate
+                   Number of threads per machine, 0 means use all cores
+    enable_results : bool, noupdate
+                     If set true, print results file to terminal
+    rank : int
+           MPI node rank
+    local_temp : str
+                 Path to start SPIDER
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
-        
-        session : Session
-                  A spider sesssion with all available commands
+    
+    session : Session
+              A spider sesssion with all available commands
     '''
     
     if args is not None and len(args) > 0:
-        tmp_ext = os.path.splitext(args[0])[1][1:]
+        tmp_ext = os.path.splitext(args[0])[1]
+        if len(tmp_ext) > 0: tmp_ext=tmp_ext[1:]
         if data_ext != tmp_ext and data_ext == "":
             if rank is None or rank == 0:
                 _logger.warn("Changing Spider data extension from %s to %s"%(data_ext, tmp_ext))
@@ -3001,7 +3018,12 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
             else:
                 ctf = session.tf_ct(defocus=defocus, outputfile=ctf, **extra)
         ftimage = session.ft(inputfile, outputfile=ftimage, **extra)           # Fourier transform reference volume
-        ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
+        try:
+            ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
+        except:
+            _logger.error("ftimage: %s"%str(session.fi_h(ftimage, ('NSAM', 'NROW', ))))
+            _logger.error("ctf: %s"%str(session.fi_h(ctf, ('NSAM', 'NROW', ))))
+            raise
         session.ft(ctfimage, outputfile=outputfile) 
 
 def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, window=0, trans_max=8, **extra):
@@ -3038,10 +3060,17 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
             Dictionary of updated parameters
     '''
     
-    if dec_level == bin_factor: return {}
-    max_radius = int(window/2.0)
-    param = {}
+    
     factor = dec_level/bin_factor
+    param = dict(dec_level=bin_factor,
+                width=int(extra['width']*factor), 
+                height=int(extra['height']*factor), 
+                apix=extra['apix']/factor, 
+                maxfreq=extra['maxfreq']*factor, 
+                window=int(window*factor), 
+                pixel_diameter=int(extra['pixel_diameter']*factor))
+    window = param['window']
+    max_radius = int(window/2.0)
     param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
@@ -3052,7 +3081,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     if param['trans_range'] > trans_max:
         param['trans_step'] = max(1, int(param['trans_range'] / float(trans_max)))
-        param['trans_range'] = min(2, param['trans_step']*trans_max)
+        param['trans_range'] = max(2, param['trans_step']*trans_max)
     else: param['trans_step'] = 1
     assert( (max_radius - param['ring_last'] - param['trans_range']) >= 3 )
     #if trans_step > 1: param['trans_step']=max(1, int(trans_step*factor))
@@ -3196,10 +3225,12 @@ def interpolate_stack(session, inputfile, outputfile=None, window=0, **extra):
                  Filename of output image
     '''
     
+    '''
     if outputfile is not None and os.path.exists(session.replace_ext(outputfile)):
         width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
         width, count = int(width), int(count)
         if window == width and count == int(session.fi_h(spider_stack(session.replace_ext(outputfile)), ('MAXIM', ))[0]): return outputfile
+    '''
     width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
     width, count = int(width), int(count)
     if window != width:
