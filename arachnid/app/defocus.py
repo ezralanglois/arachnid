@@ -395,7 +395,6 @@ def reduce_all(val, ctf, file_index, file_completed, file_count, output, **extra
                  header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if file_completed > 1 else 'w', write_offset=file_completed)
     '''
     
-    _logger.info("Finished processing: %s"%(os.path.basename(filename)))
     return filename
 
 def finalize(files, ctf, output, **extra):
