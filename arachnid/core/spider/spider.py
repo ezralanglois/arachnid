@@ -268,7 +268,7 @@ class Session(spider_session.Session):
         '''
         
         if interpolation is not None:
-            v = self.get_version()
+            v = session.get_version()
             if v[0] < 20: interpolation = None
         
         _logger.debug("Performing multi-reference alignment")
@@ -366,7 +366,7 @@ class Session(spider_session.Session):
         '''
         
         if interpolation is not None:
-            v = self.get_version()
+            v = session.get_version()
             if v[0] < 20: interpolation = None
         
         _logger.debug("Performing multi-reference alignment")
@@ -1695,7 +1695,7 @@ class Session(spider_session.Session):
                     Tuple containing the output file and number of angles
         '''
         if interpolation is not None:
-            v = self.get_version()
+            v = session.get_version()
             if v[0] < 20: interpolation = None
         
         assert(max_ref_proj is not None)
@@ -1712,9 +1712,9 @@ class Session(spider_session.Session):
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
         if interpolation is not None and interpolation.upper() == "FS":
-            session.invoke('pj 3f', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+            session.invoke('pj 3f', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         else:
-            session.invoke('pj 3q', spider_image(inputfile), spider_tuple(pj_radius), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+            session.invoke('pj 3q', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         return outputfile
     
     def pw(session, inputfile, outputfile=None, **extra):
@@ -1984,7 +1984,7 @@ class Session(spider_session.Session):
         '''
         
         if interpolation is not None:
-            v = self.get_version()
+            v = session.get_version()
             if v[0] < 20: interpolation = None
         
         input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
@@ -2862,32 +2862,33 @@ def open_session(args, spider_path="", data_ext="", thread_count=0, enable_resul
     '''Opens a spider session
     
     :Parameters:
-        
-        args : list
-               List of input file names
-        spider_path : str
-                      File path to spider executable
-        data_ext : str
-                   Extension of spider data files
-        thread_count : int, noupdate
-                       Number of threads per machine, 0 means use all cores
-        enable_results : bool, noupdate
-                         If set true, print results file to terminal
-        rank : int
-               MPI node rank
-        local_temp : str
-                     Path to start SPIDER
-        extra : dict
-                Unused keyword arguments
+    
+    args : list
+           List of input file names
+    spider_path : str
+                  File path to spider executable
+    data_ext : str
+               Extension of spider data files
+    thread_count : int, noupdate
+                   Number of threads per machine, 0 means use all cores
+    enable_results : bool, noupdate
+                     If set true, print results file to terminal
+    rank : int
+           MPI node rank
+    local_temp : str
+                 Path to start SPIDER
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
-        
-        session : Session
-                  A spider sesssion with all available commands
+    
+    session : Session
+              A spider sesssion with all available commands
     '''
     
     if args is not None and len(args) > 0:
-        tmp_ext = os.path.splitext(args[0])[1][1:]
+        tmp_ext = os.path.splitext(args[0])[1]
+        if len(tmp_ext) > 0: tmp_ext=tmp_ext[1:]
         if data_ext != tmp_ext and data_ext == "":
             if rank is None or rank == 0:
                 _logger.warn("Changing Spider data extension from %s to %s"%(data_ext, tmp_ext))
@@ -3017,7 +3018,12 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
             else:
                 ctf = session.tf_ct(defocus=defocus, outputfile=ctf, **extra)
         ftimage = session.ft(inputfile, outputfile=ftimage, **extra)           # Fourier transform reference volume
-        ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
+        try:
+            ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
+        except:
+            _logger.error("ftimage: %s"%str(session.fi_h(ftimage, ('NSAM', 'NROW', ))))
+            _logger.error("ctf: %s"%str(session.fi_h(ctf, ('NSAM', 'NROW', ))))
+            raise
         session.ft(ctfimage, outputfile=outputfile) 
 
 def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, cg_radius=0, window=0, trans_max=8, **extra):
@@ -3219,10 +3225,12 @@ def interpolate_stack(session, inputfile, outputfile=None, window=0, **extra):
                  Filename of output image
     '''
     
+    '''
     if outputfile is not None and os.path.exists(session.replace_ext(outputfile)):
         width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
         width, count = int(width), int(count)
         if window == width and count == int(session.fi_h(spider_stack(session.replace_ext(outputfile)), ('MAXIM', ))[0]): return outputfile
+    '''
     width, count = session.fi_h(spider_stack(inputfile), ('NSAM', 'MAXIM'))
     width, count = int(width), int(count)
     if window != width:
