@@ -6,44 +6,42 @@
     
 .. todo:: define full spider header
 
-.. todo:: support complex numbers
-
 .. Created on Aug 9, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from arachnid.core.metadata import type_utility
-import numpy
+import numpy, os, logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 spi_defaults = dict()
 
-header = {'nz': 1,'ny': 2,'irec':3,'iform':5,'imami':6,'fmax':7,'fmin':8, 
+_header_map = {'nz': 1,'ny': 2,'irec':3,'iform':5,'imami':6,'fmax':7,'fmin':8, 
           'av':9, 'sig':10, 'nx':12, 'labrec':13, 'labbyt': 22, 'lenbyt':23, 
           'istack': 24, 'maxim':26, 'imgnum': 27, 'apix':38,'voltage': 39,
           'proj': 40, 'mic': 41}
-
 
 spi2ara={'': ''}
 #ara.update(dict([(h[0], 'mrc'+_h[0]) for h in header_image_dtype]))
 ara2spi=dict([(val, key) for key,val in spi2ara.iteritems()])
 
 spi2numpy = {
-    0: numpy.uint8,
-    1: numpy.int16,
-    2: numpy.float32,
-#    3:  complex made of two int16.  No such thing in numpy
-#     however, we could manually build a complex array by reading two
-#     int16 arrays somehow.
-    4: numpy.complex64,
-
-    6: numpy.uint16,    # according to UCSF
+     1: numpy.float32,
+     3: numpy.float32,
+    -11: numpy.complex64,
+    -12: numpy.complex64, #Even
+    -21: numpy.complex64,
+    -22: numpy.complex64, #Even
 }
 
 ## mapping of numpy type to MRC mode
-numpy2spi = {}
+numpy2spi = {
+}
 
 def _create_header_dtype(vtype='<f4'):
-    idx2header = dict([(val, key) for key, val in header.iteritems()])
-    return numpy.dtype([(idx2header.get(i, "unused_%s"%str(i+1).zfill(2)), vtype) for i in xrange(1, numpy.max(header.values())+1)])
+    idx2header = dict([(val, key) for key, val in _header_map.iteritems()])
+    return numpy.dtype([(idx2header.get(i, "unused_%s"%str(i+1).zfill(2)), vtype) for i in xrange(1, numpy.max(_header_map.values())+1)])
 
 header_dtype = _create_header_dtype()
 
@@ -85,9 +83,12 @@ def is_readable(filename):
         try: h = read_spider_header(filename)
         except: return False
     for i in ('nz','ny','iform','nx','labrec','labbyt','lenbyt'):
-        if not type_utility.is_float_int(h[i]): return False
-    if not int(h['iform']) in (1,3,-11,-12,-21,-22): return False
-    if (int(h['labrec'])*int(h['lenbyt'])) != int(h['labbyt']): return False
+        if not type_utility.is_float_int(h[i]):  
+            return False
+    if not int(h['iform']) in (1,3,-11,-12,-21,-22): 
+        return False
+    if (int(h['labrec'])*int(h['lenbyt'])) != int(h['labbyt']): 
+        return False
     return True
 
 def _update_header(dest, source, header_map, tag=None):
@@ -175,6 +176,7 @@ def read_header(filename, index=None):
     h = read_spider_header(filename, index)
     header={}
     header['apix'] = h['apix']
+    header['fourier_even'] = (h['iform']== -12 or h['iform']== -22)
     return header
 
 def read_spider_header(filename, index=None):
@@ -244,9 +246,14 @@ def read_image(filename, index=None, header=None):
         if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
         offset = h_len + index * (h_len+i_len)
         f.seek(offset)
-        out = numpy.fromfile(f, dtype=h.dtype.fields['nx'][0], count=d_len)
+        out = numpy.fromfile(f, dtype=spi2numpy[float(h['iform'])], count=d_len)
         if int(h['nz']) > 1:   out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
-        elif int(h['ny']) > 1: out = out.reshape(int(h['nx']), int(h['ny']))
+        elif int(h['ny']) > 1: 
+            try:
+                out = out.reshape(int(h['nx']), int(h['ny']))
+            except:
+                _logger.error("%d != %d*%d = %d"%(out.ravel().shape[0], int(h['nx']), int(h['ny']), int(h['nx'])*int(h['ny'])))
+                raise
     finally:
         _close(filename, f)
     return out
@@ -284,7 +291,7 @@ def iter_images(filename, index=None, header=None):
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
         for i in index:
-            out = numpy.fromfile(f, dtype=h.dtype.fields['nx'][0], count=d_len)
+            out = numpy.fromfile(f, dtype=spi2numpy[float(h['iform'])], count=d_len)
             if int(h['nz']) > 1:   out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
             elif int(h['ny']) > 1: out = out.reshape(int(h['nx']), int(h['ny']))
             yield out
@@ -324,7 +331,8 @@ def is_writable(filename):
             True if the format is recognized
     '''
     
-    return False
+    ext = os.path.splitext(filename)[1][1:].lower()
+    return ext == 'spi'
 
 def write_image(filename, img, index=None, header=None):
     ''' Write an image array to a file in the MRC format
@@ -341,21 +349,63 @@ def write_image(filename, img, index=None, header=None):
              Dictionary of header values
     '''
     
+    #float64
+    #complex64
     
-    try: img = img.type(spi2numpy[numpy2spi[img.dtype.type]])
+    dtype = numpy.complex64 if numpy.iscomplexobj(img) else numpy.float32
+    try: img = img.astype(dtype)
     except: raise TypeError, "Unsupported type for SPIDER writing: %s"%str(img.dtype)
     
-    f = _open(filename, 'w')
+    mode = 'a' if index is not None and index > 0 else 'w'
+    f = _open(filename, mode)
     try:
         if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
             h = numpy.zeros(1, header_dtype)
+            even = header['fourier_even'] if header is not None and 'fourier_even' in header else None
             _update_header(h, spi_defaults, ara2spi)
             header=_update_header(h, header, ara2spi, 'spi')
+            
+            # Image size in header
+            header['nx'] = img.shape[0]
+            header['ny'] = img.shape[1] if img.ndim > 1 else 1
+            header['nz'] = img.shape[2] if img.ndim > 2 else 1
+            
+            header['lenbyt'] = img.shape[0]*4
+            header['labrec'] = 1024 / int(header['lenbyt'])
+            if 1024%int(header['lenbyt']) != 0: 
+                header['labrec'] = int(header['labrec'])+1
+            header['labbyt'] = int(header['labrec'] ) * int(header['lenbyt'])
+            
+            # 
+            #header['irec']
+            if numpy.iscomplexobj(img):
+                header['iform'] = 3 if img.ndim == 3 else 1
+                # determine even or odd Fourier - assumes other dim are padded appropriately
+                if even is None:
+                    v = int(round(float(img.shape[1])/img.shape[0]))
+                    v = img.shape[1]/v
+                    even = (v%2)==0
+                if even:
+                    header['iform'] = -22  if img.ndim == 3 else -12 
+                else:
+                    header['iform'] = -21  if img.ndim == 3 else -11 
+            else:
+                header['iform'] = 3 if img.ndim == 3 else 1 
+        
+        fheader = numpy.zeros(header['labbyt']/4, dtype=numpy.float32)
+        for name, idx in _header_map.iteritems(): 
+            fheader[idx-1]=float(header[name])
+        
         if index is not None:
-            header.tofile(f)
-            # convert to image header
-            #_update_header(h, spi_defaults, ara2spi)
-            #header=_update_header(h, header, ara2spi, 'spi')
+            fheader[_header_map['maxim']] = index+1
+            fheader[_header_map['imgnum']] = index+1
+            fheader[_header_map['istack']] = 2
+            f.seek(0)
+            fheader.tofile(f)
+            fheader[_header_map['istack']] = 0
+            f.seek(index * (int(header['nx']) * int(header['ny']) * int(header['nz']) * 4 + int(header['labbyt'])))
+        fheader.tofile(f)
+        img.tofile(f)
     finally:
         _close(filename, f)
 
