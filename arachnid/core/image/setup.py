@@ -6,7 +6,7 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('image', parent_package, top_path)
     config.set_options(quiet=True)
     config.add_subpackage('util')
-    config.add_subpackage('spi')
+    #config.add_subpackage('spi')
     return config
 
 if __name__ == '__main__':

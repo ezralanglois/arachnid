@@ -205,6 +205,13 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", **extra):
             if id in select: subset.append(v)
         if len(subset) == 0: raise ValueError, "No classes selected"
     else: subset = vals
+    
+    defocus_dict = read_defocus(**extra)
+    if len(defocus_dict) > 0:
+        for i in xrange(len(subset)):
+            mic,par = spider_utility.relion_id(subset[i].rlnImageName)
+            subset[i] = subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
+    
     if os.path.splitext(output)[1] == '.star':       
         groupmap = regroup(build_group(subset), **extra)
         update_parameters(subset, list(subset[0]._fields), groupmap, **extra)
@@ -222,7 +229,7 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", **extra):
             prefix='mic_'
         format.write(output, numpy.hstack((numpy.asarray(micselect.keys())[:, numpy.newaxis], numpy.ones(len(micselect.keys()))[:, numpy.newaxis])), header="id,select".split(','), format=format.spidersel, prefix=prefix)
 
-def generate_relion_selection_file(files, img, output, defocus, defocus_header, param_file, select="", good="", test_all=False, **extra):
+def generate_relion_selection_file(files, img, output, param_file, select="", good="", test_all=False, **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
@@ -233,10 +240,6 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
           Image used to query size information
     output : str
              Filename for output selection file
-    defocus : str
-              Filename for input defocus file
-    defocus_header : str
-                     Header for defocus file
     param_file : str
                  Filename for input SPIDER Params file
     select : str
@@ -265,8 +268,7 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
              if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f"%(avg, std)
              if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f"%(avg, std)
     
-    defocus_dict = format.read(defocus, header=defocus_header, numeric=True)
-    defocus_dict = format_utility.map_object_list(defocus_dict)
+    defocus_dict = read_defocus(**extra)
     if select != "": 
         select = format.read(select, numeric=True)
         files = spider_utility.select_subset(files, select)
@@ -305,6 +307,23 @@ def generate_relion_selection_file(files, img, output, defocus, defocus_header, 
     update_parameters(label, header, groupmap, **extra)
     
     format.write(output, label, header=header)
+    
+def read_defocus(defocus, defocus_header, **extra):
+    ''' Read a defocus file
+    
+    :Parameters:
+    
+    defocus : str
+              Filename for input defocus file
+    defocus_header : str
+                     Header for defocus file
+    extra : dict
+            Unused key word arguments
+    '''
+    
+    if defocus == "": return {}
+    defocus_dict = format.read(defocus, header=defocus_header, numeric=True)
+    return format_utility.map_object_list(defocus_dict)
     
 def build_group(data):
     ''' Build a grouping from a set of relion data
