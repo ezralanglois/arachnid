@@ -10,7 +10,7 @@
 .. Created on Aug 9, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import numpy, sys, logging
+import numpy, sys, logging, os
 from spider import _open, _close, _update_header
 
 _logger = logging.getLogger(__name__)
@@ -247,23 +247,8 @@ def is_readable(filename):
         if not is_format_header(h):
             raise ValueError, "Array dtype incorrect"
     else: 
-        try:
-            h = read_mrc_header(filename)
-        except: 
-            return False
-    '''
-    _logger.debug("MRC - mode: %d"%h['mode'][0])
-    _logger.debug("MRC - byteorder2: %x"%(h['byteorder'][0]))
-    _logger.debug("MRC - byteorder: %x"%(h['byteorder'][0]&-65536))
-    _logger.debug("MRC - byteorder-swapped: %x"%h['byteorder'][0].byteswap() )
-    _logger.debug("MRC - byteorder-swapped: %x"%(h['byteorder'][0].byteswap()&-65536) )
-    _logger.debug("MRC - nx: %d"%h['nx'][0] )
-    _logger.debug("MRC - ny: %d"%h['ny'][0] )
-    _logger.debug("MRC - nz: %d"%h['nz'][0] )
-    _logger.debug("MRC - mx: %d"%h['mx'][0] )
-    _logger.debug("MRC - my: %d"%h['my'][0] )
-    _logger.debug("MRC - mz: %d"%h['mz'][0] )
-    '''
+        try: h = read_mrc_header(filename)
+        except: return False
     if h['mode'][0] not in mrc2numpy: return False
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder: return False
@@ -429,7 +414,10 @@ def is_writable(filename):
             True if the format is recognized
     '''
     
-    return False
+    ext = os.path.splitext(filename)[1][1:].lower()
+    return ext == 'mrc' or \
+           ext == 'ccp4' or \
+           ext == 'map'
 
 def write_image(filename, img, index=None, header=None):
     ''' Write an image array to a file in the MRC format
