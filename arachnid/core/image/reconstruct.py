@@ -48,9 +48,7 @@ def reconstruct_bp3f_mp(gen, image_size, align, npad=2, **extra):
     '''
     
     fftvol, weight = None, None
-    _logger.error("here1")
     for v, w in process_tasks.iterate_reduce(gen, backproject_bp3f, align=align, npad=npad, image_size=image_size, **extra):
-        _logger.error("here2")
         if fftvol is None:
             fftvol = v.copy(order='F')
             weight = w.copy(order='F')
@@ -58,16 +56,11 @@ def reconstruct_bp3f_mp(gen, image_size, align, npad=2, **extra):
             fftvol += v
             weight += w
     
-    _logger.error("here3")
     mpi_utility.block_reduce(fftvol, **extra)
-    _logger.error("here4")
     mpi_utility.block_reduce(weight, **extra)
-    _logger.error("here5")
     if mpi_utility.is_root(**extra):
-        _logger.error("here6: %s -- %s"%(str(fftvol.flags), str(numpy.sum(fftvol))))
         vol = numpy.zeros((image_size, image_size, image_size), order='F', dtype=weight.dtype)
         _spider_reconstruct.finalize_bp3f(fftvol, weight, vol)#, image_size)
-        _logger.error("here7")
         return vol
 
 def backproject_bp3f(gen, image_size, align, process_number, npad=2, **extra):

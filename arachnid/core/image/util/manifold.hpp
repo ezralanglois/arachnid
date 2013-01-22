@@ -12,9 +12,9 @@ inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE tran
 }
 
 template<class T>
-void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n3, int m3, T alpha, T beta)
+void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n3, int m3, double alpha, double beta)
 {
-	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, alpha, samp1, m1, samp2, m1, beta, distm, n2);
+	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, T(alpha), samp1, m1, samp2, m1, T(beta), distm, n2);
 }
 #endif
 
@@ -22,7 +22,7 @@ template<class I, class T>
 I knn_reduce_eps_cmp(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, T* cdata, size_type cnd, float eps)
 {
 	I j=0;
-	for(I r=0;r<snr;++r)
+	for(size_type r=0;r<snr;++r)
 	{
 		//if( r < 20 ) fprintf(stderr, "data[%d]=%f < %f\n", r, data[r], eps);
 		if( cdata[r] < eps )
@@ -41,7 +41,7 @@ template<class I, class T>
 I knn_reduce_eps(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, float eps)
 {
 	I j=0;
-	for(I r=0;r<snr;++r)
+	for(size_type r=0;r<snr;++r)
 	{
 		//if( r < 20 ) fprintf(stderr, "data[%d]=%f < %f\n", r, data[r], eps);
 		if( data[r] < eps )
@@ -64,10 +64,12 @@ void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, siz
 		scol_ind[0]=col_ind[0];
 		srow_ind[0]=row_ind[0];
 	}
-	I j=1;
-	for(I r=1;r<snr;++r,++j)
+	size_type j=1;
+	for(size_type r=1;r<snr;++r,++j)
 	{
-		if( r%k==0 ) j+=d;
+		assert(r<snd);
+		if( (r%k)==0 ) j+=size_type(d);
+		assert(j<nd);
 		sdata[r]=data[j];
 		scol_ind[r]=col_ind[j];
 		srow_ind[r]=row_ind[j];
@@ -86,12 +88,12 @@ template<class I, class T>
 I knn_mutual(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, int k)
 {
 	I j=0;
-	for(I r=0;r<nr;++r)
+	for(size_type r=0;r<nr;++r)
 	{
 		if( long(col_ind[r]) > long(row_ind[r]) )
 		{
 			I c = col_ind[r];
-			if( long(c) < 0 ) c = -c;
+			if( long(c) < 0 ) c = I(-c);
 			I* mc = find_mutual(col_ind+c*k, col_ind+(c+1)*k, row_ind[r]);
 			/*if( r < 50 )
 			{
@@ -143,17 +145,17 @@ void push_to_heap(T* dist2, size_type n, size_type m, T* data, size_type nd, I* 
 	index_vector vheap(k);
 #endif
 
-	unsigned long m1=m;
-	unsigned long n1=n;
-	unsigned long t=m1*n1;
+	size_type m1=m;
+	size_type n1=n;
+	size_type t=m1*n1;
 
 #	if defined(_OPENMP)
 #	pragma omp parallel for
 #	endif
 	for(size_type r=0;r<n1;++r)
 	{
-		unsigned long rm = r*m;
-		unsigned long rk = r*k;
+		size_type rm = r*m;
+		size_type rk = r*k;
 #ifdef _OPENMP
 		typename index_vector::iterator hbeg = vheap.begin()+omp_get_thread_num()*k, hcur=hbeg, hend=hbeg+k;
 #else
@@ -162,9 +164,9 @@ void push_to_heap(T* dist2, size_type n, size_type m, T* data, size_type nd, I* 
 		T* data_rk = data+rk;
 		I* col_rk = col_ind+rk;
 		//fprintf(stderr, "r: %d | data: %p - col: %p - hbeg: %p - dist2: %p\n", r, data_rk, col_rk, &(*hbeg), dist2);
-		unsigned long c=0;
+		size_type c=0;
 		//fprintf(stderr, "here-1 %ld -- %ld, %ld < %ld -- %ld, %ld < %ld\n", r, rm, rk, n*m1, k, offset, std::distance(hcur, hend));
-		for(unsigned long l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+		for(size_type l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
 		assert(hcur<=hend);
 		for(;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
 		assert(c==m || hcur == hend);
@@ -203,7 +205,7 @@ void push_to_heap(T* dist2, size_type n, size_type m, T* data, size_type nd, I* 
 }
 
 template<class I, class T>
-void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type offset, int k)
+void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type offset, size_type k)
 {
 	typedef std::pair<T,I> index_dist;
 	typedef std::vector< index_dist > index_vector;
@@ -213,7 +215,7 @@ void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type of
 	index_vector vheap(k);
 #endif
 
-	I e = I(T(nd)/k);
+	size_type e = size_type(T(nd)/k);
 
 #	if defined(_OPENMP)
 #	pragma omp parallel for
@@ -231,7 +233,7 @@ void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type of
 		std::sort_heap(hbeg, hbeg+k);
 		hcur = hbeg;
 		size_type c=0;
-		if (hcur->second != (r+offset)) // Ensure that the first neighbor is itself
+		if (hcur->second != I(r+offset)) // Ensure that the first neighbor is itself
 		{
 			assert(c<nc);
 			data_rk[c] = 0;
@@ -240,7 +242,7 @@ void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type of
 		}
 		for(;hcur != hend;++hcur)
 		{
-			if(hcur->second != (r+offset) || c == 0)
+			if(hcur->second != I(r+offset) || c == 0)
 			{
 				assert(c<nc);
 				data_rk[c] = hcur->first;
@@ -251,8 +253,8 @@ void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type of
 		}
 		if( c != k )
 		{
-			fprintf(stderr, "Bug for row: %d -- %d == %d\n", r+offset, c, k);
-			for(hcur=hbeg;hcur != hend;++hcur) fprintf(stderr, "%f - %d\n", hcur->first, hcur->second);
+			fprintf(stderr, "Bug for row: %ld -- %ld == %ld\n", r+offset, c, k);
+			for(hcur=hbeg;hcur != hend;++hcur) fprintf(stderr, "%f - %ld\n", hcur->first, hcur->second);
 			exit(1);
 		}
 	}
@@ -264,13 +266,13 @@ I select_subset_csr(T* data, size_type nd, I* col_ind, size_type nc, I* row_ptr,
 	nr-=1;
 	I cnt = 0, rc=1;
 	I* index_map = new I[nr];
-	for(I i=0;i<nr;++i) index_map[i]=-1;
-	for(I i=0;i<scnt;++i) index_map[selected[i]]=i;
+	for(size_type i=0;i<nr;++i) index_map[i]=I(-1);
+	for(size_type i=0;i<scnt;++i) index_map[selected[i]]=I(i);
 
-	for(I s = 0;s<scnt;++s)
+	for(size_type s = 0;s<scnt;++s)
 	{
 		I r = selected[s];
-		for(size_type j=row_ptr[r];j<row_ptr[r+1];++j)
+		for(I j=row_ptr[r];j<row_ptr[r+1];++j)
 		{
 			if( index_map[col_ind[j]] != I(-1) )
 			{
@@ -325,7 +327,8 @@ void self_tuning_gaussian_kernel_csr(T* sdist, size_type ns, T* data, size_type 
 		if( den != 0.0 ) sdist[i] = std::exp( -data[i] / T(den+1e-12) );
 		else sdist[i] = std::exp( -data[i] );
 	}
-	delete[] ndist, row_ind;
+	delete[] ndist;
+	delete[] row_ind;
 }
 
 template<class I, class T>
@@ -366,5 +369,6 @@ void normalize_csr(T* sdist, size_type ns, T* data, size_type nd, I* col_ind, si
 	{
 		sdist[i] = data[i]*ndist[row_ind[i]]*ndist[col_ind[i]];
 	}
-	delete[] ndist, row_ind;
+	delete[] ndist;
+	delete[] row_ind;
 }

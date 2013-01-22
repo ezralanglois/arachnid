@@ -3,7 +3,6 @@
 .. Created on Oct 24, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..app import tracing
 import logging, numpy, scipy
 import scipy.linalg, scipy.io
 import scipy.sparse.linalg
@@ -17,14 +16,9 @@ try:
     from util import _manifold
     _manifold;
 except:
-    if _logger.isEnabledFor(logging.DEBUG):
-        tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
-    try:
-        import _manifold
-        _manifold;
-    except:
-        tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
-        _manifold = None
+    from ..app import tracing
+    tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
+    _manifold = None
 
         
 def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
@@ -431,9 +425,11 @@ def knn(samp, k, batch=10000):
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
             #dist2 = numpy.dot(s1, s2.T)
             #dist2 *= -2.0
-            _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
-            dist2=tmp
-            #dist2 = gemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            try:
+                _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
+                dist2=tmp
+            except:
+                dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
             #dist2 = gemm(-2.0, s1, s2, trans_b=True, beta=0, c=tmp, overwrite_c=1).T
             try:
                 dist2 += a[c:c+batch]#, numpy.newaxis]
@@ -558,10 +554,14 @@ def largest_connected(dist2):
     tmp = dist2.tocsr() if not scipy.sparse.isspmatrix_csr(dist2) else dist2
     #tmp = (tmp + tmp.T)/2
     _logger.error("connect1")
-    n, comp = scipy.sparse.csgraph.connected_components(tmp)
-    _logger.error("connect2: %d == %d"%(n, scipy.sparse.csgraph.cs_graph_components(tmp)[0]))
+    if hasattr(scipy.sparse.csgraph, 'connected_components'):
+        n, comp = scipy.sparse.csgraph.connected_components(tmp)
+        _logger.error("connect2: %d == %d"%(n, scipy.sparse.csgraph.cs_graph_components(tmp)[0]))
+    else:
+        n, comp = scipy.sparse.csgraph.cs_graph_components(tmp)
+        
     b = len(numpy.unique(comp))
-    _logger.info("Check connected components: %d -- %d -- %d (%d)"%(n, b, dist2.shape[0], dist2.data.shape[0]))
+    _logger.info("Check connected components: %d -- %d -- %d (%d)"%(n, b, tmp.shape[0], tmp.data.shape[0]))
     n = b
     index = None
     if n > 1:
@@ -576,9 +576,9 @@ def largest_connected(dist2):
             for i in idx[:10]:
                 _logger.info("%d: %d"%(bins[i], count[i]))
         index = numpy.argwhere(comp == bins[numpy.argmax(count)]).ravel()
-        index = index.astype(dist2.indices.dtype)
-        n=_manifold.select_subset_csr(dist2.data, dist2.indices, dist2.indptr, index)
-        dist2=scipy.sparse.csr_matrix((dist2.data[:n],dist2.indices[:n], dist2.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
+        index = index.astype(tmp.indices.dtype)
+        n=_manifold.select_subset_csr(tmp.data, tmp.indices, tmp.indptr, index)
+        dist2=scipy.sparse.csr_matrix((tmp.data[:n],tmp.indices[:n], tmp.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
     #assert(scipy.sparse.csgraph.cs_graph_components(dist2.tocsr())[0]==1)
     return dist2, index
 
