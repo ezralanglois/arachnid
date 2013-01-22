@@ -24,25 +24,15 @@ try:
     from util import _spider_util
     _spider_util;
 except:
-    if _logger.isEnabledFor(logging.DEBUG):
-        tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
-    try:
-        import _spider_util
-        _spider_util;
-    except:
-        tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+    tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
+    _spider_util=None
 
 try: 
     from util import _image_utility
     _image_utility;
 except:
-    if _logger.isEnabledFor(logging.DEBUG):
-        tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
-    try:
-        import _image_utility
-        _image_utility;
-    except:
-        tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
+    tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
+    _image_utility=None
 
 def frt2(a):
     """Compute the 2-dimensional finite radon transform (FRT) for an n x n
@@ -778,6 +768,8 @@ def histogram_match(img, mask, ref, bins=0, iter_max=500, out=None):
           Enhanced image
     '''
     
+    img = img.astype(numpy.float32)
+    ref = ref.astype(numpy.float32)
     if out is None: out = img.copy()
     if _spider_util is None: raise ImportError, 'Failed to load _spider_util.so module - function `histogram_match` is unavailable'
     if mask.dtype != numpy.bool: mask = mask>0.5

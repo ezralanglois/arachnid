@@ -50,20 +50,22 @@ def test_read_image():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
+    empty_image = numpy.ones((78,78))
     eman_format.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, spider.read_image(test_file))
     os.unlink(test_file)
 
-"""
+
 def test_write_image():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
+    empty_image = numpy.ones((78,78))
     spider.write_image(test_file, empty_image)
+    spi_img = spider.read_image(test_file)
+    numpy.testing.assert_allclose(empty_image, spi_img)
     numpy.testing.assert_allclose(empty_image, eman_format.read_image(test_file))
     os.unlink(test_file)
-"""
+
 
 
