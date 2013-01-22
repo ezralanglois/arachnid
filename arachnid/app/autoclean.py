@@ -48,7 +48,7 @@ def process(input_vals, input_files, output, id_len=0, neig=1, nstd=1.5, **extra
     data = ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, mask=mask, cache_file=None, align=align, **extra)
     tst = data-data.mean(0)
     
-    if 1 == 0:
+    if 1 == 1:
         try:
             U, d, V = scipy.linalg.svd(tst, False)
         except:
@@ -58,31 +58,29 @@ def process(input_vals, input_files, output, id_len=0, neig=1, nstd=1.5, **extra
         feat = d*numpy.dot(V, tst.T).T
         feat = feat[:, :max(5, neig)]
     else:
-        from sklearn.neighbors import NearestNeighbors
+        #from sklearn.neighbors import NearestNeighbors
         
-        myneigh = manifold.knn(data, 10).tocsr()
-        nn = NearestNeighbors(n_neighbors=11)
-        nn.fit(data)
-        neigh = nn.kneighbors_graph(data)
-        
-        _logger.info("Total: %d == %d"%(myneigh.data.shape[0], neigh.data.shape[0]))
-        _logger.info("Shape: %d == %d"%(myneigh.shape[0], neigh.shape[0]))
-        for i in xrange(100):
-            _logger.info("Data: (%d)=%f == (%d)=%f"%(myneigh.col[i], myneigh.data[i], neigh.col[i], neigh.data[i]))
-        assert(False)
+        index = manifold.largest_connected(manifold.knn_reduce(manifold.knn(data, extra['nsamples']*2), extra['nsamples']*2, False))[1]
         
         from sklearn.manifold import locally_linear
-        feat = locally_linear.locally_linear_embedding(data, extra['nsamples']/2, max(5, neig))[0]
-    sel=None
-    for i in xrange(neig):
-        if 1 == 1:
-            sel1 = analysis.robust_rejection(numpy.abs(feat[:, i]), nstd)
-        else:
-            sel1 = analysis.robust_rejection(feat[:, i], nstd)
-            sel2 = analysis.robust_rejection(-feat[:, i], nstd)
-            if numpy.sum(sel1) > numpy.sum(sel2): sel1=sel2
-        sel = numpy.logical_and(sel1, sel) if sel is not None else sel1
-    plot_embedded(feat[:, 0], feat[:, 1], "pca_%d"%input_vals[0], label, input_files[0], output, image_size, radius, sel, image_count)
+        feat = locally_linear.locally_linear_embedding(data[index], extra['nsamples']*2+1, max(5, neig))[0]
+    if 1 == 0:
+        sel=None
+        for i in xrange(neig):
+            if 1 == 1:
+                sel1 = analysis.robust_rejection(numpy.abs(feat[:, i]), nstd)
+            else:
+                sel1 = analysis.robust_rejection(feat[:, i], nstd)
+                sel2 = analysis.robust_rejection(-feat[:, i], nstd)
+                if numpy.sum(sel1) > numpy.sum(sel2): sel1=sel2
+            sel = numpy.logical_and(sel1, sel) if sel is not None else sel1
+    else:
+        neigh = manifold.knn(feat[:, :2], extra['nsamples']/2)
+        index = manifold.largest_connected(manifold.knn_reduce(neigh, 4, False))[1]
+        sel = numpy.zeros(len(data), dtype=numpy.bool)
+        sel[index]=1
+    image_size, radius, sel, image_count;
+    #plot_embedded(feat[:, 0], feat[:, 1], "pca_%d"%input_vals[0], label, input_files[0], output, image_size, radius, sel, image_count)
     format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,rot,group', prefix='pca_')
     rsel = numpy.ones(input_vals[1].shape[0], dtype=numpy.bool)
     nsamples=extra['nsamples']
@@ -129,6 +127,8 @@ def rotational_sample(label, align, nsamples, angle_range, **extra):
     '''
     '''
     
+    if nsamples < 2:
+        return label, align
     label2 = numpy.zeros((label.shape[0]*nsamples, label.shape[1]))
     align2 = numpy.zeros((align.shape[0]*nsamples, align.shape[1]))
     for i in xrange(len(label)):
