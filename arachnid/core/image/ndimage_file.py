@@ -190,10 +190,7 @@ def read_header(filename, index=None):
           Array with header information in the file
     '''
     
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
-    format = get_read_format(filename)
-    if format is None: 
-        raise IOError, "Could not find format for %s"%filename
+    format = get_read_format_except(filename)
     return format.read_header(filename, index)
 
 def read_image(filename, index=None, **extra):
@@ -213,10 +210,7 @@ def read_image(filename, index=None, **extra):
     '''
     
     filename = readlinkabs(filename)
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
-    format = get_read_format(filename)
-    if format is None: 
-        raise IOError, "Could not find format for %s"%filename
+    format = get_read_format_except(filename)
     return format.read_image(filename, index, **extra)
 
 def readlinkabs(link):
@@ -294,9 +288,7 @@ def iter_images(filename, index=None):
             '''
             return
     
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
-    format = get_read_format(filename)
-    if format is None: raise IOError, "Could not find format for %s"%filename
+    format = get_read_format_except(filename)
     for img in format.iter_images(filename, index):
         yield img
 
@@ -316,17 +308,13 @@ def count_images(filename):
     
     if isinstance(filename, list):
     
-        if not os.path.exists(filename[0]): raise IOError, "Cannot find file: %s"%filename
-        format = get_read_format(filename[0])
+        format = get_read_format_except(filename[0])
         total = 0
         for f in filename:
             total += format.count_images(f)
         return total
     else:
-        if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
-        format = get_read_format(filename)
-    if format is None: 
-        raise IOError, "Could not find format for %s"%filename
+        format = get_read_format_except(filename)
     return format.count_images(filename)
 
 def is_writable(filename):
@@ -406,6 +394,25 @@ def get_write_format(filename):
         if f.is_writable(filename): return f
     return _default_write_format
 
+def get_read_format_except(filename):
+    ''' Get the write format for the image
+    
+    :Parameters:
+    
+    filename : str
+               Input file to test
+    
+    :Returns:
+    
+    write : format
+            Read format for given file
+    '''
+    
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+    f = get_read_format(filename)
+    if f is not None: return f
+    raise IOError, "Could not find format for %s"%filename
+
 def get_read_format(filename):
     ''' Get the write format for the image
     
@@ -423,7 +430,6 @@ def get_read_format(filename):
     for f in _formats:
         if f.is_readable(filename): return f
     return None
-
 
 def _load():
     ''' Import available formats
