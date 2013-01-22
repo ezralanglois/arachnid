@@ -5,7 +5,6 @@ It works with Euler angles in the ZYZ convention.
 .. Created on Aug 17, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..app import tracing
 import logging, numpy
 
 
@@ -13,20 +12,13 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try:
-    from _healpix import pix2ang_nest, \
-                              pix2ang_ring, \
-                              ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside
-    pix2ang_nest, pix2ang_ring, ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside;
-except:
-    #if _logger.isEnabledFor(logging.DEBUG):
-    #    tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
-    try:
-        from core._healpix import pix2ang_nest, \
+    from core._healpix import pix2ang_nest, \
                                   pix2ang_ring, \
                                   ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside
-        pix2ang_nest, pix2ang_ring, ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside;
-    except:
-        tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
+    pix2ang_nest, pix2ang_ring, ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside;
+except:
+    from ..app import tracing
+    tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
 
 def _ensure_theta(theta, half=False):
     ''' Ensure theta falls in the proper range, 0-180.0
