@@ -219,7 +219,7 @@ def write_example(mic, coords, box_image="", **extra):
     
     if box_image == "" or ImageDraw is None: return
     
-    width, bin_factor = init_param(**param)[1:3]
+    width, bin_factor = lfcpick.init_param(**param)[1:3]
     mic = scipy.misc.toimage(mic).convert("RGB")
     draw = ImageDraw.Draw(mic)
     
