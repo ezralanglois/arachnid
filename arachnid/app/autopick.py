@@ -219,16 +219,15 @@ def write_example(mic, coords, box_image="", **extra):
     
     if box_image == "" or ImageDraw is None: return
     
-    width, bin_factor = lfcpick.init_param(**param)[1:3]
+    width, bin_factor = lfcpick.init_param(**extra)[1:3]
     mic = scipy.misc.toimage(mic).convert("RGB")
     draw = ImageDraw.Draw(mic)
     
-    width=int((window_size / float(bin_factor))*0.5)
     for box in coords:
         x = box.x / bin_factor
         y = box.y / bin_factor
         draw.rectangle((x+width, y+width, x-width, y-width), fill=None, outline="#ff4040")
-    mic.save(output_file)
+    mic.save(box_image)
 
 def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
