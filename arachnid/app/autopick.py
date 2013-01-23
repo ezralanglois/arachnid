@@ -152,15 +152,28 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Dec 21, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..core.app import tracing
 from ..core.app.program import run_hybrid_program
 from ..core.image import eman2_utility, ndimage_utility, analysis
 from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
-import numpy, scipy, logging
+import numpy, scipy, logging, scipy.misc
 import lfcpick
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+try: 
+    from PIL import ImageDraw 
+    ImageDraw;
+except: 
+    try:
+        import ImageDraw
+        ImageDraw;
+    except: 
+        tracing.log_import_error('Failed to load PIL - `--box-image` will not work', _logger)
+        ImageDraw = None
+
 
 def process(filename, id_len=0, confusion=[], **extra):
     '''Concatenate files and write to a single output file
@@ -182,15 +195,40 @@ def process(filename, id_len=0, confusion=[], **extra):
             Coordinates found
     '''
     
-    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good')  
+    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good', 'box_image')  
     _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
     peaks = search(mic, **extra)
     _logger.debug("Write coordinates")
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
+    write_example(mic, coords, **extra)
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
+
+def write_example(mic, coords, box_image="", **extra):
+    ''' Write out an image with the particles boxed
+    
+    :Parameters:
+    
+    coords : list
+             List of particle coordinates
+    box_image : str
+                Output filename
+    '''
+    
+    if box_image == "" or ImageDraw is None: return
+    
+    width, bin_factor = init_param(**param)[1:3]
+    mic = scipy.misc.toimage(mic).convert("RGB")
+    draw = ImageDraw.Draw(mic)
+    
+    width=int((window_size / float(bin_factor))*0.5)
+    for box in coords:
+        x = box.x / bin_factor
+        y = box.y / bin_factor
+        draw.rectangle((x+width, y+width, x-width, y-width), fill=None, outline="#ff4040")
+    mic.save(output_file)
 
 def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
@@ -588,6 +626,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
+        group.add_option("",   box_image="",   help="Output filename for micrograph image with boxed particles - use `.png` as the extension")
         pgroup.add_option_group(group)
         parser.change_default(log_level=3)
 
