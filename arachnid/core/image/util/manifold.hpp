@@ -58,7 +58,7 @@ I knn_reduce_eps(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, si
 template<class I, class T>
 void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int d, int k)
 {
-	if( snr > 0 )
+	if( snr > 0 && nd > 0 )
 	{
 		sdata[0]=data[0];
 		scol_ind[0]=col_ind[0];
@@ -69,6 +69,11 @@ void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, siz
 	{
 		assert(r<snd);
 		if( (r%k)==0 ) j+=size_type(d);
+		if(j>=nd)
+			{
+			fprintf(stderr, "big error\n");
+			exit(1);
+			}
 		assert(j<nd);
 		sdata[r]=data[j];
 		scol_ind[r]=col_ind[j];
