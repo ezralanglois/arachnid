@@ -9,4 +9,5 @@ console_scripts = [
  'ctf-select = arachnid.app.ctf_select:main',
  'autoctf = arachnid.app.autoctf:main',
  'classify3d = arachnid.app.classify3d:main',
+ 'alignmic = arachnid.app.alignmic:main',
 ]
