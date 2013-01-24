@@ -64,7 +64,7 @@ def process(input_vals, input_files, output, id_len=0, neig=1, nstd=1.5, **extra
         
         from sklearn.manifold import locally_linear
         feat = locally_linear.locally_linear_embedding(data[index], extra['nsamples']*2+1, max(5, neig))[0]
-    if 1 == 0:
+    if 1 == 1:
         sel=None
         for i in xrange(neig):
             if 1 == 1:
@@ -74,14 +74,18 @@ def process(input_vals, input_files, output, id_len=0, neig=1, nstd=1.5, **extra
                 sel2 = analysis.robust_rejection(-feat[:, i], nstd)
                 if numpy.sum(sel1) > numpy.sum(sel2): sel1=sel2
             sel = numpy.logical_and(sel1, sel) if sel is not None else sel1
+        format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,rot,group', prefix='pca_')
     else:
         neigh = manifold.knn(feat[:, :2], extra['nsamples']/2)
-        index = manifold.largest_connected(manifold.knn_reduce(neigh, 4, False))[1]
+        index = manifold.largest_connected(manifold.knn_reduce(neigh, 3, False))[1]
         sel = numpy.zeros(len(data), dtype=numpy.bool)
         sel[index]=1
+        index = manifold.largest_connected(manifold.knn_reduce(neigh, 2, False))[1]
+        sel2 = numpy.zeros(len(data), dtype=numpy.bool)
+        sel2[index]=1
+        format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis],sel2[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,select2,rot,group', prefix='pca_')
     image_size, radius, sel, image_count;
     #plot_embedded(feat[:, 0], feat[:, 1], "pca_%d"%input_vals[0], label, input_files[0], output, image_size, radius, sel, image_count)
-    format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,rot,group', prefix='pca_')
     rsel = numpy.ones(input_vals[1].shape[0], dtype=numpy.bool)
     nsamples=extra['nsamples']
     for i in xrange(rsel.shape[0]):
