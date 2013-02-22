@@ -56,13 +56,15 @@ C       CALCULATE REAL SPACE VOLUME
 
         LN    = 5                           ! ALWAYS=5
 	    LN2   = LN / 2                      ! ALWAYS=2
-		V1     = REAL(LN-1) / 2.0 / REAL(N2) ! ALWAYS=4*N2
+		V1     = REAL(LN-1) / 2.0 / REAL(N) ! ALWAYS=4*N2
 		ALPHA = 6.5                         ! ALWAYS=6.5
 		AAAA  = 0.9*V1                       ! ALWAYS=.9*4*N2
 		NNN   = 3
 
 C       WINDOW?
         CALL WINDKB2A(X,V,NS,LSD,N,ALPHA,AAAA,NNN)
+
+        CALL FMRS_DEPLAN(IRTFLG)
 
 		END
 
