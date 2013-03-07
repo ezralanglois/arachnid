@@ -6,6 +6,7 @@ C ---------------------------------------------------------------------------
         COMPLEX                    :: X(0:N2,N,N)
         REAL                       :: V(NS, NS, NS)
 
+cf2py threadsafe
 cf2py intent(inplace) :: X, NR, V
 cf2py intent(in) :: NX, N2, NS
 cf2py intent(hide) :: NX, N2, NS
@@ -33,6 +34,7 @@ C ---------------------------------------------------------------------------
 		INTEGER          		   :: NR(0:N2,N,N)
         COMPLEX                    :: X(0:N2,N,N)
 
+cf2py threadsafe
 cf2py intent(inplace) :: X, NR
 cf2py intent(in) :: NX, N2, NS
 cf2py intent(hide) :: NX, N2
@@ -67,7 +69,7 @@ C        REAL                  	   :: SM(3,3,MAXSYM)
         REAL                  	   :: SS(6)
 
         COMPLEX, ALLOCATABLE, DIMENSION(:,:)   :: BI
-
+cf2py threadsafe
 c    (inout) :: PROJ,X,NR
 cf2py intent(inplace) :: X,NR
 cf2py intent(in) :: PROJ, PSI,THETA,PHI
