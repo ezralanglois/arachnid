@@ -16,5 +16,9 @@ console_scripts = [
  'refine = arachnid.pyspider.refine:main',
  'resolution = arachnid.pyspider.resolution:main',
  'autorefine = arachnid.pyspider.autorefine:main',
+ 'rename2spi = arachnid.pyspider.legion_to_spider:main',
+ 'prepbootstrap = arachnid.pyspider.prepare_bootstrap:main',
+ 'pwmovie = arachnid.pyspider.autoctf_movie:main',
+ 'saferefine = arachnid.pyspider.saferefine:main',
 ]
 
