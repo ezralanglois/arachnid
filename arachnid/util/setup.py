@@ -7,4 +7,9 @@ console_scripts = [
  'bench = arachnid.util.bench:main',
  'convert2spi = arachnid.util.spider_prep:main',
  'micrographsel = arachnid.util.mic_select:main',
+ 'restack = arachnid.util.restack:main',
+ 'screen = arachnid.util.screen_mics:main',
+ 'frameavg = arachnid.util.average_frame:main',
+ 'info = arachnid.util.image_info:main',
+ 'relion-stack = arachnid.util.relion_align_stack:main',
 ]
