@@ -31,11 +31,28 @@ def fit_linear_interp(fsc_curve, fsc_value):
     else:
         x, y = fsc_curve[:, 0], fsc_curve[:, 1]
     
-    idx = numpy.argsort(y)
-    ridx = idx[numpy.searchsorted(y[idx], fsc_value, 'left')]
-    if y[ridx] > 0.5 and (ridx+1) < len(y): lidx = ridx+1
-    elif ridx > 0: lidx = ridx-1
-    else: lidx=ridx
+    idx = numpy.argsort(y).squeeze()
+    val = numpy.searchsorted(y[idx], fsc_value)#, side='left')
+    _logger.error("idx: %d - %f == %f"%(idx[val], y[idx[val]], fsc_value))
+    if val < idx.shape[0]:
+        try:
+            ridx = idx[val]
+        except:
+            _logger.error("%d > %s"%(val, str(idx.shape)))
+            raise
+    else: ridx = idx[len(idx)-1]
+    
+    if y[ridx] == fsc_value: return x[ridx]
+    elif y[ridx] > fsc_value:
+        while y[idx[val]] > fsc_value and val > 0:
+            val-= 1
+    else:
+        while y[idx[val]] < fsc_value and val < (len(y)-1):
+            val+= 1
+    lidx = idx[val]
+    
+    _logger.error("y: %f - %f"%(y[ridx], y[lidx]))
+    _logger.error("x: %f - %f"%(x[ridx], x[lidx]))
     try:
         func = numpy.poly1d(numpy.polyfit([y[ridx], y[lidx]], [x[ridx], x[lidx]], 1))
     except:
