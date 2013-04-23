@@ -4,6 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.ProjectWizard import Ui_ProjectWizard, _fromUtf8
+from ..util import BackgroundTask
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
@@ -11,7 +12,7 @@ from ..property import pyqtProperty
 from .. import property
 from .. import ndimage_file, ndimage_utility, spider_utility
 #from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility
-import logging, numpy, os, glob, multiprocessing, subprocess, psutil
+import logging, numpy, os, glob, multiprocessing, subprocess, psutil, gzip
 from arachnid.pyspider import project
 
 _logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ class MainWindow(QtGui.QWizard):
     
     def __init__(self, parent=None):
         "Initialize a basic viewer window"
+        
         
         QtGui.QWizard.__init__(self, parent)
         self.ui = Ui_ProjectWizard()
@@ -41,11 +43,13 @@ class MainWindow(QtGui.QWizard):
         self.progress_file=""
         self.output = '.'
         self.proc = None
+        self.task=None
         self.fine_param={}
         self.leginon_filename="mapped_micrographs/mic_0000000"
         self.inifile = 'ara_project.ini'
         self.param = {'orig_files': '', 'input_files': '', 'is_film':False, 
                       'curr_apix':0.0, 'raw_reference':'',
+                      'cluster_mode': project._cluster_default,
                       'apix': 0.0, 'voltage': 0.0, 'particle_diameter': 0.0, 'cs': 0.0,
                       'worker_count': 0, 'thread_count': 1, 'window_size': 0, 'ext': 'dat'
                      }
@@ -84,6 +88,23 @@ class MainWindow(QtGui.QWizard):
         self.ui.referencePixelSizeDoubleSpinBox.setValue(self.param['curr_apix'])
         self.openReference(self.param['raw_reference'])
         
+        #Page 2B
+        self.emdbCannedModel = QtGui.QStandardItemModel(self)
+        canned = [('Ribosome-70S', '2183', ':/icons/icons/ribosome_70S_32x32.png'),
+                  ('Ribosome-50S', '1456', ':/icons/icons/ribosome_60S_32x32.png'),
+                  ('Ribosome-30S', '5503', ':/icons/icons/ribosome30s_32x32.png'),
+                  ('Ribosome-80S', '2275', ':/icons/icons/ribosome80s_32x32.png'),
+                  ('Ribosome-60S', '2168', ':/icons/icons/ribosome_60S_32x32.png'),
+                  ('Ribosome-40S', '1925', ':/icons/icons/ribosome_40S_32x32.png'),]
+        for entry in canned:
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(_fromUtf8(entry[2])), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            item = QtGui.QStandardItem(icon, entry[0])
+            item.setData(entry[1], QtCore.Qt.UserRole)
+            self.emdbCannedModel.appendRow(item)
+        self.ui.emdbCannedListView.setModel(self.emdbCannedModel)
+        self.connect(self, QtCore.SIGNAL('taskFinished(PyQt_PyObject)'), self.onDownloadFromEMDBComplete)
+        
         #Page 3
         self.ui.pixelSizeDoubleSpinBox.setValue(self.param['apix'])
         self.ui.voltageDoubleSpinBox.setValue(self.param['voltage'])
@@ -99,6 +120,10 @@ class MainWindow(QtGui.QWizard):
         self.ui.threadCountSpinBox.setValue(self.param['thread_count'])
         self.ui.windowSizeSpinBox.setValue(self.param['window_size'])
         self.ui.extensionLineEdit.setText(self.param['ext'])
+        
+        for mode in project._cluster_modes:
+            self.ui.clusterModeComboBox.addItem(mode)
+        self.ui.clusterModeComboBox.setCurrentIndex(project._cluster_default)
         
         #Page 5
         
@@ -410,6 +435,13 @@ class MainWindow(QtGui.QWizard):
         text = str(self.ui.extensionLineEdit.text())
         self.param['ext'] = text
         self.onPageChanged()
+                
+    @QtCore.pyqtSlot('int', name='on_clusterModeComboBox_currentIndexChanged')
+    def onClusterModeChanged(self, value):
+        ''' Called when the user clicks the invert contrast button
+        '''
+        
+        self.param['cluster_mode'] = int(value)
             
     ####################################################################################
     #
@@ -458,12 +490,48 @@ class MainWindow(QtGui.QWizard):
         
         self.param['cs'] = value
         self.onPageChanged()
-            
+    
     ####################################################################################
     #
     # Page 2 Controls
     #
-    ####################################################################################    
+    ####################################################################################   
+    
+    @QtCore.pyqtSlot(name='on_emdbDownloadPushButton_clicked')
+    def onDownloadFromEMDB(self):
+        '''Called when the user clicks the download button
+        '''
+        
+        num = self.ui.emdbNumberLineEdit.text()
+        if num == "":
+            QtGui.QMessageBox.warning(self, "Warning", "Empty Accession Number")
+            return
+        url="ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-%s/map/emd_%s.map.gz"%(num, num)
+        self.setEnabled(False)
+        self.task=BackgroundTask.launch(self, download_gunzip_task, url, '.')
+    
+    def onDownloadFromEMDBComplete(self, local):
+        ''' Called when the download and unzip is complete
+        '''
+        
+        self.setEnabled(True)
+        self.task.disconnect()
+        if local == 1:
+            QtGui.QMessageBox.critical(self, "Error", "Download failed - check accession number")
+        elif local == 2:
+            QtGui.QMessageBox.critical(self, "Error", "Unzip failed - check file")
+        else:
+            self.ui.referenceLineEdit.setText(os.path.abspath(local))
+            self.ui.referenceTabWidget.setCurrentIndex(0)
+        self.task=None
+    
+    @QtCore.pyqtSlot(QtCore.QModelIndex, name='on_emdbCannedListView_doubleClicked')
+    def onUpdateEMDBField(self, index):
+        ''' Called when the user clicks on the list
+        '''
+        
+        num = index.data(QtCore.Qt.UserRole).toString()
+        self.ui.emdbNumberLineEdit.setText(num)
     
     @QtCore.pyqtSlot('double', name='on_referencePixelSizeDoubleSpinBox_valueChanged')
     def onReferencePixelSizeChanged(self, value):
@@ -684,4 +752,89 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
     #qimage._numpy = img
     return qimage
 
+def download_gunzip_task(urlpath, filepath):
+    ''' Download and unzip gzipped file in a separate process
+    
+    :Parameters:
         
+    urlpath : str
+              Full URL to download the file from
+    filepath : str
+               Local path for filename
+            
+    :Returns:
+    
+    outputfile : str
+                 Output filename
+    '''
+    import multiprocessing
+    
+    def worker_callback(urlpath, filepath, qout):       
+        try:
+            filename=download(urlpath, filepath)
+        except:
+            qout.put(1)
+            return
+        try:
+            filename=gunzip(filename)
+        except:
+            qout.put(2)
+            return
+        else:
+            qout.put(filename)
+    
+    qout = multiprocessing.Queue()
+    multiprocessing.Process(target=worker_callback, args=(urlpath, filepath, qout)).start()
+    yield qout.get()
+
+def gunzip(inputfile, outputfile=None):
+    ''' Unzip a GZIPed file
+    
+    :Parameters:
+    
+    inputfile : str
+                Input filename
+    outputfile : str, optional
+                 Output filename
+                 
+    :Returns:
+    
+    outputfile : str
+                 Output filename
+    '''
+    
+    if outputfile is None: 
+        n = inputfile.rfind('.')
+        outputfile=inputfile[:n]
+    fin = gzip.open(inputfile, 'rb')
+    fout = open(outputfile,"wb")
+    fout.write(fin.read())
+    fout.close()
+    fin.close()
+    return outputfile
+
+def download(urlpath, filepath):
+    '''Download the file at the given URL to the local filepath
+    
+    This function uses the urllib Python package to download file from to the remote URL
+    to the local file path.
+    
+    :Parameters:
+        
+    urlpath : str
+              Full URL to download the file from
+    filepath : str
+               Local path for filename
+    
+    :Returns:
+
+    val : str
+          Local filename
+    '''
+    import urllib
+    from urlparse import urlparse
+    
+    filename = urllib.url2pathname(urlparse(urlpath)[2])
+    filename = os.path.join(os.path.normpath(filepath), os.path.basename(filename))
+    urllib.urlretrieve(urlpath, filename)
+    return filename
