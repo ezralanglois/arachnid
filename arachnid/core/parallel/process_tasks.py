@@ -35,7 +35,9 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
               Return value of process functor
     '''
     
+    _logger.error("worker_count1=%d"%worker_count)
     if len(vals) < worker_count: worker_count = len(vals)
+    _logger.error("worker_count2=%d"%worker_count)
     
     if worker_count > 1:
         qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
@@ -52,29 +54,34 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
             index += 1
             yield val
     else:
+        _logger.error("worker_count3=%d"%worker_count)
         logging.debug("Running with single process: %d"%len(vals))
         for i, val in enumerate(vals):
             yield i, process(val, **extra)
-            
-def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
+
+def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
     ''' Iterate over the input value and reduce after finished processing
     '''
     
     if thread_count < 2:
-        yield worker(enumerate(for_func), process_number=0, **extra)
+        for val in worker(enumerate(for_func), process_number=0, **extra):
+            yield val
         return
     
     
-    def queue_iterator(qin):
-        while True:
-            val = qin.get()
-            if val is None: break
-            yield val
+    def queue_iterator(qin, process_number):
+        try:
+            while True:
+                val = qin.get()
+                if val is None: break
+                yield val
+        finally:
+            _logger.error("queue-done")
     
-    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra):
+    def iterate_map_worker(qin, qout, process_number, process_limit, extra):
         val = None
         try:
-            val = worker(queue_iterator(qin), process_number=process_number, **extra)
+            val = worker(queue_iterator(qin, process_number), process_number=process_number, **extra)
         except:
             _logger.exception("Error in child process")
             while True:
@@ -87,9 +94,63 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
     if queue_limit is None: queue_limit = thread_count*8
     else: queue_limit *= thread_count
     
-    qin, qout = process_queue.start_raw_enum_workers(iterate_reduce_worker, thread_count, queue_limit, extra)
-    for val in enumerate(for_func):
-        qin.put(val)
+    qin, qout = process_queue.start_raw_enum_workers(iterate_map_worker, thread_count, queue_limit, 1, extra)
+    try:
+        for val in enumerate(for_func):
+            qin.put(val)
+    except:
+        _logger.error("for_func=%s"%str(for_func))
+        raise
+    for i in xrange(thread_count): qin.put(None)
+    #qin.join()
+    
+    for i in xrange(thread_count):
+        val = qout.get()
+        #qin.put(None)
+        if val is None: raise ValueError, "Exception in child process"
+        yield val
+
+def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
+    ''' Iterate over the input value and reduce after finished processing
+    '''
+    
+    if thread_count < 2:
+        yield worker(enumerate(for_func), process_number=0, **extra)
+        return
+    
+    
+    def queue_iterator(qin, process_number):
+        try:
+            while True:
+                val = qin.get()
+                if val is None: break
+                yield val
+        finally:
+            _logger.error("queue-done")
+    
+    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra):
+        val = None
+        try:
+            val = worker(queue_iterator(qin, process_number), process_number=process_number, **extra)
+        except:
+            _logger.exception("Error in child process")
+            while True:
+                val = qin.get()
+                if val is None: break
+        finally:
+            qout.put(val)
+            #qin.get()
+    
+    if queue_limit is None: queue_limit = thread_count*8
+    else: queue_limit *= thread_count
+    
+    qin, qout = process_queue.start_raw_enum_workers(iterate_reduce_worker, thread_count, queue_limit, 1, extra)
+    try:
+        for val in enumerate(for_func):
+            qin.put(val)
+    except:
+        _logger.error("for_func=%s"%str(for_func))
+        raise
     for i in xrange(thread_count): qin.put(None)
     #qin.join()
     
@@ -290,7 +351,7 @@ def for_process_mp(for_func, worker, shape, thread_count=0, queue_limit=None, **
     else:
         if queue_limit is None: queue_limit = thread_count*8
         else: queue_limit *= thread_count
-        qin, qout = process_queue.start_raw_enum_workers(process_worker2, thread_count, queue_limit, worker, extra)
+        qin, qout = process_queue.start_raw_enum_workers(process_worker2, thread_count, queue_limit, -1, worker, extra)
         
         try:
             total = 0
