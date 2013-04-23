@@ -285,7 +285,11 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
     '''
     
     if not use_powerspec:       
-        image_count = ndimage_file.count_images(filename)
+        try:
+            image_count = ndimage_file.count_images(filename)
+        except:
+            _logger.error("Host: %s"%mpi_utility.hostname())
+            raise
         if image_count > 1:
             rwin = ndimage_file.iter_images(filename)
             rwin = itertools.imap(prepare_micrograph, rwin, bin_factor, invert)
@@ -623,6 +627,7 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     from ..core.app.settings import OptionValueError
     
+    if options.window_size == 0: raise OptionValueError, "Window size must be greater than zero"
     spider_params.check_options(options)
     if main_option:
         if not spider_utility.test_valid_spider_input(options.input_files):
