@@ -144,8 +144,13 @@ class Session(object):
         self.spider_poll.register(self.spider_err.fileno())
         self._invoke(self.dataext)
         if enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
-            #self._invoke('MD', 'RESULTS ON')
-            self._invoke('MD', 'TERM OFF')
+            if 1 == 0:
+                #self._invoke('MD', 'RESULTS ON')
+                self._invoke('MD', 'TERM OFF')
+            else:
+                self._invoke('MD', 'RESULTS ON')
+                self._invoke('MD', 'TERM ON') 
+                
             if rank == 0: _logger.warn("Result enabled")
         else: 
             self._invoke('MD', 'RESULTS OFF')
@@ -489,12 +494,14 @@ class Session(object):
         if self.registers is None: raise ValueError, "No pipe from Spider process"
         varname = spider_register_name(varname)
         self._invoke('PI REG', varname)
+        #_logger.debug("PI REG %s"%str(varname))
         res = ''
         #self.register_poll
         while self.spider_poll.poll(10) or len(res) < 13:
             if self.spider.poll(): raise SpiderCrashed, "SPIDER has terminated"
             res += self.registers.readline()
         
+        #_logger.debug("PI REG - result: %s"%(str(unpack_register(res))))
         #while len(res) < 13:
         #    try:
         #        res += self.registers.readline()
@@ -797,6 +804,7 @@ def unpack_register_linux(data):
           Registry value
     '''
     
+    #a,b,regval,c
     return struct.unpack('fffc',data)[2]
 
 def unpack_register_other(data):
