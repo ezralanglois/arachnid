@@ -216,6 +216,60 @@ def recreate_global_sparse_matrix(shmem, shape=None):
         return scipy.sparse.coo_matrix( (data[:shape[1]],(row[:shape[1]], col[:shape[1]])), shape=shape[0] )
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=shmem[3] )
 
+def map_array_out(worker_callback, thread_count, data, *args, **extra):
+    '''
+    '''
+    
+    def worker_wrap(worker, offset, qout, *args, **kwargs):
+        for i, val in worker(*args, **kwargs):
+            qout.put((i+offset, val))
+    
+    if thread_count > 1:
+        qmax = extra.get('qmax', -1)
+        qout = multiprocessing.Queue(qmax)
+        size = len(data)
+        counts = numpy.zeros(thread_count, dtype=numpy.int)
+        for i in xrange(thread_count):
+            counts[i] = ( (size / thread_count) + (size % thread_count > i) )
+        offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
+        numpy.cumsum(counts, out=offsets[1:])
+        processes = [multiprocessing.Process(target=functools.partial(worker_callback, process_number=i, **extra), args=(data[offsets[i]:offsets[i+1]], offsets[i], qout)+args) for i in xrange(thread_count)]
+        for p in processes: p.start()
+        for p in processes: p.join()
+        for i in xrange(size):
+            yield qout.get()
+    else:
+        worker_callback(data, *args, **extra)
+
+def start_reduce(worker_callback, thread_count, *args, **extra):
+    '''Start workers and set the worker callback function
+    
+    :Parameters:
+
+    worker_callback : function
+                      Worker callback function to process an item
+    data : array
+           Array to map
+    args : list
+           Unused positional arguments
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    def reduce_worker(qout, *args, **kwargs):
+        val = worker_callback(*args, **kwargs)
+        qout.put(val)
+        if hasattr(qout, "task_done"): qout.task_done()
+    
+    if thread_count > 1:
+        qout = multiprocessing.Queue()
+        processes = [multiprocessing.Process(target=functools.partial(reduce_worker, process_number=i, **extra), args=(qout, )+args) for i in xrange(thread_count)]
+        for p in processes: p.start()
+        for i in xrange(thread_count):
+            yield qout.get()
+    else:
+        yield worker_callback(*args, **extra)
+
 def map_array(worker_callback, thread_count, data, *args, **extra):
     '''Start workers and set the worker callback function
     
@@ -281,6 +335,41 @@ def map_reduce_array(worker_callback, thread_count, data, *args, **extra):
             yield qout.get()
     else:
         yield worker_callback(0, size, data, *args, **extra)
+
+def map_reduce_ndarray(worker_callback, thread_count, data, *args, **extra):
+    '''Start workers and set the worker callback function
+    
+    :Parameters:
+
+    worker_callback : function
+                      Worker callback function to process an item
+    data : array
+           Array to map
+    args : list
+           Unused positional arguments
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    def reduce_worker(qout, beg, end, data, *args, **kwargs):
+        val = worker_callback(data[beg:end], *args, **kwargs)
+        qout.put(val)
+        if hasattr(qout, "task_done"): qout.task_done()
+    
+    size = len(data)
+    if thread_count > 1:
+        counts = numpy.zeros(thread_count, dtype=numpy.int)
+        for i in xrange(thread_count):
+            counts[i] = ( (size / thread_count) + (size % thread_count > i) )
+        offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
+        numpy.cumsum(counts, out=offsets[1:])
+        qout = multiprocessing.Queue()
+        processes = [multiprocessing.Process(target=functools.partial(reduce_worker, process_number=i, **extra), args=(qout, offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
+        for p in processes: p.start()
+        for i in xrange(thread_count):
+            yield qout.get()
+    else:
+        yield worker_callback(data, *args, **extra)
 
 def start_workers_with_output(items, worker_callback, n, init_process=None, **extra):
     '''Start workers and distribute tasks
@@ -423,7 +512,7 @@ def start_raw_workers(worker_callback, n, *args, **extra):
         multiprocessing.Process(target=target, args=(qin, qout)+args).start()
     return qin, qout
 
-def start_raw_enum_workers(worker_callback, n, total=-1, *args, **extra):
+def start_raw_enum_workers(worker_callback, n, total=-1, outtotal=-1, *args, **extra):
     '''Start workers and set the worker callback function
     
     .. sourcecode:: py
@@ -466,8 +555,9 @@ def start_raw_enum_workers(worker_callback, n, total=-1, *args, **extra):
     '''
     
     if n == 0: return None, None
+    if outtotal == -1: outtotal = total
     qin = multiprocessing.JoinableQueue(total)
-    qout = multiprocessing.Queue(total)
+    qout = multiprocessing.Queue(outtotal)
     for i in xrange(n):
         target = functools.partial(worker_callback, **extra)
         multiprocessing.Process(target=target, args=(qin, qout, i, n)+args).start()
