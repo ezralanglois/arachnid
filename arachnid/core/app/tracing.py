@@ -207,7 +207,7 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             log_file = base+socket.gethostname()+"_"+str(rank)+ext
             #if remote_tmp != "": log_file = os.path.join(remote_tmp, log_file)
         handlers = []
-        default_error_log = "."+os.path.basename(sys.argv[0])+".crash_report"
+        default_error_log = "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
         
         try: 
             if log_file != "":
@@ -241,7 +241,7 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
         root = logging.getLogger()
         root.setLevel(level)
         while len(root.handlers) > 0: root.removeHandler(root.handlers[0])
-        for ch in handlers: 
+        for ch in handlers:
             ch.setFormatter(logging.Formatter(log_formats[log_level_name]))
             root.addHandler(ch)
             ch.setLevel(level)
