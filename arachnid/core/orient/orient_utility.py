@@ -5,6 +5,123 @@
 '''
 import numpy
 import transforms
+import logging, scipy, scipy.optimize
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
+try:
+    from core import _rotation_mapping
+    _rotation_mapping;
+except:
+    from ..app import tracing
+    tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
+
+def fit_rotation(feat):
+    '''
+    '''
+    
+    start = numpy.ones(9*feat.shape[1], dtype=feat.dtype)
+    #
+    map, success = scipy.optimize.leastsq(rotation_cost_function, start, args=(feat,))
+    if (success > 4 or success < 1): 
+        _logger.warn("Least-squares failed to find a solution: %d"%success)
+    G = rotation_cost_function(map, feat)
+    return map.reshape(3,3,feat.shape[1]), G
+
+def rotation_cost_function(map, feat):
+    ''' Mapping manifold to relative rotation
+    '''
+    
+    G = numpy.zeros(feat.shape[0])
+    _rotation_mapping.rotation_cost_function(map, G, feat)
+    return G
+
+def map_rotation(feat, map, orthogonal=True, iter=100, eps=1e-7):
+    '''Map inhomogeneous manifold to a set of rotation matrices
+    '''
+    
+    map = map.ravel()
+    rot = numpy.zeros((feat.shape[0], 9), dtype=feat.dtype)
+    if orthogonal:
+        _rotation_mapping.map_orthogonal_rotations(feat, map, rot, iter, eps)
+    else:
+        _rotation_mapping.map_rotations(feat, map, rot)
+    return rot
+
+def map_rotation_py(feat, map, orthogonal=True):
+    '''Map inhomogeneous manifold to a set of rotation matrices
+    '''
+    
+    rot = numpy.zeros((feat.shape[0], 9), dtype=feat.dtype)
+    map=map.reshape(9,feat.shape[1])
+    assert(feat.shape[1] == 9)
+    for i in xrange(feat.shape[0]):
+        for j in xrange(9):
+            rot[i, j] = numpy.dot(map[j], feat[i])
+        if orthogonal:
+            r = rot[i, :].reshape(3,3)
+            U, s, Vh = scipy.linalg.svd(r)
+            U = numpy.dot(U, Vh)
+            rot[i, :] = U.ravel()
+    return rot
+
+def ensure_quaternion(angs, axes='rzyz', out=None):
+    '''
+    '''
+    
+    if out is None: out = numpy.zeros((angs.shape[0], 4))
+    if angs.shape[1] == 9:
+        M = numpy.identity(4)
+        for i in xrange(angs.shape[0]):
+            M[:3, :3] = angs[i, :].reshape((3,3))
+            out[i, :] = transforms.quaternion_from_matrix(M)
+    else:
+        raise ValueError, "not implemented"
+    return out
+
+def orthogonalize(rot, out=None):
+    '''Map inhomogeneous manifold to a set of rotation matrices
+    '''
+    
+    if out is None: out=rot.copy()
+    for i in xrange(rot.shape[0]):
+        r = rot[i, :].reshape(3,3)
+        U, s, Vh = scipy.linalg.svd(r)
+        U = numpy.dot(U, Vh)
+        out[i, :] = U.ravel()
+    return out
+
+def optimal_inplace_rotation(refeuler, roteuler, out=None):
+    '''
+    '''
+    
+    rotquat = spider_to_quaternion(roteuler)
+    refquat = spider_to_quaternion(refeuler)
+    if out is None: out = numpy.zeros(len(rotquat))
+    for i in xrange(len(out)):
+        #rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(refquat, rotquat[i]), 'rzyz'))
+        rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(rotquat[i], refquat), 'rzyz'))
+        out[i]=-(rot[0]+rot[2])
+    return out
+
+def ensure_euler(rot, out=None, axes='rzyz'):
+    '''
+    '''
+    
+    if out is None: out = numpy.zeros((len(rot), 3))
+    if rot.ndim == 2:
+        if rot.shape[1]==3:
+            out[:]=rot
+        elif rot.shape[1]==4:
+            for i in xrange(len(rot)):
+                out[i, :] = transforms.euler_from_quaternion(rot[i], axes)
+        elif rot.shape[1]==9:
+            for i in xrange(len(rot)):
+                out[i, :] = transforms.euler_from_matrix(rot[i].reshape((3,3)))
+        else: raise ValueError, "Not supported"
+    else: raise ValueError, "Not supported"
+    return out
 
 def spider_to_quaternion(euler, out=None):
     ''' Convert SPIDER rotations to quaternions
@@ -21,6 +138,10 @@ def spider_to_quaternion(euler, out=None):
     out : array
            Array of quaternions
     '''
+    
+    if len(euler) == 3 and (not hasattr(euler[0], '__len__') or len(euler[0])==1):
+        euler1 = numpy.deg2rad(euler[:3])
+        return transforms.quaternion_from_euler(euler1[0], euler1[1], euler1[2], 'rzyz')
     
     if out is None: out = numpy.zeros((len(euler), 4))
     for i in xrange(out.shape[0]):
@@ -120,7 +241,39 @@ def align_param_2D_to_3D(rot, tx, ty):
         T = transforms.translation_matrix((tx, ty, 0.0))
         M = numpy.dot(T, R)
     return -rot, M[3, 0], M[3, 1], M[3, 2]
-    #
+
+def align_param_3D_to_2D_simple(rot, tx, ty):
+    ''' Convert 2D to 3D alignment parameters
+    
+    RT -> TR
+    
+    :Parameters:
+    
+    rot : float
+          In plane rotation (RT)
+    tx : float
+         Translation in the x-direction (RT)
+    ty : float
+         Translation in the y-direction (RT)
+         
+    :Returns:
+    
+    psi : float
+          PSI angle (TR)
+    sx : float
+         Translation in the x-direction (TR)
+    sy : float
+         Translation in the y-direction (TR)
+    '''
+    
+    #x24=  x22*COS(-x35)+x23*SIN(-x35)  ;with matrix inversion
+    #x25= -x22*SIN(-x35)+x23*COS(-x35)
+    rot1 = -numpy.deg2rad(rot)
+    ca = numpy.cos(rot1)
+    sa = numpy.sin(rot1)
+    sx =  tx*ca + ty*sa
+    sy = -tx*sa + ty*ca 
+    return -rot, sx, sy
 
 def align_param_2D_to_3D_simple(rot, tx, ty):
     ''' Convert 2D to 3D alignment parameters
@@ -145,9 +298,31 @@ def align_param_2D_to_3D_simple(rot, tx, ty):
     sy : float
          Translation in the y-direction (RT)
     '''
+    #;x24= x22*COS(-x35)-x23*SIN(-x35)   ; no inversion
+    #;x25= x22*SIN(-x35)+x23*COS(-x35)
     
-    ca = numpy.cos(-rot)
-    sa = numpy.sin(-rot)
-    sx = tx*ca + ty*sa
-    sy = ty*ca - tx*sa
+    rot1 = numpy.deg2rad(rot)
+    ca = numpy.cos(rot1)
+    sa = numpy.sin(rot1)
+    sx = tx*ca - ty*sa
+    sy = tx*sa + ty*ca
     return -rot, sx, sy
+
+def compute_frames_reject(search_grid=40.0, **extra):
+    '''
+    '''
+    
+    start, stop, step = 0.0, 1.0, search_grid
+    step = float(stop-start)/step
+    frames = []
+    for i in numpy.arange(start, stop, step):
+        for j in numpy.arange(start, stop, step):
+            for k in numpy.arange(start, stop, step):
+                w = i*i+j*j+k*k
+                if w < 1.0:
+                    frames.append( (i, j, k, numpy.sqrt(1.0-w)) )
+                    frames.append( (i, j, k,-numpy.sqrt(1.0-w)) )
+                    frames.append( (-i, -j, -k, numpy.sqrt(1.0-w)) )
+                    frames.append( (-i, -j, -k,-numpy.sqrt(1.0-w)) )
+    return frames
+
