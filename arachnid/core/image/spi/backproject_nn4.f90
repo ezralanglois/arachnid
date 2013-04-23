@@ -58,6 +58,16 @@ C       WINDOW?
 
 C ---------------------------------------------------------------------------
 
+		SUBROUTINE CLEANUP_NN4()
+
+
+		CALL FMRS_DEPLAN(IRTFLG)
+
+		END
+
+
+C ---------------------------------------------------------------------------
+
 		SUBROUTINE BACKPROJECT_NN4F(PROJ,X,NR,NS,N,N2,PSI,THETA,PHI)
 
 C		REAL                  	   :: DM(3,3)
