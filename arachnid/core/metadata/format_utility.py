@@ -690,8 +690,15 @@ def map_object_list(vals, key="id"):
            Dictionary of mapped values
     '''
     
-    def pair(idx, t): return object_id(t[idx]), t
     idx = get_header(vals, key)
+    try:
+        object_id(vals[0][idx])
+    except:
+        def pair1(idx, t): return t[idx], t
+        pair=pair1
+    else:
+        def pair2(idx, t): return object_id(t[idx]), t
+        pair=pair2
     return dict(map(partial(pair, idx), vals))
 
 def map_file_list(vals, replace=False, key="id"):
