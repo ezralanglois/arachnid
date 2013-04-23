@@ -318,7 +318,7 @@ C ---------------------------------------------------------------------------
         DIMENSION  W(0:N2,N,N)
         COMPLEX    R(0:N2,N,N)
 
-c$omp   parallel do private(i,j,k)
+c   parallel do private(i,j,k)
         DO K=1,N
            DO J=1,N
               DO I=0,N2
