@@ -126,6 +126,10 @@ def read_header(filename, index=None):
     header = {}
     _logger.debug("apix=%f"%emdata.get_attr('apix_x'))
     header['apix'] = emdata.get_attr('apix_x')
+    header['count'] = eman2_utility.EMAN2.EMUtil.get_image_count(filename)
+    header['nx'] = emdata.get_xsize()
+    header['ny'] = emdata.get_ysize()
+    header['nz'] = emdata.get_zsize()
     return header
 
 def read_image(filename, index=None, header=None, cache=None):
@@ -252,6 +256,12 @@ def is_writable(filename):
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
 
+def write_spider_image(filename, img, index=None):
+    '''
+    '''
+    
+    write_image(filename, img, index, None, eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN)
+
 def write_image(filename, img, index=None, header=None, type=None):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
@@ -280,14 +290,14 @@ def write_image(filename, img, index=None, header=None, type=None):
     if type is None:
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: 
-        _logger.debug("MRC - must flip")
+        #_logger.debug("MRC - must flip")
         img.process_inplace("xform.flip",{"axis":"y"})
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: 
-        _logger.debug("Type unknown - assume spider stack")
+        #_logger.debug("Type unknown - assume spider stack")
         type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
     if index is None:
         if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER:
-            _logger.debug("Type SPIDER stack - switch to SINGLE spider")
+            #_logger.debug("Type SPIDER stack - switch to SINGLE spider")
             type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
         index = 0
     img.write_image_c(filename, int(index), type)

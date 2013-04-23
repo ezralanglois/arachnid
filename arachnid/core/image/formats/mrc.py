@@ -124,7 +124,7 @@ def _gen_header():
     
     header_image_dtype = numpy.dtype( shared_fields+[
         ('extra', 'S100'),
-        ('xorigin', numpy.float32),
+        ('xorigin', numpy.float32), #208 320  4   char    cmap;      Contains "MAP "
         ('yorigin', numpy.float32),
         ('zorigin', numpy.float32),
         ('map', 'S4'),
@@ -148,7 +148,7 @@ def _gen_header():
         ("nblank", numpy.uint16),
         ("itst", numpy.int32),
         ("blank", 'S24'),
-        ("nintegers", numpy.uint16),
+        ("nintegers", numpy.uint16), # 92 134  4   int     next;
         ("nfloats", numpy.uint16),
         ("sub", numpy.uint16),
         ("zfac", numpy.uint16),
@@ -274,6 +274,12 @@ def read_header(filename, index=None):
     h = read_mrc_header(filename, index)
     header={}
     header['apix']=h['xlen']/h['nx']
+    header['count'] = h['nz'] if h['nz']==h['nx'] else 1
+    header['nx'] = h['nx']
+    header['ny'] = h['ny']
+    header['nz'] = h['nz'] if h['nz']!=h['nx'] else 1
+    for key in h.fields.iterkeys():
+        header['mrc_'+key] = h[key]
     return header
 
 def read_mrc_header(filename, index=None):
@@ -348,19 +354,27 @@ def iter_images(filename, index=None, header=None):
         if header is not None:  _update_header(header, h, mrc2ara, 'mrc')
         d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        offset = 1024 + index * d_len * dtype.itemsize;
-        f.seek(offset)
+        if header_image_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
+        offset = 1024+int(h['nsymbt'])+ 0 * d_len * dtype.itemsize;
+        try:
+            f.seek(int(offset))
+        except:
+            _logger.error("%s -- %s"%(str(offset), str(offset.__class__.__name__)))
+            raise
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
         for i in index:
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
             elif int(h['ny'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]))
+            #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
+            if header_image_dtype.newbyteorder()==h.dtype: 
+                out = out.byteswap().newbyteorder()
             yield out
     finally:
         _close(filename, f)
 
-def read_image(filename, index=None, header=None):
+def read_image(filename, index=None, header=None, cache=None):
     ''' Read an image from the specified file in the MRC format
     
     :Parameters:
@@ -390,13 +404,20 @@ def read_image(filename, index=None, header=None):
         else:
             d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        offset = 1024 + idx * d_len * dtype.itemsize;
-        f.seek(offset)
+        if header_image_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
+        #_logger.error("%d == %d"%(os.stat(filename).st_size, h['nx'][0]*h['ny'][0]*h['nz'][0]*dtype.itemsize+1024+int(h['nsymbt'])))
+        #offset = 1024 + idx * d_len * dtype.itemsize
+        offset = 1024+int(h['nsymbt']) + idx * d_len * dtype.itemsize
+        
+        f.seek(int(offset))
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
-        if index is None and int(h['nz'][0]) > 1:   out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
-        elif int(h['ny']) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]))
+        if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:   out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
+        elif int(h['ny']) > 1: out = out.reshape( (int(h['nx'][0]), int(h['ny'][0])) )
     finally:
         _close(filename, f)
+    #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
+    if header_image_dtype.newbyteorder()==h.dtype:
+        out = out.byteswap().newbyteorder()
     return out
 
 def is_writable(filename):
@@ -458,7 +479,7 @@ def write_image(filename, img, index=None, header=None):
         header['amin'] = numpy.min(img)
         header['amax'] = numpy.max(img)
         header['amean'] = numpy.mean(img)
-        header['rms'] = numpy.std(img)
+        #header['rms'] = numpy.std(img)
         if img.ndim == 3:
             header['nxstart'] = header['nx'] / -2
             header['nystart'] = header['ny'] / -2
@@ -477,7 +498,7 @@ def write_image(filename, img, index=None, header=None):
     try:
         if f != filename:
             header.tofile(f)
-            if index > 0: f.seek(offset+index*img.ravel().shape[0])
+            if index > 0: f.seek(int(offset+index*img.ravel().shape[0]))
         img.tofile(f)
     finally:
         _close(filename, f)

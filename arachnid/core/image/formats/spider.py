@@ -177,6 +177,14 @@ def read_header(filename, index=None):
     header={}
     header['apix'] = h['apix']
     header['fourier_even'] = (h['iform']== -12 or h['iform']== -22)
+    
+    
+    header['count'] = max(h['maxim'], h['istack'])
+    header['nx'] = h['nx']
+    header['ny'] = h['ny']
+    header['nz'] = h['nz']
+    for key in h.fields.iterkeys():
+        header['spi_'+key] = h[key]
     return header
 
 def read_spider_header(filename, index=None):
