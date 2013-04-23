@@ -128,7 +128,14 @@ class MainWindow(QtGui.QMainWindow):
         for i, val in enumerate(self.imagelabel):
             labelmap[int(val[0])][int(val[1])]=i
         saved = numpy.loadtxt(self.selectfile, numpy.int, '#', ',')
+        _logger.info("Loaded %d micrographs from %s"%(len(saved), self.selectfile))
         for i in xrange(len(saved)):
+            if i < 10:
+                _logger.info("Loaded micrograph %d particle %d with selection %d -> %d"%(saved[i, 0], saved[i, 1], saved[i, 2], labelmap[saved[i, 0]][saved[i, 1]]))
+            if saved[i, 0] not in labelmap:
+                _logger.error("Micrograph not found: %d"%saved[i, 0])
+            elif saved[i, 1] not in labelmap[saved[i, 0]]:
+                _logger.error("Particle not found: %d"%saved[i, 1])
             self.imagelabel[labelmap[saved[i, 0]][saved[i, 1]], 2] = saved[i, 2]
         if len(saved) > 0:
             self.selectedCount = numpy.sum(self.imagelabel[:, 2])
@@ -169,11 +176,12 @@ class MainWindow(QtGui.QMainWindow):
         ''' Load the settings of controls specified in the settings map
         '''
         
-        settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
-        for name, method in self.settings_map.iteritems():
-            val = getattr(settings.value(name), method[2])()
-            if isinstance(val, tuple): val = val[0]
-            method[1](val)
+        if os.path.exists(self.inifile):
+            settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+            for name, method in self.settings_map.iteritems():
+                val = getattr(settings.value(name), method[2])()
+                if isinstance(val, tuple): val = val[0]
+                method[1](val)
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -266,12 +274,15 @@ class MainWindow(QtGui.QMainWindow):
         if filename != "":
             mics = numpy.unique(select[:, 0])
             if mics.shape[0] == select.shape[0]:
-                _logger.info("Writing micrograph selection file: %s entries - %d selected"%(str(select.shape), numpy.sum(select[:, 2])))
-                format.write(filename, select, header="id,pid,select".split(','), format=format.spidersel)
+                select = select[:, (0,2)]
+                _logger.info("Writing micrograph selection file: %s entries - %d selected"%(str(select.shape), mics.shape[0]))
+                format.write(filename, select, header="id,select".split(','), format=format.spidersel)
             else:
-                _logger.info("Writing particle selection files")
+                _logger.info("Writing particle selection files: %s entries - %d selected"%(str(select.shape), mics.shape[0]))
                 for id in mics:
-                    format.write(filename, select[select[:, 0]==id], spiderid=id, header="id,pid,select".split(','), format=format.spidersel)
+                    tmp = select[select[:, 0]==id, 1:]
+                    tmp[:, 0]+=1
+                    format.write(filename, tmp, spiderid=id, header="id,select".split(','), format=format.spidersel)
         
     @QtCore.pyqtSlot(name='on_actionOpen_triggered')
     def onOpenFile(self):
@@ -345,6 +356,7 @@ class MainWindow(QtGui.QMainWindow):
                   List of new ids to add to image label array
         '''
         
+        _logger.info("Updating the image label")
         if new_ids is None: new_ids = self.imageids
         else: self.imageids.extend(new_ids)
         if hasattr(self.imagelabel, 'ndim'): self.imagelabel = self.imagelabel.tolist()
@@ -368,12 +380,13 @@ class MainWindow(QtGui.QMainWindow):
         start = self.ui.pageSpinBox.value()*count
         label = self.imagelabel[start:(self.ui.pageSpinBox.value()+1)*count]
         bin_factor = self.ui.decimateSpinBox.value()
+        nstd = self.ui.clampDoubleSpinBox.value()
         img = None
         self.disconnect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         self.image_list = []
         for i, img in enumerate(iter_images(self.imagefile, label[:, :2])):
             if hasattr(img, 'ndim'):
-                img = ndimage_utility.replace_outlier(img, 3, 3, replace='mean')
+                img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
                 if bin_factor > 1.0: img = eman2_utility.decimate(img, bin_factor)
                 qimg = numpy_to_qimage(img)
             else: qimg = img
@@ -392,6 +405,7 @@ class MainWindow(QtGui.QMainWindow):
             item = QtGui.QStandardItem(icon, "%d/%d"%(label[i, 0], label[i, 1]+1))
             item.setData(i+start, QtCore.Qt.UserRole)
             self.imageListModel.appendRow(item)
+            _logger.info("%d -> %s"%(i, str(label[i, :3])))
             if label[i, 2] > 0:
                 self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
         self.connect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
@@ -564,7 +578,14 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         if label is None: label = []
-        self.imageids = [int(id) for id in label]
+        self.imageids = []
+        saved=set()
+        for id in label:
+            id = int(id)
+            if id not in saved:
+                saved.add(id)
+                self.imageids.append(id)
+        
         self.updateImageFiles()
 
 def iter_images(filename, index):
