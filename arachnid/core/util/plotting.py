@@ -13,13 +13,17 @@ import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 import numpy, logging
 
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
 try:
     import pylab
     pylab;
-except: pylab=None
+except:
+    from ..app import tracing
+    tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
+    pylab=None
 
-_logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
 
 def is_plotting_disabled(): return pylab is None
 
