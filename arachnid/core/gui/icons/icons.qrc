@@ -9,6 +9,12 @@
         <file>icons/icon256x256.png</file>
         <file>icons/icon512x512.png</file>
         <file>icons/particle_icon.png</file>
+        <file>icons/ribosome_40S_32x32.png</file>
+        <file>icons/ribosome_50S_32x32.png</file>
+        <file>icons/ribosome_60S_32x32.png</file>
+        <file>icons/ribosome_70S_32x32.png</file>
+        <file>icons/ribosome30s_32x32.png</file>
+        <file>icons/ribosome80s_32x32.png</file>
     </qresource>
     <qresource prefix="/mini">
         <file>mini/accept.png</file>
