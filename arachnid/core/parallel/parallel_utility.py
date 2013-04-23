@@ -56,6 +56,31 @@ def partition_offsets(data_size, task_count, dtype=numpy.int):
     return numpy.cumsum(out, out=out)
 
 def partition_array(data, task_count):
+    ''' Divide an ndarray into a number of equally sized chucks equal to the number of tasks
+    
+    :Parameters:
+
+    data : list
+           Iterable object containing data elements
+    task_count : int
+                 Number of worker tasks
+    
+    :Returns:
+    
+    counts : list
+             Subset of data grouped for each task
+    '''
+    
+    data_size = len(data)
+    group = []
+    k=0
+    for i in xrange(task_count):
+        size = ( (data_size / task_count) + (data_size % task_count > i) )
+        group.append(data[k:k+size])
+        k+=size
+    return group
+
+def partition_list(data, task_count):
     ''' Divide a list of data elements into a number of equally sized chucks equal to the number of tasks
     
     :Parameters:
