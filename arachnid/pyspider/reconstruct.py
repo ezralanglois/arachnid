@@ -155,12 +155,12 @@ from ..core.image import reconstruct as reconstruct_engine, ndimage_file
 from ..core.spider import spider
 import resolution, classify
 #import prepare_volume
-import logging, os, numpy
+import logging, os, numpy, glob, itertools, functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, aligment, **extra):
+def batch(files, output, alignment, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -169,21 +169,36 @@ def batch(files, output, aligment, **extra):
                 List of input filenames
         output : str
                  Output filename for reconstructed volume
-        aligment : str
+        alignment : str
                    Input alignment filename
         extra : dict
                 Unused keyword arguments
     '''
         
     spi = spider.open_session(files, **extra)
-    align = format.read_array_mpi(spi.replace_ext(aligment), **extra)
-    curr_slice = mpi_utility.mpi_slice(len(align), **extra)
-    extra.update(initalize(spi, files, align[curr_slice], **extra))
-    vols = reconstruct_classify(spi, align, curr_slice, output, **extra)
-    
+    _logger.info("Reconstructing %s volumes"%str(alignment))
+    if not isinstance(alignment, list):
+        alignment=glob.glob(alignment)
+    elif len(alignment)==1:
+        alignment=glob.glob(alignment[0])
     if mpi_utility.is_root(**extra):
-        sp = resolution.estimate_resolution(vols[1], vols[2], format_utility.add_prefix(output, 'dres_'), **extra)[0]
-        _logger.info("Resolution = %f"%(extra['apix']/sp))
+        _logger.info("Reconstructing %d volumes"%len(alignment))
+    for i, alignment_file in enumerate(alignment):
+        output = spider_utility.spider_filename(output, alignment_file)
+        if 'format' in extra: 
+            format1=extra['format']
+            del extra['format']
+        align = format.read_array_mpi(spi.replace_ext(alignment_file), **extra)
+        if i == 0:
+            curr_slice = mpi_utility.mpi_slice(len(align), **extra)
+            extra.update(initalize(spi, files, align[curr_slice], **extra))
+        else: extra['format']=format1
+        vols = reconstruct_classify(spi, align, curr_slice, output, **extra)
+        
+        if mpi_utility.is_root(**extra):
+            sp = resolution.estimate_resolution(vols[1], vols[2], spi, format_utility.add_prefix(output, 'dres_'), **extra)[0]
+            _logger.info("Resolution = %f"%(extra['apix']/sp))
+    if mpi_utility.is_root(**extra):
         _logger.info("Completed")
 
 def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="", home_prefix="", shared_scratch="", incore=False, **extra):
@@ -312,7 +327,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
     
-    if spider.count_images(spi, flip_stack) != len(align):
+    if flip_stack is not None and spider.count_images(spi, flip_stack) != len(align):
         _logger.warn("Rerunning phase flip: %s"%mpi_utility.hostname())
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
     
@@ -349,8 +364,10 @@ def reconstruct_classify(spi, align, curr_slice, output, target_bin=None, **extr
     '''
     
     if target_bin is not None:
-        extra['bin_factor']=target_bin
-        extra.update(spider_params.update_params(**extra))
+        target_bin, param = target_bin
+        param = dict(param)
+        param['bin_factor']=target_bin
+        extra.update(spider_params.update_params(**param))
         if mpi_utility.is_root(**extra):
             _logger.info("Reconstructing with pixel size: %f"%(extra['apix']))
     align = align.copy()
@@ -467,7 +484,7 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on a single node - finished")
     return vol_output
 
-def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, local_scratch, thread_count=0, **extra):
+def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, local_scratch, thread_count=0, boost=False, **extra):
     ''' Reconstruct a volume on multiple nodes using MPI
     
     :Parameters:
@@ -511,16 +528,32 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         even = numpy.arange(0, len(align[curr_slice]), 2, dtype=numpy.int)
         odd = numpy.arange(1, len(align[curr_slice]), 2, dtype=numpy.int)
         
+    if mpi_utility.is_root(**extra): _logger.info("Writing alignment file")
     format.write(spi.replace_ext(align_file), align[curr_slice, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
     input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(extra['cache_file'], "data_ip_"), **extra)
+    if mpi_utility.is_root(**extra): _logger.info("Running RTSQ")
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
+    if mpi_utility.is_root(**extra): _logger.info("Running RTSQ-finished")
     dala_stack = spi.replace_ext(dala_stack)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
     
     gen1 = ndimage_file.iter_images(dala_stack, even)
     gen2 = ndimage_file.iter_images(dala_stack, odd)
-    align = align[curr_slice]
-    vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
+    #vol = reconstruct_engine.reconstruct3_nn4_mp(image_size, gen1, gen2, align1, align2)
+    if 1 == 1:
+        if boost:
+            weights = reweight(align)[curr_slice]
+            gen1 = itertools.imap(functools.partial(reweight_image, weights=weights[even]), enumerate(gen1))
+            gen2 = itertools.imap(functools.partial(reweight_image, weights=weights[odd]), enumerate(gen2))
+        # boost
+        # exp weight based on -cc
+        # try different modes - defocus based - view based
+        align = align[curr_slice]
+        image_size = ndimage_file.read_image(dala_stack).shape[0]
+        vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
+        #vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
+    else:
+        vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
             ndimage_file.write_image(spi.replace_ext(vol_output[i]), vol[i])
@@ -532,6 +565,24 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on multiple nodes - finished")
     return vol_output
 
+def reweight(alignvals):
+    '''
+    '''
+    
+    weights = alignvals[:, 10].copy()
+    weights -= weights.min()
+    weights /= weights.max()
+    weights = numpy.exp(-weights)
+    weights /= weights.max()
+    return weights
+
+def reweight_image(img, weights):
+    '''
+    '''
+    
+    i, img = img
+    return img*weights[i]
+
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc, OptionGroup
@@ -539,7 +590,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
-        pgroup.add_option("-a", alignment="",   help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
+        pgroup.add_option("-a", alignment=[],   help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
         
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
@@ -551,6 +602,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     rgroup.add_option("",   mult_ctf=False,                         help="Multiply by the CTF rather than phase flip before backprojection")
     rgroup.add_option("",   engine=('MPI_nn4', 'BPCG', 'BP32F'),    help="Type of reconstruction engine to use", default=0)
     rgroup.add_option("",   interpolation="Q",                       help="Type of interpolation to use: (Q) quadratic and (FS) Fourier Spline")
+    rgroup.add_option("",   boost=False,                             help="Increase the weight on poorly aligned projections")
     setup_options_from_doc(parser, 'bp_cg_3', classes=spider.Session, group=rgroup)
     pgroup.add_option_group(rgroup)
     
