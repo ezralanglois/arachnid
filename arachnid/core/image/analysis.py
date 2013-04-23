@@ -319,6 +319,7 @@ def pca(trn, tst=None, frac=-1, mtrn=None, use_svd=True):
         U, d, V = scipy.linalg.svd(trn, False)
     else:
         d, V = numpy.linalg.eig(numpy.cov(trn))
+        #corrcoef
 
     t = d**2/trn.shape[0]
     t /= t.sum()
