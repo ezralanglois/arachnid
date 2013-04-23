@@ -118,6 +118,7 @@ class Session(spider_session.Session):
         
         self.extra_check = _logger.getEffectiveLevel() == logging.DEBUG
         v = self.get_version()
+        if v[0] < 19: raise ValueError, "pySPIDER requires SPIDER version 19 or later"
         if v[0] < 18 or (v[0] == 18 and v[1] < 18):
             _logger.warn("This version of SPIDER has alignment problems that may limit your resolution")
 
@@ -1589,9 +1590,11 @@ class Session(spider_session.Session):
             old_ring_last = ring_last
             ring_last = window/2 - trans_range - 3
             _logger.debug("Overriding %d to %d for image dimension from PARAMS"%(ring_last, old_ring_last))
-        session.invoke('or sh x21,x22,x23,x24,x25', spider_image(reference), spider_tuple(trans_range, trans_step), 
-                       spider_tuple(ring_first, ring_last), spider_image(inputfile), spider_tuple(test_mirror))
-        return session.OR_SH_TUPLE(session['x21'], session['x22'], session['x23'], session['x24'], session['x25'])
+        test_mirror = 'Y' if test_mirror else 'N'
+        session.invoke('or sh [psi],[dx],[dy],[mirror],[cc]', spider_image(reference), spider_tuple(trans_range, trans_step), 
+                           spider_tuple(ring_first, ring_last), spider_image(inputfile), test_mirror)
+        if numpy.isnan(session['[psi]']):  raise ValueError, "No or sh performed"
+        return session.OR_SH_TUPLE(session['psi'], session['dx'], session['dy'], session['mirror'], session['cc'])
     
     def pd(session, inputfile, window_size, center_coord=None, background='Y', background_value=0.0, outputfile=None, **extra):
         ''' To pad an image/volume to make a larger image/volume. Places the input image at specified 
@@ -1945,6 +1948,51 @@ class Session(spider_session.Session):
         session.invoke('rtd sq', spider_stack(inputfile, stack_total), spider_select(select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, stack_total), spider_select(outputsel))
         return outputfile
     
+    def rt_sq_single(session, inputfile, alignment, interpolation=None, outputfile=None, **extra):
+        '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
+        around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
+        terms "clockwise" and "counter-clockwise" refer to the mirrored x-y system used for 
+        image display) Output image has SAME size as input image.
+                
+        `Original Spider (RT SQ) <http://www.wadsworth.org/spider_doc/spider/docs/man/rtsq.html>`_
+        
+        .. todo :: 
+        
+            - Set of stacked images unsupported
+            - Single image unsupported
+        
+        :Parameters:
+        
+        session : Session
+                  Current spider session
+        inputfile : str
+                    Filename of input image projection stack
+        alignment : tuple
+                    PHI, DX, DY
+        interpolation : str, optional
+                        Type of interpolation
+        outputfile : str
+                     Filename of output image (If none, temporary incore file is used and returned)
+        extra : dict
+                Unused key word arguments
+        
+        :Returns:
+            
+            outputfile : str
+                         Filename of output image
+        '''
+        
+        if interpolation is not None:
+            v = session.get_version()
+            if v[0] < 20: interpolation = None
+        
+        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+        if interpolation is not None and interpolation.upper() == "FS":
+            session.invoke('rt sf', spider_image(inputfile), spider_image(outputfile), spider_tuple(alignment[0], 1), spider_tuple(*alignment[1:3]))
+        else:
+            session.invoke('rt sq', spider_image(inputfile), spider_image(outputfile), spider_tuple(alignment[0], 1), spider_tuple(*alignment[1:3]))
+        return outputfile
+    
     def rt_sq(session, inputfile, alignment, input_select=None, alignment_cols=(6,0,7,8), interpolation=None, outputfile=None, **extra):
         '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
         around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
@@ -2082,7 +2130,7 @@ class Session(spider_session.Session):
         session.invoke('sd ic new', spider_doc(outputfile), spider_tuple(*shape))
         return outputfile
     
-    def sh_f(session, inputfile, coords, outputfile=None, **extra):
+    def sh_f(session, inputfile, coords, input_select=None, alignment_cols=(7, 8), outputfile=None, **extra):
         ''' Shifts a picture or a volume by a specified vector using Fourier interpolation.
         
         `Original Spider (SH F) <http://www.wadsworth.org/spider_doc/spider/docs/man/shf.html>`_
@@ -2105,6 +2153,12 @@ class Session(spider_session.Session):
         outputfile : str
                      Filename of output image
         '''
+        
+        if isinstance(coords, str):
+            input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
+            if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
+            session.invoke('sh f', spider_stack(inputfile, max_count), spider_select(input_select), spider_stack(outputfile, max_count), spider_doc(coords), spider_tuple(*alignment_cols))
+            return outputfile
         
         return spider_session.spider_command_fifo(session, 'sh f', inputfile, outputfile, "Shifting a volume", spider_tuple(*coords))
     
@@ -3071,7 +3125,7 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
                 pixel_diameter=int(extra['pixel_diameter']*factor))
     window = param['window']
     max_radius = int(window/2.0)
-    param['trans_range']=max(1, int(trans_range*factor)) if trans_range > 1 else trans_range
+    param['trans_range']=max(1, int(numpy.ceil(trans_range*factor))) if trans_range > 1 else trans_range
     param['ring_last']=min(max_radius - 4, int(ring_last*factor)) if ring_last > 0 else ring_last
     if (max_radius - param['ring_last'] - param['trans_range']) < 3:
         if param['trans_range'] > 1:
