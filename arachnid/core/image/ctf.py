@@ -378,7 +378,7 @@ def resolution(e, n, apix, **extra):
     
     return apix/( (0.5*e)/float(n) )
 
-def estimate_defocus_spi(roo, sfreq, n, defocus_start=1.2, defocus_end=7.0, **extra):
+def estimate_defocus_spi(roo, sfreq, n, defocus_start=0.8, defocus_end=7.0, **extra):
     '''Estimate the defocus of a background subtract power spectrum
     
     :Parameters:
