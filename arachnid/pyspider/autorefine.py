@@ -126,6 +126,9 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
             Unused keyword arguments
     '''
     
+    from ..core.parallel import openmp
+    openmp.set_thread_count(extra['thread_count'])
+    
     #min_resolution
     spi = spider.open_session(files, **extra)
     alignment, refine_index = refine.get_refinement_start(spi.replace_ext(alignment), refine_index, spi.replace_ext(output))
@@ -139,7 +142,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
-def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start=30.0, num_iterations=0, **extra):
+def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start=30.0, num_iterations=0, aggressive=False, fast=False, **extra):
     ''' Refine a volume for the specified number of iterations
     
     :Parameters:
@@ -162,84 +165,76 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             Unused keyword arguments
     '''
     
-    max_resolution = resolution_start
-    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,_resolution_next".split(',')
-    param=dict(extra)
-    angle_range, trans_range = None, None
-    extra['trans_range']=500
-    extra['trans_step']=1
-    #theta_prev = None
-    extra['trans_max']=7
-    extra['trans_range'] = param['trans_range'] = ensure_translation_range(**extra)
-    output_volume = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
-    param['min_bin_factor'] = (param['window']-param['pixel_diameter'])/10.0 # min 2 pixel translation = (2+3)*2
-    resolution_next=None
     
-    extra['hp_type'] = 3
-    extra['hp_radius'] = extra['pixel_diameter']*extra['apix']
-    
+    extra.update(max_resolution = resolution_start, hp_radius=extra['pixel_diameter']*extra['apix'])
+    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,min_resolution".split(',')
+    output_volume, resolution_start = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, **extra)
+    res_iteration = numpy.zeros((num_iterations+1, 2))
+    res_iteration[0, :]=(0, resolution_start)
+    resolution_file = spi.replace_ext(format_utility.add_prefix(output, 'res_refine'))
+    load_state(resolution_file, res_iteration, output, **extra)
     if mpi_utility.is_root(**extra):
-        resolution_file = spi.replace_ext(format_utility.add_prefix(output, 'res_refine'))
-        if os.path.exists(resolution_file):
-            res_iteration = numpy.zeros((num_iterations+1, 5))
-            tmp = numpy.loadtxt(resolution_file, delimiter=",")
-            res_iteration[:tmp.shape[0]]=tmp
-            resolution_start, param['trans_range'], extra['angle_range'], extra['hp_radius'], resolution_next  = res_iteration[refine_index]
-            _logger.info("Restarting from iteration %d with %f, %d, %f, %f"%(refine_index, resolution_start, param['trans_range'], extra['angle_range'], resolution_next))
-            extra['trans_range'] = param['trans_range']
-        else:
-            res_iteration = numpy.zeros((num_iterations+1, 5))
-            resolution_next=resolution_start
-        _logger.info("Starting refinement from %d iteration with resolution: %f - translation: %d - angle range: %d - min-bin: %d"%(refine_index, resolution_start, extra['trans_range'], extra['angle_range'], param['min_bin_factor']))
-    param['trans_range'] = mpi_utility.broadcast(param['trans_range'], **extra)
-    extra['angle_range'] = mpi_utility.broadcast(extra['angle_range'] , **extra)
-    resolution_start = mpi_utility.broadcast(resolution_start, **extra)
-    resolution_next = mpi_utility.broadcast(resolution_next, **extra)
+        res = res_iteration[refine_index-1, 1] if refine_index > 0 else resolution_start
+        _logger.info("Starting refinement from iteration %d - resolution %f"%(refine_index, res))
+    resolution_start=update_resolution(res_iteration, refine_index, resolution_start, **extra)
+    if extra['max_resolution']==resolution_start and refine_index>0: raise ValueError, "Unable to determine resolution for iteration before: %d"%refine_index
     
-    extra['_resolution_next']=resolution_next
-    if resolution_start <= 0.0: raise ValueError, "Resolution must be greater than 0"
+    extra.update(hp_type=3, trans_max=7, trans_range=500, trans_step=1, angle_range=0)
+    extra.update(trans_range=ensure_translation_range(**extra), min_bin_factor=ensure_min_bin(**extra))
+    param=dict(extra)
+    
+    extra['cleanup_fft']=fast
     for refine_index in xrange(refine_index, num_iterations):
-        param['bin_factor']=extra['bin_factor'] = decimation_level(resolution_next, max_resolution, **param)
-        extra.update(spider.scale_parameters(**param))
-        
-        if param['bin_factor'] == 1.0: extra['interpolation'] = 'FS'
-        extra['trans_range'] = max(extra['trans_range'], 2)
-        extra['theta_delta'] = theta_delta_est(resolution_next, **extra)
-        if extra['theta_delta'] > 7.9: extra['angle_range'] = 0
-        #extra['shuffle_angles'] = False #extra['theta_delta'] == theta_prev and refine_index > 0
-        extra['min_resolution'] = resolution_start
+        extra.update(auto_update_param(res_iteration, refine_index, alignvals, **param))
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
-        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=param['bin_factor'], **extra)
-        #resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=decimation_level(resolution_next*0.75, max_resolution, **param), **extra)
-        mpi_utility.barrier(**extra)
-        if mpi_utility.is_root(**extra): 
-            num_iter_unchanged = numpy.sum((res_iteration[1:refine_index+1, 0]-resolution_start)<resolution_start/30)
-            _logger.info("Refinement finished: %d. %f (%f) - unchanged: %d"%(refine_index+1, resolution_start, res_iteration[refine_index, 0], num_iter_unchanged))
-            angle_range = angular_restriction(alignvals, **extra)
-            trans_range = int(translation_range(alignvals, param['apix'], **extra))
-            if refine_index > 0 and num_iter_unchanged > 1:
-                if extra['hp_radius'] == 0: extra['hp_radius'] = extra['pixel_diameter']*param['apix']
-                extra['hp_radius'] /= 1.1
-                if extra['hp_radius'] < (2.0*resolution_start):
-                    _logger.info("Refinement converged early")
-                    break
-            if 1 == 0:
-                resolution_next = resolution_start*0.8
-            else:
-                b = decimation_level(resolution_next*0.9, max_resolution, **param)
-                if refine_index > 0 and num_iter_unchanged > 1 and (trans_range/b) < 3:
-                    resolution_next = resolution_next*0.9
-                else: resolution_next = resolution_start*0.8
-            res_iteration[refine_index+1] = (resolution_start, trans_range, angle_range, extra['hp_radius'], resolution_next)
-            extra['_resolution_next']=resolution_next
-            numpy.savetxt(resolution_file, res_iteration, delimiter=",")
-        param['trans_range'] = mpi_utility.broadcast(trans_range, **extra)
-        extra['angle_range'] = mpi_utility.broadcast(angle_range, **extra)
+        
+        target_bin = decimation_level(resolution_start*0.75, extra['max_resolution'], **param) if fast else 1.0
+        resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=(target_bin, param), **extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
-        resolution_next = mpi_utility.broadcast(resolution_next, **extra)
-        #theta_prev = extra['theta_delta']
+        mpi_utility.barrier(**extra)
+        res_iteration[refine_index] = (refine_index, resolution_start)
+        if mpi_utility.is_root(**extra): 
+            _logger.info("Refinement finished: %d. %f"%(refine_index+1, resolution_start))
+            numpy.savetxt(resolution_file, res_iteration, delimiter=",")
     mpi_utility.barrier(**extra)
+    
+def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, **extra):
+    '''
+    @todo replace min_resolution with conservative filter values
+    '''
+    
+    if refine_index > 0:
+        trans_range = int(translation_range(alignvals, extra['apix'], **extra))
+        extra.update(trans_range=trans_range)
+    if refine_index > 1:
+        resolution_start = res_iteration[refine_index-1, 1]
+        num_iter_unchanged=0
+        for i in xrange(2, refine_index-1):
+            num_iter_unchanged = max(num_iter_unchanged, numpy.sum( (res_iteration[:i-1, 1]-res_iteration[i, 1]) < resolution_start/60 ) )
+        
+        
+        #b = decimation_level(resolution_start*0.9, max_resolution, **extra)
+        b = decimation_level(resolution_start, max_resolution, **extra)
+        if mpi_utility.is_root(**extra):
+            _logger.info("Number of unchanged iterations: %d (%f)"%(num_iter_unchanged, resolution_start))
+        if (trans_range/b) >= 3: num_iter_unchanged=0
+        if 1 == 1:
+            #resolution_start *= numpy.power(0.9, int(num_iter_unchanged+1))
+            extra['hp_radius'] /= numpy.power(1.5, int(num_iter_unchanged))
+        else:
+            resolution_start *= 0.9
+    elif refine_index > 0: resolution_start = res_iteration[refine_index-1, 1]
+    else: resolution_start = res_iteration[refine_index, 1]
+    
+    extra.update(bin_factor=decimation_level(resolution_start, max_resolution, **extra))
+    #extra.update(bin_factor=decimation_level(resolution_start*0.9, max_resolution, **extra))
+    extra.update(spider.scale_parameters(**extra))
+    extra.update(theta_delta=theta_delta_est(resolution_start, **extra))
+    if refine_index > 1:
+        extra.update(angle_range = angular_restriction(alignvals, **extra))
+    extra.update(trans_range=max(extra['trans_range'], 2), min_resolution=res_iteration[refine_index-1, 1]*1.5)
+    return extra
     
 def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, trans_max=8, **extra):
     ''' Angular sampling rate
@@ -271,7 +266,7 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
             _logger.info("Angular Sampling: %f -- Resolution: %f -- Size: %f"%(theta_delta, resolution, pixel_diameter*apix))
     return min(15, theta_delta)
     
-def decimation_level(resolution, max_resolution, apix, min_bin_factor, **extra):
+def decimation_level(resolution, max_resolution, apix, min_bin_factor, window, **extra):
     ''' Estimate the level of decimation required
     
     :Parameters:
@@ -293,8 +288,10 @@ def decimation_level(resolution, max_resolution, apix, min_bin_factor, **extra):
     
     #half - radius - 3
     
-    return min(max(1, min(max_resolution/(apix*4), resolution / (apix*4))), min_bin_factor)#*0.75
-    #return min(6, resolution / ( apix * 4 ))
+    dec =  min(max(1, min(max_resolution/(apix*3), resolution / (apix*3))), min_bin_factor)
+    d = float(window)/dec + 10
+    d = window/float(d)
+    return max(d, 1)
 
 def ensure_translation_range(window, ring_last, trans_range, **extra):
     ''' Ensure a valid translation range
@@ -360,12 +357,18 @@ def angular_restriction(alignvals, theta_delta, **extra):
     
     gdist = alignvals[:, 9]
     gdist = gdist[gdist > 0.0]
+    if len(gdist) == 0: 
+        _logger.warn("gdist has zero elements")
+        return 0
     mang = numpy.median(gdist)
     sang = analysis.robust_sigma(gdist)
+    if numpy.isnan(sang):
+        _logger.warn("Nan for sang")
+        return 0;
     #sang = numpy.std(gdist)
     gdist = mang+sang*4
     mdist = numpy.max(gdist)
-    ang = min(mdist, max(gdist, 2*theta_delta))
+    ang = min(mdist, max(gdist, 4*theta_delta))
     if mpi_utility.is_root(**extra):
         _logger.info("Angular Restriction: %f -- Median: %f -- STD: %f -- theta: %f -- max: %f"%(ang, mang, sang, theta_delta, mdist))
     if ang > 180.0: ang = 0
@@ -391,6 +394,34 @@ def filter_resolution(bin_factor, apix, **extra):
     
     return (bin_factor+1)*4*apix
 
+def load_state(resolution_file, res_iteration, output, **extra):
+    '''
+    '''
+    
+    if mpi_utility.is_root(**extra):
+        if os.path.exists(resolution_file):
+            tmp = numpy.loadtxt(resolution_file, delimiter=",")
+            res_iteration[:tmp.shape[0]]=tmp
+    res_iteration[:] = mpi_utility.broadcast(res_iteration, **extra)
+
+def ensure_min_bin(window, pixel_diameter, **extra):
+    '''
+    '''
+    
+    return (window-pixel_diameter)/10.0
+
+def update_resolution(res_iteration, refine_index, resolution_start, **extra):
+    '''
+    '''
+    
+    if mpi_utility.is_root(**extra):
+        if refine_index > 0:
+            if res_iteration[refine_index-1, 1] > 0.0: 
+                resolution_start=res_iteration[refine_index-1, 1]
+            else:
+                res_iteration[refine_index-1, 1]=resolution_start
+    return mpi_utility.broadcast(resolution_start, **extra)
+
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup, setup_options_from_doc
@@ -403,6 +434,8 @@ def setup_options(parser, pgroup=None, main_option=False):
         bgroup.add_option("",   resolution_start=30.0,   help="Starting resolution for the refinement")
         bgroup.add_option("",   num_iterations=10,       help="Maximum number of iterations")
         bgroup.add_option("-a", alignment="",            help="Filename for the alignment parameters", gui=dict(filetype="open"), required_file=True)
+        bgroup.add_option("",   aggressive=False,        help="Use more aggresive autorefinement")
+        bgroup.add_option("",   fast=False,              help="Reconstruct smaller volumes")
         pgroup.add_option_group(bgroup)
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
@@ -445,6 +478,7 @@ def main():
                         nohup mpiexec -stdin none -n $nodes -machinefile machinefile %prog -c $PWD/$0 --use-MPI < /dev/null > `basename $0 cfg`log &
                         exit 0
                       ''',
+        supports_OMP=False,
         supports_MPI=True,
         use_version = True,
         max_filename_len = 78,
