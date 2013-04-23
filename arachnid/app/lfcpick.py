@@ -320,7 +320,7 @@ def lfc(img, template, mask):
         #cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
-def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, **extra):
+def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, fraction=1, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
@@ -347,7 +347,13 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     '''
     
     if ndimage_file is not None:
-        mic = ndimage_file.read_image(filename, cache=emdata)
+        count = ndimage_file.count_images(filename)
+        if count > 1 and fraction > 1:
+            mic = ndimage_file.read_image(filename, cache=emdata)
+            for i in xrange(1, min(fraction, count)):
+                mic += ndimage_file.read_image(filename, i, cache=emdata)
+        else:
+            mic = ndimage_file.read_image(filename, cache=emdata)
     else:
         assert(False)
         mic = image_reader.read_image(filename, emdata=emdata)
@@ -355,7 +361,7 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     if invert: mic = ndimage_utility.invert(mic)
     return mic
 
-def create_template(template, disk_mult=1.0, **extra):
+def create_template(template, disk_mult=1.0, disable_bin=False, **extra):
     ''' Read a template from a file or create a soft disk
     
     :Parameters:
@@ -375,9 +381,12 @@ def create_template(template, disk_mult=1.0, **extra):
     #mic = ndimage_file.read_image(template)
     if template != "": 
         if ndimage_file is not None:
-            return image_reader.read_image(template)
+            img= ndimage_file.read_image(template)
         else:
-            return image_reader.read_image(template)
+            img= image_reader.read_image(template)
+        bin_factor=extra['bin_factor']
+        if bin_factor > 1.0 and not disable_bin: img = eman2_utility.decimate(img, bin_factor)
+        return img
     radius, offset = init_param(**extra)[:2]
     template = eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
     if True:
@@ -557,6 +566,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   template="",         help="Optional predefined template", gui=dict(filetype="open"))
     group.add_option("",   disable_bin=False,   help="Disable micrograph decimation")
     group.add_option("",   invert=False,        help="Invert the contrast of CCD micrographs")
+    group.add_option("",   fraction=0,          help="Number of dose fractionated images to average")
+    
     
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
