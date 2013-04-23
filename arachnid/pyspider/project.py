@@ -169,12 +169,15 @@ from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility
 from ..core.app import program
 from ..app import autopick
-from ..util import crop #, mic_select
-import reference, defocus, align, refine, legion_to_spider
+from ..util import crop, relion_selection #, mic_select
+import reference, defocus, align, refine, legion_to_spider, autorefine, create_align
 import os, glob, logging, re
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+_cluster_modes=('pySPIDER', 'AutoRefine', 'Relion')
+_cluster_default=2
 
 def batch(files, output, leginon_filename="", leginon_offset=0, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
@@ -294,7 +297,7 @@ def write_config(modules, param, config_path, output, **extra):
         fout.close()
     return scripts
 
-def workflow(input_files, output, id_len, raw_reference, ext='dat', **extra):
+def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode=2, **extra):
     ''' Define the project workflow
     
     :Parameters:
@@ -330,6 +333,7 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', **extra):
         output_mic = os.path.join(sn_base, "mic", "mic_dec_"+"".zfill(id_len)+ext),
         stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+ext),
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
+        starfile = os.path.join(mn_base, 'data', 'data.star'),
     )
     
     if spider_utility.is_spider_filename(raw_reference):
@@ -343,7 +347,7 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', **extra):
                                run_type='SN',
                                )), 
                (defocus,  dict(input_files=input_files,
-                               output=param['defocus_file'],
+                               output=param['defocus_file']+'.'+data_ext,
                                run_type='HB',
                                supports_MPI=True,
                                #restart_file
@@ -360,6 +364,10 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', **extra):
                                supports_MPI=True,
                                #restart_file
                                )), 
+                ]
+    
+    if cluster_mode == 0:
+        modules.extend([
                (align,    dict(input_files=stk.sub('*', param['stacks']),
                                output = param['alignment'],
                                run_type='MN',
@@ -372,7 +380,31 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', **extra):
                                supports_MPI=True,
                                #selection_file
                                )),
-                ]
+        ])
+    elif cluster_mode == 1:
+        modules.extend([
+               (create_align,  dict(input_files=stk.sub('*', param['stacks']),
+                               output = param['alignment'],
+                               run_type='SN',
+                               supports_MPI=False,
+                               #selection_file
+                               )),
+               (autorefine,    dict(input_files=stk.sub('*', param['stacks']),
+                               output = param['alignment'],
+                               run_type='MN',
+                               supports_MPI=True,
+                               #selection_file
+                               )),
+        ])
+    else:
+        #
+        modules.extend([
+               (relion_selection, dict(input_files=stk.sub('*', param['stacks']),
+                               output = param['starfile'],
+                               run_type='SN',
+                               supports_MPI=False,
+                               )),
+        ])
     
     del extra['window_size']
     
@@ -494,7 +526,7 @@ def script_header(mpi_command="", **extra):
     
     if mpi_command == "": mpi_command = detect_MPI()
     description_map=dict( SN='''
-     %(prog)s -c $PWD/$0 > `basename $0 cfg`log
+     %(prog)s -c $PWD/$0 $@ > `basename $0 cfg`log
      exit $?
     ''',
     
@@ -608,6 +640,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     # Additional options to change
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
+    group.add_option("",    cluster_mode=_cluster_modes, help="Set the cluster mode", default=_cluster_default)
     group.add_option("",    window_size=0,          help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
     group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
