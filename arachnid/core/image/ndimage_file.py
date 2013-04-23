@@ -13,11 +13,12 @@ Supported formats:
 '''
 import logging, os
 from ..app import tracing
-from formats import spider, eman_format as spider_writer
+from formats import spider, eman_format as spider_writer, mrc
 from ..metadata import spider_utility, format_utility
 from ..parallel import process_tasks, process_queue, mpi_utility
 import scipy.io
 import numpy
+mrc;
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -43,7 +44,7 @@ def copy_local(filename, selection, local_file, **extra):
                  Local filename based on rank of node and process id
     '''
     
-    if mpi_utility.get_size(**extra) == 0: return filename
+    if mpi_utility.get_size(**extra) < 2: return filename
     
     local_file = mpi_utility.safe_tempfile(local_file, shmem=False, **extra)
     selection_file = format_utility.add_prefix(local_file, 'sel_')
@@ -52,11 +53,12 @@ def copy_local(filename, selection, local_file, **extra):
         if remote_select.shape[0]==selection.shape[0] and numpy.alltrue(remote_select==selection) and count_images(local_file) == selection.shape[0]: return local_file
     
     for i, img in enumerate(iter_images(filename, selection)):
+        _logger.debug("Caching: %s - %d@%s"%(str(selection[i]), i, local_file))
         write_image(local_file, img, i)
     numpy.savetxt(selection_file, selection, delimiter=",")
     return local_file
     
-def read_image_mat(filename, label, image_processor, shared=False, cache_file=None, **extra):
+def read_image_mat(filename, label, image_processor, shared=False, cache_file=None, force_mat=False, dtype=numpy.float, **extra):
     '''Create a matrix where each row is an image
     
     :Parameters:
@@ -86,32 +88,47 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
     img1 = read_image(filename, index)
     img = image_processor(img1, 0, **extra).ravel()
     
-    if cache_file is not None:
-        cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
-        cache_dat = format_utility.new_filename(cache_file, suffix="_read_data", ext=".bin")
-        if format_utility.os.path.exists(cache_file):
-            mat = scipy.io.loadmat(cache_file)
-            dtype = mat['dtype'][0]
-            if dtype[0] == '[': dtype = dtype[2:len(dtype)-2]
-            n = numpy.prod(mat['coo'])
-            if n == (img.shape[0]*label.shape[0]):
-                if shared:
-                    mat, shmem_mat = process_queue.create_global_dense_matrix( tuple(mat['coo']) )
-                    mat[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype))
-                    return shmem_mat
+    if force_mat:
+        if cache_file is not None:
+            cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
+            if format_utility.os.path.exists(cache_file):
+                data = scipy.io.loadmat(cache_file)['data']
+                return data
+    else:
+        if cache_file is not None:
+            cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
+            cache_dat = format_utility.new_filename(cache_file, suffix="_read_data", ext=".bin")
+            if format_utility.os.path.exists(cache_file):
+                _logger.info("Reading data matrix from %s"%cache_file)
+                mat = scipy.io.loadmat(cache_file)
+                dtype = mat['dtype'][0]
+                if dtype[0] == '[': dtype = dtype[2:len(dtype)-2]
+                n = numpy.prod(mat['coo'])
+                if n == (img.shape[0]*label.shape[0]):
+                    if shared:
+                        mat, shmem_mat = process_queue.create_global_dense_matrix( tuple(mat['coo']) )
+                        mat[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype))
+                        return shmem_mat
+                    else:
+                        return numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype)).reshape((len(label), img.shape[0]))
                 else:
-                    return numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype)).reshape((len(label), img.shape[0]))
+                    _logger.info("Data matrix does not match the input: %d != %d (%d*%d)"%(n, img.shape[0]*label.shape[0], img.shape[0], label.shape[0]))
     
     if shared:
+        assert(False)
         mat, shmem_mat = process_queue.create_global_dense_matrix( ( len(label), img.shape[0] )  )
     else:
-        mat = numpy.zeros((len(label), img.shape[0]))
+        mat = numpy.zeros((len(label), img.shape[0]), dtype=dtype)
         shmem_mat = mat
     for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, queue_limit=100, **extra):
         mat[row, :] = data.ravel()[:img.shape[0]]
-    if cache_file is not None:
-        scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=numpy.int), dtype=mat.dtype.name), oned_as='column', format='5')
-        mat.tofile(cache_dat)
+    if force_mat:
+        scipy.io.savemat(cache_file, dict(data=mat, label=label), oned_as='column', format='5')
+    else:
+        if cache_file is not None:
+            _logger.info("Caching image matrix")
+            scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=numpy.int), dtype=mat.dtype.name), oned_as='column', format='5')
+            mat.tofile(cache_dat)
     return shmem_mat
 
 def is_spider_format(filename):
@@ -151,7 +168,7 @@ def copy_to_spider(filename, tempfile, index=None):
     if is_spider_format(filename) and os.path.splitext(filename)[1] == os.path.splitext(tempfile)[1]: return filename
     
     img = read_image(filename, index)
-    spider_writer.write_image(tempfile, img)
+    spider_writer.write_spider_image(tempfile, img)
     #for index, img in enumerate(iter_images(filename)):
     #    spider_writer.write_image(tempfile, img, index)
     return tempfile
@@ -209,7 +226,11 @@ def read_image(filename, index=None, **extra):
           Array with header information in the file
     '''
     
-    filename = readlinkabs(filename)
+    try:
+        filename = readlinkabs(filename)
+    except:
+        _logger.error("Problem with: %s"%str(filename))
+        raise
     format = get_read_format_except(filename)
     return format.read_image(filename, index, **extra)
 
@@ -251,9 +272,13 @@ def iter_images(filename, index=None):
     '''
     
     if index is None and isinstance(filename, list):
-        for f in filename:
-            for img in iter_images(f):
-                yield img
+        if isinstance(filename[0], tuple):
+            for f, id in filename:
+                yield read_image(f, id-1)
+        else:
+            for f in filename:
+                for img in iter_images(f):
+                    yield img
         return
     elif index is not None and hasattr(index, 'ndim'):
         if hasattr(filename, 'find') and count_images(filename) == 1:
@@ -287,7 +312,9 @@ def iter_images(filename, index=None):
                     yield img
             '''
             return
-    
+        
+        
+    if index is not None and hasattr(index, '__iter__') and not hasattr(index, 'ndim'): index = numpy.asarray(index)
     format = get_read_format_except(filename)
     for img in format.iter_images(filename, index):
         yield img
@@ -410,7 +437,9 @@ def get_read_format_except(filename):
     
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     f = get_read_format(filename)
-    if f is not None: return f
+    if f is not None: 
+        #_logger.debug("Using format: %s"%str(f))
+        return f
     raise IOError, "Could not find format for %s"%filename
 
 def get_read_format(filename):
@@ -427,6 +456,10 @@ def get_read_format(filename):
             Read format for given file
     '''
     
+    try:
+        if mrc.is_readable(filename) and mrc.count_images(filename) > 1:
+            return mrc
+    except: pass
     for f in _formats:
         if f.is_readable(filename): return f
     return None
