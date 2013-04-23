@@ -8,11 +8,49 @@ This module provides a set a utility functions to handle spider files.
 
 from format_utility import split_id, object_id, fileid, has_file_id
 from type_utility import is_int
-from collections import namedtuple
-import re, os
+from collections import namedtuple, defaultdict
+import re, os, logging
 import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
+
+def single_images(files):
+    ''' Organize a set of files into groups of single images
+    
+    :Parameters:
+    
+    files : list
+            List of filenames of form: 40S_001_001.spi
+    
+    :Returns:
+    
+    groups : list
+             List of tuples {1: ['40S_001_001.spi' ...]}
+    '''
+    
+    groups = defaultdict(list)
+    for f in files:
+        id = spider_basename(f)
+        try:
+            if id[-1]=='-' or id[-1]=='_': id=id[:len(id)-1]
+            id = spider_id(id)
+            if id == 0 or isinstance(id, str):
+                id = spider_basename(f)
+                if id[-1]=='-' or id[-1]=='_': id=id[:len(id)-1]
+                id = id.replace('.', '0')
+                try:
+                    id = spider_id(id)
+                except: id=""
+                if isinstance(id, str):
+                    n=id.find('_')
+                    if n != -1: id = id[:n]
+                    id = spider_id(id)
+                    
+                
+        except: pass
+        groups[id].append(f)
+    return groups.items()
+    
 
 def select_subset(files, select, id_len=0):
     ''' Create a list of files based on the given selection
@@ -59,7 +97,11 @@ def update_spider_files(map, id, *files):
             if map[key].find('=') != -1:
                 map[key], header = map[key].split('=')
                 header = '='+header
-            map[key] = spider_filename(map[key], id)+header
+            try:
+                map[key] = spider_filename(map[key], id)+header
+            except:
+                logging.error("key=%s"%key)
+                raise
 
 def relion_filename(filename, id):
     '''Extract the filename and stack index
@@ -89,7 +131,7 @@ def relion_filename(filename, id):
         return pid+"@"+spider_filename(filename, id)
     return pid+"@"+filename
 
-def relion_file(filename):
+def relion_file(filename, file_only=False):
     '''Extract the filename and stack index
     
     This function extracts the spider ID as an integer.
@@ -112,6 +154,7 @@ def relion_file(filename):
     
     if filename.find('@') != -1:
         pid,mid = filename.split('@')
+        if file_only: return mid
         pid = int(pid)
         return (mid, pid)
     return filename
@@ -260,6 +303,9 @@ def is_spider_filename(filename):
     return_val : boolean 
                  True if filename conforms to Spider filename
     '''
+    try: int(filename)
+    except: pass
+    else: return True
     
     filename, ext = os.path.splitext(filename)
     return spider_id_length(filename) > 0
@@ -458,6 +504,26 @@ def spider_template(filename, template, idlen=0):
         filename = os.path.splitext(filename)[0]
     ext = os.path.splitext(template)[1]
     if idlen == 0: idlen = spider_id_length(os.path.splitext(template)[0])
+    filename+="0".zfill(idlen)
+    return filename + ext
+
+def add_spider_id(filename, idlen):
+    ''' Add an empty spider ID (all zeros) to the end of a filename
+    
+    :Parameters:
+    
+    filename : str
+               Path and base name for new SPIDER template
+    idlen : int
+            ID length to use
+    
+    :Returns:
+    
+    filename : str
+               New SPIDER template
+    '''
+    
+    filename, ext = os.path.splitext(filename)
     filename+="0".zfill(idlen)
     return filename + ext
     
