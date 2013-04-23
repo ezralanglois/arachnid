@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/dialogs/pyui/MontageViewer.ui'
 #
-# Created: Fri Jan  4 20:25:21 2013
+# Created: Sat Apr  6 15:21:52 2013
 #      by: PyQt4 UI code generator 4.8.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -108,18 +108,27 @@ class Ui_MainWindow(object):
         self.formLayout_3.setWidget(0, QtGui.QFormLayout.FieldRole, self.imageCountSpinBox)
         self.label = QtGui.QLabel(self.tab_2)
         self.label.setObjectName(_fromUtf8("label"))
-        self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.label)
+        self.formLayout_3.setWidget(2, QtGui.QFormLayout.LabelRole, self.label)
         self.decimateSpinBox = QtGui.QDoubleSpinBox(self.tab_2)
         self.decimateSpinBox.setMinimum(1.0)
         self.decimateSpinBox.setMaximum(16.0)
         self.decimateSpinBox.setObjectName(_fromUtf8("decimateSpinBox"))
-        self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.decimateSpinBox)
+        self.formLayout_3.setWidget(2, QtGui.QFormLayout.FieldRole, self.decimateSpinBox)
         self.loadImagesPushButton = QtGui.QPushButton(self.tab_2)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/mini/mini/arrow_rotate_clockwise.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.loadImagesPushButton.setIcon(icon)
         self.loadImagesPushButton.setObjectName(_fromUtf8("loadImagesPushButton"))
-        self.formLayout_3.setWidget(2, QtGui.QFormLayout.FieldRole, self.loadImagesPushButton)
+        self.formLayout_3.setWidget(3, QtGui.QFormLayout.FieldRole, self.loadImagesPushButton)
+        self.label_5 = QtGui.QLabel(self.tab_2)
+        self.label_5.setObjectName(_fromUtf8("label_5"))
+        self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.label_5)
+        self.clampDoubleSpinBox = QtGui.QDoubleSpinBox(self.tab_2)
+        self.clampDoubleSpinBox.setMinimum(1.0)
+        self.clampDoubleSpinBox.setSingleStep(1.0)
+        self.clampDoubleSpinBox.setProperty(_fromUtf8("value"), 5.0)
+        self.clampDoubleSpinBox.setObjectName(_fromUtf8("clampDoubleSpinBox"))
+        self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.clampDoubleSpinBox)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
         self.tab_3 = QtGui.QWidget()
         self.tab_3.setObjectName(_fromUtf8("tab_3"))
@@ -283,6 +292,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Count", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Decimate", None, QtGui.QApplication.UnicodeUTF8))
         self.loadImagesPushButton.setText(QtGui.QApplication.translate("MainWindow", "Reload", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_5.setText(QtGui.QApplication.translate("MainWindow", "Clamp", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Memory", None, QtGui.QApplication.UnicodeUTF8))
         self.selectAllButton.setText(QtGui.QApplication.translate("MainWindow", "Select All", None, QtGui.QApplication.UnicodeUTF8))
         self.unselectAllButton.setText(QtGui.QApplication.translate("MainWindow", "Unselect All", None, QtGui.QApplication.UnicodeUTF8))

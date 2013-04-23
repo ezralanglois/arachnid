@@ -194,14 +194,14 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0">
+                 <item row="2" column="0">
                   <widget class="QLabel" name="label">
                    <property name="text">
                     <string>Decimate</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="1">
+                 <item row="2" column="1">
                   <widget class="QDoubleSpinBox" name="decimateSpinBox">
                    <property name="minimum">
                     <double>1.000000000000000</double>
@@ -211,7 +211,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
+                 <item row="3" column="1">
                   <widget class="QPushButton" name="loadImagesPushButton">
                    <property name="text">
                     <string>Reload</string>
@@ -219,6 +219,26 @@
                    <property name="icon">
                     <iconset resource="../../icons/icons.qrc">
                      <normaloff>:/mini/mini/arrow_rotate_clockwise.png</normaloff>:/mini/mini/arrow_rotate_clockwise.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>Clamp</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="clampDoubleSpinBox">
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>5.000000000000000</double>
                    </property>
                   </widget>
                  </item>
