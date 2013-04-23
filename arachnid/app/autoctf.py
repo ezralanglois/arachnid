@@ -3,6 +3,8 @@
 .. Created on Jan 11, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+import matplotlib
+matplotlib.use('Agg')
 from ..core.app import program
 from ..core.util import plotting
 from ..core.metadata import spider_utility, format, format_utility, spider_params
@@ -171,7 +173,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, **extra):
     return fig
     #return plotting.save_as_image(fig)
 
-def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, from_power=False, cache_pow=False, pow_cache="", **extra):
+def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -206,10 +208,10 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
     if from_power: return mic
     if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
-    window_size /= bin_factor
+    #window_size /= bin_factor
     overlap_norm = 1.0 / (1.0-overlap)
     step = max(1, window_size*overlap_norm)
-    rwin = ndimage_utility.rolling_window(mic, (window_size, window_size), (step, step))
+    rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
     
     # select good windows
@@ -230,6 +232,7 @@ def initialize(files, param):
         _logger.info("Window size: %f"%param['window_size'])
         _logger.info("Pad: %f"%param['pad'])
         _logger.info("Overlap: %f"%param['overlap'])
+        _logger.info("Plotting disabled: %d"%plotting.is_plotting_disabled())
         if param['select'] != "":
             select = format.read(param['select'], numeric=True)
             files = spider_utility.select_subset(files, select)
@@ -318,6 +321,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", window_size=256, help="Size of the window for the power spec")
     group.add_option("", pad=2.0, help="Number of times to pad the power spec")
     group.add_option("", overlap=0.5, help="Amount of overlap between windows")
+    group.add_option("", offset=0, help="Offset from the edge of the micrograph")
     group.add_option("", from_power=False, help="Input is a powerspectra not a micrograph")
     group.add_option("", bg_window=21, help="Size of the background subtraction window")
     group.add_option("", cache_pow=False, help="Save 2D power spectra")
