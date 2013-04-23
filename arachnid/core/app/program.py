@@ -89,15 +89,19 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         main_module.main()
         return
     
-    mpi_utility.mpi_init(param, **param)
+    #mpi_utility.mpi_init(param, **param)
     if supports_OMP:
-        if openmp.get_max_threads() > 1:
+        if openmp.get_max_threads() > 0:
             _logger.info("Multi-threading with OpenMP - enabled")
         else:
-            _logger.info("Multi-threading with OpenMP - disabled")
-    if supports_OMP and openmp.get_max_threads() > 1:
+            if openmp.get_max_threads() >= 0:
+                _logger.info("Multi-threading with OpenMP - disabled - %d"%openmp.get_max_threads())
+            else:
+                _logger.info("Multi-threading with OpenMP - not compiled - %d"%openmp.get_max_threads())
+    if supports_OMP and openmp.get_max_threads() > 0:
         if param['thread_count'] > 0:
             openmp.set_thread_count(param['thread_count'])
+            _logger.info("Multi-threading with OpenMP - set thread count to %d"%openmp.get_max_threads())
         elif 'worker_count' in param and param['worker_count'] > 1:
             openmp.set_thread_count(0)
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
@@ -404,10 +408,9 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
         parser.error(inst.msg, options)
     
     param = vars(options)
-    rank = mpi_utility.get_rank(**param)
-    if rank == 0 and use_version: param['vercontrol'], param['opt_changed'] = parser.version_control(options)
+    mpi_utility.mpi_init(param, **param)
     _logger.removeHandler(_logger.handlers[0])
-    tracing.configure_logging(rank=rank, **param)
+    tracing.configure_logging(**param)
     for org in dependents:
         try:
             if hasattr(org, "organize"):
@@ -415,7 +418,8 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
         except:
             _logger.error("org: %s"%str(org.__class__.__name__))
             raise
-    param = vars(options)
+    #param = vars(options)
+    if param['rank'] == 0 and use_version: param['vercontrol'], param['opt_changed'] = parser.version_control(options)
     param['file_options'] = parser.collect_file_options()
     param['infile_deps'] = parser.collect_dependent_file_options(type='open')
     param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
@@ -462,6 +466,17 @@ def update_file_param(max_filename_len, warning, file_options, home_prefix=None,
             if home_prefix is None: _logger.warn("--local-temp not set - no file update")
             if home_prefix is None: _logger.warn("--local-temp does not exist - no file update")
         
+        if home_prefix is not None and home_prefix != "":
+            for opt in file_options:
+                if opt not in extra or len(extra[opt])==0: continue
+                if hasattr(extra[opt], 'append'):
+                    param[opt] = []
+                    for filename in extra[opt]:
+                        if not os.path.isabs(filename):
+                            filename = os.path.join(home_prefix, filename)
+                        param[opt].append(filename)
+                elif not os.path.isabs(extra[opt]):
+                    param[opt] = os.path.join(home_prefix, extra[opt])
         return param
     if home_prefix == "":
         home_prefix = os.path.commonprefix([extra[opt] for opt in file_options])
