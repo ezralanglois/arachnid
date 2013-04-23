@@ -11,8 +11,6 @@
     unstack
     filter_volume
     mask_volume
-    reconstruct
-    reconstruct3
     postprocess_volume
     estimate_resolution
     center_images
@@ -30,4 +28,12 @@
     relion_traceback
     box_micrograph
     transform_image
+    defocus_summary
+    tilt_coord_register
+    
+:mod:`arachnid.snippets.reconstruction`
+========================
+
+.. automodule:: arachnid.snippets.reconstruction
+
 '''
