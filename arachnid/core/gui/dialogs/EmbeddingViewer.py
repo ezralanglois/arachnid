@@ -15,7 +15,7 @@ except:
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
-import matplotlib.cm as cm
+import matplotlib.cm as cm, matplotlib.lines
 from matplotlib._png import read_png
 
 from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility
@@ -42,12 +42,25 @@ class MainWindow(QtGui.QMainWindow):
         self.header = []
         self.selected = None
         self.selectedImage = None
+        self.groups=None
+        self.highlight_index = 0
+        default_markers=['s', 'o', '^', '>', 'v', 'd', 'p', 'h', '8', '+', 'x']
+        self.markers=list(default_markers)
+        if 1 == 0:
+            default_markers=set(default_markers)
+    
+            
+            for m in matplotlib.lines.Line2D.markers:
+                try:
+                    if len(m) == 1 and m != ' ' and m not in default_markers:
+                        self.markers.append(m)
+                except TypeError:
+                    pass
         
-        
-        self.dpi = 100
-        self.fig = Figure((6.0, 4.0), dpi=self.dpi)
+        self.fig = Figure((6.0, 4.0), dpi=self.ui.dpiSpinBox.value()) #set_dpi
         self.ui.canvas = FigureCanvas(self.fig)
         self.ui.canvas.setParent(self.ui.centralwidget)
+        #self.connect(self.ui.dpiSpinBox, QtCore.SIGNAL('valueChanged(int)'), self.fig.set_dpi)
         
         self.axes = self.fig.add_subplot(111)
         self.ui.mpl_toolbar = NavigationToolbar(self.ui.canvas, self)
@@ -62,7 +75,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.subsetListModel = QtGui.QStandardItemModel()
         self.ui.subsetListView.setModel(self.subsetListModel)
-        self.connect(self.subsetListModel, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.drawPlot)
+        #self.connect(self.subsetListModel, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.drawPlot)
         self.ui.imageGroupBox.setEnabled(False)
         
         action = self.ui.dockWidget.toggleViewAction()
@@ -70,6 +83,37 @@ class MainWindow(QtGui.QMainWindow):
         icon8.addPixmap(QtGui.QPixmap(_fromUtf8(":/mini/mini/application_side_list.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         action.setIcon(icon8)
         self.ui.toolBar.addAction(action)
+    
+    
+    @QtCore.pyqtSlot(name='on_selectAllPushButton_clicked')
+    def selectAll(self):
+        '''
+        '''
+        
+        _logger.error("select")
+        for i in xrange(self.subsetListModel.rowCount()):
+            self.subsetListModel.item(i).setCheckState(QtCore.Qt.Checked)
+    
+    @QtCore.pyqtSlot(name='on_unselectAllPushButton_clicked')
+    def unselectAll(self):
+        '''
+        '''
+        
+        _logger.error("unselect")
+        for i in xrange(self.subsetListModel.rowCount()):
+            self.subsetListModel.item(i).setCheckState(QtCore.Qt.Unchecked)
+        
+    @QtCore.pyqtSlot('int', name='on_dpiSpinBox_valueChanged')
+    def onDPIChanged(self, val):
+        '''
+        '''
+        
+        dpi = self.fig.get_dpi()
+        w = self.fig.get_figwidth()
+        h = self.fig.get_figheight()
+        self.fig.set_size_inches(w*val/dpi, h*val/dpi)
+        print w, h, w*val/dpi, h*val/dpi
+        self.fig.set_dpi(val)
     
     @QtCore.pyqtSlot(name='on_actionPan_triggered')
     def onPanClicked(self):
@@ -147,7 +191,7 @@ class MainWindow(QtGui.QMainWindow):
         
         for filename in files:
             filename = str(filename)
-            if format.is_readable(filename):
+            if not ndimage_file.spider.is_readable(filename) and not ndimage_file.mrc.is_readable(filename) and  format.is_readable(filename):
                 self.coordinates_file = filename
             else:
                 self.stack_file = filename
@@ -178,11 +222,15 @@ class MainWindow(QtGui.QMainWindow):
         except: pass
         self.label = data[:, numpy.logical_not(ids)]
         self.data = data[:, ids]
+        _logger.error("%s -- %s"%(str(data[0, :3]), str(self.data[0, :3])))
         self.selected = numpy.ones(self.data.shape[0], dtype=numpy.bool)
         self.setWindowTitle(os.path.basename(filename))
         self.header = []
+        self.headermap={}
         for i in xrange(len(header)):
-            if ids[i]: self.header.append(header[i])
+            if ids[i]: 
+                self.headermap[header[i]]=len(self.header)
+                self.header.append(header[i])
         
         try:select = self.header.index('select')
         except: select = None
@@ -200,6 +248,8 @@ class MainWindow(QtGui.QMainWindow):
             if numpy.alltrue(self.data[:, i]==self.data[:, i].astype(numpy.int)):
                 subset.append(self.header[i])
         updateComboBox(self.ui.subsetComboBox, subset, 'None')
+        updateComboBox(self.ui.selectGroupComboBox, subset, 'None')
+        self.ui.selectGroupComboBox.setEnabled(False)
         
         self.clear()
         self.drawPlot()
@@ -211,6 +261,18 @@ class MainWindow(QtGui.QMainWindow):
         clearImages(self.axes)
         self.selectedImage = None
     
+    @QtCore.pyqtSlot('int', name='on_selectGroupComboBox_currentIndexChanged')
+    def onSelectGroupChanged(self, index):
+        ''' Called when the user wants to highlight only a subset of the data
+        
+        :Parameters:
+        
+        index : int
+                New index in the subset combobox
+        '''
+        
+        self.highlight_index = int(index)
+        
     @QtCore.pyqtSlot('int', name='on_subsetComboBox_currentIndexChanged')
     def onSubsetValueChanged(self, index):
         ''' Called when the user wants to plot only a subset of the data
@@ -230,11 +292,13 @@ class MainWindow(QtGui.QMainWindow):
             item.setCheckState(QtCore.Qt.Checked)
             item.setCheckable(True)
             self.subsetListModel.appendRow(item)
-        self.drawPlot()
+        #self.drawPlot()
     
-    @QtCore.pyqtSlot('int', name='on_xComboBox_currentIndexChanged')
-    @QtCore.pyqtSlot('int', name='on_yComboBox_currentIndexChanged')
-    @QtCore.pyqtSlot('int', name='on_colorComboBox_currentIndexChanged')
+    
+    @QtCore.pyqtSlot(name='on_updatePushButton_clicked')
+    #@QtCore.pyqtSlot('int', name='on_xComboBox_currentIndexChanged')
+    #@QtCore.pyqtSlot('int', name='on_yComboBox_currentIndexChanged')
+    #@QtCore.pyqtSlot('int', name='on_colorComboBox_currentIndexChanged')
     def drawPlot(self, index=None):
         ''' Draw a scatter plot
         '''
@@ -245,6 +309,10 @@ class MainWindow(QtGui.QMainWindow):
         c = self.ui.colorComboBox.currentIndex()
         s = self.ui.subsetComboBox.currentIndex()
         if s > 0:
+            _logger.error("subset: %d"%s)
+            s = self.headermap[str(self.ui.subsetComboBox.currentText())]
+            _logger.error("data: %s"%(str(self.data[0, s])))
+            _logger.error("data: %s"%(str(self.data[0, :3])))
             if index is not None and hasattr(index, 'text'):
                 self.clear()
                 sval = float(index.text())
@@ -252,6 +320,18 @@ class MainWindow(QtGui.QMainWindow):
                     self.selected = numpy.logical_or(self.selected, self.data[:, s-1]==sval)
                 else:
                     self.selected = numpy.logical_and(self.selected, self.data[:, s-1]!=sval)
+            else:
+                _logger.error("subset2b: %d"%s)
+                for i in xrange(self.subsetListModel.rowCount()):
+                    sval = float(self.subsetListModel.item(i).text())
+                    if i == 1:
+                        _logger.error("%d: %f -> %d -- sum: %d -- %s"%(i, sval, self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked, numpy.sum(self.data[:, s-1]==sval), str(self.data[:5, s])))
+                    if self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked:
+                        self.selected = numpy.logical_or(self.selected, self.data[:, s]==sval)
+                    else:
+                        self.selected[self.data[:, s]==sval]=0# = numpy.logical_and(self.selected, self.data[:, s-1]!=sval)
+                _logger.error("selected: %d"%numpy.sum(self.selected))
+                    
         data = self.data[self.selected]
         if len(data) > 0:
             color = 'r'
@@ -261,12 +341,26 @@ class MainWindow(QtGui.QMainWindow):
                 if color.max() != color.min():
                     color -= color.min()
                     color /= color.max()
-                    cmap = cm.cool
-                else: color = 'r'
-            self.axes.scatter(data[:, x], data[:, y], marker='.', cmap=cmap, c=color, picker=5)
+                    #cmap = cm.gist_rainbow #cm.cool
+                    cmap = cm.jet #cm.cool #cm.winter
+                    groups = numpy.unique(color)
+                    if len(groups) < len(self.markers):
+                        self.groups=[]
+                        for i, g in enumerate(groups):
+                            sel = g==color
+                            self.groups.append(numpy.argwhere(sel))
+                            self.axes.scatter(data[sel, x], data[sel, y], c=cmap(g), picker=5, s=10, marker=self.markers[i], edgecolor = 'face')
+                    else:
+                        self.groups=None
+                        self.axes.scatter(data[:, x], data[:, y], marker='o', cmap=cmap, c=color, picker=5, s=10, edgecolor = 'face')
+                    
+                else: 
+                    self.groups=None
+                    color = 'r'
+                    self.axes.scatter(data[:, x], data[:, y], marker='.', cmap=cmap, c=color, picker=5, s=10, edgecolor = 'face')
         self.ui.canvas.draw()
         self.drawImages()
-        
+    
     def displayImage(self, event):
         ''' Event invoked when user selects a data point
         
@@ -279,17 +373,35 @@ class MainWindow(QtGui.QMainWindow):
         if len(event.ind) > 0:
             xc = self.ui.xComboBox.currentIndex()
             yc = self.ui.yComboBox.currentIndex()
+            
+            #thisline = event.artist
+            #xdata = thisline.get_xdata()
+            #ydata = thisline.get_ydata()
+            
             x = event.mouseevent.xdata
             y = event.mouseevent.ydata
-            ds = numpy.hypot(x-self.data[event.ind, xc], y-self.data[event.ind, yc]) # if data.shape[1] == 2 else numpy.hypot(x-data[event.ind, 0], y-data[event.ind, 1], z-data[event.ind, 2])
-            self.selectedImage = event.ind[ds.argmin()]
+            #dx = self.data[event.ind, xc] if self.groups is None else self.data[event.ind, xc]
+            if self.groups is not None and len(self.groups) > 0:
+                
+                min_val = (1e20, None)
+                for group in self.groups:
+                    ind = numpy.asarray([i for i in event.ind if i < len(group)], dtype=numpy.int)
+                    if len(ind) == 0: continue
+                    ds = numpy.hypot(x-self.data[group[ind], xc], y-self.data[group[ind], yc])
+                    if ds.min() < min_val[0]: min_val = (ds.min(), group[ind[ds.argmin()]])
+                self.selectedImage = min_val[1]
+            else:
+                ds = numpy.hypot(x-self.data[event.ind, xc], y-self.data[event.ind, yc]) # if data.shape[1] == 2 else numpy.hypot(x-data[event.ind, 0], y-data[event.ind, 1], z-data[event.ind, 2])
+                #ds = numpy.hypot(x-xdata[event.ind], y-ydata[event.ind])
+                self.selectedImage = event.ind[ds.argmin()]
             self.drawImages()
     
     @QtCore.pyqtSlot('int', name='on_keepSelectedCheckBox_stateChanged')
     def onKeepImageMode(self, state):
         '''
         '''
-
+        
+        self.ui.selectGroupComboBox.setEnabled(state == QtCore.Qt.Checked)
         self.clear()
         self.drawImages()
     
@@ -312,8 +424,12 @@ class MainWindow(QtGui.QMainWindow):
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         radius = self.ui.imageSepSpinBox.value()
         if self.ui.keepSelectedCheckBox.checkState() == QtCore.Qt.Checked:
+            _logger.error("Image selected and kept: %d == %d"%(numpy.sum(self.selected), len(self.data)))
             if self.selectedImage is not None:
                 idx = self.selectedImage
+                try:
+                    if len(idx)==1: idx=idx[0]
+                except:pass
                 data = self.data[self.selected]
                 data = data[:, (x,y)]
                 label = self.label[self.selected]
@@ -333,7 +449,62 @@ class MainWindow(QtGui.QMainWindow):
                         im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
                         ab = AnnotationBbox(im, data[idx], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
                         self.axes.add_artist(ab)
-                self.axes.plot(data[idx, 0], data[idx, 1], 'o', ms=12, alpha=0.4, color='yellow', visible=True)
+                    print "idx: ", idx
+                    if 1 == 1:
+                        if not hasattr(self, 'plot_count'): self.plot_count = 0
+                        import pylab, scipy, scipy.stats
+                        pylab.figure(self.plot_count)
+                        #off = img.shape[0]/2
+                        #img = img.ravel()[:len(img.ravel())-len(img.ravel())%off]
+                        #img = img.reshape((len(img.ravel())/off, off))
+                        
+                        rimg=ndimage_utility.rolling_window(img, (5,5), (2,2))
+                        rimg = rimg.reshape((rimg.shape[0]*rimg.shape[1], rimg.shape[2]*rimg.shape[3]))
+                        print rimg.shape
+                        #ccp=numpy.corrcoef(rimg)
+                        #pylab.imshow(ccp, cm.jet)
+                        if 1 == 1:
+                            #self.plot_count += 1
+                            #pylab.figure(self.plot_count)
+                            d, V = scipy.linalg.svd(rimg, False)[1:]
+                            val = d[:2]*numpy.dot(V[:2], rimg.T).T
+                            pylab.hist(val[:, 0], int(numpy.sqrt(len(val))))
+                            #print scipy.stats.shapiro(val[:, 0])
+                            print scipy.stats.normaltest(img.ravel())
+                        if 1 == 0:
+                            ccp = numpy.corrcoef(img)-numpy.corrcoef(img.T)
+                            pylab.imshow(ccp, cm.jet)
+                            
+                            if 1 == 0:
+                                self.plot_count += 1
+                                pylab.figure(self.plot_count)
+                                d, V = scipy.linalg.svd(img, False)[1:]
+                                val = d[:2]*numpy.dot(V[:2], img.T).T
+                                pylab.hist(val[:, 0], int(numpy.sqrt(len(val))))
+                            if 1 == 0:
+                                self.plot_count += 1
+                                pylab.figure(self.plot_count)
+                                out = numpy.zeros(len(label))
+                                for i, img in enumerate(iter_images(self.stack_file, label)):
+                                    d, V = scipy.linalg.svd(img, False)[1:]
+                                    #val = d[:2]*numpy.dot(V[:2], img.T).T
+                                    val = d[:2]*numpy.dot(V[:2], img).T
+                                    out[i] = numpy.max(val[:, 0])
+                                pylab.hist(out, int(numpy.sqrt(len(out))))
+                        
+                        pylab.show()
+                        self.plot_count += 1
+                #self.axes.plot(data[idx, 0], data[idx, 1], 'o', ms=12, alpha=0.4, color='yellow', visible=True)
+                self.axes.scatter(data[idx, 0], data[idx, 1], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
+                if self.highlight_index > 0:
+                    scol = self.headermap[str(self.ui.selectGroupComboBox.currentText())]
+                    print 'scol: ', scol, self.data[0, :5], self.highlight_index-1, self.header, self.ui.selectGroupComboBox.currentText()
+                    #scol = self.highlight_index-1
+                    hindex = numpy.argwhere(self.data[:, scol] == self.data[idx, scol]).squeeze()
+                    print "hindex:", hindex.shape, self.data[idx, scol]
+                    for h in hindex:
+                        self.axes.scatter(self.data[h, x], self.data[h, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
+                            
         else:
             clearImages(self.axes)
             n = self.ui.imageCountSpinBox.value()
@@ -351,10 +522,12 @@ class MainWindow(QtGui.QMainWindow):
                     im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
                     ab = AnnotationBbox(im, data[idx], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
                     self.axes.add_artist(ab)
-                self.axes.plot(data[idx, 0], data[idx, 1], 'o', ms=12, alpha=0.4, color='yellow', visible=True)
+                #self.axes.plot(data[idx, 0], data[idx, 1], 'o', ms=12, alpha=0.4, color='yellow', visible=True)
+                self.axes.scatter(data[idx, 0], data[idx, 1], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
             else:
                 index = plot_random_sample_of_images(self.axes, self.stack_file, self.label, self.data[:, (x,y)], self.selected, radius, n, zoom, idx)
-                self.axes.plot(self.data[index, x], self.data[index, y], 'o', ms=12, alpha=0.4, color='yellow', visible=True)
+                #self.axes.plot(self.data[index, x], self.data[index, y], 'o', ms=12, alpha=0.4, color='yellow', visible=True)
+                self.axes.scatter(self.data[index, x], self.data[index, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
         self.ui.canvas.draw()
         
 def iter_images(filename, index):
@@ -373,23 +546,33 @@ def iter_images(filename, index):
           Image array
     '''
     
-    try: read_png(filename)
-    except:
+    if 1 == 1:
         for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, index)):
             yield img
     else:
-        if hasattr(index, 'ndim') and index.ndim == 1:
-            for i in xrange(len(index)):
-                yield read_png(spider_utility.spider_filename(filename, int(index[i])))
-        else:
+        try: read_png(filename)
+        except:
             for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, index)):
                 yield img
+        else:
+            if hasattr(index, 'ndim') and index.ndim == 1:
+                for i in xrange(len(index)):
+                    yield read_png(spider_utility.spider_filename(filename, int(index[i])))
+            else:
+                for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, index)):
+                    yield img
 
 def clearImages(ax):
     '''
     '''
     
-    del ax.lines[:]
+    #del ax.lines[:]
+    i=0
+    while i < len(ax.collections):
+        obj = ax.collections[i]
+        if hasattr(obj, 'get_sizes') and len(obj.get_sizes()) > 0 and obj.get_sizes()[0]==45:
+            ax.collections.remove(obj)
+        else: i+=1
     i=0
     while i < len(ax.artists):
         obj = ax.artists[i]
