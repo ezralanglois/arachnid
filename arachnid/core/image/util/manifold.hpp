@@ -14,15 +14,23 @@ inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE tran
 template<class T>
 void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n3, int m3, double alpha, double beta)
 {
-	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, T(alpha), samp1, m1, samp2, m1, T(beta), distm, n2);
+	//x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans,      n1, n2, m1, T(alpha), samp1, m1, samp2, m1, T(beta), distm, n2);
+	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, T(alpha), samp1, m1, samp2, m2, T(beta), distm, m3);
 }
 #endif
+/*
+ * inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE transa, const enum CBLAS_TRANSPOSE transb, const int m, const int n, const int k, const double alpha, const double* A, const int lda, const double* B, const int ldb, const double beta, double* C, const int ldc)
+{
+	cblas_dgemm(order, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+}
+			x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, batchr, batchc, cn, alpha, samp+br*m, cn, samp+bc*m, cn, beta, pdist, batchc);
+ */
 
 template<class I, class T>
 I knn_reduce_eps_cmp(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, T* cdata, size_type cnd, float eps)
 {
 	I j=0;
-	for(size_type r=0;r<snr;++r)
+	for(size_type r=0;r<cnd;++r)
 	{
 		//if( r < 20 ) fprintf(stderr, "data[%d]=%f < %f\n", r, data[r], eps);
 		if( cdata[r] < eps )
@@ -41,7 +49,7 @@ template<class I, class T>
 I knn_reduce_eps(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, float eps)
 {
 	I j=0;
-	for(size_type r=0;r<snr;++r)
+	for(size_type r=0;r<nd;++r)
 	{
 		//if( r < 20 ) fprintf(stderr, "data[%d]=%f < %f\n", r, data[r], eps);
 		if( data[r] < eps )
@@ -58,17 +66,18 @@ I knn_reduce_eps(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, si
 template<class I, class T>
 void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int d, int k)
 {
-	if( snr > 0 && nd > 0 )
+	/*if( snr > 0 && nd > 0 )
 	{
 		sdata[0]=data[0];
 		scol_ind[0]=col_ind[0];
 		srow_ind[0]=row_ind[0];
 	}
 	size_type j=1;
-	for(size_type r=1;r<snr;++r,++j)
+	for(size_type r=1;r<snr;++r,++j)*/
+	size_type j=0;
+	for(size_type r=0;r<snr;++j)
 	{
 		assert(r<snd);
-		if( (r%k)==0 ) j+=size_type(d);
 		if(j>=nd)
 			{
 			fprintf(stderr, "big error\n");
@@ -78,6 +87,8 @@ void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, siz
 		sdata[r]=data[j];
 		scol_ind[r]=col_ind[j];
 		srow_ind[r]=row_ind[j];
+		++r;
+		if( (r%k)==0 ) j+=size_type(d);
 	}
 	assert(j==nd);
 }
@@ -95,30 +106,25 @@ I knn_mutual(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_t
 	I j=0;
 	for(size_type r=0;r<nr;++r)
 	{
-		if( long(col_ind[r]) > long(row_ind[r]) )
+		if( col_ind[r] > row_ind[r] ) // Test if mutual exists
 		{
 			I c = col_ind[r];
-			if( long(c) < 0 ) c = I(-c);
+			assert(c>0);
+			//if (c < 0) fprintf(stderr, "bug in c\n");
+			//if( c < 0 ) c = I(-c);
 			I* mc = find_mutual(col_ind+c*k, col_ind+(c+1)*k, row_ind[r]);
-			/*if( r < 50 )
-			{
-				fprintf(stderr, "%d (%d): ", row_ind[r], c);
-				for(I* beg1 = col_ind+c*k, *end1=col_ind+(c+1)*k;beg1 != end1;++beg1)
-					fprintf(stderr, "%d, ", *beg1);
-				fprintf(stderr, " -- %d\n", mc != 0);
-			}*/
 			if( mc != 0 )
 			{
 				(*mc) = -((*mc)+1);
 				data[j] = data[r];
 				col_ind[j] = col_ind[r];
 				row_ind[j] = row_ind[r];
-				++j;
+				j++;
 			}
 		}
-		else if( long(col_ind[r]) < long(row_ind[r]) )
+		else if( col_ind[r] < row_ind[r] ) // Test if mutual already found
 		{
-			if( long(col_ind[r]) < 0 )
+			if( col_ind[r] < 0 )
 			{
 				data[j] = data[r];
 				col_ind[j] = -(col_ind[r]+1);
@@ -134,6 +140,46 @@ I knn_mutual(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_t
 			j++;
 		}
 
+	}
+	return j;
+}
+
+template<class I, class T>
+I knn_mutual_alt(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, int k)
+{
+	I j=0;
+	for(size_type r=0;r<nr;++r)
+	{
+		if( col_ind[r] > row_ind[r] ) // Test if mutual exists
+		{
+			I c = col_ind[r];
+			I* mc = find_mutual(col_ind+c*k, col_ind+(c+1)*k, row_ind[r]);
+			if( mc != 0 )
+			{
+				data[j] = data[r];
+				col_ind[j] = col_ind[r];
+				row_ind[j] = row_ind[r];
+				++j;
+			}
+		}
+		else if( col_ind[r] == row_ind[r] ) // Test if mutual already found
+		{
+			data[j] = 0.0;
+			col_ind[j] = col_ind[r];
+			row_ind[j] = row_ind[r];
+			j++;
+		}
+	}
+	//remove?
+	for(size_type r=0, nr=j;r<nr;++r)
+	{
+		if( col_ind[r] != row_ind[r] )
+		{
+			data[j] = data[r];
+			col_ind[j] = col_ind[r];
+			row_ind[j] = row_ind[r];
+			++j;
+		}
 	}
 	return j;
 }
@@ -171,9 +217,16 @@ void push_to_heap(T* dist2, size_type n, size_type m, T* data, size_type nd, I* 
 		//fprintf(stderr, "r: %d | data: %p - col: %p - hbeg: %p - dist2: %p\n", r, data_rk, col_rk, &(*hbeg), dist2);
 		size_type c=0;
 		//fprintf(stderr, "here-1 %ld -- %ld, %ld < %ld -- %ld, %ld < %ld\n", r, rm, rk, n*m1, k, offset, std::distance(hcur, hend));
-		for(size_type l=std::min(k, offset);c<l;++c, ++hcur) *hcur = index_dist(data_rk[c], col_rk[c]);
+		for(size_type l=std::min(k, offset);c<l;++c, ++hcur)
+		{
+			*hcur = index_dist(data_rk[c], col_rk[c]);
+		}
+		c=0;
 		assert(hcur<=hend);
-		for(;hcur != hend && c<m1;++c, ++hcur) *hcur = index_dist(dist2[rm+c], offset+c);
+		for(;hcur != hend && c<m1;++c, ++hcur)
+		{
+			*hcur = index_dist(dist2[rm+c], offset+c);
+		}
 		assert(c==m || hcur == hend);
 		if( hcur == hend ) std::make_heap(hbeg, hend);
 		//fprintf(stderr, "here-2 %d\n", r);
@@ -305,7 +358,7 @@ void self_tuning_gaussian_kernel_csr(T* sdist, size_type ns, T* data, size_type 
 	{
 		ndist[i] = 0;
 	}
-	for(size_type i=0;i<nr;i++)
+	for(size_type i=0;i<nc;i++)
 	{
 		if ( ndist[col_ind[i]] < data[i] )
 			ndist[col_ind[i]] = data[i];
@@ -327,9 +380,11 @@ void self_tuning_gaussian_kernel_csr(T* sdist, size_type ns, T* data, size_type 
 	for(size_type i=0;i<nc;i++)
 	{
 		double den = 1.0;
-		den *= std::sqrt(double(ndist[row_ind[i]]));
-		den *= std::sqrt(double(ndist[col_ind[i]]));
-		if( den != 0.0 ) sdist[i] = std::exp( -data[i] / T(den+1e-12) );
+		double val = double(ndist[row_ind[i]]);
+		if(val != 0) den *= std::sqrt(val);
+		val = double(ndist[col_ind[i]]);
+		if(val != 0) den *= std::sqrt(val);
+		if( den != 0.0 ) sdist[i] = std::exp( -data[i] / T(den) );//+1e-12
 		else sdist[i] = std::exp( -data[i] );
 	}
 	delete[] ndist;
@@ -348,7 +403,7 @@ void normalize_csr(T* sdist, size_type ns, T* data, size_type nd, I* col_ind, si
 	{
 		ndist[i] = 0;
 	}
-	for(size_type i=0;i<nr;i++)
+	for(size_type i=0;i<nc;i++)
 	{
 		ndist[col_ind[i]] += data[i];
 	}
@@ -357,7 +412,8 @@ void normalize_csr(T* sdist, size_type ns, T* data, size_type nd, I* col_ind, si
 #	endif
 	for(size_type i=0;i<nr;i++)
 	{
-		ndist[i] = T(1.0) / (ndist[i]+1e-12);
+		if(ndist[i] == 0) ndist[i]=1.0;
+		else ndist[i] = T(1.0) / ndist[i];//(ndist[i]+1e-12);
 	}
 	I* row_ind = new I[nc];
 #	ifdef _OPENMP

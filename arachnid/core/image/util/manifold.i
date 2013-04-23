@@ -106,9 +106,9 @@ INSTANTIATE_ALL_DATA(f_name, short)
 INSTANTIATE_ALL_DATA(f_name, int)
 INSTANTIATE_ALL_DATA(f_name, long)
 INSTANTIATE_ALL_DATA(f_name, long long)
-INSTANTIATE_ALL_DATA(f_name, unsigned int)
-INSTANTIATE_ALL_DATA(f_name, unsigned long)
-INSTANTIATE_ALL_DATA(f_name, unsigned long long)
+//INSTANTIATE_ALL_DATA(f_name, unsigned int)
+//INSTANTIATE_ALL_DATA(f_name, unsigned long)
+//INSTANTIATE_ALL_DATA(f_name, unsigned long long)
 %enddef
 
 %define INSTANTIATE_DATA( f_name )
