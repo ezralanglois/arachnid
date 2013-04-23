@@ -143,6 +143,7 @@ def create_alignment(files, sort_align=False, random_subset=0, min_defocus=0, ma
     label = create_stack_label(files, **extra)
     defocus_file = read_defocus_file(**extra)
     label = select_subset(files, label, **extra)
+    _logger.info("Selecting %d projections in alignment file"%len(label))
     align = numpy.zeros((len(label), 18))
     align[:, 4] = label[:, 0]
     align[:, 15] = label[:, 1]
@@ -181,7 +182,17 @@ def select_subset(files, label, select_file, select_header="", **extra):
     if select_file == "": return label
     if spider_utility.is_spider_filename(select_file):
         _logger.info("Assuming projection selection file: --select-file %s"%select_file)
-        mics = numpy.unique(label[:, 1]).type(numpy.int)
+        mics = numpy.unique(label[:, 1]).astype(numpy.int)
+        index=0
+        for m in mics:
+            try:
+                sel = format.read(select_file, spiderid=m, header=select_header, numeric=True)
+            except: continue
+            label[index:index+len(sel), 1] = m
+            label[index:index+len(sel), 2] = [s.id for s in sel]
+            index+=len(sel)
+        label=label[:index]
+        '''
         select = {}
         for m in mics:
             try: sel = format.read(select_file, spiderid=m, header=select_header, numeric=True)
@@ -195,6 +206,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
                 label[k]=label[i]
                 k+=1
         label = label[:k]
+        '''
     elif len(files) == 1:
         _logger.info("Assuming micrograph selection file: --select-file %s"%select_file)
         select = format.read(select_file, header=select_header, numeric=True)

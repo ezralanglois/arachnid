@@ -319,7 +319,7 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     prev = align[curr_slice, :3].copy() if numpy.any(align[curr_slice, 1]>0) else None
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
-    if use_small_angle_alignment(spi, align[curr_slice], **extra):
+    if use_small_angle_alignment(spi, align[curr_slice], **extra) and 1 == 0:
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
         if shuffle_angles:
@@ -338,6 +338,7 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
             if mpi_utility.is_root(**extra): _logger.info("Small angle alignment on raw stacks - finished")
     else:
         #angle_set, angle_num = spider.angle_split(spi, max_ref_proj, outputfile=angle_cache, **extra)
+        assert(extra['theta_delta']>0)
         angle_doc, angle_num = spi.vo_ea(outputfile=angle_cache, **extra)
         if shuffle_angles:
             psi, theta, phi = numpy.random.random_integers(low=0, high=360, size=3)
@@ -359,9 +360,9 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     align[curr_slice, 12:14] *= extra['apix']
     if prev is not None:
         align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
-    if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - started")
-    mpi_utility.gather_array(align, align[curr_slice], **extra)
-    if mpi_utility.is_root(**extra): _logger.info("Garther alignment to root - finished")
+    if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - started: %d"%mpi_utility.get_rank(**extra))
+    mpi_utility.gather_all(align, align[curr_slice], **extra)
+    if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - finished: %d"%mpi_utility.get_rank(**extra))
 
 def align_projections_sm(spi, ap_sel, align, reference, angle_doc, angle_num, offset=0, cache_file=None, input_stack=None, reference_stack=None, **extra):
     ''' Align a set of projections to the given reference by reprojecting only a partial volume
@@ -507,6 +508,7 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
         format.write(spi.replace_ext(angle_doc), angles[angle_rng[i-1]:angle_rng[i], 1:], format=format.spiderdoc, header="psi,theta,phi".split(','))
         _logger.debug("Generating reference projections: %d-%d"%(i, angle_rng.shape[0]))
         spi.pj_3q(reference, angle_doc, (1, angle_num), outputfile=reference_stack, **extra)
+        # gather all
         _logger.debug("Aligning particle projections")
         #spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
@@ -545,8 +547,16 @@ def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra
     '''
     
     if angle_range > 0 and angle_range < theta_end:
-        full_count = spider.angle_count(theta_end=theta_end, **extra)
-        part_count = spider.angle_count(theta_end=angle_range, **extra)*len(curr_slice)
+        try:
+            full_count = spider.angle_count(theta_end=theta_end, **extra)
+        except:
+            _logger.error("theta_end=%f, %f, %f"%(extra['theta_start'], theta_end, extra['theta_delta'])) #theta_start, theta_end+1, theta_delta
+            raise
+        try:
+            part_count = spider.angle_count(theta_end=angle_range, **extra)*len(curr_slice)
+        except:
+            _logger.error("theta_end2=%f"%angle_range)
+            raise
         return part_count < full_count
     return False
 

@@ -108,7 +108,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, **extra):
+def process(filename, output, id_len=0, subset=None, **extra):
     '''Concatenate files and write to a single output file
     
     :Parameters:
@@ -130,8 +130,11 @@ def process(filename, output, id_len=0, **extra):
              List of peaks and coordinates
     '''
     
-    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'good_output', 'good')
+    id = spider_utility.spider_id(filename, id_len)
+    spider_utility.update_spider_files(extra, id, 'good_coords', 'good_output', 'good')
     coords = format.read(filename, numeric=True)
+    if subset is not None:
+        coords = coords[subset[id]]
     confusion = benchmark(coords, filename, **extra)
     return filename, confusion
 
@@ -302,6 +305,14 @@ def initialize(files, param):
         if not os.path.exists(os.path.dirname(param['output'])):
             os.makedirs(os.path.dirname(param['output']))
         _logger.info("Pixel radius: %d"%param['pixel_radius'])
+    
+    if param['select'] != "":
+        select = format.read(param['select'], numeric=True)
+        if format_utility.has_file_id(select):
+            param['subset'] = format_utility.map_file_list(select)
+            for key in param['subset'].iterkeys():
+                param['subset'][key] = numpy.asarray([v.select for v in param['subset'][key]], dtype=numpy.int)
+        else: raise ValueError, "selection not implemented for non-fileid lists"
 
 def reduce_all(val, confusion, file_index, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -340,6 +351,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-r", pixel_radius=0, help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, --param-file)")
+        pgroup.add_option("-s",   select="",    help="Selection file for input particles/micrographs", gui=dict(filetype="open"))
 
 def check_options(options, main_option=False):
     #Check if the option values are valid

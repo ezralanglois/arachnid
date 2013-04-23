@@ -222,7 +222,7 @@ def effective_resolution(theta_delta, apix, pixel_diameter, **extra):
     
     return numpy.tan(numpy.deg2rad(theta_delta/2))*apix*pixel_diameter
     
-def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
+def recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, **extra):
     ''' Recover the volume from the last refinement if it does not exist
     
     :Parameters:
@@ -261,10 +261,87 @@ def recover_volume(spi, alignvals, curr_slice, refine_index, output, **extra):
                 format_utility.add_prefix(output, 'raw2')
             ]
         if mpi_utility.is_root(**extra): 
-            res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
-            _logger.info("Refinement finished: %d. %f"%(refine_index, res))
+            resolution_start = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+            _logger.info("Refinement finished: %d. %f"%(refine_index, resolution_start))
         mpi_utility.barrier(**extra)
-    return output_volume
+    resolution_start = mpi_utility.broadcast(resolution_start, **extra)
+    return output_volume, resolution_start
+
+def refinement_step_gs(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, **extra):
+    ''' Perform a single step of refinement
+    
+    .. todo:: undecimate before reconstruct
+    
+    :Parameters:
+    
+    spi : spider.Session
+          Current SPIDER session
+    alignvals : array
+                Array of alignment parameters
+    curr_slice : slice
+                 Slice of align or selection arrays on current node
+    output : str
+             Output filename for alignment file
+    output_volume : str
+                    Output filename for reconstruct reference used in the next round
+    refine_index : int
+                   Current refinement index
+    keep_reference : bool
+                     Keep the initial reference for each round of refinement
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    resolution : float
+                 Resolution of the current reconstruction (only for root node)
+    '''
+    
+    #
+    
+    if refine_index > 0 and not keep_reference: 
+        extra['reference'] = spider_utility.spider_filename(output_volume, refine_index)
+        spi.iq_sync(extra['reference'])
+    
+    tmp_align = format_utility.add_prefix(extra['cache_file'], "prvalgn_")
+    output = spider_utility.spider_filename(output, refine_index+1) 
+    output_volume = spider_utility.spider_filename(output_volume, refine_index+1)
+    
+    h1_slice, h2_slice = halfset_slice(curr_slice, len(alignvals))
+    spider.release_mp(spi, **extra)
+    align.align_to_reference(spi, alignvals, h1_slice, inputangles=tmp_align, **extra)
+    align.align_to_reference(spi, alignvals, h2_slice, inputangles=tmp_align, **extra)
+    spider.throttle_mp(spi, **extra)
+    if mpi_utility.is_root(**extra):
+        align.write_alignment(spi.replace_ext(output), alignvals) 
+    spider.release_mp(spi, **extra)
+    vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
+    if mpi_utility.is_root(**extra):
+        return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+    else: spider.throttle_mp(spi, **extra)
+    return None
+
+def halfset_slice(curr_slice, length):
+    ''' Generate two half set slices
+    
+    :Parameters:
+    
+    curr_slice : slice
+                 Full set slice 
+    length : int
+             Length of full collection
+    
+    :Returns:
+    
+    half1 : slice
+            Slice of first half set
+    half2 : slice
+            Slice of second half set
+    '''
+    
+    beg, end, inc = curr_slice.indices(length)
+    half = len(curr_slice)/2
+    return slice(beg, beg+half, inc), slice(beg+half, end, inc)
 
 def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, **extra):
     ''' Perform a single step of refinement

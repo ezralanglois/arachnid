@@ -7,14 +7,16 @@ import numpy, logging
 import parallel_utility
 import process_tasks
 import socket, os
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 try:
     MPI=None
     from mpi4py import MPI
 except:
+    _logger.addHandler(logging.StreamHandler())
+    logging.exception("mpi4py failed to load")
     logging.warn("MPI not loaded, please install mpi4py")
 
-_logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
 
 def hostname():
     ''' Get the current hostname
@@ -61,6 +63,7 @@ def gather_array(vals, curvals=None, comm=None, **extra):
                     comm.Recv([vals[b:e], MPI.DOUBLE], source=node, tag=1)
         else:
             size = comm.Get_size()
+            
             '''
             counts = data_range(len(vals), size, vals.shape[1])
             if curvals is None:
@@ -76,7 +79,22 @@ def gather_array(vals, curvals=None, comm=None, **extra):
             comm.Gatherv(sendbuf=[curvals, MPI.DOUBLE], recvbuf=[vals, (counts, None), MPI.DOUBLE])
             _logger.debug("Gather-finished")
             '''
-
+ 
+def gather_all(vals, curvals=None, comm=None, **extra):
+    '''
+    '''
+    
+    if comm is not None:
+        comm.barrier()
+        counts = parallel_utility.partition_size(len(vals), comm.Get_size())*vals.shape[1]
+        if curvals is None:
+            b, e = mpi_range(len(vals), comm.Get_rank(), comm)
+            curvals = vals[b:e]
+        curvals = curvals.ravel()
+        vals = vals.ravel()
+        mpi_type = MPI.__TypeDict__[vals.dtype.char]
+        comm.Allgatherv(sendbuf=[curvals, mpi_type], recvbuf=[vals, (counts, None), mpi_type])
+    
 def mpi_range(total, rank=None, comm=None, **extra):
     '''Range of values to process for the current node
     
@@ -129,6 +147,33 @@ def mpi_slice(total, rank=None, comm=None, **extra):
     beg, end = mpi_range(total, rank, comm)
     return slice(beg,end)
 
+
+def iterate_reduce(data, comm=None, **extra):
+    '''
+    '''
+    
+    if comm is not None:
+        mpi_type = MPI.__TypeDict__[data.dtype.char]
+        if comm.Get_rank() == 0:
+            if isinstance(data, tuple):
+                data = [d.copy() for d in data]
+                for node in xrange(1, comm.Get_size()):
+                    for d in data:
+                        comm.Recv([d, mpi_type], source=node, tag=4)
+                    yield data
+            else:
+                data = data.copy()
+                for node in xrange(1, comm.Get_size()):
+                    comm.Recv([data, mpi_type], source=node, tag=4)
+                    yield data
+        else:
+            if isinstance(data, tuple):
+                for d in data:
+                    comm.Send([d, mpi_type], dest=0, tag=4)
+            else:
+                comm.Send([data, mpi_type], dest=0, tag=4)
+    raise StopIteration
+
 def send_to_root(data, root, comm=None, **extra):
     ''' Send specified data array to the root node
     
@@ -144,12 +189,13 @@ def send_to_root(data, root, comm=None, **extra):
             Unused keyword arguments
     '''
     
-    if comm is None: return
+    if comm is None or data is None: return
+    mpi_type = MPI.__TypeDict__[data.dtype.char]
     rank = comm.Get_rank()
     if rank == 0:
-        comm.Recv([data, MPI.DOUBLE], source=root, tag=4)
+        comm.Recv([data, mpi_type], source=root, tag=4)
     elif rank == root:
-        comm.Send([data, MPI.DOUBLE], dest=0, tag=4)
+        comm.Send([data, mpi_type], dest=0, tag=4)
 
 def broadcast(data, comm=None, **extra):
     ''' Broadcast the specified data to all the nodes
@@ -173,7 +219,7 @@ def broadcast(data, comm=None, **extra):
         data = comm.bcast(data)
     return data
 
-def block_reduce(data, batch_size=100000, root=0, comm=None, **extra):
+def block_reduce(data, comm=None, batch_size=100000, **extra):
     ''' Reduce data array to the root node
     
     :Parameters:
@@ -191,17 +237,67 @@ def block_reduce(data, batch_size=100000, root=0, comm=None, **extra):
     '''
     
     if comm is None: return
-    data = data.ravel()
+    mpi_type = MPI.__TypeDict__[data.dtype.char]
+    if 1 == 0:
+        tmp = data.copy(order=data.order)
+        #comm.Allreduce(MPI.IN_PLACE, [data, mpi_type], op=MPI.SUM)
+        comm.Allreduce([data, mpi_type], [tmp, mpi_type], op=MPI.SUM)
+        data[:]=tmp
+    else:
+        #tmp = numpy.empty(batch_size, dtype=data.dtype)
+        batch_count = (data.shape[0]-1) / batch_size + 1
+        block_end = 0
+        for batch in xrange(batch_count):
+            #_logger.error("reduce: %d of %d"%(batch, batch_count))
+            block_beg = block_end
+            block_end = min(block_beg+batch_size, data.shape[0])
+            #comm.Reduce(MPI.IN_PLACE, [data[block_beg:block_end], MPI.FLOAT], op=MPI.SUM, root=0)
+            #comm.Allreduce([data[block_beg:block_end], mpi_type], [tmp, mpi_type], op=MPI.SUM)
+            comm.Allreduce(MPI.IN_PLACE, [data[block_beg:block_end], mpi_type], op=MPI.SUM)
+            #data[block_beg:block_end]=tmp
+            comm.barrier()
+            
+        '''
+        batch_count = (data.shape[0]-1) / batch_size + 1
+        block_end = 0
+        rank = comm.Get_rank()
+        for batch in xrange(batch_count):
+            block_beg = block_end
+            block_end = min(block_beg+batch_size, data.shape[0])
+            if rank == root:
+                comm.Reduce(MPI.IN_PLACE, [data[block_beg:block_end], MPI.FLOAT], op=MPI.SUM, root=root)
+        '''
+    return data
+
+def block_reduce_root(data, batch_size=100000, root=0, comm=None, **extra):
+    ''' Reduce data array to the root node
+    
+    :Parameters:
+    
+    data : array
+           Array of data to send to the root (or if root, receive)
+    batch_size : int
+                 Total data to reduce at one time
+    root : int
+           Rank of the root node
+    comm : mpi4py.MPI.Intracomm
+           MPI communications object
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    mpi_type = MPI.__TypeDict__[data.dtype.char]
+    if comm is None: return
     batch_count = (data.shape[0]-1) / batch_size + 1
     block_end = 0
     rank = comm.Get_rank()
     for batch in xrange(batch_count):
         block_beg = block_end
         block_end = min(block_beg+batch_size, data.shape[0])
-        if rank == root:
-            comm.Reduce(MPI.IN_PLACE, [data[block_beg:block_end], MPI.FLOAT], op=MPI.SUM, root=root)
-        else:
-            comm.Reduce([data[block_beg:block_end], MPI.FLOAT], None, op=MPI.SUM, root=root)
+        if rank == 0:
+            comm.Reduce(MPI.IN_PLACE, [data[block_beg:block_end], mpi_type], op=MPI.SUM, root=root)
+        elif rank == root:
+            comm.Reduce([data[block_beg:block_end], mpi_type], None, op=MPI.SUM, root=root)
         comm.barrier()
 
 def mpi_init(params, use_MPI=False, **extra):
@@ -226,6 +322,8 @@ def mpi_init(params, use_MPI=False, **extra):
         params['rank'] = rank
     elif use_MPI:
         raise ValueError, "MPI failed to initlize - please install mpi4py"
+    else:
+        params['rank'] = 0
 
 def supports_MPI():
     ''' Test if mpi4py can be imported
@@ -269,9 +367,10 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     size = get_size(comm)
     lenbuf = numpy.zeros((size, 1), dtype=numpy.int32)
     _logger.debug("processing - started: %d - %d"%(len(vals), size))
+    mpi_type = MPI.__TypeDict__[lenbuf.dtype.char] if MPI is not None else None
     if is_client(comm):
         if rank > 0:
-            vals = parallel_utility.partition_array(vals, size-1)
+            vals = parallel_utility.partition_list(vals, size-1)
             offset = 1
             for v in vals[:rank-1]: offset += len(v) # 
             vals = vals[rank-1]
@@ -284,7 +383,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
                     index += offset
                     lenbuf[0, 0] = index
                     #_logger.debug("client-send-1: %d"%rank)
-                    comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
+                    comm.Send([lenbuf[0, :], mpi_type], dest=0, tag=4)
                     #_logger.debug("client-send-2: %d"%rank)
                     comm.send(res, dest=0, tag=5)
                     #_logger.debug("client-recv-3: %d"%rank)
@@ -298,19 +397,19 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
             _logger.exception("client-processing - error")
             if rank > 0: 
                 lenbuf[0, 0] = -1.0
-                comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
+                comm.Send([lenbuf[0, :], mpi_type], dest=0, tag=4)
             raise
         else:
             if rank > 0: 
                 lenbuf[0, 0] = 0.0
-                comm.Send([lenbuf[0, :], MPI.INT], dest=0, tag=4)
+                comm.Send([lenbuf[0, :], mpi_type], dest=0, tag=4)
             _logger.debug("client-processing - finished")
     else:
         _logger.debug("Root progress monitor - started: %d"%(len(vals)))
         reqs=[]
         node_req=[]
         for i in xrange(1, size):
-            reqs.append(comm.Irecv([lenbuf[i, :], MPI.INT], source=i, tag=4))
+            reqs.append(comm.Irecv([lenbuf[i, :], mpi_type], source=i, tag=4))
             node_req.append(i)
         status=0
         while len(reqs) > 0:

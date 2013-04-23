@@ -85,16 +85,26 @@ def main(files, module, restart_file="", **extra):
     '''
     
     extra['restart_file']=restart_file # require restart_file=restart_file?
-    process, initialize, finalize, reduce_all, init_process = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None)
-    
+    process, initialize, finalize, reduce_all, init_process, init_root = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None), getattr(module, "init_root", None)
+    monitor=None
     if mpi_utility.is_root(**extra):
+        if init_root is not None:
+            _logger.debug("Init-root")
+            f = init_root(files, extra)
+            if f is not None: files = f
         _logger.debug("Test dependencies1: %d"%len(files))
         files, finished = check_dependencies(files, **extra)
         extra['finished'] = finished
-        extra['input_files']=files
+        #extra['input_files']=files
         _logger.debug("Test dependencies2: %d"%len(files))
         #if len(files) > 1: files = restart(restart_file, files)
-    files = mpi_utility.broadcast(files, **extra)
+    else: extra['finished']=None
+    _logger.debug("Start processing1")
+    tfiles = mpi_utility.broadcast(files, **extra)
+    if not mpi_utility.is_root(**extra):
+        tfiles = set([os.path.basename(f) for f in tfiles])
+        files = [f for f in files if f in tfiles]
+    _logger.debug("Start processing2")
         
     
     '''
@@ -109,18 +119,25 @@ def main(files, module, restart_file="", **extra):
     
     extra['finished'] = mpi_utility.broadcast(extra['finished'], **extra)
     if initialize is not None:
-        if mpi_utility.is_root(**extra):
-            f = initialize(files, extra)
-            if f is not None: files = f
-            monitor = progress(len(files))
-    files = mpi_utility.broadcast(files, **extra)
+        #if mpi_utility.is_root(**extra):
+        _logger.debug("Init")
+        f = initialize(files, extra)
+        _logger.debug("Init-2")
+        if f is not None: files = f
+        #files = mpi_utility.broadcast(files, **extra)
+    _logger.debug("Start processing3")
     if len(files) == 0:
         if mpi_utility.is_root(**extra):
+            _logger.debug("No files to process")
             if finalize is not None: finalize(files, **extra)
         return
     
+    if mpi_utility.is_root(**extra):
+        _logger.debug("Setup progress monitor")
+        monitor = progress(len(files))
+         
     current = 0
-    
+    _logger.debug("Start processing")
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
         if mpi_utility.is_root(**extra):
             #_logger.critical("progress-report: %d,%d"%(current, len(files)))
@@ -197,7 +214,7 @@ def restart(filename, files):
         return [f for f in files if f not in last]
     return files
 
-def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, **extra):
+def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
     output files.
     
@@ -218,13 +235,17 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
             Force the program to restart from the beginning
     id_len : int
              Max length of SPIDER ID
+    restart_test : bool
+                   Test if program will restart
     extra : dict
             Unused extra keyword arguments
     '''
     
     if opt_changed or force:
         msg = "configuration file changed" if opt_changed else "--force option specified"
-        _logger.info("Restarting from the beginning - %s"%msg)
+        _logger.info("Skipping 0 files - restarting from the beginning - %s"%msg)
+        if restart_test:
+            sys.exit(0)
         return files, []
     unfinished = []
     finished = []
@@ -232,6 +253,11 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
         data_ext = os.path.splitext(files[0])[1]
         if len(data_ext) > 0: data_ext=data_ext[1:]
     for f in files:
+        filename=f
+        if isinstance(f, tuple): 
+            f = f[0]
+            try: f = int(f)
+            except: pass
         if len(files) == 1:
             deps = []
             for out in outfile_deps:
@@ -247,16 +273,17 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
         exists = [os.path.exists(out) for out in deps]
         if not numpy.alltrue(exists):
             _logger.debug("Adding: %s because %s does not exist"%(f, deps[numpy.argmin(exists)]))
-            unfinished.append(f)
+            unfinished.append(filename)
             continue
         mods = [os.path.getctime(out) for out in deps]
         if len(mods) == 0:
             _logger.debug("Adding: %s because no dependencies exist"%(f))
-            unfinished.append(f)
+            unfinished.append(filename)
             continue
         first_output = numpy.min( mods )
         if len(files) == 1:
-            deps = [f]
+            
+            deps = [f] if not isinstance(f, int) else []
             for input in infile_deps:
                 if input == "": continue
                 if spider_utility.is_spider_filename(extra[input]) and spider_utility.is_spider_filename(f):
@@ -264,20 +291,24 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
                 else: 
                     deps.append(extra[input])
         else:
-            deps = [f]+[spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])]
+            deps = [f] if not isinstance(f, int) else []
+            deps.extend([spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])])
         if data_ext is not None:
             for i in xrange(len(deps)):
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
         mods = [os.path.getctime(input) for input in deps if input != ""]
-        last_input = numpy.max( mods )
+        last_input = numpy.max( mods ) if len(mods) > 0 else 0
         if last_input >= first_output:
             _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))
-            unfinished.append(f)
+            unfinished.append(filename)
             continue
-        else: finished.append(f)
+        else: finished.append(filename)
     if len(finished) > 0:
         #_logger.info("Skipping: %s all dependencies satisfied (use --force or force: True to reprocess)"%f)
         _logger.info("Skipping %d files - all dependencies satisfied (use --force or force: True to reprocess)"%len(finished))
+    
+    if restart_test:
+        sys.exit(0)
     return unfinished, finished
 
 def setup_options(parser, pgroup=None):
@@ -287,7 +318,8 @@ def setup_options(parser, pgroup=None):
     group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(maximum=sys.maxint, minimum=0))
     group.add_option("",   restart_file="",   help="Set the restart file backing up processed files",     gui=dict(filetype="open"), dependent=False)
     group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
-    group.add_option("",   force=False,       help="Force the program to run from the start")
+    group.add_option("",   force=False,       help="Force the program to run from the start", dependent=False)
+    group.add_option("",   restart_test=False,help="Test if the program will restart", dependent=False)
     pgroup.add_option_group(group)
 
 def check_options(options):

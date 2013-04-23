@@ -17,6 +17,10 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+extern "C" {
+void radon(double *pPtr, double *iPtr, double *thetaPtr, double *xCosTable, double *ySinTable, int M, int N,
+           int xOrigin, int yOrigin, int numAngles, int rFirst, int rSize);
+           }
 #include "image_utility.h"
 %}
 
@@ -105,4 +109,11 @@ INSTANTIATE_ALL_DATA(f_name, unsigned long long)
 			   Maximum radius
 		");
 INSTANTIATE_DATA(rotavg)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function creates a 2D rotational average from a 1D average.
+		");
+INSTANTIATE_ALL(radon_transform)
+
 

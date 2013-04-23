@@ -103,10 +103,8 @@ def write_values(fout, values, factory=namedtuple_factory, header=None, **extra)
     count = len(header)
     header = factory.get_header(values, header=header, offset=True, **extra)
     
-    print len(values)
     for v in values:
         #if v.select > 0:
-        print v, "index:", sel
         if int(float(v[sel])) > 0:
             vals = factory.get_values(v, header, float_format="%11g", **extra)
             fout.write("%d %2d " % (index, count))

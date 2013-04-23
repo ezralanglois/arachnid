@@ -129,6 +129,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.image.ndplot import pylab
+from ..core.image import ndimage_file
 from ..core.metadata import format, format_utility, spider_utility, spider_params
 from ..core.util import fitting
 from ..core.spider import spider
@@ -156,14 +157,24 @@ def process(filename, output, **extra):
                Filename for correct location
     '''
     
+    spi = extra['spi']
+    tempfile1 = spi.replace_ext('tmp1_spi_file')
+    tempfile2 = spi.replace_ext('tmp2_spi_file')
+    filename1 = ndimage_file.copy_to_spider(filename[0], tempfile1)
+    filename2 = ndimage_file.copy_to_spider(filename[1], tempfile2)
+    filename = (filename1, filename2)
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])
     sp, fsc, apix = estimate_resolution(filename[0], filename[1], outputfile=output, **extra)
-    res = apix/sp
-    _logger.info("Resolution = %f - between %s and %s"%(res, filename[0], filename[1]))
+    res = apix/sp if sp > 0 else 0
+    res1 = fitting.fit_linear_interp(fsc, 0.5)
+    res2 = fitting.fit_linear_interp(fsc, 0.143)
+    res1 = apix/res1 if res1 > 0 else 0
+    res2 = apix/res2 if res2 > 0 else 0
+    _logger.info("Resolution = %f - between %s and %s --- (0.5) = %f | (0.143) = %f"%(res, filename[0], filename[1], res1, res2))
     return filename, fsc, apix
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='A', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
@@ -210,8 +221,8 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     
     extra.update(ensure_pixel_size(spi, filename1, **extra))
     mask_output = format_utility.add_prefix(outputfile, "mask_")
-    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
-    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output)
+    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output, window=extra['window'])
+    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output, window=extra['window'])
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     _logger.debug("Found resolution at spatial frequency: %f"%sp)
     vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
@@ -304,11 +315,11 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
             pylab.plot((x[0], xp), (yp, yp), markers[i])
             pylab.plot((xp, xp), (0.0, yp), markers[i])
             res = 0 if xp == 0 else apix/xp
-            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA$'%(xp, res))
+            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA (%.2f-criterion)$'%(xp, res, yp))
     
     pylab.plot(x, y)
     pylab.axis([0.0,freq_rng, 0.0,1.0])
-    pylab.xlabel('Spatial Frequency ($\AA^{-1}$)')
+    pylab.xlabel('Normalized Spatial Frequency ($\AA^{-1}$)')
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", dpi=dpi)
@@ -382,7 +393,10 @@ def initialize(files, param):
     if param['sliding']:
         for i in xrange(1, len(files)):
             pfiles.append((files[i-1], files[i]))
-    if param['group']:
+    if param['ova']:
+        for f in files[:len(files)-1]:
+            pfiles.append((f, files[-1]))
+    elif param['group']:
         groups = {}
         for f in files:
             id = spider_utility.spider_id(f)
@@ -424,6 +438,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-g", group=False,    help="Group by SPIDER ID")
         pgroup.add_option("",   dpi=72,         help="Resolution of the output plot in dots per inch (DPI)")
         pgroup.add_option("",   disable_sigmoid=False, help="Disable the sigmoid model fitting")
+        pgroup.add_option("",   ova=False,      help="One-versus-all, the last one versus all other listed volumes")
         
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
@@ -437,11 +452,12 @@ def check_options(options, main_option=False):
     
     if main_option:
         spider_params.check_options(options)
-        if len(options.input_files)%2 == 1 and not options.sliding:
-            _logger.debug("Found: %s"%",".join(options.input_files))
-            raise OptionValueError, "Requires even number of input files or volume pairs - found %d"%len(options.input_files)
-        if not spider_utility.test_valid_spider_input(options.input_files[::2]):
-            raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
+        if not options.ova:
+            if len(options.input_files)%2 == 1 and not options.sliding:
+                _logger.debug("Found: %s"%",".join(options.input_files))
+                raise OptionValueError, "Requires even number of input files or volume pairs - found %d"%len(options.input_files)
+            if not spider_utility.test_valid_spider_input(options.input_files[::2]):
+                raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
 
 def main():
     #Main entry point for this script

@@ -94,7 +94,7 @@ from ..core.parallel import mpi_utility
 from ..core.image import ndimage_file
 from ..core.spider import spider
 import filter_volume
-import logging, os
+import logging, os, numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -142,14 +142,15 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
     if w != d: raise ValueError, "Width does not match depth - requires box"
     _logger.info("Finished: %d,%d"%(1,5))
     _logger.debug("Filtering volume")
-    filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
+    if resolution > 0:
+        filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
     if os.path.exists(tempfile): os.unlink(tempfile)
     _logger.info("Finished: %d,%d"%(2,5))
-    _logger.debug("Centering volume")
-    filename = center_volume(filename, spi, output)
-    _logger.info("Finished: %d,%d"%(3,5))
     _logger.debug("Resizing volume")
     filename = resize_volume(filename, spi, curr_apix, outputfile=output, **extra)
+    _logger.info("Finished: %d,%d"%(3,5))
+    _logger.debug("Centering volume")
+    filename = center_volume(filename, spi, output)
     _logger.info("Finished: %d,%d"%(4,5))
     return filename
 
@@ -203,12 +204,13 @@ def resize_volume(filename, spi, curr_apix, apix, window, outputfile=None, **ext
     if w != h: raise ValueError, "Width does not match height - requires box"
     if w != d: raise ValueError, "Width does not match depth - requires box"
     
-    bin_factor = curr_apix / apix
-    _logger.info("Interpolating Structure: %f * %f = %f | %f/%f | %f"%(w, bin_factor, w*bin_factor, apix, curr_apix, window))
-    w *= bin_factor
-    h *= bin_factor
-    d *= bin_factor
-    filename = spi.ip(filename, (int(w), int(h), int(d)))
+    if not numpy.allclose(curr_apix, apix):
+        bin_factor = curr_apix / apix
+        _logger.info("Interpolating Structure: %f * %f = %f | %f/%f | %f"%(w, bin_factor, w*bin_factor, apix, curr_apix, window))
+        w *= bin_factor
+        h *= bin_factor
+        d *= bin_factor
+        filename = spi.ip(filename, (int(w), int(h), int(d)))
     
     if w < window:
         _logger.info("Increasing window size from %d -> %d"%(w, window))
@@ -222,6 +224,8 @@ def initialize(files, param):
     # Initialize global parameters for the script
     
     if len(files) == 0: return
+    if param['param_file'] != "" and os.path.splitext(param['param_file'])[1] != "":
+        files=[param['param_file']]
     param['spi'] = spider.open_session(files, **param)
     if param['new_window'] > 0:
         param['bin_factor'] = float(param['window'])/param['new_window']
@@ -251,7 +255,7 @@ def check_options(options, main_option=False):
     
     if main_option:
         spider_params.check_options(options)
-        if options.resolution <= 0.0: raise OptionValueError, "--resolution must be a positive value greater than 0"
+        #if options.resolution <= 0.0: raise OptionValueError, "--resolution must be a positive value greater than 0"
         if not spider_utility.test_valid_spider_input(options.input_files):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
 

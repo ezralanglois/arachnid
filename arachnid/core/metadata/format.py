@@ -346,7 +346,7 @@ def read_array_mpi(filename, numeric=True, sort_column=None, **extra):
     if mpi_utility.is_root(**extra):
         vals = read(filename, numeric=numeric, **extra)
         vals = format_utility.tuple2numpy(vals)[0]
-        if sort_column < vals.shape[1]:
+        if sort_column is not None and sort_column < vals.shape[1]:
             vals[:] = vals[numpy.argsort(vals[:, sort_column]).squeeze()]
     return mpi_utility.broadcast(vals, **extra)
  
@@ -371,7 +371,7 @@ def is_readable(filename, **extra):
     except: return False
     return True
     
-def read(filename, columns=None, header=None, **extra):
+def read(filename, columns=None, header=None, ndarray=False, **extra):
     '''Read a document from the specified file
     
     This function calls open_file to create the filename, then calls get_formats to
@@ -423,6 +423,8 @@ def read(filename, columns=None, header=None, **extra):
            List of namedtuples or other container created by the factory
     '''
     
+    if ndarray:extra['numeric']=True
+    
     _logger.debug("read: "+str(filename))
     fin, format, factory, header, lastline = get_format(filename, getformat=False, header=header, **extra)
     # TODO: columns not finished
@@ -438,10 +440,12 @@ def read(filename, columns=None, header=None, **extra):
                     raise ValueError, "Cannot find column "+str(c)+" in header: "+",".join(header)
     
     try:
-        return map(factory, format.reader(fin, header, lastline, **extra))
+        vals = map(factory, format.reader(fin, header, lastline, **extra))
     except:
         _logger.debug("header: %s"%str(header))
         raise
+    if ndarray: return format_utility.tuple2numpy(vals)
+    return vals
 
 def write(filename, values, mode='w', **extra):
     ''' Write a document to some format either specified or determined from extension

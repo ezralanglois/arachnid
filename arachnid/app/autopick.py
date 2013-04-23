@@ -157,8 +157,8 @@ from ..core.app.program import run_hybrid_program
 from ..core.image import eman2_utility, ndimage_utility, analysis
 from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
-import numpy, scipy, logging, scipy.misc
-import lfcpick
+import numpy, scipy, logging, scipy.misc, numpy.linalg
+import lfcpick, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -199,7 +199,11 @@ def process(filename, id_len=0, confusion=[], **extra):
     _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
-    peaks = search(mic, **extra)
+    try:
+        peaks = search(mic, **extra)
+    except numpy.linalg.LinAlgError:
+        _logger.info("Skipping: %s"%filename)
+        return filename, []
     _logger.debug("Write coordinates")
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
     write_example(mic, coords, **extra)
@@ -219,14 +223,14 @@ def write_example(mic, coords, box_image="", **extra):
     
     if box_image == "" or ImageDraw is None: return
     
-    width, bin_factor = lfcpick.init_param(**extra)[1:3]
+    offset, bin_factor = lfcpick.init_param(**extra)[1:3]
     mic = scipy.misc.toimage(mic).convert("RGB")
     draw = ImageDraw.Draw(mic)
     
     for box in coords:
         x = box.x / bin_factor
         y = box.y / bin_factor
-        draw.rectangle((x+width, y+width, x-width, y-width), fill=None, outline="#ff4040")
+        draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#ff4040")
     mic.save(box_image)
 
 def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
@@ -258,6 +262,8 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
     _logger.debug("Find peaks")
     peaks = lfcpick.search_peaks(cc_map, radius, overlap_mult)
     if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
+    peaks=cull_boundary(peaks, img.shape, **extra)
+    
     index = numpy.argsort(peaks[:,0])[::-1]
     if index.shape[0] > limit: index = index[:limit]
     index = index[::-1]
@@ -275,6 +281,30 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
         peaks = peaks[sel].copy()
     peaks[:, 1:3] *= bin_factor
     return peaks[::-1]
+
+def cull_boundary(peaks, shape, boundary, bin_factor, **extra):
+    '''
+    '''
+    
+    if len(boundary) == 0: return peaks
+    boundary = numpy.asarray(boundary)/bin_factor
+    
+    if len(boundary) > 1: boundary[1] = shape[1]-boundary[1]
+    if len(boundary) > 3: boundary[1] = shape[0]-boundary[3]
+    
+    _logger.debug("Boundary: %s"%(str(boundary)))
+    j=0
+    for i in xrange(len(peaks)):
+        if peaks[i, 2] < boundary[0]: continue
+        elif len(boundary) > 1 and peaks[i, 2] > boundary[1]: continue
+        elif len(boundary) > 2 and peaks[i, 1] > boundary[2]: continue
+        elif len(boundary) > 3 and peaks[i, 1] > boundary[3]: continue
+        if i != j:
+            peaks[j, :] = peaks[i]
+        j+=1
+    
+    _logger.debug("Kept: %d of %d"%(j, len(peaks)))
+    return peaks[:j]
 
 def ccf_center(img, template):
     ''' Noise-cancelling cross-correlation
@@ -349,7 +379,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     _logger.debug("Windowing %d particles"%len(scoords))
     for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        if 1 == 0:
+        if 1 == 1:
             npdata[:, :] = win
             eman2_utility.ramp(emdata)
             win[:, :] = npdata
@@ -388,7 +418,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
     return sel
 
-def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, **extra):
+def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, experimental2=False, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
@@ -484,11 +514,16 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
     
+    cent = numpy.median(feat, axis=0)
+    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    dsel = analysis.robust_rejection(dist_cent, 2.5)
+    '''
     for i in xrange(feat.shape[1]):
         if dsel is None:
             dsel = analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5)
         else:
             dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
+    '''
     dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
         
     
@@ -523,6 +558,35 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
         sel = numpy.logical_and(dsel, sel)
+    
+    if experimental2: # New untested contaminant removal algorithm - looks at pixel correlation
+        out = numpy.zeros(numpy.sum(sel))
+        #npmask = eman2_utility.em2numpy(mask)
+        j=0
+        for i in numpy.argwhere(sel).squeeze():
+            img = imgs[i]
+            if 1 == 0:
+                if 1 == 0:
+                    d, V = scipy.linalg.svd(img, False)[1:]
+                else:
+                    rimg=ndimage_utility.rolling_window(img, (6,6), (3,3))
+                    rimg = rimg.reshape((rimg.shape[0]*rimg.shape[1], rimg.shape[2]*rimg.shape[3]))
+                    d, V = scipy.linalg.svd(rimg, False)[1:]
+                
+                val = d[:2]*numpy.dot(V[:2], rimg.T).T
+                out[j] = numpy.max(scipy.stats.kurtosistest(val)[0]) #normaltest
+            else:
+                #img=ndimage_utility.compress_image(img, npmask)
+                out[j] = numpy.max(scipy.stats.normaltest(img)[0]) #normaltest
+            j += 1
+        th = analysis.otsu(out, int(numpy.sqrt(numpy.sum(sel))))
+        tsel = out > th
+        bsel = out < th
+        if numpy.sum(tsel) < numpy.sum(bsel): tsel = bsel
+        sel[numpy.argwhere(sel).squeeze()]=tsel
+        #sel = numpy.logical_and(sel, tsel)
+        
+    
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
     return sel
     
@@ -589,6 +653,12 @@ def initialize(files, param):
         if param['disable_prune']: _logger.info("Bad particle removal - disabled")
         if param['disable_threshold']: _logger.info("Noise removal - disabled")
         if param['remove_aggregates']: _logger.info("Aggregate removal - enabled")
+        if param['experimental']: _logger.info("Experimental contaminant removal - enabled")
+        if len(param['boundary']) > 0: _logger.info("Selection boundary: %s"%",".join([str(v) for v in param['boundary']]))
+        if param['iter_threshold']>1: _logger.info("Multiple-thresholds: %d"%param['iter_threshold'])
+        if param['box_image']!="":
+            try:os.makedirs(os.path.dirname(param['box_image']))
+            except: pass
     return lfcpick.initialize(files, param)
 
 def reduce_all(val, **extra):
@@ -615,6 +685,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   iter_threshold=1,            help="Number of times to iterate thresholding")
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
+    group.add_option("",   experimental2=False,          help="Use the latest experimental features, 2nd generation!")
+    group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
     
     pgroup.add_option_group(group)
     if main_option:
@@ -640,7 +712,11 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
-    if options.pixel_radius == 0: raise OptionValueError, "Pixel radius must be greater than zero"
+    if options.pixel_radius == 0:
+        raise OptionValueError, "Pixel radius must be greater than zero"
+    if len(options.boundary) > 0:
+        try: options.boundary = [int(v) for v in options.boundary]
+        except: raise OptionValueError, "Unable to convert boundary margin to list of integers"
 
 def main():
     #Main entry point for this script

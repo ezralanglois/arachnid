@@ -148,13 +148,14 @@ ndimage_file=None
 from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replace image_reader and writer
 from ..core.image import reader as image_reader, writer as image_writer
 from ..core.metadata import spider_utility, format_utility, format, spider_params
+from ..core.image.formats import mrc as mrc_file
 from ..core.parallel import mpi_utility
 import numpy, os, logging, psutil
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, id_len=0, **extra):
+def process(filename, id_len=0, single=False, **extra):
     '''Crop a set of particles from a micrograph file with the specified
     coordinate file and write particles to an image stack.
     
@@ -173,41 +174,72 @@ def process(filename, id_len=0, **extra):
           Current filename
     '''
     
-    fid = spider_utility.spider_id(filename, id_len)
-    spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file') 
+    if isinstance(filename, tuple):
+        tot = len(filename[1])
+        fid = filename[0]
+    else:
+        try:
+            tot = mrc_file.count_images(filename)
+        except: tot = ndimage_file.count_images(filename)
+        fid = spider_utility.spider_id(filename, id_len)
+    spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file', 'frame_align')
     try: coords = read_coordinates(**extra)
     except: 
         _logger.exception("Ignore this")
         return filename, 0, os.getpid()
     
-    mic = read_micrograph(filename, **extra)    
-    norm_mask=extra['mask']*-1+1
     noise=extra['noise']
     radius, offset, bin_factor, tmp = init_param(**extra)
-    npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
+    norm_mask=tmp*-1+1
     emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
     npdata = eman2_utility.em2numpy(emdata)
     
     #if extra['experimental']: return filename, len(coords)
-    test_coordinates(npmic, coords, bin_factor)
+    
     output=extra['output']
-    for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
-        npdata[:, :] = win
-        win = enhance_window(emdata, noise, norm_mask, **extra)
-        if win.get_attr("minimum") == win.get_attr("maximum"):
-            coord = coords[index]
-            x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
-            _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
-        
-        if 1 == 0:
-            assert(numpy.allclose(0.0, numpy.mean(win*norm_mask)))
-            assert(numpy.allclose(1.0, numpy.std(win*norm_mask)))
-        
-        if ndimage_file is not None:
-            ndimage_file.write_image(output, win, index)
-        else:
-            image_writer.write_image(output, win, index)
-        index += 1
+    if extra['frame_align'] != "":
+        if not os.path.exists(extra['frame_align']):
+            _logger.warn("No translation file, skipping %s"%str(filename))
+            return filename, 0, os.getpid()
+        align = format.read(extra['frame_align'], numeric=True)
+    else: align=None
+    coords_orig=None
+    for i in xrange(tot):
+        frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
+        _logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, i, tot))
+        mic = read_micrograph(filename, i, **extra)    
+        # translate
+        npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
+        if tot > 1: 
+            output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
+            if extra['experimental']:
+                if coords_orig is None: 
+                    coords_orig=numpy.asarray(coords).copy()
+                coords = coords_orig[:, 1:3] - (align[i].dx, align[i].dy)
+            else:
+                npmic[:] = eman2_utility.fshift(npmic, align[i].dx, align[i].dy)
+        if i == 0:
+            test_coordinates(npmic, coords, bin_factor)
+            
+        _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, tot))
+        for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
+            npdata[:, :] = win
+            
+            #m = numpy.mean(npdata*npmask)
+            #s = numpy.std(npdata*npmask)
+            #_logger.error("0. index=%d, mean=%f, std=%f"%(index, m, s))
+            win = enhance_window(emdata, noise, norm_mask, **extra)
+            win.update()
+            if win.get_attr("minimum") == win.get_attr("maximum"):
+                coord = coords[index]
+                x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
+                _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
+            if ndimage_file is not None:
+                ndimage_file.write_image(output, emdata, index)
+            else:
+                image_writer.write_image(output, emdata, index)
+            if single: break
+            _logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     return filename, len(coords), os.getpid()
 
 def test_coordinates(npmic, coords, bin_factor):
@@ -244,7 +276,7 @@ def test_coordinates(npmic, coords, bin_factor):
     if numpy.max(coords[:, y])*2 < npmic.shape[0]: 
         _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.max(coords[:, y]))
 
-def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, experimental=False, **extra):
+def read_micrograph(filename, index=0, emdata=None, bin_factor=1.0, sigma=1.0, flip=False, disable_bin=False, invert=False, experimental=False, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
@@ -270,11 +302,19 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
           Micrograph image
     '''
     
+    if isinstance(filename, tuple):
+        filename = filename[1][index]
+        index=None
+    
     offset = init_param(bin_factor=bin_factor, **extra)[1]
     if ndimage_file is not None:
-        mic = ndimage_file.read_image(filename, cache=emdata)
+        mic = ndimage_file.read_image(filename, index, cache=emdata)
     else:
-        mic = image_reader.read_image(filename, emdata=emdata)
+        mic = image_reader.read_image(filename, index, emdata=emdata)
+    if flip:
+        emmic=eman2_utility.numpy2em(mic)
+        emmic.process_inplace("xform.flip",{"axis":"y"})
+        mic[:]=eman2_utility.em2numpy(emmic)
     if bin_factor > 1.0 and not disable_bin: 
         mic = eman2_utility.decimate(mic, bin_factor)
     if invert:
@@ -324,6 +364,12 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
             img = ndimage_file.read_image(noise_file)
             return eman2_utility.numpy2em(img)
         return image_reader.read_image(noise_file)
+    
+    try:
+        tot = mrc_file.count_images(filename)
+    except: tot = ndimage_file.count_images(filename)
+    if tot > 1:
+        return None
     mic = read_micrograph(filename, **extra)
     rad, offset = init_param(**extra)[:2]
     width = offset*2
@@ -339,7 +385,8 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
     if experimental:
         etemplate = template
         template = eman2_utility.em2numpy(etemplate)
-        cc_map = ndimage_utility.cross_correlate(mic, template)
+        mic2 = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
+        cc_map = ndimage_utility.cross_correlate(mic2, template)
         numpy.fabs(cc_map, cc_map)
         cc_map -= float(numpy.max(cc_map))
         cc_map *= -1
@@ -535,11 +582,34 @@ def read_coordinates(coordinate_file, selection_doc="", **extra):
                         _logger.exception("%d > %d"%(s.id-1, len(tmp)))
     return blobs
 
+
+def init_root(files, param):
+    # Initialize global parameters for the script
+ 
+    if mpi_utility.is_root(**param):
+        try: tot = mrc_file.count_images(files[0])
+        except: tot = ndimage_file.count_images(files[0])
+        if param['frame_align'] != "" and tot == 1:
+            files = spider_utility.single_images(files)
+            if param['reverse']:
+                for f in files:
+                    f[1].reverse()
+            if param['reverse']:
+                _logger.info("Processing example movie in reverse: %s"%str(files[0]))
+            else:
+                _logger.info("Processing example movie: %s"%str(files[0]))
+            
+        _logger.info("Processing %d micrographs"%len(files))
+    
+    files = mpi_utility.broadcast(files, **param)
+    return files
+
 def initialize(files, param):
     # Initialize global parameters for the script
     
     radius, offset, bin_factor, param['mask'] = init_param(**param)
     if mpi_utility.is_root(**param):
+        _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel radius: %d"%radius)
         _logger.info("Window size: %d"%(offset*2))
         if param['sigma'] > 0: _logger.info("High pass filter: %f"%(param['sigma'] / (offset*2)))
@@ -547,10 +617,12 @@ def initialize(files, param):
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
         if not param['disable_enhance']:
             _logger.info("Ramp filter")
-            _logger.info("Dedust: %d"%param['clamp_window'])
+            _logger.info("Dedust: %f"%param['clamp_window'])
             _logger.info("Histogram matching")
             if not param['disable_normalize']: _logger.info("Normalize (xmipp style)")
         param['count'] = numpy.zeros(2, dtype=numpy.int)
+        if len(files) > 0 and not isinstance(files[0], tuple):
+            _logger.info("Extracting windows from movies frames from micrograph stacks")
     
     if mpi_utility.is_root(**param):
         selection_doc = format_utility.parse_header(param['selection_doc'])[0]
@@ -562,33 +634,55 @@ def initialize(files, param):
                 old_files = files
                 files = []
                 for filename in old_files:
-                    if spider_utility.spider_id(filename, param['id_len']) in select:
-                        files.append(filename)
+                    id = filename[0] if isinstance(filename, tuple) else spider_utility.spider_id(filename, param['id_len'])
+                    if id in select: files.append(filename)
                 finished = param['finished']
                 param['finished'] = []
                 for filename in finished:
-                    if spider_utility.spider_id(filename, param['id_len']) in select:
+                    id = filename[0] if isinstance(filename, tuple) else spider_utility.spider_id(filename, param['id_len'])
+                    if id in select:
                         param['finished'].append(filename)
             _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_doc, len(files), file_count))
+        if isinstance(files[0], tuple):
+            tot = len(files[0][1])
+        else:
+            try:tot = mrc_file.count_images(files[0])
+            except: tot = ndimage_file.count_images(files[0])
         for filename in param['finished']:
-            ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=filename, id_len=param['id_len']))
-            nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], filename, param['id_len']))
-            if nimage != ncoord: 
-                _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
-                files.append(filename)
-                
+            if tot > 1:
+                id = filename[0] if isinstance(filename, tuple) else filename
+                ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
+                # Todo only add frames that require processing
+                for i in xrange(tot):
+                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
+                    output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
+                    nimage = ndimage_file.count_images(spider_utility.spider_filename(output, id, param['id_len']))
+                    if nimage != ncoord:
+                        _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
+                        files.append(filename)
+                        break
+            else:
+                id = filename[0] if isinstance(filename, tuple) else filename
+                ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
+                nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], id, param['id_len']))
+                if nimage != ncoord:
+                    _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
+                    files.append(filename)
+               
     files = mpi_utility.broadcast(files, **param)
+    
     
     if len(files) == 0:
         param['noise']=None
     elif param['noise'] == "":
-        if isinstance(files[0], tuple): files = files[0]
-        
-        if mpi_utility.is_root(**param):
-            param['noise'] = generate_noise(files[0], **param)
-        mpi_utility.barrier(**param)
-        if mpi_utility.is_client_strict(**param):
-            param['noise'] = generate_noise(files[0], **param)
+        if not isinstance(files[0], tuple):
+            
+            if mpi_utility.is_root(**param):
+                param['noise'] = generate_noise(files[0], **param)
+            mpi_utility.barrier(**param)
+            if mpi_utility.is_client_strict(**param):
+                param['noise'] = generate_noise(files[0], **param)
+        else: param['noise']=None
         
     else: 
         if ndimage_file is not None:
@@ -604,7 +698,8 @@ def reduce_all(val, count, id_len, **extra):
     filename, total, pid = val
     count[0]+= total
     count[1]+= 1
-    return filename+" - %d windows - %d windows in total in %d files - %d gigs"%(total, count[0], count[1], psutil.Process(pid).get_memory_info().rss/131072)
+    if isinstance(filename, tuple): filename=filename[0]
+    return str(filename)+" - %d windows - %d windows in total in %d files - %1f gigs"%(total, count[0], count[1], psutil.Process(pid).get_memory_info().rss/131072.0)
 
 def finalize(files, count, **extra):
     # Finalize global parameters for the script
@@ -620,7 +715,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", disable_enhance=False,    help="Disable window post-processing: ramp, contrast enhancement")
     group.add_option("", disable_bin=False,        help="Disable micrograph decimation")
     group.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
-    group.add_option("", clamp_window=5.0,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
+    group.add_option("", clamp_window=2.5,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
     group.add_option("", sigma=1.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
     group.add_option("", use_vst=False,            help="Use variance stablizing transform")
     group.add_option("", invert=False,             help="Invert the contrast on the micrograph (important for raw CCD micrographs)")
@@ -628,6 +723,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
     group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
     group.add_option("", experimental=False,       help="Use new experimental code for memory management")
+    group.add_option("", frame_align="",           help="Translational alignment parameters for individual frames")
+    group.add_option("", single=False,             help="Single window (first)")
+    group.add_option("", flip=False,                help="Flip micrograph")
+    group.add_option("", reverse=False,             help="Reverse for reversied alignment")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))

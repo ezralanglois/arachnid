@@ -208,21 +208,24 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
     '''
     
     if filename == outputfile: filename = spi.cp(filename)
+    _logger.info("Filtering with %f, %d"%(sp, filter_type))
     if sp > 0.08:
         if filter_type == 1:
             rad = sp
             if rad > 0.45: rad = 0.45
             outputfile = spi.fq(filename, spi.FERMI_LP, filter_radius=rad, temperature=fermi_temp, outputfile=outputfile)
-        else:
+        elif filter_type==2:
             pass_band = sp-bw_pass
             stop_band = sp+bw_stop
             if pass_band > 0.35: pass_band = 0.4
             if stop_band > 0.4: stop_band = 0.45
             outputfile = spi.fq(filename, spi.BUTER_LP, pass_band=pass_band, stop_band=stop_band, outputfile=outputfile)
+        elif filter_type != 3: outputfile=filename
     else:
-        _logger.warn("Spatial frequency %f exceeds the safe value, switching to Gaussian filter"%(sp))
+        _logger.warn("Spatial frequency %f exceeds the safe value, switching to Gaussian filter: %d"%(sp, filter_type))
         filter_type = 3
     if filter_type == 3:
+        _logger.info("Filtering with Gaussian: %s -> %f"%(filename, sp))
         outputfile = spi.fq(filename, spi.GAUS_LP, filter_radius=sp, outputfile=outputfile)
     return outputfile
 

@@ -53,8 +53,9 @@ def frt2(a):
           Discreet radon transform
     """
     
-    normalize_min_max(a, 0, 2048, a)
-    a = a.astype(numpy.int32)
+    if not issubclass(a.dtype.type, numpy.integer):
+        normalize_min_max(a, 0, 2048, a)
+        a = a.astype(numpy.int32)
     
     if a.ndim != 2 or a.shape[0] != a.shape[1]:
         raise ValueError("Input must be a square, 2-D array")
@@ -222,7 +223,7 @@ def ramp(img, out=None):
     _spider_util.ramp(out.T)
     return out
 
-def cross_correlate_raw(img, template, out=None):
+def cross_correlate_raw(img, template, phase=False, out=None):
     ''' Cross-correlate an image with a template
     
     :Parameters:
@@ -245,10 +246,12 @@ def cross_correlate_raw(img, template, out=None):
     fp1 = scipy.fftpack.fft2(img)
     fp2 = scipy.fftpack.fft2(out)
     numpy.multiply(fp1, fp2.conj(), fp1)
+    if phase:
+        fp1 /= numpy.abs(fp1)
     out[:,:] = scipy.fftpack.ifft2(fp1).real
     return out
 
-def cross_correlate(img, template, out=None):
+def cross_correlate(img, template, phase=False, out=None):
     ''' Cross-correlate an image with a template
     
     :Parameters:
@@ -266,7 +269,7 @@ def cross_correlate(img, template, out=None):
          Cross-correlation map (same dim as large image)
     '''
     
-    return scipy.fftpack.fftshift(cross_correlate_raw(img, template, out))
+    return scipy.fftpack.fftshift(cross_correlate_raw(img, template, phase, out))
 
 def local_variance(img, mask, out=None):
     ''' Esimtate the local variance on the image, under the given mask
@@ -486,6 +489,17 @@ def powerspec1d(img):
     fimg = numpy.fft.fftn(img)
     fimg = fimg*fimg.conjugate()
     return mean_azimuthal(numpy.abs(numpy.fft.fftshift(fimg)))[1:fimg.shape[0]/2]
+
+def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1):
+    '''
+    '''
+    
+    if offset > 0 and offset < 1.0: offset = int(offset*mic.shape[0])
+    overlap_norm = 1.0 / (1.0-overlap)
+    step = max(1, window_size*overlap_norm)
+    rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
+    rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
+    return powerspec_avg(rwin, pad)
 
 def powerspec_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
@@ -1035,7 +1049,8 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
     mdata = img[mask>0.5] if mask is not None else img
     out = numpy.subtract(img, numpy.mean(mdata), out)
     if var_one:
-        numpy.divide(out, numpy.std(mdata), out)
+        std = numpy.std(mdata)
+        if std != 0.0: numpy.divide(out, std, out)
     return out
 
 @_em2numpy2em
@@ -1382,7 +1397,9 @@ def biggest_object(img, out=None):
     if img.dtype != numpy.bool: raise ValueError, "Requires binary image"
     elem = None #numpy.ones((3,3)) if img.ndim == 2 else numpy.ones((3,3,3))
     label, num_label = scipy.ndimage.label(img, elem)
+    biggest1 = numpy.argmax(numpy.histogram(label, num_label+1)[1:])
     biggest = numpy.argmax([numpy.sum(l==label) for l in xrange(1, num_label+1)])+1
+    assert(biggest==biggest1)
     if out is None: out = numpy.zeros(img.shape)#, dtype=img.dtype)
     out[label == biggest] = 1
     return out

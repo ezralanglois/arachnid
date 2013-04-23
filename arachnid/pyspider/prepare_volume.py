@@ -290,6 +290,9 @@ def post_process(files, spi, output, output_volume="", min_resolution=0.0, add_r
         spider.throttle_mp(spi, prep_thread, **extra)
     sp, fsc, apix = resolution.estimate_resolution(files[1], files[2], spi, format_utility.add_prefix(output, "dres_"), **extra)
     extra['pixel_diameter'] *= extra['apix']/apix
+    _logger.error("window1: %d"%extra['window'])
+    extra['window'] *= int(extra['apix']/apix)
+    _logger.error("window2: %d"%extra['window'])
     extra['apix']=apix
     res = extra['apix']/sp
     if add_resolution > 0.0: 

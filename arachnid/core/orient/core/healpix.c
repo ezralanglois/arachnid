@@ -11,7 +11,7 @@
 #include "numpy/arrayobject.h"
 
 static int
-PyConverter_DoubleVector3OrNone(
+PyConverter_DoubleVector2OrNone(
     PyObject *object,
     PyObject **address)
 {
@@ -25,9 +25,9 @@ PyConverter_DoubleVector3OrNone(
             return NPY_FAIL;
         }
         obj = (PyArrayObject *) *address;
-        if ((PyArray_NDIM(obj) != 1) || (PyArray_DIM(obj, 0) < 3)
+        if ((PyArray_NDIM(obj) != 1) || (PyArray_DIM(obj, 0) < 2)
             || PyArray_ISCOMPLEX(obj)) {
-            PyErr_Format(PyExc_ValueError, "not a vector3");
+            PyErr_Format(PyExc_ValueError, "not a vector2");
             Py_DECREF(*address);
             *address = NULL;
             return NPY_FAIL;
@@ -53,7 +53,7 @@ py_pix2ang_nest(
     static char *kwlist[] = {"order", "ipix", "euler", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "ll|O&", kwlist,
-        &order, &ipix, PyConverter_DoubleVector3OrNone, &euler)) goto _fail;
+        &order, &ipix, PyConverter_DoubleVector2OrNone, &euler)) goto _fail;
 
     if( euler == NULL )
     {
@@ -71,7 +71,7 @@ py_pix2ang_nest(
     	pix2ang_nest(order, ipix, ang, ang+1);
     }
 
-    if( euler != NULL ) Py_XDECREF(euler);
+    //if( euler != NULL ) Py_XDECREF(euler);
     return PyArray_Return(result);
 
   _fail:
@@ -96,7 +96,7 @@ py_pix2ang_ring(
     static char *kwlist[] = {"order", "ipix", "euler", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "ll|O&", kwlist,
-        &order, &ipix, PyConverter_DoubleVector3OrNone, &euler)) goto _fail;
+        &order, &ipix, PyConverter_DoubleVector2OrNone, &euler)) goto _fail;
 
     if( euler == NULL )
     {
@@ -111,10 +111,11 @@ py_pix2ang_ring(
 
     {
     	double *ang = (double *)PyArray_DATA(result);
+    	//void pix2ang_ring( long nside, long ipix, double *theta, double *phi) {
     	pix2ang_ring(order, ipix, ang, ang+1);
     }
 
-    if( euler != NULL ) Py_XDECREF(euler);
+    //if( euler != NULL ) Py_XDECREF(euler);
     return PyArray_Return(result);
 
   _fail:

@@ -108,6 +108,7 @@ from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.image import ndimage_utility, ndimage_file
 from ..core.spider import spider
+import filter_volume
 import logging, os
 
 _logger = logging.getLogger(__name__)
@@ -131,6 +132,7 @@ def process(filename, output, **extra):
                Filename for correct location
     '''
     
+    extra.update(filter_volume.ensure_pixel_size(filename=filename, **extra))
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])
     mask_volume(filename, output, mask_output=format_utility.add_prefix(output, "mask_"), **extra)

@@ -15,6 +15,7 @@ setup(name='_transformations', ext_modules=[
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
+    import os
     config = Configuration('core', parent_package, top_path)
     config.add_library('_healpixlib', sources=['healpix/ang2pix_nest.c', 
                                                'healpix/ang2pix_ring.c',
@@ -28,6 +29,8 @@ def configuration(parent_package='',top_path=None):
                                                'healpix/mk_xy2pix.c'], depends=['healpix/chealpix.h'])
     config.add_extension('_transformations', sources=['transforms.c'])
     config.add_extension('_healpix', sources=['healpix.c'], libraries=['_healpixlib'])
+    config.add_extension('_rotation_mapping', sources=['rotation_mapping.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['rotation_mapping.hpp', 'linalg.hpp'], swig_opts=['-c++'])
+    config.add_include_dirs(os.path.dirname(__file__))
     return config
 
 if __name__ == '__main__':

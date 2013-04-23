@@ -13,6 +13,9 @@ To run:
    :lines: 16-
    :linenos:
 '''
+import sys
+sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1/')
+
 from arachnid.core.metadata import format, format_utility, spider_utility
 from arachnid.core.image import ndimage_file, eman2_utility
 import numpy #, itertools
@@ -22,9 +25,9 @@ if __name__ == '__main__':
 
     # Parameters
     
-    align_file = "data/align_03.sdo"
-    image_file = "data/dala03.sdo"
-    output_file = "avg_001.spi"
+    align_file = "align_dala_025.int"
+    image_file = "dala_025.int"
+    output_file = "avg_001.int"
     
     align = format.read_alignment(align_file)
     align, header = format_utility.tuple2numpy(align)
@@ -35,18 +38,15 @@ if __name__ == '__main__':
     
     ref = align[:, refidx].astype(numpy.int)
     refs = numpy.unique(ref)
-    sel = refs[0] == ref
     
-    label = label[sel]
-    align = align[sel]
-    
-    avg = None
-    for i in xrange(label.shape[0]):
-        img = ndimage_file.read_image(spider_utility.spider_filename(image_file, int(label[i, 0])), int(label[i, 1]))
-        print align[i, 1], align[i, refidx]
-        if align[i, 1] >= 180.0: img[:,:] = eman2_utility.mirror(img)
-        if avg is None: avg = numpy.zeros(img.shape)
-        avg += img
-    ndimage_file.write_image(output_file, avg)
+    for i, view in enumerate(refs):
+        avg = None
+        for img in ndimage_file.iter_images(image_file, label[ref==view]):
+            if avg is None: avg = img
+            else: avg += img
+        tot = numpy.sum(ref==view)
+        print i, view, tot
+        ndimage_file.write_image(output_file, avg/tot, i)
+   
 
 
