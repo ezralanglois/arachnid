@@ -116,7 +116,11 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
                 if numpy.sum(sel1) > numpy.sum(sel2): sel1=sel2
             sel = numpy.logical_and(sel1, sel) if sel is not None else sel1
         '''
-        format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,rot,group', prefix='pca_')
+        try:
+            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,rot,group', prefix='pca_')
+        except:
+            _logger.error("%s == %s == %s == %s"%(str(sel.shape), str(align.shape), str(label.shape), str(feat.shape)))
+            raise
     else:
         neigh = manifold.knn(feat[:, :2], extra['nsamples']/2)
         index = manifold.largest_connected(manifold.knn_reduce(neigh, 3, False))[1]
@@ -143,8 +147,8 @@ def one_class_classification(feat, nstd, neig, nsamples, **extra):
     '''
     '''
     if 1 == 1: 
-        feat = feat - feat.min(axis=1)
-        feat /= feat.max(axis=1)
+        feat = feat - feat.min(axis=1).reshape((feat.shape[0], 1))
+        feat /= feat.max(axis=1).reshape((feat.shape[0], 1))
         cent = numpy.median(feat[:, :neig], axis=0)
         dist_cent = scipy.spatial.distance.cdist(feat[:, :neig], cent.reshape((1, len(cent))), metric='euclidean').ravel()
         sel = analysis.robust_rejection(numpy.abs(dist_cent), nstd*1.4826)
