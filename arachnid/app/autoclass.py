@@ -235,7 +235,7 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     '''
     
     #if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
-    if align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
+    #if align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(**extra)
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
