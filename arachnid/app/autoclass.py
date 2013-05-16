@@ -98,7 +98,9 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
     _logger.info("Read alignment file with %d projections"%len(label))
         
     _logger.info("Generating quaternions")
-    quat=orient_utility.spider_to_quaternion(align[:, :3])
+    ang = align[:, :3].copy()
+    ang[:, 0]=0
+    quat=orient_utility.spider_to_quaternion(ang)
     _logger.info("Building nearest neighbor graph: %d"%neighbors)
     qneigh = manifold.knn_geodesic_cache(quat, neighbors, batch, cache_file=cache_file)
     eps = numpy.deg2rad(eps)
@@ -187,7 +189,7 @@ def generate_reference_projections(reference, pixel_diameter, **extra):
     _logger.info("Created %d angles from healpix order %d"%(len(angles), healpix_order(pixel_diameter, **extra)))
     return reproject.reproject_3q(reference, pixel_diameter/2, angles, **extra), angles
 
-def read_alignment(files, alignment="", **extra):
+def read_alignment(files, alignment="", is_dala=False, **extra):
     ''' Read alignment parameters
     
     :Parameters:
@@ -216,6 +218,8 @@ def read_alignment(files, alignment="", **extra):
             label[:, 1] = numpy.arange(0, len(align))
     else:
         raise ValueError, "Multi file alignment read not supported"
+    if is_dala:
+        align[:, 0]=0
     ref = align[:, refidx].astype(numpy.int)
     return label, align, ref
     
@@ -281,6 +285,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", eps=1.5,              help="Angular step size")
     group.add_option("", neighbors=2000,              help="Number of neighbors")
     group.add_option("", batch=10000,              help="Maximum partial distance matrix")
+    group.add_option("", is_dala=False,              help="Set true if in-plane rotation has been applied")
     
     pgroup.add_option_group(group)
     if main_option:
