@@ -284,7 +284,9 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         if index > 0:
-            vals = [str(v) for v in numpy.unique(self.data[:, index-1])]
+            index = self.headermap[str(self.ui.subsetComboBox.currentText())]
+            print index, self.ui.subsetComboBox.currentText()
+            vals = [str(v) for v in numpy.unique(self.data[:, index])]
         else: vals = []
         self.subsetListModel.clear()
         for name in vals:
@@ -317,9 +319,9 @@ class MainWindow(QtGui.QMainWindow):
                 self.clear()
                 sval = float(index.text())
                 if index.checkState() == QtCore.Qt.Checked:
-                    self.selected = numpy.logical_or(self.selected, self.data[:, s-1]==sval)
+                    self.selected = numpy.logical_or(self.selected, self.data[:, s]==sval)
                 else:
-                    self.selected = numpy.logical_and(self.selected, self.data[:, s-1]!=sval)
+                    self.selected = numpy.logical_and(self.selected, self.data[:, s]!=sval)
             else:
                 _logger.error("subset2b: %d"%s)
                 for i in xrange(self.subsetListModel.rowCount()):
@@ -357,7 +359,7 @@ class MainWindow(QtGui.QMainWindow):
                 else: 
                     self.groups=None
                     color = 'r'
-                    self.axes.scatter(data[:, x], data[:, y], marker='.', cmap=cmap, c=color, picker=5, s=10, edgecolor = 'face')
+                    self.axes.scatter(data[:, x], data[:, y], marker='+', cmap=cmap, c=color, picker=5, s=10, edgecolor = 'face')
         self.ui.canvas.draw()
         self.drawImages()
     
@@ -450,7 +452,7 @@ class MainWindow(QtGui.QMainWindow):
                         ab = AnnotationBbox(im, data[idx], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
                         self.axes.add_artist(ab)
                     print "idx: ", idx
-                    if 1 == 1:
+                    if 1 == 0:
                         if not hasattr(self, 'plot_count'): self.plot_count = 0
                         import pylab, scipy, scipy.stats
                         pylab.figure(self.plot_count)
