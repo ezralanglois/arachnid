@@ -42,6 +42,8 @@ def rotate_distance_array(img, ref, psi, dist):
     '''
     
     psi = numpy.asarray(psi, dtype=dist.dtype)
+    if ref.shape[0] != psi.shape[0]: raise ValueError, "Angle does not match reference"
+    if ref.shape[0] != dist.shape[0]: raise ValueError, "Distance does not match reference"
     _spider_rotate_dist.rotate_distance_array(img, ref, psi, dist)
     
 def rotate_image2(img, ang, tx=0.0, ty=0.0, out=None, scale=1.0):
