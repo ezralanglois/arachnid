@@ -6,7 +6,7 @@
 
 cf2py threadsafe
 cf2py intent(inplace) :: VOL
-cf2py intent(in) :: NX,NY,NZ
+cf2py intent(in) :: NX,NY,NZ,RADIUS
 cf2py intent(hide) :: NX,NY,NZ
 cf2py intent(out) :: NN
 
@@ -69,7 +69,9 @@ c         MD   = .FALSE.
          LDPZ = NZ/2+1
          NVOX = NX*NY*NZ
 		 CALL PREPCUB(NX,NY,NZ,NN,IDUM,RI,.FALSE.,LDPX,LDPY,LDPZ)
+         print *, 'NX,NY=',NX, NY, NN, NANG, ANG(3,1),ANG(2,1),ANG(1,1)
          ALLOCATE(VI(5,NN),STAT=IRTFLG)
+		 CALL PREPCUB(NX,NY,NZ,NN,VI,RI,.TRUE.,LDPX,LDPY,LDPZ)
 
 c$omp          parallel do private(i)
                DO I=1,NANG
