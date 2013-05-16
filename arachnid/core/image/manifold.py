@@ -537,6 +537,16 @@ def diffusion_maps_dist(dist2, dimension):
     index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
     evecs = D[:,numpy.newaxis] * evecs #[:, index2]
     return evecs[:, index2], evals[index2].squeeze(), index
+
+def reduce_subset(dist2, index):
+    ''' Reduce a sparse matrix (CSR format) using the set of selected
+    '''
+    
+    tmp = dist2.tocsr() if not scipy.sparse.isspmatrix_csr(dist2) else dist2
+    index = index.astype(tmp.indices.dtype)
+    n=_manifold.select_subset_csr(tmp.data, tmp.indices, tmp.indptr, index)
+    dist2=scipy.sparse.csr_matrix((tmp.data[:n],tmp.indices[:n], tmp.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
+    return dist2
     
 def largest_connected(dist2):
     ''' Find the largest connected component in a graph
