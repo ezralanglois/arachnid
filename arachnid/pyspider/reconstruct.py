@@ -323,7 +323,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
     
     update = spider.cache_data(spi, master_filename, master_select, input_stack, window, rank)
     if flip_stack is not None and (update or not os.path.exists(spi.replace_ext(flip_stack))):  
-        _logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
+        #_logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
     
@@ -339,7 +339,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
         assert(spider.count_images(spi, flip_stack) == len(align))
         assert(spider.count_images(spi, input_stack) == len(align))
 
-def reconstruct_classify(spi, align, curr_slice, output, target_bin=None, **extra):
+def reconstruct_classify(spi, align, curr_slice, output, selection=None, target_bin=None, **extra):
     ''' Classify a set of projections and reconstruct a volume with the given alignment values
     
     :Parameters:
@@ -370,16 +370,21 @@ def reconstruct_classify(spi, align, curr_slice, output, target_bin=None, **extr
         extra.update(spider_params.update_params(**param))
         if mpi_utility.is_root(**extra):
             _logger.info("Reconstructing with pixel size: %f"%(extra['apix']))
+    oalign=align
     align = align.copy()
     align[:, 6:8] /= extra['apix']
     align[:, 12:14] /= extra['apix']
-    if mpi_utility.is_root(**extra):
-        selection = classify.classify_projections(align, **extra)
-    else: selection = 0
-    selection = mpi_utility.broadcast(selection, **extra)
+    if selection is None:
+        if mpi_utility.is_root(**extra):
+            
+                selection = classify.classify_projections(align, **extra)
+        else: selection = 0
+        selection = mpi_utility.broadcast(selection, **extra)
     #if hasattr(selection, 'ndim'):
     #    selection = numpy.argwhere(selection)
-    val = reconstruct(spi, align, selection, curr_slice, output, **extra)
+    val, w = reconstruct(spi, align, selection, curr_slice, output, **extra)
+    if w is not None:
+        oalign[curr_slice, 14]=w
     mpi_utility.barrier(**extra)
     return val
 
@@ -470,19 +475,23 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
     else: selectfile = None
     
     format.write(spi.replace_ext(align_file), align[curr_slice], format=format.spiderdoc)
+    spider.release_mp(spi, **extra)
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
+    spider.throttle_mp(spi, **extra)
     mpi_utility.barrier(**extra)
     if mpi_utility.is_root(**extra):
         dalamap = spider_utility.file_map(dala_stack, mpi_utility.get_size(**extra))
         dala_stack = spider.stack(spi, dalamap, mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))
         #if selection is not None: align = align[selection]
         format.write(spi.replace_ext(align_file), align, format=format.spiderdoc)
+        spider.release_mp(spi, **extra)
         if engine == 1:
             spi.bp_cg_3(dala_stack, align_file, input_select=selectfile, outputfile=vol_output, **extra)
         else:
             spi.bp_32f(dala_stack, align_file, input_select=selectfile, outputfile=vol_output, **extra)
+        spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on a single node - finished")
-    return vol_output
+    return vol_output, None
 
 def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, local_scratch, thread_count=0, boost=False, **extra):
     ''' Reconstruct a volume on multiple nodes using MPI
@@ -530,9 +539,12 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         
     if mpi_utility.is_root(**extra): _logger.info("Writing alignment file")
     format.write(spi.replace_ext(align_file), align[curr_slice, :15], header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), format=format.spiderdoc)
+    
+    spider.release_mp(spi, thread_count=thread_count, **extra)
     input_stack = spider.interpolate_stack(spi, input_stack, outputfile=format_utility.add_prefix(extra['cache_file'], "data_ip_"), **extra)
     if mpi_utility.is_root(**extra): _logger.info("Running RTSQ")
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
+    spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Running RTSQ-finished")
     dala_stack = spi.replace_ext(dala_stack)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', 1)
@@ -545,6 +557,7 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
             weights = reweight(align)[curr_slice]
             gen1 = itertools.imap(functools.partial(reweight_image, weights=weights[even]), enumerate(gen1))
             gen2 = itertools.imap(functools.partial(reweight_image, weights=weights[odd]), enumerate(gen2))
+        else: weights=None
         # boost
         # exp weight based on -cc
         # try different modes - defocus based - view based
@@ -554,16 +567,17 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
         #vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
     else:
         vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
+    header={'apix':extra['apix']}
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
-            ndimage_file.write_image(spi.replace_ext(vol_output[i]), vol[i])
+            ndimage_file.write_image(spi.replace_ext(vol_output[i]), vol[i], header=header)
     elif vol is not None:
-        ndimage_file.write_image(spi.replace_ext(vol_output[mpi_utility.get_rank(**extra)]), vol)
+        ndimage_file.write_image(spi.replace_ext(vol_output[mpi_utility.get_rank(**extra)]), vol, header=header)
     
     mpi_utility.barrier(**extra)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', thread_count) 
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on multiple nodes - finished")
-    return vol_output
+    return vol_output, weights
 
 def reweight(alignvals):
     '''
@@ -573,7 +587,9 @@ def reweight(alignvals):
     weights -= weights.min()
     weights /= weights.max()
     weights = numpy.exp(-weights)
-    weights /= weights.max()
+    if 1 == 1:
+        weights = alignvals[:, 14] * weights
+    weights /= weights.sum()
     return weights
 
 def reweight_image(img, weights):
