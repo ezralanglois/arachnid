@@ -313,6 +313,7 @@ def create_named_list(values, header, name="SomeList"):
         except:
             _logger.error("Row(%d): %d"%(index, len(row)))
             _logger.error("Row: %s"%(str(row)))
+            _logger.error("Header: %s"%(str(header)))
             raise
         index += 1
     return retvals
