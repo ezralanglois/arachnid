@@ -17,13 +17,13 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
 
-def fit_rotation(feat):
+def fit_rotation(feat, maxfev=0):
     '''
     '''
     
     start = numpy.ones(9*feat.shape[1], dtype=feat.dtype)
     #
-    map, success = scipy.optimize.leastsq(rotation_cost_function, start, args=(feat,))
+    map, success = scipy.optimize.leastsq(rotation_cost_function, start, args=(feat,), maxfev=maxfev)
     if (success > 4 or success < 1): 
         _logger.warn("Least-squares failed to find a solution: %d"%success)
     G = rotation_cost_function(map, feat)
@@ -265,15 +265,16 @@ def align_param_3D_to_2D_simple(rot, tx, ty):
     sy : float
          Translation in the y-direction (TR)
     '''
+    #;x24= x22*COS(-x35)-x23*SIN(-x35)   ; no inversion
+    #;x25= x22*SIN(-x35)+x23*COS(-x35)
     
-    #x24=  x22*COS(-x35)+x23*SIN(-x35)  ;with matrix inversion
-    #x25= -x22*SIN(-x35)+x23*COS(-x35)
-    rot1 = -numpy.deg2rad(rot)
+    rot1 = numpy.deg2rad(rot)
     ca = numpy.cos(rot1)
     sa = numpy.sin(rot1)
-    sx =  tx*ca + ty*sa
-    sy = -tx*sa + ty*ca 
+    sx = tx*ca - ty*sa
+    sy = tx*sa + ty*ca
     return -rot, sx, sy
+    
 
 def align_param_2D_to_3D_simple(rot, tx, ty):
     ''' Convert 2D to 3D alignment parameters
@@ -298,14 +299,13 @@ def align_param_2D_to_3D_simple(rot, tx, ty):
     sy : float
          Translation in the y-direction (RT)
     '''
-    #;x24= x22*COS(-x35)-x23*SIN(-x35)   ; no inversion
-    #;x25= x22*SIN(-x35)+x23*COS(-x35)
-    
-    rot1 = numpy.deg2rad(rot)
+    #x24=  x22*COS(-x35)+x23*SIN(-x35)  ;with matrix inversion
+    #x25= -x22*SIN(-x35)+x23*COS(-x35)
+    rot1 = -numpy.deg2rad(rot)
     ca = numpy.cos(rot1)
     sa = numpy.sin(rot1)
-    sx = tx*ca - ty*sa
-    sy = tx*sa + ty*ca
+    sx =  tx*ca + ty*sa
+    sy = -tx*sa + ty*ca 
     return -rot, sx, sy
 
 def compute_frames_reject(search_grid=40.0, **extra):
