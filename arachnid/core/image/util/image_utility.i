@@ -52,6 +52,9 @@ void radon(double *pPtr, double *iPtr, double *thetaPtr, double *xCosTable, doub
 %define DECLARE_DATA_TYPE2( dtype, itype )
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* avg, int na)};
 %apply (dtype* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(dtype* out, int onx, int ony, int onz)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* Dr, int nr)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* Dc, int nc)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, int ns)};
 %enddef
 
 
@@ -115,5 +118,11 @@ INSTANTIATE_DATA(rotavg)
 		" This SWIG wrapper function creates a 2D rotational average from a 1D average.
 		");
 INSTANTIATE_ALL(radon_transform)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function creates a 2D rotational average from a 1D average.
+		");
+int radon_count(int nang, int irow, int icol);
 
 
