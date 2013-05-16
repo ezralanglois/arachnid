@@ -6,40 +6,69 @@
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, manifold, rotate
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, manifold, rotate, analysis
 from ..core.metadata import spider_utility, format, spider_params, format_utility
 from ..core.orient import orient_utility, healpix
 from ..core.parallel import process_queue
-import logging, numpy, scipy.io, os, scipy.sparse
+import logging, numpy, scipy.io, os, scipy.sparse, scipy.spatial
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, test_file, **extra):
+def batch(files, output, test_file, align_file, **extra):
     '''
     '''
     
-    label, feat, map, errs = recover_relative_orientation(files, output, **extra)
+    label, feat, index, sel, map, errs = recover_relative_orientation(files, output, **extra)
+    if index is not None:
+        label1 = label[index]
+        label2 = label[index[sel]]
+    else:
+        label1 = label
+        label2 = label[sel]
+    errs2 = errs
+    errs1 = numpy.zeros(feat.shape[0])
+    errs1[sel] = errs
+    rot = orient_utility.map_rotation(feat[sel], map, False)
+    format.write(output, numpy.vstack((label2[:, 1]+1, numpy.ones(len(label2)))).T, prefix='sel_', default_format=format.spidersel, header=['id', 'select'])
+    if align_file != "":
+        align = format.read_alignment(align_file)
+        ref = numpy.asarray([healpix._healpix.ang2pix_ring(2, numpy.deg2rad(a[1]), numpy.deg2rad(a[2])) for a in align])
+        if index is not None:
+            ref = ref[index]
+        feat2 = numpy.hstack((ref.reshape((len(index), 1)), feat))
+        header='ref'
+    else: 
+        header=None
+        feat2=feat
+    
+    format.write_dataset(output, feat2, None, label2, errs2, prefix='feat_full_', header=header)
+    format.write_dataset(output, feat2[sel], None, label2, errs2, prefix='feat_', header=header)
+    format.write_dataset(output, rot, None, label2, errs2, prefix='rot_raw_')
+    sel2 = errs2 < numpy.median(errs2)
+    _logger.info("Median: %f"%numpy.median(errs2))
+    format.write_dataset(output, feat2[sel[sel2]], None, label2[sel[sel2]], errs2[sel2], prefix='feat_best_', header=header)
+    format.write_dataset(output, rot[sel[sel2]], None, label2[sel[sel2]], errs2[sel2], prefix='rot_best_')
     rot = orient_utility.map_rotation(feat, map, False)
-    format.write_dataset(output, rot, None, label, errs, prefix='rot_raw_')
+    format.write_dataset(output, rot, None, label1, errs1, prefix='rot_raw_full')
     _logger.info("Map orthgonal rotation matrices")
-    rot = orient_utility.map_rotation(feat, map, True)
-    format.write_dataset(output, rot, None, label, errs, prefix='rot_')
+    rot = orient_utility.map_rotation(feat[sel], map, True)
+    format.write_dataset(output, rot, None, label2, errs2, prefix='rot_')
     #_logger.info("Convert to Quaternion")
     #rot = orient_utility.ensure_quaternion(rot)
     #format.write_dataset(output, rot, None, label, None)#, prefix='quat_')
-    frame, rot = frame_search_mp(files, label, rot, **extra)
+    frame, rot = frame_search_mp(files, label2, rot, **extra)
     format.write(output, rot, header='psi,theta,phi'.split(','), default_format=format.spiderdoc)
     # write frame
     _logger.info("Completed")
     
-def recover_relative_orientation(files, output, neighbors, neighbor_batch, force_embed=False, force_knn=False, symmetric_knn=False, **extra):
+def recover_relative_orientation(files, output, neighbors, neighbor_start, neighbor_batch, force_embed=False, force_knn=False, symmetric_knn=False, min_connected=0.5, max_call=0, nstd=2.0, **extra):
     '''
     '''
     
     if force_knn: force_embed=True
     label = build_label(files)
     cache_file = extra.get('cache_file', "")
-    feat, evals, index, map, errs = load_from_cache(cache_file, 'feat', 'evals', 'index', 'map', 'errs')
+    feat, evals, index, map, errs, sel = load_from_cache(cache_file, 'feat', 'evals', 'index', 'map', 'errs', 'sel')
     if feat is None or force_embed:
         dist2, = load_from_cache(cache_file, 'dist2_%d'%neighbors)
         if dist2 is None or force_knn:
@@ -63,20 +92,21 @@ def recover_relative_orientation(files, output, neighbors, neighbor_batch, force
             _logger.info("Using cached nearest neighbors")
         best=(1e20, None)
         program.openmp.set_thread_count(1)
-        for err, nn in process_queue.map_reduce_ndarray(orientation_cost_function, extra['thread_count'], range(5,neighbors), dist2, symmetric_knn):#, **extra)
+        if min_connected < 1.0: min_connected = len(label)*min_connected
+        min_connected = int(min_connected)
+        for err, nn in process_queue.map_reduce_ndarray(orientation_cost_function, extra['thread_count'], range(neighbor_start,neighbors), dist2, symmetric_knn, min_connected, max_call, nstd):#, **extra)
             if err < best[0]: best = (err, nn)
         if best[1] is None: raise ValueError, "Failed to find embedding"
         _logger.info("Best = %d,%f"%(best[1], best[0]))
         program.openmp.set_thread_count(extra['thread_count'])
-        feat, evals, index, map, errs=recover_orientation_map(dist2, best[1], not symmetric_knn)
-        save_to_cache(cache_file, feat=feat, evals=evals, index=index, map=map, errs=errs)
+        feat, sel, evals, index, map, errs=recover_orientation_map(dist2, best[1], not symmetric_knn, max_call=max_call, nstd=nstd)
+        save_to_cache(cache_file, feat=feat, evals=evals, index=index, map=map, errs=errs, sel=sel)
     else:
         _logger.info("Using cached manifold")
-    if index is not None:label = label[index]
     _logger.info("Error: %f - max: %f - min: %f - avg: %f - count: %d"%(numpy.sqrt(errs.sum()), numpy.sqrt(errs.max()), numpy.sqrt(errs.min()), numpy.sqrt(errs.mean()), feat.shape[0]))
-    return label, feat, map, errs
+    return label, feat, index, sel, map, errs
 
-def orientation_cost_function(neighbors, dist2, symmetric_knn, **extra):
+def orientation_cost_function(neighbors, dist2, symmetric_knn, min_connected, max_call=0, nstd=2.0, **extra):
     '''
     '''
     
@@ -84,23 +114,59 @@ def orientation_cost_function(neighbors, dist2, symmetric_knn, **extra):
     for nn in neighbors:
         assert(nn>0)
         try:
-            errs = recover_orientation_map(dist2, nn, not symmetric_knn)[-1]
+            errs = recover_orientation_map(dist2, nn, not symmetric_knn, max_call=max_call, nstd=nstd)[-1]
         except:
+            _logger.exception('here')
             err = 1e20
+            errs=[]
         else:
-            err = numpy.mean(errs)
-        _logger.info("Neighbor = %d, %f -- %d"%(nn, err, len(errs)))
-        if err < best[0]: best = (err, nn)
+            err = numpy.sqrt(numpy.mean(errs))
+        if len(errs) >= min_connected:
+            _logger.info("Neighbor = %d, %f -- %d"%(nn, err, len(errs)))
+            if err < best[0]: best = (err, nn)
+        else:
+            _logger.info("Neighbor = %d, %f -- %d -- too small"%(nn, err, len(errs)))
     return best
 
-def recover_orientation_map(dist2, neighbors, mutual=True, dimension=9):
+def recover_orientation_map(dist2, neighbors, mutual=True, dimension=9, max_call=0, nstd=2.0):
     '''
     '''
     
-    dist2 = manifold.knn_reduce(dist2, neighbors, mutual)
+    if 1 == 0:
+        dist2 = manifold.knn_reduce(dist2, neighbors, mutual)
+    else:
+        dist2_old = dist2.copy()
+        nn = dist2.data.shape[0]/dist2.shape[0]
+        #eps = numpy.median(dist2.data.reshape((dist2.shape[0], nn))[:, neighbors])
+        assert(hasattr(dist2, 'row'))
+        eps = numpy.mean(dist2.data.reshape((dist2.shape[0], nn))[:, neighbors])
+        _logger.info("EPS: %f for %d"%(eps, neighbors))
+        dist2 = manifold.knn_reduce_eps(dist2, eps)
+        
+    
     feat, evals, index = manifold.diffusion_maps_dist(dist2, dimension)
-    map, errs = orient_utility.fit_rotation(feat)
-    return feat, evals, index, map, errs
+    sel = outlier_rejection(feat, index, nstd)
+    if numpy.sum(sel) > 0:
+        _logger.error("Select: %d"%numpy.sum(sel))
+        index = index[sel].copy()
+        dist2=manifold.reduce_subset(dist2_old, index.squeeze())
+        _logger.error("Select-dist: %d -> %d"%(index.shape[0], dist2.shape[0]))
+        dist2 = manifold.knn_reduce_eps(dist2.tocoo(), eps)
+        feat, evals, index = manifold.diffusion_maps_dist(dist2, dimension)
+        _logger.error("Select-feat: %d -> %d"%(sel.shape[0], feat.shape[0]))
+        sel = numpy.ones(len(feat), dtype=numpy.bool)
+    
+    map, errs = orient_utility.fit_rotation(feat[sel], max_call)
+    return feat, sel, evals, index, map, errs
+
+def outlier_rejection(feat, index, nstd=2.0):
+    '''
+    '''
+    
+    cent = numpy.median(feat, axis=0)
+    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    sel = analysis.robust_rejection(dist_cent, nstd*1.4826)
+    return sel
 
 def recover_relative_orientation_old(files, output, neighbors, neighbor_batch, **extra):
     '''
@@ -364,6 +430,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "AutoClass", "Options to control automated classification",  id=__name__)
     group.add_option("", neighbors=30,               help="Maximum number of neighbors to use")
+    group.add_option("", neighbor_start=10,               help="Minimum number of neighbors to use")
     group.add_option("", resolution=60,              help="Set resolution of orientation recovery")
     group.add_option("", neighbor_batch=50000,        help="Maximum number of neighbors to process in memory at one time: neighbor_batch^2 values", dependent=False)
     group.add_option("", cache_file="",              help="Cache preprocessed data in matlab data files")
@@ -375,6 +442,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", symmetric_knn=False,        help="Use symmetric (non-mutual) NN graph")
     group.add_option("", bispec_mode=0,             help="Type of bispectrum information")
     group.add_option("", bispec_rng=[],             help="Resolution range for bispectra (low, high)")
+    group.add_option("", min_connected=0.5,        help="Size of minimum connected component: < 1.0 is percentage")
+    group.add_option("", max_call=0,                help="Maximum number of function calls")
+    group.add_option("", nstd=2.0,                  help="Number of standard deviations from the median centriod")
+    group.add_option("", align_file="",             help="Known angles")
     
     pgroup.add_option_group(group)
     
