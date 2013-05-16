@@ -144,9 +144,9 @@ class Session(object):
         self.spider_poll.register(self.spider_err.fileno())
         self._invoke(self.dataext)
         if enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
-            if 1 == 0:
-                #self._invoke('MD', 'RESULTS ON')
+            if 1 == 1:
                 self._invoke('MD', 'TERM OFF')
+                self._invoke('MD', 'RESULTS ON')
             else:
                 self._invoke('MD', 'RESULTS ON')
                 self._invoke('MD', 'TERM ON') 

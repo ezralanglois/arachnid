@@ -16,6 +16,7 @@ import numpy, scipy, math, logging, scipy.ndimage
 import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
+import scipy.sparse
 #import eman2_utility
 
 _logger = logging.getLogger(__name__)
@@ -33,6 +34,67 @@ try:
 except:
     tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
     _image_utility=None
+    
+def radon_transform(nrows, ncols, nangs=180, dtype=numpy.float64):
+    '''Compute the radon transform
+    
+    :Parameters:
+    
+    nrows : int
+            Number of rows in the image
+    ncols : int
+            Number of columns in the image
+    nangs : int
+            Number of angles to sample in the image
+    dtype : numpy.dtype
+            Data type
+    
+    :Returns:
+    
+    out : ndarray
+          Sinogram image data
+    '''
+    
+    temp1 = nrows - 1 - (nrows-1)/2
+    temp2 = ncols - 1 - (ncols-1)/2
+    rLast = int(math.ceil(math.sqrt(temp1*temp1+temp2*temp2))) + 1
+    rFirst = -rLast
+    nrad = rLast - rFirst + 1
+    
+    n = _image_utility.radon_count(nangs, nrows, ncols)
+    try:
+        data = numpy.empty(n, dtype=dtype)
+        row = numpy.empty(n, dtype=numpy.uint)#numpy.ulonglong)
+        col = numpy.empty(n, dtype=numpy.uint)#numpy.ulonglong)
+    except:
+        logging.error("Error creating sparse matrix with %d"%n)
+        raise
+    
+    n = _image_utility.radon_transform(data, row, col, nangs, nrows, ncols)
+    if n < 0: raise StandardError, "Radon transform failed"
+    mat = scipy.sparse.coo_matrix( (data[:n],(row[:n], col[:n])), shape=(nrad*nangs, nrows*ncols) )
+    mat.nrad = nrad
+    mat.nang = nangs
+    return mat
+
+def sinogram(img, rad):
+    '''Create a sinogram from an image and a radon transform
+    
+    :Parameters:
+    
+    img : ndarray
+          Image n x m
+    rad : ndarray
+          Radon transform nm x ra
+    
+    :Returns:
+    
+    sino : ndarray
+           Sinogram r x a
+    '''
+    
+    sino = rad * img.ravel()[:, numpy.newaxis]
+    return sino.reshape(rad.nang, rad.shape[0]/rad.nang)
 
 def frt2(a):
     """Compute the 2-dimensional finite radon transform (FRT) for an n x n
@@ -100,6 +162,26 @@ def rotavg(img, out=None):
     _image_utility.rotavg(out, avg, int(rmax))
     if out.shape[2] == 1: out = out.reshape((out.shape[0], out.shape[1]))
     return out
+
+'''
+radial_average(
+%% Compute radially average power spectrum
+[X Y] = meshgrid(-dimMax/2:dimMax/2-1, -dimMax/2:dimMax/2-1);
+    % Make Cartesian grid
+[theta rho] = cart2pol(X, Y);
+    % Convert to polar coordinate axes
+rho = round(rho);
+i = cell(floor(dimMax/2) + 1, 1);
+for r = 0:floor(dimMax/2)
+   i{r + 1} = find(rho == r);
+end
+Pf = zeros(1, floor(dimMax/2)+1);
+for r = 0:floor(dimMax/2)
+   Pf(1, r + 1) = nanmean( imgfp( i{r+1} ) );
+end
+
+#numpy.nansum(dat, axis=1) / numpy.sum(numpy.isfinite(dat), axis=1)
+'''
 
 def mean_azimuthal(img, center=None):
     ''' Calculate the sum of a 2D array along the azimuthal
@@ -500,6 +582,44 @@ def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1):
     rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
     return powerspec_avg(rwin, pad)
+
+def dct_avg(imgs, pad):
+    ''' Calculate an averaged power specra from a set of images
+    
+    :Parameters:
+    
+    imgs : iterable
+           Iterator of images
+    pad : int
+          Number of times to pad an image
+    
+    :Returns:
+    
+    avg_powspec : array
+                  Averaged power spectra
+    '''
+    
+    if pad is None or pad <= 0: pad = 1
+    avg = None
+    total = 0.0
+    for img in imgs:
+        #pad_width = img.shape[0]*pad
+        if 1 == 0:
+            img = eman2_utility.ramp(img)
+            img = img.copy()
+            img -= img.min()
+            img /= img.max()
+            img -= img.mean()
+            img /= img.std()
+        
+        fimg=scipy.fftpack.dct(scipy.fftpack.dct(img.T, axis=-1, norm='ortho').T, axis=-2, norm='ortho')
+        
+        if avg is None: avg = fimg.copy()
+        else: avg += fimg
+        return avg
+        total += 1.0
+    numpy.divide(avg, total, avg)
+    return avg #scipy.fftpack.fftshift(avg).real
 
 def powerspec_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
@@ -1288,6 +1408,44 @@ def for_each_window(mic, coords, window, bin_factor=1.0):
         yield npdata
     raise StopIteration
 
+def flatten_solvent(img, threshold=None, out=None):
+    ''' Create a tight mask from the given image
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    threshold : float, optional
+                Threshold for binarization, if not specified us Otsu's method to find
+    out : numpy.ndarray, optional
+          Output image
+                     
+    :Returns:
+
+    out : numpy.ndarray
+          Output image
+    threshold : float
+                Threshold used to create binary mask
+    '''
+    
+    if img.ndim != 2 and img.ndim != 3: raise ValueError, "Requires 2 or 3 dimensional images"
+    _logger.debug("Tight mask - started")
+    if threshold is None or threshold == 'A': 
+        _logger.debug("Finding threshold")
+        threshold = analysis.otsu(img.ravel())
+    else: threshold=float(threshold)
+    
+    _logger.debug("Finding biggest object")
+    # Get largest component in the binary image
+    #print "threshold=", threshold
+    if 1 == 0:
+        out = biggest_object(img>threshold, out)
+    else:
+        if out is None: out = numpy.zeros(img.shape, img.dtype)
+        sel = biggest_object_select(img>threshold)
+        out[sel] = img[sel]
+    return out, threshold
+
 def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None):
     ''' Create a tight mask from the given image
     
@@ -1316,9 +1474,10 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     
     if img.ndim != 2 and img.ndim != 3: raise ValueError, "Requires 2 or 3 dimensional images"
     _logger.debug("Tight mask - started")
-    if threshold is None: 
+    if threshold is None or threshold == 'A': 
         _logger.debug("Finding threshold")
         threshold = analysis.otsu(img.ravel())
+    else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")
     # Get largest component in the binary image
@@ -1394,15 +1553,39 @@ def biggest_object(img, out=None):
           Output image
     '''
     
-    if img.dtype != numpy.bool: raise ValueError, "Requires binary image"
+    if img.dtype != numpy.bool: raise ValueError, "Requires binary image: %s"%img.__class__.__name__
     elem = None #numpy.ones((3,3)) if img.ndim == 2 else numpy.ones((3,3,3))
     label, num_label = scipy.ndimage.label(img, elem)
-    biggest1 = numpy.argmax(numpy.histogram(label, num_label+1)[1:])
-    biggest = numpy.argmax([numpy.sum(l==label) for l in xrange(1, num_label+1)])+1
-    assert(biggest==biggest1)
+    biggest = numpy.argmax(numpy.histogram(label, num_label+1)[0][1:])+1
+    #biggest = numpy.argmax([numpy.sum(l==label) for l in xrange(1, num_label+1)])+1
+    #assert(biggest==biggest1)
     if out is None: out = numpy.zeros(img.shape)#, dtype=img.dtype)
     out[label == biggest] = 1
     return out
+
+def biggest_object_select(img):
+    ''' Get the biggest object in a binary image
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    threshold : float, optional
+                Threshold for binarization, if not specified us Otsu's method to find
+    out : numpy.ndarray, optional
+          Output image
+                     
+    :Returns:
+
+    out : numpy.ndarray
+          Output image
+    '''
+    
+    if img.dtype != numpy.bool: raise ValueError, "Requires binary image: %s"%img.__class__.__name__
+    elem = None #numpy.ones((3,3)) if img.ndim == 2 else numpy.ones((3,3,3))
+    label, num_label = scipy.ndimage.label(img, elem)
+    biggest = numpy.argmax(numpy.histogram(label, num_label+1)[0][1:])+1
+    return label == biggest
 
 def bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased'):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
@@ -1520,6 +1703,8 @@ def bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased'):
 
 def lagwind(lag,window):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
+    
+    TODO: fix: none, parzen
     
     :Parameters:
     

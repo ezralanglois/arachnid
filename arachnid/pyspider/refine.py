@@ -222,7 +222,7 @@ def effective_resolution(theta_delta, apix, pixel_diameter, **extra):
     
     return numpy.tan(numpy.deg2rad(theta_delta/2))*apix*pixel_diameter
     
-def recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, **extra):
+def recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, prep_thread=0, **extra):
     ''' Recover the volume from the last refinement if it does not exist
     
     :Parameters:
@@ -235,6 +235,8 @@ def recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_
                  Slice of align or selection arrays on current node
     refine_index : int
                    Starting offset in refinement
+    prep_thread : int
+                  Number of threads for post processing
     output : str
              Output filename for refinement
     extra : dict
@@ -261,13 +263,16 @@ def recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_
                 format_utility.add_prefix(output, 'raw2')
             ]
         if mpi_utility.is_root(**extra): 
+            _logger.info("Increasing thread count: %d"%prep_thread)
+            spider.throttle_mp(spi, prep_thread, **extra)
             resolution_start = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+            spider.throttle_mp(spi, **extra)
             _logger.info("Refinement finished: %d. %f"%(refine_index, resolution_start))
         mpi_utility.barrier(**extra)
     resolution_start = mpi_utility.broadcast(resolution_start, **extra)
     return output_volume, resolution_start
 
-def refinement_step_gs(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, **extra):
+def refinement_step_gs(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, prep_thread=0, **extra):
     ''' Perform a single step of refinement
     
     .. todo:: undecimate before reconstruct
@@ -288,6 +293,8 @@ def refinement_step_gs(spi, alignvals, curr_slice, output, output_volume, refine
                    Current refinement index
     keep_reference : bool
                      Keep the initial reference for each round of refinement
+    prep_thread : int
+                  Number of threads for post processing
     extra : dict
             Unused keyword arguments
     
@@ -317,7 +324,11 @@ def refinement_step_gs(spi, alignvals, curr_slice, output, output_volume, refine
     spider.release_mp(spi, **extra)
     vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
     if mpi_utility.is_root(**extra):
-        return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+        _logger.info("Increasing thread count: %d"%prep_thread)
+        spider.throttle_mp(spi, prep_thread, **extra)
+        res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+        spider.throttle_mp(spi, **extra)
+        return res
     else: spider.throttle_mp(spi, **extra)
     return None
 
@@ -343,7 +354,7 @@ def halfset_slice(curr_slice, length):
     half = len(curr_slice)/2
     return slice(beg, beg+half, inc), slice(beg+half, end, inc)
 
-def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, **extra):
+def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, keep_reference=False, prep_thread=0, defocus_old=None, **extra):
     ''' Perform a single step of refinement
     
     .. todo:: undecimate before reconstruct
@@ -364,6 +375,8 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_in
                    Current refinement index
     keep_reference : bool
                      Keep the initial reference for each round of refinement
+    prep_thread : int
+                  Number of threads for post processing
     extra : dict
             Unused keyword arguments
     
@@ -390,13 +403,16 @@ def refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_in
     align.align_to_reference(spi, alignvals, curr_slice, inputangles=tmp_align, **extra)
     spider.throttle_mp(spi, **extra)
     if mpi_utility.is_root(**extra):
-        align.write_alignment(spi.replace_ext(output), alignvals)
+        align.write_alignment(spi.replace_ext(output), alignvals, None, defocus_old)
         #align2=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
         #format.write(spi.replace_ext(output), align2, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
-    spider.release_mp(spi, **extra)
     vols = reconstruct.reconstruct_classify(spi, alignvals, curr_slice, output, **extra)
-    if mpi_utility.is_root(**extra): return prepare_volume.post_process(vols, spi, output, output_volume, **extra)
-    else: spider.throttle_mp(spi, **extra)
+    if mpi_utility.is_root(**extra): 
+        _logger.info("Increasing thread count: %d"%prep_thread)
+        spider.throttle_mp(spi, prep_thread, **extra)
+        res = prepare_volume.post_process(vols, spi, output, output_volume, **extra)
+        spider.throttle_mp(spi, **extra)
+        return res
     return None
 
 def setup_log(output, loggers=[]):
@@ -494,6 +510,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   keep_reference=False,        help="Do not change the reference - for tilt-pair analysis - second exposure")
     group.add_option("",   min_resolution=0.0,          help="Minimum resolution to filter next input volume")
     group.add_option("",   add_resolution=0.0,          help="Additional amount to add to resolution before filtering the next reference")
+    group.add_option("",   prep_thread=0,                help="Number of threads to use for volume preparation")
     pgroup.add_option_group(group)
     
     if main_option:

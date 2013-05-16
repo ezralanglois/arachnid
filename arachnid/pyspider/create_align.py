@@ -93,6 +93,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_utility, format_utility
 from ..core.image import ndimage_file
+from ..core.orient import orient_utility, healpix
 from ..core.util import numpy_ext
 import numpy, logging, glob, os
 
@@ -114,11 +115,44 @@ def batch(files, output, data_ext, **extra):
                 Unused keyword arguments
     '''
     
+    if len(files) == 1:
+        try:
+            alignvals = create_alignment_from_relion(files[0], **extra)
+        except:_logger.exception("here")
+        else: 
+            format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
+            return
+    _logger.info("Creating alignment file from input stacks")
     alignvals = create_alignment(files, **extra)
     output = os.path.splitext(output)[0]
     if data_ext != "" and data_ext[0] != '.': output+='.'
     format.write(output+data_ext, alignvals, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
     #spider.alignment_header(alignvals))
+
+def create_alignment_from_relion(star_file, apix, **extra):
+    '''
+    '''
+    
+    projections = format.read(star_file, numeric=True)
+    _logger.info("Creating alignment file from relion star file")
+    align = numpy.zeros((len(projections), 18))
+    for i in xrange(len(projections)):
+        projection = projections[i]
+        stack_file, stack_id = spider_utility.relion_file(projection.rlnImageName)
+        psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
+        align[i, 1] = projection.rlnAngleTilt
+        align[i, 2] = projection.rlnAngleRot
+        align[i, 3] = healpix.ang2pix(3, numpy.deg2rad(projection.rlnAngleTilt), numpy.deg2rad(projection.rlnAngleRot))
+        align[i, 4] = i+1
+        align[i, 5] = psi
+        align[i, 6] = dx*apix
+        align[i, 7] = dy*apix
+        align[i, 8] = 1
+        align[i, 15] = spider_utility.spider_id(stack_file)
+        align[i, 16] = stack_id
+        align[i, 17] = projection.rlnDefocusU
+    return align
+        
 
 def create_alignment(files, sort_align=False, random_subset=0, min_defocus=0, max_defocus=0, **extra):
     ''' Create empty (unaligned) alignment array
@@ -326,6 +360,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[],              help="List of input images or stacks named according to the SPIDER format", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",                   help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("",   data_ext="spi",              help="SPIDER extension for data files")
+        pgroup.add_option("",   apix=0.0,                      help="Pixel size")
     pgroup.add_option("-d", defocus_file ="",                help="Filename for the defocus_file values for each micrograph", gui=dict(filetype="open"), required_file=False)
     pgroup.add_option("",   defocus_file_header="id:0,defocus:1", help="Header labelling important columns in the `defocus_file` file")
     pgroup.add_option("-s", select_file ="",                 help="Filename for selection of projection or micrograph subset; Number before extension (e.g. select_01.spi) and it is assumed each selection is organized by micrograph", gui=dict(filetype="open"), required_file=False)

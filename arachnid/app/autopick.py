@@ -418,7 +418,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
     return sel
 
-def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, experimental2=False, **extra):
+def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
@@ -516,7 +516,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     
     cent = numpy.median(feat, axis=0)
     dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    dsel = analysis.robust_rejection(dist_cent, 2.5)
+    dsel = analysis.robust_rejection(dist_cent, real_space_nstd)
     '''
     for i in xrange(feat.shape[1]):
         if dsel is None:
@@ -569,12 +569,12 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
                 if 1 == 0:
                     d, V = scipy.linalg.svd(img, False)[1:]
                 else:
-                    rimg=ndimage_utility.rolling_window(img, (6,6), (3,3))
+                    rimg=ndimage_utility.rolling_window(img, (10,10), (5,5))
                     rimg = rimg.reshape((rimg.shape[0]*rimg.shape[1], rimg.shape[2]*rimg.shape[3]))
                     d, V = scipy.linalg.svd(rimg, False)[1:]
                 
                 val = d[:2]*numpy.dot(V[:2], rimg.T).T
-                out[j] = numpy.max(scipy.stats.kurtosistest(val)[0]) #normaltest
+                out[j] = numpy.max(scipy.stats.normaltest(val)[0]) #normaltest
             else:
                 #img=ndimage_utility.compress_image(img, npmask)
                 out[j] = numpy.max(scipy.stats.normaltest(img)[0]) #normaltest
@@ -686,6 +686,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
     group.add_option("",   experimental2=False,          help="Use the latest experimental features, 2nd generation!")
+    group.add_option("",   real_space_nstd=2.5,          help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
     
     pgroup.add_option_group(group)

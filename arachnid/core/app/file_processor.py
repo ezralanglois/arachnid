@@ -296,7 +296,7 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
         if data_ext is not None:
             for i in xrange(len(deps)):
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
-        mods = [os.path.getctime(input) for input in deps if input != ""]
+        mods = [os.path.getctime(input) for input in deps if input != "" and os.path.exists(input)]
         last_input = numpy.max( mods ) if len(mods) > 0 else 0
         if last_input >= first_output:
             _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))

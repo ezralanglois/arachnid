@@ -1701,15 +1701,16 @@ class Session(spider_session.Session):
             v = session.get_version()
             if v[0] < 20: interpolation = None
         
-        assert(max_ref_proj is not None)
+        #assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
         if max_ref_proj is None: max_ref_proj = total_size
         if outputfile is None: outputfile = session.ms(max_ref_proj, spider_image(inputfile))
-        elif int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
+        elif is_incore_filename(outputfile) and int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
             session.de(outputfile)
             outputfile = session.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
-        assert( int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) )
+            assert( int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) )
+        elif not is_incore_filename(outputfile): session.de(outputfile)
         
         if pj_radius is None or pj_radius < 1:
             if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
@@ -3180,7 +3181,9 @@ def cache_data(session, inputfile, selection, outputfile, window, rank=0):
         width, stack_count = session.fi_h(spider_stack(outputfile), ('NSAM', 'MAXIM'))
         stack_count = int(stack_count)
         width = int(width)
-    else: stack_count = 0
+    else: 
+        stack_count = 0
+        width = 0
     selection_file = os.path.splitext(outputfile)[0]+'.csv'
     selection_file = os.path.join(os.path.dirname(selection_file), "sel_"+os.path.basename(selection_file))
     

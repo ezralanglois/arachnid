@@ -185,6 +185,7 @@ def read_header(filename, index=None):
     header['nz'] = h['nz']
     for key in h.fields.iterkeys():
         header['spi_'+key] = h[key]
+    header['format'] = 'SPIDER'
     return header
 
 def read_spider_header(filename, index=None):
@@ -205,11 +206,10 @@ def read_spider_header(filename, index=None):
     
     f = _open(filename, 'r')
     try:
-        curr = f.tell()
+        #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_dtype, count=1)
         if not is_readable(h):
-            f.seek(curr)
-            h = numpy.fromfile(f, dtype=header_dtype.newbyteorder(), count=1)
+            h = h.byteswap().newbyteorder()
         if not is_readable(h): raise IOError, "Not a SPIDER file"
         if index is not None:
             h_len = int(h['labbyt'])

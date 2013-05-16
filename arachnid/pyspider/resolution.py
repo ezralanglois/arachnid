@@ -221,8 +221,15 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     
     extra.update(ensure_pixel_size(spi, filename1, **extra))
     mask_output = format_utility.add_prefix(outputfile, "mask_")
-    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output, window=extra['window'])
-    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output, window=extra['window'])
+    #_logger.error("apix=%f"%extra['apix'])
+    #_logger.error("bin_factor=%f"%extra['bin_factor'])
+    #_logger.error("window=%f"%extra['window'])
+    if len(res_threshold.split(',')) == 2: 
+        res_threshold1, res_threshold2 = res_threshold.split(',')
+    else: 
+        res_threshold1, res_threshold2 = res_threshold,res_threshold
+    filename1 = mask_volume.mask_volume(filename1, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold1, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh1_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output, window=extra['window'])
+    filename2 = mask_volume.mask_volume(filename2, outputfile, spi, resolution_mask, mask_edge_width=res_edge_width, threshold=res_threshold2, ndilate=res_ndilate, gk_size=res_gk_size, gk_sigma=res_gk_sigma, pre_filter=res_filter, prefix='res_mh2_', pixel_diameter=extra['pixel_diameter'], apix=extra['apix'], mask_output=mask_output, window=extra['window'])
     dum,pres,sp = spi.rf_3(filename1, filename2, outputfile=outputfile, **extra)
     _logger.debug("Found resolution at spatial frequency: %f"%sp)
     vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
@@ -319,7 +326,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     
     pylab.plot(x, y)
     pylab.axis([0.0,freq_rng, 0.0,1.0])
-    pylab.xlabel('Normalized Spatial Frequency ($\AA^{-1}$)')
+    pylab.xlabel('Normalized Spatial Frequency')# ($\AA^{-1}$)
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", dpi=dpi)
@@ -367,7 +374,7 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
     #pylab.legend(loc=1)
     # detect drop below some number, stop range there?
     pylab.axis([0.0,0.5,0.0,1.0])
-    pylab.xlabel('Spatial Frequency ($\AA^{-1}$)')
+    pylab.xlabel('Normalized Spatial Frequency')# ($\AA^{-1}$)
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", bbox_extra_artists=(lgd,), bbox_inches='tight')

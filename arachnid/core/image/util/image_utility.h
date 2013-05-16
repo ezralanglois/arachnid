@@ -71,6 +71,70 @@ inline int radon_transform(T * sdist, int ns, I* Dr, int nr, I* Dc, int nc, int 
 	return sindex;
 }
 
+/** Calculate a radon transform matrix.
+ *
+ *
+ * @param dist 1D representation of a 2D matrix
+ * @param sdist sparse radon transform matrix data
+ * @param ns number of elements in sparse radon transform
+ * @param Dr sparse row indices for radon transform
+ * @param nr number of sparse row indices for radon transform
+ * @param Dc sparse column indices for radon transform
+ * @param nc number of sparse row indices for radon transform
+ * @param irow number of rows
+ * @param icol number of columns
+ * @param nang number of angles to sample from 1 to 180
+ * param nthreads number of threads
+ */
+inline int radon_count(int nang, int irow, int icol)
+{
+	int ind;
+	int sindex = 0;
+    int xOrigin = (icol-1) / 2;
+    int yOrigin = (irow-1) / 2;
+    int temp1 = irow - 1 - yOrigin;
+    int temp2 = icol - 1 - xOrigin;
+    int rLast, rFirst, rSize;
+    int area = irow*icol;
+    double *image, *angles, *rad;
+    double *thetaPtr, *ySinTable, *xCosTable;
+    double deg2rad = 3.14159265358979 / 180.0;
+
+    rLast = (int)ceil(sqrt((double) (temp1*temp1+temp2*temp2))) + 1;
+    rFirst = -rLast;
+    rSize = rLast - rFirst + 1;
+
+    if( (xCosTable = (double *) malloc(2*icol*sizeof(double))) == 0 ) return -1;
+    if( (ySinTable = (double *) malloc(2*irow* sizeof(double))) == 0 ) return -1;
+    if( (image=(double*)malloc(area*sizeof(double))) == 0 ) return -1;
+	if( (rad=(double*)malloc(rSize*nang*sizeof(double))) == 0 ) return -1;
+	if( (angles=(double*)malloc(nang*sizeof(double))) == 0 ) return -1;
+	for(int i=0;i<nang;++i) angles[i] = (i/((double)nang)*180.0)*deg2rad;
+
+	for(int n=0;n<icol;n++)
+	{
+		for(int m=0;m<irow;m++)
+	    {
+			ind=n*irow+m;
+			memset(image, 0, area*sizeof(double));
+			memset(rad, 0, rSize*nang*sizeof(double));
+			image[ind] = 1.0;
+			radon(rad, image, angles, xCosTable, ySinTable, irow, icol, xOrigin, yOrigin, nang, rFirst, rSize);
+			for(int k=0, kn=rSize*nang; k<kn; k++)
+			{
+				if( rad[k] <= 1e-10 ) continue;
+				sindex++;
+			}
+	    }
+	}
+	free(image);
+	free(rad);
+	free(angles);
+	free(xCosTable);
+	free(ySinTable);
+	return sindex;
+}
+
 template<class T>
 void rotavg(T* out, int onx, int ony, int onz, T* avg, int na, int rmax)
 {

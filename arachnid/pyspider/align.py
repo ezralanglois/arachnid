@@ -183,7 +183,7 @@ from ..core.orient import orient_utility
 from ..core.parallel import mpi_utility, parallel_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, create_align
-import logging, numpy
+import logging, numpy, scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -217,7 +217,7 @@ def batch(files, output, **extra):
         _logger.info("Completed")
     mpi_utility.barrier(**extra)
 
-def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
+def initalize(spi, files, align, align_full, max_ref_proj, use_flip=False, defocus_groups=0, fast_align_test=False, **extra):
     ''' Initialize SPIDER params, directory structure and parameters as well as cache data and phase flip
     
     :Parameters:
@@ -243,10 +243,21 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     
     #if not os.path.exists(os.path.dirname(output)): os.makedirs(os.path.dirname(output))
     param = reconstruct.initalize(spi, files, align, **extra)
-    param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
+    
+    if fast_align_test:
+        param['reference_stack'] = format_utility.add_prefix(param['cache_file'], 'ref_proj_')
+    else:
+        param['reference_stack'] = spi.ms(max_ref_proj, param['window'])
     param['dala_stack'] = format_utility.add_prefix(param['cache_file'], 'dala_')
     if align.shape[1] > 15:
         defs = align[:, 17]
+        extra['defocus_old']=align_full[:, 17].copy()
+        if defocus_groups > 0:
+            defocus_groups = defocus_groups/mpi_utility.get_size(**extra)
+            _logger.info("Reorganzing into %d defocus groups from %f - %f (%f - %f)"%(defocus_groups, defs[0], defs[len(defs)-1], numpy.min(defs), numpy.max(defs)))
+            bins = scipy.linspace(defs[0], defs[len(defs)-1], defocus_groups)
+            idx = numpy.digitize(defs, bins)
+            defs[:] = bins[idx-1]
         udefs = numpy.unique(defs)
         offset = numpy.zeros(len(udefs), dtype=numpy.int)
         for i in xrange(offset.shape[0]):
@@ -259,7 +270,7 @@ def initalize(spi, files, align, max_ref_proj, use_flip=False, **extra):
     spider.ensure_proper_parameters(extra)
     return extra
 
-def write_alignment(output, alignvals, apix=None):
+def write_alignment(output, alignvals, apix=None, defocus_old=None):
     ''' Write alignment values to a SPIDER file
     
     :Parameters:
@@ -278,6 +289,8 @@ def write_alignment(output, alignvals, apix=None):
         tmp[:, 6:8] /= apix
         tmp[:, 12:14] /= apix
     elif alignvals.shape[1] > 15:
+        alignvals=alignvals.copy()
+        alignvals[:, 17]=defocus_old
         tmp=alignvals[numpy.argsort(alignvals[:, 4]).reshape(alignvals.shape[0])]
         header += ",micrograph,stack_id,defocus"
     else: tmp = alignvals
@@ -319,7 +332,7 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     prev = align[curr_slice, :3].copy() if numpy.any(align[curr_slice, 1]>0) else None
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
-    if use_small_angle_alignment(spi, align[curr_slice], **extra) and 1 == 0:
+    if 1==0 and use_small_angle_alignment(spi, align[curr_slice], **extra):
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
         if shuffle_angles:
@@ -466,13 +479,15 @@ def align_projections_by_defocus(spi, ap_sel, align, reference, angles, angle_do
     ctf_volume = None
     dreference = None
     for proj_end in defocus_offset:
+        _logger.debug("Defocus alignment - ctf correct reference: %d - %d: %f"%(proj_beg, proj_end, float(align[proj_beg-1, 17])))
         ctf = spi.tf_c3(float(align[proj_beg-1, 17]), **extra)      # Generate contrast transfer function
         ctf_volume = spi.mu(reference, ctf, outputfile=ctf_volume)  # Multiply volume by the CTF
         dreference = spi.ft(ctf_volume, outputfile=dreference)
+        _logger.debug("Defocus alignment - ctf correct reference - finished: %d - %d: %f"%(proj_beg, proj_end, float(align[proj_beg-1, 17])))
         align_projections(spi, ap_sel, (proj_beg, proj_end), align[proj_beg-1:proj_end], dreference, angles, angle_doc, angle_rng, **extra)
         proj_beg = proj_end
 
-def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_doc, angle_rng, cache_file, input_stack, reference_stack, **extra):
+def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_doc, angle_rng, cache_file, input_stack, reference_stack, fast_align_test=False, **extra):
     ''' Align a set of projections to the given reference
     
     :Parameters:
@@ -503,6 +518,10 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
     
     ref_offset = 0
     tmp_align = format_utility.add_prefix(cache_file, "align_")
+    if 'inputangles' not in extra or extra['inputangles'] is None: fast_align_test=False
+    if fast_align_test:
+        best = numpy.zeros((len(align), angle_rng[angle_rng.shape[0]-1]+1))
+        #_logger.info("range: %d"%angle_rng[angle_rng.shape[0]-1])
     for i in xrange(1, angle_rng.shape[0]):
         angle_num = (angle_rng[i]-angle_rng[i-1])
         format.write(spi.replace_ext(angle_doc), angles[angle_rng[i-1]:angle_rng[i], 1:], format=format.spiderdoc, header="psi,theta,phi".split(','))
@@ -511,6 +530,10 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
         # gather all
         _logger.debug("Aligning particle projections")
         #spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
+        
+        if fast_align_test:
+            fast_projection_search_test(spi.replace_ext(input_stack), inputselect, spi.replace_ext(reference_stack), spi.replace_ext(extra['inputangles']), spi.replace_ext(angle_doc), best, ref_offset)
+        
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
         _logger.debug("Aligning particle projections - finished")
         # 1     2    3     4     5   6 7   8   9      10      11    12  13 14 15
@@ -520,9 +543,41 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
         assert(vals.shape[1]==15)
         sel = numpy.abs(vals[:, 10]) > numpy.abs(align[:, 10])
         align[sel, :4] = vals[sel, :4]
-        align[sel, 5:15] = vals[sel, 5:]
+        align[sel, 5:14] = vals[sel, 5:14]
         align[sel, 3] += ref_offset
         ref_offset += angle_num
+    if fast_align_test:
+        for i in xrange(len(align)):
+            idx = numpy.argsort(best[i, :])
+            val = numpy.nonzero(idx == (align[i, 3]-1))[0]
+            align[i, 14]=val[0] if len(val)>0 else -1
+        _logger.info("Testing best reference(%d): %d - %s"%(int(align[0, 4]), int(align[0, 14]), str(inputselect)))
+
+def fast_projection_search_test(input_file, inputselect, reference_file, align_file, angle_doc, best, ref_offset, **extra):
+    '''ang_diff
+    '''
+    from ..core.image import ndimage_file, rotate
+    
+    angs = numpy.asarray(format.read(align_file, numeric=True, header="psi,theta,phi".split(',')))
+    vals = numpy.asarray(format.read(align_file, numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
+    ref = ndimage_file.read_image(reference_file)
+    refs = numpy.zeros((ndimage_file.count_images(reference_file), ref.shape[0], ref.shape[1]))
+    for i, img in enumerate(ndimage_file.iter_images(reference_file)): refs[i, :, :] = img
+    if inputselect is None:
+        inputselect = (1, ndimage_file.count_images(input_file)+1)
+    for i in xrange(inputselect[0], inputselect[1]):
+        img = ndimage_file.read_image(input_file, i-1)
+        if i == 0:
+            _logger.error("Old angle: %d,%d -- %d"%(vals[i-1, 1], vals[i-1, 2], vals[i-1, 4]))
+        for j in xrange(len(refs)):
+            psi = rotate.optimal_inplane(numpy.asarray((0, angs[j, 1], angs[j, 2])), numpy.asarray((0, vals[i-1, 1], vals[i-1, 2])))
+            rimg = rotate.rotate_image(img, psi)
+            ref = refs[j]
+            try:
+                best[i-inputselect[0], ref_offset+j] = numpy.sum(numpy.square((rimg-ref)))
+            except:
+                _logger.error("range: %d < %d - %d"%(ref_offset+j, best.shape[1], ref_offset))
+                raise
     
 def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra):
     ''' Test if small angle refinement should be used
@@ -616,7 +671,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   max_ref_proj=300,       help="Maximum number of reference projections in memory", gui=dict(minimum=10))
     group.add_option("",   use_apsh=False,         help="Set True to use AP SH instead of AP REF (trade speed for accuracy)")
     group.add_option("",   use_flip=False,         help="Use the phase flipped stack for alignment")
-    group.add_option("",   prep_thread=0,          help="Number of threads to use for volume preparation")
+    group.add_option("",   defocus_groups=0,       help="Reorganize into defocus groups")
+    group.add_option("",   fast_align_test=False,  help="Test the fast alignment algorithm")
+    
     pgroup.add_option_group(group)
     
     group = OptionGroup(parser, "Other Parameters", "Options controlling alignment", group_order=0,  id=__name__)

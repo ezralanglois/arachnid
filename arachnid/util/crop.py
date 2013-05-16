@@ -210,14 +210,15 @@ def process(filename, id_len=0, single=False, **extra):
         mic = read_micrograph(filename, i, **extra)    
         # translate
         npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
+        bin_factor = extra['bin_factor']
         if tot > 1: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
             if extra['experimental']:
                 if coords_orig is None: 
                     coords_orig=numpy.asarray(coords).copy()
-                coords = coords_orig[:, 1:3] - (align[i].dx, align[i].dy)
+                coords = coords_orig[:, 1:3] - (align[i].dx/bin_factor, align[i].dy/bin_factor)
             else:
-                npmic[:] = eman2_utility.fshift(npmic, align[i].dx, align[i].dy)
+                npmic[:] = eman2_utility.fshift(npmic, align[i].dx/bin_factor, align[i].dy/bin_factor)
         if i == 0:
             test_coordinates(npmic, coords, bin_factor)
             
@@ -355,7 +356,7 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
     
     if noise != "": 
         if ndimage_file is not None:
-            return ndimage_file.read_image(noise)
+            return eman2_utility.numpy2em(ndimage_file.read_image(noise))
         return image_reader.read_image(noise)
     noise_file = format_utility.add_prefix(output, "noise_")
     if os.path.exists(noise_file):
@@ -686,7 +687,7 @@ def initialize(files, param):
         
     else: 
         if ndimage_file is not None:
-            param['noise'] =  ndimage_file.read_image(param['noise'])
+            param['noise'] =  eman2_utility.numpy2em(ndimage_file.read_image(param['noise']))
         else:
             param['noise'] = image_reader.read_image(param['noise'])
     param['emdata'] = eman2_utility.EMAN2.EMData()
