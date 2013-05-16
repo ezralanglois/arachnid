@@ -35,9 +35,9 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
               Return value of process functor
     '''
     
-    _logger.error("worker_count1=%d"%worker_count)
+    #_logger.error("worker_count1=%d"%worker_count)
     if len(vals) < worker_count: worker_count = len(vals)
-    _logger.error("worker_count2=%d"%worker_count)
+    #_logger.error("worker_count2=%d"%worker_count)
     
     if worker_count > 1:
         qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
@@ -54,7 +54,7 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
             index += 1
             yield val
     else:
-        _logger.error("worker_count3=%d"%worker_count)
+        #_logger.error("worker_count3=%d"%worker_count)
         logging.debug("Running with single process: %d"%len(vals))
         for i, val in enumerate(vals):
             yield i, process(val, **extra)
@@ -221,7 +221,7 @@ def map_reduce(for_func, worker, shape, max_length, thread_count=0, **extra):
             done = 0
             type = 2
             while done < thread_count: # reduce
-                _logger.error("Get: %d"%done)
+                #_logger.error("Get: %d"%done)
                 qin.put(type)
                 type = qout.get()
                 if type is None:
