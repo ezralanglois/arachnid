@@ -219,6 +219,9 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
     pow = ndimage_utility.powerspec_avg(rwin, pad)
     if cache_pow:
         ndimage_file.write_image(pow_cache, pow)
+        plotting.draw_image(ndimage_utility.dct_avg(mic, pad), cmap=plotting.cm.hsv, output_filename=format_utility.add_prefix(pow_cache, "dct_"))
+        #pylab.imshow(ccp, cm.jet)
+        #ndimage_file.write_image(, )
     return pow
     
 def initialize(files, param):
