@@ -337,7 +337,7 @@ def create_refinement(vals, output, **extra):
         align[i, 17] = vals[i].rlnDefocusU
     format.write(output, align, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
     
-def select_class_subset(vals, select, output, column="rlnClassNumber", random_subset=0, **extra):
+def select_class_subset(vals, select, output, column="rlnClassNumber", random_subset=0, view_resolution=0, **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -380,6 +380,28 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", random_su
             if id in select: subset.append(v)
         if len(subset) == 0: raise ValueError, "No classes selected"
     else: subset = vals
+    
+    if view_resolution > 0:
+        n=healpix.res2npix(view_resolution)
+        _logger.info("Culling %d views with resolution %d"%(n, view_resolution))
+        ang = numpy.asarray([(v.rlnAngleTilt, v.rlnAngleRot) for v in subset])
+        view = healpix.ang2pix(view_resolution, numpy.deg2rad(ang))
+        vhist = numpy.histogram(view, n)[0]
+        maximum_views = numpy.median(vhist)
+        _logger.info("Maximum of %d projections allowed per view"%(maximum_views))
+        assert(vhist[1] == numpy.sum(view==1))
+        assert(vhist[20] == numpy.sum(view==20))
+        assert(vhist[30] == numpy.sum(view==30))
+        vals = subset
+        subset = []
+        idx = numpy.arange(len(vals), dtype=numpy.int)
+        numpy.random.shuffle(idx)
+        count = numpy.zeros(n)
+        for i in idx:
+            if count[view[i]] < maximum_views:
+                subset.append(vals[i])
+                count[view[i]] += 1
+        _logger.info("Reduced projections from %d to %d"%(len(vals), len(subset)))
     
     defocus_dict = read_defocus(**extra)
     if len(defocus_dict) > 0:
@@ -725,6 +747,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   views=0,                         help="Write out view distribution for given healpix order and relion star file")
     group.add_option("",   frame="",                        help="Frame stack used to build new relion star file")
     group.add_option("",   frame_limit=0,                   help="Limit number of frames to use (0 means no limit)")
+    group.add_option("",   view_resolution=0,               help="Select a subset to ensure roughly even view distribution")
     
     pgroup.add_option_group(group)
     if main_option:
