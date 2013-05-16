@@ -251,7 +251,7 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, bi
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     if bispec:
         img *= mask
-        img = ndimage_utility.polar(img)
+        #img = ndimage_utility.polar(img)
         img, freq = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')#gaussian
         #bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased')
         freq;
