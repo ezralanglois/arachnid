@@ -252,7 +252,7 @@ def is_readable(filename):
     if h['mode'][0] not in mrc2numpy: return False
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder: return False
-    if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'mx', 'my', 'mz')]): return False
+    if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz')]): return False
     return True
 
 def read_header(filename, index=None):
@@ -273,13 +273,14 @@ def read_header(filename, index=None):
     
     h = read_mrc_header(filename, index)
     header={}
-    header['apix']=h['xlen']/h['nx']
-    header['count'] = h['nz'] if h['nz']==h['nx'] else 1
-    header['nx'] = h['nx']
-    header['ny'] = h['ny']
-    header['nz'] = h['nz'] if h['nz']!=h['nx'] else 1
-    for key in h.fields.iterkeys():
-        header['mrc_'+key] = h[key]
+    header['apix']=float(h['xlen'][0])/float(h['nx'][0])
+    header['count'] = int(h['nz'][0]) if int(h['nz'][0])!=int(h['nx'][0]) else 1
+    header['nx'] = int(h['nx'][0])
+    header['ny'] = int(h['ny'][0])
+    header['nz'] = int(h['nz'][0]) if int(h['nz'][0])==int(h['nx'][0]) else 1
+    for key in h.dtype.fields.iterkeys():
+        header['mrc_'+key] = h[key][0]
+    header['format'] = 'mrc'
     return header
 
 def read_mrc_header(filename, index=None):
@@ -300,12 +301,25 @@ def read_mrc_header(filename, index=None):
     
     f = _open(filename, 'r')
     try:
-        curr = f.tell()
+        #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_image_dtype, count=1)
-        if not is_readable(h):
-            f.seek(curr)
-            h = numpy.fromfile(f, dtype=header_image_dtype.newbyteorder(), count=1)
-        if not is_readable(h): raise IOError, "Not an MRC file"
+        if not is_readable(h): h = h.byteswap().newbyteorder()
+        if not is_readable(h): 
+            
+            test1 = h['mode'][0] not in mrc2numpy
+            test2 = (h['byteorder'][0]&-65536) not in intbyteorder and (h['byteorder'][0].byteswap()&-65536) not in intbyteorder
+            test3 = not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen')])
+            vals3 = str([h[v][0] for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen')])
+            mode = int(h['mode'][0])
+            nx = int(h['nx'][0])
+            
+            h = h.byteswap().newbyteorder()
+            test1b = h['mode'][0] not in mrc2numpy
+            test2b = (h['byteorder'][0]&-65536) not in intbyteorder and (h['byteorder'][0].byteswap()&-65536) not in intbyteorder
+            test3b = not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen')])
+            modeb = int(h['mode'][0])
+            nxb = int(h['nx'][0])
+            raise IOError, "Not an MRC file: %d, %d, %d -- %d,%d,%s ||| %d, %d, %d -- %d, %d ||| %s"%(test1, test2, test3, mode, nx, vals3, test1b, test2b, test3b, modeb, nxb, str(filename))
     finally:
         _close(filename, f)
     return h

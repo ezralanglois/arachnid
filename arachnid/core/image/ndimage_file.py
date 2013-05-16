@@ -253,6 +253,14 @@ def readlinkabs(link):
     if os.path.isabs(p): return p
     return os.path.join(os.path.dirname(link), p)
 
+def process_images(input_file, output_file, transform_func, index=None, **extra):
+    ''' Apply functor to each image in the list
+    '''
+    
+    for i, img in enumerate(iter_images(input_file, index)):
+        img = transform_func((i, img), **extra)
+        write_image(output_file, img, i)
+
 def iter_images(filename, index=None):
     ''' Read a set of images from the given file
     
@@ -361,7 +369,7 @@ def is_writable(filename):
     
     return get_write_format(filename) is not None
 
-def write_image(filename, img, index=None):
+def write_image(filename, img, index=None, header=None):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
@@ -373,6 +381,8 @@ def write_image(filename, img, index=None):
           Image data to write out
     index : int, optional
             Index image should be written to in the stack
+    header : dict
+            Header dictionary
     '''
     
     if index is not None and index == 0 and os.path.exists(filename):
@@ -381,7 +391,7 @@ def write_image(filename, img, index=None):
     format = get_write_format(filename)
     if format is None: 
         raise IOError, "Could not find format for extension of %s"%filename
-    format.write_image(filename, img, index)
+    format.write_image(filename, img, index, header)
     
 def write_stack(filename, imgs):
     ''' Write the given image to the given filename using a format
