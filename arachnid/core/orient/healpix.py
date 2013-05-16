@@ -141,6 +141,34 @@ def _ensure_theta(theta, half=False):
         else: theta = theta - numpy.pi/2
     return theta
 
+def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
+    ''' Convert Euler angles to pixel
+    
+    :Parameters:
+    
+    resolution : int
+                 Pixel resolution
+    theta : float or array
+            Euler angle theta or array of Euler angles
+    phi : float
+          Euler angle phi or optional if theta is array of both
+    scheme : str
+             Pixel layout scheme: nest or ring
+    half : bool
+           Convert Euler angles to half volume
+    out : array, optional
+          Array of pixels for specified array of Euler angles
+    
+    :Returns:
+    
+    out : in or, array
+          Pixel for specified Euler angles
+    '''
+    
+    resolution = pow(2, resolution)
+    _pix2ang = getattr(_healpix, 'pix2ang_%s'%scheme)
+    return _pix2ang(int(resolution), int(pix))
+
 def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
     
