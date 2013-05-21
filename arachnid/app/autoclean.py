@@ -50,6 +50,7 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
     _logger.info("Data: %s"%str(data.shape))
     tst = data-data.mean(0)
     neig=extra['neig']
+    neig;
     
     
     if 1 == 0: #iterate
@@ -60,26 +61,73 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
             rsel = numpy.ones(len(input_vals[1]), dtype=numpy.bool)
             return input_vals, rsel
         feat = d*numpy.dot(V, tst.T).T
-    else:
-        from sklearn.covariance import MinCovDet
+        t = d**2/tst.shape[0]
+        t /= t.sum()
+        tc = t.cumsum()
+    elif 1 == 0:
+        #from sklearn import decomposition
+        #decomposition.MiniBatchSparsePCA(n_components=n_components, alpha=0.8
         
+        #from sklearn.cluster import DBSCAN
+        #D = distance.squareform(distance.pdist(X))
+        #S = 1 - (D / np.max(D))
+        #db = DBSCAN(eps=0.95, min_samples=10).fit(S)
+        #core_samples = db.core_sample_indices_
+        #labels = db.labels_
+        pass
+    else:
+        from sklearn.covariance import OAS
+        
+        if 1 == 0:
+            _logger.error("pca-start")
+            eigv, feat=analysis.pca_fast(tst, tst, 0.06, True)[1:]
+            _logger.error("pca-stop: %d"%feat.shape[1])
+            sel = outlier_rejection(feat[:, :2], 0.97)
+            _logger.error("pca-start: %d -> %d (%d)"%(feat.shape[0], numpy.sum(sel), feat.shape[0]-numpy.sum(sel)))
+            trn = data[sel]
+            trn = trn - trn.mean(0)
+            eigv, feat=analysis.pca_fast(trn, tst, 0.1, True)[1:]
+            _logger.error("pca-stop: %d"%feat.shape[1])
+        else:
+            robust_cov = OAS().fit(tst)
+            cov=robust_cov.covariance_
+            d, V = numpy.linalg.eigh(cov)
+            idx = d.argsort()[::-1] 
+            d = d[idx]
+            V = V[:,idx]
+            feat = numpy.dot(V, tst.T).T
+        
+        _logger.info("Eigen: %s"%(",".join([str(v) for v in eigv[:10]])))
+        d=eigv
+        t=d
+        tc=d.cumsum()
+        '''
         U, d, V = scipy.linalg.svd(tst, False)
         feat = d*numpy.dot(V, tst.T).T
+        t = d**2/tst.shape[0]
+        t /= t.sum()
+        tc = t.cumsum()
+        idx = numpy.sum(t.cumsum()<0.2)+1
+        feat=feat[:, :idx]
+        '''
+        
+        '''
         robust_cov = MinCovDet().fit(feat)
         cov=robust_cov.covariance_
-        d, V = numpy.linalg.eig(cov)
+        d, V = numpy.linalg.eigh(cov)
         idx = d.argsort()[::-1] 
         d = d[idx]
         V = V[:,idx]
-        feat = d*numpy.dot(V, tst.T).T
+        feat = numpy.dot(V, feat.T).T
+        '''
         
-    feat = feat[:, :max(max_eig, neig)]
+        
+    #feat = feat[:, :max(max_eig, neig)]
+    
+    
     #feat -= feat.min(axis=0) #.reshape((feat.shape[0], 1))
     #feat /= feat.max(axis=0)
     
-    t = d**2/tst.shape[0]
-    t /= t.sum()
-    tc = t.cumsum()
     _logger.info("Eigen: %s"%(",".join([str(v) for v in t[:10]])))
     _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
 
@@ -88,18 +136,38 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
     _logger.info("Finished embedding view: %d"%int(input_vals[0]))
     return input_vals, rsel
 
+def outlier_rejection(feat, prob):
+    '''
+    '''
+    
+    from sklearn.covariance import MinCovDet
+    import scipy.stats
+    
+    #real_cov
+    #linalg.inv(real_cov)
+    
+    robust_cov = MinCovDet().fit(feat)
+    dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
+    cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
+    return dist < cut
+
 def one_class_classification(feat, nstd, neig, nsamples, **extra):
     '''
     '''
     
     if 1 == 1:
         from sklearn.covariance import MinCovDet
+        import scipy.stats
         feat=feat[:, :neig]
         robust_cov = MinCovDet().fit(feat)
-        #EllipticEnvelope(contamination=0.25)
-        dist = robust_cov.mahalanobis(feat - numpy.mean(feat, 0))
+        #robust_cov = GraphLasso().fit(feat)
+        #robust_cov.location_ = feat-feat.mean(0)
+        dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
         #dist = robust_cov.mahalanobis(feat)
-        sel = analysis.robust_rejection(dist, nstd*1.4826)
+        cut = scipy.stats.chi2.ppf(0.95, feat.shape[1])
+        _logger.info("Cutoff: %d -- for df: %d"%(cut, feat.shape[1]))
+        sel = dist < cut
+        #sel = analysis.robust_rejection(dist, nstd*1.4826)
     elif 1 == 1:
         from sklearn.covariance import EllipticEnvelope
         import scipy.stats
@@ -255,8 +323,8 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, bi
         img, freq = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')#gaussian
         #bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased')
         freq;
-        #img = numpy.log10(numpy.abs(img.real)+1)
-        img = numpy.angle(numpy.square(img/numpy.abs(img))) #numpy.arctan().real
+        img = numpy.log10(numpy.abs(img.real)+1)
+        #img = numpy.angle(numpy.square(img/numpy.abs(img))) #numpy.arctan().real
     
     #img = ndimage_utility.compress_image(img, mask)
     return img
