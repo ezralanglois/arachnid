@@ -130,7 +130,7 @@ def read_header(filename, index=None):
     header['nx'] = emdata.get_xsize()
     header['ny'] = emdata.get_ysize()
     header['nz'] = emdata.get_zsize()
-    header['format'] = eman2_utility.EMUtil.get_imagetype_name(eman2_utility.EMUtil.get_image_type(filename))
+    header['format'] = eman2_utility.EMAN2.EMUtil.get_imagetype_name(eman2_utility.EMAN2.EMUtil.get_image_type(filename))
     return header
 
 def read_image(filename, index=None, header=None, cache=None):
