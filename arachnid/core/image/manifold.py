@@ -378,6 +378,24 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
         rtmp[r, :]=r
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
+def fastdot_t2(s1, s2_t, out=None, alpha=1.0, beta=0.0):
+    '''
+    '''
+    
+    if s1.shape[1] != s2_t.shape[1]: raise ValueError, "Number of columns in each matrix does not match: %d != %d"%(s1.shape[1], s2_t.shape[1])
+    if out is None: out = numpy.zeros((s1.shape[0], s2_t.shape[0]), dtype=s1.dtype)
+    _manifold.gemm(s1, s2_t, out, float(alpha), float(beta))
+    return out
+
+def fastdot_t1(s1_t, s2, out=None, alpha=1.0, beta=0.0):
+    '''
+    '''
+    
+    if s1_t.shape[0] != s2.shape[0]: raise ValueError, "Number of columns in each matrix does not match: %d != %d"%(s1_t.shape[1], s2.shape[1])
+    if out is None: out = numpy.zeros((s1_t.shape[1], s2.shape[1]), dtype=s1_t.dtype)
+    _manifold.gemm_t1(s1_t, s2, out, float(alpha), float(beta))
+    return out
+
 def knn(samp, k, batch=10000):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.

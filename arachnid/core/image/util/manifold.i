@@ -150,6 +150,26 @@ INSTANTIATE_DATA2(gemm)
 
 		:Parameters:
 
+		samp1 : array
+			   In/out 1D array of values
+		samp2 :array
+			   In/out 1D array of values
+		dist2 : array
+			   	Output matrix
+		alpha : float
+				Value to mulitply by result
+		beta : float
+			   Value to add to result
+		");
+INSTANTIATE_DATA2(gemm_t1)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function selects a subset of rows 
+		(and columns) from a CSR sparse matrix.
+
+		:Parameters:
+
 		data : array
 			   In/out 1D array of distances
 		col_ind :array
