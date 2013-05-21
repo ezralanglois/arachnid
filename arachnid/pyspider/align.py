@@ -556,13 +556,14 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
 def fast_projection_search_test(input_file, inputselect, reference_file, align_file, angle_doc, best, ref_offset, **extra):
     '''ang_diff
     '''
-    from ..core.image import ndimage_file, rotate
+    from ..core.image import ndimage_file, rotate, ndimage_utility
     
     angs = numpy.asarray(format.read(align_file, numeric=True, header="psi,theta,phi".split(',')))
     vals = numpy.asarray(format.read(align_file, numeric=True, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(',')))
     ref = ndimage_file.read_image(reference_file)
     refs = numpy.zeros((ndimage_file.count_images(reference_file), ref.shape[0], ref.shape[1]))
     for i, img in enumerate(ndimage_file.iter_images(reference_file)): refs[i, :, :] = img
+    cx = ref.shape[0]/2
     if inputselect is None:
         inputselect = (1, ndimage_file.count_images(input_file)+1)
     for i in xrange(inputselect[0], inputselect[1]):
@@ -574,7 +575,8 @@ def fast_projection_search_test(input_file, inputselect, reference_file, align_f
             rimg = rotate.rotate_image(img, psi)
             ref = refs[j]
             try:
-                best[i-inputselect[0], ref_offset+j] = numpy.sum(numpy.square((rimg-ref)))
+                best[i-inputselect[0], ref_offset+j] = numpy.max(ndimage_utility.cross_correlate(rimg, ref)[cx-5:cx+5, cx-5:cx+5])
+                #best[i-inputselect[0], ref_offset+j] = numpy.sum(numpy.square((rimg-ref)))
             except:
                 _logger.error("range: %d < %d - %d"%(ref_offset+j, best.shape[1], ref_offset))
                 raise

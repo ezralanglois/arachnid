@@ -276,6 +276,7 @@ def ensure_pixel_size(spi, filename, **extra):
     params = {}
     if extra['window'] != w:
         bin_factor = extra['window']/float(w)
+        extra['dec_level']=1.0
         params = spider_params.update_params(bin_factor, **extra)
         _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f"%(bin_factor, extra['window'], w, extra['apix'], params['apix']))
     return params

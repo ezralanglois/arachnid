@@ -33,7 +33,7 @@ def fit_linear_interp(fsc_curve, fsc_value):
     
     idx = numpy.argsort(y).squeeze()
     val = numpy.searchsorted(y[idx], fsc_value)#, side='left')
-    _logger.error("idx: %d - %f == %f"%(idx[val], y[idx[val]], fsc_value))
+    #_logger.error("idx: %d - %f == %f"%(idx[val], y[idx[val]], fsc_value))
     if val < idx.shape[0]:
         try:
             ridx = idx[val]
@@ -47,12 +47,12 @@ def fit_linear_interp(fsc_curve, fsc_value):
         while y[idx[val]] > fsc_value and val > 0:
             val-= 1
     else:
-        while y[idx[val]] < fsc_value and val < (len(y)-1):
+        while val < (len(y)-1) and y[idx[val]] < fsc_value:
             val+= 1
-    lidx = idx[val]
+    lidx = idx[val] if val < len(idx) else idx[len(idx)-1]
     
-    _logger.error("y: %f - %f"%(y[ridx], y[lidx]))
-    _logger.error("x: %f - %f"%(x[ridx], x[lidx]))
+    #_logger.error("y: %f - %f"%(y[ridx], y[lidx]))
+    #_logger.error("x: %f - %f"%(x[ridx], x[lidx]))
     try:
         func = numpy.poly1d(numpy.polyfit([y[ridx], y[lidx]], [x[ridx], x[lidx]], 1))
     except:

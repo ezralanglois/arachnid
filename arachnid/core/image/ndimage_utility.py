@@ -1409,7 +1409,7 @@ def for_each_window(mic, coords, window, bin_factor=1.0):
     raise StopIteration
 
 def flatten_solvent(img, threshold=None, out=None):
-    ''' Create a tight mask from the given image
+    ''' Flatten the solven around the structure
     
     :Parameters:
     
@@ -1480,13 +1480,15 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")
-    # Get largest component in the binary image
-    out = biggest_object(img>threshold, out)
+    if out is None: out = numpy.empty_like(img)
+    out[:]=0
+    out[biggest_object_select(img>threshold)]=1.0
     
     _logger.debug("Dilating")
     # Dilate the binary image
-    elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
-    out[:]=scipy.ndimage.binary_dilation(out, elem, ndilate)
+    if ndilate > 0:
+        elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
+        out[:]=scipy.ndimage.binary_dilation(out, elem, ndilate)
     
     # Smooth the image with a Gausian kernel of size `kernel_size`, and smoothness `gauss_standard_dev`
     #return scipy.ndimage.filters.gaussian_filter(out, sigma, mode='reflect', output=out)
@@ -1496,7 +1498,7 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
         K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
         K /= (numpy.mean(K)*numpy.prod(K.shape))
         _logger.debug("Smoothing in real space - convolution")
-        out[:] = scipy.ndimage.convolve(out, K)
+        out[:]=scipy.ndimage.convolve(out, K)#, mode='mirror')
     _logger.debug("Tight mask - finished")
     return out, threshold
 
@@ -1584,7 +1586,11 @@ def biggest_object_select(img):
     if img.dtype != numpy.bool: raise ValueError, "Requires binary image: %s"%img.__class__.__name__
     elem = None #numpy.ones((3,3)) if img.ndim == 2 else numpy.ones((3,3,3))
     label, num_label = scipy.ndimage.label(img, elem)
-    biggest = numpy.argmax(numpy.histogram(label, num_label+1)[0][1:])+1
+    #biggest = numpy.argmax(numpy.histogram(label, num_label+1)[0][1:])+1
+    tmp = numpy.histogram(label, num_label+1)[0][1:]
+    biggest = numpy.argmax(tmp)
+    #_logger.info("biggest: %f -> %f | %d, %d"%(tmp[biggest]/float(tmp.shape[0]), numpy.max(tmp), numpy.sum(label == biggest), numpy.sum(label == (biggest+1))))
+    biggest += 1
     return label == biggest
 
 def bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased'):

@@ -93,7 +93,7 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
             cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
             if format_utility.os.path.exists(cache_file):
                 data = scipy.io.loadmat(cache_file)['data']
-                return data
+                return numpy.ascontiguousarray(data)
     else:
         if cache_file is not None:
             cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
@@ -110,7 +110,8 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
                         mat[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype))
                         return shmem_mat
                     else:
-                        return numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype)).reshape((len(label), img.shape[0]))
+                        mat = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype)).reshape((len(label), img.shape[0]), order='C')
+                        return mat
                 else:
                     _logger.info("Data matrix does not match the input: %d != %d (%d*%d)"%(n, img.shape[0]*label.shape[0], img.shape[0], label.shape[0]))
     
@@ -128,7 +129,7 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
         if cache_file is not None:
             _logger.info("Caching image matrix")
             scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=numpy.int), dtype=mat.dtype.name), oned_as='column', format='5')
-            mat.tofile(cache_dat)
+            mat.ravel().tofile(cache_dat)
     return shmem_mat
 
 def is_spider_format(filename):

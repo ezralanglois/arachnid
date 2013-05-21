@@ -109,7 +109,7 @@ from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.image import ndimage_utility, ndimage_file
 from ..core.spider import spider
 import filter_volume
-import logging, os
+import logging, os, numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -287,9 +287,9 @@ def tightmask(spi, filename, outputfile, threshold='A', ndilate=1, gk_size=3, gk
     
     img = ndimage_file.read_image(filename)
     
-    
     mask = None
-    if mask_output is not None and os.path.exists(mask_output):
+    if mask_output is not None and os.path.exists(spi.replace_ext(mask_output)):
+        mask_output = spi.replace_ext(mask_output)
         mask = ndimage_file.read_image(mask_output)
         if mask.shape[0] != img.shape[0] or mask.shape[1] != img.shape[1] or mask.shape[2] != img.shape[2]: mask=None
     
@@ -297,8 +297,9 @@ def tightmask(spi, filename, outputfile, threshold='A', ndilate=1, gk_size=3, gk
         try: threshold=float(threshold)
         except: threshold=None
         mask, th = ndimage_utility.tight_mask(img, threshold, ndilate, gk_size, gk_sigma)
-        _logger.info("Adaptive mask threshold = %f"%th)
+        _logger.info("Adaptive mask threshold = %f"%(th))
         if mask_output:
+            mask_output = spi.replace_ext(mask_output)
             ndimage_file.write_image(mask_output, mask)
     else:
         _logger.info("Using pre-generated tight-mask")
