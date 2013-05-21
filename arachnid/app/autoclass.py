@@ -30,7 +30,8 @@ def batch(files, output, **extra):
     
     _logger.info("Number of samples: %d"%len(label))
     _logger.info("Number of references: %d"%data.shape[1])
-    ref[:] = healpix.ang2pix(healpix_order(**extra), numpy.deg2rad(align[:, 1:3]))
+    #ref[:] = healpix.ang2pix(healpix_order(**extra), numpy.deg2rad(align[:, 1:3]))
+    ref[:] = healpix.ang2pix(1, numpy.deg2rad(align[:, 1:3]))
     feat, index = kernel_pca(data, **extra)
     if index is not None:
         _logger.info("Using subset!")
