@@ -177,7 +177,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     '''
     
     
-    extra.update(max_resolution = resolution_start, hp_radius=extra['pixel_diameter']*extra['apix'])
+    #extra.update(max_resolution = resolution_start, hp_radius=extra['pixel_diameter']*extra['apix'])
+    extra.update(max_resolution = resolution_start)
     refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,min_resolution".split(',')
     output_volume, resolution_start = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, **extra)
     res_iteration = numpy.zeros((num_iterations+1, 2))
@@ -187,7 +188,11 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     if mpi_utility.is_root(**extra):
         res = res_iteration[refine_index-1, 1] if refine_index > 0 else resolution_start
         _logger.info("Starting refinement from iteration %d - resolution %f"%(refine_index, res))
+    resolution_starta=resolution_start
     resolution_start=update_resolution(res_iteration, refine_index, resolution_start, **extra)
+    if resolution_start == 0:
+        _logger.error("here: %d, %"%(refine_index, resolution_starta))
+        raise ValueError, "Zero resolution: %d"%resolution_start
     if extra['max_resolution']==resolution_start and refine_index>0: raise ValueError, "Unable to determine resolution for iteration before: %d"%refine_index
     
     extra.update(hp_type=3, trans_max=7, trans_range=500, trans_step=1, angle_range=0)
@@ -200,7 +205,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
         
-        target_bin = decimation_level(resolution_start*0.75, extra['max_resolution'], **param) if fast else 1.0
+        target_bin = decimation_level(extra['target_resolution'], **param) if fast else 1.0#, extra['max_resolution']
         resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=(target_bin, param), **extra)
         mpi_utility.barrier(**extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
@@ -225,8 +230,11 @@ def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, ov
     if refine_index > 1:
         resolution_start = res_iteration[refine_index-1, 1]
         num_iter_unchanged=0
+        last_unchanged=0
         for i in xrange(2, refine_index-1):
-            num_iter_unchanged = max(num_iter_unchanged, numpy.sum( (res_iteration[:i-1, 1]-res_iteration[i, 1]) < resolution_start/60 ) )
+            unchanged = numpy.sum( (res_iteration[:i-1, 1]-res_iteration[i, 1]) < resolution_start/60 )
+            if unchanged > last_unchanged: num_iter_unchanged = num_iter_unchanged+1
+            last_unchanged = unchanged
         
         
         #b = decimation_level(resolution_start*0.9, max_resolution, **extra)
@@ -234,7 +242,7 @@ def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, ov
         if mpi_utility.is_root(**extra):
             _logger.info("Number of unchanged iterations: %d (%f)"%(num_iter_unchanged, resolution_start))
         if (trans_range/b) >= 3: num_iter_unchanged=0
-        if (num_iter_unchanged+1) < 3:
+        if (num_iter_unchanged+1) < 3 and extra['oversample'] > 1.0:
             extra['oversample']=1.0
         if 1 == 1:
             resolution_start *= numpy.power(0.9, int(num_iter_unchanged+1))
@@ -244,7 +252,7 @@ def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, ov
     elif refine_index > 0: resolution_start = res_iteration[refine_index-1, 1]
     else: resolution_start = res_iteration[refine_index, 1]
     
-    extra.update(theta_delta=theta_delta_est(resolution_start, **extra))
+    extra.update(theta_delta=theta_delta_est(resolution_start, **extra), target_resolution=resolution_start*0.8)
     extra.update(bin_factor=decimation_level(resolution_start, max_resolution, **extra))
     #extra.update(bin_factor=decimation_level(resolution_start*0.9, max_resolution, **extra))
     extra.update(spider.scale_parameters(**extra))
@@ -279,13 +287,13 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
     '''
     
     if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= trans_max or 1 == 1:
-        theta_delta = numpy.rad2deg( numpy.arctan( resolution / (0.5*pixel_diameter*apix) ) )/oversample
+        theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )/oversample
         #theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )*2
         if mpi_utility.is_root(**extra):
             _logger.info("Angular Sampling: %f -- Resolution: %f -- Size: %f"%(theta_delta, resolution, pixel_diameter*apix))
     return min(15, theta_delta)
     
-def decimation_level(resolution, max_resolution, apix, min_bin_factor, window, **extra):
+def decimation_level(resolution, max_resolution, apix, min_bin_factor, window, trans_range, **extra):
     ''' Estimate the level of decimation required
     
     :Parameters:
@@ -305,11 +313,13 @@ def decimation_level(resolution, max_resolution, apix, min_bin_factor, window, *
                  Level of decimation
     '''
     
-    #half - radius - 3
-    
     dec =  min(max(1, min(max_resolution/(apix*3), resolution / (apix*3))), min_bin_factor)
     d = float(window)/dec + 10
     d = window/float(d)
+    
+    if 1 == 0 and trans_range is not None:
+        d2 = min(trans_range/2.0, min_bin_factor)
+        d = max(d, d2)
     return max(d, 1)
 
 def ensure_translation_range(window, ring_last, trans_range, **extra):
