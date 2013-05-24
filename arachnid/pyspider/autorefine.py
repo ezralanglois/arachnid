@@ -181,8 +181,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     extra.update(max_resolution = resolution_start)
     refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,min_resolution".split(',')
     output_volume, resolution_start = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, **extra)
-    res_iteration = numpy.zeros((num_iterations+1, 2))
-    res_iteration[0, :]=(0, resolution_start)
+    res_iteration = numpy.zeros((num_iterations+1, 3))
+    res_iteration[0, :]=(0, resolution_start, 0)
     resolution_file = spi.replace_ext(format_utility.add_prefix(output, 'res_refine'))
     load_state(resolution_file, res_iteration, output, **extra)
     if mpi_utility.is_root(**extra):
@@ -197,11 +197,14 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     
     extra.update(hp_type=3, trans_max=7, trans_range=500, trans_step=1, angle_range=0)
     extra.update(trans_range=ensure_translation_range(**extra), min_bin_factor=ensure_min_bin(**extra))
+    res_iteration[0, 2] = ensure_translation_range(**extra)
     param=dict(extra)
     
     extra['cleanup_fft']=fast
     for refine_index in xrange(refine_index, num_iterations):
         extra.update(auto_update_param(res_iteration, refine_index, alignvals, **param))
+        if extra['theta_delta'] == 0:
+            raise ValueError, "Theta delta: %f, %f"%(resolution_start, res_iteration[refine_index-1, 1])
         if mpi_utility.is_root(**extra):
             _logger.info("Refinement started: %d. %s"%(refine_index+1, ",".join(["%s=%s"%(name, str(extra[name])) for name in refine_name])))
         
@@ -209,7 +212,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
         resolution_start = refine.refinement_step(spi, alignvals, curr_slice, output, output_volume, refine_index, target_bin=(target_bin, param), **extra)
         mpi_utility.barrier(**extra)
         resolution_start = mpi_utility.broadcast(resolution_start, **extra)
-        res_iteration[refine_index] = (refine_index, resolution_start)
+        res_iteration[refine_index] = (refine_index, resolution_start, 0)
         if mpi_utility.is_root(**extra): 
             valid_err = 0
             if extra['selection'] is not None:
@@ -219,7 +222,58 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
             numpy.savetxt(resolution_file, res_iteration, delimiter=",")
     mpi_utility.barrier(**extra)
     
-def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, overfilter, **extra):
+def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, overfilter, restrict_angle, **extra):
+    '''
+    @todo replace min_resolution with conservative filter values
+    '''
+    
+    if refine_index > 0:
+        trans_range = int(translation_range(alignvals, extra['apix'], **extra))
+        extra.update(trans_range=trans_range)
+    resolution_start = res_iteration[refine_index-1, 1] if refine_index > 0 else res_iteration[refine_index, 1]
+    '''
+    if refine_index > 1:
+        resolution_start = res_iteration[refine_index-1, 1]
+        num_iter_unchanged=0
+        last_unchanged=0
+        for i in xrange(2, refine_index-1):
+            if res_iteration[i, 2] >=3: continue
+            unchanged = numpy.sum( (res_iteration[:i-1, 1]-res_iteration[i, 1]) < resolution_start/60 )
+            if unchanged > last_unchanged: num_iter_unchanged = num_iter_unchanged+1
+            last_unchanged = unchanged
+        
+        
+        #b = decimation_level(resolution_start*0.9, max_resolution, **extra)
+        b = decimation_level(resolution_start, max_resolution, **extra)
+        resolution_start = (extra['apix']*3)*b
+        
+        if mpi_utility.is_root(**extra):
+            _logger.info("Number of unchanged iterations: %d (%f -> %f)"%(num_iter_unchanged, resolution_start, (extra['apix']*3)*b))
+        if (trans_range/b) >= 3: num_iter_unchanged=0
+        if (num_iter_unchanged+1) < 3 and extra['oversample'] > 1.0:
+            extra['oversample']=1.0
+        if 1 == 1:
+            resolution_start *= numpy.power(0.9, int(num_iter_unchanged+1))
+            #extra['hp_radius'] /= numpy.power(1.5, int(num_iter_unchanged))
+        else:
+            resolution_start *= 0.9
+    elif refine_index > 0: resolution_start = res_iteration[refine_index-1, 1]
+    else: resolution_start = res_iteration[refine_index, 1]
+    '''
+    
+    extra.update(bin_factor=decimation_level(resolution_start, max_resolution, **extra))
+    target_resolution = extra['bin_factor']*3*extra['apix']
+    extra.update(theta_delta=theta_delta_est(target_resolution, **extra), target_resolution=target_resolution)
+    #extra.update(bin_factor=decimation_level(resolution_start*0.9, max_resolution, **extra))
+    extra.update(spider.scale_parameters(**extra))
+    #extra.update(theta_delta=theta_delta_est(resolution_start, **extra))
+    if refine_index > 1 and extra['theta_delta'] < restrict_angle:
+        extra.update(angle_range = angular_restriction(alignvals, **extra))
+    extra.update(trans_range=max(extra['trans_range'], 2), min_resolution=res_iteration[refine_index-1, 1]*overfilter)
+    res_iteration[refine_index-1, 2]=extra['trans_range']
+    return extra
+    
+def auto_update_param_old(res_iteration, refine_index, alignvals, max_resolution, overfilter, restrict_angle, **extra):
     '''
     @todo replace min_resolution with conservative filter values
     '''
@@ -232,6 +286,7 @@ def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, ov
         num_iter_unchanged=0
         last_unchanged=0
         for i in xrange(2, refine_index-1):
+            if res_iteration[i, 2] >=3: continue
             unchanged = numpy.sum( (res_iteration[:i-1, 1]-res_iteration[i, 1]) < resolution_start/60 )
             if unchanged > last_unchanged: num_iter_unchanged = num_iter_unchanged+1
             last_unchanged = unchanged
@@ -240,7 +295,7 @@ def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, ov
         #b = decimation_level(resolution_start*0.9, max_resolution, **extra)
         b = decimation_level(resolution_start, max_resolution, **extra)
         if mpi_utility.is_root(**extra):
-            _logger.info("Number of unchanged iterations: %d (%f)"%(num_iter_unchanged, resolution_start))
+            _logger.info("Number of unchanged iterations: %d (%f -> %f)"%(num_iter_unchanged, resolution_start, (extra['apix']*3)*b))
         if (trans_range/b) >= 3: num_iter_unchanged=0
         if (num_iter_unchanged+1) < 3 and extra['oversample'] > 1.0:
             extra['oversample']=1.0
@@ -257,9 +312,10 @@ def auto_update_param(res_iteration, refine_index, alignvals, max_resolution, ov
     #extra.update(bin_factor=decimation_level(resolution_start*0.9, max_resolution, **extra))
     extra.update(spider.scale_parameters(**extra))
     #extra.update(theta_delta=theta_delta_est(resolution_start, **extra))
-    if refine_index > 1:
+    if refine_index > 1 and extra['theta_delta'] < restrict_angle:
         extra.update(angle_range = angular_restriction(alignvals, **extra))
     extra.update(trans_range=max(extra['trans_range'], 2), min_resolution=res_iteration[refine_index-1, 1]*overfilter)
+    res_iteration[refine_index-1, 2]=extra['trans_range']
     return extra
     
 def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, trans_max=8, oversample=1.0, **extra):
@@ -443,13 +499,12 @@ def update_resolution(res_iteration, refine_index, resolution_start, **extra):
     '''
     '''
     
-    if mpi_utility.is_root(**extra):
-        if refine_index > 0:
-            if res_iteration[refine_index-1, 1] > 0.0: 
-                resolution_start=res_iteration[refine_index-1, 1]
-            else:
-                res_iteration[refine_index-1, 1]=resolution_start
-    return mpi_utility.broadcast(resolution_start, **extra)
+    if refine_index > 0:
+        if res_iteration[refine_index-1, 1] > 0.0: 
+            resolution_start=res_iteration[refine_index-1, 1]
+        else:
+            res_iteration[refine_index-1, 1]=resolution_start
+    return resolution_start
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -468,6 +523,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         bgroup.add_option("",   leave_out=0.0,           help="Leave out a fraction of the particles for validation")
         bgroup.add_option("",   oversample=1.0,           help="Oversampling for angular search")
         bgroup.add_option("",   overfilter=1.5,           help="Overfiltering factor")
+        bgroup.add_option("",   restrict_angle=3.0,         help="Angular step size at which to use estimated angular restrictions")
         pgroup.add_option_group(bgroup)
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         spider_params.setup_options(parser, pgroup, True)
