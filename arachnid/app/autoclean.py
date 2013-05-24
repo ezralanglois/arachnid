@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility
+from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility
 from arachnid.core.util import plotting #, fitting
@@ -78,7 +78,10 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
     else:
         from sklearn.covariance import OAS
         
-        if 1 == 0:
+        if 1 == 1:
+            eigv, feat=analysis.dhr_pca(tst, tst, 2, True)
+            sel = outlier_rejection(feat[:, :2], 0.97)
+        elif 1 == 0:
             _logger.error("pca-start")
             eigv, feat=analysis.pca_fast(tst, tst, 0.06, True)[1:]
             _logger.error("pca-stop: %d"%feat.shape[1])
@@ -141,13 +144,19 @@ def outlier_rejection(feat, prob):
     '''
     
     from sklearn.covariance import MinCovDet
-    import scipy.stats
+    import scipy.stats, scipy.spatial.distance
     
     #real_cov
     #linalg.inv(real_cov)
     
     robust_cov = MinCovDet().fit(feat)
     dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
+    
+    if 1 == 0:
+        cov = analysis.dhr_cov(feat - numpy.median(feat, 0))
+        cent = numpy.median(feat, 0)
+        dist = scipy.spatial.distance.mahalanobis(feat, cent, cov)
+    
     cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
     return dist < cut
 
@@ -156,13 +165,17 @@ def one_class_classification(feat, nstd, neig, nsamples, **extra):
     '''
     
     if 1 == 1:
-        from sklearn.covariance import MinCovDet
+        from sklearn.covariance import MinCovDet,EmpiricalCovariance
         import scipy.stats
         feat=feat[:, :neig]
-        robust_cov = MinCovDet().fit(feat)
-        #robust_cov = GraphLasso().fit(feat)
-        #robust_cov.location_ = feat-feat.mean(0)
+        try:
+            robust_cov = MinCovDet().fit(feat)
+            #robust_cov = GraphLasso().fit(feat)
+            #robust_cov.location_ = feat.median(0)
+        except:
+            robust_cov = EmpiricalCovariance().fit(feat)
         dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
+            
         #dist = robust_cov.mahalanobis(feat)
         cut = scipy.stats.chi2.ppf(0.95, feat.shape[1])
         _logger.info("Cutoff: %d -- for df: %d"%(cut, feat.shape[1]))
@@ -304,21 +317,24 @@ def create_mask(files, pixel_diameter, resolution, apix, **extra):
     if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
     return mask
 
-def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, bispec=False, **extra):
+def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, bispec=False, use_rtsq=False, **extra):
     '''
     '''
     
+    if use_rtsq: img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
+    elif align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
     if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
-    if align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
     ndimage_utility.vst(img, img)
     bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if mask.shape[0] != img.shape[0]:
         _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
     assert(mask.shape[0]==img.shape[0])
-    ndimage_utility.normalize_standard(img, mask, var_one, img)
+    #ndimage_utility.normalize_standard(img, mask, var_one, img)
+    ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
+    
     if bispec:
-        img *= mask
+        #img *= mask
         #img = ndimage_utility.polar(img)
         img, freq = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')#gaussian
         #bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased')
@@ -354,6 +370,7 @@ def group_by_reference(label, align, ref):
     
     group=[]
     refs = numpy.unique(ref)
+    _logger.info("Processing %d projections from %d stacks grouped into %d views"%(len(label), len(numpy.unique(label[:, 0])), len(refs)))
     for r in refs:
         sel = r == ref
         group.append((r, label[sel], align[sel]))
@@ -448,6 +465,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with with no digits at the end (e.g. this is bad -> sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("",   output_embed="", help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi) - this does not need to be set", gui=dict(filetype="save"), required_file=False)
         pgroup.add_option("-a", alignment="",   help="Input file containing alignment parameters", required_file=True, gui=dict(filetype="open"))
+
 def check_options(options, main_option=False):
     #Check if the option values are valid
 #    from ..core.app.settings import OptionValueError
