@@ -575,7 +575,7 @@ def fast_projection_search_test(input_file, inputselect, reference_file, align_f
             rimg = rotate.rotate_image(img, psi)
             ref = refs[j]
             try:
-                best[i-inputselect[0], ref_offset+j] = numpy.max(ndimage_utility.cross_correlate(rimg, ref)[cx-5:cx+5, cx-5:cx+5])
+                best[i-inputselect[0], ref_offset+j] = -numpy.max(ndimage_utility.cross_correlate(rimg, ref)[cx-5:cx+5, cx-5:cx+5])
                 #best[i-inputselect[0], ref_offset+j] = numpy.sum(numpy.square((rimg-ref)))
             except:
                 _logger.error("range: %d < %d - %d"%(ref_offset+j, best.shape[1], ref_offset))
