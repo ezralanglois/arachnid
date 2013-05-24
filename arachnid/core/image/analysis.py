@@ -284,7 +284,8 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
     '''
     '''
     
-    if not centered: trn -= trn.mean(0)
+    if not centered: 
+        trn -= trn.mean(0)
     _logger.error("here1")
     if trn.shape[1] <= trn.shape[0]:
         _logger.error("here2")
@@ -317,6 +318,7 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
     V = V[:, idx]
     
     if tst is not None:
+        tst -= tst.mean(0)
         if frac >= 1:
             idx = int(frac)
         elif frac == 0.0:
@@ -327,6 +329,58 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
         #val = numpy.dot(V[:, :idx].T, tst.T).T
         return V, d, val
     return V, d
+
+"""
+def dhr_cov(trn, neig):
+    '''
+    '''
+    
+    best = (0, None)
+    wgt = numpy.ones(trn.shape[0])
+    for i in xrange(20):
+        trn1 = trn*wgt[:, numpy.newaxis]
+        eigvecs, eigvals, feat=pca_fast(trn1, trn, neig, True)
+        var = numpy.sum(numpy.square(feat), axis=1)
+        tmp = var.sum()
+        best_last=best[0]
+        if tmp > best[0]: best = (tmp, wgt.copy())
+        #else: break
+        nu = numpy.min(1.0/var[wgt != 0])
+        _logger.info("Opt: %g > %g (%d) -- nu: %f -- sum: %f"%(tmp, best_last, (tmp>best_last), nu, numpy.sum(wgt)))
+        wgt -= nu*wgt*var
+    
+    wgt = best[1]
+    trn1 = trn*wgt[:, numpy.newaxis]
+    C = numpy.dot(trn1.transpose(), trn1)/trn1.shape[0]
+    return C
+"""
+
+def dhr_pca(trn, tst=None, neig=2, centered=False):
+    '''
+    http://guppy.mpe.nus.edu.sg/~mpexuh/papers/DHRPCA-ICML.pdf
+    '''
+    
+    if not centered: 
+        trn -= trn.mean(0)
+        if tst is not None: tst -= tst.mean(0)
+    if tst is None: tst=trn
+    best = (0, None)
+    wgt = numpy.ones(trn.shape[0])
+    for i in xrange(20):
+        trn1 = trn*wgt[:, numpy.newaxis]
+        eigvecs, eigvals, feat=pca_fast(trn1, trn, neig, True)
+        var = numpy.sum(numpy.square(feat), axis=1)
+        tmp = var.sum()
+        best_last=best[0]
+        if tmp > best[0]: best = (tmp, eigvecs, eigvals)
+        #else: break
+        nu = numpy.min(1.0/var[wgt != 0])
+        _logger.info("Opt: %g > %g (%d) -- nu: %f -- sum: %f"%(tmp, best_last, (tmp>best_last), nu, numpy.sum(wgt)))
+        wgt -= nu*wgt*var
+    
+    V = best[1]
+    eigv = best[2]
+    return eigv, manifold.fastdot_t2(V[:, :neig].transpose().copy(), tst).T
 
 '''
 import numpy
