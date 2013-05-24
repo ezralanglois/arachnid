@@ -1174,6 +1174,35 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
     return out
 
 @_em2numpy2em
+def normalize_standard_norm(img, mask=None, var_one=True, dust_sigma=2.5, xray_sigma=None, replace=None, out=None):
+    ''' Normalize image to zero mean and one variance
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    mask : numpy.ndarray
+           Mask for mean/std calculation
+    var_one : bool
+              Set False to disable variance one normalization
+    out : numpy.ndarray
+          Output image
+    
+    :Returns:
+
+    out : numpy.ndarray
+          Normalized image
+    '''
+    
+    mdata = img[mask>0.5] if mask is not None else img
+    mdata=replace_outlier(mdata, dust_sigma, xray_sigma, replace, mdata)
+    out = numpy.subtract(img, numpy.mean(mdata), out)
+    if var_one:
+        std = numpy.std(mdata)
+        if std != 0.0: numpy.divide(out, std, out)
+    return out
+
+@_em2numpy2em
 def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
     ''' Normalize image to given lower and upper range
     
