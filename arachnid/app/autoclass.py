@@ -119,7 +119,8 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         _logger.info("Angle data: %f-%f"%(numpy.rad2deg(numpy.min(epsdata[:neighbors+1])), numpy.rad2deg(numpy.max(epsdata[:neighbors+1]))))
     else:
         _logger.info("Reading images from disk")
-        samp = ndimage_file.read_image_mat(files[0], label, image_transform, False, cache_file, align=align, mask=None, dtype=numpy.float32, **extra)
+        mask = create_mask(files, **extra)
+        samp = ndimage_file.read_image_mat(files[0], label, image_transform, False, cache_file, align=align, mask=mask, dtype=numpy.float32, **extra)
         samp = samp.astype(numpy.float32)
         data = qneigh.data.reshape((len(label), neighbors+1))
         col = qneigh.col.reshape((len(label), neighbors+1))
@@ -245,13 +246,16 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     bin_factor = decimation_level(**extra)
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
+    '''
     if bispec:
         img, freq = ndimage_utility.bispectrum(img, img.shape[0]-1, 'gaussian')
         #bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased')
         freq;
         img = numpy.log10(numpy.abs(img.real)+1)
-    
-    #img = ndimage_utility.compress_image(img, mask)
+    '''
+    #if mask is not None:
+    #    img = ndimage_utility.compress_image(img, mask)
+    if mask is not None: img *= mask
     return img
 
 def decimation_level(resolution, apix, window, **extra):
