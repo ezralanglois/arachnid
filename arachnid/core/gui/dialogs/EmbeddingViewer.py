@@ -90,7 +90,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         '''
         
-        _logger.error("select")
+        _logger.debug("select")
         for i in xrange(self.subsetListModel.rowCount()):
             self.subsetListModel.item(i).setCheckState(QtCore.Qt.Checked)
     
@@ -99,7 +99,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         '''
         
-        _logger.error("unselect")
+        _logger.debug("unselect")
         for i in xrange(self.subsetListModel.rowCount()):
             self.subsetListModel.item(i).setCheckState(QtCore.Qt.Unchecked)
         
@@ -222,7 +222,6 @@ class MainWindow(QtGui.QMainWindow):
         except: pass
         self.label = data[:, numpy.logical_not(ids)]
         self.data = data[:, ids]
-        _logger.error("%s -- %s"%(str(data[0, :3]), str(self.data[0, :3])))
         self.selected = numpy.ones(self.data.shape[0], dtype=numpy.bool)
         self.setWindowTitle(os.path.basename(filename))
         self.header = []
@@ -311,10 +310,7 @@ class MainWindow(QtGui.QMainWindow):
         c = self.ui.colorComboBox.currentIndex()
         s = self.ui.subsetComboBox.currentIndex()
         if s > 0:
-            _logger.error("subset: %d"%s)
             s = self.headermap[str(self.ui.subsetComboBox.currentText())]
-            _logger.error("data: %s"%(str(self.data[0, s])))
-            _logger.error("data: %s"%(str(self.data[0, :3])))
             if index is not None and hasattr(index, 'text'):
                 self.clear()
                 sval = float(index.text())
@@ -323,16 +319,14 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     self.selected = numpy.logical_and(self.selected, self.data[:, s]!=sval)
             else:
-                _logger.error("subset2b: %d"%s)
                 for i in xrange(self.subsetListModel.rowCount()):
                     sval = float(self.subsetListModel.item(i).text())
                     if i == 1:
-                        _logger.error("%d: %f -> %d -- sum: %d -- %s"%(i, sval, self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked, numpy.sum(self.data[:, s-1]==sval), str(self.data[:5, s])))
+                        _logger.debug("%d: %f -> %d -- sum: %d -- %s"%(i, sval, self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked, numpy.sum(self.data[:, s-1]==sval), str(self.data[:5, s])))
                     if self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked:
                         self.selected = numpy.logical_or(self.selected, self.data[:, s]==sval)
                     else:
                         self.selected[self.data[:, s]==sval]=0# = numpy.logical_and(self.selected, self.data[:, s-1]!=sval)
-                _logger.error("selected: %d"%numpy.sum(self.selected))
                     
         data = self.data[self.selected]
         if len(data) > 0:
@@ -426,7 +420,7 @@ class MainWindow(QtGui.QMainWindow):
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         radius = self.ui.imageSepSpinBox.value()
         if self.ui.keepSelectedCheckBox.checkState() == QtCore.Qt.Checked:
-            _logger.error("Image selected and kept: %d == %d"%(numpy.sum(self.selected), len(self.data)))
+            _logger.debug("Image selected and kept: %d == %d"%(numpy.sum(self.selected), len(self.data)))
             if self.selectedImage is not None:
                 idx = self.selectedImage
                 try:
@@ -447,7 +441,8 @@ class MainWindow(QtGui.QMainWindow):
                     ab = AnnotationBbox(im, data[off], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
                     self.axes.add_artist(ab)
                 else:
-                    for i, img in enumerate(iter_images(self.stack_file, label[(idx, )])):
+                    tmp = label[(idx, )].reshape((1, label.shape[1]))
+                    for i, img in enumerate(iter_images(self.stack_file, tmp)):
                         im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
                         ab = AnnotationBbox(im, data[idx], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
                         self.axes.add_artist(ab)
@@ -520,7 +515,8 @@ class MainWindow(QtGui.QMainWindow):
                 data = self.data[self.selected]
                 data = data[:, (x,y)]
                 label = self.label[self.selected]
-                for i, img in enumerate(iter_images(self.stack_file, label[(idx, )])):
+                tmp = label[(idx, )].reshape((1, label.shape[1]))
+                for i, img in enumerate(iter_images(self.stack_file, tmp)):
                     im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
                     ab = AnnotationBbox(im, data[idx], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
                     self.axes.add_artist(ab)
