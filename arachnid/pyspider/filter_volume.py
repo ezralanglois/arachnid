@@ -207,6 +207,15 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
                  Output filename for filtered volume
     '''
     
+    if filter_type == 4:
+        from skimage.filter import tv_denoise
+        from ..core.image import ndimage_file
+        _logger.info("Total variation filter")
+        img = ndimage_file.read_image(spi.replace_ext(filename))
+        img = tv_denoise(img, weight=0.006, eps=2.e-4, n_iter_max=200)
+        ndimage_file.write_image(spi.replace_ext(outputfile), img)
+        return outputfile
+    
     if filename == outputfile: filename = spi.cp(filename)
     _logger.info("Filtering with %f, %d"%(sp, filter_type))
     if sp > 0.08:

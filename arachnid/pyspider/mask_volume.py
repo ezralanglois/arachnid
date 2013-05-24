@@ -109,7 +109,7 @@ from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.image import ndimage_utility, ndimage_file
 from ..core.spider import spider
 import filter_volume
-import logging, os, numpy
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

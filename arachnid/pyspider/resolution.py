@@ -266,6 +266,11 @@ def ensure_pixel_size(spi, filename, **extra):
              Updated SPIDER params
     '''
     
+    if extra.get('apix', 0)==0:
+        header = ndimage_file.read_header(filename)
+        extra['apix']=header['apix']
+        if extra['apix']==0: raise ValueError, "Pixel size not in header, must use SPIDER params file!"
+    
     del extra['bin_factor']
     try:
         w = spider.image_size(spi, filename)[0]
@@ -276,9 +281,9 @@ def ensure_pixel_size(spi, filename, **extra):
     params = {}
     if extra['window'] != w:
         bin_factor = extra['window']/float(w)
-        extra['dec_level']=1.0
+        #extra['dec_level']=1.0
         params = spider_params.update_params(bin_factor, **extra)
-        _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f"%(bin_factor, extra['window'], w, extra['apix'], params['apix']))
+        _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f (%f)"%(bin_factor, extra['window'], w, extra['apix'], params['apix'], extra['dec_level']))
     return params
 
 def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5):
@@ -459,7 +464,7 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     
     if main_option:
-        spider_params.check_options(options)
+        #spider_params.check_options(options)
         if not options.ova:
             if len(options.input_files)%2 == 1 and not options.sliding:
                 _logger.debug("Found: %s"%",".join(options.input_files))

@@ -307,8 +307,12 @@ def iter_images(filename, index=None):
                 filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
                 sel = numpy.argwhere(id == index[:, 0]).ravel()
                 if beg != sel[0]: raise ValueError, "Array must be sorted by file ids: %d != %d -- %f, %f"%((beg), sel[0], index[beg, 0], beg)
-                for img in iter_images(filename, index[sel, 1]):
-                    yield img
+                try:
+                    for img in iter_images(filename, index[sel, 1]):
+                        yield img
+                except:
+                    _logger.error("stack filename: %s - %d to %d"%(filename, numpy.min(index[sel, 1]), numpy.max(index[sel, 1])))
+                    raise
                 beg += sel.shape[0]
             
             '''
