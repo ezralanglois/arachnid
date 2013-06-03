@@ -27,9 +27,13 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, **extra
     
     relion_data = format.read(files[0], numeric=True)
     _logger.info("Processing: %s with %d projections with bin factor %f"%(files[0], len(relion_data), bin_factor))
-    values = numpy.zeros((len(relion_data), 15))
+    values = numpy.zeros((len(relion_data), 17))
     img = None
     has_subset = hasattr(relion_data[0], 'rlnRandomSubset')
+    has_class = hasattr(relion_data[0], 'rlnClassNumber')
+    
+    angle_map={}
+    ref_index=0
     for index, projection in enumerate(relion_data):
         stack_file, stack_id = spider_utility.relion_file(projection.rlnImageName)
         if not align_only:
@@ -50,6 +54,24 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, **extra
             theta = projection.rlnAngleTilt
             phi = projection.rlnAngleRot
             pix=0
+            if theta not in angle_map:
+                angle_map[theta]={}
+            if has_class:
+                if phi not in angle_map[theta]:
+                    angle_map[theta][phi]={}
+                cl = projection.rlnClassNumber
+                if cl not in angle_map[theta][phi]:
+                    ref_index += 1
+                    angle_map[theta][phi][cl] = ref_index
+            else:
+                if phi not in angle_map[theta]:
+                    angle_map[theta][phi]={}
+                    ref_index += 1
+                    angle_map[theta][phi] = ref_index
+            if has_class:
+                pix=angle_map[theta][phi][cl]
+            else:
+                pix=angle_map[theta][phi]
             #img = eman2_utility.fshift(img, dx, dy)
             if img is not None:
                 img = rotate.rotate_image(img, psi, dx, dy)
@@ -63,9 +85,11 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, **extra
         values[index, 6] = dx
         values[index, 7] = dy
         if has_subset: values[index, 14] = projection.rlnRandomSubset
+        values[index, 15] = spider_utility.spider_id(stack_file)
+        values[index, 16] = stack_id
     
     _logger.info("Writing alignment file")
-    format.write(output, values, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror".split(','), prefix="align_")
+    format.write(output, values, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id".split(','), prefix="align_")
     if has_subset:
         format.write(output, numpy.vstack((numpy.argwhere(values[:, 14]==1).ravel()+1, numpy.ones(numpy.sum(values[:, 14]==1)))).T, header="id,select".split(','), prefix="h1_sel_")
         format.write(output, numpy.vstack((numpy.argwhere(values[:, 14]==2).ravel()+1, numpy.ones(numpy.sum(values[:, 14]==2)))).T, header="id,select".split(','), prefix="h2_sel_")
