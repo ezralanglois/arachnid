@@ -5,12 +5,12 @@
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.image import ndimage_file
-import logging, os
+import logging, os, numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output="", test_size=0, all=False, **extra):
+def batch(files, output="", test_size=0, all=False, stat=False, **extra):
     '''Generate a relion selection file
     
     :Parameters:
@@ -48,8 +48,21 @@ def batch(files, output="", test_size=0, all=False, **extra):
         header = ndimage_file.read_header(filename)
         header['name'] = os.path.basename(filename)
         if all:
+            #count = ndimage_file.count_images(filename)
             for key, val in header.iteritems():
                 print key, ": ", val
+            if stat:
+                #avg=0
+                #std=0
+                for img in ndimage_file.iter_images(filename):
+                    print "Mean: ", numpy.mean(img)
+                    print "STD: ", numpy.std(img)
+                    print "Max: ", numpy.max(img)
+                    print "Min: ", numpy.min(img)
+                    #avg += numpy.mean(img)
+                    #std += numpy.std(img)
+                #print "Mean: ", avg/count
+                #print "STD: ", std/count
         else:
             if i == 0:
                 header_name = dict([(k, k) for k in header.iterkeys()])
@@ -65,6 +78,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Image information", "Options to view image information",  id=__name__)
     group.add_option("-t", test_size=0,                   help="Test if the image sizes are consistent")
     group.add_option("-a", all=False,                   help="Print the entire header in long format")
+    group.add_option("-s", stat=False,                   help="Estimate statistics")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))

@@ -47,6 +47,29 @@ def fshift(img, x, y, z=0, out=None):
     out[:, :] = em2numpy(emdata)
     return out
 
+def normalize_mask(img, mask, no_std=0, out=None):
+    ''' Mirror an image about the x-axis
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    mask : array
+           Mask
+    out : array
+          Output array
+        
+    :Returns:
+    
+    img : array
+          Transformed image
+    '''
+    if out is None: out = img.copy()
+    emdata = numpy2em(img)
+    emdata.process_inplace("normalize.mask", {"mask": numpy2em(mask), "no_sigma": no_std})
+    out[:, :] = em2numpy(emdata)
+    return out
+
 def mirror(img, out=None):
     ''' Mirror an image about the x-axis
     

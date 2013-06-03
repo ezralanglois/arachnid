@@ -1706,7 +1706,7 @@ class Session(spider_session.Session):
         angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
         if max_ref_proj is None: max_ref_proj = total_size
         if outputfile is None: outputfile = session.ms(max_ref_proj, spider_image(inputfile))
-        elif is_incore_filename(outputfile) and int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
+        elif is_incore_filename(outputfile): # and int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
             session.de(outputfile)
             outputfile = session.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
             assert( int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) )

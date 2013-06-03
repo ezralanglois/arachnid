@@ -6,6 +6,7 @@
 import numpy
 import transforms
 import logging, scipy, scipy.optimize
+from ..parallel import process_queue
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -92,7 +93,66 @@ def orthogonalize(rot, out=None):
         out[i, :] = U.ravel()
     return out
 
+#    for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, queue_limit=100, **extra):
+#        mat[row, :] = data.ravel()[:img.shape[0]]
+
+def optimal_inplace_rotation_mp(euler, row, col, worker_count=0, out=None):
+    '''
+    '''
+    
+    if worker_count  < 2:
+        return optimal_inplace_rotation2(euler, row, col, out)
+    if out is None: out = numpy.zeros(len(row))
+    for i, d in process_queue.for_mapped(optimal_inplane_rotation_worker, worker_count, len(row), euler, row, col):
+        out[i]=d
+    return out
+
+def optimal_inplane_rotation_worker(beg, end, euler, row, col, process_number=None):
+    '''
+    '''
+    
+    for i in xrange(beg, end):
+        refquat = spider_to_quaternion(euler[row[i]])
+        curquat = spider_to_quaternion(euler[col[i]])
+        curquat[1:] = -curquat[1:]
+        rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(refquat, curquat), 'rzyz'))
+        ang = rot[0]+rot[2]
+        yield i, ang
+
+def optimal_inplace_rotation2(euler, row, col, out=None):
+    '''
+    '''
+    
+    quat = spider_to_quaternion(euler)
+    if out is None: out = numpy.zeros(len(row))
+    for i in xrange(len(row)):
+        refquat = quat[row[i]]
+        curquat = quat[col[i]].copy()
+        curquat[1:] = -curquat[1:]
+        rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(refquat, curquat), 'rzyz'))
+        out[i] = rot[0]+rot[2]
+    return out
+
 def optimal_inplace_rotation(refeuler, roteuler, out=None):
+    '''
+    '''
+    
+    rotquat = spider_to_quaternion(roteuler)
+    refquat = spider_to_quaternion(refeuler)
+    if out is None: out = numpy.zeros(len(rotquat))
+    for i in xrange(len(out)):
+        rotquat[i, 1:] = -rotquat[i, 1:]
+        rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(refquat, rotquat[i]), 'rzyz'))
+        out[i] = rot[0]+rot[2]
+        '''
+        ang = rot[0]+rot[2]
+        if ang < 0.0: ang += 360.0
+        if ang > 360.0: ang -= 360.0
+        out[i]=numpy.fmod(ang, 360.0)
+        '''
+    return out
+
+def optimal_inplace_rotation_old(refeuler, roteuler, out=None):
     '''
     '''
     

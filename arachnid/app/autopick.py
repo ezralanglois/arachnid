@@ -478,12 +478,12 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         #eman2_utility.ramp(emdata)
         #win[:, :] = npdata
         ndimage_utility.ramp(win,win)
+        imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
         #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), npmask)
         ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, npmask, False), npmask)
         
-        imgs.append(win.copy())
         if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
         datar[i, :] = ar
         if vfeat is not None:
@@ -498,25 +498,35 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         else:
             data[i, :]=amp
     
-    _logger.debug("Performing PCA")
-    feat, idx = analysis.pca(data, data, 1)[:2]
-    if feat.ndim != 2:
-        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-    assert(idx > 0)
-    assert(feat.shape[0]>1)
-    _logger.debug("Eigen: %d"%idx)
-    dsel = analysis.one_class_classification_old(feat)
+    if experimental2:
+        data -= data.mean(0)
+        eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
+        dsel = outlier_rejection(feat[:, :2], 0.9)
+    else:
+        _logger.debug("Performing PCA")
+        feat, idx = analysis.pca(data, data, 1)[:2]
+        if feat.ndim != 2:
+            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+        assert(idx > 0)
+        assert(feat.shape[0]>1)
+        _logger.debug("Eigen: %d"%idx)
+        dsel = analysis.one_class_classification_old(feat)
     
-    feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
-    if feat.ndim != 2:
-        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-    assert(idx > 0)
-    assert(feat.shape[0]>1)
-    _logger.debug("Eigen: %d"%idx)
-    
-    cent = numpy.median(feat, axis=0)
-    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    dsel = analysis.robust_rejection(dist_cent, real_space_nstd)
+    if experimental2:
+        datar -= datar.mean(0)
+        eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
+        dsel = numpy.logical_and(dsel, outlier_rejection(feat[:, :2], 0.9))
+    else:
+        feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
+        if feat.ndim != 2:
+            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+        assert(idx > 0)
+        assert(feat.shape[0]>1)
+        _logger.debug("Eigen: %d"%idx)
+        
+        cent = numpy.median(feat, axis=0)
+        dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+        dsel = numpy.logical_and(dsel, analysis.robust_rejection(dist_cent, real_space_nstd))
     '''
     for i in xrange(feat.shape[1]):
         if dsel is None:
@@ -543,7 +553,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         plotting.plot_images(fig, imgs2, scoords[index, 0], feat[index, 0], image_size, radius)
         pylab.savefig("scatter_cc_rpca.png")
     
-    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
         sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
         _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
@@ -558,8 +568,24 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
         sel = numpy.logical_and(dsel, sel)
+        
+    if experimental2:
+        datar = None
+        for j, i in enumerate(numpy.argwhere(sel).squeeze()):
+            img = imgs[i]
+            ndimage_utility.normalize_standard_norm(img, npmask, True, out=img)
+            img = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')[0]
+            img = numpy.log10(numpy.abs(img.real)+1)
+            if datar is None:
+                datar = numpy.zeros((numpy.sum(sel), img.ravel().shape[0]))
+            datar[j, :] = img.ravel()
+            
+        datar -= datar.mean(0)
+        eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
+        dsel = numpy.logical_and(dsel, outlier_rejection(feat[:, :2], 0.9))
+        sel[numpy.argwhere(sel).squeeze()]=dsel
     
-    if experimental2: # New untested contaminant removal algorithm - looks at pixel correlation
+    if experimental2 and 1 == 0: # New untested contaminant removal algorithm - looks at pixel correlation
         out = numpy.zeros(numpy.sum(sel))
         #npmask = eman2_utility.em2numpy(mask)
         j=0
@@ -589,6 +615,22 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
     return sel
+
+def outlier_rejection(feat, prob):
+    '''
+    '''
+    
+    from sklearn.covariance import MinCovDet
+    import scipy.stats #, scipy.spatial.distance
+    
+    #real_cov
+    #linalg.inv(real_cov)
+    
+    robust_cov = MinCovDet().fit(feat)
+    dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
+    
+    cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
+    return dist < cut
     
 def classify_noise(scoords, dsel, sel=None):
     ''' Classify out the noise windows

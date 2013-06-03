@@ -216,6 +216,30 @@ def recreate_global_sparse_matrix(shmem, shape=None):
         return scipy.sparse.coo_matrix( (data[:shape[1]],(row[:shape[1]], col[:shape[1]])), shape=shape[0] )
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=shmem[3] )
 
+def for_mapped(worker_callback, thread_count, size, *args, **extra):
+    '''
+    '''
+    
+    def worker_wrap(worker, beg, end, qout, *args2, **kwargs):
+        for val in worker(beg, end, *args2, **kwargs):
+            qout.put(val)
+    
+    if thread_count > 1:
+        qmax = extra.get('qmax', -1)
+        qout = multiprocessing.Queue(qmax)
+        counts = numpy.zeros(thread_count, dtype=numpy.int)
+        for i in xrange(thread_count):
+            counts[i] = ( (size / thread_count) + (size % thread_count > i) )
+        offsets = numpy.zeros(counts.shape[0]+1, dtype=numpy.int)
+        numpy.cumsum(counts, out=offsets[1:])
+        processes = [multiprocessing.Process(target=functools.partial(worker_wrap, process_number=i, **extra), args=(worker_callback, offsets[i], offsets[i+1], qout)+args) for i in xrange(thread_count)]
+        for p in processes: p.start()
+        #for p in processes: p.join()
+        for i in xrange(size):
+            yield qout.get()
+    else:
+        worker_callback(0, size, *args, **extra)
+
 def map_array_out(worker_callback, thread_count, data, *args, **extra):
     '''
     '''

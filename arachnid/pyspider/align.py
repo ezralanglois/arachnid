@@ -332,7 +332,8 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     prev = align[curr_slice, :3].copy() if numpy.any(align[curr_slice, 1]>0) else None
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
-    if 1==0 and use_small_angle_alignment(spi, align[curr_slice], **extra):
+    #if 1==0 and use_small_angle_alignment(spi, align[curr_slice], **extra):
+    if use_small_angle_alignment(spi, align[curr_slice], use_flip, **extra):
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
         if shuffle_angles:
@@ -359,6 +360,7 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
             angle_doc=spi.vo_ras(angle_doc, angle_num, (psi, theta, phi), outputfile=angle_rot)
         angle_off = parallel_utility.partition_offsets(angle_num, int(numpy.ceil(float(angle_num)/max_ref_proj)))
         angles = numpy.asarray(format.read(spi.replace_ext(angle_doc), numeric=True, header="id,psi,theta,phi".split(',')))
+        #spi.spider_results(True, False)
         if use_flip:
             if mpi_utility.is_root(**extra): _logger.info("Alignment on CTF-corrected stacks - started")
             align_projections(spi, ap_sel, None, align[curr_slice], reference, angles, angle_doc, angle_off, **extra)
@@ -373,7 +375,9 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     align[curr_slice, 12:14] *= extra['apix']
     if prev is not None:
         align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
+    #spi.spider_results(False)
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - started: %d"%mpi_utility.get_rank(**extra))
+    spi.flush()
     mpi_utility.gather_all(align, align[curr_slice], **extra)
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - finished: %d"%mpi_utility.get_rank(**extra))
 
@@ -527,6 +531,7 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
         format.write(spi.replace_ext(angle_doc), angles[angle_rng[i-1]:angle_rng[i], 1:], format=format.spiderdoc, header="psi,theta,phi".split(','))
         _logger.debug("Generating reference projections: %d-%d"%(i, angle_rng.shape[0]))
         spi.pj_3q(reference, angle_doc, (1, angle_num), outputfile=reference_stack, **extra)
+        #spi.flush()
         # gather all
         _logger.debug("Aligning particle projections")
         #spi.pj_3q(reference, angle_doc, (angle_rng[i-1]+1, angle_rng[i]), outputfile=reference_stack, **extra)
@@ -535,6 +540,7 @@ def align_projections(spi, ap_sel, inputselect, align, reference, angles, angle_
             fast_projection_search_test(spi.replace_ext(input_stack), inputselect, spi.replace_ext(reference_stack), spi.replace_ext(extra['inputangles']), spi.replace_ext(angle_doc), best, ref_offset)
         
         ap_sel(input_stack, inputselect, reference_stack, angle_num, ring_file=cache_file, refangles=angle_doc, outputfile=tmp_align, **extra)
+        #spi.flush()
         _logger.debug("Aligning particle projections - finished")
         # 1     2    3     4     5   6 7   8   9      10      11    12  13 14 15
         #epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror
@@ -581,7 +587,7 @@ def fast_projection_search_test(input_file, inputselect, reference_file, align_f
                 _logger.error("range: %d < %d - %d"%(ref_offset+j, best.shape[1], ref_offset))
                 raise
     
-def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra):
+def use_small_angle_alignment(spi, curr_slice, use_flip, defocus_offset, theta_end, angle_range=0, **extra):
     ''' Test if small angle refinement should be used
     
     :Parameters:
@@ -609,11 +615,16 @@ def use_small_angle_alignment(spi, curr_slice, theta_end, angle_range=0, **extra
         except:
             _logger.error("theta_end=%f, %f, %f"%(extra['theta_start'], theta_end, extra['theta_delta'])) #theta_start, theta_end+1, theta_delta
             raise
+        old_count = full_count
+        if not use_flip:
+            full_count *= len(defocus_offset)-1
         try:
-            part_count = spider.angle_count(theta_end=angle_range, **extra)*len(curr_slice)
+            restrict_count = spider.angle_count(theta_end=angle_range, **extra)
+            part_count = restrict_count*len(curr_slice)
         except:
             _logger.error("theta_end2=%f"%angle_range)
             raise
+        _logger.info("Use small angle: %d < %d -- res: %d*%d -- full: %d*%d"%(part_count, full_count, restrict_count, len(curr_slice), old_count, full_count/old_count))
         return part_count < full_count
     return False
 

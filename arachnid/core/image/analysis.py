@@ -286,22 +286,17 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
     
     if not centered: 
         trn -= trn.mean(0)
-    _logger.error("here1")
     if trn.shape[1] <= trn.shape[0]:
-        _logger.error("here2")
         #C = numpy.cov(trn)
-        C = numpy.dot(trn.transpose(), trn)
+        #C = numpy.dot(trn.transpose(), trn)
+        C = manifold.fastdot_t1(trn, trn, None, 1.0/trn.shape[0])
     else:
-        _logger.error("here3: %s"%str(trn.shape))
         C = manifold.fastdot_t2(trn, trn, None, 1.0/trn.shape[0])
         #C = numpy.dot(trn, trn.T)
         #numpy.multiply(C, 1.0/trn.shape[0], C)
-    _logger.error("here4")
     d, V = numpy.linalg.eigh(C)
-    _logger.error("here5")
     
     if trn.shape[1] > trn.shape[0]:
-        _logger.error("here6")
         #V = numpy.dot(trn.T, V)
         V = numpy.ascontiguousarray(V)
         V = manifold.fastdot_t1(trn, V)
@@ -330,57 +325,79 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
         return V, d, val
     return V, d
 
-"""
-def dhr_cov(trn, neig):
-    '''
-    '''
-    
-    best = (0, None)
-    wgt = numpy.ones(trn.shape[0])
-    for i in xrange(20):
-        trn1 = trn*wgt[:, numpy.newaxis]
-        eigvecs, eigvals, feat=pca_fast(trn1, trn, neig, True)
-        var = numpy.sum(numpy.square(feat), axis=1)
-        tmp = var.sum()
-        best_last=best[0]
-        if tmp > best[0]: best = (tmp, wgt.copy())
-        #else: break
-        nu = numpy.min(1.0/var[wgt != 0])
-        _logger.info("Opt: %g > %g (%d) -- nu: %f -- sum: %f"%(tmp, best_last, (tmp>best_last), nu, numpy.sum(wgt)))
-        wgt -= nu*wgt*var
-    
-    wgt = best[1]
-    trn1 = trn*wgt[:, numpy.newaxis]
-    C = numpy.dot(trn1.transpose(), trn1)/trn1.shape[0]
-    return C
-"""
-
-def dhr_pca(trn, tst=None, neig=2, centered=False):
+def dhr_pca(trn, tst=None, neig=2, level=0.9, centered=False):
     '''
     http://guppy.mpe.nus.edu.sg/~mpexuh/papers/DHRPCA-ICML.pdf
     '''
     
+    #_logger.error("trn: %s"%str(trn.shape))
+    level = int(trn.shape[0]*level)
     if not centered: 
         trn -= trn.mean(0)
         if tst is not None: tst -= tst.mean(0)
     if tst is None: tst=trn
     best = (0, None)
     wgt = numpy.ones(trn.shape[0])
+    mat=None
     for i in xrange(20):
-        trn1 = trn*wgt[:, numpy.newaxis]
-        eigvecs, eigvals, feat=pca_fast(trn1, trn, neig, True)
-        var = numpy.sum(numpy.square(feat), axis=1)
-        tmp = var.sum()
+        sel = wgt > 0
+        mat = empirical_variance(trn, wgt, out=mat)
+        #assert(trn.shape[0]==mat.shape[0])
+        eigvecs, eigvals, feat=pca_fast(mat, trn, neig, True)
+        assert(feat.shape[0]==trn.shape[0])
+        #_logger.error("trn: %s -- %s"%(str(trn.shape), str(feat.shape)))
+        var = numpy.sum(numpy.square(feat), axis=1)[sel]
+        
+        tmp = 0.0
+        for i in xrange(feat.shape[1]):
+            val = numpy.square(feat[:, i])
+            idx = numpy.argsort(val)
+            tmp += numpy.sum(val[idx[:level]])/len(val)
+        
+        
         best_last=best[0]
         if tmp > best[0]: best = (tmp, eigvecs, eigvals)
         #else: break
-        nu = numpy.min(1.0/var[wgt != 0])
+        if var.shape[0] < 10: break
+        nu = numpy.min(1.0/var)
         _logger.info("Opt: %g > %g (%d) -- nu: %f -- sum: %f"%(tmp, best_last, (tmp>best_last), nu, numpy.sum(wgt)))
-        wgt -= nu*wgt*var
+        tmp = nu*wgt[sel]*var
+        wgt[sel] -= tmp
     
     V = best[1]
     eigv = best[2]
-    return eigv, manifold.fastdot_t2(V[:, :neig].transpose().copy(), tst).T
+    feat = manifold.fastdot_t2(V[:, :neig].transpose().copy(), tst).T
+    #_logger.error("%s == %s | %s %s"%(str(feat.shape), str(trn.shape), str(V.shape), str(tst.shape)))
+    assert(feat.shape[0] == trn.shape[0])
+    return eigv, feat
+
+def empirical_variance(feat1, weight=None, out=None):
+    '''
+    '''
+    
+    if weight is not None: 
+        weight[weight<0]=0
+        feat = feat1*numpy.sqrt(weight[:, numpy.newaxis])
+    return manifold.fastdot_t1(feat, feat, out, 1.0/feat.shape[0])
+
+def empirical_variance_slow(feat, weight=None, out=None):
+    '''
+    '''
+    
+    if out is None: out = numpy.zeros((feat.shape[1], feat.shape[1]))
+    else: out[:]=0
+    
+    if weight is not None:
+        for i in xrange(feat.shape[0]):
+            tmp = feat[i].reshape((1, feat.shape[1]))
+            manifold.fastdot_t1(tmp, tmp, out, weight[i], 1.0)
+            #out += manifold.fastdot_t1(feat, feat)*weight[i]
+            #out += numpy.dot(feat.T, feat)*weight[i]
+    else:
+        for i in xrange(feat.shape[0]):
+            manifold.fastdot_t1(feat, feat, out, 1.0, 1.0)
+    out /= feat.shape[0]
+    return out
 
 '''
 import numpy
