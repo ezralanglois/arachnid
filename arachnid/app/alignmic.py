@@ -64,6 +64,7 @@ def process(filename, id_len=0, disable_align=False, reverse=False, recalc_avg=F
         param = format.read(output, prefix="trans_", ndarray=True)[0][:, 1:]
     
     _logger.info("Averging aligned micrographs")
+    if disable_align: param= None
     sum = average(filename, param, extra['experimental'])
     _logger.info("Averging aligned micrographs - finished")
     ndimage_file.write_image(output, sum)
@@ -321,19 +322,21 @@ def average(filename, param, experimental):
         img = read_image(f)
         if experimental and 1 == 0:
             sum+=rotate.rotate_image(img, 0, param[i+1, 0], param[i+1, 1])
-        else:
+        elif param is not None:
             sum+=eman2_utility.fshift(img, param[i+1, 0], param[i+1, 1])
+        else: sum += img
     return sum
 
 def read_image(filename):
     if isinstance(filename, tuple): filename, index = filename
     else: index=None
-    if 1 ==1:
+    if 1 == 1:
         return ndimage_file.read_image(filename, index)
     try:
         mic = mrc_file.read_image(filename, index)
     except:
         mic = ndimage_file.read_image(filename, index)
+    mic = mic.astype(numpy.float)
     return mic
     
 def read_micrograph(filename, bin_factor, invert, pixel_diameter, **extra):
@@ -352,12 +355,13 @@ def init_root(files, param):
     
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d micrographs"%len(files))
-        _logger.info("Bin-factor: %f"%param['bin_factor'])
-        _logger.info("Invert: %d"%param['invert'])
         _logger.info("Align: %d"%(not param['disable_align']))
-        _logger.info("Pixel Diameter: %d"%(param['pixel_diameter']))
-        _logger.info("Experimental: %d"%(param['experimental']))
-        _logger.info("Quality test: %d"%(param['quality_test']))
+        if not param['disable_align']:
+            _logger.info("Bin-factor: %f"%param['bin_factor'])
+            _logger.info("Invert: %d"%param['invert'])
+            _logger.info("Pixel Diameter: %d"%(param['pixel_diameter']))
+            _logger.info("Experimental: %d"%(param['experimental']))
+            _logger.info("Quality test: %d"%(param['quality_test']))
         param['missing_frames']=[0]
         
         try: tot = mrc_file.count_images(files[0])
@@ -423,7 +427,8 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     from ..core.app.settings import OptionValueError
     
-    if options.param_file == "": raise OptionValueError('SPIDER Params file empty')
+    if not options.disable_align:
+        if options.param_file == "": raise OptionValueError('SPIDER Params file empty')
 
 def main():
     #Main entry point for this script
