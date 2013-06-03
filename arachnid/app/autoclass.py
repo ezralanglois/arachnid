@@ -13,6 +13,7 @@ from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 #from ..core.parallel import mpi_utility
+from ..core.parallel import openmp
 import logging, numpy, os, scipy, scipy.cluster.vq, scipy.spatial.distance
 import scipy.io, scipy.sparse
 
@@ -22,6 +23,12 @@ _logger.setLevel(logging.DEBUG)
 def batch(files, output, **extra):
     '''
     '''
+    
+    _logger.info("Resolution: %f"%extra['resolution'])
+    _logger.info("Decimation: %f"%decimation_level(**extra))
+    _logger.info("Pixel radius: %d"%(int(extra['pixel_diameter']/2.0)))
+    _logger.info("Pixel size: %f"%(extra['apix']))
+    _logger.info("Neighbors: %d"%(extra['neighbors']))
     
     if 1 == 1:
         label, ref, align, data = create_sparse_dataset(files, **extra)
@@ -40,7 +47,7 @@ def batch(files, output, **extra):
     format.write_dataset(output, feat, 1, label, ref)
     _logger.info("Completed")
     
-def kernel_pca(data, max_eig, neig, **extra):
+def kernel_pca(data, max_eig, neig, max_neighbors=0, sigma=0.0, **extra):
     '''
     '''
     
@@ -50,10 +57,20 @@ def kernel_pca(data, max_eig, neig, **extra):
     #
     if scipy.sparse.isspmatrix(data):
         if 1 == 1:
-            feat, evals, index = manifold.diffusion_maps_dist(data, max(max_eig, neig))
+            index1 = None
+            if max_neighbors > 0:
+                #data, index1 = manifold.largest_connected(data)
+                manifold.knn_resort(data)
+                data = manifold.knn_reduce(data, max_neighbors)#, True)
+            feat, evals, index = manifold.diffusion_maps_dist(data, max(max_eig, neig), sigma)
+            if index1 is not None:
+                if index is not None:
+                    index = index1[index]
+                else: index = index1
         else:
             pass
     else:
+        assert(False)
         manifold.self_tuning_gaussian_kernel_dense(data, True, True)
         # double normalize lik diffusion maps
         U, d, V = scipy.linalg.svd(data, False)
@@ -100,15 +117,19 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         
     _logger.info("Generating quaternions")
     ang = align[:, :3].copy()
-    ang[:, 0]=0
+    #ang[:, 0]=0
     quat=orient_utility.spider_to_quaternion(ang)
     _logger.info("Building nearest neighbor graph: %d"%neighbors)
     qneigh = manifold.knn_geodesic_cache(quat, neighbors, batch, cache_file=cache_file)
     eps = numpy.deg2rad(eps)
     gmax, gmin = manifold.eps_range(qneigh, neighbors)
     _logger.info("Angular distance range for %d neighbors: %f - %f"%(neighbors, numpy.rad2deg(gmin), numpy.rad2deg(gmax)))
-    if eps > gmax: raise ValueError, "EPS value %f too large must be in range %f - %f"%(numpy.rad2deg(eps), numpy.rad2deg(gmin), numpy.rad2deg(gmax))
-    if eps < gmin: raise ValueError, "EPS value %f too small must be in range %f - %f"%(numpy.rad2deg(eps), numpy.rad2deg(gmin), numpy.rad2deg(gmax))
+    if eps > gmax: 
+        _logger.warn("EPS value %f too large must be in range %f - %f"%(numpy.rad2deg(eps), numpy.rad2deg(gmin), numpy.rad2deg(gmax)))
+        #raise ValueError, "EPS value %f too large must be in range %f - %f"%(numpy.rad2deg(eps), numpy.rad2deg(gmin), numpy.rad2deg(gmax))
+    if eps < gmin: 
+        _logger.warn("EPS value %f too small must be in range %f - %f"%(numpy.rad2deg(eps), numpy.rad2deg(gmin), numpy.rad2deg(gmax)))
+        #raise ValueError, "EPS value %f too small must be in range %f - %f"%(numpy.rad2deg(eps), numpy.rad2deg(gmin), numpy.rad2deg(gmax))
     epsdata = qneigh.data.copy()
     
     cache_rdat = format_utility.new_filename(cache_file, suffix="_rcoo", ext=".bin") if cache_file != "" else ""
@@ -116,26 +137,42 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         _logger.info("Reading cached revised distances")
         qneigh.data[:] = numpy.fromfile(cache_rdat, dtype=qneigh.data.dtype)
         _logger.info("Image data: %f-%f"%(numpy.min(qneigh.data[:neighbors+1]), numpy.max(qneigh.data[:neighbors+1])))
+        _logger.info("Image data2: %f-%f"%(numpy.min(qneigh.data[neighbors+1:][:neighbors+1]), numpy.max(qneigh.data[neighbors+1:][:neighbors+1])))
         _logger.info("Angle data: %f-%f"%(numpy.rad2deg(numpy.min(epsdata[:neighbors+1])), numpy.rad2deg(numpy.max(epsdata[:neighbors+1]))))
     else:
-        _logger.info("Reading images from disk")
+        _logger.info("Creating mask")
         mask = create_mask(files, **extra)
+        _logger.info("Reading images from disk")
+        openmp.set_thread_count(1)
         samp = ndimage_file.read_image_mat(files[0], label, image_transform, False, cache_file, align=align, mask=mask, dtype=numpy.float32, **extra)
-        samp = samp.astype(numpy.float32)
-        data = qneigh.data.reshape((len(label), neighbors+1))
-        col = qneigh.col.reshape((len(label), neighbors+1))
-        
-        _logger.info("Recalculating distances: %s"%str(samp.dtype))
-        n = int(numpy.sqrt(samp.shape[1]))
-        for i in xrange(len(label)):
-            rot = rotate.optimal_inplane(align[col[i], :3], align[i, :3])
-            ref = samp[col[i]].copy()
-            ref = ref.reshape((len(ref), n, n))
-            rotate.rotate_distance_array(samp[i].reshape((n,n)), ref, rot, data[i])
+        openmp.set_thread_count(extra['thread_count'])
+        mask = numpy.ascontiguousarray(numpy.argwhere(mask.ravel() > 0).squeeze())
+        if 1 == 1:
+            samp = samp.astype(numpy.float32)
+            n = int(numpy.sqrt(samp.shape[1]))
+            samp1 = samp.reshape((len(samp), n, n))
+            _logger.info("Calculating change in rotation using %d threads"%extra['thread_count'])
+            openmp.set_thread_count(1)
+            #rot = orient_utility.optimal_inplace_rotation_mp(quat, qneigh.row, qneigh.col, extra['thread_count'])
+            rot = orient_utility.optimal_inplace_rotation_mp(align[:, :3], qneigh.row, qneigh.col, extra['thread_count'])
+            openmp.set_thread_count(extra['thread_count'])
+            #rot = orient_utility.optimal_inplace_rotation2(align[:, :3], qneigh.row, qneigh.col)
+            _logger.info("Recalculating distances: %s"%str(samp.dtype))
+            rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
+        else:
+            manifold.knn_restricted(qneigh, samp, mask)
+            
         _logger.info("Reducing with epsilon nearest neighbor: %f"%eps)
         qneigh.data.tofile(cache_rdat)
     _logger.info("Reduce angular neighborhood: %f (%f)"%(eps, numpy.rad2deg(eps)))
-    qneigh = manifold.knn_reduce_eps(qneigh, eps, epsdata)
+    qneigh = manifold.knn_reduce_eps(qneigh, eps, epsdata) #.tocsr()
+    if 1 == 0:
+        sigma = scipy.linspace(-8, 8, 100)
+        kernel_cum = numpy.zeros((2, sigma.shape[0]), dtype=qneigh.data.dtype)
+        kernel_cum[0, :]=10**sigma
+        manifold._manifold.gaussian_kernel_range(qneigh.data, kernel_cum)
+        for i in xrange(len(sigma)):
+            _logger.info("%f,%f"%(sigma[i], kernel_cum[1, i]))
     return label, refp, align, qneigh
 
 def generate_references(filename, label, align, reference="", **extra):
@@ -231,12 +268,16 @@ def create_mask(files, pixel_diameter, **extra):
     
     img = ndimage_file.read_image(files[0])
     mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
+    #bg = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])*-1+1
+    #bg[bg > 0] = numpy.mean(img[mask>0])
     bin_factor = decimation_level(**extra)
     #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
-    if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
-    return mask
+    if bin_factor > 1: 
+        mask = eman2_utility.decimate(mask, bin_factor)
+        #bg = eman2_utility.decimate(bg, bin_factor)
+    return mask #, bg
 
-def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extra):
+def image_transform_old(img, i, mask, var_one=True, align=None, bispec=False, **extra):
     '''
     '''
     
@@ -258,10 +299,19 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     if mask is not None: img *= mask
     return img
 
+def image_transform(img, i, mask, var_one=True, align=None, bispec=False, apix=2.81, resolution=12.0, **extra):
+    '''
+    '''
+    
+    if resolution > 0 and apix > 0: img = eman2_utility.gaussian_low_pass(img, apix/resolution, 1)
+    img = eman2_utility.normalize_mask(img, mask)
+    return img
+
 def decimation_level(resolution, apix, window, **extra):
     '''
     '''
     
+    if 1==1: return 1.0
     dec = resolution / (apix*3)
     d = float(window)/dec + 10
     d = window/float(d)
@@ -291,6 +341,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", neighbors=2000,              help="Number of neighbors")
     group.add_option("", batch=10000,              help="Maximum partial distance matrix")
     group.add_option("", is_dala=False,              help="Set true if in-plane rotation has been applied")
+    group.add_option("", max_neighbors=0,              help="Maximum number of neighbors")
+    group.add_option("", sigma=0.0,              help="Kernel parameter (0.0 means use automatica local-scaling)")
+    #group.add_option("", sigma_range=)
+    
     
     pgroup.add_option_group(group)
     if main_option:
