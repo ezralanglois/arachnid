@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 from ..core.app.program import run_hybrid_program
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate
 from ..core.metadata import spider_utility, format, format_utility, spider_params
-from ..core.parallel import mpi_utility
+from ..core.parallel import mpi_utility, openmp
 from arachnid.core.util import plotting #, fitting
 import logging, numpy, os, scipy, itertools, scipy.cluster.vq, scipy.spatial.distance
 
@@ -46,8 +46,13 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
         cache_file=None
     else:
         cache_file = spider_utility.spider_filename(cache_file, input_vals[0])
+    
+    openmp.set_thread_count(1)
     data = ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, mask=mask, cache_file=cache_file, align=align, force_mat=True, **extra)
-    _logger.info("Data: %s"%str(data.shape))
+    _logger.info("Data: %s -- %s -- %s"%(str(data.shape), str(align.shape), str(label.shape)))
+    assert(data.shape[0] == align.shape[0])
+    assert(data.shape[0] == label.shape[0])
+    openmp.set_thread_count(extra['thread_count'])
     tst = data-data.mean(0)
     neig=extra['neig']
     neig;
@@ -79,7 +84,9 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
         from sklearn.covariance import OAS
         
         if 1 == 1:
-            eigv, feat=analysis.dhr_pca(tst, tst, 2, True)
+            _logger.error("here1: %s"%str(tst.shape[0]))
+            eigv, feat=analysis.dhr_pca(tst, tst, 2, 0.8, True)
+            _logger.error("here2: %s"%str(feat.shape))
             sel = outlier_rejection(feat[:, :2], 0.97)
         elif 1 == 0:
             _logger.error("pca-start")
@@ -135,7 +142,11 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
     _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
 
     sel, rsel, dist = one_class_classification(feat, **extra)
-    format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,dist,rot,group', prefix='pca_')
+    try:
+        format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,dist,rot,group', prefix='pca_')
+    except:
+        _logger.error("sel: %s - dist: %s - align: %s - label: %s"%(str(sel.shape), str(dist.shape), str(align[:, 0].shape), str(label[:, 1].shape)))
+        raise
     _logger.info("Finished embedding view: %d"%int(input_vals[0]))
     return input_vals, rsel
 
