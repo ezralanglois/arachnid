@@ -29,6 +29,15 @@ def reproject_3q(vol, rad, ang, out=None, **extra):
     
     return reproject_mp_mpi(_spider_reproject.reproject_3q_omp, vol, rad, ang, out, **extra)
 
+def reproject_3q_single(vol, rad, ang, out=None, **extra):
+    '''
+    '''
+    
+    if out is None:
+        out = numpy.zeros((len(ang), vol.shape[0],  vol.shape[1]), dtype=vol.dtype)
+    _spider_reproject.reproject_3q_omp(vol.T, out.T, ang.T, rad)
+    return out
+
 def reproject_mp_mpi(project, vol, rad, ang, out=None, thread_count=0, **extra):
     '''
     '''
