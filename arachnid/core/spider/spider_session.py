@@ -174,6 +174,20 @@ class Session(object):
                 response += self.registers.readline()
             struct.unpack('ffc',response)
     
+    def spider_results(self, enable=True, terminal=False):
+        '''
+        '''
+        
+        if enable:
+            self._invoke('MD', 'RESULTS ON')
+            if terminal:
+                self._invoke('MD', 'TERM ON')
+            else:
+                self._invoke('MD', 'TERM OFF')
+        else:
+            self._invoke('MD', 'RESULTS OFF')
+            self._invoke('MD', 'TERM OFF')
+            
     def relaunch(self):
         '''
         '''
