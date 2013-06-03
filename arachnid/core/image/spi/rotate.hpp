@@ -97,6 +97,89 @@ T rotate_error(float *ref, int nn, int rnx, int rny, T *psi, int pn)
 	return err/(n-1);
 }
 
+template<class I, class T>
+void rotate_distance_mask(float *ref, int nn, int rnx, int rny, I* Dr, int rn, I* Dc, int cn, T *psi, int pn, T* dist, int dn, I* maskidx, int mn)
+{
+	typedef float float_type;
+	/*
+	extern"C" {
+	void rtsq_(T*, T*, I*, I*, I*, I*, T*, T*, T*, T*);
+	}*/
+	int n = rnx*rny;
+#ifdef _OPENMP
+	float_type* tbuf = new float_type[omp_get_max_threads()*n];
+#else
+	float_type* buf = new float_type[n];
+	float_type* tbuf=buf;
+#endif
+	float_type scale = 1.0, tx = 0.0, ty=0.0;
+	int ret=0;
+
+#	if defined(_OPENMP)
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<dn;++i)
+	{
+#ifdef _OPENMP
+		float_type* buf = tbuf+omp_get_thread_num()*n;
+#endif
+		float_type psi1=float_type(psi[i]);
+		float_type* cref = ref+n*Dc[i];
+		float_type* rref = ref+n*Dr[i];
+		rtsq_(cref, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		T d=T(0.0);
+		for(int k=0, j;k<mn;++k)
+		{
+			j=maskidx[k];
+			//d += (buf[j]-cref[j])*(buf[j]-cref[j]);
+			d += (buf[j]-rref[j])*(buf[j]-rref[j]);
+		}
+		dist[i] = d;
+	}
+	delete[] tbuf;
+}
+
+template<class I, class T>
+void rotate_distance_array_mask(float* img, int nx, int ny, float *ref, int nn, int rnx, int rny, T *psi, int pn, T* dist, int dn, I* maskidx, int mn)
+{
+	typedef float float_type;
+	/*
+	extern"C" {
+	void rtsq_(T*, T*, I*, I*, I*, I*, T*, T*, T*, T*);
+	}*/
+	int n = nx*ny;
+#ifdef _OPENMP
+	float_type* tbuf = new float_type[omp_get_max_threads()*n];
+#else
+	float_type* buf = new float_type[n];
+	float_type* tbuf=buf;
+#endif
+	float_type scale = 1.0, tx = 0.0, ty=0.0;
+	int ret=0;
+
+#	if defined(_OPENMP)
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nn;++i)
+	{
+#ifdef _OPENMP
+		float_type* buf = tbuf+omp_get_thread_num()*n;
+#endif
+		float_type psi1=float_type(psi[i]);
+		float_type* cref = ref+n*i;
+		rtsq_(cref, buf, &nx, &ny, &nx, &ny, &psi1, &scale, &tx, &ty, &ret);
+		T d=T(0.0);
+		for(int k=0, j;k<mn;++k)
+		{
+			j=maskidx[k];
+			//d += (buf[j]-cref[j])*(buf[j]-cref[j]);
+			d += (buf[j]-img[j])*(buf[j]-img[j]);
+		}
+		dist[i] = d;
+	}
+	delete[] tbuf;
+}
+
 template<class T>
 void rotate_distance_array(float* img, int nx, int ny, float *ref, int nn, int rnx, int rny, T *psi, int pn, T* dist, int dn)
 {
@@ -124,12 +207,13 @@ void rotate_distance_array(float* img, int nx, int ny, float *ref, int nn, int r
 		float_type* buf = tbuf+omp_get_thread_num()*n;
 #endif
 		float_type psi1=float_type(psi[i]);
-		rtsq_(img, buf, &nx, &ny, &nx, &ny, &psi1, &scale, &tx, &ty, &ret);
-		T d=T(0.0);
 		float_type* cref = ref+n*i;
+		rtsq_(cref, buf, &nx, &ny, &nx, &ny, &psi1, &scale, &tx, &ty, &ret);
+		T d=T(0.0);
 		for(int j=0;j<n;++j)
 		{
-			d += (buf[j]-cref[j])*(buf[j]-cref[j]);
+			//d += (buf[j]-cref[j])*(buf[j]-cref[j]);
+			d += (buf[j]-img[j])*(buf[j]-img[j]);
 		}
 		dist[i] = d;
 	}

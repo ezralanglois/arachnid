@@ -59,6 +59,8 @@ extern"C" {
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* dist, int dn)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* avg, int an)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* maskidx, int mn)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* Dc, int cn)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* Dr, int rn)};
 %enddef
 
 
@@ -115,7 +117,37 @@ INSTANTIATE_ALL_DATA(f_name, unsigned long long)
 		rmax : int
 			   Maximum radius
 		");
+INSTANTIATE_ALL(rotate_distance_mask);
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function creates a 2D rotational average from a 1D average.
+
+		:Parameters:
+
+		out : array
+			  Output 3D rotational average
+		avg :array
+			 1D array rotational average
+		rmax : int
+			   Maximum radius
+		");
 INSTANTIATE_DATA(rotate_distance_array);
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function creates a 2D rotational average from a 1D average.
+
+		:Parameters:
+
+		out : array
+			  Output 3D rotational average
+		avg :array
+			 1D array rotational average
+		rmax : int
+			   Maximum radius
+		");
+INSTANTIATE_ALL(rotate_distance_array_mask);
 
 %feature("autodoc", "");
 %feature("docstring",

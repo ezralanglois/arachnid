@@ -37,14 +37,25 @@ def rotate_error(img, psi, mask=None):
         return _spider_rotate_dist.rotate_error_mask(img, psi, mask)
     return _spider_rotate_dist.rotate_error(img, psi)
 
-def rotate_distance_array(img, ref, psi, dist):
+def calc_rotated_distance_mask(samp, Dr, Dc, psi, dist, mask):
+    '''
+    '''
+    
+    psi = numpy.asarray(psi, dtype=dist.dtype)
+    mask = numpy.asarray(mask, dtype=Dc.dtype)
+    _spider_rotate_dist.rotate_distance_mask(samp, Dr, Dc, psi, dist, mask)
+
+def rotate_distance_array(img, ref, psi, dist, mask=None):
     '''
     '''
     
     psi = numpy.asarray(psi, dtype=dist.dtype)
     if ref.shape[0] != psi.shape[0]: raise ValueError, "Angle does not match reference"
     if ref.shape[0] != dist.shape[0]: raise ValueError, "Distance does not match reference"
-    _spider_rotate_dist.rotate_distance_array(img, ref, psi, dist)
+    if mask is not None:
+        _spider_rotate_dist.rotate_distance_array_mask(img, ref, psi, dist, mask)
+    else:
+        _spider_rotate_dist.rotate_distance_array(img, ref, psi, dist)
     
 def rotate_image2(img, ang, tx=0.0, ty=0.0, out=None, scale=1.0):
     '''
