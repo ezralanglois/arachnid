@@ -97,7 +97,7 @@ def finalize_bp3f(fftvol, weight, image_size, cleanup_fft):
         return vol
     if cleanup_fft: _spider_reconstruct.cleanup_bp3f()
     
-def backproject_bp3f(gen, image_size, align, process_number, npad=2, **extra):
+def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_image=None, **extra):
     '''
     '''
     
@@ -114,6 +114,7 @@ def backproject_bp3f(gen, image_size, align, process_number, npad=2, **extra):
         for i, img in gen:
             a = align[i]
             #_logger.debug("%f,%f,%f"%(a[0], a[1], a[2]))
+            if process_image is not None: img = process_image(img, a, **extra)
             _spider_reconstruct.backproject_bp3f(img.T, forvol, weight, tabi, a[0], a[1], a[2])
         #_logger.error("here5")
     except:
