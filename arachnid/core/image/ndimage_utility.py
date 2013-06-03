@@ -1225,9 +1225,13 @@ def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
           Normalized image
     '''
     
+    if numpy.issubdtype(img.dtype, numpy.integer):
+        img = img.astype(numpy.float)
+    
     vmin = numpy.min(img) if mask is None else numpy.min(img*mask)
     out = numpy.subtract(img, vmin, out)
     vmax = numpy.max(img) if mask is None else numpy.max(img*mask)
+    if vmax == 0: raise ValueError, "No information in image"
     numpy.divide(out, vmax, out)
     upper = upper-lower
     if upper != 1.0: numpy.multiply(upper, out, out)
@@ -1327,12 +1331,17 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     if vmin < lcut:
         sel = img < lcut
         if replace is None:
-            out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
+            try:
+                out[sel] = numpy.random.normal(avg, std, numpy.sum(sel)).astype(out.dtype)
+            except:
+                v = numpy.random.normal(avg, std, numpy.sum(sel))
+                _logger.error("%s -- %s -- %s -- %s"%(str(out.shape), str(out.dtype), str(v.shape), str(v.dtype)))
+                raise
         else: out[sel] = replace
     if vmax > hcut:
         sel = img > hcut
         if replace is None:
-            out[sel] = numpy.random.normal(avg, std, numpy.sum(sel))
+            out[sel] = numpy.random.normal(avg, std, numpy.sum(sel)).astype(out.dtype)
         else: out[sel] = replace
     
     return out
