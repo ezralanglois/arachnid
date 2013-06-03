@@ -207,7 +207,7 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
                  Output filename for filtered volume
     '''
     
-    if filter_type == 4:
+    if int(filter_type) == 4:
         from skimage.filter import tv_denoise
         from ..core.image import ndimage_file
         _logger.info("Total variation filter")
@@ -270,6 +270,7 @@ def filter_volume_highpass(filename, spi, hp_radius=0, hp_type=0, hp_bw_pass=0.0
                  Output filename for filtered volume
     '''
     
+    if hp_radius == 0: return filename
     if filename == outputfile: filename = spi.cp(filename)
     if hp_radius > 0.5: hp_radius = apix / hp_radius
     if hp_type == 1:
