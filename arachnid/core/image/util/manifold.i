@@ -61,9 +61,11 @@ typedef long size_type;
  
 %define DECLARE_DATA_TYPE2( dtype, itype )
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* dist2, size_type n, size_type m)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* sigma_cum, size_type ns1, size_type ns2)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* data, size_type nd)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdata, size_type snd)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* cdata, size_type cnd)};
+%apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* dist, size_type nd)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, size_type ns)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* col_ind, size_type nc)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* row_ptr, size_type nr)};
@@ -74,6 +76,9 @@ typedef long size_type;
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* samp1, int n1, int m1)};
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* samp2, int n2, int m2)};
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* distm, int n3, int m3)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* maskidx, size_type mn)};
+%apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* offsets, size_type on)};
+//%apply itype* INPLACE_ARRAY {itype offsets[]};
 %enddef
 
 
@@ -111,6 +116,13 @@ INSTANTIATE_ALL_DATA(f_name, long long)
 //INSTANTIATE_ALL_DATA(f_name, unsigned long long)
 %enddef
 
+%define INSTANTIATE_INDEX( f_name )
+//%template(f_name)   f_name<short>;
+%template(f_name)   f_name<int>;
+%template(f_name)   f_name<long>;
+%template(f_name)   f_name<long long>;
+%enddef
+
 %define INSTANTIATE_DATA( f_name )
 //%template(f_name)   f_name<int>;
 %template(f_name)   f_name<float>;
@@ -122,6 +134,52 @@ INSTANTIATE_ALL_DATA(f_name, long long)
 %template(f_name)   f_name<float>;
 %template(f_name)   f_name<double>;
 %enddef
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
+
+		:Parameters:
+		
+		dist2 : array
+			   	Input matrix
+		sdist2 : array
+			   	Output matrix
+		sigma : float
+				Value to mulitply by result
+		");
+INSTANTIATE_INDEX(knn_offset)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
+
+		:Parameters:
+		
+		dist2 : array
+			   	Input matrix
+		sdist2 : array
+			   	Output matrix
+		sigma : float
+				Value to mulitply by result
+		");
+INSTANTIATE_DATA(gaussian_kernel)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
+
+		:Parameters:
+		
+		dist2 : array
+			   	Input matrix
+		sigma : array
+			   	Input/Output matrix
+		");
+INSTANTIATE_DATA(gaussian_kernel_range)
+
+
+
 
 %feature("autodoc", "");
 %feature("docstring",
@@ -162,6 +220,54 @@ INSTANTIATE_DATA2(gemm)
 			   Value to add to result
 		");
 INSTANTIATE_DATA2(gemm_t1)
+
+
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function selects a subset of rows 
+		(and columns) from a CSR sparse matrix.
+
+		:Parameters:
+
+		data : array
+			   In/out 1D array of distances
+		col_ind :array
+			 	 In/out 1D array column indicies
+		row_ptr : array
+			   	  In/out 1D array row pointers
+		selected : array
+				   Input 1D array of selected rows
+		
+		:Returns:
+		
+		n : int
+			Number of sparse elements
+		");
+INSTANTIATE_ALL(knn_restricted_dist)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function selects a subset of rows 
+		(and columns) from a CSR sparse matrix.
+
+		:Parameters:
+
+		data : array
+			   In/out 1D array of distances
+		col_ind :array
+			 	 In/out 1D array column indicies
+		row_ptr : array
+			   	  In/out 1D array row pointers
+		selected : array
+				   Input 1D array of selected rows
+		
+		:Returns:
+		
+		n : int
+			Number of sparse elements
+		");
+INSTANTIATE_ALL(knn_restricted_dist_mask)
 
 %feature("autodoc", "");
 %feature("docstring",

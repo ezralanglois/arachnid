@@ -43,6 +43,72 @@ void gemm_t1(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n
  */
 
 template<class I, class T>
+void knn_restricted_dist_mask(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* samp1, int n1, int m1, I* maskidx, size_type mn)
+{
+
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(size_type i=0;i<nr;++i)
+	{
+		if( row_ind[i] == col_ind[i] )
+		{
+			data[i]=0;
+			continue;
+		}
+		T d = 0;
+		unsigned long r = row_ind[i];
+		r *= m1;
+		T* sampr = samp1+r;
+		r = col_ind[i];
+		r *= m1;
+		T* sampc = samp1+r;
+		for(size_type j=0;j<mn;++j)
+		{
+			size_type k=maskidx[j];
+			d += (sampr[k]-sampc[k])*(sampr[k]-sampc[k]);
+		}
+		data[i]=d;
+	}
+}
+
+template<class I>
+void knn_offset(I* row_ind, size_type nr, I* offsets, size_type on)
+{
+	for(size_type i=0;i<nr;++i)
+	{
+		offsets[row_ind[i]]++;
+	}
+}
+
+template<class I, class T>
+void knn_restricted_dist(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* samp1, int n1, int m1)
+{
+
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(size_type i=0;i<nr;++i)
+	{
+		if( row_ind[i] == col_ind[i] )
+		{
+			data[i]=0;
+			continue;
+		}
+		T d = 0;
+		unsigned long r = row_ind[i];
+		r *= m1;
+		T* sampr = samp1+r;
+		r = col_ind[i];
+		r *= m1;
+		T* sampc = samp1+r;
+		for(size_type j=0;j<m1;++j)
+			d += (sampr[j]-sampc[j])*(sampr[j]-sampc[j]);
+		data[i]=d;
+	}
+}
+
+template<class I, class T>
 I knn_reduce_eps_cmp(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, T* cdata, size_type cnd, float eps)
 {
 	I j=0;
@@ -78,6 +144,30 @@ I knn_reduce_eps(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, si
 	}
 	return j;
 }
+
+/*
+template<class I, class T>
+void knn_reduce_csr(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int d, int k)
+{
+	size_type j=0;
+	for(size_type r=0;r<snr;++j)
+	{
+		assert(r<snd);
+		if(j>=nd)
+			{
+			fprintf(stderr, "big error\n");
+			exit(1);
+			}
+		assert(j<nd);
+		sdata[r]=data[j];
+		scol_ind[r]=col_ind[j];
+		srow_ind[r]=row_ind[j];
+		++r;
+		if( (r%k)==0 ) j+=size_type(d);
+	}
+	assert(j==nd);
+}
+*/
 
 template<class I, class T>
 void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int d, int k)
@@ -214,7 +304,7 @@ void push_to_heap(T* dist2, size_type n, size_type m, T* data, size_type nd, I* 
 
 	size_type m1=m;
 	size_type n1=n;
-	size_type t=m1*n1;
+	//size_type t=m1*n1;
 
 #	if defined(_OPENMP)
 #	pragma omp parallel for
@@ -360,6 +450,41 @@ I select_subset_csr(T* data, size_type nd, I* col_ind, size_type nc, I* row_ptr,
 	}
 	delete[] index_map;
 	return cnt;
+}
+
+
+
+template<class T>
+void gaussian_kernel_range(T* dist, size_type nd, T* sigma_cum, size_type ns1, size_type ns2)
+{
+	T* sigma = sigma_cum;
+	T* sum = sigma_cum+ns2;
+
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nd;i++)
+	{
+		T val = dist[i];
+		if( val < 0.0 ) val = -val;
+		for(size_type j=0;j<ns2;++j)
+			sum[j] += std::exp(-val / sigma[j]);
+	}
+}
+
+template<class T>
+void gaussian_kernel(T* dist, size_type nd, T* sdist, size_type ns, double sigma)
+{
+	T sum = T(0.0);
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(int i=0;i<nd;i++)
+	{
+		T val = dist[i];
+		if( val < 0.0 ) val = -val;
+		sdist[i] = std::exp(-val / sigma);
+	}
 }
 
 template<class I, class T>

@@ -54,6 +54,33 @@ def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     dist2 = knn_reduce(dist2, k, mutual)
     return diffusion_maps_dist(dist2, dimension)
 
+def knn_resort(dist2):
+    ''' Restort a sparse KNN matrix so the distances for each row are in asending order
+    '''
+    
+    if scipy.sparse.isspmatrix_csr(dist2):
+        for i in xrange(len(dist2.indptr)-1):
+            b, e = dist2.indptr[i], dist2.indptr[i+1]
+            idx = numpy.argsort(dist2.data[b:e])
+            dist2.data[b:e] = dist2.data[b:e][idx]
+            dist2.indices[b:e] = dist2.indices[b:e][idx]
+            assert(numpy.all(dist2.data[b:e][:-2] <= dist2.data[b:e][1:-1]))
+    elif scipy.sparse.isspmatrix_coo(dist2):
+        offset = numpy.zeros(dist2.shape[0]+1, dtype=dist2.row.dtype)
+        _logger.error("here1")
+        _manifold.knn_offset(dist2.row, offset[1:])
+        offset = numpy.cumsum(offset)
+        for i in xrange(len(offset)-1):
+            b, e = offset[i], offset[i+1]
+            if i < 10:
+                
+                _logger.error("here2: %d, %d"%(b, e))
+            idx = numpy.argsort(dist2.data[b:e])
+            dist2.data[b:e] = dist2.data[b:e][idx]
+            dist2.col[b:e] = dist2.col[b:e][idx]
+    else:
+        raise ValueError, "Unsupported sparse matrix type"
+
 def knn_reduce_eps(dist2, eps, epsdata=None):
     '''Reduce k-nearest neighbor sparse matrix
     in the COO format to one with less neighbors.
@@ -112,29 +139,54 @@ def knn_reduce(dist2, k, mutual=False):
     k+=1 # include self as a neighbor
     n = dist2.shape[0]*k if mutual else dist2.shape[0]*k*2
     l = dist2.shape[0]*k
-    data = numpy.empty(n, dtype=dist2.data.dtype)
-    row  = numpy.empty(n, dtype=dist2.row.dtype)
-    col  = numpy.empty(n, dtype=dist2.col.dtype)
-    d = dist2.data.shape[0]/dist2.shape[0] - k
-    if d < 0: raise ValueError, "Cannot reduce from %d neighbors to %d"%(dist2.data.shape[0]/dist2.shape[0], k)
-    if d > 0:
-        _manifold.knn_reduce(dist2.data, dist2.col, dist2.row, data[:l], col[:l], row[:l], d, k)
-    else:
-        data[:dist2.data.shape[0]] = dist2.data
-        row[:dist2.row.shape[0]] = dist2.row
-        col[:dist2.col.shape[0]] = dist2.col
 
-    if not mutual:
-        m = dist2.shape[0]*k
-        data[m:] = data[:m]
-        row[m:] = row[:m]
-        col[m:] = col[:m]
+    if scipy.sparse.isspmatrix_csr(dist2):
+        if 1 == 1: raise ValueError, "Unsupported sparse matrix type"
+        #(data, indices, indptr)
+        data = numpy.empty(n, dtype=dist2.data.dtype)
+        indptr  = numpy.empty(dist2.shape[0]+1, dtype=dist2.row.dtype)
+        indices  = numpy.empty(n, dtype=dist2.col.dtype)
+        _manifold.knn_reduce_csr(dist2.data, dist2.indptr, dist2.indices, data[:l], indptr, indices[:l], k)
+        '''
+        if not mutual:
+            m = dist2.shape[0]*k
+            data[m:] = data[:m]
+            row[m:] = row[:m]
+            col[m:] = col[:m]
+        else:
+            n=_manifold.knn_mutual_csr(data, indptr, indices, k)
+            data = data[:n]
+            col = col[:n]
+            row = row[:n]
+        '''
+        return scipy.sparse.csr_matrix( (data, indices, indptr), shape=dist2.shape )
+    elif scipy.sparse.isspmatrix_coo(dist2):
+        data = numpy.empty(n, dtype=dist2.data.dtype)
+        row  = numpy.empty(n, dtype=dist2.row.dtype)
+        col  = numpy.empty(n, dtype=dist2.col.dtype)
+        d = dist2.data.shape[0]/dist2.shape[0] - k
+        if d < 0: raise ValueError, "Cannot reduce from %d neighbors to %d"%(dist2.data.shape[0]/dist2.shape[0], k)
+        if d > 0:
+            _manifold.knn_reduce(dist2.data, dist2.col, dist2.row, data[:l], col[:l], row[:l], d, k)
+        else:
+            data[:dist2.data.shape[0]] = dist2.data
+            row[:dist2.row.shape[0]] = dist2.row
+            col[:dist2.col.shape[0]] = dist2.col
+    
+        if not mutual:
+            m = dist2.shape[0]*k
+            data[m:] = data[:m]
+            row[m:] = row[:m]
+            col[m:] = col[:m]
+        else:
+            n=_manifold.knn_mutual(data, col, row, k)
+            data = data[:n]
+            col = col[:n]
+            row = row[:n]
+        return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
     else:
-        n=_manifold.knn_mutual(data, col, row, k)
-        data = data[:n]
-        col = col[:n]
-        row = row[:n]
-    return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
+        raise ValueError, "Unsupported sparse matrix type"
+    
 
 def knn_simple(samp, k, dtype=numpy.float):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
@@ -319,7 +371,17 @@ def knn_geodesic_cache(samp, k, batch=10000, shared=False, cache_file=None):
         mat.row.tofile(cache_row)
         mat.col.tofile(cache_col)
     return mat
+
+def knn_restricted(dist2, samp, mask=None):
+    '''
+    '''
     
+    samp = samp.astype(dist2.data.dtype)
+    if mask is not None:
+        mask = numpy.asarray(mask, dtype=dist2.col.dtype)
+        _manifold.knn_restricted_dist_mask(dist2.data, dist2.col, dist2.row, samp, mask)
+    else:
+        _manifold.knn_restricted_dist(dist2.data, dist2.col, dist2.row, samp)
 
 def knn_geodesic(samp, k, batch=10000, shared=False):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
@@ -396,7 +458,7 @@ def fastdot_t1(s1_t, s2, out=None, alpha=1.0, beta=0.0):
     _manifold.gemm_t1(s1_t, s2, out, float(alpha), float(beta))
     return out
 
-def knn(samp, k, batch=10000):
+def knn(samp, k, batch=10000, kernel_cum=None):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
     
@@ -444,6 +506,8 @@ def knn(samp, k, batch=10000):
             
             _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
             dist2=tmp
+            if kernel_cum is not None:
+                _manifold.kernel_range(tmp.ravel(), kernel_cum)
             
             try:
                 dist2 += a[c:c+batch]#, numpy.newaxis]
@@ -506,7 +570,7 @@ def self_tuning_gaussian_kernel_dense(dist2, normalize=False, normalize2=False):
         dist2[:] = Dr * dist2 * Dc[:, numpy.newaxis]
     return dist2
 
-def diffusion_maps_dist(dist2, dimension):
+def diffusion_maps_dist(dist2, dimension, sigma=None):
     ''' Embed a sparse distance matrix with the diffusion maps 
     manifold learning algorithm
     
@@ -531,7 +595,10 @@ def diffusion_maps_dist(dist2, dimension):
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
     dist2, index = largest_connected(dist2)
     dist2 = (dist2 + dist2.T)/2
-    _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
+    if sigma is not None and sigma > 0:
+        _manifold.gaussian_kernel(dist2.data, dist2.data, float(sigma))
+    else:
+        _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
     _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr) # problem here
     assert(numpy.alltrue(numpy.isfinite(dist2.data)))
     D = scipy.power(dist2.sum(axis=0)+1e-12, -0.5)
