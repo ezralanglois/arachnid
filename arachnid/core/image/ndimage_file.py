@@ -473,6 +473,7 @@ def get_read_format(filename):
     
     try:
         if mrc.is_readable(filename) and mrc.count_images(filename) > 1:
+            _logger.error("Using custom mrc format")
             return mrc
     except: pass
     for f in _formats:

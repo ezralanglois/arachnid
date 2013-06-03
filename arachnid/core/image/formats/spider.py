@@ -114,7 +114,10 @@ def _update_header(dest, source, header_map, tag=None):
     if source is None: return dest
     keys = dest.dtype.names if hasattr(dest, 'dtype') else dest.keys()
     tag = None
+    _logger.error('_update_header-keys: %s'%str(keys))
+    _logger.error('_update_header-header_map: %s'%str(header_map))
     for key in keys:
+        _logger.error('_update_header-keys: %s -> %s'%(key, header_map.get(key, key)))
         try:
             dest[key] = source[header_map.get(key, key)]
         except:
