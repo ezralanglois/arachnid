@@ -332,7 +332,142 @@ def ccf_center(img, template):
     #cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
-def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, **extra):
+def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, **extra):
+    ''' Classify particle windows from non-particle windows
+    
+    :Parameters:
+        
+    mic : EMData
+          Micrograph
+    scoords : list
+              List of potential particle coordinates
+    dust_sigma : float
+                 Number of standard deviations for removal of outlier dark pixels
+    xray_sigma : float
+                 Number of standard deviations for removal of outlier light pixels
+    disable_threshold : bool
+                        Disable noise removal with threshold selection
+    remove_aggregates : bool
+                        Set True to remove aggregates
+    pca_mode : float
+               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
+    iter_threshold : int
+                     Number of times to repeat thresholding
+    extra : dict
+            Unused key word arguments
+    
+    :Returns:
+        
+    sel : numpy.ndarray
+          Bool array of selected good windows 
+    '''
+    
+    _logger.debug("Total particles: %d"%len(scoords))
+    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
+    #emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
+    #npdata = eman2_utility.em2numpy(emdata)
+    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
+    masksm = dgmask
+    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
+    vfeat = numpy.zeros((len(scoords)))
+    data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
+    #data = numpy.zeros((len(scoords), masksm.ravel().shape[0]))
+    #data = None #numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
+    if eman2_utility.is_em(mic):
+        emmic = mic
+        mic = eman2_utility.em2numpy(emmic)
+    
+    npmask = eman2_utility.em2numpy(mask)
+    npmask[:] = eman2_utility.model_circle(int(radius*1.2+1), offset*2, offset*2) * (eman2_utility.model_circle(int(radius*0.9), offset*2, offset*2)*-1+1)
+    datar=None
+    
+    imgs=[]
+    bin_factor=1.0
+    _logger.debug("Windowing %d particles"%len(scoords))
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
+        #if data is None:
+        #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
+        if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
+        #npdata[:, :] = win
+        #eman2_utility.ramp(emdata)
+        #win[:, :] = npdata
+        ndimage_utility.ramp(win,win)
+        imgs.append(win.copy())
+        
+        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
+        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), npmask)
+        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, npmask, False), npmask)
+        
+        if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
+        datar[i, :] = ar
+        if vfeat is not None:
+            vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
+        #amp = ndimage_utility.fourier_mellin(win)*maskap
+        amp=ndimage_utility.fftamp(win)*maskap
+        #amp = ndimage_utility.powerspec1d(win)
+        ndimage_utility.vst(amp, amp)
+        ndimage_utility.normalize_standard(amp, masksm, out=amp)
+        if 1 == 1:
+            ndimage_utility.compress_image(amp, masksm, data[i])
+        else:
+            data[i, :]=amp
+    
+    if 1 == 0:
+        data -= data.mean(0)
+        #eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
+        feat = analysis.pca_fast(data, data, 2)[-1]
+        dsel = outlier_rejection(feat[:, :2], 0.9)
+    else:
+        _logger.debug("Performing PCA")
+        feat, idx = analysis.pca(data, data, 1)[:2]
+        if feat.ndim != 2:
+            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+        assert(idx > 0)
+        assert(feat.shape[0]>1)
+        _logger.debug("Eigen: %d"%idx)
+        dsel = analysis.one_class_classification_old(feat)
+    
+
+    feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
+    
+    cent = numpy.median(feat, axis=0)
+    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
+    dsel = numpy.logical_and(dsel, analysis.robust_rejection(dist_cent, real_space_nstd))
+    '''
+    for i in xrange(feat.shape[1]):
+        if dsel is None:
+            dsel = analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5)
+        else:
+            dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
+    '''
+    dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
+    
+    #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    if vfeat is not None:
+        sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
+        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
+    else: sel = dsel
+    if not disable_threshold:
+        for i in xrange(1, iter_threshold):
+            tsel = classify_noise(scoords, dsel, sel)
+            dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
+            sel = numpy.logical_and(sel, numpy.logical_not(tsel))
+        tsel = classify_noise(scoords, dsel, sel)
+        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
+        sel = numpy.logical_and(tsel, sel)
+        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
+        sel = numpy.logical_and(dsel, sel)
+        
+    
+    if remove_aggregates: classify_aggregates(scoords, offset, sel)
+    return sel
+
+def classify_windows_old(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
@@ -500,7 +635,8 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     
     if experimental2:
         data -= data.mean(0)
-        eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
+        #eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
+        feat = analysis.pca_fast(data, data, 2)[-1]
         dsel = outlier_rejection(feat[:, :2], 0.9)
     else:
         _logger.debug("Performing PCA")
@@ -514,7 +650,8 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     
     if experimental2:
         datar -= datar.mean(0)
-        eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
+        feat = analysis.pca_fast(datar, datar, 2)[-1]
+        #eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
         dsel = numpy.logical_and(dsel, outlier_rejection(feat[:, :2], 0.9))
     else:
         feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
@@ -535,23 +672,6 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
             dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
     '''
     dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-        
-    
-    if 1 == 0:
-        import pylab
-        from arachnid.core.util import plotting
-        pylab.clf()
-        fig = pylab.figure()
-        ax = fig.add_subplot(111)
-        nsel = numpy.logical_not(dsel)
-        ax.scatter(scoords[dsel, 0], feat[dsel, 0])
-        ax.scatter(scoords[nsel, 0], feat[nsel, 0], color='r')
-        image_size=0.9
-        radius=40
-        index = plotting.nonoverlapping_subset(ax, scoords[:, 0], feat[:, 0], radius, 100)
-        imgs2 = [imgs[i] for i in index]
-        plotting.plot_images(fig, imgs2, scoords[index, 0], feat[index, 0], image_size, radius)
-        pylab.savefig("scatter_cc_rpca.png")
     
     #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
@@ -568,22 +688,6 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
         sel = numpy.logical_and(dsel, sel)
-        
-    if experimental2:
-        datar = None
-        for j, i in enumerate(numpy.argwhere(sel).squeeze()):
-            img = imgs[i]
-            ndimage_utility.normalize_standard_norm(img, npmask, True, out=img)
-            img = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')[0]
-            img = numpy.log10(numpy.abs(img.real)+1)
-            if datar is None:
-                datar = numpy.zeros((numpy.sum(sel), img.ravel().shape[0]))
-            datar[j, :] = img.ravel()
-            
-        datar -= datar.mean(0)
-        eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
-        dsel = numpy.logical_and(dsel, outlier_rejection(feat[:, :2], 0.9))
-        sel[numpy.argwhere(sel).squeeze()]=dsel
     
     if experimental2 and 1 == 0: # New untested contaminant removal algorithm - looks at pixel correlation
         out = numpy.zeros(numpy.sum(sel))
@@ -620,13 +724,14 @@ def outlier_rejection(feat, prob):
     '''
     '''
     
-    from sklearn.covariance import MinCovDet
+    from sklearn.covariance import EmpiricalCovariance #MinCovDet
     import scipy.stats #, scipy.spatial.distance
     
     #real_cov
     #linalg.inv(real_cov)
     
-    robust_cov = MinCovDet().fit(feat)
+    #robust_cov = MinCovDet().fit(feat)
+    robust_cov = EmpiricalCovariance().fit(feat)
     dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
     
     cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
