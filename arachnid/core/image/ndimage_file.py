@@ -13,12 +13,13 @@ Supported formats:
 '''
 import logging, os
 from ..app import tracing
-from formats import spider, eman_format as spider_writer, mrc
+from formats import spider, eman_format as spider_writer, mrc, ccp4
 from ..metadata import spider_utility, format_utility
 from ..parallel import process_tasks, process_queue, mpi_utility
 import scipy.io
 import numpy
 mrc;
+ccp4;
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -89,13 +90,13 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
     img = image_processor(img1, 0, **extra).ravel()
     
     if force_mat:
-        if cache_file is not None:
+        if cache_file is not None and cache_file != "":
             cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
             if format_utility.os.path.exists(cache_file):
                 data = scipy.io.loadmat(cache_file)['data']
                 return numpy.ascontiguousarray(data)
     else:
-        if cache_file is not None:
+        if cache_file is not None and cache_file != "":
             cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
             cache_dat = format_utility.new_filename(cache_file, suffix="_read_data", ext=".bin")
             if format_utility.os.path.exists(cache_file):
@@ -126,7 +127,7 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
     if force_mat:
         scipy.io.savemat(cache_file, dict(data=mat, label=label), oned_as='column', format='5')
     else:
-        if cache_file is not None:
+        if cache_file is not None and cache_file != "":
             _logger.info("Caching image matrix")
             scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=numpy.int), dtype=mat.dtype.name), oned_as='column', format='5')
             mat.ravel().tofile(cache_dat)
@@ -472,8 +473,7 @@ def get_read_format(filename):
     '''
     
     try:
-        if mrc.is_readable(filename) and mrc.count_images(filename) > 1:
-            _logger.error("Using custom mrc format")
+        if mrc.is_readable(filename) and mrc.count_images(filename) > 1 and not mrc.is_volume(filename):
             return mrc
     except: pass
     for f in _formats:
