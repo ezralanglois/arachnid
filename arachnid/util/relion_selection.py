@@ -172,6 +172,7 @@ def batch(files, refine_spi=False, views=0, frame="", **extra):
         if len(vals) > 1:
             vals = format_utility.combine(vals)
         else: vals = vals[0]
+        vals = select_good(vals, **extra)
         
         if frame != "":
             create_movie(vals, frame, **extra)
@@ -182,6 +183,28 @@ def batch(files, refine_spi=False, views=0, frame="", **extra):
         else:
             select_class_subset(vals, **extra)
     _logger.info("Completed")
+    
+def select_good(vals, good, **extra):
+    '''
+    '''
+    
+    if good == "": return vals
+    
+    last=None
+    subset=[]
+    for v in vals:
+        mic,pid1 = spider_utility.relion_id(v.rlnImageName)
+        if mic != last:
+            try:
+                select_vals = set([s.id for s in format.read(good, spiderid=mic, numeric=True)])
+            except:select_vals=set()
+            last=mic
+        if pid1 in select_vals:
+            subset.append(v)
+    if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good
+    return subset
+        
+    
     
 def create_movie(vals, frame, output, frame_limit=0, **extra):
     '''
