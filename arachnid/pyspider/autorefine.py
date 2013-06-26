@@ -149,7 +149,9 @@ def batch(files, alignment, refine_index=-1, output="", leave_out=0, **extra):
     if refine_index == 0: alignvals[:, 14] = 1.0/len(alignvals)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], alignvals, **extra))
-    if mpi_utility.is_root(**extra): refine.setup_log(output, [_logger])
+    if mpi_utility.is_root(**extra): 
+        refine.setup_log(output, [_logger])
+        _logger.info("Autorefine started with pixel size of %f and a window size of %d"%(extra['apix'], extra['window']))
     refine_volume(spi, alignvals, curr_slice, refine_index, output, selection=selection, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
     
@@ -179,7 +181,8 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     
     #extra.update(max_resolution = resolution_start, hp_radius=extra['pixel_diameter']*extra['apix'])
     extra.update(max_resolution = resolution_start)
-    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,oversample".split(',')
+    extra['sample_rate']=0.5
+    refine_name = "theta_delta,angle_range,trans_range,trans_step,apix,hp_radius,bin_factor,sample_rate".split(',')
     output_volume, resolution_start = refine.recover_volume(spi, alignvals, curr_slice, refine_index, output, resolution_start, **extra)
     res_iteration = numpy.zeros((num_iterations+1, 3))
     res_iteration[0, :]=(0, resolution_start, 0)
@@ -203,7 +206,7 @@ def refine_volume(spi, alignvals, curr_slice, refine_index, output, resolution_s
     unchanged=0
     if refine_index > 0:
          for i in xrange(2, refine_index-1):
-            if res_iteration[i, 2] >=3: continue
+            if res_iteration[i-1, 2] >=3: continue
             unchanged = max(unchanged, count_unchanged(res_iteration[:i-1, 1], res_iteration[i, 1]))
     
     extra['cleanup_fft']=fast
@@ -241,11 +244,15 @@ def auto_update_param(res_iteration, refine_index, alignvals, unchanged, max_res
         resolution_start = numpy.min(res_iteration[:refine_index, 1])
     else: resolution_start= res_iteration[refine_index, 1]
     if unchanged > 3:
-        extra['oversample']*=2.0*int(unchanged/3)
-        extra['oversample'] = min(extra['oversample'], 2)
+        #extra['oversample']=extra['oversample']*2.0*int(unchanged/3)
+        #extra['oversample'] = min(extra['oversample'], 2)
+        extra['sample_rate']=extra['sample_rate']*extra['oversample']*int(unchanged/3)
+        extra['sample_rate'] = min(extra['sample_rate'], 2)
     
-    if extra['oversample'] > 1.0:
-        resolution_start/=extra['oversample']
+    #if extra['oversample'] > 1.0:
+    #    resolution_start/=extra['oversample']
+    if extra['sample_rate'] > 1.0:
+        resolution_start/=extra['sample_rate']
     extra.update(bin_factor=decimation_level(resolution_start, max_resolution, **extra))
     target_resolution = extra['bin_factor']*3*extra['apix']
     extra.update(theta_delta=theta_delta_est(target_resolution, **extra), target_resolution=target_resolution)
@@ -264,52 +271,7 @@ def count_unchanged(res_iteration, current_res):
     
     return numpy.sum( (res_iteration-current_res) < current_res/60 )
     
-def auto_update_param_old(res_iteration, refine_index, alignvals, max_resolution, overfilter, restrict_angle, **extra):
-    '''
-    @todo replace min_resolution with conservative filter values
-    '''
-    
-    if refine_index > 0:
-        trans_range = int(translation_range(alignvals, extra['apix'], **extra))
-        extra.update(trans_range=trans_range)
-    if refine_index > 1:
-        resolution_start = res_iteration[refine_index-1, 1]
-        num_iter_unchanged=0
-        last_unchanged=0
-        for i in xrange(2, refine_index-1):
-            if res_iteration[i, 2] >=3: continue
-            unchanged = numpy.sum( (res_iteration[:i-1, 1]-res_iteration[i, 1]) < resolution_start/60 )
-            if unchanged > last_unchanged: num_iter_unchanged = num_iter_unchanged+1
-            last_unchanged = unchanged
-        
-        
-        #b = decimation_level(resolution_start*0.9, max_resolution, **extra)
-        b = decimation_level(resolution_start, max_resolution, **extra)
-        if mpi_utility.is_root(**extra):
-            _logger.info("Number of unchanged iterations: %d (%f -> %f)"%(num_iter_unchanged, resolution_start, (extra['apix']*3)*b))
-        if (trans_range/b) >= 3: num_iter_unchanged=0
-        if (num_iter_unchanged+1) < 3 and extra['oversample'] > 1.0:
-            extra['oversample']=1.0
-        if 1 == 1:
-            resolution_start *= numpy.power(0.9, int(num_iter_unchanged+1))
-            #extra['hp_radius'] /= numpy.power(1.5, int(num_iter_unchanged))
-        else:
-            resolution_start *= 0.9
-    elif refine_index > 0: resolution_start = res_iteration[refine_index-1, 1]
-    else: resolution_start = res_iteration[refine_index, 1]
-    
-    extra.update(theta_delta=theta_delta_est(resolution_start, **extra), target_resolution=resolution_start*0.8)
-    extra.update(bin_factor=decimation_level(resolution_start, max_resolution, **extra))
-    #extra.update(bin_factor=decimation_level(resolution_start*0.9, max_resolution, **extra))
-    extra.update(spider.scale_parameters(**extra))
-    #extra.update(theta_delta=theta_delta_est(resolution_start, **extra))
-    if refine_index > 1 and extra['theta_delta'] < restrict_angle:
-        extra.update(angle_range = angular_restriction(alignvals, **extra))
-    extra.update(trans_range=max(extra['trans_range'], 2), min_resolution=res_iteration[refine_index-1, 1]*overfilter)
-    res_iteration[refine_index-1, 2]=extra['trans_range']
-    return extra
-    
-def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, trans_max=8, oversample=1.0, **extra):
+def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, trans_max=8, sample_rate=1.0, **extra):
     ''' Angular sampling rate
     
     :Parameters:
@@ -334,7 +296,10 @@ def theta_delta_est(resolution, apix, pixel_diameter, trans_range, theta_delta, 
     '''
     
     if int(spider.max_translation_range(**extra)/2.0) > trans_range or trans_range <= trans_max or 1 == 1:
-        theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )/oversample
+        if sample_rate < 1.0:
+            theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )/sample_rate
+        else:
+            theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) ) #/oversample
         #theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )*2
         if mpi_utility.is_root(**extra):
             _logger.info("Angular Sampling: %f -- Resolution: %f -- Size: %f"%(theta_delta, resolution, pixel_diameter*apix))
@@ -512,7 +477,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         bgroup.add_option("",   aggressive=False,        help="Use more aggresive autorefinement")
         bgroup.add_option("",   fast=False,              help="Reconstruct smaller volumes")
         bgroup.add_option("",   leave_out=0.0,           help="Leave out a fraction of the particles for validation")
-        bgroup.add_option("",   oversample=1.0,           help="Oversampling for angular search")
+        bgroup.add_option("",   oversample=1.5,           help="Oversampling for angular search")
         bgroup.add_option("",   overfilter=1.5,           help="Overfiltering factor")
         bgroup.add_option("",   restrict_angle=3.0,         help="Angular step size at which to use estimated angular restrictions")
         pgroup.add_option_group(bgroup)
