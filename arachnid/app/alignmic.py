@@ -54,6 +54,7 @@ def process(filename, id_len=0, disable_align=False, reverse=False, recalc_avg=F
         filename = [(filename, i) for i in index]
         #numpy.random.shuffle(index)
     param=numpy.zeros((len(filename), 2))
+    #param = numpy.arange(1, len(filename)+1)
     
     missing = 0
     if not recalc_avg:
@@ -307,6 +308,7 @@ def select_peak(cc_map):
     '''
     '''
     
+    if numpy.iscomplex(cc_map): cc_map=numpy.absolute(cc_map)
     y,x = numpy.unravel_index(numpy.argmax(cc_map), cc_map.shape)
     x -= cc_map.shape[1]/2
     y -= cc_map.shape[0]/2
