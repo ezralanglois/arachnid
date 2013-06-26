@@ -262,11 +262,11 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
             deps = []
             for out in outfile_deps:
                 if out == "": continue
-                if spider_utility.is_spider_filename(extra[out]) and spider_utility.is_spider_filename(f):
+                if (spider_utility.is_spider_filename(extra[out]) or os.path.exists(spider_utility.spider_filename(extra[out], f, id_len))) and spider_utility.is_spider_filename(f):
                     deps.append(spider_utility.spider_filename(extra[out], f, id_len))
                 else: deps.append(extra[out])
         else:
-            deps = [spider_utility.spider_filename(extra[out], f, id_len) for out in outfile_deps if out != "" and spider_utility.is_spider_filename(extra[out])]
+            deps = [spider_utility.spider_filename(extra[out], f, id_len) for out in outfile_deps if out != "" and (spider_utility.is_spider_filename(extra[out]) or os.path.exists(spider_utility.spider_filename(extra[out], f, id_len)))]
         if data_ext is not None:
             for i in xrange(len(deps)):
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
@@ -305,7 +305,7 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
         else: finished.append(filename)
     if len(finished) > 0:
         #_logger.info("Skipping: %s all dependencies satisfied (use --force or force: True to reprocess)"%f)
-        _logger.info("Skipping %d files - all dependencies satisfied (use --force or force: True to reprocess)"%len(finished))
+        _logger.info("Skipping %d files - all dependencies satisfied (use --force or force: True to reprocess) - processing %d files"%(len(finished), len(unfinished)))
     
     if restart_test:
         sys.exit(0)
