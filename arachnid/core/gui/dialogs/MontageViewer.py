@@ -333,7 +333,7 @@ class MainWindow(QtGui.QMainWindow):
         files = [str(f) for f in files]
         invalid = [filename for filename in files if not spider_utility.is_spider_filename(filename)]
         ids = [spider_utility.spider_id(filename) for filename in files if spider_utility.is_spider_filename(filename)]
-        if (self.imagefile == "" or self.imagefile != spider_utility.spider_filename(str(files[0]), self.imagefile)) and len(files) > 0:
+        if  len(files) > 0 and (self.imagefile == "" or self.imagefile != spider_utility.spider_filename(str(files[0]), self.imagefile)):
             self.ui.imageFileComboBox.blockSignals(True)
             self.ui.imageFileComboBox.addItem( os.path.basename(str(files[0])), files[0] )
             self.ui.imageFileComboBox.blockSignals(False)
