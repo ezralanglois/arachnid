@@ -294,11 +294,13 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
         C = manifold.fastdot_t2(trn, trn, None, 1.0/trn.shape[0])
         #C = numpy.dot(trn, trn.T)
         #numpy.multiply(C, 1.0/trn.shape[0], C)
+    assert(numpy.alltrue(numpy.isfinite(C)))
     d, V = numpy.linalg.eigh(C)
     
     if trn.shape[1] > trn.shape[0]:
         #V = numpy.dot(trn.T, V)
         V = numpy.ascontiguousarray(V)
+        assert(numpy.alltrue(numpy.isfinite(V)))
         V = manifold.fastdot_t1(trn, V)
         
         err = numpy.seterr(divide='ignore', invalid='ignore')
@@ -306,6 +308,7 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
         numpy.seterr(**err)
         d = numpy.where(numpy.isfinite(d), d, 0)
         V *= d
+        assert(numpy.alltrue(numpy.isfinite(V)))
     d = numpy.where(d < 0, 0, d)
     d /= d.sum()
     idx = d.argsort()[::-1]
@@ -320,12 +323,13 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
             idx = d.shape[0]
         else:
             idx = numpy.sum(d.cumsum()<frac)+1
-        val = manifold.fastdot_t2(V[:, :idx].transpose().copy(), tst).T
+        #print V.dtype, tst.dtype
+        val = manifold.fastdot_t2(V[:, :idx].transpose().copy(), tst.astype(V.dtype)).T
         #val = numpy.dot(V[:, :idx].T, tst.T).T
         return V, d, val
     return V, d
 
-def dhr_pca(trn, tst=None, neig=2, level=0.9, centered=False):
+def dhr_pca(trn, tst=None, neig=2, level=0.9, centered=False, iter=20):
     '''
     http://guppy.mpe.nus.edu.sg/~mpexuh/papers/DHRPCA-ICML.pdf
     '''
@@ -336,10 +340,10 @@ def dhr_pca(trn, tst=None, neig=2, level=0.9, centered=False):
         trn -= trn.mean(0)
         if tst is not None: tst -= tst.mean(0)
     if tst is None: tst=trn
-    best = (0, None)
+    best = (0, None, None)
     wgt = numpy.ones(trn.shape[0])
     mat=None
-    for i in xrange(20):
+    for i in xrange(iter):
         sel = wgt > 0
         mat = empirical_variance(trn, wgt, out=mat)
         #assert(trn.shape[0]==mat.shape[0])
@@ -358,15 +362,17 @@ def dhr_pca(trn, tst=None, neig=2, level=0.9, centered=False):
         best_last=best[0]
         if tmp > best[0]: best = (tmp, eigvecs, eigvals)
         #else: break
-        if var.shape[0] < 10: break
+        totw = numpy.sum(wgt)
+        if var.shape[0] < 10 or totw < 10 or totw < (trn.shape[0]*0.1): break
         nu = numpy.min(1.0/var)
-        _logger.info("Opt: %g > %g (%d) -- nu: %f -- sum: %f"%(tmp, best_last, (tmp>best_last), nu, numpy.sum(wgt)))
+        _logger.info("Opt: %g > %g (%d) -- nu: %f -- sum: %f"%(tmp, best_last, (tmp>best_last), nu, totw))
         tmp = nu*wgt[sel]*var
         wgt[sel] -= tmp
     
+    if best[1] is None: return None, None
     V = best[1]
     eigv = best[2]
-    feat = manifold.fastdot_t2(V[:, :neig].transpose().copy(), tst).T
+    feat = manifold.fastdot_t2(V[:, :neig].transpose().copy(), tst.astype(V.dtype)).T
     #_logger.error("%s == %s | %s %s"%(str(feat.shape), str(trn.shape), str(V.shape), str(tst.shape)))
     assert(feat.shape[0] == trn.shape[0])
     return eigv, feat
@@ -384,7 +390,7 @@ def empirical_variance_slow(feat, weight=None, out=None):
     '''
     '''
     
-    if out is None: out = numpy.zeros((feat.shape[1], feat.shape[1]))
+    if out is None: out = numpy.zeros((feat.shape[1], feat.shape[1]), dtype=feat.dtype)
     else: out[:]=0
     
     if weight is not None:
