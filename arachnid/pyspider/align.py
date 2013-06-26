@@ -333,7 +333,7 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     ap_sel = spi.ap_sh if use_apsh else spi.ap_ref
     if _logger.isEnabledFor(logging.DEBUG): _logger.debug("Start alignment - %s"%mpi_utility.hostname())
     #if 1==0 and use_small_angle_alignment(spi, align[curr_slice], **extra):
-    if use_small_angle_alignment(spi, align[curr_slice], use_flip, **extra):
+    if use_small_angle_alignment(spi, align[curr_slice], use_flip, **extra) and 1 == 0:
         del extra['theta_end']
         angle_doc, angle_num = spi.vo_ea(theta_end=extra['angle_range'], outputfile=angle_cache, **extra)
         if shuffle_angles:

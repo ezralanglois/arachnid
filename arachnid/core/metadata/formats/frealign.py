@@ -120,7 +120,7 @@ class read_iterator(object):
                     self.fin.close()
                     raise StopIteration
                 line = line.strip()
-                if line == "" or line[0] == ';' or line[0] == '#': continue
+                if line == "" or line[0] == 'C' or line[0] == '#': continue
                 break
         else:
             line = self.lastline
@@ -190,11 +190,13 @@ C           PSI   THETA     PHI     SHX     SHY    MAG   FILM      DF1      DF2
     fin = open(filename, 'r') if isinstance(filename, str) else filename
     #lastline = ""
     try:
+        last = None
         while True: # Remove header comments
             line = fin.readline()
             if line == "": raise format_utility.ParseFormatError, "Not a Frealign file or empty"
             if line[0] != 'C': break
-        
+            last=line
+        if last is None: raise ValueError, "Not frealign format"
         vals = line.split()
         try:id = int(vals[0])
         except: id=-1
@@ -203,6 +205,8 @@ C           PSI   THETA     PHI     SHX     SHY    MAG   FILM      DF1      DF2
         #PSI   THETA     PHI     SHX     SHY    MAG   FILM      DF1      DF2 
         tot = len(vals)
         
+        if last is not None and len(last) > 0 and tot == (len(last.split()[1:])+1):
+            tmpheader=['id']+last.split()[1:]
         
         if isinstance(header, dict):
             if len(header) == 0: raise ValueError, "Dictionary header cannot have zero elements"
@@ -289,9 +293,12 @@ def write(filename, values, factory=namedtuple_factory, **extra):
             Unused keyword arguments
     '''
     
-    raise ValueError, "Not implemented"
+    fout = open(filename, 'w') if isinstance(filename, str) else filename
+    write_header(fout, values, factory, **extra)
+    write_values(fout, values, factory, **extra)
+    if isinstance(filename, str): fout.close()
     
-def write_header(filename, values, factory=namedtuple_factory, tag="", blockcode="images", **extra):
+def write_header(fout, values, factory=namedtuple_factory, **extra):
     '''Write a comma separated value (Star) header
     
     .. sourcecode:: py
@@ -314,23 +321,22 @@ def write_header(filename, values, factory=namedtuple_factory, tag="", blockcode
     
     :Parameters:
     
-    filename : string or stream
+    fout : string or stream
                Output filename or stream
     values : container
              Value container such as a list or an ndarray
     factory : Factory
               Class or module that creates the container for the values returned by the parser
-    tag : str
-          Tag for each header value, e.g. tag=rln
-    blockcode : str
-                Label for the data block
     extra : dict
             Unused keyword arguments
     '''
     
-    raise ValueError, "Not implemented"
+    header = factory.get_header(values, **extra)
+    fout.write("C   ")
+    for h in header: fout.write("  "+h.rjust(11))
+    fout.write("\n")
     
-def write_values(filename, values, factory=namedtuple_factory, header=None, star_separtor=' ', **extra):
+def write_values(fout, values, factory=namedtuple_factory, header=None, write_offset=1, **extra):
     '''Write comma separated value (Star) values
     
     .. sourcecode:: py
@@ -346,8 +352,8 @@ def write_values(filename, values, factory=namedtuple_factory, header=None, star
     
     :Parameters:
     
-    filename : string or stream
-               Output filename or stream
+    fout : string or stream
+               Output fout or stream
     values : container
              Value container such as a list or an ndarray
     factory : Factory
@@ -356,7 +362,16 @@ def write_values(filename, values, factory=namedtuple_factory, header=None, star
             Unused keyword arguments
     '''
     
-    raise ValueError, "Not implemented"
+    if "float_format" in extra: del extra["float_format"]
+    header = factory.get_header(values, header=header, offset=False, **extra)
+    index = write_offset
+    header = factory.get_header(values, header=header, offset=True, **extra)
+    for v in values:
+        vals = factory.get_values(v, header, float_format="%11g", **extra)
+        fout.write("%d " % (index, ))
+        fout.write(" ".join(vals))
+        fout.write("\n")
+        index += 1
         
 ############################################################################################################
 # Extension and Filters                                                                                    #

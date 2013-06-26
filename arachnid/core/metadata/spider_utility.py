@@ -49,6 +49,11 @@ def single_images(files):
                 
         except: pass
         groups[id].append(f)
+    
+    for key in groups.iterkeys():
+        idx = numpy.argsort([spider_id(id) for id in groups[key]])
+        groups[key] = [groups[key][i] for i in idx]
+        
     return groups.items()
     
 

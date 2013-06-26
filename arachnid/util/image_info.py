@@ -45,7 +45,10 @@ def batch(files, output="", test_size=0, all=False, stat=False, **extra):
                 raise ValueError, "%s - nx != nx: %d != %d"%(filename, header['ny'], size[1])
             if header['nz'] != size[2]:
                 raise ValueError, "%s - nx != nx: %d != %d"%(filename, header['nz'], size[2])
-        header = ndimage_file.read_header(filename)
+        if ndimage_file.spider.is_readable(filename) and 1 == 0:
+            header = ndimage_file.spider.read_header(filename)
+        else:
+            header = ndimage_file.read_header(filename)
         header['name'] = os.path.basename(filename)
         if all:
             #count = ndimage_file.count_images(filename)

@@ -71,7 +71,7 @@ def trim():
     
     pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
     
-def draw_image(img, label=None, dpi=72, facecolor='white', cmap=pylab.cm.gray, output_filename=None, **extra):
+def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_filename=None, **extra):
     '''
     '''
     

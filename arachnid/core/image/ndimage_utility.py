@@ -34,7 +34,52 @@ try:
 except:
     tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
     _image_utility=None
+
+'''
+ img         = double(img);
+   [rows,cols] = size(img);
+   cy          = round(rows/2);
+   cx          = round(cols/2);
+   
+   if exist('radius','var') == 0
+      radius = min(round(rows/2),round(cols/2))-1;
+   end
+   
+   if exist('angle','var') == 0
+      angle = 360;
+   end
+  
+   pcimg = [];
+   i     = 1;
+   
+   for r=0:radius
+      j = 1;
+      for a=0:2*pi/angle:2*pi-2*pi/angle
+         pcimg(i,j) = img(cy+round(r*sin(a)),cx+round(r*cos(a)));
+         j = j + 1;
+      end
+      i = i + 1;
+   end
+end
+'''
+
+#r/2-1,360
+def polar_simple(img, radius=None, angle=360.0):
+    ''' Simplest polar transform
+    '''
     
+    if radius is None: radius = img.shape[0]/2-1
+    img = img.astype(numpy.float)
+    cx, cy = round(img.shape[0]/2.0), round(img.shape[1]/2.0)
+    angles = numpy.arange(0, 2.0*numpy.pi-2.0*numpy.pi/angle, 2.0*numpy.pi/angle)
+    out = numpy.zeros((radius, len(angles)))
+    for r in xrange(radius):
+        for j, a in enumerate(angles):
+            rc, rs = cx+round(r*numpy.sin(a)), cy+round(r*numpy.cos(a))
+            if rc < out.shape[0] and rs < out.shape[1]:
+                out[r, j] = img[rc, rs]
+    return out
+
 def radon_transform(nrows, ncols, nangs=180, dtype=numpy.float64):
     '''Compute the radon transform
     
@@ -1286,6 +1331,8 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     '''Clamp outlier pixels, either too black due to dust or too white due to hot-pixels. Replace with 
     samples drawn from the normal distribution with the same mean and standard deviation.
     
+    Any random values drawn outside the range of values in the image are clamped to the largest value.
+    
     :Parameters:
 
     img : numpy.ndarray
@@ -1306,26 +1353,19 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     '''
     
     if out is None: out = img.copy()
+    else: out[:]=img
     avg = numpy.mean(img)
     std = numpy.std(img)
     vmin = numpy.min(img)
     vmax = numpy.max(img)
-    
-    '''
-    avg1, std1, vmin1, vmax1 = avg, std, vmin, vmax
-    start = int( max((vmax-avg)/std, (avg-vmin)/std) )
-    for nstd in xrange(start, int(min(abs(dust_sigma), xray_sigma))-1, -1):
-        hcut = avg+std*nstd
-        lcut = avg-std*nstd
-        sel = numpy.logical_and(avg > lcut, avg < hcut)
-        avg = numpy.mean(img[sel])
-        std = numpy.std(img[sel])
-    '''
+
     
     if xray_sigma is None: xray_sigma=dust_sigma if dust_sigma > 0 else -dust_sigma
     if dust_sigma > 0: dust_sigma = -dust_sigma
     lcut = avg+std*dust_sigma
     hcut = avg+std*xray_sigma
+    vsmin = numpy.min(out[img>=lcut])
+    vsmax = numpy.max(out[img<=hcut])
     if replace == 'mean':
         replace = numpy.mean(out[numpy.logical_and(out > lcut, out < hcut)])
     if vmin < lcut:
@@ -1343,7 +1383,8 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
         if replace is None:
             out[sel] = numpy.random.normal(avg, std, numpy.sum(sel)).astype(out.dtype)
         else: out[sel] = replace
-    
+    out[img > vsmax]=vsmax
+    out[img < vsmin]=vsmin
     return out
 
 @_em2numpy2em

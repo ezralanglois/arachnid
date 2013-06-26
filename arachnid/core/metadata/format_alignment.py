@@ -34,10 +34,13 @@ def read_alignment(filename, image_file, **extra):
         align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
         param = numpy.zeros((len(align), 6))
         param[:, :3] = align[:, :3]
-        param[:, 3:] = align[:, 6:9]
+        param[:, 3:] = align[:, 5:8]
         if align.shape[1] == 15:
-            files = image_file
+            files = []
+            for i in xrange(len(align)):
+                files.append( (image_file, int(i+1)) )
         else:
+            files=[]
             label = align[:, 15:17].astype(numpy.int)
             for mic, pid in label:
                 files.append((spider_utility.spider_filename(image_file, int(mic), id_len), int(pid)))
@@ -64,7 +67,7 @@ def read_spider_alignment(filename, header=None, **extra):
     
     align_header = [
                     "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus",
-                    "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,defocus",
+                    "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id",
                     "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror"
                 ]
     if 'numeric' in extra: del extra['numeric']

@@ -132,9 +132,10 @@ def process(filename, spi, output, resolution, **extra):
     extra.update(filter_volume.ensure_pixel_size(spi, filename, **extra))
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename)
-    sp = extra['apix']/resolution
-    output = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output, **extra)
-    output = enhance_volume(output, spi, sp, output, **extra)
+    if resolution > 0:
+        sp = extra['apix']/resolution
+        filename = filter_volume.filter_volume_lowpass(filename, spi, sp, outputfile=output, **extra)
+    output = enhance_volume(filename, spi, sp, output, **extra)
     return filename
 
 def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False, enh_gk_sigma=9.0, enh_gk_size=3, enh_filter=0.0, enh_threshold='A', enh_ndilate=1, apix=None, window=None, prefix=None, **extra):
