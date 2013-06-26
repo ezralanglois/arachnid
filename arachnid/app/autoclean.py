@@ -12,13 +12,14 @@ from ..core.app.program import run_hybrid_program
 from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, openmp
+from ..core.orient import healpix, orient_utility
 from arachnid.core.util import plotting #, fitting
 import logging, numpy, os, scipy, itertools, scipy.cluster.vq, scipy.spatial.distance
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file="", **extra):#, neig=1, nstd=1.5
+def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cache_file="", **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -40,6 +41,7 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
                Current filename
     '''
     
+    _logger.info("Processing view %d"%int(input_vals[0]))
     label, align = rotational_sample(*input_vals[1:], **extra)
     mask = create_mask(input_files, **extra)
     if cache_file == "": 
@@ -84,10 +86,13 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
         from sklearn.covariance import OAS
         
         if 1 == 1:
-            _logger.error("here1: %s"%str(tst.shape[0]))
-            eigv, feat=analysis.dhr_pca(tst, tst, 2, 0.8, True)
-            _logger.error("here2: %s"%str(feat.shape))
-            sel = outlier_rejection(feat[:, :2], 0.97)
+            eigv, feat=analysis.dhr_pca(tst, tst, extra['neig'], expected, True)
+            '''
+            if eigv is None:
+                sel = numpy.ones(tst.shape[], numpy.bool)
+            else:
+                sel = outlier_rejection(feat[:, :2], 0.97)
+            '''
         elif 1 == 0:
             _logger.error("pca-start")
             eigv, feat=analysis.pca_fast(tst, tst, 0.06, True)[1:]
@@ -108,46 +113,25 @@ def process(input_vals, input_files, output, id_len=0, max_eig=30, cache_file=""
             feat = numpy.dot(V, tst.T).T
         
         _logger.info("Eigen: %s"%(",".join([str(v) for v in eigv[:10]])))
-        d=eigv
-        t=d
-        tc=d.cumsum()
-        '''
-        U, d, V = scipy.linalg.svd(tst, False)
-        feat = d*numpy.dot(V, tst.T).T
-        t = d**2/tst.shape[0]
-        t /= t.sum()
-        tc = t.cumsum()
-        idx = numpy.sum(t.cumsum()<0.2)+1
-        feat=feat[:, :idx]
-        '''
-        
-        '''
-        robust_cov = MinCovDet().fit(feat)
-        cov=robust_cov.covariance_
-        d, V = numpy.linalg.eigh(cov)
-        idx = d.argsort()[::-1] 
-        d = d[idx]
-        V = V[:,idx]
-        feat = numpy.dot(V, feat.T).T
-        '''
-        
-        
-    #feat = feat[:, :max(max_eig, neig)]
+        if eigv is not None:
+            d=eigv
+            t=d
+            tc=d.cumsum()
     
-    
-    #feat -= feat.min(axis=0) #.reshape((feat.shape[0], 1))
-    #feat /= feat.max(axis=0)
-    
-    _logger.info("Eigen: %s"%(",".join([str(v) for v in t[:10]])))
-    _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
-
-    sel, rsel, dist = one_class_classification(feat, **extra)
-    try:
-        format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,dist,rot,group', prefix='pca_')
-    except:
-        _logger.error("sel: %s - dist: %s - align: %s - label: %s"%(str(sel.shape), str(dist.shape), str(align[:, 0].shape), str(label[:, 1].shape)))
-        raise
-    _logger.info("Finished embedding view: %d"%int(input_vals[0]))
+        
+        _logger.info("Eigen: %s"%(",".join([str(v) for v in t[:10]])))
+        _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
+        rsel=None
+        if feat is not None:
+            sel, rsel, dist = one_class_classification(feat, **extra)
+            try:
+                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,dist,rot,group', prefix='pca_')
+            except:
+                _logger.error("sel: %s - dist: %s - align: %s - label: %s"%(str(sel.shape), str(dist.shape), str(align[:, 0].shape), str(label[:, 1].shape)))
+                raise
+            _logger.info("Finished embedding view: %d"%int(input_vals[0]))
+        else:
+            _logger.info("Skipping view (too few projections): %d"%int(input_vals[0]))
     return input_vals, rsel
 
 def outlier_rejection(feat, prob):
@@ -171,7 +155,7 @@ def outlier_rejection(feat, prob):
     cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
     return dist < cut
 
-def one_class_classification(feat, nstd, neig, nsamples, **extra):
+def one_class_classification(feat, neig, nsamples, prob_reject, nstd=2.5, **extra):
     '''
     '''
     
@@ -188,7 +172,7 @@ def one_class_classification(feat, nstd, neig, nsamples, **extra):
         dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
             
         #dist = robust_cov.mahalanobis(feat)
-        cut = scipy.stats.chi2.ppf(0.95, feat.shape[1])
+        cut = scipy.stats.chi2.ppf(prob_reject, feat.shape[1])
         _logger.info("Cutoff: %d -- for df: %d"%(cut, feat.shape[1]))
         sel = dist < cut
         #sel = analysis.robust_rejection(dist, nstd*1.4826)
@@ -233,16 +217,16 @@ def init_root(files, param):
     if mpi_utility.is_root(**param):
         if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution: %f"%param['resolution'])
         if param['use_rtsq']: _logger.info("Rotate and translate data stack")
-        _logger.info("nstd: %f"%param['nstd'])
-        _logger.info("neig: %f"%param['neig'])
-        _logger.info("nsamples: %f"%param['nsamples'])
-        
+        _logger.info("Rejection precision: %f"%param['prob_reject'])
+        _logger.info("Number of Eigenvalues: %f"%param['neig'])
+        if param['order'] > 0: _logger.info("Angular order: %f"%param['order'])
+        #_logger.info("nsamples: %f"%param['nsamples'])
         
     group = None
     if mpi_utility.is_root(**param): 
         param['sel_by_mic']={}
         group = group_by_reference(*read_alignment(files, **param))
-        if param['output_embed'] == "": param['output_embed'] = spider_utility.add_spider_id(format_utility.add_prefix(param['output'], "pca_"), len(str(len(group))))
+        if param['output_embed'] == "": param['output_embed'] = format_utility.add_prefix(param['output'], "pca_") #spider_utility.add_spider_id(format_utility.add_prefix(param['output'], "pca_"), len(str(len(group))))
         if param['single_view'] > 0:
             _logger.info("Using single view: %d"%param['single_view'])
             tmp=group
@@ -254,9 +238,11 @@ def init_root(files, param):
             index = numpy.argsort(count)
             newgroup=[]
             for i in index[::-1]:
-                newgroup.append(group[i])
+                if count[i] > 20:
+                    newgroup.append(group[i])
             group=newgroup
     group = mpi_utility.broadcast(group, **param)
+    _logger.info("Processing %d groups"%len(group))
     return group
 
 def reduce_all(val, sel_by_mic, output, id_len=0, **extra):
@@ -328,12 +314,12 @@ def create_mask(files, pixel_diameter, resolution, apix, **extra):
     if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
     return mask
 
-def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, bispec=False, use_rtsq=False, **extra):
+def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, disable_bispec=False, use_rtsq=False, **extra):
     '''
     '''
     
     if use_rtsq: img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
-    elif align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
+    elif align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
     if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
     ndimage_utility.vst(img, img)
     bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
@@ -344,7 +330,7 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, bi
     #ndimage_utility.normalize_standard(img, mask, var_one, img)
     ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
     
-    if bispec:
+    if not disable_bispec:
         #img *= mask
         #img = ndimage_utility.polar(img)
         img, freq = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')#gaussian
@@ -387,7 +373,7 @@ def group_by_reference(label, align, ref):
         group.append((r, label[sel], align[sel]))
     return group
 
-def read_alignment(files, alignment="", **extra):
+def read_alignment(files, alignment="", order=0, **extra):
     ''' Read alignment parameters
     
     :Parameters:
@@ -449,6 +435,19 @@ def read_alignment(files, alignment="", **extra):
                     label[:, 1] = numpy.arange(0, len(align[total:end]))
                 total = end
             align = numpy.asarray(alignvals)
+    if order > 0:
+        resolution = pow(2, order)
+        ang = healpix.angles(order)
+        for i in xrange(len(align)):
+            t = align[i, 1]
+            if t > 180.0: t -= 180.0
+            align[i, refidx] = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(t), numpy.deg2rad(align[i, 2]))
+            rang = rotate.rotate_euler(ang[int(align[i, refidx])], (-align[i, 5], align[i, 1], align[i, 2]))
+            rot = -(rang[0]+rang[2])
+            rt3d = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
+            align[i, 5], align[i, 6], align[i, 7]=orient_utility.align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
+            
+            
     ref = align[:, refidx].astype(numpy.int)
     #refs = numpy.unique(ref)
     return label, align, ref
@@ -459,17 +458,19 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
-    group.add_option("", nsamples=10,                 help="Number of rotational samples")
+    group.add_option("", nsamples=1,                 help="Number of rotational samples")
     group.add_option("", angle_range=3.0,              help="Angular search range")
-    group.add_option("", resolution=15.0,             help="Filter to given resolution - requires apix to be set")
-    #group.add_option("", resolution_hi=0.0,           help="High-pass filter to given resolution - requires apix to be set")
+    group.add_option("", resolution=40.0,             help="Filter to given resolution - requires apix to be set")
     group.add_option("", use_rtsq=False,              help="Use alignment parameters to rotate projections in 2D")
-    group.add_option("", neig=1,                    help="Number of eigen vectors to use", dependent=False)
-    group.add_option("", max_eig=30,                    help="Maximum number of eigen vectors saved")
-    group.add_option("", nstd=2.5,                    help="Number of deviations from the median", dependent=False)
+    group.add_option("", neig=2,                    help="Number of eigen vectors to use", dependent=False)
+    group.add_option("", expected=0.8,                    help="Expected fraction of good data", dependent=False)
+    group.add_option("", max_eig=8,                    help="Maximum number of eigen vectors saved")
+    #group.add_option("", nstd=2.5,                    help="Number of deviations from the median", dependent=False)
     group.add_option("", single_view=0,                help="Test the algorithm on a specific view")
-    group.add_option("", bispec=False,                  help="Enable bispectrum feature space")
+    group.add_option("", disable_bispec=False,          help="Disable bispectrum feature space")
     group.add_option("", cache_file="",                 help="Cache preprocessed data in matlab data files")
+    group.add_option("", order=0,                      help="Reorganize views based on their healpix order")
+    group.add_option("", prob_reject=0.97,             help="Probablity that a rejected particle is bad", dependent=False)
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
