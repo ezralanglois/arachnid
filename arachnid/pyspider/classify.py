@@ -249,9 +249,10 @@ def classify_projections_by_view(alignvals, threshold_type=('None', 'Auto', 'CC'
     
     if threshold_type == 0: return None
     cmp = numpy.less if keep_low_cc else numpy.greater
-    sel = analysis.one_class_selection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
+    sel = analysis.robust_rejection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
     view = healpix.ang2pix(view_resolution, numpy.deg2rad(alignvals[:, 1:3]))
     views = numpy.unique(view)
+    _logger.error("# views: %d -- %s"%(len(views), str(view[:5])))
     maximum_views = 0
     if cull_overrep:
         vhist = numpy.histogram(view, len(views)+1)[0]
@@ -259,6 +260,7 @@ def classify_projections_by_view(alignvals, threshold_type=('None', 'Auto', 'CC'
         maximum_views = numpy.mean(vhist[vhist>0])
     for v in views:
         vsel = numpy.logical_and(sel, v==view)
+        _logger.error("View: %d -- %d, %d, %d"%(v, numpy.sum(sel), numpy.sum(v==view), alignvals.shape[0]))
         vidx = numpy.argwhere(vsel).squeeze()
         cc = alignvals[vidx, 10]
         if cc.shape[0] == 0: continue
