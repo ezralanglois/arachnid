@@ -286,12 +286,7 @@ def write_image(filename, img, index=None, header=None, type=None):
     if not eman2_utility.is_em(img): 
         img = eman2_utility.numpy2em(img)
     h={'apix_x': 1.0}
-    oheader=header
-    if header is not None:
-        _logger.error("header: %s"%str(header))
     header=_update_header(h, header, ara2eman)
-    if oheader is not None:
-        _logger.error("header2: %s"%str(header))
     for key, val in header.iteritems(): img.set_attr(key, val)
     if type is None:
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
