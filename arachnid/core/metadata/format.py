@@ -42,7 +42,7 @@ from ..parallel import mpi_utility
 import format_utility
 import os, numpy, logging
 
-__formats = [star, spiderdoc, spidersel, project, csv, frealign, prediction]
+__formats = [star, spiderdoc, spidersel, frealign, project, csv, prediction]
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 #_logger.setLevel(logging.DEBUG)
@@ -442,7 +442,9 @@ def read(filename, columns=None, header=None, ndarray=False, **extra):
     try:
         vals = map(factory, format.reader(fin, header, lastline, **extra))
     except:
-        _logger.debug("header: %s"%str(header))
+        _logger.error("header: %s"%str(header))
+        _logger.error("lastline: %s"%str(lastline))
+        _logger.error("format: %s"%str(format))
         raise
     if ndarray: return format_utility.tuple2numpy(vals)
     return vals
