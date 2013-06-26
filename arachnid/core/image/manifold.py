@@ -67,17 +67,14 @@ def knn_resort(dist2):
             assert(numpy.all(dist2.data[b:e][:-2] <= dist2.data[b:e][1:-1]))
     elif scipy.sparse.isspmatrix_coo(dist2):
         offset = numpy.zeros(dist2.shape[0]+1, dtype=dist2.row.dtype)
-        _logger.error("here1")
         _manifold.knn_offset(dist2.row, offset[1:])
         offset = numpy.cumsum(offset)
         for i in xrange(len(offset)-1):
             b, e = offset[i], offset[i+1]
-            if i < 10:
-                
-                _logger.error("here2: %d, %d"%(b, e))
             idx = numpy.argsort(dist2.data[b:e])
             dist2.data[b:e] = dist2.data[b:e][idx]
             dist2.col[b:e] = dist2.col[b:e][idx]
+            assert(numpy.alltrue(dist2.row[b:e]==dist2.row[b]))
     else:
         raise ValueError, "Unsupported sparse matrix type"
 
@@ -108,7 +105,7 @@ def knn_reduce_eps(dist2, eps, epsdata=None):
         n = _manifold.knn_reduce_eps_cmp(dist2.data, dist2.col, dist2.row, data, col, row, epsdata, eps)
     else:
         n = _manifold.knn_reduce_eps(dist2.data, dist2.col, dist2.row, data, col, row, eps)
-    _logger.error("n=%d from %d"%(n, dist2.data.shape[0]))
+    #_logger.error("n=%d from %d"%(n, dist2.data.shape[0]))
     data[n:2*n] = data[:n]
     row[n:2*n] = row[:n]
     col[n:2*n] = col[:n]
@@ -116,6 +113,21 @@ def knn_reduce_eps(dist2, eps, epsdata=None):
     col = col[:2*n]
     row = row[:2*n]
     return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
+
+def knn_reduce_safe(dist2, k):
+    '''
+    '''
+    
+    k+=1 # include self as a neighbor
+    n = dist2.shape[0]*k
+    if scipy.sparse.isspmatrix_coo(dist2):
+        data = numpy.empty(n, dtype=dist2.data.dtype)
+        row  = numpy.empty(n, dtype=dist2.row.dtype)
+        col  = numpy.empty(n, dtype=dist2.col.dtype)
+        n = _manifold.knn_reduce_coo(dist2.data, dist2.col, dist2.row, data, col, row, dist2.shape[0], k)
+        return scipy.sparse.coo_matrix( (data[:n],(row[:n], col[:n])), shape=dist2.shape )
+    else:
+        raise ValueError, "Unsupported sparse matrix type"
 
 def knn_reduce(dist2, k, mutual=False):
     '''Reduce k-nearest neighbor sparse matrix
@@ -164,28 +176,40 @@ def knn_reduce(dist2, k, mutual=False):
         data = numpy.empty(n, dtype=dist2.data.dtype)
         row  = numpy.empty(n, dtype=dist2.row.dtype)
         col  = numpy.empty(n, dtype=dist2.col.dtype)
-        d = dist2.data.shape[0]/dist2.shape[0] - k
-        if d < 0: raise ValueError, "Cannot reduce from %d neighbors to %d"%(dist2.data.shape[0]/dist2.shape[0], k)
-        if d > 0:
-            _manifold.knn_reduce(dist2.data, dist2.col, dist2.row, data[:l], col[:l], row[:l], d, k)
+        if 1 == 0:
+            d = dist2.data.shape[0]/dist2.shape[0] - k
+            if d < 0: raise ValueError, "Cannot reduce from %d neighbors to %d"%(dist2.data.shape[0]/dist2.shape[0], k)
+            if d > 0:
+                _manifold.knn_reduce(dist2.data, dist2.col, dist2.row, data[:l], col[:l], row[:l], d, k)
+            else:
+                data[:dist2.data.shape[0]] = dist2.data
+                row[:dist2.row.shape[0]] = dist2.row
+                col[:dist2.col.shape[0]] = dist2.col
         else:
-            data[:dist2.data.shape[0]] = dist2.data
-            row[:dist2.row.shape[0]] = dist2.row
-            col[:dist2.col.shape[0]] = dist2.col
+            n = _manifold.knn_reduce_coo(dist2.data, dist2.col, dist2.row, data[:l], col[:l], row[:l], dist2.shape[0], k)
     
         if not mutual:
-            m = dist2.shape[0]*k
-            data[m:] = data[:m]
-            row[m:] = row[:m]
-            col[m:] = col[:m]
+            data[n:n*2] = data[:n]
+            row[n:n*2] = row[:n]
+            col[n:n*2] = col[:n]
+            data = data[:n*2]
+            row = row[:n*2]
+            col = col[:n*2]
         else:
-            n=_manifold.knn_mutual(data, col, row, k)
+            n=_manifold.knn_mutual_coo(data[:n], col[:n], row[:n], dist2.shape[0])
             data = data[:n]
             col = col[:n]
             row = row[:n]
         return scipy.sparse.coo_matrix( (data,(row, col)), shape=dist2.shape )
     else:
         raise ValueError, "Unsupported sparse matrix type"
+    
+def knn_mutal(dist2):
+    '''
+    '''
+    
+    n=_manifold.knn_mutual_coo(dist2.data, dist2.col, dist2.row, dist2.shape[0])
+    return scipy.sparse.coo_matrix( (dist2.data[:n],(dist2.row[:n], dist2.col[:n])), shape=dist2.shape )
     
 
 def knn_simple(samp, k, dtype=numpy.float):
@@ -250,13 +274,13 @@ def local_neighbor_average(samp, neigh, subset=None):
             assert( neigh.row[b] == neigh.col[b] )
             b = subset[i]*neighbors
             e = b+neighbors
-            avgsamp[i] = numpy.mean(samp[neigh.col[b:e]])
+            avgsamp[i] = numpy.mean(samp[neigh.col[b:e]], axis=0)
     else:
         b = 0
         for i in xrange(samp.shape[0]):
             e = b+neighbors
             assert( neigh.row[b] == neigh.col[b] )
-            avgsamp[i] = numpy.mean(samp[neigh.col[b:e]])
+            avgsamp[i] = numpy.mean(samp[neigh.col[b:e]], axis=0)
             b=e
     return avgsamp
 
@@ -594,7 +618,7 @@ def diffusion_maps_dist(dist2, dimension, sigma=None):
     
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
     dist2, index = largest_connected(dist2)
-    dist2 = (dist2 + dist2.T)/2
+    #dist2 = (dist2 + dist2.T)/2
     if sigma is not None and sigma > 0:
         _manifold.gaussian_kernel(dist2.data, dist2.data, float(sigma))
     else:
@@ -675,6 +699,13 @@ def largest_connected(dist2):
         index = index.astype(tmp.indices.dtype)
         n=_manifold.select_subset_csr(tmp.data, tmp.indices, tmp.indptr, index)
         dist2=scipy.sparse.csr_matrix((tmp.data[:n],tmp.indices[:n], tmp.indptr[:index.shape[0]+1]), shape=(index.shape[0], index.shape[0]))
+        
+        
+        '''
+        tmpidx = numpy.argwhere(tmp.indices[:n]>=index.shape[0]).squeeze()
+        _logger.error("largest: %s > %d"%(str(tmp.indices[:n][tmpidx[:3]]), index.shape[0]))
+        assert(numpy.alltrue(tmp.indices[:n]<index.shape[0]))
+        '''
     #assert(scipy.sparse.csgraph.cs_graph_components(dist2.tocsr())[0]==1)
     return dist2, index
 

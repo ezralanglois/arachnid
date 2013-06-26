@@ -388,6 +388,32 @@ INSTANTIATE_ALL(finalize_heap)
 		");
 INSTANTIATE_ALL(knn_reduce)
 
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+		
+		data : array
+			   Input 1D array of distances
+		col_ind :array
+			 	 Input 1D array column indicies
+		row_ind : array
+			   	  Input 1D array row indicies
+		sdata : array
+			   Output 1D array of distances
+		scol_ind :array
+			 	 Output 1D array column indicies
+		srow_ind : array
+			   	  Output 1D array row indicies
+		k : int
+			New number of neighbors
+		");
+INSTANTIATE_ALL(knn_reduce_coo)
+
+
 %feature("autodoc", "");
 %feature("docstring",
 		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
@@ -462,3 +488,26 @@ INSTANTIATE_ALL(knn_reduce_eps_cmp)
 			Number of sparse values
 		");
 INSTANTIATE_ALL(knn_mutual)
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function calculates a self-tuning gaussin kernel over
+		a sparse matrix in CSR format.
+
+		:Parameters:
+		
+		data : array
+			   In/out 1D array of distances
+		col_ind :array
+			 	 In/out 1D array column indicies
+		row_ind : array
+			   	  In/out 1D array row indicies
+		k : int
+			New number of neighbors
+		
+		:Returns:
+		
+		n : int
+			Number of sparse values
+		");
+INSTANTIATE_ALL(knn_mutual_coo)

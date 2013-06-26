@@ -77,6 +77,7 @@ void knn_offset(I* row_ind, size_type nr, I* offsets, size_type on)
 {
 	for(size_type i=0;i<nr;++i)
 	{
+		if (row_ind[i] > on) fprintf(stderr, "offset: %d > %d\n", row_ind[i] > on);
 		offsets[row_ind[i]]++;
 	}
 }
@@ -169,6 +170,75 @@ void knn_reduce_csr(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind,
 }
 */
 
+/**
+ * 26 25
+ * 27
+ * 28 knn_offset
+ */
+
+template<class I, class T>
+size_type knn_reduce_coo(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, size_type row_count, int k)
+{
+	I* offset = new I[row_count+1];
+	for(size_type r=0;r<=row_count;++r) offset[r]=0;
+	knn_offset(row_ind, nr, offset+1, row_count);
+	I cum=offset[0];
+	for(size_type r=0;r<row_count;++r)
+	{
+		//if( offset[r+1] == 0 ) fprintf(stderr, "error0(%d):  %d\n", r, offset[r+1] );
+		cum += offset[r+1];
+		offset[r+1] = cum;
+	}
+	size_type ri=0;
+	for(size_type r=0;r<row_count;++r)
+	{
+		size_type e = offset[r]+k;
+		if( e > offset[r+1] ) e = offset[r+1];
+		for(size_type j=offset[r];j<e;++j)
+		{
+			sdata[ri]=data[j];
+			scol_ind[ri]=col_ind[j];
+			srow_ind[ri]=row_ind[j];
+			ri++;
+		}
+	}
+
+	delete[] offset;
+	return ri;
+}
+
+template<class I, class T>
+size_type knn_reduce_coo_old(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int k)
+{
+	size_type j=0;
+	size_type l=0;
+	size_type kc=0;
+	size_type r=0;
+	for(;j < nc && r < snd;++j)
+	{
+		if(row_ind[j] != row_ind[l])
+		{
+			kc=0;
+			l=j;
+		}
+		sdata[r]=data[j];
+		scol_ind[r]=col_ind[j];
+		srow_ind[r]=row_ind[j];
+		++r;
+		++kc;
+		if( kc >= k )
+		{
+			for(;j<nc;j++)
+				if (row_ind[j] != row_ind[l]) break;
+			j--;
+			l = j+1;
+			kc=0;
+		}
+	}
+	assert(j==nd);
+	return r;
+}
+
 template<class I, class T>
 void knn_reduce(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, T* sdata, size_type snd, I* scol_ind, size_type snc, I* srow_ind, size_type snr, int d, int k)
 {
@@ -204,6 +274,62 @@ I* find_mutual(I* b, I* e, I v)
 {
 	for(;b < e;++b) if( (*b) == v ) return b;
 	return 0;
+}
+
+template<class I, class T>
+I knn_mutual_coo(T* data, size_type nd, I* col_ind, size_type nc, I* row_ind, size_type nr, size_type row_count)
+{
+
+	I* offset = new I[row_count+1];
+	for(size_type r=0;r<=row_count;++r) offset[r]=0;
+	knn_offset(row_ind, nr, offset+1, row_count);
+	I cum=offset[0];
+	for(size_type r=0;r<row_count;++r)
+	{
+		//if( offset[r+1] == 0 ) fprintf(stderr, "error0(%d):  %d\n", r, offset[r+1] );
+		cum += offset[r+1];
+		offset[r+1] = cum;
+	}
+
+	I j=0;
+	for(size_type r=0;r<nr;++r)
+	{
+		if( col_ind[r] > row_ind[r] ) // Test if mutual exists
+		{
+			I c = col_ind[r];
+			assert(c>0);
+			//if (c < 0) fprintf(stderr, "bug in c\n");
+			//if( c < 0 ) c = I(-c);
+			I* mc = find_mutual(col_ind+offset[c], col_ind+offset[c+1], row_ind[r]);
+			if( mc != 0 )
+			{
+				(*mc) = -((*mc)+1);
+				data[j] = data[r];
+				col_ind[j] = col_ind[r];
+				row_ind[j] = row_ind[r];
+				j++;
+			}
+		}
+		else if( col_ind[r] < row_ind[r] ) // Test if mutual already found
+		{
+			if( col_ind[r] < 0 )
+			{
+				data[j] = data[r];
+				col_ind[j] = -(col_ind[r]+1);
+				row_ind[j] = row_ind[r];
+				j++;
+			}
+		}
+		else
+		{
+			data[j] = 0.0;
+			col_ind[j] = col_ind[r];
+			row_ind[j] = row_ind[r];
+			j++;
+		}
+
+	}
+	return j;
 }
 
 template<class I, class T>
@@ -442,6 +568,7 @@ I select_subset_csr(T* data, size_type nd, I* col_ind, size_type nc, I* row_ptr,
 			{
 				data[cnt] = data[j];
 				col_ind[cnt] = index_map[col_ind[j]];
+				///if( col_ind[cnt] > )
 				cnt ++;
 			}
 		}

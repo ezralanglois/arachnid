@@ -59,10 +59,16 @@ def kernel_pca(data, max_eig, neig, max_neighbors=0, sigma=0.0, **extra):
         if 1 == 1:
             index1 = None
             if max_neighbors > 0:
-                #data, index1 = manifold.largest_connected(data)
+                data, index1 = manifold.largest_connected(data)
+                data = data.tocoo()
                 manifold.knn_resort(data)
-                data = manifold.knn_reduce(data, max_neighbors)#, True)
+                #n = data.data.shape[0]
+                #data = manifold.knn_mutal(data)
+                data = manifold.knn_reduce(data, max_neighbors, True)
+                #_logger.error("reduce-safe: %d -> %d"%(n, data.data.shape[0]))
+                #assert(data.data.shape[0]>0)
             feat, evals, index = manifold.diffusion_maps_dist(data, max(max_eig, neig), sigma)
+            _logger.info("Eigen-values: %s"%",".join([str(e) for e in evals]))
             if index1 is not None:
                 if index is not None:
                     index = index1[index]
@@ -160,6 +166,7 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             _logger.info("Recalculating distances: %s"%str(samp.dtype))
             rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
         else:
+            _logger.info("Calculating restricted")
             manifold.knn_restricted(qneigh, samp, mask)
             
         _logger.info("Reducing with epsilon nearest neighbor: %f"%eps)
@@ -173,6 +180,8 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         manifold._manifold.gaussian_kernel_range(qneigh.data, kernel_cum)
         for i in xrange(len(sigma)):
             _logger.info("%f,%f"%(sigma[i], kernel_cum[1, i]))
+    _logger.info("Image data2: %f-%f"%(numpy.min(qneigh.data[:neighbors+1]), numpy.max(qneigh.data[:neighbors+1])))
+    _logger.info("Angle data2: %f-%f"%(numpy.rad2deg(numpy.min(epsdata[:neighbors+1])), numpy.rad2deg(numpy.max(epsdata[:neighbors+1]))))
     return label, refp, align, qneigh
 
 def generate_references(filename, label, align, reference="", **extra):
@@ -258,7 +267,7 @@ def read_alignment(files, alignment="", is_dala=False, **extra):
     else:
         raise ValueError, "Multi file alignment read not supported"
     if is_dala:
-        align[:, 0]=0
+        align[:, 0]=-align[:, 5]
     ref = align[:, refidx].astype(numpy.int)
     return label, align, ref
     
@@ -277,7 +286,7 @@ def create_mask(files, pixel_diameter, **extra):
         #bg = eman2_utility.decimate(bg, bin_factor)
     return mask #, bg
 
-def image_transform_old(img, i, mask, var_one=True, align=None, bispec=False, **extra):
+def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extra):
     '''
     '''
     
@@ -299,7 +308,7 @@ def image_transform_old(img, i, mask, var_one=True, align=None, bispec=False, **
     if mask is not None: img *= mask
     return img
 
-def image_transform(img, i, mask, var_one=True, align=None, bispec=False, apix=2.81, resolution=12.0, **extra):
+def image_transform_sim(img, i, mask, var_one=True, align=None, bispec=False, apix=2.81, resolution=12.0, **extra):
     '''
     '''
     
@@ -311,7 +320,7 @@ def decimation_level(resolution, apix, window, **extra):
     '''
     '''
     
-    if 1==1: return 1.0
+    #if 1==1: return 1.0
     dec = resolution / (apix*3)
     d = float(window)/dec + 10
     d = window/float(d)
