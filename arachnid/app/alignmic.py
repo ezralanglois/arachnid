@@ -33,6 +33,8 @@ def process(filename, id_len=0, disable_align=False, reverse=False, recalc_avg=F
                Current filename
     '''
     
+    program.tracing.configure_mp_logging('test.log', **extra)
+    
     if isinstance(filename, tuple):
         id = filename[0]
     else:
@@ -329,11 +331,49 @@ def average(filename, param, experimental):
         else: sum += img
     return sum
 
+def average_iter(filename, param, experimental):
+    '''
+    '''
+    
+    sum = None
+    for i, img in enumerate(read_image_iter(filename)):
+        _logger.info("Average frame: %d of %d"%(i+1, len(filename)))
+        if experimental and 1 == 0:
+            sum+=rotate.rotate_image(img, 0, param[i+1, 0], param[i+1, 1])
+        elif param is not None:
+            sum+=eman2_utility.fshift(img, param[i+1, 0], param[i+1, 1])
+        else: sum += img
+    return sum
+
+def read_image_iter(filename):
+    if isinstance(filename[0], tuple): 
+        filename, index = filename
+        for f, index in filename:
+            img = ndimage_file.read_image(filename, index)
+            img = img.astype(numpy.float)
+            yield img
+    else: 
+        for img in ndimage_file.iter_images(filename):
+            img = img.astype(numpy.float)
+            yield img
+            
+def read_micrograph_iter(filename, bin_factor, invert, pixel_diameter, **extra):
+    ''' Read an process a micrograph
+    '''
+    
+    for mic in read_image_iter(filename):
+    #mic = eman2_utility.gaussian_high_pass(mic, 0.5/(pixel_diameter*bin_factor))
+        if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+        if invert: ndimage_utility.invert(mic, mic)
+        yield mic
+
 def read_image(filename):
     if isinstance(filename, tuple): filename, index = filename
     else: index=None
     if 1 == 1:
-        return ndimage_file.read_image(filename, index)
+        mic = ndimage_file.read_image(filename, index)
+        mic = mic.astype(numpy.float)
+        return mic
     try:
         mic = mrc_file.read_image(filename, index)
     except:
@@ -377,6 +417,14 @@ def init_root(files, param):
                     raise ValueError, "Cannot have 0 ID"
         else:
             _logger.info("Frames in a stack")
+    if param['select'] != "" and len(files) > 0:
+        sel = set([s.id for s in format.read(param['select'], numeric=True)])
+        _logger.info("Using selection file - selected %d files of %d"%(len(sel), len(files)))
+        if isinstance(files[0], tuple):
+            files = [f for f in files if f[0] in sel]
+        else:
+            files = [f for f in files if spider_utility.spider_id(f) in sel]
+            
     files=mpi_utility.broadcast(files, **param)
     return sorted(files)
 
@@ -450,6 +498,7 @@ def main():
                       ''',
         supports_MPI=True,
         use_version = True,
+        supports_OMP=True,
     )
 
 def dependents(): return [spider_params]
