@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, interpolate, manifold #, analysis
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold #, analysis
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 #from ..core.parallel import mpi_utility
@@ -230,7 +230,7 @@ def generate_reference_projections(reference, pixel_diameter, **extra):
     reference = ndimage_file.read_image(reference)
     bin_factor = decimation_level(**extra)
     _logger.info("Decimate data by %f for resolution %f"%(bin_factor, extra['resolution']))
-    if bin_factor > 1: reference = interpolate.interpolate_bilinear(reference, bin_factor) #reference = eman2_utility.decimate(reference, bin_factor)
+    if bin_factor > 1: reference = ndimage_interpolate.interpolate_bilinear(reference, bin_factor) #reference = eman2_utility.decimate(reference, bin_factor)
     # decimate to window size
     # normalize projections
     angles = healpix.angles(healpix_order(pixel_diameter, **extra))
