@@ -36,10 +36,6 @@ def configuration(parent_package='',top_path=None):
                                            depends=['spider/CMBLOCK.INC', 'spider/FFTW3.INC'], **library_options) #, 'fmrs_info.mod', 'type_kinds.mod'
     fftlibs = fftw_opt['libraries']+compiler_libraries
     del fftw_opt['libraries']
-    
-    #config.add_library('spi_reconstruct', sources=['backproject_nn4.f90', 'backproject_bp3f.f90'], **library_options)
-    #config.add_extension('_spider_reconstruct', sources=['backproject.pyf'], libraries=['spiutil', 'spi_reconstruct']+fftlibs)#, extra_compile_args=ccompiler_args, extra_link_args=ccompiler_args)
-    
     config.add_extension('_spider_reconstruct', sources=['backproject_nn4.f90', 'backproject_bp3f.f90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args)
     config.add_extension('_spider_reproject', sources=['reproject.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args)
     config.add_extension('_spider_interpolate', sources=['interpolate.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args)
