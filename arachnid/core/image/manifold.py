@@ -501,6 +501,9 @@ def knn(samp, k, batch=10000, kernel_cum=None):
             Sparse distance matrix in COO format
     '''
     
+    if not numpy.issubdtype(samp.dtype, float):
+        samp = samp.astype(numpy.float)
+    
     k = int(k)
     k+=1 # include self as a neighbor
     n = samp.shape[0]*k
@@ -527,9 +530,19 @@ def knn(samp, k, batch=10000, kernel_cum=None):
             #tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
             #dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
             
+            if hasattr(_manifold, 'gemm'):
+                try:
+                    _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
+                except:
+                    _logger.error("s1: %s - s2: %s - tmp: %s"%(str(s1.dtype), str(s2.dtype), str(tmp.dtype)))
+                    raise
+                dist2=tmp
+            elif hasattr(scipy.linalg, 'fblas'):
+                dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            else:
+                dist2 = numpy.dot(s1, s2.T)
+                numpy.multiply(-2.0, dist2, dist2)
             
-            _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
-            dist2=tmp
             if kernel_cum is not None:
                 _manifold.kernel_range(tmp.ravel(), kernel_cum)
             

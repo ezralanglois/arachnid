@@ -11,7 +11,6 @@ def test_knn():
     '''
     
     samp = numpy.random.rand(20,5)
-    
     dist1 = manifold.knn_simple(samp, 10)
     dist2 = manifold.knn(samp, 10)
     numpy.testing.assert_allclose(dist1.row, dist2.row)

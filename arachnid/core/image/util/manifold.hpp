@@ -77,7 +77,7 @@ void knn_offset(I* row_ind, size_type nr, I* offsets, size_type on)
 {
 	for(size_type i=0;i<nr;++i)
 	{
-		if (row_ind[i] > on) fprintf(stderr, "offset: %d > %d\n", row_ind[i] > on);
+		if (row_ind[i] > on) fprintf(stderr, "offset: %d > %d\n", row_ind[i], on);
 		offsets[row_ind[i]]++;
 	}
 }

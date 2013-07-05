@@ -51,6 +51,52 @@ del types
 
 x_gemm = _manifold.x_gemm
 
+def knn_offset(*args):
+  """
+    This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
+
+    	:Parameters:
+    	
+    	dist2 : array
+    		   	Input matrix
+    	sdist2 : array
+    		   	Output matrix
+    	sigma : float
+    			Value to mulitply by result
+    	
+    """
+  return _manifold.knn_offset(*args)
+
+def gaussian_kernel(*args):
+  """
+    This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
+
+    	:Parameters:
+    	
+    	dist2 : array
+    		   	Input matrix
+    	sdist2 : array
+    		   	Output matrix
+    	sigma : float
+    			Value to mulitply by result
+    	
+    """
+  return _manifold.gaussian_kernel(*args)
+
+def gaussian_kernel_range(*args):
+  """
+    This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
+
+    	:Parameters:
+    	
+    	dist2 : array
+    		   	Input matrix
+    	sigma : array
+    		   	Input/Output matrix
+    	
+    """
+  return _manifold.gaussian_kernel_range(*args)
+
 def gemm(*args):
   """
     This SWIG wrapper function selects a subset of rows 
@@ -71,6 +117,75 @@ def gemm(*args):
     	
     """
   return _manifold.gemm(*args)
+
+def gemm_t1(*args):
+  """
+    This SWIG wrapper function selects a subset of rows 
+    	(and columns) from a CSR sparse matrix.
+
+    	:Parameters:
+
+    	samp1 : array
+    		   In/out 1D array of values
+    	samp2 :array
+    		   In/out 1D array of values
+    	dist2 : array
+    		   	Output matrix
+    	alpha : float
+    			Value to mulitply by result
+    	beta : float
+    		   Value to add to result
+    	
+    """
+  return _manifold.gemm_t1(*args)
+
+def knn_restricted_dist(*args):
+  """
+    This SWIG wrapper function selects a subset of rows 
+    	(and columns) from a CSR sparse matrix.
+
+    	:Parameters:
+
+    	data : array
+    		   In/out 1D array of distances
+    	col_ind :array
+    		 	 In/out 1D array column indicies
+    	row_ptr : array
+    		   	  In/out 1D array row pointers
+    	selected : array
+    			   Input 1D array of selected rows
+    	
+    	:Returns:
+    	
+    	n : int
+    		Number of sparse elements
+    	
+    """
+  return _manifold.knn_restricted_dist(*args)
+
+def knn_restricted_dist_mask(*args):
+  """
+    This SWIG wrapper function selects a subset of rows 
+    	(and columns) from a CSR sparse matrix.
+
+    	:Parameters:
+
+    	data : array
+    		   In/out 1D array of distances
+    	col_ind :array
+    		 	 In/out 1D array column indicies
+    	row_ptr : array
+    		   	  In/out 1D array row pointers
+    	selected : array
+    			   Input 1D array of selected rows
+    	
+    	:Returns:
+    	
+    	n : int
+    		Number of sparse elements
+    	
+    """
+  return _manifold.knn_restricted_dist_mask(*args)
 
 def select_subset_csr(*args):
   """
@@ -197,6 +312,31 @@ def knn_reduce(*args):
     """
   return _manifold.knn_reduce(*args)
 
+def knn_reduce_coo(*args):
+  """
+    This SWIG wrapper function calculates a self-tuning gaussin kernel over
+    	a sparse matrix in CSR format.
+
+    	:Parameters:
+    	
+    	data : array
+    		   Input 1D array of distances
+    	col_ind :array
+    		 	 Input 1D array column indicies
+    	row_ind : array
+    		   	  Input 1D array row indicies
+    	sdata : array
+    		   Output 1D array of distances
+    	scol_ind :array
+    		 	 Output 1D array column indicies
+    	srow_ind : array
+    		   	  Output 1D array row indicies
+    	k : int
+    		New number of neighbors
+    	
+    """
+  return _manifold.knn_reduce_coo(*args)
+
 def knn_reduce_eps(*args):
   """
     This SWIG wrapper function calculates a self-tuning gaussin kernel over
@@ -272,4 +412,28 @@ def knn_mutual(*args):
     	
     """
   return _manifold.knn_mutual(*args)
+
+def knn_mutual_coo(*args):
+  """
+    This SWIG wrapper function calculates a self-tuning gaussin kernel over
+    	a sparse matrix in CSR format.
+
+    	:Parameters:
+    	
+    	data : array
+    		   In/out 1D array of distances
+    	col_ind :array
+    		 	 In/out 1D array column indicies
+    	row_ind : array
+    		   	  In/out 1D array row indicies
+    	k : int
+    		New number of neighbors
+    	
+    	:Returns:
+    	
+    	n : int
+    		Number of sparse values
+    	
+    """
+  return _manifold.knn_mutual_coo(*args)
 
