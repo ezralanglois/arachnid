@@ -12,7 +12,7 @@ This class adds additional attributes to the pyqtProperty class.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..util.qt4_loader import QtGui,QtCore, qtProperty
+from ..util.qt4_loader import QtCore, qtProperty
 
 class PyqtProperty(qtProperty):
     ''' Extend a pyqtProperty to hold additional information
