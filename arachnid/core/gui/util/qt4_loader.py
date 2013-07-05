@@ -2,6 +2,7 @@
 
 try: 
     from PySide import QtGui, QtCore
+    QtGui, QtCore;
     raise ImportError, "Dum"
     qtSignal=QtCore.Signal
     qtSlot= QtCore.Slot
@@ -17,6 +18,7 @@ except ImportError:
     sip.setapi('QUrl', 2)
     
     from PyQt4 import QtGui, QtCore
+    QtGui, QtCore;
     qtSignal=QtCore.pyqtSignal
     qtSlot= QtCore.pyqtSlot
     qtProperty= QtCore.pyqtProperty
