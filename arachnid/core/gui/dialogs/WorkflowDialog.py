@@ -7,7 +7,7 @@
 .. Created on Dec 3, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from PyQt4 import QtGui, QtCore
+from ..util.qt4_loader import QtCore, QtGui, qtSignal
 import logging
 from pyui.WorkflowDialog import Ui_WorkflowDialog
 
@@ -25,7 +25,7 @@ class Dialog(QtGui.QDialog):
              Parent object of the dialog
     '''
     
-    operationsUpdated = QtCore.pyqtSignal('PyQt_PyObject')
+    operationsUpdated = qtSignal('PyQt_PyObject')
     
     def __init__(self, operations, parent=None):
         "Initialize the dialog"

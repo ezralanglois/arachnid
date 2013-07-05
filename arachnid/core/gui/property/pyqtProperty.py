@@ -12,9 +12,9 @@ This class adds additional attributes to the pyqtProperty class.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from PyQt4 import QtCore
+from ..util.qt4_loader import QtGui,QtCore, qtProperty
 
-class PyqtProperty(QtCore.pyqtProperty):
+class PyqtProperty(qtProperty):
     ''' Extend a pyqtProperty to hold additional information
         
         :Parameters:
@@ -51,7 +51,6 @@ class PyqtProperty(QtCore.pyqtProperty):
         ''' Create a PyqtProperty object
         '''
         
-        if isinstance(type, str): type = QtCore.QString(type)
         QtCore.pyqtProperty.__init__(self, type, fget, fset, freset, fdel, doc, designable, scriptable, stored, user, constant, final)
         self.editorHints = editorHints
         self.doc = doc

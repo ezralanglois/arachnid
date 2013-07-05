@@ -4,8 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.EmbeddingViewer import Ui_MainWindow, _fromUtf8
-from PyQt4 import QtCore
-from PyQt4 import QtGui
+from ..util.qt4_loader import QtCore, QtGui, qtSlot
 
 try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -85,7 +84,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.toolBar.addAction(action)
     
     
-    @QtCore.pyqtSlot(name='on_selectAllPushButton_clicked')
+    @qtSlot(name='on_selectAllPushButton_clicked')
     def selectAll(self):
         '''
         '''
@@ -94,7 +93,7 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(self.subsetListModel.rowCount()):
             self.subsetListModel.item(i).setCheckState(QtCore.Qt.Checked)
     
-    @QtCore.pyqtSlot(name='on_unselectAllPushButton_clicked')
+    @qtSlot(name='on_unselectAllPushButton_clicked')
     def unselectAll(self):
         '''
         '''
@@ -103,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(self.subsetListModel.rowCount()):
             self.subsetListModel.item(i).setCheckState(QtCore.Qt.Unchecked)
         
-    @QtCore.pyqtSlot('int', name='on_dpiSpinBox_valueChanged')
+    @qtSlot('int', name='on_dpiSpinBox_valueChanged')
     def onDPIChanged(self, val):
         '''
         '''
@@ -115,7 +114,7 @@ class MainWindow(QtGui.QMainWindow):
         print w, h, w*val/dpi, h*val/dpi
         self.fig.set_dpi(val)
     
-    @QtCore.pyqtSlot(name='on_actionPan_triggered')
+    @qtSlot(name='on_actionPan_triggered')
     def onPanClicked(self):
         '''Called when the user clicks the Pan button.
         '''
@@ -123,7 +122,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.ui.actionZoom.isChecked(): self.ui.actionZoom.setChecked(False)
         self.ui.mpl_toolbar.pan(self)
     
-    @QtCore.pyqtSlot(name='on_actionZoom_triggered')
+    @qtSlot(name='on_actionZoom_triggered')
     def onZoomClicked(self):
         ''' Called when the user clicks the Zoom Button
         '''
@@ -131,7 +130,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.ui.actionPan.isChecked(): self.ui.actionPan.setChecked(False)
         self.ui.mpl_toolbar.zoom( self )
     
-    @QtCore.pyqtSlot(name='on_actionHome_triggered')
+    @qtSlot(name='on_actionHome_triggered')
     def onResetView(self):
         ''' Called when the user clicks the Reset View Button
         '''
@@ -140,35 +139,35 @@ class MainWindow(QtGui.QMainWindow):
         if self.ui.actionPan.isChecked(): self.ui.actionPan.trigger()
         self.ui.mpl_toolbar.home( self )
     
-    @QtCore.pyqtSlot(name='on_actionForward_triggered')
+    @qtSlot(name='on_actionForward_triggered')
     def onMoveForward(self):
         ''' Called when the user clicks the next view button
         '''
         
         self.ui.mpl_toolbar.forward( self )
     
-    @QtCore.pyqtSlot(name='on_actionBackward_triggered')
+    @qtSlot(name='on_actionBackward_triggered')
     def onMoveBackward(self):
         ''' Called when the user clicks the previous view button
         '''
         
         self.ui.mpl_toolbar.back( self )
     
-    @QtCore.pyqtSlot(name='on_actionSave_triggered')
+    @qtSlot(name='on_actionSave_triggered')
     def onSaveFigure(self):
         ''' Called when the user clicks the Save Figure Button
         '''
         
         self.ui.mpl_toolbar.save_figure( self )
     
-    @QtCore.pyqtSlot(name='on_actionShow_Options_triggered')
+    @qtSlot(name='on_actionShow_Options_triggered')
     def onShowOptions(self):
         ''' Called when the user clicks the Show Options Button
         '''
         
         self.ui.mpl_toolbar.edit_parameters( )
         
-    @QtCore.pyqtSlot(name='on_actionOpen_triggered')
+    @qtSlot(name='on_actionOpen_triggered')
     def onOpenFile(self):
         ''' Called when someone clicks the Open Button
         '''
@@ -260,7 +259,7 @@ class MainWindow(QtGui.QMainWindow):
         clearImages(self.axes)
         self.selectedImage = None
     
-    @QtCore.pyqtSlot('int', name='on_selectGroupComboBox_currentIndexChanged')
+    @qtSlot('int', name='on_selectGroupComboBox_currentIndexChanged')
     def onSelectGroupChanged(self, index):
         ''' Called when the user wants to highlight only a subset of the data
         
@@ -272,7 +271,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.highlight_index = int(index)
         
-    @QtCore.pyqtSlot('int', name='on_subsetComboBox_currentIndexChanged')
+    @qtSlot('int', name='on_subsetComboBox_currentIndexChanged')
     def onSubsetValueChanged(self, index):
         ''' Called when the user wants to plot only a subset of the data
         
@@ -296,10 +295,10 @@ class MainWindow(QtGui.QMainWindow):
         #self.drawPlot()
     
     
-    @QtCore.pyqtSlot(name='on_updatePushButton_clicked')
-    #@QtCore.pyqtSlot('int', name='on_xComboBox_currentIndexChanged')
-    #@QtCore.pyqtSlot('int', name='on_yComboBox_currentIndexChanged')
-    #@QtCore.pyqtSlot('int', name='on_colorComboBox_currentIndexChanged')
+    @qtSlot(name='on_updatePushButton_clicked')
+    #@qtSlot('int', name='on_xComboBox_currentIndexChanged')
+    #@qtSlot('int', name='on_yComboBox_currentIndexChanged')
+    #@qtSlot('int', name='on_colorComboBox_currentIndexChanged')
     def drawPlot(self, index=None):
         ''' Draw a scatter plot
         '''
@@ -357,42 +356,42 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.canvas.draw()
         self.drawImages()
     
-    def displayImage(self, event):
+    def displayImage(self, event_obj):
         ''' Event invoked when user selects a data point
         
         :Parameters:
         
-        event : Event
+        event_obj : Event
                 Mouse click event
         '''
         
-        if len(event.ind) > 0:
+        if len(event_obj.ind) > 0:
             xc = self.ui.xComboBox.currentIndex()
             yc = self.ui.yComboBox.currentIndex()
             
-            #thisline = event.artist
+            #thisline = event_obj.artist
             #xdata = thisline.get_xdata()
             #ydata = thisline.get_ydata()
             
-            x = event.mouseevent.xdata
-            y = event.mouseevent.ydata
-            #dx = self.data[event.ind, xc] if self.groups is None else self.data[event.ind, xc]
+            x = event_obj.mouseevent.xdata
+            y = event_obj.mouseevent.ydata
+            #dx = self.data[event.ind, xc] if self.groups is None else self.data[event_obj.ind, xc]
             if self.groups is not None and len(self.groups) > 0:
                 
                 min_val = (1e20, None)
                 for group in self.groups:
-                    ind = numpy.asarray([i for i in event.ind if i < len(group)], dtype=numpy.int)
+                    ind = numpy.asarray([i for i in event_obj.ind if i < len(group)], dtype=numpy.int)
                     if len(ind) == 0: continue
                     ds = numpy.hypot(x-self.data[group[ind], xc], y-self.data[group[ind], yc])
                     if ds.min() < min_val[0]: min_val = (ds.min(), group[ind[ds.argmin()]])
                 self.selectedImage = min_val[1]
             else:
-                ds = numpy.hypot(x-self.data[event.ind, xc], y-self.data[event.ind, yc]) # if data.shape[1] == 2 else numpy.hypot(x-data[event.ind, 0], y-data[event.ind, 1], z-data[event.ind, 2])
-                #ds = numpy.hypot(x-xdata[event.ind], y-ydata[event.ind])
-                self.selectedImage = event.ind[ds.argmin()]
+                ds = numpy.hypot(x-self.data[event_obj.ind, xc], y-self.data[event_obj.ind, yc]) # if data.shape[1] == 2 else numpy.hypot(x-data[event_obj.ind, 0], y-data[event_obj.ind, 1], z-data[event_obj.ind, 2])
+                #ds = numpy.hypot(x-xdata[event_obj.ind], y-ydata[event_obj.ind])
+                self.selectedImage = event_obj.ind[ds.argmin()]
             self.drawImages()
     
-    @QtCore.pyqtSlot('int', name='on_keepSelectedCheckBox_stateChanged')
+    @qtSlot('int', name='on_keepSelectedCheckBox_stateChanged')
     def onKeepImageMode(self, state):
         '''
         '''
@@ -401,9 +400,9 @@ class MainWindow(QtGui.QMainWindow):
         self.clear()
         self.drawImages()
     
-    @QtCore.pyqtSlot('int', name='on_imageCountSpinBox_valueChanged')
-    @QtCore.pyqtSlot('int', name='on_imageSepSpinBox_valueChanged')
-    @QtCore.pyqtSlot('double', name='on_imageZoomDoubleSpinBox_valueChanged')
+    @qtSlot('int', name='on_imageCountSpinBox_valueChanged')
+    @qtSlot('int', name='on_imageSepSpinBox_valueChanged')
+    @qtSlot('double', name='on_imageZoomDoubleSpinBox_valueChanged')
     def drawImages(self, index=None):
         ''' Draw sample images on the plot
         '''

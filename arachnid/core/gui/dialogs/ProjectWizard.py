@@ -5,8 +5,7 @@
 '''
 from pyui.ProjectWizard import Ui_ProjectWizard, _fromUtf8
 from ..util import BackgroundTask
-from PyQt4 import QtCore
-from PyQt4 import QtGui
+from ..util.qt4_loader import QtCore, QtGui, qtSlot
 
 from ..property import pyqtProperty
 from .. import property
@@ -148,7 +147,7 @@ class MainWindow(QtGui.QWizard):
         for group, param in self.settings:
             settings.beginGroup(group)
             for name, method in param.iteritems():
-                settings.setValue(name, QtCore.QVariant(method))
+                settings.setValue(name, method)
             settings.endGroup()
     
     def loadSettings(self):
@@ -159,8 +158,8 @@ class MainWindow(QtGui.QWizard):
         for group, param in self.settings:
             settings.beginGroup(group)
             for name, val in param.iteritems():
-                sval = str(settings.value(name).toString())
-                if sval != "":
+                sval = str(settings.value(name))
+                if sval is not None and sval != "" and sval != "None":
                     if sval.lower()=='false': sval=False
                     param[name] = val.__class__(sval)
             settings.endGroup()
@@ -228,7 +227,7 @@ class MainWindow(QtGui.QWizard):
     ####################################################################################
     
     
-    @QtCore.pyqtSlot(name='on_runJobButton_clicked')
+    @qtSlot(name='on_runJobButton_clicked')
     def onRunJob(self):
         '''
         '''
@@ -295,7 +294,7 @@ class MainWindow(QtGui.QWizard):
         '''
         
         idx = self.current_running
-        filename = str(self.jobListModel.item(idx).data(QtCore.Qt.UserRole).toString())
+        filename = str(self.jobListModel.item(idx).data(QtCore.Qt.UserRole))#.toString())
         try:
             fin = open(filename)
         except: return []
@@ -406,28 +405,28 @@ class MainWindow(QtGui.QWizard):
     #
     ####################################################################################  
     
-    @QtCore.pyqtSlot('int', name='on_workerCountSpinBox_valueChanged')
+    @qtSlot('int', name='on_workerCountSpinBox_valueChanged')
     def onWorkerCountChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
         self.param['worker_count'] = value
     
-    @QtCore.pyqtSlot('int', name='on_threadCountSpinBox_valueChanged')
+    @qtSlot('int', name='on_threadCountSpinBox_valueChanged')
     def onThreadCountChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
         self.param['thread_count'] = value
     
-    @QtCore.pyqtSlot('int', name='on_windowSizeSpinBox_valueChanged')
+    @qtSlot('int', name='on_windowSizeSpinBox_valueChanged')
     def onWindowSizeChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
         self.param['window_size'] = value
     
-    @QtCore.pyqtSlot(name='on_extensionLineEdit_editingFinished)')
+    @qtSlot(name='on_extensionLineEdit_editingFinished)')
     def onExtensionEditChanged(self):
         '''
         '''
@@ -436,7 +435,7 @@ class MainWindow(QtGui.QWizard):
         self.param['ext'] = text
         self.onPageChanged()
                 
-    @QtCore.pyqtSlot('int', name='on_clusterModeComboBox_currentIndexChanged')
+    @qtSlot('int', name='on_clusterModeComboBox_currentIndexChanged')
     def onClusterModeChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -449,7 +448,7 @@ class MainWindow(QtGui.QWizard):
     #
     ####################################################################################  
     
-    @QtCore.pyqtSlot('double', name='on_pixelSizeDoubleSpinBox_valueChanged')
+    @qtSlot('double', name='on_pixelSizeDoubleSpinBox_valueChanged')
     def onPixelSizeChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -463,7 +462,7 @@ class MainWindow(QtGui.QWizard):
             self.ui.windowSizeSpinBox.blockSignals(False)
         self.onPageChanged()
         
-    @QtCore.pyqtSlot('double', name='on_voltageDoubleSpinBox_valueChanged')
+    @qtSlot('double', name='on_voltageDoubleSpinBox_valueChanged')
     def onVoltageChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -471,7 +470,7 @@ class MainWindow(QtGui.QWizard):
         self.param['voltage'] = value
         self.onPageChanged()
         
-    @QtCore.pyqtSlot('double', name='on_particleSizeDoubleSpinBox_valueChanged')
+    @qtSlot('double', name='on_particleSizeDoubleSpinBox_valueChanged')
     def onParticleSizeChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -483,7 +482,7 @@ class MainWindow(QtGui.QWizard):
             self.ui.windowSizeSpinBox.blockSignals(False)
         self.onPageChanged()
         
-    @QtCore.pyqtSlot('double', name='on_csDoubleSpinBox_valueChanged')
+    @qtSlot('double', name='on_csDoubleSpinBox_valueChanged')
     def onCsChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -497,7 +496,7 @@ class MainWindow(QtGui.QWizard):
     #
     ####################################################################################   
     
-    @QtCore.pyqtSlot(name='on_emdbDownloadPushButton_clicked')
+    @qtSlot(name='on_emdbDownloadPushButton_clicked')
     def onDownloadFromEMDB(self):
         '''Called when the user clicks the download button
         '''
@@ -525,15 +524,15 @@ class MainWindow(QtGui.QWizard):
             self.ui.referenceTabWidget.setCurrentIndex(0)
         self.task=None
     
-    @QtCore.pyqtSlot(QtCore.QModelIndex, name='on_emdbCannedListView_doubleClicked')
+    @qtSlot(QtCore.QModelIndex, name='on_emdbCannedListView_doubleClicked')
     def onUpdateEMDBField(self, index):
         ''' Called when the user clicks on the list
         '''
         
-        num = index.data(QtCore.Qt.UserRole).toString()
+        num = index.data(QtCore.Qt.UserRole) #.toString()
         self.ui.emdbNumberLineEdit.setText(num)
     
-    @QtCore.pyqtSlot('double', name='on_referencePixelSizeDoubleSpinBox_valueChanged')
+    @qtSlot('double', name='on_referencePixelSizeDoubleSpinBox_valueChanged')
     def onReferencePixelSizeChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -541,7 +540,7 @@ class MainWindow(QtGui.QWizard):
         self.param['curr_apix'] = value
         self.onPageChanged()
     
-    @QtCore.pyqtSlot(name='on_referenceLineEdit_editingFinished)')
+    @qtSlot(name='on_referenceLineEdit_editingFinished)')
     def onReferenceEditChanged(self):
         '''
         '''
@@ -549,14 +548,15 @@ class MainWindow(QtGui.QWizard):
         text = str(self.ui.referenceLineEdit.text())
         self.openReference(text)
     
-    @QtCore.pyqtSlot(name='on_referenceFilePushButton_clicked')
+    @qtSlot(name='on_referenceFilePushButton_clicked')
     def onReferencedOpened(self):
         '''Called when the user open reference button
         '''
         
         filename = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open a reference volume"), self.lastpath)
+        filename = str(filename) if isinstance(filename, tuple) else str(filename)
         if filename != "": 
-            self.lastpath = os.path.dirname(str(filename))
+            self.lastpath = os.path.dirname(filename)
             self.ui.referenceLineEdit.blockSignals(True)
             self.ui.referenceLineEdit.setText(self.openReference(filename))
             self.ui.referenceLineEdit.blockSignals(False)
@@ -594,7 +594,7 @@ class MainWindow(QtGui.QWizard):
     # Page 1 Controls
     #
     ####################################################################################
-    @QtCore.pyqtSlot(int, name='on_invertCheckBox_stateChanged')
+    @qtSlot(int, name='on_invertCheckBox_stateChanged')
     def onInvertContrast(self, state):
         ''' Called when the user clicks the invert contrast button
         '''
@@ -604,7 +604,7 @@ class MainWindow(QtGui.QWizard):
             self.ui.micrographDisplayLabel.setPixmap(QtGui.QPixmap.fromImage(self.micrograph))
             self.param['is_film'] = self.ui.invertCheckBox.checkState() != QtCore.Qt.Checked
     
-    #@QtCore.pyqtSlot(name='on_micrographFileLineEdit_editingFinished)')
+    #@qtSlot(name='on_micrographFileLineEdit_editingFinished)')
     def onMicrographLineEditChanged(self):
         '''
         '''
@@ -627,7 +627,7 @@ class MainWindow(QtGui.QWizard):
             files.extend(glob.glob(filename))
         return files
     
-    @QtCore.pyqtSlot(name='on_micrographFilePushButton_clicked')
+    @qtSlot(name='on_micrographFilePushButton_clicked')
     def onMicrographFileOpened(self):
         '''Called when the user clicks the Pan button.
         '''

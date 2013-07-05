@@ -10,12 +10,13 @@ import arachnid
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+
 try: 
-    from PyQt4 import QtGui, QtCore
+    from util.qt4_loader import QtGui, QtCore
     QtGui;
 except:
     QtGui=None
-    tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
+    tracing.log_import_error("Failed to import PyQT4 or PySide module - certain functionality will not be available - graphical user interface", _logger)
     _logger.exception("message")
 else:
     from dialogs.EmbeddingViewer import MainWindow as Viewer
@@ -25,7 +26,7 @@ def main():
 
     tracing.configure_logging()
     if QtGui is None:
-        _logger.error("PyQT4 not installed")
+        _logger.error("PyQT4 or PySide not installed")
         tracing.print_import_warnings()
         sys.exit(1)
     app = QtGui.QApplication([])

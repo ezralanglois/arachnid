@@ -57,7 +57,7 @@
              <item>
               <widget class="QTabWidget" name="tabWidget">
                <property name="currentIndex">
-                <number>0</number>
+                <number>1</number>
                </property>
                <widget class="QWidget" name="tab">
                 <attribute name="title">
@@ -173,13 +173,19 @@
                 <layout class="QFormLayout" name="formLayout_3">
                  <item row="0" column="0">
                   <widget class="QLabel" name="label_3">
+                   <property name="toolTip">
+                    <string>Number of images to display at once</string>
+                   </property>
                    <property name="text">
-                    <string>Count</string>
+                    <string>Viewable</string>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="1">
                   <widget class="QSpinBox" name="imageCountSpinBox">
+                   <property name="toolTip">
+                    <string>Number of images to display at once</string>
+                   </property>
                    <property name="frame">
                     <bool>true</bool>
                    </property>
@@ -403,6 +409,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpen"/>
+   <addaction name="actionLoad_More"/>
    <addaction name="actionSave"/>
    <addaction name="separator"/>
    <addaction name="actionBackward"/>
@@ -555,6 +562,18 @@
    </property>
    <property name="toolTip">
     <string>Display help dialog</string>
+   </property>
+  </action>
+  <action name="actionLoad_More">
+   <property name="icon">
+    <iconset resource="../../icons/icons.qrc">
+     <normaloff>:/mini/mini/arrow_refresh.png</normaloff>:/mini/mini/arrow_refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load More</string>
+   </property>
+   <property name="toolTip">
+    <string>Search for additional micrographs in directories already in use</string>
    </property>
   </action>
  </widget>

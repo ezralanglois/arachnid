@@ -7,7 +7,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from arachnid.core.gui.util.qt4_loader import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

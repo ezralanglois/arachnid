@@ -8,7 +8,7 @@
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from PyQt4 import QtGui, QtCore
+from ..util.qt4_loader import QtGui,QtCore, qtProperty
 from Property import Property
 import logging
 
@@ -82,8 +82,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
                     raise
             props = props[:last+1]
             
-            props = [prop for prop in props if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
-            #props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
+            props = [prop for prop in props if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ]
+            #props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ]
             
             
             
@@ -110,7 +110,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         if hasattr(propertyObject, 'todict') or hasattr(propertyObject, '_children'):
             #if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
             
-            props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty)]
+            props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty)]
             if len(props) != 0:
                 _logger.debug("Tab as root")
                 if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
@@ -128,7 +128,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             # Create property/class hierarchy
             propertyMap = {}
             classList = []
-            pypropertyMap = dict([(prop, getattr(propertyObject.__class__, prop)) for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ])
+            pypropertyMap = dict([(prop, getattr(propertyObject.__class__, prop)) for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ])
             classMap = {}
             classObject = propertyObject.__class__
             metaObject = propertyObject.metaObject()
@@ -203,7 +203,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             removed = 0
             for i in xrange(len(children)):
                 obj = children[i]
-                if obj.property("__Dynamic").toBool() or dynamicProperties.contains(obj.objectName().toLocal8Bit()): continue
+                if obj.property("__Dynamic").toBool() or dynamicProperties.contains(obj.objectName()): continue
                 self.beginRemoveRows(itemIndex.parent(), i - removed, i - removed)
                 removed += 1
                 self.endRemoveRows()
@@ -223,7 +223,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         dynamicProperties = propertyObject.dynamicPropertyNames()
         for child in parent.children():
             if not child.property("__Dynamic").toBool() : continue
-            index = dynamicProperties.indexOf( child.objectName().toLocal8Bit() )
+            index = dynamicProperties.indexOf( child.objectName() )
             if index != -1:
                 dynamicProperties.removeAt(index)
                 continue
@@ -301,7 +301,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         if (orientation, role) == (QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole):
             if section == 0: return self.tr("Name")
             if section == 1: return self.tr("Value")
-        return QtCore.QVariant()
+        return None
     
     def flags(self, index):
         '''Returns the item flags for the given index
@@ -333,7 +333,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         index : QModelIndex
                 Index of a model item
-        value : QVariant
+        value : object
                 New value for item at index with role
         role : enum
                Data role
@@ -364,15 +364,15 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data object
         '''
         
-        if not index.isValid(): return QtCore.QVariant()
+        if not index.isValid(): return None
         item = index.internalPointer()
         
         if role == QtCore.Qt.ForegroundRole and index.column() == 0 and 'required' in item.hints and item.hints['required']:
-            return QtCore.QVariant(QtGui.QColor(QtCore.Qt.blue))
+            return QtGui.QColor(QtCore.Qt.blue)
         
         if (role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.StatusTipRole) and item.doc is not None:
             return item.doc
@@ -385,11 +385,11 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 group = item.group
                 while group > len(self.background_colors): group -= len(self.background_colors)
                 color = self.background_colors[group]
-                return QtCore.QVariant(QtGui.QBrush(color))
+                return QtGui.QBrush(color)
             '''
         if role == QtCore.Qt.CheckStateRole:
             if index.column() == 1 and item.isBool(): return item.value(role)
-        return QtCore.QVariant()
+        return None
     
     def rowCount(self, parent = QtCore.QModelIndex()):
         ''' Get the number of rows for the parent item

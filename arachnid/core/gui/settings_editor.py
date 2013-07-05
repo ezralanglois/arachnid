@@ -19,7 +19,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try: 
-    from PyQt4 import QtGui, QtCore
+    from util.qt4_loader import QtGui, QtCore
     from dialogs.PropertyDialog import Dialog
     from property import pyqtProperty
     import arachnid

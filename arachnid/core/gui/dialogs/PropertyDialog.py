@@ -3,7 +3,7 @@
 .. Created on Dec 3, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from PyQt4 import QtGui, QtCore
+from ..util.qt4_loader import QtCore, QtGui
 try: from pyui.PropertyDialog import Ui_PropertyDialog
 except:
     raise
@@ -45,17 +45,17 @@ class Dialog(QtGui.QDialog):
         
         for view in self.treeViews: view.expandAll()
     
-    def showEvent(self, event):
+    def showEvent(self, event_obj):
         '''Called before the dialog is shown
         
         :Parameters:
         
-        event : QShowEvent
+        event_obj : QShowEvent
                 Event object
         '''
         
         self.showSetup()
-        QtGui.QDialog.showEvent(self, event)
+        QtGui.QDialog.showEvent(self, event_obj)
     
     def done(self, mode):
         '''Dialog is done

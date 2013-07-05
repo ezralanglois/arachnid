@@ -9,23 +9,21 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from PyQt4 import QtGui, QtCore
+from ..util.qt4_loader import QtGui,QtCore
 import logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
 class PropertyDelegate(QtGui.QItemDelegate):
-    ''' Creates the editor widgets for data types encapsulated by QVariant
+    ''' Creates the editor widgets for data types
         
     :Parameters:
     
     parent : QObject
              Parent of the Property Delegate
     '''
-    
-    #PROPERTY_VARIANT_TYPES = (QtCore.QVariant.Color, QtCore.QVariant.Int, QtCore.QMetaType.Float, QtCore.QVariant.Double, QtCore.QVariant.UserType)
-    
+        
     def __init__(self, parent=None):
         "Initialize the Property Delegate"
         
@@ -135,11 +133,9 @@ class PropertyDelegate(QtGui.QItemDelegate):
                 Index of value to edit
         '''
         
-        #data = index.model().data(index, QtCore.Qt.EditRole)
         success = False
-        #if data.type() in PropertyDelegate.PROPERTY_VARIANT_TYPES:
         data = index.internalPointer().editorData(editor)
-        if data.isValid(): 
+        if data is not None: 
             model.setData(index, data, QtCore.Qt.EditRole)
             success = True
         if not success: QtGui.QItemDelegate.setModelData(self, editor, model, index)

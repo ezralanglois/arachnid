@@ -2,12 +2,12 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/dialogs/pyui/MontageViewer.ui'
 #
-# Created: Sat Apr  6 15:21:52 2013
+# Created: Thu Jun 27 14:40:48 2013
 #      by: PyQt4 UI code generator 4.8.2
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from arachnid.core.gui.util.qt4_loader import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -270,7 +270,13 @@ class Ui_MainWindow(object):
         icon13.addPixmap(QtGui.QPixmap(_fromUtf8(":/mini/mini/help.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionHelp.setIcon(icon13)
         self.actionHelp.setObjectName(_fromUtf8("actionHelp"))
+        self.actionLoad_More = QtGui.QAction(MainWindow)
+        icon14 = QtGui.QIcon()
+        icon14.addPixmap(QtGui.QPixmap(_fromUtf8(":/mini/mini/arrow_refresh.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionLoad_More.setIcon(icon14)
+        self.actionLoad_More.setObjectName(_fromUtf8("actionLoad_More"))
         self.toolBar.addAction(self.actionOpen)
+        self.toolBar.addAction(self.actionLoad_More)
         self.toolBar.addAction(self.actionSave)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionBackward)
@@ -279,7 +285,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionHelp)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -289,7 +295,9 @@ class Ui_MainWindow(object):
         self.pageSpinBox.setSuffix(QtGui.QApplication.translate("MainWindow", " of 0", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("MainWindow", "Page", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "General", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Count", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setToolTip(QtGui.QApplication.translate("MainWindow", "Number of images to display at once", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Viewable", None, QtGui.QApplication.UnicodeUTF8))
+        self.imageCountSpinBox.setToolTip(QtGui.QApplication.translate("MainWindow", "Number of images to display at once", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Decimate", None, QtGui.QApplication.UnicodeUTF8))
         self.loadImagesPushButton.setText(QtGui.QApplication.translate("MainWindow", "Reload", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("MainWindow", "Clamp", None, QtGui.QApplication.UnicodeUTF8))
@@ -326,6 +334,8 @@ class Ui_MainWindow(object):
         self.actionOriginal_Size.setToolTip(QtGui.QApplication.translate("MainWindow", "Zoom images to original size", None, QtGui.QApplication.UnicodeUTF8))
         self.actionHelp.setText(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.actionHelp.setToolTip(QtGui.QApplication.translate("MainWindow", "Display help dialog", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionLoad_More.setText(QtGui.QApplication.translate("MainWindow", "Load More", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionLoad_More.setToolTip(QtGui.QApplication.translate("MainWindow", "Search for additional micrographs in directories already in use", None, QtGui.QApplication.UnicodeUTF8))
 
 from arachnid.core.gui.icons import icons_rc
 icons_rc;

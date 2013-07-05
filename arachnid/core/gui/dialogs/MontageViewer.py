@@ -4,11 +4,10 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.MontageViewer import Ui_MainWindow, _fromUtf8
-from PyQt4 import QtCore
-from PyQt4 import QtGui
+from ..util.qt4_loader import QtGui,QtCore,qtSlot
 
 from .. import ndimage_file, ndimage_utility, spider_utility, eman2_utility, format #, format_utility, analysis, 
-import numpy, os, logging, itertools, collections
+import numpy, os, logging, itertools, collections, glob
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -66,6 +65,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionForward.setEnabled(False)
         self.ui.actionBackward.setEnabled(False)
         
+        self.settings_map = { "main_window/geometry": (self.saveGeometry, self.restoreGeometry, None),
+                              "main_window/windowState": (self.saveState, self.restoreState, None),
+                              "model/files": (self.imageFiles, self.setImageFiles, None),
+                              "model/imagefile": (self.imageFile, self.setImageFile, str),
+                              "model/imagesize": (self.imageSize, self.setImageSize, int),
+                              "model/imageids": (self.imageIDs, self.setImageIDs, None),
+                             }
+        """
         self.settings_map = { "main_window/geometry": (self.saveGeometry, self.restoreGeometry, 'toByteArray'),
                               "main_window/windowState": (self.saveState, self.restoreState, 'toByteArray'),
                               "model/files": (self.imageFiles, self.setImageFiles, 'toPyObject'),
@@ -73,6 +80,7 @@ class MainWindow(QtGui.QMainWindow):
                               "model/imagesize": (self.imageSize, self.setImageSize, 'toInt'),
                               "model/imageids": (self.imageIDs, self.setImageIDs, 'toPyObject'),
                              }
+        """
         for widget in vars(self.ui):
             widget = getattr(self.ui, widget)
             val = widget_settings(widget)
@@ -87,27 +95,46 @@ class MainWindow(QtGui.QMainWindow):
             self.loadImages()
             _logger.info("\rLoading images ... done.")
             self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.imagelabel)))
+            self.ui.tabWidget.setCurrentIndex(0)
+        else:
+            self.ui.tabWidget.setCurrentIndex(1)
+            
     
-    @QtCore.pyqtSlot(name='on_actionHelp_triggered')
+    @qtSlot(name='on_actionHelp_triggered')
     def displayHelp(self):
         ''' Display the help dialog
         '''
         
-        box = QtGui.QMessageBox(QtGui.QMessageBox.Information, "Help", '''Tips:
+        box = QtGui.QMessageBox(QtGui.QMessageBox.Information, "Help", '''Welcome to Arachnid View
+        
+        
+        This program is intended for manual selection of micrographs and power spectra simutaneously.
+        
+        
+        See details for a short help''')
+        box.setDetailedText('''Tips:
 1. Open this program in the same directory each time.
 
-2. Saving is automated, this program creates two files: ara_view.ini and ara_view_select.csv
+2. Use the open command to add images to the TODO list. If you need to process additional data
+   simply open all the micrographs again or just the additional ones.
 
-3. Use the save button when finished to export selection files in SPIDER format
+3. Saving is automated, this program creates two files: ara_view.ini and ara_view_select.csv
 
-4. If you change the decimation or number of windows loaded, use the 'Reload' button to make the change
+4. Use the save button when finished to export selection files in SPIDER format (the extension should match your SPIDER project)
 
-5. Click the next and back arrows at the top to go to the next group of images
-            ''')
-        #box.setDetailedText(
+5. If you change the decimation or number of windows loaded, use the 'Reload' button to make the change
+
+6. Click the next and back arrows at the top to go to the next group of images
+        
+Additional tips:
+
+7. For speed, pre-decimate your data. If using Arachnid project
+           then use the preview micrographs in local/mics/*
+        
+        ''')
         box.exec_()
     
-    @QtCore.pyqtSlot('int', name='on_imageFileComboBox_currentIndexChanged')
+    @qtSlot('int', name='on_imageFileComboBox_currentIndexChanged')
     def onImageFileChanged(self, index):
         ''' Called when the image file combo box changes selection
         
@@ -117,17 +144,21 @@ class MainWindow(QtGui.QMainWindow):
                 Current index in combo box
         '''
         
-        self.imagefile = str(self.ui.imageFileComboBox.itemData(index).toString())
+        self.imagefile = str(self.ui.imageFileComboBox.itemData(index))#.toString())
         self.loadImages()
         
     def loadSelections(self):
         ''' Load the selections from the default selection file
         '''
         
+        saved = numpy.loadtxt(self.selectfile, numpy.int, '#', ',')
+        if saved.ndim == 0 or saved.shape[0]==0: saved=[]
+        elif saved.ndim == 1: saved = saved.reshape((1, len(saved)))
+        #if len(saved) > 0:
+        #    self.updateImageFiles(numpy.unique(saved[:, 0]))
         labelmap = collections.defaultdict(dict)
         for i, val in enumerate(self.imagelabel):
             labelmap[int(val[0])][int(val[1])]=i
-        saved = numpy.loadtxt(self.selectfile, numpy.int, '#', ',')
         _logger.info("Loaded %d micrographs from %s"%(len(saved), self.selectfile))
         for i in xrange(len(saved)):
             if i < 10:
@@ -170,7 +201,7 @@ class MainWindow(QtGui.QMainWindow):
         
         settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
         for name, method in self.settings_map.iteritems():
-            settings.setValue(name, QtCore.QVariant(method[0]()))
+            settings.setValue(name, method[0]())
     
     def loadSettings(self):
         ''' Load the settings of controls specified in the settings map
@@ -179,9 +210,22 @@ class MainWindow(QtGui.QMainWindow):
         if os.path.exists(self.inifile):
             settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
             for name, method in self.settings_map.iteritems():
-                val = getattr(settings.value(name), method[2])()
+                '''
+                try:
+                    val = getattr(settings.value(name), method[2])()
+                except:
+                    print name, settings.value(name)
+                    raise
                 if isinstance(val, tuple): val = val[0]
-                method[1](val)
+                '''
+                try:
+                    if method[2] is not None:
+                        method[1](method[2](settings.value(name)))
+                    else:
+                        method[1](settings.value(name))
+                except:
+                    print name, settings.value(name), method[2]
+                    raise
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -196,7 +240,7 @@ class MainWindow(QtGui.QMainWindow):
         self.selectfout.close()
         QtGui.QMainWindow.closeEvent(self, evt)
     
-    @QtCore.pyqtSlot(name='on_selectAllButton_clicked')
+    @qtSlot(name='on_selectAllButton_clicked')
     def onSelectAll(self):
         ''' Called when the user clicks the select all button
         '''
@@ -208,7 +252,7 @@ class MainWindow(QtGui.QMainWindow):
         self.updateSelections(1)
         self.selectedCount=len(self.imagelabel)
     
-    @QtCore.pyqtSlot(name='on_unselectAllButton_clicked')
+    @qtSlot(name='on_unselectAllButton_clicked')
     def onUnselectAll(self):
         ''' Called when the user clicks the unselect all button
         '''
@@ -236,35 +280,35 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(len(self.imagelabel)):
             self.selectfout.write("%d,%d,%d\n"%tuple(self.imagelabel[i, :3]))
     
-    @QtCore.pyqtSlot(name='on_deleteModelButton_clicked')
+    @qtSlot(name='on_deleteModelButton_clicked')
     def onDeleteModel(self):
         ''' Called when the user clicks the delete model button
         '''
         
         pass
         
-    @QtCore.pyqtSlot('int', name='on_pageSpinBox_valueChanged')
+    @qtSlot('int', name='on_pageSpinBox_valueChanged')
     def onMoveGroup(self, val):
         ''' Called when the user changes the group number in the spin box
         '''
         
         self.loadImages()
     
-    @QtCore.pyqtSlot(name='on_actionForward_triggered')
+    @qtSlot(name='on_actionForward_triggered')
     def onMoveForward(self):
         ''' Called when the user clicks the next view button
         '''
         
         self.ui.pageSpinBox.setValue(self.ui.pageSpinBox.value()+1)
     
-    @QtCore.pyqtSlot(name='on_actionBackward_triggered')
+    @qtSlot(name='on_actionBackward_triggered')
     def onMoveBackward(self):
         ''' Called when the user clicks the previous view button
         '''
         
         self.ui.pageSpinBox.setValue(self.ui.pageSpinBox.value()-1)
     
-    @QtCore.pyqtSlot(name='on_actionSave_triggered')
+    @qtSlot(name='on_actionSave_triggered')
     def onSaveSelections(self):
         ''' Called when the user clicks the Save Figure Button
         '''
@@ -283,8 +327,19 @@ class MainWindow(QtGui.QMainWindow):
                     tmp = select[select[:, 0]==id, 1:]
                     tmp[:, 0]+=1
                     format.write(filename, tmp, spiderid=id, header="id,select".split(','), format=format.spidersel)
+    
+    @qtSlot(name='on_actionLoad_More_triggered')
+    def onOpenMore(self):
+        ''' Called when someone clicks the Open Button
+        '''
         
-    @QtCore.pyqtSlot(name='on_actionOpen_triggered')
+        files = glob.glob(spider_utility.spider_searchpath(self.imagefile))
+        _logger.info("Found %d files on %s"%(len(files), spider_utility.spider_searchpath(self.imagefile)))
+        if len(files) > 0:
+            self.openDocumentFiles([str(f) for f in files if format.is_readable(str(f))])
+            self.openImageFiles([str(f) for f in files if not format.is_readable(str(f))])
+    
+    @qtSlot(name='on_actionOpen_triggered')
     def onOpenFile(self):
         ''' Called when someone clicks the Open Button
         '''
@@ -318,6 +373,7 @@ class MainWindow(QtGui.QMainWindow):
             self.imagelabel.extend([[id, i, 0] for i in xrange(count)])
         self.imagelabel = numpy.asarray(self.imagelabel)
         '''
+        #self.saveSettings()
         
         pass
     
@@ -333,13 +389,13 @@ class MainWindow(QtGui.QMainWindow):
         files = [str(f) for f in files]
         invalid = [filename for filename in files if not spider_utility.is_spider_filename(filename)]
         ids = [spider_utility.spider_id(filename) for filename in files if spider_utility.is_spider_filename(filename)]
+        _logger.info("Loading %d image files"%len(ids))
         if  len(files) > 0 and (self.imagefile == "" or self.imagefile != spider_utility.spider_filename(str(files[0]), self.imagefile)):
             self.ui.imageFileComboBox.blockSignals(True)
             self.ui.imageFileComboBox.addItem( os.path.basename(str(files[0])), files[0] )
             self.ui.imageFileComboBox.blockSignals(False)
             self.imagefile = files[0]
-        taken = set(self.imageids)
-        self.updateImageFiles([id for id in ids if id not in taken])
+        self.updateImageFiles(ids)
         self.loadImages()
         
         if len(invalid) > 0:
@@ -358,7 +414,13 @@ class MainWindow(QtGui.QMainWindow):
         
         _logger.info("Updating the image label")
         if new_ids is None: new_ids = self.imageids
-        else: self.imageids.extend(new_ids)
+        else: 
+            taken = set(self.imageids)
+            new_ids=[id for id in new_ids if id not in taken]
+            self.imageids.extend(new_ids)
+        if new_ids is not None and len(new_ids) > 0:
+            self.saveSettings()
+            _logger.info("Added %d new image files"%len(new_ids))
         if hasattr(self.imagelabel, 'ndim'): self.imagelabel = self.imagelabel.tolist()
         for id in new_ids:
             item = QtGui.QStandardItem(str(id))
@@ -369,7 +431,7 @@ class MainWindow(QtGui.QMainWindow):
             self.imagelabel.extend([[id, i, 0] for i in xrange(count)])
         self.imagelabel = numpy.asarray(self.imagelabel)
     
-    @QtCore.pyqtSlot(name='on_loadImagesPushButton_clicked')
+    @qtSlot(name='on_loadImagesPushButton_clicked')
     def loadImages(self):
         ''' Load the current batch of images into the list
         '''
@@ -419,7 +481,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionForward.setEnabled(self.ui.pageSpinBox.value() < batch_count)
         self.ui.actionBackward.setEnabled(self.ui.pageSpinBox.value() > 0)
     
-    @QtCore.pyqtSlot('int', name='on_contrastSlider_valueChanged')
+    @qtSlot('int', name='on_contrastSlider_valueChanged')
     def onContrastChanged(self, value):
         ''' Called when the user uses the contrast slider
         '''
@@ -438,8 +500,8 @@ class MainWindow(QtGui.QMainWindow):
             icon.addPixmap(pix,QtGui.QIcon.Selected)
             self.imageListModel.item(i).setIcon(icon)
         
-    #@QtCore.pyqtSlot('double', name='on_zoomSlider_valueChanged')
-    @QtCore.pyqtSlot('double', name='on_imageZoomDoubleSpinBox_valueChanged')
+    #@qtSlot('double', name='on_zoomSlider_valueChanged')
+    @qtSlot('double', name='on_imageZoomDoubleSpinBox_valueChanged')
     def onZoomValueChanged(self, zoom=None):
         ''' Called when the user wants to plot only a subset of the data
         
@@ -489,7 +551,7 @@ class MainWindow(QtGui.QMainWindow):
         
         files = []
         for i in xrange(self.ui.imageFileComboBox.count()):
-            files.append(str(self.ui.imageFileComboBox.itemData(i).toString()))
+            files.append(str(self.ui.imageFileComboBox.itemData(i)))#.toString()))
         return files
         
     def imageFile(self):
@@ -517,7 +579,8 @@ class MainWindow(QtGui.QMainWindow):
             _logger.info("File does not exist: %s"%f)
             self.lastpath = os.path.dirname(f)
             while True:
-                f = str(QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open an image - %s"%os.path.basename(f)), self.lastpath))
+                f = QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open an image - %s"%os.path.basename(f)), self.lastpath)
+                f = str(f[0]) if isinstance(f, tuple) else str(f)
                 if f == "":
                     ret = QtGui.QMessageBox.warning(self, "Warning", "The image file you are trying to use does not exist, do you wish to exit?", QtGui.QMessageBox.Yes| QtGui.QMessageBox.No)
                     if ret == QtGui.QMessageBox.Yes: self.close()
@@ -555,6 +618,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         if val is None or val == "": val = 0
+        val = int(val)
         self.imagesize = val
         
     def imageIDs(self):
@@ -665,15 +729,17 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
     #qimage._numpy = img
     return qimage
 
+"""
 def widget_type(val):
     '''
     '''
     
     if isinstance(val, float):
-        return 'toFloat'
+        return float
     elif isinstance(val, int):
-        return 'toInt'
+        return int
     else: return ValueError, "Cannot find type for: %s -- %s"%(str(val), val.__class__.__name__)
+"""
 
 def widget_settings(widget):
      ''' Generate settings callbacks for various widget types
@@ -694,7 +760,7 @@ def widget_settings(widget):
      '''
      
      if hasattr(widget, 'setValue') and hasattr(widget, 'value'):
-         return (widget.value, widget.setValue, widget_type(widget.value()))
+         return (widget.value, widget.setValue, widget.value().__class__)
      return None
  
 def histeq(img, hist_bins=256, **extra):

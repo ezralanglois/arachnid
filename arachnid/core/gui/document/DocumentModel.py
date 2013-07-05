@@ -3,7 +3,7 @@
 .. Created on Jan 5, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from PyQt4 import QtCore #QtGui, 
+from ..util.qt4_loader import QtCore, qtSignal
 #import numpy
 
 
@@ -12,8 +12,8 @@ class DocumentModel(QtCore.QAbstractTableModel):
     PyQt Lists, Trees and Tables.
     '''
     
-    modelUpdated = QtCore.pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', int)
-    orderUpdated = QtCore.pyqtSignal('PyQt_PyObject')
+    modelUpdated = qtSignal('PyQt_PyObject', 'PyQt_PyObject', int)
+    orderUpdated = qtSignal('PyQt_PyObject')
     
     def __init__(self, min_header=[], parent=None):
         "Initialize an abstract meta data model"
@@ -43,25 +43,25 @@ class DocumentModel(QtCore.QAbstractTableModel):
         
         :Returns:
         
-        data : QVariant
+        data : object
                Item data
         '''
         
-        if not index.isValid() or not (0 <= index.row() and index.row() < len(self.records)): return QtCore.QVariant()
+        if not index.isValid() or not (0 <= index.row() and index.row() < len(self.records)): return None
         if role == QtCore.Qt.DisplayRole:
             if self.order is None:
-                return QtCore.QVariant(float(self.records[index.row(),index.column()]))
+                return float(self.records[index.row(),index.column()])
             else:
-                return QtCore.QVariant(float(self.records[self.order[index.row()],index.column()]))
-        return QtCore.QVariant()
+                return float(self.records[self.order[index.row()],index.column()])
+        return None
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         '''Get header data for specified section, orientation and role
         '''
         
         if (orientation, role) == (QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole):
-            if section < len(self.header): return QtCore.QVariant(self.header[section])
-        return QtCore.QVariant()
+            if section < len(self.header): return self.header[section]
+        return None
     
     def columnCount(self, index=QtCore.QModelIndex()):
         '''Get number of columns

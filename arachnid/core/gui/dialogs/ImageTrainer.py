@@ -4,8 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from MontageViewer import MainWindow as MontageWindow, _fromUtf8
-from PyQt4 import QtCore
-from PyQt4 import QtGui
+from ..util.qt4_loader import QtCore, QtGui, qtSlot
 from arachnid.app import autopart
 from arachnid.core.metadata import spider_params, format, format_utility
 
@@ -71,8 +70,10 @@ class MainWindow(MontageWindow):
         '''
         
         train_set = None
-        f = str(QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open a SPIDER Params File"), self.lastpath))
-        a = str(QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open a SPIDER Alignment File"), self.lastpath))
+        f = QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open a SPIDER Params File"), self.lastpath)
+        f = str(f[0]) if isinstance(f, tuple) else str(f)
+        a = QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open a SPIDER Alignment File"), self.lastpath)
+        a = str(a[0]) if isinstance(a, tuple) else str(fa)
         if f != "":
             last_select = numpy.argwhere(self.imagelabel[:, 2]>0)[-1]
             train_set = numpy.arange(last_select, dtype=numpy.int)
@@ -105,7 +106,7 @@ class MainWindow(MontageWindow):
             
         
     
-    @QtCore.pyqtSlot(name='on_actionHelp_triggered')
+    @qtSlot(name='on_actionHelp_triggered')
     def displayHelp(self):
         ''' Display the help dialog
         '''
