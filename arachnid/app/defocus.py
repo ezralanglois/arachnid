@@ -115,53 +115,6 @@ def esimate_signal(filename, output, apix, window_size=500, overlap=0.5, pad=2, 
     fsc = numpy.square(ravg1-ravg1[::-1])
     fsc /= numpy.max(fsc)
     resolution.plot_fsc(format_utility.add_prefix(output, 'rev_'), freq, fsc, apix)
-#
-def esimate_signal_old(filename, output, apix, window_size=500, overlap=0.5, pad=2, **extra):
-    ''' Estimate the signal based on two power spectra
-    
-    Use ellipse as a contraint
-    
-    1. modify the ring width
-    2. invert mask
-    3. rot avg
-    4. correlation between model and average - 1d to 2d
-    
-    noise window search
-    '''
-    
-    step = max(1, window_size*overlap)
-    rwin = ndimage_utility.rolling_window(read_micrograph(filename, **extra), (window_size, window_size), (step, step))
-    rwin1 = rwin[::2]
-    rwin2 = rwin[1::2]
-    if rwin1.shape[0] > rwin2.shape[0]: rwin1 = rwin1[:rwin2.shape[0]]
-    elif rwin2.shape[0] > rwin1.shape[0]: rwin2 = rwin2[:rwin1.shape[0]]
-    avg  = ndimage_utility.powerspec_avg(rwin.reshape( (rwin.shape[0]*rwin.shape[1],   rwin.shape[2],  rwin.shape[3])),  pad)
-    #avg1 = ndimage_utility.powerspec_avg(rwin1.reshape((rwin1.shape[0]*rwin1.shape[1], rwin1.shape[2], rwin1.shape[3])), pad)
-    #avg2 = ndimage_utility.powerspec_avg(rwin2.reshape((rwin2.shape[0]*rwin2.shape[1], rwin2.shape[2], rwin2.shape[3])), pad)
-    ravg = ndimage_utility.rotavg(avg)
-    
-    #avg = ndimage_utility.replace_outlier(avg, 5, 0, replace=0)
-    #avg1 = ndimage_utility.replace_outlier(avg1, 5, 0, replace=0)
-    #avg2 = ndimage_utility.replace_outlier(avg2, 5, 0, replace=0)
-    mask = eman2_utility.model_circle(10, avg.shape[0], avg.shape[1])*-1+1
-    
-    write_powerspectra(output, avg*mask, prefix='pow_')
-    #write_powerspectra(output, avg1*mask, prefix='pow1_')
-    #write_powerspectra(output, avg2*mask, prefix='pow2_')
-    
-    
-    #ravg1 = ndimage_utility.rotavg(avg1)
-    #ravg2 = ndimage_utility.rotavg(avg2)
-    write_powerspectra(output, ravg*mask, prefix='powavg1_')
-    #write_powerspectra(output, ravg1*mask, prefix='powavg1_')
-    #write_powerspectra(output, ravg2*mask, prefix='powavg2_')
-    
-    
-    #res = eman2_utility.fsc(avg1, avg2, complex=True)
-    #resolution.plot_fsc(format_utility.add_prefix(output, 'half_'), res[:, 0], res[:, 1], apix)
-    
-    res = eman2_utility.fsc(ravg, avg, complex=True)
-    resolution.plot_fsc(format_utility.add_prefix(output, 'rotavg_'), res[:, 0], res[:, 1], apix)
     
 def read_micrograph(filename, bin_factor, **extra):
     ''' Read and preprocess a micrograph
