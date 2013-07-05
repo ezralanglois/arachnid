@@ -73,7 +73,7 @@ class MainWindow(MontageWindow):
         f = QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open a SPIDER Params File"), self.lastpath)
         f = str(f[0]) if isinstance(f, tuple) else str(f)
         a = QtGui.QFileDialog.getOpenFileName(self.ui.centralwidget, self.tr("Open a SPIDER Alignment File"), self.lastpath)
-        a = str(a[0]) if isinstance(a, tuple) else str(fa)
+        a = str(a[0]) if isinstance(a, tuple) else str(a)
         if f != "":
             last_select = numpy.argwhere(self.imagelabel[:, 2]>0)[-1]
             train_set = numpy.arange(last_select, dtype=numpy.int)
