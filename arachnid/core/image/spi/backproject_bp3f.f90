@@ -1,13 +1,14 @@
-C ---------------------------------------------------------------------------
+! ---------------------------------------------------------------------------
 
 		SUBROUTINE SETUP_BP3F(TABI,LTAB,N2)
 
         REAL      TABI(0:LTAB)
-cf2py threadsafe
-cf2py intent(in) ::  LTAB, N2
-cf2py intent(inout) :: TABI
+!f2py threadsafe
+!f2py intent(in) ::  LTAB, N2
+!f2py intent(inout) :: TABI
+!f2py intent(hide) :: LTAB
 
-C       GENERALIZED KAISER-BESSEL WINDOW ACCORDING TO LEWITT
+!       GENERALIZED KAISER-BESSEL WINDOW ACCORDING TO LEWITT
         LN    = 5                           ! ALWAYS=5
         LN2   = LN / 2                      ! ALWAYS=2
 		V     = REAL(LN-1) / 2.0 / REAL(N2) ! ALWAYS=4*N2
@@ -15,12 +16,12 @@ C       GENERALIZED KAISER-BESSEL WINDOW ACCORDING TO LEWITT
 		AAAA  = 0.9*V                       ! ALWAYS=.9*4*N2
 		NNN   = 3                           ! ALWAYS=2
 
-C       GENERATE TABLE WITH INTERPOLANTS
+!       GENERATE TABLE WITH INTERPOLANTS
  		B0   = SQRT(ALPHA) * BESI1(ALPHA)
 
         FLTB = REAL(LTAB) / REAL(LN2+1)
 
-cc  parallel do private(i,s,xt)
+!c  parallel do private(i,s,xt)
         DO I=0,LTAB
 	   S = REAL(I) / FLTB / N2
 	   IF (S .LE. AAAA)  THEN
@@ -32,24 +33,24 @@ cc  parallel do private(i,s,xt)
         ENDDO
         END
 
-C ---------------------------------------------------------------------------
+! ---------------------------------------------------------------------------
 
 		SUBROUTINE FINALIZE_BP3F(X, NR, V, N2, N, NS)
 
 		REAL          		       :: NR(0:N2,N,N)
         COMPLEX                    :: X(0:N2,N,N)
         REAL                       :: V(NS, NS, NS)
-cf2py threadsafe
-cf2py intent(inplace) :: X, NR, V
-cf2py intent(in) :: N, N2, NS
-cf2py intent(hide) :: N, N2, NS
+!f2py threadsafe
+!f2py intent(inplace) :: X, NR, V
+!f2py intent(in) :: N, N2, NS
+!f2py intent(hide) :: N, N2, NS
 
 		LSD    = N+2-MOD(N,2)
 
-C       SYMMETRIZE PLANE: 0
+!       SYMMETRIZE PLANE: 0
         CALL SYMPLANE0(X,NR,N2,N)
 
-C       CALCULATE REAL SPACE VOLUME
+!       CALCULATE REAL SPACE VOLUME
         CALL NRMW2(X,NR,N2,N)
 
         LN    = 5                           ! ALWAYS=5
@@ -59,12 +60,12 @@ C       CALCULATE REAL SPACE VOLUME
 		AAAA  = 0.9*V1                       ! ALWAYS=.9*4*N2
 		NNN   = 3
 
-C       WINDOW?
+!       WINDOW?
         CALL WINDKB2A(X,V,NS,LSD,N,ALPHA,AAAA,NNN)
 
 		END
 
-C ---------------------------------------------------------------------------
+! ---------------------------------------------------------------------------
 
 		SUBROUTINE CLEANUP_BP3F()
 
@@ -73,7 +74,7 @@ C ---------------------------------------------------------------------------
 
 		END
 
-C ---------------------------------------------------------------------------
+! ---------------------------------------------------------------------------
 
 
 		SUBROUTINE BACKPROJECT_BP3F(PROJ,X,NR,TABI,NS,N,N2,L,PSI,THE,PHI)
@@ -86,11 +87,11 @@ C ---------------------------------------------------------------------------
 		REAL      	  			   :: TABI(L)
 
         COMPLEX, ALLOCATABLE, DIMENSION(:,:)   :: BI
-cf2py threadsafe
-c    (inout) :: PROJ,X,NR
-cf2py intent(inplace) :: X,NR,TABI
-cf2py intent(in) :: PROJ, PSI,THE,PHI
-cf2py intent(hide) :: NS,N,N2,L
+!f2py threadsafe
+!    (inout) :: PROJ,X,NR
+!f2py intent(inplace) :: X,NR,TABI
+!f2py intent(in) :: PROJ, PSI,THE,PHI
+!f2py intent(hide) :: NS,N,N2,L
 
 		LN1 = 6
 		LN2 = 2
@@ -100,8 +101,8 @@ cf2py intent(hide) :: NS,N,N2,L
 
 		ALLOCATE(BI(0:N2,N), STAT=IRTFLG)
         IF (IRTFLG .NE. 0) THEN
-C           MWANT = NS*NS + (N2+1)*N
-C           CALL ERRT(46,'BP NF, PROJ, BI',MWANT)
+!           MWANT = NS*NS + (N2+1)*N
+!           CALL ERRT(46,'BP NF, PROJ, BI',MWANT)
            GOTO 999
         ENDIF
 
@@ -110,24 +111,24 @@ C           CALL ERRT(46,'BP NF, PROJ, BI',MWANT)
         INV = +1
         CALL FMRS_2(BI,N,N,INV)
 
-c$omp      parallel do private(i,j)
+!$omp      parallel do private(i,j)
            DO J=1,N
               DO I=0,N2
                  BI(I,J) = BI(I,J) * (-1)**(I+J+1)
               ENDDO
            ENDDO
 
-C           DO ISYM=1,MAXSYM
-C              IF (MAXSYM .GT. 1)  THEN
-C                SYMMETRIES, MULTIPLY MATRICES
-C                 DMS = MATMUL(SM(:,:,ISYM),DM)
-C              ELSE
-C                 DMS = DM
-C              ENDIF
+!           DO ISYM=1,MAXSYM
+!              IF (MAXSYM .GT. 1)  THEN
+!                SYMMETRIES, MULTIPLY MATRICES
+!                 DMS = MATMUL(SM(:,:,ISYM),DM)
+!              ELSE
+!                 DMS = DM
+!              ENDIF
              DO J=-N2+1,N2
                CALL ONELINE(J,N,N2,X,NR,BI,DMS,LN2,FLTB,L,TABI)
              ENDDO
-C           ENDDO   ! END OF SYMMETRIES LOOP
+!           ENDDO   ! END OF SYMMETRIES LOOP
 
 
 999     IF (ALLOCATED(BI))   DEALLOCATE (BI)
