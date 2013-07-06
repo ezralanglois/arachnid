@@ -318,8 +318,8 @@ if __name__ == '__main__':
             extras_require = {
             'MPI': 'mpi4py>=1.2.2',
             'plot': 'matplotlib>=1.1.0',
-            'EMAN2' : ['EMAN2'],
-            'PyQT' : ['PyQt4'],
+            'EMAN2' : ['EMAN2'],#cut
+            'PyQT' : ['PyQt4'], #cut
             },
             setup_requires = [
             'Sphinx>=1.0.4',

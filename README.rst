@@ -3,11 +3,12 @@ Arachnid
 ========
 
 Arachnid is Python software package for image processing in single particle reconstruction of
-images collected by cryo-electron microscopy. It is built on top of SciPy, `EMAN2`_/`Sparx`_ and
-is distributed under the `GPL 2.0`_ license. It has the following highlighted application
+images collected by cryo-electron microscopy. It is built on top of SciPy and
+is distributed under the `GPL 2.0`_ license. It has the following highlighted applications
 and subpackage:
 
 - AutoPicker: Automated reference-free particle selection
+- ViCer: Automated particle verification
 - pySPIDER: Python batch files designed to better automate the reconstruction protocol
 
 This project was started in 2009 by Robert Langlois as an internal software package written
@@ -38,10 +39,10 @@ The required dependencies to build the software are Python >= 2.6,
 setuptools, Numpy >= 1.3, SciPy >= 0.7, matplotlib>=1.1.0, mpi4py>=1.2.2,
 and working C/C++ and Fortran compilers.
 
-The required dependencies to run code in this project also includes 
-EMAN2/Sparx.
-
 To build the documentation, Sphinx>=1.0.4 is required.
+
+All of these dependencies can be found in a single free binary 
+package: `Anaconda`_.
 
 Install
 =======
@@ -49,7 +50,11 @@ Install
 This package uses distutils, which is the default way of installing
 python modules. To install in your home directory, use::
 
-	python setup.py install
+	python setup.py install --prefix=$HOME
+
+Alternatively, in Anaconda you may use::
+
+	conda pip arachnid
 
 Development
 ===========
@@ -59,6 +64,5 @@ You can check out the latest source with the command::
 	git clone https://code.google.com/p/arachnid/
 
 .. _`Frank Lab`: http://franklab.cpmc.columbia.edu/franklab/
-.. _`Sparx`: http://sparx-em.org/sparxwiki/Installer
-.. _`EMAN2`: http://blake.bcm.edu/emanwiki/
 .. _`GPL 2.0`: http://www.gnu.org/licenses/gpl-2.0.html
+.. _`Anaconda: https://store.continuum.io/

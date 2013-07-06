@@ -65,37 +65,10 @@ over the surface of a sphere under certain assumptions.
 
 Website: http://healpix.jpl.nasa.gov/
 
-EMAN2/Sparx
-------------
-
-This grayscale image processing suite provides a number of the basic functions that Arachnid depends on
-including:
-
-	- Reading and Writing Images in various formats
-	- Basic image processing functions such as Cross-correlation
-	- Other utilities functions such as peak search
-
-Website: http://blake.bcm.tmc.edu/eman/eman2/
-
-.. [Ludtke1999] `Ludtke, S. J., P. R. Baldwin, et al. (1999).
-                EMAN: Semiautomated Software for High-Resolution Single-Particle Reconstructions.
-                Journal of Structural Biology 128(1): 82-97. 
-                <http://www.ncbi.nlm.nih.gov/pubmed/10600563>`_
-
-.. [Tang2007]   `Tang, G., L. Peng, et al. (2007).
-                EMAN2: An extensible image processing suite for electron microscopy.
-                Journal of Structural Biology 157(1): 38-46.
-                <http://www.ncbi.nlm.nih.gov/pubmed/16859925>`_
-
-.. [Hohn2007]   `Hohn, M., G. Tang, et al. (2007).
-                SPARX, a new environment for Cryo-EM image processing.
-                Journal of Structural Biology 157(1): 47-55.
-                <http://www.ncbi.nlm.nih.gov/pubmed/16931051>`_
-
 Appion
 -------
 
-This package provided a number of Python programming snippets as well as the MRC Volume writing code.
+This package provided a number of Python programming snippets for reading and writing in various formats.
 
 Website: http://ami.scripps.edu/redmine/projects/ami/wiki/software
 
