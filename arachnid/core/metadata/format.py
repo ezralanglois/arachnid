@@ -35,17 +35,16 @@ When writing out a document, the format will be chosen based on the extension.
 .. Created on Jun 8, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from formats import csv, prediction, project, spiderdoc, spidersel, star, frealign
+from formats import csv, prediction, project, spiderdoc, spidersel, star, frealign, mrccoord
 from format_utility import ParseFormatError, WriteFormatError
 from spider_utility import spider_filename, split_spider_id
 from ..parallel import mpi_utility
 import format_utility
 import os, numpy, logging
 
-__formats = [star, spiderdoc, spidersel, frealign, project, csv, prediction]
+__formats = [star, spiderdoc, spidersel, frealign, mrccoord, project, csv, prediction]
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.INFO)
-#_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.DEBUG)
 
 def filters(formats=None):
     '''Get a list file filters from a list of supported formats
