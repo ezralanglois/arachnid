@@ -345,6 +345,38 @@ def spider_basename(filename, idlen=0):
         filename = filename[:len(filename)-idlen]
     return filename
 
+def spider_searchpath(filename, wildcard='*', idlen=0):
+    '''Replace SPIDER ID with wild card
+    
+    This function extracts the basename and extension of a spider file, without the ID.
+        
+    .. sourcecode:: py
+    
+        >>> spider_filepath("path/basename00001.ext")
+        "path/basename*.ext"
+
+    :Parameters:
+
+    filename : str
+               A file name
+    wildcard : str
+               Wild card to substitute for spider ID
+    idlen : integer 
+            Maximum length of ID (default 0)
+    
+    :Returns:
+    
+    return_val : string 
+                 Base spider filename with wildcard in place of ID
+    '''
+    
+    filename, ext = os.path.splitext(filename)
+    n = spider_id_length(filename)
+    if n > 0:
+        if n > idlen: idlen = n
+        filename = filename[:len(filename)-idlen]
+    return filename+wildcard+ext
+
 def spider_filepath(filename, idlen=0):
     '''Extract the basename of a spider file (no ID) with extension
     
