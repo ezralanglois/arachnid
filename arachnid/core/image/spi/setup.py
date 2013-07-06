@@ -29,7 +29,7 @@ def configuration(parent_package='',top_path=None):
     #-ffixed-form define_macros=[('SP_LIBFFTW3', 1)]+compiler_defs, 
     library_options=dict(macros=[('SP_LIBFFTW3', 1)]+compiler_defs, extra_f77_compile_args=compiler_args, extra_f90_compile_args=compiler_args)#extra_f77_compiler_args=['-fdefault-real-8'],, ('SP_MP', 1)
                           #extra_f90_compiler_args=['-fdefault-real-8'])
-    config.add_library('spiutil', sources=['spiutil.F90', 'spider/fq_q.F', 'spider/fq3_p.F', 'spider/parabl.F', 'spider/pksr3.F', 'spider/fftw3.F', 
+    config.add_library('spiutil', sources=['spiutil.F90', 'spider/fq_q.F90', 'spider/fq3_p.F', 'spider/parabl.F', 'spider/pksr3.F', 'spider/fftw3.F', 
                                            'spider/ccrs.F', 'spider/apcc.F', 'spider/quadri.F', 'spider/rtsq.F', 'spider/cald.F', 'spider/bldr.F', 
                                            'spider/fmrs.F', 'spider/fmrs_2.F', 'spider/besi1.F', 'spider/wpro_n.F', 'spider/prepcub.F',
                                            'spider/fint.F', 'spider/fint3.F', 'spider/betai.F', 'spider/gammln.F', 'spider/betacf.F', 'spider/histe.F'], 
