@@ -15,8 +15,10 @@ setup(name='_transformations', ext_modules=[
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
+    from arachnid.setup import compiler_options
     import os
     config = Configuration('core', parent_package, top_path)
+    compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
     config.add_library('_healpixlib', sources=['healpix/ang2pix_nest.c', 
                                                'healpix/ang2pix_ring.c',
                                                'healpix/pix2ang_nest.c',
@@ -29,7 +31,7 @@ def configuration(parent_package='',top_path=None):
                                                'healpix/mk_xy2pix.c'], depends=['healpix/chealpix.h'])
     config.add_extension('_transformations', sources=['transforms.c'])
     config.add_extension('_healpix', sources=['healpix.c'], libraries=['_healpixlib'])
-    config.add_extension('_rotation_mapping', sources=['rotation_mapping.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)], depends=['rotation_mapping.hpp', 'linalg.hpp'], swig_opts=['-c++'])
+    config.add_extension('_rotation_mapping', sources=['rotation_mapping.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['rotation_mapping.hpp', 'linalg.hpp'], swig_opts=['-c++'], extra_link_args=compiler_args, libraries=compiler_libraries)
     config.add_include_dirs(os.path.dirname(__file__))
     return config
 
