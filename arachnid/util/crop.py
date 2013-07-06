@@ -145,7 +145,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app.program import run_hybrid_program
 ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replace image_reader and writer
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file, ndimage_filter # - replace image_reader and writer
 from ..core.image import reader as image_reader, writer as image_writer
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image.formats import mrc as mrc_file
@@ -519,7 +519,7 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
             else:
                 nref = eman2_utility.em2numpy(noise_win) if eman2_utility.is_em(noise_win) else noise_win
                 nmask = eman2_utility.em2numpy(mask) if eman2_utility.is_em(mask) else mask
-                ndimage_utility.histogram_match(np, nmask, nref, out=np)
+                ndimage_filter.histogram_match(np, nmask, nref, out=np)
         if not disable_normalize and norm_mask is not None:
             #if mask is None:
             #    mask = eman2_utility.model_circle(radius, img.shape[0], img.shape[1])*-1+1
