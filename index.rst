@@ -3,16 +3,17 @@ Welcome to Arachnid
 ====================
 
 Arachnid is an open source software package written primarily in Python to perform image
-processing in single-particle reconstruction. It has the following highlighted application
+processing in single-particle reconstruction. It has the following highlighted applications
 and subpackage:
 
 - AutoPicker: Automated reference-free particle selection
+- ViCer: Automated particle verification
 - pySPIDER: Python batch files designed to better automate the reconstruction protocol
 
 The algorithms and tools provided are rooted in image processing and object recognition as well as 
 machine learning (see the `malibu`_ package). Critical, time-intensive sections of the code have 
 been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package 
-is also utilizes several third-party packages, namely `EMAN2`_/`Sparx`_ and `SPIDER`_:, a full list 
+is also utilizes several third-party packages, namely `SPIDER`_:, a full list 
 is given in :doc:`attribution<docs/attribution>`.
 
 This software is under development by the `Frank Lab`_ and is licensed under :doc:`GPL 2.0 <license>` 
@@ -78,7 +79,6 @@ References
 
 .. _`Frank Lab`: http://www.columbia.edu/cu/franklab/index.html
 .. _`malibu`: http://code.google.com/p/exegete
-.. _`EMAN2`: http://blake.bcm.edu/emanwiki/EMAN2
 .. _`Sparx`: http://sparx-em.org/sparxwiki/
 .. _`SPIDER`: http://www.wadsworth.org/spider_doc/spider/docs/
 

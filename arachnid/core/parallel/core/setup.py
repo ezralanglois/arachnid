@@ -8,8 +8,10 @@ This setup file defines a build script for C/C++ or Fortran extensions.
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
+    from arachnid.setup import compiler_options
     config = Configuration('core', parent_package, top_path)
-    config.add_extension('_omp', sources=['omp.c'])
+    compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
+    config.add_extension('_omp', sources=['omp.c'], extra_link_args=compiler_args, define_macros=compiler_defs)#, libraries=compiler_libraries
     return config
 
 if __name__ == '__main__':

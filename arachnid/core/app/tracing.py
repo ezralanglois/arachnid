@@ -248,7 +248,30 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
         root.setLevel(level)
     
     if rank == 0: print_import_warnings()
-
+    
+def configure_mp_logging(filename, level=logging.DEBUG, process_number=None, **extra):
+    ''' Create a log file with given name for each process. It appends process number to end of 
+    log file name.
+    
+    :Parameters:
+    
+    filename : str
+               Output log filename
+    level : int
+            Level for logging, default logging.DEBUG
+    process_number : int
+                     Process number passed by API
+    extra : dict
+            Unused keyword arguments
+    '''
+    
+    if process_number is None: return
+    filename, ext = os.path.splitext(filename)
+    filename += "_%7d"%process_number+ext
+    ch = logging.FileHandler(filename, mode='w')
+    ch.setLevel(level)
+    logging.getLogger().addHandler(ch)
+    
 def print_import_warnings():
     '''
     '''

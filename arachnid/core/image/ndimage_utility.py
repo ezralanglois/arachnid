@@ -17,16 +17,11 @@ import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
 import scipy.sparse
+from filters import linear
 #import eman2_utility
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
-try: 
-    from util import _spider_util
-    _spider_util;
-except:
-    tracing.log_import_error('Failed to load _spider_util.so module - certain functions will not be available: ndimage_utility.ramp', _logger)
-    _spider_util=None
 
 try: 
     from util import _image_utility
@@ -62,6 +57,62 @@ except:
    end
 end
 '''
+
+def mirror(img, out=None):
+    ''' Mirror projection (SPIDER convention)
+    
+    :Parameters:
+    
+    img : array
+          Image
+    
+    :Returns:
+    
+    out : array
+          Mirrored image
+    '''
+    
+    if img.ndim != 2: raise ValueError, "Mirroring only works with 2D images"
+    #xoff = 1 if numpy.mod(img.shape[0], 2) == 0 else 0
+    yoff = 1 if numpy.mod(img.shape[1], 2) == 0 else 0
+    if out is None: out = img.copy()
+    else: out[:]=img[:]
+    out[:, yoff:] = numpy.fliplr(img[:, yoff:])
+    return out
+
+def fourier_shift(img, dx, dy, dz=0, pad=1):
+    ''' Shift using sinc interpolation
+    
+    :Parameters:
+    
+    img : array
+          2D or 3D array of pixels
+    dx : float
+         Shift in x-direction
+    dy : float
+         Shift in y-direction
+    dz : float
+         Shift in z-direction
+    pad : float
+          Amount of padding
+    
+    :Returns:
+    
+    out : array
+          2D or 3D array of pixel shift (according to input)
+    '''
+    
+    if img.ndim != 2 and img.ndim != 3: raise ValueError, "Only works with 2 or 3D images"
+    if dx == 0 and dy == 0 and dz == 0: return img
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
+    fimg = scipy.fftpack.fftn(img)
+    if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
+    else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy))
+    img = scipy.fftpack.ifftn(fimg).real
+    if pad > 1: img = depad_image(img, shape)
+    return img
 
 #r/2-1,360
 def polar_simple(img, radius=None, angle=360.0):
@@ -316,39 +367,14 @@ def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     
     if not hasattr(shape, '__iter__'): shape = (shape, shape)
     a = numpy.zeros(shape, dtype, order)
-    if center is None:
-        cx, cy = shape[0]/2, shape[1]/2
-    elif not hasattr(center, '__iter__'):
-        cx, cy = center, center
-    else:
-        cx, cy = center
-    radius2 = radius+1
-    y, x = numpy.ogrid[-radius2: radius2, -radius2: radius2]
+    if center is None: cx, cy = shape[0]/2, shape[1]/2
+    elif not hasattr(center, '__iter__'): cx, cy = center, center
+    else: cx, cy = center
+    #radius2 = radius+1
+    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
     index = x**2 + y**2 <= radius**2
-    a[cy-radius2:cy+radius2, cx-radius2:cx+radius2][index] = 1
+    a[index]=1
     return a
-
-@_em2numpy2em
-def ramp(img, out=None):
-    '''Remove change in illumination across an image
-    
-    :Parameters:
-
-    img : numpy.ndarray
-          Input image
-    out : numpy.ndarray
-          Output image
-    
-    :Returns:
-    
-    img : numpy.ndarray
-          Ramped image
-    '''
-    
-    if out is None: out = numpy.empty_like(img, dtype=numpy.float)
-    if _spider_util is None: raise ImportError, 'Failed to load _spider_util.so module - function `ramp` is unavailable'
-    _spider_util.ramp(out.T)
-    return out
 
 def cross_correlate_raw(img, template, phase=False, out=None):
     ''' Cross-correlate an image with a template
@@ -852,15 +878,20 @@ def pad_image(img, shape, fill=0.0, out=None):
           Padded image
     '''
     
-    if out is None: 
-        if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
-        out = numpy.zeros(shape)
-        if fill == 'e': 
-            out[:, :] = (img[0, :].sum()+img[:, 0].sum()+img[len(img)-1, :].sum()+img[:, len(img)-1].sum()) / (img.shape[0]*2+img.shape[1]*2)
-        elif fill == 'r': out[:, :] = numpy.random.normal(img.mean(), img.std(), shape)
-        elif fill != 0: out[:, :] = fill
     cx = (shape[0]-img.shape[0])/2
     cy = (shape[1]-img.shape[1])/2
+    if out is None: 
+        if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
+        out = numpy.zeros(shape, dtype=img.dtype)
+        if fill == 'm':
+            out[0:cx, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
+            out[cx+img.shape[0]:, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
+            out[cx:cx+img.shape[0], 0:cy] = img[:, 0:cx]
+            out[cx:cx+img.shape[0], cy+img.shape[1]:] = img[:, 0:cx]
+        elif fill == 'e': 
+            out[:, :] = (img[0, :].sum()+img[:, 0].sum()+img[len(img)-1, :].sum()+img[:, len(img)-1].sum()) / (img.shape[0]*2+img.shape[1]*2 - 4)
+        elif fill == 'r': out[:, :] = numpy.random.normal(img.mean(), img.std(), shape)
+        elif fill != 0: out[:, :] = fill
     out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
     return out
 
@@ -885,76 +916,46 @@ def filter_gaussian_lp(img, sigma, out=None):
     sigma = 0.5 / sigma / sigma
     if hasattr(scipy.ndimage.filters, 'fourier_gaussian'):
         return scipy.ndimage.filters.fourier_gaussian(img, sigma, output=out)
-    return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect', output=out)
+    return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect')#, output=out)
 
-def filter_butterworth_lp(img, low_cutoff, high_cutoff):
-    '''
+def filter_butterworth_lowpass(img, low_cutoff, falloff, pad=1):
+    ''' Apply a Butterworth lowpass filter to an image
     
-    ..todo:: finish this function
-    
-    .. note:: 
-        
-        Taken from:
-        http://www.psychopy.org/epydoc/psychopy.filters-pysrc.html
-        and
-        Sparx
-    
-    '''
-    
-    eps = 0.882
-    aa = 10.624
-    n = 2 * numpy.log10(eps/numpy.sqrt(aa*aa-1.0))/numpy.log10(low_cutoff/high_cutoff)
-    cutoff = low_cutoff/numpy.power(eps, 2.0/n)
-    #todo: pad
-    x =  numpy.linspace(-0.5, 0.5, img.shape[1]) 
-    y =  numpy.linspace(-0.5, 0.5, img.shape[0])
-    radius = numpy.sqrt((x**2)[numpy.newaxis] + (y**2)[:, numpy.newaxis])
-    f = 1 / (1.0 + (radius / cutoff)**n);
-    return filter_image(img, f)
-
-def filter_image(img, filt, pad=1):
-    '''
-    .. todo:: filter padding
-    '''
-    
-    #fshape = numpy.asarray(img.shape)*pad
-    fimg = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
-    numpy.multiply(fimg, filt, fimg)
-    return scipy.fftpack.ifft2(scipy.fftpack.ifftshift(fimg)).real
-
-@_em2numpy2em
-def histogram_match(img, mask, ref, bins=0, iter_max=500, out=None):
-    '''Remove change in illumination across an image
+    .. seealso:: :py:func:`linear.butterworth_lowpass`
     
     :Parameters:
-
-    img : numpy.ndarray
-          Input image
-    mask : numpy.ndarray
-           Mask for the image
-    ref : numpy.ndarray
-          Reference noise image
-    bins : int, optional
-           Number of bins for the histogram, if 0 choose image_size/16
-    iter_max : int, optional
-               Number of iterations for downhill simplex
-    out : numpy.ndarray
-          Output image
+    
+    img : array
+          Image
+    low_cutoff : float
+                 Low-frequency cutoff
+    falloff : float
+              Low-frequency fall off
+    pad : int
+          Padding
     
     :Returns:
     
-    img : numpy.ndarray
-          Enhanced image
+    out : array
+          Filtered image
     '''
     
-    img = img.astype(numpy.float32)
-    ref = ref.astype(numpy.float32)
-    if out is None: out = img.copy()
-    if _spider_util is None: raise ImportError, 'Failed to load _spider_util.so module - function `histogram_match` is unavailable'
-    if mask.dtype != numpy.bool: mask = mask>0.5
-    if bins == 0: bins = min(len(out.ravel())/16, 256)
-    _spider_util.histc2(out.ravel(), mask.ravel(), ref.ravel(), int(bins), int(iter_max))
-    return out
+    if pad > 1:
+        shape = img.shape
+        ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
+        img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
+    img = filter_image(img, linear.butterworth_lowpass(img.shape, low_cutoff, falloff), pad)
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
+def filter_image(img, kernel, pad=1):
+    '''
+    .. todo:: filter padding
+    '''
+        
+    fimg = scipy.fftpack.fftshift(scipy.fftpack.fftn(img))
+    numpy.multiply(fimg, kernel, fimg)
+    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real
 
 @_em2numpy2em
 def compress_image(img, mask, out=None):
@@ -1358,14 +1359,23 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     std = numpy.std(img)
     vmin = numpy.min(img)
     vmax = numpy.max(img)
+    if vmin == vmax: 
+        print "*****", vmin, '==', vmax
+        return out
 
     
     if xray_sigma is None: xray_sigma=dust_sigma if dust_sigma > 0 else -dust_sigma
     if dust_sigma > 0: dust_sigma = -dust_sigma
     lcut = avg+std*dust_sigma
     hcut = avg+std*xray_sigma
-    vsmin = numpy.min(out[img>=lcut])
-    vsmax = numpy.max(out[img<=hcut])
+    try:
+        vsmin = numpy.min(out[img>=lcut])
+    except: 
+        vsmin=numpy.min(out)
+    try:
+        vsmax = numpy.max(out[img<=hcut])
+    except: 
+        vsmax=numpy.max(out)
     if replace == 'mean':
         replace = numpy.mean(out[numpy.logical_and(out > lcut, out < hcut)])
     if vmin < lcut:

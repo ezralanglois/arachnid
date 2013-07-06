@@ -16,12 +16,14 @@
     :toctree: api_generated/
     :template: api_module.rst
     
-    reader
-    writer
     analysis
     ndimage_utility
     ndimage_file
-    eman2_utility
+    ndimage_filter
+    ndimage_interpolate
+    reconstruct
+    reproject
+    rotate
 
 :mod:`arachnid.core.image.formats`
 ===================================

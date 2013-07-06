@@ -117,7 +117,8 @@ class Session(spider_session.Session):
         spider_session.Session.__init__(self, *args, **kwargs)
         
         self.extra_check = _logger.getEffectiveLevel() == logging.DEBUG
-        v = self.get_version()
+        self.version_val = self.get_version()
+        v = self.version_val
         if v[0] < 19: raise ValueError, "pySPIDER requires SPIDER version 19 or later"
         if v[0] < 18 or (v[0] == 18 and v[1] < 18):
             _logger.warn("This version of SPIDER has alignment problems that may limit your resolution")
@@ -939,7 +940,7 @@ class Session(spider_session.Session):
         if int(session[9]) > 0: raise spider_session.SpiderCommandError, "fi h failed to inquire header from the given file"
         return collections.namedtuple("fih", ",".join(header))._make([session[r] for r in hreg])
     
-    LP, HP, GAUS_LP, GAUS_HP, FERMI_LP, FERMI_HP, BUTER_LP, BUTER_HP = range(1, 9)
+    LP, HP, GAUS_LP, GAUS_HP, FERMI_LP, FERMI_HP, BUTER_LP, BUTER_HP, RCOS_LP, RCOS_HP = range(1, 11)
     def fq(session, inputfile, filter_type=7, filter_radius=0.12, pass_band=0.1, stop_band=0.2, temperature=0.3, outputfile=None, **extra):
         ''' Applies Fourier filters to 2-D or 3-D images. Images need not have power-of-two dimensions. Padding with the average is applied during filtration.
                 
@@ -984,7 +985,10 @@ class Session(spider_session.Session):
         '''
         
         filter_type = int(filter_type)
-        if filter_type < 1 or filter_type > 8: raise ValueError, "Filter type must be an integer between 1-8"
+        if session.version_val[0] < 21:
+            if filter_type < 1 or filter_type > 8: raise ValueError, "Filter type must be an integer between 1-8"
+        else:
+            if filter_type < 1 or filter_type > 10: raise ValueError, "Filter type must be an integer between 1-10"
         args = []
         if filter_type < 7: args.append( spider_tuple(filter_radius) )
         if filter_type in (5, 6): args.append( spider_tuple(temperature) )
