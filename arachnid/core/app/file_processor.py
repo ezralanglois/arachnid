@@ -8,7 +8,7 @@ Parameters
 
 The bench script has the following inheritable parameters:
 
-.. option:: -l <int>, --id-len <int>
+.. option:: --id-len <int>
     
     Set the expected length of the document file ID
 
@@ -20,6 +20,10 @@ The bench script has the following inheritable parameters:
 .. option:: -w <int>, --work-count <int>
     
      Set the number of micrographs to process in parallel (keep in mind memory and processor restrictions)
+
+.. option:: --force <bool>
+    
+    Force the program to run from the start
 
 ..todo:: 
     
