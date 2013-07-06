@@ -71,12 +71,18 @@ numpy2mrc = {
 intbyteorder = {
     0x11110000: 'big',
     0x44440000: 'little', #hack
-    0x44410000: 'little'
+    0x44410000: 'little' #0x4144 - 16708
 }
 byteorderint = {
     'big': 0x11110000,
     'little': 0x44410000
 }
+byteorderint2 = {
+    'big': 286326784,
+    'little': 1145110528
+}
+
+
 
 mrc_defaults = dict(alpha=90, beta=90, gamma=90, mapc=1, mapr=2, maps=3, map='MAP ', byteorder=byteorderint[sys.byteorder])
 
@@ -226,7 +232,7 @@ def is_format_header(h):
 def bin(x, digits=0): 
     oct2bin = ['000','001','010','011','100','101','110','111'] 
     binstring = [oct2bin[int(n)] for n in oct(x)] 
-    return ''.join(binstring).lstrip('0').zfill(digits) 
+    return ''.join(binstring).lstrip('0').zfill(digits)
 
 def is_readable(filename):
     ''' Test if the file read has a valid MRC header
@@ -324,6 +330,14 @@ def read_mrc_header(filename, index=None):
         _close(filename, f)
     return h
 
+def is_volume(filename):
+    '''
+    '''
+    
+    if hasattr(filename, 'dtype'): h=filename
+    else: h = read_mrc_header(filename)
+    return h['nz'][0] == h['nx'][0] and h['nz'][0] == h['ny'][0]
+
 def count_images(filename):
     ''' Count the number of images in the file
     
@@ -379,9 +393,13 @@ def iter_images(filename, index=None, header=None):
         else: index = index.astype(numpy.int)
         for i in index:
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
-            if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0]))
-            elif int(h['ny'][0]) > 1: out = out.reshape(int(h['nx'][0]), int(h['ny'][0]))
-            #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
+            if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0]))
+            elif int(h['ny'][0]) > 1:
+                try:
+                    out = out.reshape(int(h['ny'][0]), int(h['nx'][0]))
+                except:
+                    _logger.error("%d == %d == %d -- %d,%d"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0])))
+                    raise
             if header_image_dtype.newbyteorder()==h.dtype: 
                 out = out.byteswap().newbyteorder()
             yield out
@@ -410,6 +428,19 @@ def read_image(filename, index=None, header=None, cache=None):
     f = _open(filename, 'r')
     try:
         h = read_mrc_header(f)
+        
+        '''
+        for fl in h.dtype.names:
+            if fl[:len('label')] == 'label': continue
+            _logger.error("Header - %s: %s"%(str(fl), str(h[fl][0])))
+        
+        h2 = h.newbyteorder() #.newbyteorder()
+        
+        
+        for fl in h2.dtype.names:
+            if fl[:len('label')] == 'label': continue
+            _logger.error("Header-swap - %s: %s"%(str(fl), str(h2[fl][0])))
+        '''
         if header is not None: _update_header(header, h, mrc2ara, 'mrc')
         count = count_images(h)
         if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
@@ -422,17 +453,27 @@ def read_image(filename, index=None, header=None, cache=None):
         #_logger.error("%d == %d"%(os.stat(filename).st_size, h['nx'][0]*h['ny'][0]*h['nz'][0]*dtype.itemsize+1024+int(h['nsymbt'])))
         #offset = 1024 + idx * d_len * dtype.itemsize
         offset = 1024+int(h['nsymbt']) + idx * d_len * dtype.itemsize
-        
+        total = file_size(f)
+        if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
-        if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:   out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
-        elif int(h['ny']) > 1: out = out.reshape( (int(h['nx'][0]), int(h['ny'][0])) )
+        if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:   out = out.reshape( (int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0])) )
+        elif int(h['ny']) > 1:
+            try:
+                out = out.reshape( (int(h['ny'][0]), int(h['nx'][0])) )
+            except:
+                _logger.error("%d == %d == %d -- %d,%d"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0])))
+                raise
     finally:
         _close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
-    if header_image_dtype.newbyteorder()==h.dtype:
-        out = out.byteswap().newbyteorder()
+    if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap().newbyteorder()
     return out
+
+def file_size(fileobject):
+    fileobject.seek(0,2) # move the cursor to the end of the file
+    size = fileobject.tell()
+    return size
 
 def is_writable(filename):
     ''' Test if the image extension of the given filename is understood
@@ -473,16 +514,17 @@ def write_image(filename, img, index=None, header=None):
     except:
         raise TypeError, "Unsupported type for MRC writing: %s"%str(img.dtype)
     
-    f = _open(filename, 'w')
+    mode = 'rb+' if index is not None and index > 0 else 'wb+'
+    f = _open(filename, mode)
     if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
-        h = numpy.zeros(1, header_image_dtype) if index is None else numpy.zeros(1, header_stack_dtype)
+        h = numpy.zeros(1, header_image_dtype) #if index is None else numpy.zeros(1, header_stack_dtype)
         _update_header(h, mrc_defaults, ara2mrc)
         pix = header.get('apix', 1.0) if header is not None else 1.0
         header=_update_header(h, header, ara2mrc, 'mrc')
-        header['nx'] = img.shape[-1]
-        header['ny'] = img.shape[-2] if img.ndim > 1 else 1
+        header['nx'] = img.T.shape[0]
+        header['ny'] = img.T.shape[1] if img.ndim > 1 else 1
         if header['nz'] == 0:
-            header['nz'] = img.shape[-3] if img.ndim > 2 else 1
+            header['nz'] = img.T.shape[2] if img.ndim > 2 else 1
         header['mode'] = numpy2mrc[img.dtype.type]
         header['mx'] = header['nx']
         header['my'] = header['ny']
@@ -490,29 +532,40 @@ def write_image(filename, img, index=None, header=None):
         header['xlen'] = header['nx']*pix
         header['ylen'] = header['ny']*pix
         header['zlen'] = header['nz']*pix
+        header['alpha'] = 90
+        header['beta'] = 90
+        header['gamma'] = 90
+        header['mapc'] = 1
+        header['mapr'] = 2
+        header['maps'] = 3
         header['amin'] = numpy.min(img)
         header['amax'] = numpy.max(img)
         header['amean'] = numpy.mean(img)
+        
+        header['map'] = 'MAP'
+        header['byteorder'] = byteorderint2[sys.byteorder] #'DA\x00\x00'
+        header['nlabels'] = 1
+        header['label0'] = 'Created by Arachnid'
+        
+        #header['byteorder'] = numpy.fromstring('\x44\x41\x00\x00', dtype=header['byteorder'].dtype)
+        
         #header['rms'] = numpy.std(img)
         if img.ndim == 3:
             header['nxstart'] = header['nx'] / -2
             header['nystart'] = header['ny'] / -2
             header['nzstart'] = header['nz'] / -2
         if index is not None:
-            stack_count = header['nz'] if header['nz'] > 1 else index+1
+            stack_count = index+1
             header['nz'] = stack_count
             header['mz'] = stack_count
             header['zlen'] = stack_count
-            header['zorigin'] = stack_count/2.0
-            header['nsymbt'] = stack_count * 88
-            header['nintegers'] = 0
-            header['nfloats'] = 22
+            #header['zorigin'] = stack_count/2.0
     
-    offset=0
     try:
         if f != filename:
+            f.seek(0)
             header.tofile(f)
-            if index > 0: f.seek(int(offset+index*img.ravel().shape[0]))
+            if index > 0: f.seek(int(1024+int(h['nsymbt'])+index*img.ravel().shape[0]*img.dtype.itemsize))
         img.tofile(f)
     finally:
         _close(filename, f)

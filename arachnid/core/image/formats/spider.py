@@ -22,7 +22,7 @@ _header_map = {'nz': 1,'ny': 2,'irec':3,'iform':5,'imami':6,'fmax':7,'fmin':8,
           'istack': 24, 'maxim':26, 'imgnum': 27, 'apix':38,'voltage': 39,
           'proj': 40, 'mic': 41}
 
-spi2ara={'': ''}
+spi2ara={'apix': 'apix'}
 #ara.update(dict([(h[0], 'mrc'+_h[0]) for h in header_image_dtype]))
 ara2spi=dict([(val, key) for key,val in spi2ara.iteritems()])
 
@@ -114,10 +114,7 @@ def _update_header(dest, source, header_map, tag=None):
     if source is None: return dest
     keys = dest.dtype.names if hasattr(dest, 'dtype') else dest.keys()
     tag = None
-    _logger.error('_update_header-keys: %s'%str(keys))
-    _logger.error('_update_header-header_map: %s'%str(header_map))
     for key in keys:
-        _logger.error('_update_header-keys: %s -> %s'%(key, header_map.get(key, key)))
         try:
             dest[key] = source[header_map.get(key, key)]
         except:
@@ -178,16 +175,16 @@ def read_header(filename, index=None):
     
     h = read_spider_header(filename, index)
     header={}
-    header['apix'] = h['apix']
-    header['fourier_even'] = (h['iform']== -12 or h['iform']== -22)
+    header['apix'] = float(h['apix'][0])
+    header['fourier_even'] = (h['iform'][0] == -12 or h['iform'][0] == -22)
     
     
-    header['count'] = max(h['maxim'], h['istack'])
-    header['nx'] = h['nx']
-    header['ny'] = h['ny']
-    header['nz'] = h['nz']
-    for key in h.fields.iterkeys():
-        header['spi_'+key] = h[key]
+    header['count'] = max(int(h['maxim'][0]), int(h['istack'][0]))
+    header['nx'] = int(h['nx'][0])
+    header['ny'] = int(h['ny'][0])
+    header['nz'] = int(h['nz'][0])
+    for key in h.dtype.fields.iterkeys():
+        header['spi_'+key] = float(h[key][0])
     header['format'] = 'SPIDER'
     return header
 
@@ -249,7 +246,7 @@ def read_image(filename, index=None, header=None):
     try:
         if index is None: index = 0
         h = read_spider_header(f)
-        if header is not None: _update_header(header, h, spi2ara, 'mrc')
+        if header is not None: _update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
@@ -291,7 +288,7 @@ def iter_images(filename, index=None, header=None):
     if index is None: index = 0
     try:
         h = read_spider_header(f)
-        if header is not None: _update_header(header, h, spi2ara, 'mrc')
+        if header is not None: _update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
@@ -377,9 +374,9 @@ def write_image(filename, img, index=None, header=None):
             header=_update_header(h, header, ara2spi, 'spi')
             
             # Image size in header
-            header['nx'] = img.shape[0]
-            header['ny'] = img.shape[1] if img.ndim > 1 else 1
-            header['nz'] = img.shape[2] if img.ndim > 2 else 1
+            header['nx'] = img.T.shape[0]
+            header['ny'] = img.T.shape[1] if img.ndim > 1 else 1
+            header['nz'] = img.T.shape[2] if img.ndim > 2 else 1
             
             header['lenbyt'] = img.shape[0]*4
             header['labrec'] = 1024 / int(header['lenbyt'])
