@@ -154,7 +154,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import tracing
 from ..core.app.program import run_hybrid_program
-from ..core.image import eman2_utility, ndimage_utility, analysis
+from ..core.image import eman2_utility, ndimage_utility, analysis, ndimage_filter
 from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
 import numpy, scipy, logging, scipy.misc, numpy.linalg
@@ -391,7 +391,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         #npdata[:, :] = win
         #eman2_utility.ramp(emdata)
         #win[:, :] = npdata
-        ndimage_utility.ramp(win,win)
+        win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
@@ -612,7 +612,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         #npdata[:, :] = win
         #eman2_utility.ramp(emdata)
         #win[:, :] = npdata
-        ndimage_utility.ramp(win,win)
+        win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
