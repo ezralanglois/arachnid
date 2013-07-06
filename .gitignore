@@ -1,6 +1,7 @@
 docs/api_generated/
 dist
 build
+*.mod
 *.sh
 *.so
 *.pyc
