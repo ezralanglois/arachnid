@@ -456,7 +456,7 @@ def get_read_format_except(filename):
     if f is not None: 
         #_logger.debug("Using format: %s"%str(f))
         return f
-    raise IOError, "Could not find format for %s"%filename
+    raise IOError, "Could not find format for %s\n\n Installing EMAN2 adds addtional formats to Arachnid"%filename
 
 def get_read_format(filename):
     ''' Get the write format for the image

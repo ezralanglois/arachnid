@@ -13,7 +13,7 @@ try:
     import fundamentals
     EMAN2;
 except:
-    logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
+    #logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
     EMAN2 = None
 import numpy
 
@@ -22,6 +22,8 @@ _logger.setLevel(logging.DEBUG)
 
 def fshift(img, x, y, z=0, out=None):
     ''' Shift an image
+    
+    * has alternative
     
     :Parameters:
     
@@ -50,6 +52,8 @@ def fshift(img, x, y, z=0, out=None):
 def normalize_mask(img, mask, no_std=0, out=None):
     ''' Mirror an image about the x-axis
     
+    * has alternative
+    
     :Parameters:
     
     img : array
@@ -73,6 +77,8 @@ def normalize_mask(img, mask, no_std=0, out=None):
 def mirror(img, out=None):
     ''' Mirror an image about the x-axis
     
+    * has alternative
+    
     :Parameters:
     
     img : array
@@ -93,6 +99,9 @@ def mirror(img, out=None):
 
 def rot_shift2D(img, psi, tx=None, ty=None, m=None, out=None):
     ''' Rotate and shift an image in 2D
+    
+    
+    * has alternative
     
     :Parameters:
     
@@ -127,6 +136,8 @@ def rot_shift2D(img, psi, tx=None, ty=None, m=None, out=None):
 
 def model_circle(rad, x, y):
     ''' Create a model circle
+    
+    * has alternative
     
     :Parameters:
     
@@ -348,7 +359,7 @@ def fsc(img1, img2, complex=False):
     img2 : array
            Image
     complex : bool
-              Set true if images are complex
+              Set true if images are complex - preventative care
     
     :Returns:
     
