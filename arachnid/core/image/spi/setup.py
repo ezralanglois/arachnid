@@ -18,8 +18,10 @@ def configuration(parent_package='',top_path=None):
     
     try:
         fftw_opt = get_info('fftw',notfound_action=2)
-    except: pass
-    fftw_opt=dict(libraries=['fftw3f'])
+    except: 
+        try: 
+            fftw_opt = get_info('mkl',notfound_action=2)
+        except: fftw_opt=dict(libraries=['fftw3f'])
     config = Configuration('spi', parent_package, top_path)
     #-ftrap=common
     if 1 == 0:
