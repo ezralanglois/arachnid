@@ -3,7 +3,7 @@
 .. Created on Dec 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from pyui.MontageViewer import Ui_MainWindow, _fromUtf8
+from pyui.MontageViewer import Ui_MainWindow
 from ..util.qt4_loader import QtGui,QtCore,qtSlot
 
 from .. import ndimage_file, ndimage_utility, spider_utility, eman2_utility, format #, format_utility, analysis, 
@@ -58,7 +58,7 @@ class MainWindow(QtGui.QMainWindow):
         
         action = self.ui.dockWidget.toggleViewAction()
         icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(_fromUtf8(":/mini/mini/application_side_list.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/application_side_list.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         action.setIcon(icon8)
         self.ui.toolBar.insertAction(self.ui.actionHelp, action)
         #self.ui.toolBar.addAction(action)

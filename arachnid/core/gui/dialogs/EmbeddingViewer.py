@@ -3,8 +3,12 @@
 .. Created on Dec 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from pyui.EmbeddingViewer import Ui_MainWindow, _fromUtf8
+from pyui.EmbeddingViewer import Ui_MainWindow
 from ..util.qt4_loader import QtCore, QtGui, qtSlot
+
+if not hasattr(QtCore, 'pyqtSlot'):
+    import matplotlib
+    matplotlib.rcParams['backend.qt4']='PySide'
 
 try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -79,7 +83,7 @@ class MainWindow(QtGui.QMainWindow):
         
         action = self.ui.dockWidget.toggleViewAction()
         icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(_fromUtf8(":/mini/mini/application_side_list.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/application_side_list.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         action.setIcon(icon8)
         self.ui.toolBar.addAction(action)
     

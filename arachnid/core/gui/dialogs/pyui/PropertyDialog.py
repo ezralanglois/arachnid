@@ -1,35 +1,30 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/dialogs/pyui/PropertyDialog.ui'
+# Form implementation generated from reading ui file 'PropertyDialog.ui'
 #
-# Created: Mon Sep  3 16:32:04 2012
-#      by: PyQt4 UI code generator 4.8.2
+# Created: Sat Jul  6 20:59:40 2013
+#      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
 
 from arachnid.core.gui.util.qt4_loader import QtCore, QtGui
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-
 class Ui_PropertyDialog(object):
     def setupUi(self, PropertyDialog):
-        PropertyDialog.setObjectName(_fromUtf8("PropertyDialog"))
+        PropertyDialog.setObjectName("PropertyDialog")
         PropertyDialog.resize(400, 300)
         PropertyDialog.setInputMethodHints(QtCore.Qt.ImhNone)
         PropertyDialog.setModal(False)
         self.verticalLayout = QtGui.QVBoxLayout(PropertyDialog)
-        self.verticalLayout.setMargin(1)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.verticalLayout.setContentsMargins(1, 1, 1, 1)
+        self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtGui.QTabWidget(PropertyDialog)
-        self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
+        self.tabWidget.setObjectName("tabWidget")
         self.tab = QtGui.QWidget()
-        self.tab.setObjectName(_fromUtf8("tab"))
+        self.tab.setObjectName("tab")
         self.horizontalLayout = QtGui.QHBoxLayout(self.tab)
-        self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.propertyTreeView = QtGui.QTreeView(self.tab)
         self.propertyTreeView.setFrameShape(QtGui.QFrame.NoFrame)
         self.propertyTreeView.setAutoScroll(False)
@@ -37,10 +32,10 @@ class Ui_PropertyDialog(object):
         self.propertyTreeView.setAlternatingRowColors(True)
         self.propertyTreeView.setIndentation(15)
         self.propertyTreeView.setUniformRowHeights(True)
-        self.propertyTreeView.setObjectName(_fromUtf8("propertyTreeView"))
+        self.propertyTreeView.setObjectName("propertyTreeView")
         self.propertyTreeView.header().setCascadingSectionResizes(True)
         self.horizontalLayout.addWidget(self.propertyTreeView)
-        self.tabWidget.addTab(self.tab, _fromUtf8(""))
+        self.tabWidget.addTab(self.tab, "")
         self.verticalLayout.addWidget(self.tabWidget)
 
         self.retranslateUi(PropertyDialog)

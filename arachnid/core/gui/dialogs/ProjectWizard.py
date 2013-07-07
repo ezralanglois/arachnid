@@ -3,7 +3,7 @@
 .. Created on Dec 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from pyui.ProjectWizard import Ui_ProjectWizard, _fromUtf8
+from pyui.ProjectWizard import Ui_ProjectWizard
 from ..util import BackgroundTask
 from ..util.qt4_loader import QtCore, QtGui, qtSlot
 
@@ -66,10 +66,10 @@ class MainWindow(QtGui.QWizard):
         self.connect(self.jobUpdateTimer, QtCore.SIGNAL("timeout()"), self.onMonitorUpdate  )
         
         #WatermarkPixmap, LogoPixmap, BannerPixmap, BackgroundPixmap
-        self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(_fromUtf8(':/icons/icons/icon256x256.png')))
-        self.setPixmap(QtGui.QWizard.BackgroundPixmap, QtGui.QPixmap(_fromUtf8(':/icons/icons/icon256x256.png')))
-        #self.setPixmap(QtGui.QWizard.BannerPixmap, QtGui.QPixmap(_fromUtf8(':/icons/icons/icon64x64.png')))
-        #self.setPixmap(QtGui.QWizard.LogoPixmap, QtGui.QPixmap(_fromUtf8(':/icons/icons/icon64x64.png')))
+        self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(':/icons/icons/icon256x256.png'))
+        self.setPixmap(QtGui.QWizard.BackgroundPixmap, QtGui.QPixmap(':/icons/icons/icon256x256.png'))
+        #self.setPixmap(QtGui.QWizard.BannerPixmap, QtGui.QPixmap(':/icons/icons/icon64x64.png'))
+        #self.setPixmap(QtGui.QWizard.LogoPixmap, QtGui.QPixmap(':/icons/icons/icon64x64.png'))
         
         self.loadSettings()
         
@@ -97,7 +97,7 @@ class MainWindow(QtGui.QWizard):
                   ('Ribosome-40S', '1925', ':/icons/icons/ribosome_40S_32x32.png'),]
         for entry in canned:
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(_fromUtf8(entry[2])), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            icon.addPixmap(QtGui.QPixmap(entry[2]), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item = QtGui.QStandardItem(icon, entry[0])
             item.setData(entry[1], QtCore.Qt.UserRole)
             self.emdbCannedModel.appendRow(item)
@@ -134,7 +134,7 @@ class MainWindow(QtGui.QWizard):
         self.jobStatusIcons=[]
         for filename in [':/mini/mini/clock.png', ':/mini/mini/arrow_refresh.png', ':/mini/mini/tick.png', ':/mini/mini/cross.png']:
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(_fromUtf8(filename)), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            icon.addPixmap(QtGui.QPixmap(filename), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             self.jobStatusIcons.append(icon)
         self.startMonitor()
         

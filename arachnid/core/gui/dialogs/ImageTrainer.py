@@ -3,7 +3,7 @@
 .. Created on Dec 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from MontageViewer import MainWindow as MontageWindow, _fromUtf8
+from MontageViewer import MainWindow as MontageWindow
 from ..util.qt4_loader import QtCore, QtGui, qtSlot
 from arachnid.app import autopart
 from arachnid.core.metadata import spider_params, format, format_utility
@@ -35,12 +35,12 @@ class MainWindow(MontageWindow):
         # Support prediction abstain - draw new random image
         # How to save model?
         
-        self.ui.predictAction = QtGui.QAction(QtGui.QIcon(QtGui.QPixmap(_fromUtf8(":/mini/mini/chart_organisation.png"))), "Train", self)
+        self.ui.predictAction = QtGui.QAction(QtGui.QIcon(QtGui.QPixmap(":/mini/mini/chart_organisation.png")), "Train", self)
         self.ui.toolBar.insertAction(self.ui.actionHelp, self.ui.predictAction)
         self.ui.predictAction.setEnabled(False)
         self.connect(self.ui.predictAction, QtCore.SIGNAL("triggered()"), self.predict)
         
-        self.ui.displayPredictionAction = QtGui.QAction(QtGui.QIcon(QtGui.QPixmap(_fromUtf8(":/mini/mini/application_view_tile.png"))), "Display Prediction", self)
+        self.ui.displayPredictionAction = QtGui.QAction(QtGui.QIcon(QtGui.QPixmap(":/mini/mini/application_view_tile.png")), "Display Prediction", self)
         self.ui.toolBar.insertAction(self.ui.actionHelp, self.ui.displayPredictionAction)
         self.ui.displayPredictionAction.setEnabled(False)
         self.ui.displayPredictionAction.setCheckable(True)

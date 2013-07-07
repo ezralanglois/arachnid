@@ -1,9 +1,24 @@
+''' Load QT Python binding either PyQt or PySide
 
+This interface allows the use of either PyQt or PySide when interfacing
+with the QT graphical user interface (GUI) library.
+
+.. note::
+    
+    In order to be compatible between interfaces, only API 2 in PyQ is supported. In
+    this API, all objects are Pythonic and QT analogs (e.g. QVariant, QString) are 
+    not supported.
+    
+    For more detail see http://qt-project.org/wiki/Differences_Between_PySide_and_PyQt.
+
+.. Created on Jul 6, 2013
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
+'''
 
 try: 
     from PySide import QtGui, QtCore
     QtGui, QtCore;
-    raise ImportError, "Dum"
+    #raise ImportError, "Dum"
     qtSignal=QtCore.Signal
     qtSlot= QtCore.Slot
     qtProperty= QtCore.Property
