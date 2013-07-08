@@ -1,4 +1,4 @@
-
+C -*-fortran-*-
 C++*********************************************************************
 C                                                                      *
 C CCRS.F         NEW FROM CCRS_* FOR SPEEDUP       FEB 08 ARDEAN LEITH *

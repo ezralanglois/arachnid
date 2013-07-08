@@ -1,4 +1,4 @@
-
+C -*-fortran-*-
 C++*********************************************************************
 C
 C RTSQ.F     BUFOUT RETURN ADDED, SPEEDED UP      12/28/06 ArDean Leith

@@ -1,4 +1,4 @@
-
+C -*-fortran-*-
 C ++********************************************************************
 C                                                                      *
 C  PREPCUB.F          REWRITTEN                 SEP 2003 PAWEL PENCZYK                                                                   *
