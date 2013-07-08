@@ -72,6 +72,7 @@ class Dialog(QtGui.QDialog):
             if ret == QtGui.QMessageBox.No: filename = ""
         if filename == "":
             filename = QtGui.QFileDialog.getSaveFileName(self, self.tr("Save config file as"), QtCore.QDir.currentPath(), "Config files (*.cfg)")
+            if isinstance(filename, tuple): filename=filename[0]
             if filename: 
                 self.setWindowTitle(filename)
             else:
@@ -98,7 +99,7 @@ class Dialog(QtGui.QDialog):
             property.setView(treeView)
             tab = QtGui.QWidget(self)
             horizontalLayout = QtGui.QHBoxLayout(tab)
-            horizontalLayout.setMargin(0)
+            horizontalLayout.setContentsMargins(0, 0, 0, 0)
             horizontalLayout.addWidget(treeView)
         else: 
             _logger.debug("Add first property: %s - %d"%(name, self.ui.tabWidget.count()))
@@ -132,7 +133,9 @@ class Dialog(QtGui.QDialog):
             if metaObjectFrom.className() == 'QWidget': break
             for i in xrange(metaObjectFrom.propertyOffset(), metaObjectFrom.propertyCount()):
                 name = metaObjectFrom.property(i).name()
+                if name == 'editTriggers': continue
                 _logger.debug("Copy tree view: "+str(name))
+                print '**', name, self.ui.propertyTreeView.property(name)
                 treeView.setProperty(name, self.ui.propertyTreeView.property(name))
             metaObjectFrom = metaObjectFrom.superClass()
             metaObjectTo = metaObjectTo.superClass()
