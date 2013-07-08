@@ -1,4 +1,4 @@
-
+C -*-fortran-*-
 C++*********************************************************************
 C
 C APCC.F         NEW FROM APSHIFT FOR SPEEDUP       FEB 08 ARDEAN LEITH
