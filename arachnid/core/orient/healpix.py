@@ -4,14 +4,14 @@ It works with Euler angles in the ZYZ convention.
 
         Resolution     nside       total    theta      half sphere  half sphere sum
         ----------     -----       -----    -----      -----------  ---------------
-            1            2           48     29.32            28            28
-            2            4          192     14.66           104           132
-            3            8          768      7.33           400           532
-            4           16         3072      3.66          1568          2100
-            5           32        12288      1.83          6208          8308
-            6           64        49152      0.92         24704         33012
-            7          128       196608      0.46         98560        131572
-            8          256       786432      0.23        393728        525300
+            1          2           48       29.32      28           28
+            2          4           192      14.66      104          132
+            3          8           768      7.33       400          532
+            4          16          3072     3.66       1568         2100
+            5          32          12288    1.83       6208         8308
+            6          64          49152    0.92       24704        33012
+            7          128         196608   0.46       98560        131572
+            8          256         786432   0.23       393728       525300
 
 .. Created on Aug 17, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -88,30 +88,30 @@ def pmod(x, y):
 def nside2pixarea(resolution, degrees=False):
     """Give pixel area given nside.
 
-    :Parameters:
+    .. note::
+        
+        Raise a ValueError exception if nside is not valid.
+
+    Examples:
     
-        resolution : int
-                     nside = 2**resolution
-        degrees : bool
-                  if True, returns pixel area in square degrees, in square radians otherwise
-
-    :Returns:
-    
-        pixarea : float
-                  pixel area in suqare radian or square degree
-
-    Notes
-    -----
-    Raise a ValueError exception if nside is not valid.
-
-    Examples
-    --------
     >>> import healpy as hpy
     >>> hpy.nside2pixarea(128, degrees = True)
     0.2098234113027917
 
     >>> hpy.nside2pixarea(256)
     1.5978966540475428e-05
+
+    :Parameters:
+
+    resolution : int
+                 nside = 2**resolution
+    degrees : bool
+              if True, returns pixel area in square degrees, in square radians otherwise
+
+    :Returns:
+
+    pixarea : float
+              pixel area in suqare radian or square degree
     """
     
     nsample = pow(2, resolution)

@@ -36,8 +36,11 @@ Dependencies
 ============
 
 The required dependencies to build the software are Python >= 2.6,
-setuptools, Numpy >= 1.3, SciPy >= 0.7, matplotlib>=1.1.0, mpi4py>=1.2.2,
-and working C/C++ and Fortran compilers.
+setuptools, Numpy >= 1.3, SciPy >= 0.7, matplotlib>=1.1.0, mpi4py>=1.2.2, 
+FFTW3 or MKL, and both C/C++ and Fortran compilers.
+
+It is also recommended you install NumPy and SciPy with an optimized Blas
+library such as MKL, ACML, ATLAS or GOTOBlas.
 
 To build the documentation, Sphinx>=1.0.4 is required.
 

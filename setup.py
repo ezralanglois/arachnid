@@ -199,6 +199,8 @@ from distutils import log
 import os, fnmatch,sys
 import arachnid, arachnid.setup
 
+# QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
+
 # Classifiers http://pypi.python.org/pypi?%3Aaction=list_classifiers
 
 def build_description(package, extra=None):
