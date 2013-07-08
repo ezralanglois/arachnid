@@ -1,45 +1,501 @@
+!--*********************************************************************
+! 2D filters
+!--*********************************************************************
+		SUBROUTINE GAUSSIAN_LP_2D(B,LSD,N2R,SIGMA,N2S,NX,NY,IRTFLG)
+		REAL             		:: SIGMA
+        REAL             		:: B(LSD,N2R)
+		INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
+
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,NX,NY,SIGMA
+!f2py intent(hide) :: LSD,N2R
+!f2py intent(out) :: IRTFLG
+	   PARM1=REAL(SIGMA)
+	   PARM2 = 0.0
+	   IF (PARM1 <  0.0 .OR. PARM1 > 0.5) PARM1 = 0.5*PARM1/(NX/2)
+	   IF (PARM2 == 0.0)                  PARM2 = PARM1
+	   IF (PARM2 <  0.0 .OR. PARM2 > 0.5) PARM1 = 0.5*PARM2/(NY/2)
+	   PARM   = PARM1**2
+	   PARM22 = PARM2**2
+	   NR2    = N2R / 2
+	   X1     = FLOAT(N2S/2)**2
+	   Y1     = FLOAT(NR2)  **2
+
+	IRTFLG=0
+	IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
+	   AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
+     	          SUM(B(1,2:NY-1)) + SUM(B(NX,2:NY-1)) ) / &
+     		  REAL(2*(NX+NY)-4)
+
+!$omp      parallel do private(i,j)
+	   DO J=1,N2R
+	      DO I=NX+1,N2S
+	         B(I,J) = AVE
+	      ENDDO
+	   ENDDO
+
+!$omp      parallel do private(i,j)
+	   DO J=NY+1,N2R
+	      DO I=1,NX
+	         B(I,J) = AVE
+	      ENDDO
+	   ENDDO
+	ENDIF
+
+	!       FORWARD FFT
+	INV=1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	! APPLY FILTER
+
+	!$omp   parallel do private(i,j,ix,iy,f,fpe,fse,ordt,parmt,f2)
+	DO J=1,N2R
+	   IY = (J-1)
+	   IF (IY > NR2) IY = IY-N2R
+
+	   DO I=1,LSD,2
+	      IX = (I-1)/2
+
+	      F = 0.125*(FLOAT(IX*IX)/X1/PARM + &
+                           FLOAT(IY*IY)/Y1/PARM22)
+
+	      IF (F < 16.0)  THEN
+	          F        = EXP(-F)
+              B(I,J)   = B(I,J)  *F
+              B(I+1,J) = B(I+1,J)*F
+	      ELSE
+              B(I,J)   = 0.0
+              B(I+1,J) = 0.0
+	      ENDIF
+	   ENDDO
+	ENDDO
+
+	INV = -1
+	CALL FMRS_2(B,N2S,N2R,INV)
+
+	END
 
 
-C--*********************************************************************
-		SUBROUTINE FILTER_2D(BUFI,IOPTT,BFPS,PARM1,PARM2,TEMP
-     &						 B, LSD,N2X,N2Y, NX,NY,IRTFLG)
+!--*********************************************************************
+		 SUBROUTINE GAUSSIAN_HP_2D(B,LSD,N2R,SIGMA,N2S,NX,NY,IRTFLG)
+		 REAL             		:: SIGMA
+         REAL             		:: B(LSD,N2R)
+		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
 
-		REAL             		:: BFPS(4)
-		REAL             		:: PARM1,PARM2,TEMP
-        REAL             		:: B(LSD,N2Y)
-		INTEGER          		:: LSD,N2X,N2Y,NX,NY
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,NX,NY,SIGMA
+!f2py intent(hide) :: LSD,N2R
+!f2py intent(out) :: IRTFLG
+	    PARM1=REAL(SIGMA)
+	    PARM2 = 0.0
+	    IF (PARM1 <  0.0 .OR. PARM1 > 0.5) PARM1 = 0.5*PARM1/(NX/2)
+	    IF (PARM2 == 0.0)                  PARM2 = PARM1
+	    IF (PARM2 <  0.0 .OR. PARM2 > 0.5) PARM1 = 0.5*PARM2/(NY/2)
+	    PARM   = PARM1**2
+	    PARM22 = PARM2**2
+	    NR2    = N2R / 2
+	    X1     = FLOAT(N2S/2)**2
+	    Y1     = FLOAT(NR2)  **2
 
-cf2py threadsafe
-cf2py intent(inplace) :: B
-cf2py intent(in) :: IOPTT,LSD,N2X,N2Y,NX,NY
-cf2py intent(hide) :: LSD,N2Y
-cf2py intent(out) :: IRTFLG
+		IRTFLG=0
+		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
+	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
+     	          SUM(B(1,2:NY-1)) + SUM(B(NX,2:NY-1)) ) / &
+     		  REAL(2*(NX+NY)-4)
 
-              CALL FQ_BUF(IOPTT,BFPS,PARM1T,PARM2T,TEMPT,
-     &                    B, LSD,N2X,N2Y, NX,NY, IRTFLG)
+!$omp      parallel do private(i,j)
+			DO J=1,N2R
+				DO I=NX+1,N2S
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
 
+!$omp      parallel do private(i,j)
+		   	DO J=NY+1,N2R
+				DO I=1,NX
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+		ENDIF
 
-		END
+	!       FORWARD FFT
+	INV=1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
 
-C--*********************************************************************
-	SUBROUTINE FILTER_3D(B,LSD,N2S,N2R,N2L,NX,NY,NZ,IOPT)
+	! APPLY FILTER
+	AVG = B(1,1)
+	!$omp   parallel do private(i,j,ix,iy,f,fpe,fse,ordt,parmt,f2)
+	DO J=1,N2R
+	   IY = (J-1)
+	   IF (IY > NR2) IY = IY-N2R
+
+	   DO I=1,LSD,2
+	      IX = (I-1)/2
+
+	        IF (IX .NE. 0 .OR. IY .NE. 0)  THEN
+	            F=0.125*(FLOAT(IX*IX)/X1/PARM + &
+                            FLOAT(IY*IY)/Y1/PARM22)
+	            IF (F < 16.0)  THEN
+	                   F        = 1.0 - EXP(-F)
+                       B(I,J)   = B(I,J)  *F
+                       B(I+1,J) = B(I+1,J)*F
+	            ENDIF
+	         ENDIF
+	   ENDDO
+	ENDDO
+
+	B(1,1) = AVG
+	INV = -1
+	CALL FMRS_2(B,N2S,N2R,INV)
+
+	END
+
+	!--*********************************************************************
+		 SUBROUTINE BUTTER_LP_2D(B,LSD,N2R,LCUT,HCUT,N2S,NX,NY,IRTFLG)
+		 REAL             		:: LCUT,HCUT
+         REAL             		:: B(LSD,N2R)
+		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
+
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,NX,NY,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R
+!f2py intent(out) :: IRTFLG
+	    EPS = 0.882
+	    AA  = 10.624
+	    ORD = 2.0 * ALOG10(EPS / SQRT(AA**2-1.0) )
+	    ORD   = ORD / ALOG10(LCUT / HCUT)
+	    PARM1 = LCUT / (EPS)**(2./ORD)
+	    PARM2 = 0.0
+
+	    PARM   = PARM1**2
+	    PARM22 = PARM2**2
+	    NR2    = N2R / 2
+	    X1     = FLOAT(N2S/2)**2
+	    Y1     = FLOAT(NR2)  **2
+
+		IRTFLG=0
+		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
+	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
+     	          SUM(B(1,2:NY-1)) + SUM(B(NX,2:NY-1)) ) / &
+     		  REAL(2*(NX+NY)-4)
+
+!$omp      parallel do private(i,j)
+			DO J=1,N2R
+				DO I=NX+1,N2S
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+
+!$omp      parallel do private(i,j)
+		   	DO J=NY+1,N2R
+				DO I=1,NX
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+		ENDIF
+
+	!       FORWARD FFT
+	INV=1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	! APPLY FILTER
+	!$omp   parallel do private(i,j,ix,iy,f,fpe,fse,ordt,parmt,f2)
+	DO J=1,N2R
+	   IY = (J-1)
+	   IF (IY > NR2) IY = IY-N2R
+
+	   DO I=1,LSD,2
+	      IX = (I-1)/2
+ 	         F        = 0.5*SQRT(FLOAT(IX*IX)/X1 + &
+                                    FLOAT(IY*IY)/Y1)
+
+ 	         F        = SQRT(1.0/(1.0+(F/PARM1)**ORD))
+                 B(I,J)   = B(I,J)  *F
+                 B(I+1,J) = B(I+1,J)*F
+	   ENDDO
+	ENDDO
+
+	INV = -1
+	CALL FMRS_2(B,N2S,N2R,INV)
+
+	END
+
+	!--*********************************************************************
+		 SUBROUTINE BUTTER_HP_2D(B,LSD,N2R,LCUT,HCUT,N2S,NX,NY,IRTFLG)
+		 REAL             		:: LCUT,HCUT
+         REAL             		:: B(LSD,N2R)
+		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
+
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,NX,NY,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R
+!f2py intent(out) :: IRTFLG
+	    EPS = 0.882
+	    AA  = 10.624
+	    ORD = 2.0 * ALOG10(EPS / SQRT(AA**2-1.0) )
+	    ORD   = ORD / ALOG10(LCUT / HCUT)
+	    PARM1 = LCUT / (EPS)**(2./ORD)
+	    PARM2 = 0.0
+	    PARM   = PARM1**2
+	    PARM22 = PARM2**2
+	    NR2    = N2R / 2
+	    X1     = FLOAT(N2S/2)**2
+	    Y1     = FLOAT(NR2)  **2
+
+		IRTFLG=0
+		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
+	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
+     	          SUM(B(1,2:NY-1)) + SUM(B(NX,2:NY-1)) ) / &
+     		  REAL(2*(NX+NY)-4)
+
+!$omp      parallel do private(i,j)
+			DO J=1,N2R
+				DO I=NX+1,N2S
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+
+!$omp      parallel do private(i,j)
+		   	DO J=NY+1,N2R
+				DO I=1,NX
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+		ENDIF
+
+	!       FORWARD FFT
+	INV=1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	! APPLY FILTER
+	AVG = B(1,1)
+	!$omp   parallel do private(i,j,ix,iy,f,fpe,fse,ordt,parmt,f2)
+	DO J=1,N2R
+	   IY = (J-1)
+	   IF (IY > NR2) IY = IY-N2R
+
+	   DO I=1,LSD,2
+	      IX = (I-1)/2
+
+            IF (IX.NE.0 .OR. IY.NE. 0) THEN
+ 	            F = 0.5*SQRT(FLOAT(IX*IX)/X1 + &
+                                FLOAT(IY*IY)/Y1)
+ 	            F = (1.0-SQRT(1.0/(1.0+(F/PARM1)**ORD)))
+
+                    B(I,J)   = B(I,J)*F
+                    B(I+1,J) = B(I+1,J)*F
+ 	         ENDIF
+	   ENDDO
+	ENDDO
+
+	B(1,1) = AVG
+	INV = -1
+	CALL FMRS_2(B,N2S,N2R,INV)
+
+	END
+
+!--*********************************************************************
+		 SUBROUTINE RCOS_LP_2D(B,LSD,N2R,LCUT,HCUT,N2S,NX,NY,IRTFLG)
+		 REAL             		:: LCUT,HCUT
+         REAL             		:: B(LSD,N2R)
+		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
+         REAL, PARAMETER  :: PI = 3.14159265358979323846
+
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,NX,NY,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R
+!f2py intent(out) :: IRTFLG
+	    X1     = FLOAT(N2S/2)**2
+	    Y1     = FLOAT(N2R / 2)  **2
+	    NR2    = N2R / 2
+
+		IRTFLG=0
+		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
+	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
+     	          SUM(B(1,2:NY-1)) + SUM(B(NX,2:NY-1)) ) / &
+     		  REAL(2*(NX+NY)-4)
+
+!$omp      parallel do private(i,j)
+			DO J=1,N2R
+				DO I=NX+1,N2S
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+
+!$omp      parallel do private(i,j)
+		   	DO J=NY+1,N2R
+				DO I=1,NX
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+		ENDIF
+
+	!       FORWARD FFT
+	INV=1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	! APPLY FILTER
+	!$omp   parallel do private(i,j,ix,iy,f,fpe,fse,f2)
+	DO J=1,N2R
+	   IY = (J-1)
+	   IF (IY > NR2) IY = IY-N2R
+
+	   DO I=1,LSD,2
+	      IX = (I-1)/2
+	      F = 0.5*SQRT(FLOAT(IX*IX)/X1 + FLOAT(IY*IY)/Y1)
+	         F = (F-LCUT) / (HCUT-LCUT)
+                 IF (F < 0) THEN
+	            F2 = 1
+                 ELSEIF (F > 1) THEN
+	            F2 = 0
+                 ELSE
+	            F2 = 0.5 * (COS(PI*F)+1)
+	         ENDIF
+                 B(I,J)   = B(I,J)  *F2
+                 B(I+1,J) = B(I+1,J)*F2
+	   ENDDO
+	ENDDO
+
+	INV = -1
+	CALL FMRS_2(B,N2S,N2R,INV)
+
+	END
+
+!--*********************************************************************
+		 SUBROUTINE RCOS_HP_2D(B,LSD,N2R,LCUT,HCUT,N2S,NX,NY,IRTFLG)
+		 REAL             		:: LCUT,HCUT
+         REAL             		:: B(LSD,N2R)
+		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
+		 DOUBLE PRECISION :: AVE
+         REAL, PARAMETER  :: PI = 3.14159265358979323846
+
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,NX,NY,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R
+!f2py intent(out) :: IRTFLG
+	    X1     = FLOAT(N2S/2)**2
+	    Y1     = FLOAT(N2R / 2)  **2
+	    NR2    = N2R / 2
+
+		IRTFLG=0
+		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
+	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
+     	          SUM(B(1,2:NY-1)) + SUM(B(NX,2:NY-1)) ) / &
+     		  REAL(2*(NX+NY)-4)
+
+!$omp      parallel do private(i,j)
+			DO J=1,N2R
+				DO I=NX+1,N2S
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+
+!$omp      parallel do private(i,j)
+		   	DO J=NY+1,N2R
+				DO I=1,NX
+					B(I,J) = AVE
+				ENDDO
+			ENDDO
+		ENDIF
+
+	!       FORWARD FFT
+	INV=1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	! APPLY FILTER
+	AVG = B(1,1)
+	!$omp   parallel do private(i,j,ix,iy,f,fpe,fse,f2)
+	DO J=1,N2R
+	   IY = (J-1)
+	   IF (IY > NR2) IY = IY-N2R
+
+	   DO I=1,LSD,2
+	      IX = (I-1)/2
+
+	         F = 0.5*SQRT(FLOAT(IX*IX)/X1 + &
+                             FLOAT(IY*IY)/Y1)
+	         F = (F-LCUT) / (HCUT-LCUT)
+
+                 IF (F < 0) THEN
+                    F2 = 0
+                 ELSEIF (F > 1) THEN
+	            F2 = 1
+                 ELSE
+	            F2 = 0.5 * (-COS(PI*F)+1)
+	         ENDIF
+                 B(I,J)   = B(I,J)  *F2
+                 B(I+1,J) = B(I+1,J)*F2
+	   ENDDO
+	ENDDO
+
+	B(1,1) = AVG
+	INV = -1
+	CALL FMRS_2(B,N2S,N2R,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	END
+
+!--*********************************************************************
+! 3D filters
+!--*********************************************************************
+
+!--*********************************************************************
+	SUBROUTINE GAUSSIAN_LP_3D(B,LSD,N2R,N2L,SIGMA,N2S,NX,NY,NZ,IRTFLG)
 
 	REAL             :: B(LSD,N2R,N2L)
 	DOUBLE PRECISION :: AVE
 	REAL             :: F,F2
 	REAL             :: FP, FS
-	REAL             :: FP2, FS2
+	REAL             :: FP2, FS2,SIGMA
 
-C       BORDER PADDING
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,N2L,NX,NY,NZ,SIGMA
+!f2py intent(hide) :: LSD,N2R,N2L
+!f2py intent(out) :: IRTFLG
+!       BORDER PADDING
 
 	IF (N2S.NE.NX .AND. N2R.NE.NY .AND. N2L.NE.NZ)  THEN
 
-          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) +
-     &           SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) +
-     &           SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1)))
-     &		/REAL(4*(NX+NY+NZ)-16)
+          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) + &
+                SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) + &
+                SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1))) &
+     		/REAL(4*(NX+NY+NZ)-16)
 
-c$omp      parallel do private(i,j,k),reduction(+:ave)
+!$omp      parallel do private(i,j,k),reduction(+:ave)
 	   DO K=1,NZ
 	      DO J=1,NY
 	         DO I=1,NX
@@ -50,7 +506,7 @@ c$omp      parallel do private(i,j,k),reduction(+:ave)
 
 	   AVE = AVE/FLOAT(NX)/FLOAT(NY)/FLOAT(NZ)
 
-c$omp      parallel do private(i,j,k)
+!$omp      parallel do private(i,j,k)
 	   DO K=1,NZ
 	      DO J=1,N2R
 	         DO I=NX+1,N2S
@@ -64,7 +520,7 @@ c$omp      parallel do private(i,j,k)
 	      ENDDO
 	   ENDDO
 
-c$omp      parallel do private(i,j,k)
+!$omp      parallel do private(i,j,k)
 	   DO K=NZ+1,N2L
 	      DO J=1,N2R
 	         DO I=1,N2S
@@ -77,57 +533,12 @@ c$omp      parallel do private(i,j,k)
 	INV = 1
 	CALL FMRS_3(B,N2S,N2R,N2L,INV)
 	IF (INV == 0) THEN
-	   IOPT = -1
+	   IRTFLG = -1
 	   RETURN
 	ENDIF
 
-	IF (IOPT==7 .OR. IOPT==8 .OR. IOPT==9 .OR. IOPT==10) THEN
-C          BUTTERWORTH FILTER OR  RAISED COSINE FILTER **************
-	   EPS   =  0.882
-	   AA    = 10.624
-
-           CALL RDPRM2S(FP,FS,NOT_USED,
-     &        'LOWER & UPPER LIMITING FREQ. (IN FREQ OR PIXEL UNITS)',
-     &         IRTFLG)
-           IF (IRTFLG .NE. 0) RETURN
-
-	   IF (FP > 0.5) THEN
-              FP2 = FP / NX
-           ELSE
-              FP2 = FP
-	   ENDIF
-           IF (FS > 0.5) THEN
-              FS2 = FS / NX
-           ELSE
-              FS2 = FS
-           ENDIF
-
-	   ORD   = 2. * ALOG10(EPS / SQRT(AA**2-1.0))
-	   ORD   = ORD/ALOG10(FP2 / FS2)
-	   PARM1 = FP2/(EPS)**(2. / ORD)
-
-	ELSE
-
-           PARM1 = 0.25
-	   CALL RDPRM1S(PARM1,NOT_USED,
-     &         'FILTER RADIUS (IN FREQUENCY OR PIXEL UNITS)',IRTFLG)
-           IF (IRTFLG .NE. 0) RETURN
-
-           IF (PARM1<0.0 .OR. PARM1>0.5) PARM1 = 0.5 * PARM1 / (NX/2)
-
-
-	   IF (IOPT==5 .OR. IOPT==6)  THEN
-C             FERMI DISTRIBUTION FILTER ********************
-
-	      CALL RDPRM1S(TEMP,NOT_USED,
-     &                    'TEMPERATURE (0=CUTOFF)',IRTFLG)
-              IF (IRTFLG .NE. 0) RETURN
-
-C             EXPONENTIAL FOR HIGH-PASS OPTION
-	      IF(IOPT == 6) TEMP = -TEMP
-	   ENDIF
-        ENDIF
-
+	PARM1=SIGMA
+    IF (PARM1<0.0 .OR. PARM1>0.5) PARM1 = 0.5 * PARM1 / (NX/2)
 	NR2  = N2R / 2
 	NL2  = N2L / 2
 	X1   = FLOAT(N2S / 2)**2
@@ -135,10 +546,7 @@ C             EXPONENTIAL FOR HIGH-PASS OPTION
 	Z1   = FLOAT(NL2)**2
 	PARM = PARM1**2
 
-C       KEEP ZERO TERM FOR HIGH PASS OPTIONS
-	AVG = B(1,1,1)
-
-c$omp   parallel do private(i,j,k,ix,iy,iz,f)
+!$omp   parallel do private(i,j,k,ix,iy,iz,f)
 	DO K=1,N2L
 	   IZ = K-1
 	   IF (IZ > NL2)  IZ = IZ-N2L
@@ -150,29 +558,8 @@ c$omp   parallel do private(i,j,k,ix,iy,iz,f)
 	      DO  I=1,LSD,2
 	         IX = (I-1) / 2
 
-                 SELECT CASE(IOPT)
-
-                 CASE (1)    ! LOWPASS *****************************
-                 IF (0.25*(FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1 +
-     &               FLOAT(IZ*IZ)/Z1) > PARM)  THEN
-	            B(I,J,K)   = 0.0
-	            B(I+1,J,K) = 0.0
-	         ENDIF
-
-
-                 CASE (2)    !  HIGH PASS **************************
-
-                IF ( 0.25*(FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+
-     &              FLOAT(IZ*IZ)/Z1) <= PARM)  THEN
-	            B(I,J,K)   = 0.0
-	            B(I+1,J,K) = 0.0
-	         ENDIF
-
-
-                 CASE (3)    !  GAUSSIAN LOW PASS ******************
-
- 	         F = 0.125*(FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+
-     &                      FLOAT(IZ*IZ)/Z1)/PARM
+	 	     F = 0.125*(FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+ &
+                           FLOAT(IZ*IZ)/Z1)/PARM
 
 	         IF (F < 16.0)  THEN
 	            F          = EXP(-F)
@@ -182,55 +569,473 @@ c$omp   parallel do private(i,j,k,ix,iy,iz,f)
                     B(I,J,K)   = 0.0
                     B(I+1,J,K) = 0.0
 	         ENDIF
+              ENDDO
+	   ENDDO
+	ENDDO
+	INV = -1
+	CALL  FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+	END
 
+	!--*********************************************************************
+	SUBROUTINE GAUSSIAN_HP_3D(B,LSD,N2R,N2L,SIGMA,N2S,NX,NY,NZ,IRTFLG)
 
-                 CASE (4)    !  GAUSSIAN HIGH PASS *****************
+	REAL             :: B(LSD,N2R,N2L)
+	DOUBLE PRECISION :: AVE
+	REAL             :: F,F2
+	REAL             :: FP, FS
+	REAL             :: FP2, FS2,SIGMA
 
-                 F = 0.125* (FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+
-     &                       FLOAT(IZ*IZ)/Z1)/PARM
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,N2L,NX,NY,NZ,SIGMA
+!f2py intent(hide) :: LSD,N2R,N2L
+!f2py intent(out) :: IRTFLG
+!       BORDER PADDING
+
+	IF (N2S.NE.NX .AND. N2R.NE.NY .AND. N2L.NE.NZ)  THEN
+
+          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) + &
+                SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) + &
+                SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1))) &
+     		/REAL(4*(NX+NY+NZ)-16)
+
+!$omp      parallel do private(i,j,k),reduction(+:ave)
+	   DO K=1,NZ
+	      DO J=1,NY
+	         DO I=1,NX
+	            AVE = AVE + B(I,J,K)
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+	   AVE = AVE/FLOAT(NX)/FLOAT(NY)/FLOAT(NZ)
+
+!$omp      parallel do private(i,j,k)
+	   DO K=1,NZ
+	      DO J=1,N2R
+	         DO I=NX+1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	      DO J=NY+1,N2R
+	         DO I=1,NX
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+!$omp      parallel do private(i,j,k)
+	   DO K=NZ+1,N2L
+	      DO J=1,N2R
+	         DO I=1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+	ENDIF
+
+	INV = 1
+	CALL FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	PARM1=SIGMA
+    IF (PARM1<0.0 .OR. PARM1>0.5) PARM1 = 0.5 * PARM1 / (NX/2)
+	NR2  = N2R / 2
+	NL2  = N2L / 2
+	X1   = FLOAT(N2S / 2)**2
+	Y1   = FLOAT(NR2)**2
+	Z1   = FLOAT(NL2)**2
+	PARM = PARM1**2
+
+	AVG = B(1,1,1)
+!$omp   parallel do private(i,j,k,ix,iy,iz,f)
+	DO K=1,N2L
+	   IZ = K-1
+	   IF (IZ > NL2)  IZ = IZ-N2L
+
+	   DO J=1,N2R
+	      IY = J-1
+	      IF (IY > NR2)  IY = IY-N2R
+
+	      DO  I=1,LSD,2
+	         IX = (I-1) / 2
+
+             F = 0.125* (FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+ &
+                            FLOAT(IZ*IZ)/Z1)/PARM
 
 	         IF (F < 16.0)  THEN
 	            F          = (1.0-EXP(-F))
 	            B(I,J,K)   = B(I,J,K)*F
 	            B(I+1,J,K) = B(I+1,J,K)*F
 	         ENDIF
+              ENDDO
+	   ENDDO
+	ENDDO
+	B(1,1,1) = AVG
+	INV = -1
+	CALL  FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+	END
 
+	!--*********************************************************************
+	SUBROUTINE BUTTER_LP_3D(B,LSD,N2R,N2L,LCUT,HCUT,N2S,NX,NY,NZ,IRTFLG)
 
-                 CASE (5,6)  !  FERMI DISTRIBUTION FILTER **********
+	REAL             :: B(LSD,N2R,N2L)
+	DOUBLE PRECISION :: AVE
+	REAL             :: F,F2
+	REAL             :: FP, FS
+	REAL             :: FP2, FS2
+	REAL             :: LCUT,HCUT
 
-                 F = (0.5*SQRT(FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+
-     &                FLOAT(IZ*IZ)/Z1)-PARM1)/TEMP
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,N2L,NX,NY,NZ,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R,N2L
+!f2py intent(out) :: IRTFLG
+!       BORDER PADDING
 
-	         F          = AMIN1(AMAX1(F,-10.0),10.0)
-	         F          = (1.0/(1.0+EXP(F)))
-	         B(I,J,K)   = B(I,J,K)*F
-	         B(I+1,J,K) = B(I+1,J,K)*F
+	IF (N2S.NE.NX .AND. N2R.NE.NY .AND. N2L.NE.NZ)  THEN
 
+          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) + &
+                SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) + &
+                SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1))) &
+     		/REAL(4*(NX+NY+NZ)-16)
 
-                 CASE (7)    !  BUTTERWORTH  LOWPASS FILTER ********
+!$omp      parallel do private(i,j,k),reduction(+:ave)
+	   DO K=1,NZ
+	      DO J=1,NY
+	         DO I=1,NX
+	            AVE = AVE + B(I,J,K)
+	         ENDDO
+	      ENDDO
+	   ENDDO
 
-                 F = 0.5*SQRT(
-     &	            FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
+	   AVE = AVE/FLOAT(NX)/FLOAT(NY)/FLOAT(NZ)
+
+!$omp      parallel do private(i,j,k)
+	   DO K=1,NZ
+	      DO J=1,N2R
+	         DO I=NX+1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	      DO J=NY+1,N2R
+	         DO I=1,NX
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+!$omp      parallel do private(i,j,k)
+	   DO K=NZ+1,N2L
+	      DO J=1,N2R
+	         DO I=1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+	ENDIF
+
+	INV = 1
+	CALL FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	EPS   =  0.882
+	AA    = 10.624
+	FP=LCUT
+	FS=HCUT
+	IF (FP > 0.5) THEN
+        FP2 = FP / NX
+    ELSE
+        FP2 = FP
+	ENDIF
+    IF (FS > 0.5) THEN
+        FS2 = FS / NX
+    ELSE
+        FS2 = FS
+    ENDIF
+
+	ORD   = 2. * ALOG10(EPS / SQRT(AA**2-1.0))
+	ORD   = ORD/ALOG10(FP2 / FS2)
+	PARM1 = FP2/(EPS)**(2. / ORD)
+
+	NR2  = N2R / 2
+	NL2  = N2L / 2
+	X1   = FLOAT(N2S / 2)**2
+	Y1   = FLOAT(NR2)**2
+	Z1   = FLOAT(NL2)**2
+	PARM = PARM1**2
+
+!$omp   parallel do private(i,j,k,ix,iy,iz,f)
+	DO K=1,N2L
+	   IZ = K-1
+	   IF (IZ > NL2)  IZ = IZ-N2L
+
+	   DO J=1,N2R
+	      IY = J-1
+	      IF (IY > NR2)  IY = IY-N2R
+
+	      DO  I=1,LSD,2
+	         IX = (I-1) / 2
+
+             F = 0.5*SQRT( &
+     	            FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
 	         F          = SQRT(1.0/(1.0+(F/PARM1)**ORD))
 
 	         B(I,J,K)   = B(I,J,K)   * F
 	         B(I+1,J,K) = B(I+1,J,K) * F
+              ENDDO
+	   ENDDO
+	ENDDO
+	INV = -1
+	CALL  FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+	END
 
+	!--*********************************************************************
+	SUBROUTINE BUTTER_HP_3D(B,LSD,N2R,N2L,LCUT,HCUT,N2S,NX,NY,NZ,IRTFLG)
 
-                 CASE (8)    !  BUTTERWORTH HIGIPASS FILTER *********
+	REAL             :: B(LSD,N2R,N2L)
+	DOUBLE PRECISION :: AVE
+	REAL             :: F,F2
+	REAL             :: FP, FS
+	REAL             :: FP2, FS2
+	REAL             :: LCUT, HCUT
 
-                 F = 0.5*SQRT(
-     &	            FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,N2L,NX,NY,NZ,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R,N2L
+!f2py intent(out) :: IRTFLG
+!       BORDER PADDING
+
+	IF (N2S.NE.NX .AND. N2R.NE.NY .AND. N2L.NE.NZ)  THEN
+
+          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) + &
+                SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) + &
+                SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1))) &
+     		/REAL(4*(NX+NY+NZ)-16)
+
+!$omp      parallel do private(i,j,k),reduction(+:ave)
+	   DO K=1,NZ
+	      DO J=1,NY
+	         DO I=1,NX
+	            AVE = AVE + B(I,J,K)
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+	   AVE = AVE/FLOAT(NX)/FLOAT(NY)/FLOAT(NZ)
+
+!$omp      parallel do private(i,j,k)
+	   DO K=1,NZ
+	      DO J=1,N2R
+	         DO I=NX+1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	      DO J=NY+1,N2R
+	         DO I=1,NX
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+!$omp      parallel do private(i,j,k)
+	   DO K=NZ+1,N2L
+	      DO J=1,N2R
+	         DO I=1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+	ENDIF
+
+	INV = 1
+	CALL FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	EPS   =  0.882
+	AA    = 10.624
+	FP=LCUT
+	FS=HCUT
+	IF (FP > 0.5) THEN
+        FP2 = FP / NX
+    ELSE
+        FP2 = FP
+	ENDIF
+    IF (FS > 0.5) THEN
+        FS2 = FS / NX
+    ELSE
+        FS2 = FS
+    ENDIF
+
+	ORD   = 2. * ALOG10(EPS / SQRT(AA**2-1.0))
+	ORD   = ORD/ALOG10(FP2 / FS2)
+	PARM1 = FP2/(EPS)**(2. / ORD)
+	NR2  = N2R / 2
+	NL2  = N2L / 2
+	X1   = FLOAT(N2S / 2)**2
+	Y1   = FLOAT(NR2)**2
+	Z1   = FLOAT(NL2)**2
+	PARM = PARM1**2
+
+	AVG = B(1,1,1)
+!$omp   parallel do private(i,j,k,ix,iy,iz,f)
+	DO K=1,N2L
+	   IZ = K-1
+	   IF (IZ > NL2)  IZ = IZ-N2L
+
+	   DO J=1,N2R
+	      IY = J-1
+	      IF (IY > NR2)  IY = IY-N2R
+
+	      DO  I=1,LSD,2
+	         IX = (I-1) / 2
+
+             F = 0.5*SQRT( &
+     	            FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
 
 	         F = (1.0-SQRT(1.0/(1.0+(F/PARM1)**ORD)))
 	         B(I,J,K)   = B(I,J,K)   * F
 	         B(I+1,J,K) = B(I+1,J,K) * F
+              ENDDO
+	   ENDDO
+	ENDDO
+	B(1,1,1) = AVG
+	INV = -1
+	CALL  FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+	END
 
 
-                 CASE (9)    !  RAISED COSINE LOWPASS FILTER *******
+		!--*********************************************************************
+	SUBROUTINE RCOS_LP_3D(B,LSD,N2R,N2L,LCUT,HCUT,N2S,NX,NY,NZ,IRTFLG)
 
-                 F = 0.5*SQRT(
-     &               FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
+	REAL             :: B(LSD,N2R,N2L)
+	DOUBLE PRECISION :: AVE
+	REAL             :: F,F2
+	REAL             :: FP, FS
+	REAL             :: FP2, FS2,LCUT,HCUT
+
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,N2L,NX,NY,NZ,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R,N2L
+!f2py intent(out) :: IRTFLG
+!       BORDER PADDING
+
+	IF (N2S.NE.NX .AND. N2R.NE.NY .AND. N2L.NE.NZ)  THEN
+
+          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) + &
+                SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) + &
+                SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1))) &
+     		/REAL(4*(NX+NY+NZ)-16)
+
+!$omp      parallel do private(i,j,k),reduction(+:ave)
+	   DO K=1,NZ
+	      DO J=1,NY
+	         DO I=1,NX
+	            AVE = AVE + B(I,J,K)
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+	   AVE = AVE/FLOAT(NX)/FLOAT(NY)/FLOAT(NZ)
+
+!$omp      parallel do private(i,j,k)
+	   DO K=1,NZ
+	      DO J=1,N2R
+	         DO I=NX+1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	      DO J=NY+1,N2R
+	         DO I=1,NX
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+!$omp      parallel do private(i,j,k)
+	   DO K=NZ+1,N2L
+	      DO J=1,N2R
+	         DO I=1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+	ENDIF
+
+	INV = 1
+	CALL FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	EPS   =  0.882
+	AA    = 10.624
+	FP2=LCUT
+	FS2=HCUT
+	IF (FP > 0.5) THEN
+        FP2 = FP / NX
+    ELSE
+        FP2 = FP
+	ENDIF
+    IF (FS > 0.5) THEN
+        FS2 = FS / NX
+    ELSE
+        FS2 = FS
+    ENDIF
+
+	ORD   = 2. * ALOG10(EPS / SQRT(AA**2-1.0))
+	ORD   = ORD/ALOG10(FP2 / FS2)
+	PARM1 = FP2/(EPS)**(2. / ORD)
+
+	NR2  = N2R / 2
+	NL2  = N2L / 2
+	X1   = FLOAT(N2S / 2)**2
+	Y1   = FLOAT(NR2)**2
+	Z1   = FLOAT(NL2)**2
+	PARM = PARM1**2
+
+!$omp   parallel do private(i,j,k,ix,iy,iz,f)
+	DO K=1,N2L
+	   IZ = K-1
+	   IF (IZ > NL2)  IZ = IZ-N2L
+
+	   DO J=1,N2R
+	      IY = J-1
+	      IF (IY > NR2)  IY = IY-N2R
+
+	      DO  I=1,LSD,2
+	         IX = (I-1) / 2
+
+             F = 0.5*SQRT( &
+                    FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
 
 	         IF (FP > 0.5) THEN
                     FP2 = FP/NX
@@ -254,12 +1059,122 @@ c$omp   parallel do private(i,j,k,ix,iy,iz,f)
 
                  B(I,J,K)   = B(I,J,K)  *F2
                  B(I+1,J,K) = B(I+1,J,K)*F2
+              ENDDO
+	   ENDDO
+	ENDDO
+	INV = -1
+	CALL  FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+	END
 
+	!--*********************************************************************
+	SUBROUTINE RCOS_HP_3D(B,LSD,N2R,N2L,LCUT,HCUT,N2S,NX,NY,NZ,IRTFLG)
 
-                 CASE (10)    !  RAISED COSINE HIGHPASS FILTER *******
+	REAL             :: B(LSD,N2R,N2L)
+	DOUBLE PRECISION :: AVE
+	REAL             :: F,F2
+	REAL             :: FP, FS
+	REAL             :: FP2, FS2,LCUT,HCUT
 
-                 F = 0.5*SQRT(
-     &               FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
+!f2py threadsafe
+!f2py intent(inplace) :: B
+!f2py intent(in) :: LSD,N2S,N2R,N2L,NX,NY,NZ,LCUT,HCUT
+!f2py intent(hide) :: LSD,N2R,N2L
+!f2py intent(out) :: IRTFLG
+!       BORDER PADDING
+
+	IF (N2S.NE.NX .AND. N2R.NE.NY .AND. N2L.NE.NZ)  THEN
+
+          AVE = (SUM(B(1:NX,1:NY,1))+SUM(B(1:NX,1:NY,NZ)) + &
+                SUM(B(1:NX,1,2:NZ-1))+SUM(B(1:NX,NY,2:NZ-1)) + &
+                SUM(B(1,2:NY-1,2:NZ-1))+SUM(B(NX,2:NY-1,2:NZ-1))) &
+     		/REAL(4*(NX+NY+NZ)-16)
+
+!$omp      parallel do private(i,j,k),reduction(+:ave)
+	   DO K=1,NZ
+	      DO J=1,NY
+	         DO I=1,NX
+	            AVE = AVE + B(I,J,K)
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+	   AVE = AVE/FLOAT(NX)/FLOAT(NY)/FLOAT(NZ)
+
+!$omp      parallel do private(i,j,k)
+	   DO K=1,NZ
+	      DO J=1,N2R
+	         DO I=NX+1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	      DO J=NY+1,N2R
+	         DO I=1,NX
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+
+!$omp      parallel do private(i,j,k)
+	   DO K=NZ+1,N2L
+	      DO J=1,N2R
+	         DO I=1,N2S
+	            B(I,J,K) = AVE
+	         ENDDO
+	      ENDDO
+	   ENDDO
+	ENDIF
+
+	INV = 1
+	CALL FMRS_3(B,N2S,N2R,N2L,INV)
+	IF (INV == 0) THEN
+	   IRTFLG = -1
+	   RETURN
+	ENDIF
+
+	EPS   =  0.882
+	AA    = 10.624
+	FP2=LCUT
+	FS2=HCUT
+	IF (FP > 0.5) THEN
+        FP2 = FP / NX
+    ELSE
+        FP2 = FP
+	ENDIF
+    IF (FS > 0.5) THEN
+        FS2 = FS / NX
+    ELSE
+        FS2 = FS
+    ENDIF
+
+	ORD   = 2. * ALOG10(EPS / SQRT(AA**2-1.0))
+	ORD   = ORD/ALOG10(FP2 / FS2)
+	PARM1 = FP2/(EPS)**(2. / ORD)
+	NR2  = N2R / 2
+	NL2  = N2L / 2
+	X1   = FLOAT(N2S / 2)**2
+	Y1   = FLOAT(NR2)**2
+	Z1   = FLOAT(NL2)**2
+	PARM = PARM1**2
+
+	AVG = B(1,1,1)
+!$omp   parallel do private(i,j,k,ix,iy,iz,f)
+	DO K=1,N2L
+	   IZ = K-1
+	   IF (IZ > NL2)  IZ = IZ-N2L
+
+	   DO J=1,N2R
+	      IY = J-1
+	      IF (IY > NR2)  IY = IY-N2R
+
+	      DO  I=1,LSD,2
+	         IX = (I-1) / 2
+
+             F = 0.5*SQRT( &
+                    FLOAT(IX*IX)/X1+FLOAT(IY*IY)/Y1+FLOAT(IZ*IZ)/Z1)
 
 	         IF (FP > 0.5) THEN
                     FP2 = FP/NX
@@ -282,23 +1197,121 @@ c$omp   parallel do private(i,j,k,ix,iy,iz,f)
 	         ENDIF
 	         B(I,J,K)   = B(I,J,K)   * F2
 	         B(I+1,J,K) = B(I+1,J,K) * F2
-                 END SELECT
               ENDDO
 	   ENDDO
 	ENDDO
-
-C       RESTORE ZERO TERM FOR HIGH PASS OPTIONS
-	IF (IOPT == 2 .OR. IOPT == 4 .OR.
-     &      IOPT == 6 .OR. IOPT == 8)
-     &      B(1,1,1) = AVG
-
-C       REVERSE FFT
+	B(1,1,1) = AVG
 	INV = -1
 	CALL  FMRS_3(B,N2S,N2R,N2L,INV)
-
 	IF (INV == 0) THEN
-	   CALL ERRT(38,'FQ',NE)
+	   IRTFLG = -1
 	   RETURN
 	ENDIF
-
 	END
+
+
+
+	!--*********************************************************************
+
+		 SUBROUTINE  RAMP(IMG,NSAM,NROW,RETVAL)
+
+         DOUBLE PRECISION IMG(NSAM,NROW)
+         DOUBLE PRECISION BETAI
+         DOUBLE PRECISION C,D,EPS,B1,B2,A,F,R2,DN1,DN2
+         DOUBLE PRECISION Q(6),S(9),QYX1,QYX2,QX1X2 &
+                            ,QX1,QX2,QY,SYX1,SYX2,SX1X2,SX1 &
+                            ,SX2,SY,SX1Q,SX2Q,SYQ
+         EQUIVALENCE (Q(1),QYX1),(Q(2),QYX2),(Q(3),QX1X2),(Q(4),QX1), &
+                    (Q(5),QX2),(Q(6),QY)
+         EQUIVALENCE (S(1),SYX1),(S(2),SYX2),(S(3),SX1X2),(S(4),SX1), &
+                    (S(5),SX2),(S(6),SY),(S(7),SX1Q), &
+                    (S(8),SX2Q),(S(9),SYQ)
+
+         DATA  EPS/1.0D-5/
+
+!f2py intent(in) :: NSAM,NROW
+!f2py intent(inout) :: IMG
+!f2py intent(out) :: RETVAL
+!f2py intent(hide) :: NSAM,NROW
+
+!        ZERO ARRAY S
+         S   = 0
+         N1  = NSAM / 2
+         N2  = NROW / 2
+         SX1 = FLOAT(N1) * FLOAT(NSAM + 1)
+         IF(MOD(NSAM,2) .EQ. 1)   SX1 = SX1 + 1 + N1
+         SX2 = FLOAT(N2) * FLOAT(NROW + 1)
+         IF(MOD(NROW,2) .EQ. 1)   SX2 = SX2 + 1 + N2
+         SX1   = SX1 * NROW
+         SX2   = SX2 * NSAM
+         SX1X2 = 0.0D0
+         DO  J = 1, NROW
+           DO I = 1, NSAM
+             SYX1 = SYX1 + IMG(I, J) * I
+             SYX2 = SYX2 + IMG(I, J) * J
+             SY   = SY   + IMG(I, J)
+             SX1Q = SX1Q + I * I
+             SX2Q = SX2Q + J * J
+             SYQ  = SYQ  + IMG(I, J) * DBLE(IMG(I, J))
+           END DO
+         END DO
+         DN    = FLOAT(NSAM) * FLOAT(NROW)
+         QYX1  = SYX1 - SX1 * SY / DN
+         QYX2  = SYX2 - SX2 * SY / DN
+         QX1X2 = 0.0
+         QX1   = SX1Q - SX1 * SX1 / DN
+         QX2   = SX2Q - SX2 * SX2 / DN
+         QY    = SYQ  - SY  * SY  / DN
+         C     = QX1  * QX2 - QX1X2 * QX1X2
+         IF (C .GT. EPS) THEN
+           B1  = (QYX1 * QX2 - QYX2 * QX1X2) / C
+           B2  = (QYX2 * QX1 - QYX1 * QX1X2) / C
+           A   = (SY - B1 * SX1 - B2 * SX2)  / DN
+           D   = B1 * QYX1 + B2 * QYX2
+           R2  = D / QY
+           DN1 = 2
+           DN2 = DN - 3
+
+           IF (DABS(QY - D) .LT. EPS / 100.0) THEN
+              F = 0.0
+              P = 0.0
+           ELSE
+              F = D * (DN - 3.0) / 2 /(QY - D)
+              P = 2.0*BETAI(0.5D0 * DN2, 0.5D0 * DN1, DN2 / &
+                  (DN2 + DN1 * F))
+              IF (P.GT.1.0)  P = 2.0 - P
+! +
+!     &    (1.0D0-BETAI(0.5D0 * DN1, 0.5D0 * DN2, DN1 / (DN1 + DN2 / F)))
+           END IF
+
+           D = A + B1 + B2
+           DO I = 1, NROW
+             QY = D
+             DO  K = 1, NSAM
+                IMG(I, K) = IMG(I, K) - QY
+                QY   = QY + B1
+             END DO
+             D = D + B2
+           END DO
+           RETVAL = 0
+         ELSE
+           RETVAL = 1
+         END IF
+         END
+
+	!--*********************************************************************
+
+
+         SUBROUTINE  HISTEQ(QK2,NSR1,QK6,NSR2,QK1,N,LENH,ITRMAX)
+
+         REAL       ::  QK1(N),QK2(NSR1)
+         LOGICAL   ::  QK6(NSR2)
+
+!f2py intent(in) :: NSR1,NSR2,N,LENH,ITRMAX
+!f2py intent(inout) :: QK2, QK2, QK1
+!f2py intent(hide) :: NSR1,NSR2,N
+		CALL HISTC2(QK1,QK2,QK6,N,  NSR1,LENH,ITRMAX,NOUT)
+
+
+         END
+
