@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'PropertyDialog.ui'
 #
-# Created: Sat Jul  6 20:59:40 2013
+# Created: Sun Jul  7 10:55:04 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
