@@ -15,7 +15,9 @@ def configuration(parent_package='',top_path=None):
     try:
         blas_opt = get_info('blas_opt',notfound_action=2)
     except:
-        blas_opt = get_info('blas')
+        try:
+            blas_opt = get_info('mkl',notfound_action=2)  
+        except: blas_opt = get_info('blas')
     
     config = Configuration('util', parent_package, top_path)
     
