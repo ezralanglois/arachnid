@@ -31,10 +31,10 @@ def configuration(parent_package='',top_path=None):
     #-ffixed-form define_macros=[('SP_LIBFFTW3', 1)]+compiler_defs, 
     library_options=dict(macros=[('SP_LIBFFTW3', 1)]+compiler_defs, extra_f77_compile_args=compiler_args, extra_f90_compile_args=compiler_args)#extra_f77_compiler_args=['-fdefault-real-8'],, ('SP_MP', 1)
                           #extra_f90_compiler_args=['-fdefault-real-8'])
-    config.add_library('spiutil', sources=['spiutil.F90', 'spider/fq_q.F90', 'spider/fq3_p.F', 'spider/parabl.F', 'spider/pksr3.F', 'spider/fftw3.F', 
-                                           'spider/ccrs.F', 'spider/apcc.F', 'spider/quadri.F', 'spider/rtsq.F', 'spider/cald.F', 'spider/bldr.F', 
-                                           'spider/fmrs.F', 'spider/fmrs_2.F', 'spider/besi1.F', 'spider/wpro_n.F', 'spider/prepcub.F',
-                                           'spider/fint.F', 'spider/fint3.F', 'spider/betai.F', 'spider/gammln.F', 'spider/betacf.F', 'spider/histe.F'], 
+    config.add_library('spiutil', sources=['spiutil.F90', 'spider/fq_q.F90', 'spider/fq3_p.F90', 'spider/parabl.F90', 'spider/pksr3.F90', 'spider/fftw3.F90', 
+                                           'spider/ccrs.F90', 'spider/apcc.F90', 'spider/quadri.F90', 'spider/rtsq.F90', 'spider/cald.F90', 'spider/bldr.F90', 
+                                           'spider/fmrs.F90', 'spider/fmrs_2.F90', 'spider/besi1.F90', 'spider/wpro_n.F90', 'spider/prepcub.F90',
+                                           'spider/fint.F90', 'spider/fint3.F90', 'spider/betai.F90', 'spider/gammln.F90', 'spider/betacf.F90', 'spider/histe.F90'], 
                                            depends=['spider/CMBLOCK.INC', 'spider/FFTW3.INC'], **library_options) #, 'fmrs_info.mod', 'type_kinds.mod'
     fftlibs = fftw_opt['libraries']+compiler_libraries
     del fftw_opt['libraries']

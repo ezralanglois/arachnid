@@ -1,3 +1,4 @@
+C -*-fortran-*-
 c................ REPLACEMENT BESSEL FUNCTION
 c...............................................................................
       SUBROUTINE CALCI1(ARG,RESULT,JINT)

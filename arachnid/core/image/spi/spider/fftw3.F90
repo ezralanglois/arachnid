@@ -1,7 +1,8 @@
+C -*-fortran-*-
 C++*********************************************************************
 C
 C FFTW3.F                 CREATED FROM FMRS3.F    DEC 2007 ARDEAN LEITH
-C                         NUMTHWANTR              JAN 2008 ARDEAN LEITH
+C    &                    NUMTHWANTR              JAN 2008 ARDEAN LEITH
 C                         INSIDE OMP THREAD OK    JAN 2008 ARDEAN LEITH
 C                         REWRITE                 JAN 2008 ARDEAN LEITH
 C                         MAKEPLANB               MAR 2008 ARDEAN LEITH

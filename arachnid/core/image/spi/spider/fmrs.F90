@@ -1,4 +1,4 @@
-
+C -*-fortran-*-
 C++*********************************************************************
 C
 C FMRS.F        CREATED FROM FMRS_1 & _2 & _3.F    JAN 2008 ARDEAN LEITH
