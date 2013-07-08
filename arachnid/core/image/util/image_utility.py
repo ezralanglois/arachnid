@@ -48,6 +48,7 @@ except AttributeError:
 del types
 
 
+radon_count = _image_utility.radon_count
 
 
 def rotavg(*args):
@@ -65,4 +66,11 @@ def rotavg(*args):
     	
     """
   return _image_utility.rotavg(*args)
+
+def radon_transform(*args):
+  """
+    This SWIG wrapper function creates a 2D rotational average from a 1D average.
+    	
+    """
+  return _image_utility.radon_transform(*args)
 
