@@ -24,7 +24,7 @@ def ccompiler_options():
     print '*****************', ccompiler.__class__.__name__, ccompiler.compiler_so, ccompiler.ranlib, ccompiler.compiler_type, ccompiler.compiler_cxx, ccompiler.linker_exe, ccompiler.linker_so
     
     openmp_enabled, needs_gomp = detect_openmp()
-    compiler_args = ['-O3', '-mssse3', '-funroll-loops']#, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
+    compiler_args = ['-O3', '-funroll-loops'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
     if openmp_enabled:
         compiler_args.append('-fopenmp')
     compiler_libraries = ['gomp'] if needs_gomp else []
@@ -115,7 +115,6 @@ def hasfunction(cc, funcname, add_opts=False, includes=[]):
             devnull.close()
         shutil.rmtree(tmpdir)
 
-
 def detect_openmp():
     '''
     .. note::
@@ -143,15 +142,6 @@ def detect_openmp():
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
     config = Configuration('arachnid', parent_package, top_path)
-    
-    '''
-    openmp_enabled, needs_gomp = detect_openmp()
-    compiler_args = ['-mssse3', '-O3', '-funroll-loops'] #, '--std=gnu99'
-    if openmp_enabled:
-        compiler_args.append('-fopenmp')
-    compiler_libraries = ['gomp'] if needs_gomp else []
-    compiler_defs = [('USE_OPENMP', None)] if openmp_enabled else []
-    '''
     
     config.set_options(quiet=True)
     #config.add_subpackage('app')
