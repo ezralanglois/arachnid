@@ -11,6 +11,7 @@ SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html
 '''
 from ..app import tracing
 import logging, numpy
+import ndimage_interpolate as ndinter
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -23,6 +24,33 @@ except:
     _logger.addHandler(logging.StreamHandler())
     _logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
+    
+def interpolate(img, out, method='bilinear'):
+    ''' Interpolate the size of the input image
+    
+    This interpolation algorithm does not preserve the SNR unless the image
+    is pre-filtered.
+
+    >>> from arachnid.core.image import ndimage_interpolate
+    >>> img = numpy.ones((32,32))
+    >>> simg = ndimage_interpolate.interpolate(img, (15,15), 'bilinear')
+    >>> print simg.shape
+    (15,15)
+    
+    :Parameters:
+    
+    img : array
+          Image
+    out : array or float or list
+          Output array or float factor or list of dimensions
+          
+    :Returns:
+    
+    out : array
+          Interpolated image
+    '''
+    
+    return getattr(ndinter, 'interpolate_'+method)
 
 def interpolate_bilinear(img, out):
     ''' Interpolate the size of the input image using bilinear scheme
