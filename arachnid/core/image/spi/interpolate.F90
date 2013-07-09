@@ -35,20 +35,26 @@
 		DOUBLE PRECISION 			:: TMP1,TMP2,TMP3
 
 !f2py threadsafe
-!f2py intent(inout) :: Q1,Q2
+!f2py intent(inplace) :: Q1,Q2
 !f2py intent(in) :: NX,NY,NZ,NX1,NY1,NZ1
 !f2py intent(hide) :: NX,NY,NZ,NX1,NY1,NZ1
 
+!		Fixed strange bug
+		RX = DBLE((FLOAT(NX)))/FLOAT(NX1)
+		RY = DBLE((FLOAT(NY)))/FLOAT(NY1)
+		RZ = DBLE((FLOAT(NZ)))/FLOAT(NZ1)
 !       REMAINING CASES
-		RX = DBLE((FLOAT(NX-1))-0.0001)/FLOAT(NX1-1)
-		RY = DBLE((FLOAT(NY-1))-0.0001)/FLOAT(NY1-1)
-		RZ = DBLE((FLOAT(NZ-1))-0.0001)/FLOAT(NZ1-1)
+!		RX = DBLE((FLOAT(NX-1))-0.0001)/FLOAT(NX1-1)
+!		RY = DBLE((FLOAT(NY-1))-0.0001)/FLOAT(NY1-1)
+!		RZ = DBLE((FLOAT(NZ-1))-0.0001)/FLOAT(NZ1-1)
 		PZ = 1.0
 		DO IZ=1,NZ1
 	           PY   = 1.0
 	           IOZ  = PZ
 	           DZ   = DMAX1(PZ-IOZ,1.0D-5)
 	           TMP3 = (1.0D0-DZ)
+
+
 	           DO IY=1,NY1
 	              PX   = 1.0
 	              IOY  = PY

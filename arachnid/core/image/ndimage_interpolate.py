@@ -20,6 +20,8 @@ try:
     _spider_interpolate;
 except:
     _spider_interpolate=None
+    _logger.addHandler(logging.StreamHandler())
+    _logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
 
 def interpolate_bilinear(img, out):
@@ -100,19 +102,16 @@ def interpolate_ft(img, out):
     if not hasattr(out, 'ndim'):
         
         if hasattr(out, '__len__'): 
-            nx = int(out[0])
-            #NX1+2-MOD(NX1,2)
+            nx = int(out[-1])
             shape = (int(out[0]), int(out[1]), _modnx(int(out[2]))) if img.ndim == 3 else (int(out[0]), _modnx(int(out[1])))
         else: 
-            nx = int(img.shape[0]/out)
+            nx = int(img.shape[-1]/out)
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), _modnx(int(img.shape[2]/out))) if img.ndim == 3 else (int(img.shape[0]/out), _modnx(int(img.shape[1]/out)))
         out = numpy.zeros(shape, dtype=img.dtype)
     if img.ndim == 2:
-        #FINTERPOLATE2(X,Y,NSAM,NROW,NSAM2,NROW2,LSD,LSD2)
         img2 = numpy.zeros((img.shape[0], _modnx(img.shape[1])), dtype=numpy.float32)
         img2[:img.shape[0], :img.shape[1]]=img
         _spider_interpolate.finterpolate2(img2.T, out.T, img.shape[1], nx) #img.shape[2], img.shape[1], img.shape[0]
-        #DIMENSION   X(LSD,NROW), Y(LSD2,NROW2)
         out = out[:shape[0], :nx]
     else:
         img2 = numpy.zeros((img.shape[0], img.shape[1], _modnx(img.shape[2])), dtype=numpy.float32)
