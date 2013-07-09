@@ -227,8 +227,8 @@ class MainWindow(QtGui.QWizard):
     ####################################################################################
     
     
-    @qtSlot(name='on_runJobButton_clicked')
-    def onRunJob(self):
+    @qtSlot()
+    def on_runJobButton_clicked(self):
         '''
         '''
         
@@ -405,22 +405,22 @@ class MainWindow(QtGui.QWizard):
     #
     ####################################################################################  
     
-    @qtSlot('int', name='on_workerCountSpinBox_valueChanged')
-    def onWorkerCountChanged(self, value):
+    @qtSlot(int)
+    def on_workerCountSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
         self.param['worker_count'] = value
     
-    @qtSlot('int', name='on_threadCountSpinBox_valueChanged')
-    def onThreadCountChanged(self, value):
+    @qtSlot(int)
+    def on_threadCountSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
         self.param['thread_count'] = value
     
-    @qtSlot('int', name='on_windowSizeSpinBox_valueChanged')
-    def onWindowSizeChanged(self, value):
+    @qtSlot(int)
+    def on_windowSizeSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -435,8 +435,8 @@ class MainWindow(QtGui.QWizard):
         self.param['ext'] = text
         self.onPageChanged()
                 
-    @qtSlot('int', name='on_clusterModeComboBox_currentIndexChanged')
-    def onClusterModeChanged(self, value):
+    @qtSlot(int)
+    def on_clusterModeComboBox_currentIndexChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -448,8 +448,8 @@ class MainWindow(QtGui.QWizard):
     #
     ####################################################################################  
     
-    @qtSlot('double', name='on_pixelSizeDoubleSpinBox_valueChanged')
-    def onPixelSizeChanged(self, value):
+    @qtSlot(float)
+    def on_pixelSizeDoubleSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -462,16 +462,16 @@ class MainWindow(QtGui.QWizard):
             self.ui.windowSizeSpinBox.blockSignals(False)
         self.onPageChanged()
         
-    @qtSlot('double', name='on_voltageDoubleSpinBox_valueChanged')
-    def onVoltageChanged(self, value):
+    @qtSlot(float)
+    def on_voltageDoubleSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
         self.param['voltage'] = value
         self.onPageChanged()
         
-    @qtSlot('double', name='on_particleSizeDoubleSpinBox_valueChanged')
-    def onParticleSizeChanged(self, value):
+    @qtSlot(float)
+    def on_particleSizeDoubleSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -482,8 +482,8 @@ class MainWindow(QtGui.QWizard):
             self.ui.windowSizeSpinBox.blockSignals(False)
         self.onPageChanged()
         
-    @qtSlot('double', name='on_csDoubleSpinBox_valueChanged')
-    def onCsChanged(self, value):
+    @qtSlot(float)
+    def on_csDoubleSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -496,8 +496,8 @@ class MainWindow(QtGui.QWizard):
     #
     ####################################################################################   
     
-    @qtSlot(name='on_emdbDownloadPushButton_clicked')
-    def onDownloadFromEMDB(self):
+    @qtSlot()
+    def on_emdbDownloadPushButton_clicked(self):
         '''Called when the user clicks the download button
         '''
         
@@ -524,16 +524,16 @@ class MainWindow(QtGui.QWizard):
             self.ui.referenceTabWidget.setCurrentIndex(0)
         self.task=None
     
-    @qtSlot(QtCore.QModelIndex, name='on_emdbCannedListView_doubleClicked')
-    def onUpdateEMDBField(self, index):
+    @qtSlot(QtCore.QModelIndex)
+    def on_emdbCannedListView_doubleClicked(self, index):
         ''' Called when the user clicks on the list
         '''
         
         num = index.data(QtCore.Qt.UserRole) #.toString()
         self.ui.emdbNumberLineEdit.setText(num)
     
-    @qtSlot('double', name='on_referencePixelSizeDoubleSpinBox_valueChanged')
-    def onReferencePixelSizeChanged(self, value):
+    @qtSlot(float)
+    def on_referencePixelSizeDoubleSpinBox_valueChanged(self, value):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -548,8 +548,8 @@ class MainWindow(QtGui.QWizard):
         text = str(self.ui.referenceLineEdit.text())
         self.openReference(text)
     
-    @qtSlot(name='on_referenceFilePushButton_clicked')
-    def onReferencedOpened(self):
+    @qtSlot()
+    def on_referenceFilePushButton_clicked(self):
         '''Called when the user open reference button
         '''
         
@@ -594,8 +594,8 @@ class MainWindow(QtGui.QWizard):
     # Page 1 Controls
     #
     ####################################################################################
-    @qtSlot(int, name='on_invertCheckBox_stateChanged')
-    def onInvertContrast(self, state):
+    @qtSlot(int)
+    def on_invertCheckBox_stateChanged(self, state):
         ''' Called when the user clicks the invert contrast button
         '''
         
@@ -627,12 +627,13 @@ class MainWindow(QtGui.QWizard):
             files.extend(glob.glob(filename))
         return files
     
-    @qtSlot(name='on_micrographFilePushButton_clicked')
-    def onMicrographFileOpened(self):
+    @qtSlot()
+    def on_micrographFilePushButton_clicked(self):
         '''Called when the user clicks the Pan button.
         '''
         
         files = QtGui.QFileDialog.getOpenFileNames(self, self.tr("Open a set of micrograph images"), self.lastpath)
+        if isinstance(files, tuple): files = files[0]
         if len(files) > 0:
             self.lastpath = os.path.dirname(str(files[0]))
             self.openMicrograph(files)

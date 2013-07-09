@@ -44,7 +44,7 @@ class MainWindow(QtGui.QMainWindow):
         self.base_level = None
         self.image_list = []
         
-        if not os.path.exists(self.inifile): self.displayHelp()
+        if not os.path.exists(self.inifile): self.on_actionHelp_triggered()
         
         self.imageListModel = QtGui.QStandardItemModel(self)
         self.ui.imageListView.setModel(self.imageListModel)
@@ -54,7 +54,7 @@ class MainWindow(QtGui.QMainWindow):
         self.fileTableModel = QtGui.QStandardItemModel(self)
         self.fileTableModel.setHorizontalHeaderLabels(['File', 'Count'])
         self.ui.fileTableView.setModel(self.fileTableModel)
-        self.connect(self.ui.zoomSlider, QtCore.SIGNAL("valueChanged(int)"), self.onZoomValueChanged)
+        self.connect(self.ui.zoomSlider, QtCore.SIGNAL("valueChanged(int)"), self.on_imageZoomDoubleSpinBox_valueChanged)
         
         action = self.ui.dockWidget.toggleViewAction()
         icon8 = QtGui.QIcon()
@@ -92,7 +92,7 @@ class MainWindow(QtGui.QMainWindow):
             _logger.info("\rLoading selections ...")
             self.loadSelections()
             _logger.info("\rLoading images ...")
-            self.loadImages()
+            self.on_loadImagesPushButton_clicked()
             _logger.info("\rLoading images ... done.")
             self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.imagelabel)))
             self.ui.tabWidget.setCurrentIndex(0)
@@ -100,8 +100,8 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tabWidget.setCurrentIndex(1)
             
     
-    @qtSlot(name='on_actionHelp_triggered')
-    def displayHelp(self):
+    @qtSlot()
+    def on_actionHelp_triggered(self):
         ''' Display the help dialog
         '''
         
@@ -134,8 +134,8 @@ Additional tips:
         ''')
         box.exec_()
     
-    @qtSlot('int', name='on_imageFileComboBox_currentIndexChanged')
-    def onImageFileChanged(self, index):
+    @qtSlot(int)
+    def on_imageFileComboBox_currentIndexChanged(self, index):
         ''' Called when the image file combo box changes selection
         
         :Parameters:
@@ -145,7 +145,7 @@ Additional tips:
         '''
         
         self.imagefile = str(self.ui.imageFileComboBox.itemData(index))#.toString())
-        self.loadImages()
+        self.on_loadImagesPushButton_clicked()
         
     def loadSelections(self):
         ''' Load the selections from the default selection file
@@ -183,12 +183,12 @@ Additional tips:
         '''
         
         for index in selected.indexes():
-            idx = index.data(QtCore.Qt.UserRole).toPyObject()
+            idx = index.data(QtCore.Qt.UserRole)
             self.imagelabel[idx, 2] = 1
             self.selectedCount+=1
             self.selectfout.write("%d,%d,%d\n"%tuple(self.imagelabel[idx, :3]))
         for index in deselected.indexes():
-            idx = index.data(QtCore.Qt.UserRole).toPyObject()
+            idx = index.data(QtCore.Qt.UserRole)
             self.imagelabel[idx, 2] = 0
             self.selectedCount-=1
             self.selectfout.write("%d,%d,%d\n"%tuple(self.imagelabel[idx, :3]))
@@ -240,8 +240,8 @@ Additional tips:
         self.selectfout.close()
         QtGui.QMainWindow.closeEvent(self, evt)
     
-    @qtSlot(name='on_selectAllButton_clicked')
-    def onSelectAll(self):
+    @qtSlot()
+    def on_selectAllButton_clicked(self):
         ''' Called when the user clicks the select all button
         '''
         
@@ -252,8 +252,8 @@ Additional tips:
         self.updateSelections(1)
         self.selectedCount=len(self.imagelabel)
     
-    @qtSlot(name='on_unselectAllButton_clicked')
-    def onUnselectAll(self):
+    @qtSlot()
+    def on_unselectAllButton_clicked(self):
         ''' Called when the user clicks the unselect all button
         '''
         
@@ -280,41 +280,42 @@ Additional tips:
         for i in xrange(len(self.imagelabel)):
             self.selectfout.write("%d,%d,%d\n"%tuple(self.imagelabel[i, :3]))
     
-    @qtSlot(name='on_deleteModelButton_clicked')
-    def onDeleteModel(self):
+    @qtSlot()
+    def on_deleteModelButton_clicked(self):
         ''' Called when the user clicks the delete model button
         '''
         
         pass
         
-    @qtSlot('int', name='on_pageSpinBox_valueChanged')
-    def onMoveGroup(self, val):
+    @qtSlot(int)
+    def on_pageSpinBox_valueChanged(self, val):
         ''' Called when the user changes the group number in the spin box
         '''
         
-        self.loadImages()
+        self.on_loadImagesPushButton_clicked()
     
-    @qtSlot(name='on_actionForward_triggered')
-    def onMoveForward(self):
+    @qtSlot()
+    def on_actionForward_triggered(self):
         ''' Called when the user clicks the next view button
         '''
         
         self.ui.pageSpinBox.setValue(self.ui.pageSpinBox.value()+1)
     
-    @qtSlot(name='on_actionBackward_triggered')
-    def onMoveBackward(self):
+    @qtSlot()
+    def on_actionBackward_triggered(self):
         ''' Called when the user clicks the previous view button
         '''
         
         self.ui.pageSpinBox.setValue(self.ui.pageSpinBox.value()-1)
     
-    @qtSlot(name='on_actionSave_triggered')
-    def onSaveSelections(self):
+    @qtSlot()
+    def on_actionSave_triggered(self):
         ''' Called when the user clicks the Save Figure Button
         '''
         
         select = self.imagelabel
         filename = str(QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save document as"), self.lastpath))
+        if isinstance(filename, tuple): filename = filename[0]
         if filename != "":
             mics = numpy.unique(select[:, 0])
             if mics.shape[0] == select.shape[0]:
@@ -328,8 +329,8 @@ Additional tips:
                     tmp[:, 0]+=1
                     format.write(filename, tmp, spiderid=id, header="id,select".split(','), format=format.spidersel)
     
-    @qtSlot(name='on_actionLoad_More_triggered')
-    def onOpenMore(self):
+    @qtSlot()
+    def on_actionLoad_More_triggered(self):
         ''' Called when someone clicks the Open Button
         '''
         
@@ -339,12 +340,13 @@ Additional tips:
             self.openDocumentFiles([str(f) for f in files if format.is_readable(str(f))])
             self.openImageFiles([str(f) for f in files if not format.is_readable(str(f))])
     
-    @qtSlot(name='on_actionOpen_triggered')
-    def onOpenFile(self):
+    @qtSlot()
+    def on_actionOpen_triggered(self):
         ''' Called when someone clicks the Open Button
         '''
         
         files = QtGui.QFileDialog.getOpenFileNames(self.ui.centralwidget, self.tr("Open a set of images or documents"), self.lastpath)
+        if isinstance(files, tuple): files = files[0]
         if len(files) > 0:
             self.lastpath = os.path.dirname(str(files[0]))
             self.openDocumentFiles([str(f) for f in files if format.is_readable(str(f))])
@@ -396,7 +398,7 @@ Additional tips:
             self.ui.imageFileComboBox.blockSignals(False)
             self.imagefile = files[0]
         self.updateImageFiles(ids)
-        self.loadImages()
+        self.on_loadImagesPushButton_clicked()
         
         if len(invalid) > 0:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Warning, "Warning", 'Invalid filenames skipped - do not conform to SPIDER format')
@@ -431,8 +433,8 @@ Additional tips:
             self.imagelabel.extend([[id, i, 0] for i in xrange(count)])
         self.imagelabel = numpy.asarray(self.imagelabel)
     
-    @qtSlot(name='on_loadImagesPushButton_clicked')
-    def loadImages(self):
+    @qtSlot()
+    def on_loadImagesPushButton_clicked(self):
         ''' Load the current batch of images into the list
         '''
         
@@ -473,7 +475,7 @@ Additional tips:
         self.connect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         if self.imagesize == 0:
             self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
-            self.onZoomValueChanged()
+            self.on_imageZoomDoubleSpinBox_valueChanged()
             
         batch_count = float(len(self.imagelabel)/count)
         self.ui.pageSpinBox.setSuffix(" of %d"%batch_count)
@@ -481,8 +483,8 @@ Additional tips:
         self.ui.actionForward.setEnabled(self.ui.pageSpinBox.value() < batch_count)
         self.ui.actionBackward.setEnabled(self.ui.pageSpinBox.value() > 0)
     
-    @qtSlot('int', name='on_contrastSlider_valueChanged')
-    def onContrastChanged(self, value):
+    @qtSlot(int)
+    def on_contrastSlider_valueChanged(self, value):
         ''' Called when the user uses the contrast slider
         '''
         
@@ -500,9 +502,8 @@ Additional tips:
             icon.addPixmap(pix,QtGui.QIcon.Selected)
             self.imageListModel.item(i).setIcon(icon)
         
-    #@qtSlot('double', name='on_zoomSlider_valueChanged')
-    @qtSlot('double', name='on_imageZoomDoubleSpinBox_valueChanged')
-    def onZoomValueChanged(self, zoom=None):
+    @qtSlot(float)
+    def on_imageZoomDoubleSpinBox_valueChanged(self, zoom=None):
         ''' Called when the user wants to plot only a subset of the data
         
         :Parameters:

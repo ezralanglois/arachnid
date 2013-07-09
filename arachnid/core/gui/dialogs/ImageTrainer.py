@@ -103,8 +103,8 @@ class MainWindow(MontageWindow):
             
         
     
-    @qtSlot(name='on_actionHelp_triggered')
-    def displayHelp(self):
+    @qtSlot()
+    def on_actionHelp_triggered(self):
         ''' Display the help dialog
         '''
         

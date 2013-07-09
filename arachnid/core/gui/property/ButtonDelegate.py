@@ -236,12 +236,14 @@ class FileDialogWidget(DialogWidget):
         _logger.debug("Show dialog %s"%self.filetype)
         if self.filetype == 'file-list':
             filenames = QtGui.QFileDialog.getOpenFileNames(None, 'Open files', self.path, self.filter)
+            if isinstance(filenames, tuple): filenames = filenames[0]
             filename = ",".join([str(f) for f in filenames])
         elif self.filetype == 'open':
             filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', self.path, self.filter)
             if isinstance(filename, tuple): filename = filename[0]
         else:
             filename = QtGui.QFileDialog.getSaveFileName(None, 'Save file', self.path, self.filter)
+            if isinstance(filename, tuple): filename = filename[0]
         if filename:
             self.filename = filename
             self.fileChanged.emit(self.filename)

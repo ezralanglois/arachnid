@@ -88,8 +88,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.toolBar.addAction(action)
     
     
-    @qtSlot(name='on_selectAllPushButton_clicked')
-    def selectAll(self):
+    @qtSlot()
+    def on_selectAllPushButton_clicked(self):
         '''
         '''
         
@@ -97,8 +97,8 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(self.subsetListModel.rowCount()):
             self.subsetListModel.item(i).setCheckState(QtCore.Qt.Checked)
     
-    @qtSlot(name='on_unselectAllPushButton_clicked')
-    def unselectAll(self):
+    @qtSlot()
+    def on_unselectAllPushButton_clicked(self):
         '''
         '''
         
@@ -106,8 +106,8 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(self.subsetListModel.rowCount()):
             self.subsetListModel.item(i).setCheckState(QtCore.Qt.Unchecked)
         
-    @qtSlot('int', name='on_dpiSpinBox_valueChanged')
-    def onDPIChanged(self, val):
+    @qtSlot(int)
+    def on_dpiSpinBox_valueChanged(self, val):
         '''
         '''
         
@@ -118,24 +118,24 @@ class MainWindow(QtGui.QMainWindow):
         print w, h, w*val/dpi, h*val/dpi
         self.fig.set_dpi(val)
     
-    @qtSlot(name='on_actionPan_triggered')
-    def onPanClicked(self):
+    @qtSlot()
+    def on_actionPan_triggered(self):
         '''Called when the user clicks the Pan button.
         '''
         
         if self.ui.actionZoom.isChecked(): self.ui.actionZoom.setChecked(False)
         self.ui.mpl_toolbar.pan(self)
     
-    @qtSlot(name='on_actionZoom_triggered')
-    def onZoomClicked(self):
+    @qtSlot()
+    def on_actionZoom_triggered(self):
         ''' Called when the user clicks the Zoom Button
         '''
         
         if self.ui.actionPan.isChecked(): self.ui.actionPan.setChecked(False)
         self.ui.mpl_toolbar.zoom( self )
     
-    @qtSlot(name='on_actionHome_triggered')
-    def onResetView(self):
+    @qtSlot()
+    def on_actionHome_triggered(self):
         ''' Called when the user clicks the Reset View Button
         '''
         
@@ -143,36 +143,36 @@ class MainWindow(QtGui.QMainWindow):
         if self.ui.actionPan.isChecked(): self.ui.actionPan.trigger()
         self.ui.mpl_toolbar.home( self )
     
-    @qtSlot(name='on_actionForward_triggered')
-    def onMoveForward(self):
+    @qtSlot()
+    def on_actionForward_triggered(self):
         ''' Called when the user clicks the next view button
         '''
         
         self.ui.mpl_toolbar.forward( self )
     
-    @qtSlot(name='on_actionBackward_triggered')
-    def onMoveBackward(self):
+    @qtSlot()
+    def on_actionBackward_triggered(self):
         ''' Called when the user clicks the previous view button
         '''
         
         self.ui.mpl_toolbar.back( self )
     
-    @qtSlot(name='on_actionSave_triggered')
-    def onSaveFigure(self):
+    @qtSlot()
+    def on_actionSave_triggered(self):
         ''' Called when the user clicks the Save Figure Button
         '''
         
         self.ui.mpl_toolbar.save_figure( self )
     
-    @qtSlot(name='on_actionShow_Options_triggered')
-    def onShowOptions(self):
+    @qtSlot()
+    def on_actionShow_Options_triggered(self):
         ''' Called when the user clicks the Show Options Button
         '''
         
         self.ui.mpl_toolbar.edit_parameters( )
         
-    @qtSlot(name='on_actionOpen_triggered')
-    def onOpenFile(self):
+    @qtSlot()
+    def on_actionOpen_triggered(self):
         ''' Called when someone clicks the Open Button
         '''
         
@@ -263,8 +263,8 @@ class MainWindow(QtGui.QMainWindow):
         clearImages(self.axes)
         self.selectedImage = None
     
-    @qtSlot('int', name='on_selectGroupComboBox_currentIndexChanged')
-    def onSelectGroupChanged(self, index):
+    @qtSlot(int)
+    def on_selectGroupComboBox_currentIndexChanged(self, index):
         ''' Called when the user wants to highlight only a subset of the data
         
         :Parameters:
@@ -275,8 +275,8 @@ class MainWindow(QtGui.QMainWindow):
         
         self.highlight_index = int(index)
         
-    @qtSlot('int', name='on_subsetComboBox_currentIndexChanged')
-    def onSubsetValueChanged(self, index):
+    @qtSlot(int)
+    def on_subsetComboBox_currentIndexChanged(self, index):
         ''' Called when the user wants to plot only a subset of the data
         
         :Parameters:
@@ -299,10 +299,16 @@ class MainWindow(QtGui.QMainWindow):
         #self.drawPlot()
     
     
-    @qtSlot(name='on_updatePushButton_clicked')
     #@qtSlot('int', name='on_xComboBox_currentIndexChanged')
     #@qtSlot('int', name='on_yComboBox_currentIndexChanged')
     #@qtSlot('int', name='on_colorComboBox_currentIndexChanged')
+    @qtSlot()
+    def on_updatePushButton_clicked(self):
+        ''' Redraw the plot
+        '''
+        
+        self.drawPlot()
+        
     def drawPlot(self, index=None):
         ''' Draw a scatter plot
         '''
@@ -395,8 +401,8 @@ class MainWindow(QtGui.QMainWindow):
                 self.selectedImage = event_obj.ind[ds.argmin()]
             self.drawImages()
     
-    @qtSlot('int', name='on_keepSelectedCheckBox_stateChanged')
-    def onKeepImageMode(self, state):
+    @qtSlot(int)
+    def on_keepSelectedCheckBox_stateChanged(self, state):
         '''
         '''
         
@@ -404,9 +410,27 @@ class MainWindow(QtGui.QMainWindow):
         self.clear()
         self.drawImages()
     
-    @qtSlot('int', name='on_imageCountSpinBox_valueChanged')
-    @qtSlot('int', name='on_imageSepSpinBox_valueChanged')
-    @qtSlot('double', name='on_imageZoomDoubleSpinBox_valueChanged')
+    @qtSlot(int)
+    def on_imageCountSpinBox_valueChanged(self, index):
+        '''
+        '''
+        
+        self.drawImages(index)
+    
+    @qtSlot(int)
+    def on_imageSepSpinBox_valueChanged(self, index):
+        '''
+        '''
+        
+        self.drawImages(index)
+    
+    @qtSlot(float)
+    def on_imageZoomDoubleSpinBox_valueChanged(self, index):
+        '''
+        '''
+        
+        self.drawImages(index)
+    
     def drawImages(self, index=None):
         ''' Draw sample images on the plot
         '''

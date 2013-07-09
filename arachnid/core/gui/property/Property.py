@@ -1261,7 +1261,8 @@ class WorkflowProperty(Property):
         
         return ",".join(editor.workflow())
     
-    @qtSlot('PyQt_PyObject')
+    @qtSlot(list)
+    @qtSlot(str) #PyQt_PyObject
     def setValue(self, value):
         '''Set the value for the property
         
