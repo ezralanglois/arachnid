@@ -28,8 +28,11 @@ except:
 def interpolate(img, out, method='bilinear'):
     ''' Interpolate the size of the input image
     
-    This interpolation algorithm does not preserve the SNR unless the image
-    is pre-filtered.
+    Available methods:
+        
+        - bilinear: Bilinear interpolation
+        - ft: Energy preserving Fourier-based interpolation
+        - fs: Fourier-based bicubic/tricubi spline interpolation
 
     >>> from arachnid.core.image import ndimage_interpolate
     >>> img = numpy.ones((32,32))
@@ -50,6 +53,8 @@ def interpolate(img, out, method='bilinear'):
           Interpolated image
     '''
     
+    if method not in ('bilinear', 'ft', 'fs'):
+        raise ValueError, "method argument must be one of the following: bilinear,ft,fs"
     return getattr(ndinter, 'interpolate_'+method)
 
 def interpolate_bilinear(img, out):
@@ -144,7 +149,51 @@ def interpolate_ft(img, out):
     else:
         img2 = numpy.zeros((img.shape[0], img.shape[1], _modnx(img.shape[2])), dtype=numpy.float32)
         img2[:img.shape[0], :img.shape[1], :img.shape[2]]=img
-        _spider_interpolate.finterpolate3(img2.T, out.T, img.shape[1], nx)
+        _spider_interpolate.finterpolate3(img2.T, out.T, img.shape[2], nx)
         out = out[:shape[0], :shape[1], :nx]
     return out
 
+def interpolate_fs(img, out):
+    ''' Interpolate the size of the input image using bicubic/tricubic splines in Fourier space
+    
+    The boundaries of the new grid coincide with the old grid.
+    
+    >>> from arachnid.core.image import ndimage_interpolate
+    >>> img = numpy.ones((32,32))
+    >>> simg = ndimage_interpolate.interpolate_fs(img, (15,15))
+    >>> print simg.shape
+    (15,15)
+    
+    .. note::
+        
+        See: http://www.wadsworth.org/spider_doc/spider/docs/man/ipfs.html
+    
+    :Parameters:
+    
+    img : array
+          Image
+    out : array or float or list
+          Output array or float factor or list of dimensions
+          
+    :Returns:
+    
+    out : array
+          Interpolated image
+    '''
+    
+    if img.ndim != 3 and img.ndim != 2: raise ValueError, "Only interpolation of 2D and 3D images supported: input has %d-D"%img.ndim
+    if not hasattr(out, 'ndim'):
+        if hasattr(out, '__len__'): 
+            shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
+        else: 
+            shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
+        out = numpy.zeros(shape, dtype=img.dtype)
+    if img.ndim == 2:
+        img2 = numpy.zeros((img.shape[0], _modnx(img.shape[1])), dtype=numpy.float32)
+        img2[:img.shape[0], :img.shape[1]]=img
+        _spider_interpolate.interpolate_fs_2(img2.T, out.T, img.shape[1]) #img.shape[2], img.shape[1], img.shape[0]
+    else:
+        img2 = numpy.zeros((img.shape[0], img.shape[1], _modnx(img.shape[2])), dtype=numpy.float32)
+        img2[:img.shape[0], :img.shape[1], :img.shape[2]]=img
+        _spider_interpolate.interpolate_fs_3(img2.T, out.T, img.shape[2])
+    return out

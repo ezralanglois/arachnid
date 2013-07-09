@@ -1,4 +1,33 @@
 
+
+! ---------------------------------------------------------------------------
+		SUBROUTINE INTERPOLATE_FS_2(BUF1,NXLD,NY,BUF2,NX2,NY2,NX,IRTFLG)
+		REAL              :: BUF1(NXLD,NY)
+        REAL              :: BUF2(NX2,NY2)
+
+!f2py threadsafe
+!f2py intent(inout) :: BUF1,BUF2
+!f2py intent(in) :: NXLD,NX,NY,NX2,NY
+!f2py intent(hide) :: NXLD,NY,NX2,NY
+!f2py intent(out) :: IRTFLG
+
+			CALL INTERP_FBS(BUF1,BUF2,NXLD,NX,NY,NX2,NY2,IRTFLG)
+
+		END
+
+! ---------------------------------------------------------------------------
+		SUBROUTINE INTERPOLATE_FS_3(BUFIN,NXLD,NY,NZ,BUFOUT,NX2,NY2,NZ2,NX)
+        REAL              :: BUFIN (NXLD, NY,  NZ)
+        REAL              :: BUFOUT(NX2,  NY2, NZ2)
+
+!f2py threadsafe
+!f2py intent(inout) :: BUFIN,BUFOUT
+!f2py intent(in) :: NXLD,NY,NZ,NX2,NY2,NZ2,NX
+!f2py intent(hide) :: NXLD,NY,NZ,NX2,NY2,NZ2
+
+		CALL INTERP_FBS3(BUFIN,BUFOUT,NX,NY,NZ, NX2,NY2,NZ2, NXLD)
+
+		END
 ! ---------------------------------------------------------------------------
 		SUBROUTINE FINTERPOLATE2(X,LSD, NROW,Y, LSD2,NROW2,NSAM,NSAM2)
 		DIMENSION   X(LSD,NROW), Y(LSD2,NROW2)
