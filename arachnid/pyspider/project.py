@@ -350,19 +350,16 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
                                output=param['defocus_file']+'.'+data_ext,
                                run_type='HB',
                                supports_MPI=True,
-                               #restart_file
                                )),
                (autopick, dict(input_files=input_files,
                                output=param['coordinate_file'],
                                run_type='HB',
                                supports_MPI=True,
-                               #restart_file
                                )), 
                (crop,     dict(input_files=input_files,
                                output = param['stacks'],
                                run_type='HB',
                                supports_MPI=True,
-                               #restart_file
                                )), 
                 ]
     
