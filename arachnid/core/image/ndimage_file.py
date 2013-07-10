@@ -13,13 +13,12 @@ Supported formats:
 '''
 import logging, os
 from ..app import tracing
-from formats import spider, eman_format as spider_writer, mrc, ccp4
+from formats import spider, eman_format as spider_writer, mrc
 from ..metadata import spider_utility, format_utility
 from ..parallel import process_tasks, process_queue, mpi_utility
 import scipy.io
 import numpy
 mrc;
-ccp4;
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
