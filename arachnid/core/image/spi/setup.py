@@ -25,6 +25,8 @@ def configuration(parent_package='',top_path=None):
         try: 
             fftw_opt = get_info('mkl',notfound_action=2)
         except: fftw_opt=dict(libraries=['fftw3f'])
+    if 'library_dirs' not in fftw_opt: fftw_opt['library_dirs']=[]
+    if 'include_dirs' not in fftw_opt: fftw_opt['include_dirs']=[]
     config = Configuration('spi', parent_package, top_path)
     #-ftrap=common
     if 1 == 0:
