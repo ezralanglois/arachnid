@@ -18,7 +18,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.app import tracing
-from arachnid.core.image import ndimage_file, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_interpolate
 from arachnid.core.metadata import spider_utility
 import numpy,logging, glob
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     for f in frames:
         img = ndimage_file.read_image(f, findex-1)
         if img.shape[0] > ref.shape[0]:
-            img = eman2_utility.decimate(img, float(img.shape[0])/ref.shape[0])
+            img = ndimage_interpolate.interpolate(img, float(img.shape[0])/ref.shape[0])
         if avg is None: avg = img
         else: avg += img
     
