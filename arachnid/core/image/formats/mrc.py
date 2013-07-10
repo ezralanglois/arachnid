@@ -212,6 +212,17 @@ mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_image_dtype.names]))
 mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_stack_dtype.names]))
 ara2mrc=dict([(val, key) for key,val in mrc2ara.iteritems()])
 
+def cache_data():
+    ''' Get keywords to be added as data cache
+    
+    :Returns:
+    
+    extra : dict
+            Keyword arguments
+    '''
+    
+    return dict()
+
 def is_format_header(h):
     ''' Test if the given header has the proper format
     

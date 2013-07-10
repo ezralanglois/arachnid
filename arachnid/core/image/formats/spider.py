@@ -45,6 +45,17 @@ def _create_header_dtype(vtype='<f4'):
 
 header_dtype = _create_header_dtype()
 
+def cache_data():
+    ''' Get keywords to be added as data cache
+    
+    :Returns:
+    
+    extra : dict
+            Keyword arguments
+    '''
+    
+    return dict()
+
 def is_format_header(h):
     ''' Test if the given header has the proper format
     
