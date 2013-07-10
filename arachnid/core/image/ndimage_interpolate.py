@@ -21,8 +21,8 @@ try:
     _spider_interpolate;
 except:
     _spider_interpolate=None
-    _logger.addHandler(logging.StreamHandler())
-    _logger.exception("problem")
+    #_logger.addHandler(logging.StreamHandler())
+    #_logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
     
 def interpolate(img, out, method='bilinear'):
