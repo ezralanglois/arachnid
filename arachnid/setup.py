@@ -16,13 +16,13 @@ def ccompiler_options():
     '''
     '''
     
-    from numpy.distutils.ccompiler import new_compiler
+    #from numpy.distutils.ccompiler import new_compiler
     #from numpy.distutils.fcompiler.pg import PGroupFCompiler
     #from numpy.distutils.fcompiler.gnu import GnuFCompiler
-    ccompiler = new_compiler()
     
-    print '*****************', ccompiler.__class__.__name__, ccompiler.compiler_so, ccompiler.ranlib, ccompiler.compiler_type, ccompiler.compiler_cxx, ccompiler.linker_exe, ccompiler.linker_so
-    
+    #ccompiler = new_compiler()
+    # Todo test for PGI compiler
+        
     openmp_enabled, needs_gomp = detect_openmp()
     compiler_args = ['-O3', '-funroll-loops'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
     if openmp_enabled:
@@ -49,7 +49,7 @@ def fcompiler_options():
         compiler_defs = [('USE_OPENMP', None)] if openmp_enabled else []
     elif issubclass(fcompiler.__class__, GnuFCompiler):
         openmp_enabled, needs_gomp = detect_openmp()
-        compiler_args = ['-mssse3', '-O3', '-funroll-loops'] #, '--std=gnu99'
+        compiler_args = ['-O3', '-funroll-loops'] #, '--std=gnu99'
         if openmp_enabled:
             compiler_args.append('-fopenmp')
         compiler_libraries = [] if needs_gomp else []
