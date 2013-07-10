@@ -7,7 +7,7 @@
 
 from ..core.app import program
 '''
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate
+from ..core.image import ndimage_file, analysis, ndimage_utility, rotate
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, openmp
 , numpy, os, scipy, itertools, scipy.cluster.vq, scipy.spatial.distance

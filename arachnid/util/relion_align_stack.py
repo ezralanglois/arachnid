@@ -5,7 +5,7 @@
 '''
 from ..core.app import program
 from ..core.metadata import format, spider_utility, spider_params
-from ..core.image import ndimage_file, rotate#, eman2_utility
+from ..core.image import ndimage_file, rotate
 from ..core.orient import orient_utility, healpix
 import logging, numpy
 
@@ -72,7 +72,6 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, **extra
                 pix=angle_map[theta][phi][cl]
             else:
                 pix=angle_map[theta][phi]
-            #img = eman2_utility.fshift(img, dx, dy)
             if img is not None:
                 img = rotate.rotate_image(img, psi, dx, dy)
         if img is not None:
