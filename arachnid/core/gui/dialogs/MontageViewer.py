@@ -727,7 +727,7 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
     if height == 0: height = h
     qimage = QtGui.QImage(img.data, width, height, width, QtGui.QImage.Format_Indexed8)
     qimage.setColorTable(colortable)
-    #qimage._numpy = img
+    qimage._numpy = img
     return qimage
 
 """
