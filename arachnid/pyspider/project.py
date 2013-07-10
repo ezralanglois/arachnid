@@ -336,16 +336,20 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
         starfile = os.path.join(mn_base, 'data', 'data.star'),
     )
     
-    if spider_utility.is_spider_filename(raw_reference):
-        param.update(reference=spider_utility.spider_filename(param['reference'], raw_reference))
-    
-    raw_reference = os.path.abspath(raw_reference)
     
     stk = re.compile('0+')
-    modules = [(reference, dict(input_files=[raw_reference],
+    modules=[]
+    if raw_reference != "":
+        if spider_utility.is_spider_filename(raw_reference):
+            param.update(reference=spider_utility.spider_filename(param['reference'], raw_reference))
+        raw_reference = os.path.abspath(raw_reference)
+        modules.extend([
+                        (reference, dict(input_files=[raw_reference],
                                output=param['reference'],
                                run_type='SN',
-                               )), 
+                               ))
+                        ])
+    modules.extend( [
                (defocus,  dict(input_files=input_files,
                                output=param['defocus_file']+'.'+data_ext,
                                run_type='HB',
@@ -361,7 +365,7 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
                                run_type='HB',
                                supports_MPI=True,
                                )), 
-                ]
+                ])
     
     if cluster_mode == 0:
         modules.extend([
@@ -626,7 +630,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
     pgroup.add_option("-o", output=".",         help="Output directory with project name", gui=dict(filetype="save"), required=True)
-    pgroup.add_option("-r", raw_reference="",   help="Raw reference volume", gui=dict(filetype="open"), required=True)
+    pgroup.add_option("-r", raw_reference="",   help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("", is_film=False,        help="Set true if the micrographs were collected on film (or have been processed)", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0), required=True)
