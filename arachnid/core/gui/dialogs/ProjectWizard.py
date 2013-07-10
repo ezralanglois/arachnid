@@ -5,9 +5,8 @@
 '''
 from pyui.ProjectWizard import Ui_ProjectWizard
 from ..util import BackgroundTask
-from ..util.qt4_loader import QtCore, QtGui, qtSlot, qtProperty
+from ..util.qt4_loader import QtCore, QtGui, qtSlot
 
-#from ..property import pyqtProperty
 from .. import property
 from .. import ndimage_file, ndimage_utility, spider_utility
 #from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility
@@ -397,9 +396,6 @@ class MainWindow(QtGui.QWizard):
             
             option_list, option_groups, values = project.program.generate_settings_tree(mod, description="", **extra)
             treeView.model().addOptions(option_list, option_groups, values)
-            
-            #root, values = project.program.generate_settings(mod, qtProperty, QtCore.QObject, description="", **extra)
-            #treeView.model().addItem(root)
             
             self.fine_param[mod]=values
             width = treeView.model().maximumTextWidth(self.fontMetrics(), treeView.indentation())
