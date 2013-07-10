@@ -120,16 +120,12 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
     #. :ref:`Options shared by SPIDER params scripts... <param-options>`
 
-.. todo:: replace image_reader with ndimage_format
 
 .. Created on Aug 2, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility, ndimage_file # - replace image_reader
-if ndimage_file is None:
-    from ..core.image import reader as image_reader
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file
 from ..core.metadata import format_utility, format, spider_params, spider_utility
 from ..core.parallel import mpi_utility
 import os, logging
@@ -346,17 +342,14 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
           Micrograph image
     '''
     
-    if ndimage_file is not None:
-        count = ndimage_file.count_images(filename)
-        if count > 1 and fraction > 1:
-            mic = ndimage_file.read_image(filename, cache=emdata)
-            for i in xrange(1, min(fraction, count)):
-                mic += ndimage_file.read_image(filename, i, cache=emdata)
-        else:
-            mic = ndimage_file.read_image(filename, cache=emdata)
+    count = ndimage_file.count_images(filename)
+    if count > 1 and fraction > 1:
+        mic = ndimage_file.read_image(filename, cache=emdata)
+        for i in xrange(1, min(fraction, count)):
+            mic += ndimage_file.read_image(filename, i, cache=emdata)
     else:
-        assert(False)
-        mic = image_reader.read_image(filename, emdata=emdata)
+        mic = ndimage_file.read_image(filename, cache=emdata)
+
     if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: mic = ndimage_utility.invert(mic)
     return mic
@@ -380,10 +373,7 @@ def create_template(template, disk_mult=1.0, disable_bin=False, **extra):
     '''
     #mic = ndimage_file.read_image(template)
     if template != "": 
-        if ndimage_file is not None:
-            img= ndimage_file.read_image(template)
-        else:
-            img= image_reader.read_image(template)
+        img= ndimage_file.read_image(template)
         bin_factor=extra['bin_factor']
         if bin_factor > 1.0 and not disable_bin: img = eman2_utility.decimate(img, bin_factor)
         return img

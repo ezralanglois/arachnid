@@ -146,7 +146,9 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app.program import run_hybrid_program
 ndimage_file=None
 from ..core.image import eman2_utility, ndimage_utility, ndimage_file, ndimage_filter # - replace image_reader and writer
-from ..core.image import reader as image_reader, writer as image_writer
+#from ..core.image import reader as image_reader, writer as image_writer
+image_reader=None
+image_writer=None
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image.formats import mrc as mrc_file
 from ..core.parallel import mpi_utility
