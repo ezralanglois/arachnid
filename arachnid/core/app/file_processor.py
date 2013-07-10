@@ -41,7 +41,7 @@ from progress import progress
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def main(files, module, restart_file="", **extra):
+def main(files, module, **extra):
     '''Main driver for a generic file processor
     
     .. sourcecode:: py
@@ -82,13 +82,11 @@ def main(files, module, restart_file="", **extra):
             List of filenames, tuple groups or lists of filenames
     module : module
              Main module containing entry points
-    restart_file : string
-                  Restart filename
     extra : dict
             Unused extra keyword arguments
     '''
     
-    extra['restart_file']=restart_file # require restart_file=restart_file?
+    _logger.debug("File processer - begin")
     process, initialize, finalize, reduce_all, init_process, init_root = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None), getattr(module, "init_root", None)
     monitor=None
     if mpi_utility.is_root(**extra):
@@ -101,7 +99,6 @@ def main(files, module, restart_file="", **extra):
         extra['finished'] = finished
         #extra['input_files']=files
         _logger.debug("Test dependencies2: %d"%len(files))
-        #if len(files) > 1: files = restart(restart_file, files)
     else: extra['finished']=None
     _logger.debug("Start processing1")
     tfiles = mpi_utility.broadcast(files, **extra)
@@ -109,17 +106,6 @@ def main(files, module, restart_file="", **extra):
         tfiles = set([os.path.basename(f) for f in tfiles])
         files = [f for f in files if f in tfiles]
     _logger.debug("Start processing2")
-        
-    
-    '''
-    if mpi_utility.is_root(**extra):
-        if restart_file == "": restart_file = ".restart.%s"%module.__name__
-        try: 
-            fout = file(restart_file, "a") if len(files) > 1 and restart_file != "" else None
-        except: fout = None
-        #if fout is not None:
-        #    write_dependencies(fout, files, **extras)
-    '''
     
     extra['finished'] = mpi_utility.broadcast(extra['finished'], **extra)
     if initialize is not None:
@@ -167,11 +153,6 @@ def main(files, module, restart_file="", **extra):
         raise ValueError, "Error in root process"
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
-    '''
-    if mpi_utility.is_root(**extra) and fout is not None:
-        fout.close()
-        if restart_file != "" and os.path.exists(restart_file): os.unlink(restart_file)
-    '''
 
 def restart(filename, files):
     '''Test if script can restart and update file list appropriately
@@ -320,7 +301,6 @@ def setup_options(parser, pgroup=None):
     from settings import OptionGroup
     group = OptionGroup(parser, "Processor", "Options to control the state of the file processor",  id=__name__)
     group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(maximum=sys.maxint, minimum=0))
-    group.add_option("",   restart_file="",   help="Set the restart file backing up processed files",     gui=dict(filetype="open"), dependent=False)
     group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
     group.add_option("",   force=False,       help="Force the program to run from the start", dependent=False)
     group.add_option("",   restart_test=False,help="Test if the program will restart", dependent=False)
