@@ -31,13 +31,7 @@ bench;
 import numpy #, logging
 import matplotlib
 matplotlib.use('Agg')
-try:
-    try: import pylab
-    except:
-        matplotlib.use('cairo.png')
-        try: import pylab
-        except: pylab = None
-except: pylab=None
+import pylab
 
 #format.mrccoord._logger.setLevel(logging.DEBUG)
 
