@@ -278,7 +278,6 @@ class check_dep(Command):
         ''' Check if dependencies are importable.
         '''
         
-        ret = 0
         packages = self.distribution.install_requires
         for v in self.distribution.extras_require.values():
             if isinstance(v, list): packages.extend(v)
