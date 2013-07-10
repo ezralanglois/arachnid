@@ -10,10 +10,10 @@
 '''
 from ..util.qt4_loader import QtGui,QtCore, qtProperty
 from Property import Property
-import logging
+import logging, types
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.INFO)
+_logger.setLevel(logging.DEBUG)
 
 class PropertyModel(QtCore.QAbstractItemModel):
     ''' Defines the property data maintained by a QTreeView
@@ -28,7 +28,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         "Initialize the Property Model"
         
         QtCore.QAbstractItemModel.__init__(self, parent)
-        self.rootItem = Property("Root", None, None, None, self)
+        self.rootItem = Property("Root", parent=self)
         self.userCallbacks = []
         self.background_colors = [QtGui.QColor.fromRgb(250, 191, 143), 
                                   QtGui.QColor.fromRgb(146, 205, 220),
@@ -38,6 +38,39 @@ class PropertyModel(QtCore.QAbstractItemModel):
                                   QtGui.QColor.fromRgb(217, 149, 148),
                                   QtGui.QColor.fromRgb(84, 141, 212),
                                   QtGui.QColor.fromRgb(148, 138, 84)]
+    
+    def addOptions(self, option_list, option_groups, option_values, parent=None, rindex=0):
+        ''' Add command line options to the Property Tree Model
+        
+        :Parameters:
+        
+        option_list, option_groups, option_values
+        '''
+        
+        if parent is None: parent = self.rootItem
+        self.beginInsertRows(QtCore.QModelIndex(), self.rowCount(), self.rowCount()+len(option_list)+len(option_groups))
+        
+        if not hasattr(option_values, 'setProperty'):
+            def setProperty(obj, key, val): setattr(obj, key, val)
+            option_values.setProperty = types.MethodType( setProperty, option_values )
+        if not hasattr(option_values, 'property'):
+            def property(obj, key): return getattr(obj, key)
+            option_values.property = types.MethodType( property, option_values )
+        
+        for option in option_list:
+            for propertyClass in Property.PROPERTIES:
+                p = propertyClass.create(option, rindex, option_values, parent=parent)
+                if p is not None: break
+            if p is None: print option.dest
+            assert(p is not None)
+        
+        for group in option_groups:
+            if group.is_child():
+                current = Property(group.title, rindex, parent=parent)
+                self.addOptions(group.get_config_options(), group.option_groups, option_values, current)
+        
+        # groups
+        self.endInsertRows()
     
     def _addItems(self, properties, parentItem, rindex=0):
         '''Recursively add external properties to the model
@@ -51,16 +84,6 @@ class PropertyModel(QtCore.QAbstractItemModel):
         rindex : int
                 Current row index for grouping
         '''
-        
-        if 1 == 0:
-            oproperties = list(properties)
-            for p in oproperties: 
-                try:
-                    properties[p.order_index]=p
-                except: 
-                    _logger.error("%s - %d"%(p.__class__.__name__, p.order_index))
-                    raise
-            del oproperties
             
         for propertyObject in properties:
             #name = getattr(propertyObject.__class__, 'DisplayName', propertyObject.__class__.__name__) #.replace('_', '-'))
@@ -68,12 +91,19 @@ class PropertyModel(QtCore.QAbstractItemModel):
             _logger.debug("Add item %s - %d - child: %d"%(name, rindex, len(propertyObject._children)))
             currentItem = Property(name, rindex, None, None, parentItem)
             
+            props=[]
+            for propName in dir(propertyObject.__class__):
+                metaProperty = getattr(propertyObject.__class__, propName)
+                if not issubclass(metaProperty.__class__, qtProperty): continue
+                props.append(propName)
+            
+            '''
             props = dir(propertyObject.__class__)
             oprops = list(props)
             last = -1
             for propName in oprops:
                 metaProperty = getattr(propertyObject.__class__, propName)
-                if not hasattr(metaProperty, 'order_index'): continue
+                if not issubclass(metaProperty.__class__, qtProperty): continue
                 try:
                     props[metaProperty.order_index]=propName
                     if metaProperty.order_index > last: last = metaProperty.order_index
@@ -81,6 +111,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
                     _logger.error("%s - %d < %d"%(propName, metaProperty.order_index, len(oprops)))
                     raise
             props = props[:last+1]
+            '''
             
             props = [prop for prop in props if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ]
             #props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ]
@@ -89,6 +120,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             
             for propName in props:
                 metaProperty = getattr(propertyObject.__class__, propName)
+                print '*******', propName, propertyObject.staticMetaObject.property(2).name(), propertyObject.staticMetaObject.property(2).isFlagType()
                 for propertyClass in Property.PROPERTIES:
                     p = propertyClass.create(propName, rindex, propertyObject, metaProperty, currentItem)
                     if p is not None: break

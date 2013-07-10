@@ -19,9 +19,9 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try: 
-    from util.qt4_loader import QtGui, QtCore
+    from util.qt4_loader import QtGui, QtCore #, qtProperty
     from dialogs.PropertyDialog import Dialog
-    from property import pyqtProperty
+    #from property import pyqtProperty
     import arachnid
     QtGui;
 except:
@@ -70,12 +70,11 @@ def _create_settings_dialog(parser, options, name=None, config_file="", style_sh
     # Read given config file, command line - open button
     dialog = Dialog()
     dialog.setWindowTitle(config_file)
-    tree = parser.create_property_tree(options, pyqtProperty.PyqtProperty, QtCore.QObject)
     if name is None:
-        for branch in tree:
-            dialog.addProperty(branch, branch.DisplayName)
+        for group in parser.option_groups:
+            dialog.addOptions(group.title, group.get_config_options(), group.option_groups, options)
     else:
-        dialog.addProperty(tree, name)
+        dialog.addOptions(name, parser.get_config_options(), parser.option_groups, options)
     return app, dialog
 
 def screenshot(parser, name=None, screen_shot="", **extra):

@@ -58,12 +58,13 @@ try:
             self.doc = doc
             self.order_index = index
 except:
-    raise # TODO: Need to find a hack for PySide
+    #raise # TODO: Need to find a hack for PySide
     def PyqtProperty(index, type, fget=None, fset=None, freset=None, fdel=None, doc=None, notify=None, designable=True, scriptable=True, stored=True, user=False, constant=False, final=False, editorHints={}):
         '''
         '''
         
         prop=qtProperty(type, fget, fset, freset, fdel, doc, notify, designable, scriptable, stored, user, constant, final)
+        prop.__doc__=doc
         #setattr(prop, 'editorHints', editorHints)
         #prop.editorHints=editorHints
         return prop

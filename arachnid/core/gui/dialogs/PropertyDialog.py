@@ -80,6 +80,48 @@ class Dialog(QtGui.QDialog):
                 if ret == QtGui.QMessageBox.No: return
         super(Dialog, self).done(mode)
     
+    def addOptions(self, name, option_list, option_groups, option_values, icon=None):
+        ''' Add a set of options and groups as a tree
+        
+        :Parameters:
+        
+        name : str
+               Name of the tab
+        option_list : list
+                       List of options
+        option_group : list
+                       List of option groups
+        option_values : object
+                        Option-value pairs
+        icon : QIcon
+               Icon for the tab
+        '''
+        
+        if len(option_list) == 0: return
+        
+        if self.ui.tabWidget.count() > 0:
+            _logger.debug("Add new property: %s - %d"%(name, self.ui.tabWidget.count()))
+            treeView = self.copyTreeView()
+            property.setView(treeView)
+            tab = QtGui.QWidget(self)
+            horizontalLayout = QtGui.QHBoxLayout(tab)
+            horizontalLayout.setContentsMargins(0, 0, 0, 0)
+            horizontalLayout.addWidget(treeView)
+        else: 
+            _logger.debug("Add first property: %s - %d"%(name, self.ui.tabWidget.count()))
+            treeView = self.ui.propertyTreeView
+            tab = self.ui.tab
+        
+        self.treeViews.append(treeView)
+        tab.setToolTip(name)
+        if isinstance(icon, str): icon = QtGui.QIcon(icon)
+        if icon is not None: self.ui.tabWidget.addTab(tab, icon, name)
+        else: self.ui.tabWidget.addTab(tab, name)
+        
+        treeView.model().addOptions(option_list, option_groups, option_values)
+        width = treeView.model().maximumTextWidth(self.fontMetrics(), treeView.indentation())
+        treeView.setColumnWidth(0, width)
+    
     def addProperty(self, obj, name, icon=None):
         ''' Add a property to the property tree
         
@@ -135,7 +177,7 @@ class Dialog(QtGui.QDialog):
                 name = metaObjectFrom.property(i).name()
                 if name == 'editTriggers': continue
                 _logger.debug("Copy tree view: "+str(name))
-                print '**', name, self.ui.propertyTreeView.property(name)
+                #print '**', name, self.ui.propertyTreeView.property(name)
                 treeView.setProperty(name, self.ui.propertyTreeView.property(name))
             metaObjectFrom = metaObjectFrom.superClass()
             metaObjectTo = metaObjectTo.superClass()

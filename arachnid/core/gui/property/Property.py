@@ -25,25 +25,25 @@ class Property(QtCore.QObject):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
              Parent object
     '''
     
     PROPERTIES = []
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group=0, property=None, hints={}, doc={}, parent=None):
         "Initialize a Property"
         
         QtCore.QObject.__init__(self, parent)
         self.setObjectName(name)
         self.property_obj = property
         self.group = group
-        #self.property_ext = extended
-        assert(property is None or hasattr(property, "dynamicPropertyNames"))
-        self.hints = extended.editorHints if extended is not None else {}
-        self.doc = extended.doc if extended is not None else None
+        self.doc = doc
+        self.hints = hints
         
         if 'label' in self.hints:
             self.displayName = self.hints['label']
@@ -184,9 +184,11 @@ class Property(QtCore.QObject):
         '''
         
         if self.property_obj is not None:
-            if self.property_obj.dynamicPropertyNames().count(self.objectName()) > 0: return False
-            prop = self.property_obj.metaObject().property(self.property_obj.metaObject().indexOfProperty(self.objectName()))
-            if prop.isWritable() and not prop.isConstant(): return False
+            if hasattr(self.property_obj, 'dynamicPropertyNames') and self.property_obj.dynamicPropertyNames().count(self.objectName()) > 0: return False
+            if hasattr(self.property_obj, 'metaObject'):
+                prop = self.property_obj.metaObject().property(self.property_obj.metaObject().indexOfProperty(self.objectName()))
+                if prop.isWritable() and not prop.isConstant(): return False
+            else: return False
         return True
     
     def setEditorHints(self, hints):
@@ -363,6 +365,40 @@ def register_property(name, bases, dict):
     Property.PROPERTIES.append(classType)
     return classType
 
+def parseHints(name, obj):
+    ''' Get editor hints from documentation
+    
+    :Parameters:
+    
+    obj : object
+          Input property object, 
+    
+    :Returns:
+    
+    hints : dict
+            Editor hint map
+    '''
+    
+    hints={}
+    doc = ""
+    if obj is not None:
+        if hasattr(obj, 'doc'): doc = obj.doc
+        if hasattr(obj, 'editorHints'): return name, obj.editorHints, doc
+        doc = obj if isinstance(obj, str) else obj.__doc__
+        if doc is not None:
+            beg = doc.find('{')
+            end = doc.find('}')
+            if beg != -1 and end != -1:
+                return name, dict(doc[beg:end]), doc
+    else:
+        obj = name
+        name = obj.dest
+        doc = obj.help
+        if hasattr(obj, 'gui_hint') and obj.gui_hint is not None:
+            hints = obj.gui_hint
+        
+    return name, hints, doc
+
 class ChoiceProperty(Property):
     '''Connect a choice property to a QComboBox
         
@@ -374,19 +410,21 @@ class ChoiceProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
-        self.choices = extended.editorHints["choices"]
+        Property.__init__(self, name, group, property, hints, doc, parent)
+        self.choices = self.hints["choices"]
         self.use_int = isinstance( property.property(name), ( int, long ) )
     
     @classmethod
@@ -401,8 +439,8 @@ class ChoiceProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -412,11 +450,11 @@ class ChoiceProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(extended.editorHints)))
-        
+        name, hints, doc = parseHints(name, extended)
+        _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
         val = property.property(name)
-        if( isinstance( val, ( int, long ) ) or isinstance( val, basestring )  ) and "choices" in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        if( isinstance( val, ( int, long ) ) or isinstance( val, basestring )  ) and "choices" in hints:
+            return cls(name, group, property, hints, doc, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -563,29 +601,31 @@ class NumericProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Numeric Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, parent)
         #editorHints
-        self.minimum = extended.editorHints["minimum"] if hasattr(extended, 'editorHints') and "minimum" in extended.editorHints else -32767
-        self.maximum = extended.editorHints["maximum"] if hasattr(extended, 'editorHints') and "maximum" in extended.editorHints else 32767
+        self.minimum = self.hints["minimum"] if "minimum" in self.hints else -32767
+        self.maximum = self.hints["maximum"] if "maximum" in self.hints else 32767
         
-        _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.minimum)))
-        _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.maximum)))
+        _logger.debug("NumericProperty::minimum %s, %s"%(name, str(self.minimum)))
+        _logger.debug("NumericProperty::minimum %s, %s"%(name, str(self.maximum)))
         if isinstance( self.value(), ( int, long ) ):
-            self.singleStep = extended.editorHints["singleStep"] if hasattr(extended, 'editorHints') and "singleStep" in extended.editorHints else 1
+            self.singleStep = self.hints["singleStep"] if "singleStep" in self.hints else 1
         else:
-            self.singleStep = extended.editorHints["singleStep"] if hasattr(extended, 'editorHints') and "singleStep" in extended.editorHints else 0.1
-            self.decimals = extended.editorHints["decimals"] if hasattr(extended, 'editorHints') and "decimals" in extended.editorHints else 2
+            self.singleStep = self.hints["singleStep"] if "singleStep" in self.hints else 0.1
+            self.decimals = self.hints["decimals"] if "decimals" in self.hints else 2
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -599,8 +639,8 @@ class NumericProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -610,9 +650,10 @@ class NumericProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create NumericProperty: %s - %s - %s | %d"%(name, str(property.property(name).__class__), str(extended.editorHints), isinstance( property.property(name), ( int, long, float ) )))
+        name, hints,doc = parseHints(name, extended)
+        _logger.debug("Create NumericProperty: %s - %s - %s | %d"%(name, str(property.property(name).__class__), str(hints), isinstance( property.property(name), ( int, long, float ) )))
         if isinstance( property.property(name), ( int, long, float ) ) and not isinstance(property.property(name), bool):
-            return cls(name, group, property, extended, parent)
+            return cls(name, group, property, hints, doc, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -715,18 +756,20 @@ class BoolProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Boolean Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -740,8 +783,8 @@ class BoolProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                  Parent object
         
@@ -751,10 +794,11 @@ class BoolProperty(Property):
               Property object
         '''
         
+        name, hints,doc = parseHints(name, extended)
         _logger.debug("Create BoolProperty: %s - %s"%(name, str(property.property(name).__class__), ))
         
         if isinstance(property.property(name), bool):
-            return cls(name, group, property, extended, parent)
+            return cls(name, group, property, hints, doc, parent)
         return None
     
     def isBool(self):
@@ -866,18 +910,20 @@ class FontProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -891,8 +937,8 @@ class FontProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -902,9 +948,10 @@ class FontProperty(Property):
               Property object
         '''
         
+        name, hints,doc = parseHints(name, extended)
         _logger.debug("Create FontProperty: %s - %s"%(name, str(property.property(name).__class__)))
-        if property.property(name).__class__ == QtCore.QVariant.Font:
-            return cls(name, group, property, extended, parent)
+        if isinstance(property.property(name), QtGui.QFont):
+            return cls(name, group, property, hints, doc, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1011,21 +1058,23 @@ class FilenameProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
-        self.filter = extended.editorHints["filter"] if 'filter' in extended.editorHints else ""
-        self.path = extended.editorHints["path"]if 'path' in extended.editorHints else ""
-        self.filetype = extended.editorHints["filetype"]
+        Property.__init__(self, name, group, property, hints, doc, parent)
+        self.filter = self.hints["filter"] if 'filter' in self.hints else ""
+        self.path = self.hints["path"]if 'path' in self.hints else ""
+        self.filetype = self.hints["filetype"]
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1039,8 +1088,8 @@ class FilenameProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -1050,9 +1099,10 @@ class FilenameProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(extended.editorHints)))
-        if isinstance(property.property(name), basestring) and 'filetype' in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        name, hints,doc = parseHints(name, extended)
+        _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
+        if (isinstance(property.property(name), basestring) or isinstance(property.property(name), list)) and 'filetype' in hints:
+            return cls(name, group, property, hints, doc, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1158,19 +1208,21 @@ class WorkflowProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
-        self.operations = extended.editorHints["operations"]
+        Property.__init__(self, name, group, property, hints, doc, parent)
+        self.operations = self.hints["operations"]
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1184,8 +1236,8 @@ class WorkflowProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -1195,9 +1247,10 @@ class WorkflowProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create WorkflowProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(extended.editorHints)))
-        if isinstance(property.property(name), basestring) and 'operations' in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        name, hints,doc = parseHints(name, extended)
+        _logger.debug("Create WorkflowProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
+        if isinstance(property.property(name), basestring) and 'operations' in hints:
+            return cls(name, group, property, hints, doc, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1304,18 +1357,20 @@ class StringProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a String Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1329,8 +1384,8 @@ class StringProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -1340,9 +1395,10 @@ class StringProperty(Property):
               Property object
         '''
         
+        name, hints,doc = parseHints(name, extended)
         _logger.debug("Create StringProperty: %s - %s"%(name, str(property.property(name).__class__)))
-        if isinstance(property.property(name), basestring):
-            return cls(name, group, property, extended, parent)
+        if isinstance(property.property(name), basestring) or isinstance(property.property(name), list):
+            return cls(name, group, property, hints, doc, parent)
         return None
     
 def is_int(f):

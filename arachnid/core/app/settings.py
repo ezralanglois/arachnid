@@ -1700,7 +1700,10 @@ def propertyobject(typename, parenttype, property, options, order, param):
             get_value = "lambda self: str(%s)"%get_value
         else:
             get_value = "lambda self: %s"%get_value
-        template += "    %s = %s(%d, '%s', %s, %s, user=True, doc='%s', editorHints=%s)\n"%(option.dest, property.__name__, i, opttype, get_value, set_value, help, str(option.gui_hint))
+        #template += "    %s = %s(%d, '%s', %s, %s, user=True, doc='%s', editorHints=%s)\n"%(option.dest, property.__name__, i, opttype, get_value, set_value, help, str(option.gui_hint))
+        help += str(option.gui_hint)
+        #help += "order=%d"%i
+        template += "    %s = %s('%s', %s, %s, user=True, doc=\"%s\")\n"%(option.dest, property.__name__, opttype, get_value, set_value, help)
         
     namespace = dict(itemgetter=_itemgetter, attrgetter=_attrgetter)
     namespace[parenttype.__name__] = parenttype

@@ -118,6 +118,31 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
 
+def generate_settings_tree(main_module, description="", supports_MPI=False, supports_OMP=False, **extra):
+    ''' Write a configuration file to an output file
+    
+    :Parameters:
+    
+    main_module : module
+                   Reference to main module
+    description : str
+                  Header on configuration
+    supports_MPI : bool
+                   Set True if the script supports MPI
+    supports_OMP : bool
+                   If True, add OpenMP capability
+                   
+    :Returns:
+    
+    output : str
+             Output filename of the configuration file
+    '''
+    
+    main_template = file_processor if file_processor.supports(main_module) else None
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    parser.change_default(**extra)
+    return parser.get_config_options(), parser.option_groups, parser.get_default_values()
+
 def generate_settings(main_module, property, object, description="", supports_MPI=False, supports_OMP=False, **extra):
     ''' Write a configuration file to an output file
     

@@ -5,9 +5,9 @@
 '''
 from pyui.ProjectWizard import Ui_ProjectWizard
 from ..util import BackgroundTask
-from ..util.qt4_loader import QtCore, QtGui, qtSlot
+from ..util.qt4_loader import QtCore, QtGui, qtSlot, qtProperty
 
-from ..property import pyqtProperty
+#from ..property import pyqtProperty
 from .. import property
 from .. import ndimage_file, ndimage_utility, spider_utility
 #from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility
@@ -199,7 +199,7 @@ class MainWindow(QtGui.QWizard):
                 leginon_filename = os.path.splitext(self.leginon_filename)[0]+data_ext
                 files = project.legion_to_spider.convert_to_spider(files, leginon_filename, 0)
                 _logger.info("Added %d new files of %d"%(len(files), len(self.param['orig_files'])))
-                self.param['input_files'] = ','.join(compress_filenames(files))
+            self.param['input_files'] = ','.join(compress_filenames(files))
             
             for filename in files:
                 filename = str(filename)
@@ -221,8 +221,7 @@ class MainWindow(QtGui.QWizard):
     
     ####################################################################################
     #
-    # Page 7 Controls, discreet struct fall 2012, lessons, homeworks, add content, file, (last homework 8 solutions)
-    #                  communicate, quick message, groups, all students -> homework solutions for last homework posted on angel, under homeworks
+    # Page 7 Controls
     #
     ####################################################################################
     
@@ -378,7 +377,11 @@ class MainWindow(QtGui.QWizard):
         ''' Setup the advanced settings page
         '''
         
-        id_len = spider_utility.spider_id_length(os.path.splitext(self.micrographFiles()[0])[0])
+        try:
+            id_len = spider_utility.spider_id_length(os.path.splitext(self.micrographFiles()[0])[0])
+        except:
+            print "*******", self.micrographFiles()
+            raise
         if id_len == 0: raise ValueError, "Input file not a SPIDER file - id length 0"
         self.modules, self.fullparam, self.config_path = project.workflow(output=self.output, id_len=id_len, **self.param)
         
@@ -391,9 +394,14 @@ class MainWindow(QtGui.QWizard):
             treeView = QtGui.QTreeView()
             property.setView(treeView)
             self.ui.settingsTabWidget.addTab(treeView, project.module_name(mod))
-            root, values = project.program.generate_settings(mod, pyqtProperty.PyqtProperty, QtCore.QObject, description="", **extra)
+            
+            option_list, option_groups, values = project.program.generate_settings_tree(mod, description="", **extra)
+            treeView.model().addOptions(option_list, option_groups, values)
+            
+            #root, values = project.program.generate_settings(mod, qtProperty, QtCore.QObject, description="", **extra)
+            #treeView.model().addItem(root)
+            
             self.fine_param[mod]=values
-            treeView.model().addItem(root)
             width = treeView.model().maximumTextWidth(self.fontMetrics(), treeView.indentation())
             treeView.setColumnWidth(0, width)
             treeView.expandAll()
@@ -426,7 +434,7 @@ class MainWindow(QtGui.QWizard):
         
         self.param['window_size'] = value
     
-    @qtSlot(name='on_extensionLineEdit_editingFinished)')
+    @qtSlot(name='on_extensionLineEdit_editingFinished')
     def onExtensionEditChanged(self):
         '''
         '''
@@ -554,7 +562,7 @@ class MainWindow(QtGui.QWizard):
         '''
         
         filename = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open a reference volume"), self.lastpath)
-        filename = str(filename) if isinstance(filename, tuple) else str(filename)
+        if isinstance(filename, tuple): filename = filename[0]
         if filename != "": 
             self.lastpath = os.path.dirname(filename)
             self.ui.referenceLineEdit.blockSignals(True)
@@ -621,6 +629,7 @@ class MainWindow(QtGui.QWizard):
         '''
         
         text=self.param[type]
+        print '++++',text, type
         
         files = []
         for filename in text.split(','):
@@ -750,7 +759,7 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
     if height == 0: height = h
     qimage = QtGui.QImage(img.data, width, height, width, QtGui.QImage.Format_Indexed8)
     qimage.setColorTable(colortable)
-    #qimage._numpy = img
+    qimage._numpy = img
     return qimage
 
 def download_gunzip_task(urlpath, filepath):
