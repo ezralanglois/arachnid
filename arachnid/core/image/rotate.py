@@ -71,6 +71,11 @@ def rotate_image(img, ang, tx=0.0, ty=0.0, out=None, scale=1.0):
     '''
     '''
     
+    if hasattr(ang, '__iter__'):
+        tx = ang[6]
+        ty = ang[7]
+        psi = ang[5]
+    
     if out is None: out = img.copy()
     _spider_rotate.rotate_image(img.T, out.T, ang, scale, tx, ty)
     return out
