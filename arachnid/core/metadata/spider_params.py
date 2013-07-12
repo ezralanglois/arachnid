@@ -217,39 +217,6 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
                 window=int(window*factor), 
                 pixel_diameter=int(pixel_diameter*factor))
 
-def ctf_spider2EMAN(apix, ampcont, voltage, window, cs, bfactor=0.0, defocus=0.0, **extra):
-    ''' Convert the Spider CTF to EMAN2
-    
-    :Parameters:
-
-    apix : float
-           Pixels per angstrom
-    ampcont : float
-              Amplitude constant
-    voltage : float
-              Microscope voltage
-    window : int
-             Window size in pixels
-    cs : float
-         Spherical abberation
-    bfactor : float
-              Structure factor
-    defocus : float
-              Defocus coefficient
-    extra : dict
-            Unused extra keyword arguments
-    
-    :Returns:
-    
-    val : dict
-          CTF parameter dictionary
-    '''
-    
-    #ds=1.0/(apix*window)
-    if defocus > 100: defocus *= 1e-4
-    if ampcont < 1.0: ampcont = ampcont*100/math.sqrt(2*ampcont**2-2*ampcont+1)
-    return {"defocus": defocus, "cs": cs, "voltage": voltage, "apix": apix, "bfactor": bfactor, "ampcont": ampcont}#, "dsbg": ds}
-
 def setup_options(parser, pgroup=None, required=False):
     '''Add options to the given option parser
     
