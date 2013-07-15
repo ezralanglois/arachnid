@@ -55,10 +55,10 @@ C***********************************************************************
 
        INTEGER           :: NXLD, NX, NY, NZ
        INTEGER           :: NX2,  NY2, NZ2
-       INTEGER           :: I, J, L
+       !INTEGER           :: I, J, L
        INTEGER           :: K1,K2,K3
        INTEGER           :: K11,K21,K31
-       INTEGER           :: INV,MWANT,IRTFLG
+       INTEGER           :: MWANT,IRTFLG !INV,
        REAL              :: SCALEX,SCALEY,SCALEZ
        REAL              :: X, Y, Z
 

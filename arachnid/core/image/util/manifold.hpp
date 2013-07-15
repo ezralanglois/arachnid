@@ -602,7 +602,6 @@ void gaussian_kernel_range(T* dist, size_type nd, T* sigma_cum, size_type ns1, s
 template<class T>
 void gaussian_kernel(T* dist, size_type nd, T* sdist, size_type ns, double sigma)
 {
-	T sum = T(0.0);
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif

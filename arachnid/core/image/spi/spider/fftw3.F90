@@ -81,7 +81,6 @@ C       ---------------  FFTW3_MAKEPLAN -----------------------------
      &                            PLAN,INV,IRTFLG)
 
         USE TYPE_KINDS
-
         INCLUDE 'CMBLOCK.INC'
 
         INTEGER, INTENT(INOUT) :: NUMTHINOUT
@@ -90,11 +89,11 @@ C       ---------------  FFTW3_MAKEPLAN -----------------------------
 	
 C       PLAN IS A POINTER TO A STRUCTURE 
         INTEGER(KIND=I_8), INTENT(INOUT) :: PLAN
-
+#ifdef SP_MP
         INTEGER           :: OMP_GET_NUM_THREADS
         LOGICAL, SAVE     :: MUST_INIT = .TRUE.
-
-	REAL, ALLOCATABLE, DIMENSION(:,:,:) :: AF
+#endif
+		REAL, ALLOCATABLE, DIMENSION(:,:,:) :: AF
 
 #ifndef SP_LIBFFTW3
 C       NOT COMPILED FOR FFTW3
@@ -247,9 +246,10 @@ C       ---------------  FFTW3_MAKEPLANB -----------------------------
 C       PLAN IS A POINTER TO A STRUCTURE 
         INTEGER(KIND=I_8), INTENT(INOUT) :: PLAN
 
+#ifdef SP_MP
         INTEGER                          :: OMP_GET_NUM_THREADS
         LOGICAL, SAVE                    :: MUST_INIT = .TRUE.
-
+#endif
         INCLUDE 'CMBLOCK.INC'
 
 
@@ -411,8 +411,8 @@ C          FORWARD TRANSFORM, USING FFTW3 GURU INTERFACE
 
 c           write(6,90)PLAN
 c           IF (VERBOSE) WRITE(NOUT,90)PLAN,NSAM,NROW,NSLICE 
- 90        FORMAT( '  Forward FFTW3, Plan:   ',I15 ' (',
-     &              I6,',', I6,',', I6,')')
+c 90        FORMAT( '  Forward FFTW3, Plan:   ',I15 ' (',
+c     &              I6,',', I6,',', I6,')')
 
            CALL SFFTW_EXECUTE_DFT_R2C(PLAN,BUF,BUF) 
 
@@ -432,8 +432,8 @@ C          REVERSE TRANSFORM, USING FFTW3 GURU INTERFACE
 
 c          write(6,91)PLAN
 c           IF (VERBOSE) WRITE(NOUT,91)PLAN,NSAM,NROW,NSLICE
- 91        FORMAT( '  Reverse FFTW3, Plan:   ', I15 ' (',
-     &              I6,',', I6,',', I6,') ')
+c 91        FORMAT( '  Reverse FFTW3, Plan:   ', I15 ' (',
+c     &              I6,',', I6,',', I6,') ')
               
            IF (SPIDER_SIGN) THEN
 C             CHANGE FFTW FORMAT TO SPIDER FFT FORMAT 

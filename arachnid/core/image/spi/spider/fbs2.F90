@@ -105,7 +105,7 @@ C***********************************************************************
       LOGICAL :: CHKBOUND           ! X,Y MAY BE OUT OF IMAGE?
 
       INTEGER :: I, J, I2, J2, I3, J3 
-      REAL    :: A0, A1, A2, A3, B1
+      REAL    :: A0, A1, A2, A3 !, B1
       REAL    :: ADX, BDX, DADX, DBDX
       REAL    :: DX, DY
       REAL    :: DXSQR,DXCUB

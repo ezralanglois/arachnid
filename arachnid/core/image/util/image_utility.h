@@ -25,7 +25,7 @@ inline int radon_transform(T * sdist, int ns, I* Dr, int nr, I* Dc, int nc, int 
     int rLast, rFirst, rSize;
     int area = irow*icol;
     double *image, *angles, *rad;
-    double *thetaPtr, *ySinTable, *xCosTable;
+    double *ySinTable, *xCosTable;
     double deg2rad = 3.14159265358979 / 180.0;
 
     rLast = (int)ceil(sqrt((double) (temp1*temp1+temp2*temp2))) + 1;
@@ -97,7 +97,7 @@ inline int radon_count(int nang, int irow, int icol)
     int rLast, rFirst, rSize;
     int area = irow*icol;
     double *image, *angles, *rad;
-    double *thetaPtr, *ySinTable, *xCosTable;
+    double *ySinTable, *xCosTable;
     double deg2rad = 3.14159265358979 / 180.0;
 
     rLast = (int)ceil(sqrt((double) (temp1*temp1+temp2*temp2))) + 1;

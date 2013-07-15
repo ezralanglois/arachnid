@@ -10,6 +10,9 @@ cf2py intent(in) :: NX,NY,NZ,RADIUS
 cf2py intent(hide) :: NX,NY,NZ
 cf2py intent(out) :: NN
 
+		IF (1 .EQ. 0) THEN ! avoid warning
+		VOL(1,1,1)=0
+		ENDIF
         NN   = 1
 c        MD   =
 		LDPX = NX  /2+1

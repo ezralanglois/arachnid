@@ -20,8 +20,8 @@ void radon(double *pPtr, double *iPtr, double *thetaPtr, double *xCosTable, doub
     double *pixelPtr;         /* points inside input array */
     double pixel;             /* current pixel value */
     double x,y;
-    double r, delta;
-    int r1;
+    double r;//, delta;
+    //int r1;
 
 
     for (k = 0; k < numAngles; k++) {

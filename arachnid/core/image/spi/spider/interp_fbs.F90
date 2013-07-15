@@ -52,9 +52,9 @@ C***********************************************************************
        INTEGER           :: NX2, NY2
        INTEGER           :: IRTFLG
 
-       INTEGER           :: I,J,K1,K2,MWANT
+       INTEGER           :: K1,K2,MWANT !I,J,
        INTEGER           :: M1,M2
-       INTEGER           :: INV
+       !INTEGER           :: INV
        REAL              :: X,Y
        REAL              :: SCALEX, SCALEY
 

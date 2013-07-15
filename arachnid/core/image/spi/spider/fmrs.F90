@@ -88,9 +88,10 @@ C       -------------------- FMRS ------------------------------------
         LOGICAL, INTENT(IN)    :: SPIDER_SIGN, SPIDER_SCALE 
         INTEGER, INTENT(INOUT) :: INV
         INTEGER, INTENT(OUT)   :: IRTFLG
-
+#ifdef SP_MP
         INTEGER                :: OMP_GET_NUM_THREADS
         INTEGER                :: OMP_GET_NUM_PROCS
+#endif
         LOGICAL                :: USEBUF
 
         INCLUDE 'CMBLOCK.INC'
@@ -113,7 +114,7 @@ C          USE PLAN SENT FROM CALLER
 
            IF (NUMFFTWTH .LE. 0) THEN
 C             FIRST TIME FFTW3 USED IN THIS RUN
-	      CALL FFTW3_INIT_THREADS(IRTFLG)
+	          CALL FFTW3_INIT_THREADS(IRTFLG)
            ENDIF
 
            NUMTHWANT = NUMFFTWTH
@@ -130,8 +131,8 @@ C             INSIDE OMP PARALLEL SECTION, CAN NOT MAKE A NEW PLAN
 #endif
                    
            !write(6,908) NSAM,NROW,NSLICE,NUMTHWANT,INV
- 908       format( ' Calling fmrs_planb for: (',
-     &              I5,',', I5,',', I5,') ',2i5)
+! 908       format( ' Calling fmrs_planb for: (',
+!     &              I5,',', I5,',', I5,') ',2i5)
 
 C          USE CACHED PLAN OR CREATE A NEW ONE IF CACHE NOT USEFULL
            USEBUF = .FALSE.
@@ -327,7 +328,7 @@ C       SEE IF THERE IS ANY SUITABLE CACHED PLAN
 C             AN MT SLOT FOR A PLAN
               MT = IPLAN
               !write(6,934) mt
-934           format('  Found MT slot: ',i3)
+!934           format('  Found MT slot: ',i3)
 
            ELSEIF (PLAN .NE. 0) THEN
 C             THIS IS A VALID CACHED PLAN
@@ -340,8 +341,8 @@ C             THIS IS A VALID CACHED PLAN
 C                THIS IS A SUITABLE CACHED PLAN 
 
                  !write(6,903) iplan, (ipd(iplan,i),i=1,6), plan
- 903             format('  Found suitable plan: ',i2,': (',i5,','
-     &                  ,i5,',',i5,'):', i2,' ',i2,' ',i2,' Plan:',i14)
+! 903             format('  Found suitable plan: ',i2,': (',i5,','
+!     &                  ,i5,',',i5,'):', i2,' ',i2,' ',i2,' Plan:',i14)
 
 C                PRESERVE CACHED PLAN FOR THIS OPERATIONS USE
                  IF (IPD(IPLAN,6) .LT. 0)  IPD(IPLAN,6) = 1
@@ -354,8 +355,8 @@ C                NOT SUITABLE, BUT PLAN CAN BE REPLACED FOR THIS OPERATION
                  IREP = IPLAN
 
                  !write(6,901) iplan, (ipd(iplan,i),i=1,6), plan
- 901             format('  Found replaceble plan: ',i2,': (',i5,','
-     &                  ,i5,',',i5,'):', i2,' ',i2,' ',i2,' Plan:',i14)
+! 901             format('  Found replaceble plan: ',i2,': (',i5,','
+!     &                  ,i5,',',i5,'):', i2,' ',i2,' ',i2,' Plan:',i14)
               ENDIF
            ENDIF
         ENDDO
@@ -404,7 +405,7 @@ c890       format('  Calling makeplan for: ',3i6,i4,i3)
         IF (IRTFLG .NE. 0) RETURN
 
         !write(6,902),iplan,plan,mt,irep
-902     format('  Slot:',i4,' Plan:',i20,'  mt,irep:',2i5)
+!902     format('  Slot:',i4,' Plan:',i20,'  mt,irep:',2i5)
 
         PLANS(IPLAN) = PLAN
         IPD(IPLAN,1) = NSAM
@@ -508,7 +509,7 @@ C             3D TRANSFORM
 C               SIZE OR THREADING CHANGED, CREATE NEW FORWARD PLAN
 
                 !write(6,899)nsam,nrow,nslice,numthwant,inv
- 899            format(' Calling makeplan for: ',3i6,i4,i2)
+ !899            format(' Calling makeplan for: ',3i6,i4,i2)
  
                 IF (USEBUF) THEN
                    CALL FFTW3_MAKEPLANB(BUF,LDA,NSAM,NROW,NSLICE,
@@ -637,7 +638,7 @@ C             1D TRANSFORM
 C               SIZE OR THREADING CHANGED, CREATE NEW FORWARD PLAN
 
                 !write(6,898) nsam, nsam1or, numthwant ,numfftwthor1
- 898            format(' nsam,nsam1or, numthwant,numfftwthor1:',4i7)
+! 898            format(' nsam,nsam1or, numthwant,numfftwthor1:',4i7)
                 !write(6,899)nsam,nrow,nslice,numthwant,inv
 
                 IF (USEBUF) THEN

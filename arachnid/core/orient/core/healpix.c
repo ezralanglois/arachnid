@@ -45,8 +45,8 @@ py_pix2ang_nest(
     PyObject *args,
     PyObject *kwds)
 {
-    PyObject *euler = NULL;
-    PyObject *result = NULL;
+	PyArrayObject *euler = NULL;
+    PyArrayObject *result = NULL;
     Py_ssize_t dims[] = {2};
     long ipix;
     long order;
@@ -75,7 +75,10 @@ py_pix2ang_nest(
     return PyArray_Return(result);
 
   _fail:
-    if( euler != NULL ) Py_XDECREF(euler);
+    if( euler != NULL )
+    {
+    	Py_XDECREF(euler);
+    }
     return NULL;
 }
 
@@ -88,8 +91,8 @@ py_pix2ang_ring(
     PyObject *args,
     PyObject *kwds)
 {
-    PyObject *euler = NULL;
-    PyObject *result = NULL;
+	PyArrayObject *euler = NULL;
+    PyArrayObject *result = NULL;
     Py_ssize_t dims[] = {2};
     long ipix;
     long order;
@@ -119,7 +122,10 @@ py_pix2ang_ring(
     return PyArray_Return(result);
 
   _fail:
-    if( euler != NULL ) Py_XDECREF(euler);
+    if( euler != NULL )
+    {
+    	Py_XDECREF(euler);
+    }
     return NULL;
 }
 

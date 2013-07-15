@@ -47,7 +47,8 @@ C--*********************************************************************
         INCLUDE 'CMBLOCK.INC' 
 
 	 IF ( X .LT. 0.0D0 .OR. X .GT. 1.0D0) THEN
-           WRITE(NOUT,*) '*** Bad argument X in BETAI'
+           !WRITE(NOUT,*) '*** Bad argument X in BETAI'
+           BT=-1.0D0
          ELSEIF ( X .EQ. 0.0D0 .OR. X .EQ. 1.0D0) THEN
            BT =  0.0D0
          ELSE

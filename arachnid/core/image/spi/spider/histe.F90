@@ -56,8 +56,8 @@ C--*********************************************************************
             SR   = SR  + QK1(I) ** 2
             XRMI = AMIN1(XRMI,QK1(I))
             XRMA = AMAX1(XRMA,QK1(I))
-	 ENDDO
-
+	 	ENDDO
+		NOUT=0
 C        ximi=amin1(ximi,xi(i))
 C1       xima=amax1(xima,xi(i))
 
@@ -73,7 +73,7 @@ C1       xima=amax1(xima,xi(i))
                AVI = AVI + QK2(I)
                SI  = SI  + QK2(I)**2
             ENDIF
-	 ENDDO
+	 	ENDDO
 
          RXR = XRMA - XRMI
 C        rxi = xima - ximi
