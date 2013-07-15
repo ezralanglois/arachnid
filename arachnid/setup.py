@@ -27,7 +27,7 @@ def ccompiler_options():
     compiler_args = ['-O3', '-funroll-loops'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
     if openmp_enabled:
         compiler_args.append('-fopenmp')
-    compiler_libraries = ['gomp'] if needs_gomp else []
+    compiler_libraries = [] #['gomp'] if needs_gomp else []
     compiler_defs = [('USE_OPENMP', None)] if openmp_enabled else []
     return compiler_args, compiler_libraries, compiler_defs
 
