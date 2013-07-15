@@ -37,8 +37,8 @@ def test_iter_images():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
-    empty_image2 = numpy.ones((78,78))
+    empty_image = numpy.zeros((78,200))
+    empty_image2 = numpy.ones((78,200))
     eman_format.write_image(test_file, empty_image)#, 0)
     #eman_format.write_image(test_file, empty_image2, 1)
     for i, img in enumerate(spider.iter_images(test_file)):
@@ -50,7 +50,7 @@ def test_read_image():
     '''
     '''
     
-    empty_image = numpy.ones((78,78))
+    empty_image = numpy.ones((78,200))
     eman_format.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, spider.read_image(test_file))
     os.unlink(test_file)
@@ -60,7 +60,7 @@ def test_write_image():
     '''
     '''
     
-    empty_image = numpy.ones((78,78))
+    empty_image = numpy.ones((78,200))
     spider.write_image(test_file, empty_image)
     spi_img = spider.read_image(test_file)
     numpy.testing.assert_allclose(empty_image, spi_img)

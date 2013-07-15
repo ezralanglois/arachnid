@@ -24,7 +24,7 @@ def test_is_readable():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
+    empty_image = numpy.zeros((78,200))
     eman_format.write_image(test_file, empty_image)
     assert(mrc.is_readable(test_file))
     os.unlink(test_file)
@@ -39,8 +39,8 @@ def test_iter_images():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
-    empty_image2 = numpy.ones((78,78))
+    empty_image = numpy.zeros((78,200))
+    empty_image2 = numpy.ones((78,200))
     eman_format.write_image(test_file, empty_image)#, 0)
     #eman_format.write_image(test_file, empty_image2, 1)
     for i, img in enumerate(mrc.iter_images(test_file)):
@@ -52,7 +52,7 @@ def test_read_image():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
+    empty_image = numpy.zeros((78,200))
     eman_format.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, mrc.read_image(test_file))
     os.unlink(test_file)
@@ -61,7 +61,7 @@ def test_write_image():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
+    empty_image = numpy.zeros((78,200))
     mrc.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, eman_format.read_image(test_file))
     os.unlink(test_file)
