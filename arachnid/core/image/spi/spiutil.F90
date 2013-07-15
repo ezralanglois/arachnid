@@ -258,14 +258,11 @@ c$omp   parallel do private(i,j)
         END
 
 
-	  SUBROUTINE ERRT(IERRT,PROG,NE)
+	  SUBROUTINE ERRT() !IERRT,PROG,NE)
 
-      INCLUDE 'CMBLOCK.INC'
+!      INCLUDE 'CMBLOCK.INC'
 
-      CHARACTER (LEN=*)   :: PROG
-      CHARACTER (LEN=78)  :: MESG
-      CHARACTER (LEN=180) :: CSTRING
-      CHARACTER (LEN=1)   :: NUL
+!      CHARACTER (LEN=*)   :: PROG
 
       END
 
