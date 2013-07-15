@@ -60,7 +60,7 @@ class MainWindow(QtGui.QWizard):
         
         self.connect(self, QtCore.SIGNAL("currentIdChanged(int)"), self.onPageChanged)
         self.connect(self.ui.referenceLineEdit, QtCore.SIGNAL("editingFinished()"), self.onReferenceEditChanged)
-        self.connect(self.ui.micrographFileLineEdit, QtCore.SIGNAL("editingFinished()"), self.onMicrographLineEditChanged)
+        #self.connect(self.ui.micrographFileLineEdit, QtCore.SIGNAL("editingFinished()"), self.onMicrographLineEditChanged)
         self.connect(self.ui.extensionLineEdit, QtCore.SIGNAL("editingFinished()"), self.onExtensionEditChanged)
         self.connect(self.jobUpdateTimer, QtCore.SIGNAL("timeout()"), self.onMonitorUpdate  )
         
@@ -206,7 +206,10 @@ class MainWindow(QtGui.QWizard):
                     enable=False
                     break
         elif page == 2:
-            enable = self.param['curr_apix'] > 0 and self.param['raw_reference'] != "" and os.path.exists(self.param['raw_reference'])
+            if self.param['raw_reference'] != "" and os.path.exists(self.param['raw_reference']):
+                enable = self.param['curr_apix'] > 0
+            else:
+                enable=True
         elif page == 3:
             enable = self.param['apix'] > 0 and self.param['voltage'] > 0 and self.param['particle_diameter'] > 0 and self.param['cs'] > 0
         elif page == 4:
@@ -544,7 +547,7 @@ class MainWindow(QtGui.QWizard):
         self.param['curr_apix'] = value
         self.onPageChanged()
     
-    @qtSlot(name='on_referenceLineEdit_editingFinished)')
+    @qtSlot(name='on_referenceLineEdit_editingFinished')
     def onReferenceEditChanged(self):
         '''
         '''
@@ -608,8 +611,8 @@ class MainWindow(QtGui.QWizard):
             self.ui.micrographDisplayLabel.setPixmap(QtGui.QPixmap.fromImage(self.micrograph))
             self.param['is_film'] = self.ui.invertCheckBox.checkState() != QtCore.Qt.Checked
     
-    #@qtSlot(name='on_micrographFileLineEdit_editingFinished)')
-    def onMicrographLineEditChanged(self):
+    @qtSlot()
+    def on_micrographFileLineEdit_editingFinished(self):
         '''
         '''
         
@@ -625,7 +628,6 @@ class MainWindow(QtGui.QWizard):
         '''
         
         text=self.param[type]
-        print '++++',text, type
         
         files = []
         for filename in text.split(','):
