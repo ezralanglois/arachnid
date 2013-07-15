@@ -939,6 +939,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,LCUT,HCUT
+    REAL, PARAMETER  :: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -998,8 +999,8 @@
 
 	EPS   =  0.882
 	AA    = 10.624
-	FP2=LCUT
-	FS2=HCUT
+	FP=LCUT
+	FS=HCUT
 	IF (FP > 0.5) THEN
         FP2 = FP / NX
     ELSE
@@ -1078,6 +1079,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,LCUT,HCUT
+    REAL, PARAMETER  :: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -1137,8 +1139,8 @@
 
 	EPS   =  0.882
 	AA    = 10.624
-	FP2=LCUT
-	FS2=HCUT
+	FP=LCUT
+	FS=HCUT
 	IF (FP > 0.5) THEN
         FP2 = FP / NX
     ELSE
