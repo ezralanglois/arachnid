@@ -2,9 +2,10 @@
 
 .. todo:: define arachnid header and map to mrc
 
-.. todo: finish reading
+.. note::
 
-.. todo:: finish tests
+    This code is heavily modified version of the MRC parser/writer
+    found in the Scripps Appion program.
 
 
 .. Created on Aug 9, 2012
@@ -17,7 +18,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 mrc2numpy = {
-    0: numpy.uint8,
+    0: numpy.int8,
     1: numpy.int16,
     2: numpy.float32,
     3: numpy.dtype([('real', numpy.int16), ('imag', numpy.int16)]), 
@@ -126,10 +127,10 @@ def _gen_header():
         ('amean', numpy.float32),
         ('ispg', numpy.int32),
         ('nsymbt', numpy.int32),
+        ('extra', 'S100'),
     ]
     
     header_image_dtype = numpy.dtype( shared_fields+[
-        ('extra', 'S100'),
         ('xorigin', numpy.float32), #208 320  4   char    cmap;      Contains "MAP "
         ('yorigin', numpy.float32),
         ('zorigin', numpy.float32),
@@ -205,11 +206,11 @@ def _gen_header():
 # End attribution
 # --------------------------------------------------------------------
 
-header_image_dtype, header_stack_dtype = _gen_header()
+header_image_dtype = _gen_header()[0] #, header_stack_dtype 
 
 mrc2ara={'': ''}
 mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_image_dtype.names]))
-mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_stack_dtype.names]))
+#mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_stack_dtype.names]))
 ara2mrc=dict([(val, key) for key,val in mrc2ara.iteritems()])
 
 def cache_data():
@@ -237,8 +238,8 @@ def is_format_header(h):
           Test if dtype matches format dtype
     '''
     
-    return h.dtype == header_stack_dtype or h.dtype == header_stack_dtype.newbyteorder() or \
-           h.dtype == header_image_dtype or h.dtype == header_image_dtype.newbyteorder()
+    return h.dtype == header_image_dtype or h.dtype == header_image_dtype.newbyteorder() #or h.dtype == header_stack_dtype or h.dtype == header_stack_dtype.newbyteorder()
+           
 
 def bin(x, digits=0): 
     oct2bin = ['000','001','010','011','100','101','110','111'] 
@@ -528,7 +529,7 @@ def write_image(filename, img, index=None, header=None):
     mode = 'rb+' if index is not None and index > 0 else 'wb+'
     f = _open(filename, mode)
     if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
-        h = numpy.zeros(1, header_image_dtype) #if index is None else numpy.zeros(1, header_stack_dtype)
+        h = numpy.zeros(1, header_image_dtype)
         _update_header(h, mrc_defaults, ara2mrc)
         pix = header.get('apix', 1.0) if header is not None else 1.0
         header=_update_header(h, header, ara2mrc, 'mrc')
@@ -584,4 +585,3 @@ def write_image(filename, img, index=None, header=None):
 if __name__ == '__main__':
     
     print len(header_image_dtype)
-    print header_stack_dtype.itemsize
