@@ -55,7 +55,7 @@ def interpolate(img, out, method='bilinear'):
     
     if method not in ('bilinear', 'ft', 'fs'):
         raise ValueError, "method argument must be one of the following: bilinear,ft,fs"
-    return getattr(ndinter, 'interpolate_'+method)
+    return getattr(ndinter, 'interpolate_'+method)(img, out)
 
 def interpolate_bilinear(img, out):
     ''' Interpolate the size of the input image using bilinear scheme
