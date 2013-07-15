@@ -266,10 +266,10 @@ def read_image(filename, index=None, header=None):
         offset = h_len + index * (h_len+i_len)
         f.seek(offset)
         out = numpy.fromfile(f, dtype=spi2numpy[float(h['iform'])], count=d_len)
-        if int(h['nz']) > 1:   out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
+        if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
         elif int(h['ny']) > 1: 
             try:
-                out = out.reshape(int(h['nx']), int(h['ny']))
+                out = out.reshape(int(h['ny']), int(h['nx']))
             except:
                 _logger.error("%d != %d*%d = %d"%(out.ravel().shape[0], int(h['nx']), int(h['ny']), int(h['nx'])*int(h['ny'])))
                 raise
@@ -311,8 +311,8 @@ def iter_images(filename, index=None, header=None):
         else: index = index.astype(numpy.int)
         for i in index:
             out = numpy.fromfile(f, dtype=spi2numpy[float(h['iform'])], count=d_len)
-            if int(h['nz']) > 1:   out = out.reshape(int(h['nx']), int(h['ny']), int(h['nz']))
-            elif int(h['ny']) > 1: out = out.reshape(int(h['nx']), int(h['ny']))
+            if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
+            elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
             yield out
     finally:
         _close(filename, f)
