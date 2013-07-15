@@ -449,9 +449,10 @@ def compress_filenames(files):
     for i in xrange(len(files)):
         if not os.path.isabs(files[i]):
             files[i] = os.path.abspath(files[i])
-    
-    tmp = os.path.commonprefix(files)+'*'
-    if len(glob.glob(tmp)) == len(files): files = [tmp]
+    if len(files) > 1:
+        tmp = os.path.commonprefix(files)+'*'
+        if len(glob.glob(tmp)) == len(files): files = [tmp]
+        else: _logger.warn("No common prefix: %d != %d - %s"%(len(glob.glob(tmp)), len(files), tmp))
     return files
 
 def module_name(mod):

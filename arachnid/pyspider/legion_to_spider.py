@@ -182,18 +182,26 @@ def convert_to_spider(files, output, offset=0):
     select = format_utility.add_prefix(base+".star", 'sel_')
     output = base+os.path.splitext(files[0])[1]
     if not os.path.exists(os.path.dirname(output)): os.makedirs(os.path.dirname(output))
-    mapping = format.read(select, numeric=True) if os.path.exists(select) else []
-    mapped = dict([(v.araLeginonFilename, v.araSpiderID) for v in mapping])
+    mapping = [v for v in format.read(select, numeric=True) if v.araSpiderID > 0 and os.path.exists(v.araLeginonFilename)] if os.path.exists(select) else []
+    mapped = dict([(v.araLeginonFilename, v.araSpiderID) for v in mapping if v.araSpiderID > 0 and os.path.exists(v.araLeginonFilename)])
     update = [f for f in files if f not in mapped]
     index = len(mapped)+offset
     for f in update:
         output_file = spider_utility.spider_filename(output, index+1)
         if os.path.exists(output_file): os.unlink(output_file)
-        os.symlink(os.path.abspath(f), output_file)
+        try:
+            os.symlink(os.path.abspath(f), output_file)
+        except:
+            os.unlink(output_file)
+            try:
+                os.symlink(os.path.abspath(f), output_file)
+            except:
+                _logger.error("%s"%output_file)
+                raise
         mapping.append((f, index+1))
         index += 1
-    format.write(select, mapping, header="araLeginonFilename,araSpiderID".split(','))
-    return [spider_utility.spider_filename(output, v) for v in xrange(1, len(mapping)+1)]
+    format.write(select, [tuple(m) for m in mapping], header="araLeginonFilename,araSpiderID".split(','))
+    return [spider_utility.spider_filename(output, v) for v in xrange(1, len(mapping)+1) if os.path.exists(spider_utility.spider_filename(output, v))]
 
 def is_legion_filename(files):
     ''' Test if filename is in leginon format
