@@ -461,7 +461,7 @@ Additional tips:
                 self.base_level = qimg.colorTable()
                 self.color_level = adjust_level(change_contrast, self.base_level, self.ui.contrastSlider.value())
                 qimg.setColorTable(self.color_level)
-            self.image_list.append(QtGui.QImage(qimg))
+            self.image_list.append(qimg)
             pix = QtGui.QPixmap.fromImage(qimg)
             icon = QtGui.QIcon()
             icon.addPixmap(pix,QtGui.QIcon.Normal);
