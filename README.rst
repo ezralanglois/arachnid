@@ -68,4 +68,4 @@ You can check out the latest source with the command::
 
 .. _`Frank Lab`: http://franklab.cpmc.columbia.edu/franklab/
 .. _`GPL 2.0`: http://www.gnu.org/licenses/gpl-2.0.html
-.. _`Anaconda: https://store.continuum.io/
+.. _`Anaconda`: https://store.continuum.io/
