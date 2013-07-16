@@ -21,28 +21,24 @@ this point you should have two things:
 		- Pixel size, A
 		- Electron energy, KeV
 		- Spherical aberration, mm
-		- Actual size of particle, pixels
+		- Actual size of particle, angstroms
 
-There are several ways to proceed after creating your project:
+The default mode for project generation assumes that you will perform angular refinement and classification
+with Relion. There are several additional options that are availabe using the :option:`--cluster-mode`.
 
-#. Use the `-m All Cluster` option for `spi-project` and everything is run on the cluster (except reference preparation)
-#. Simply run the provided scripts (`run_local` and `run_cluster` to do a fast data processing)
-#. Run the `run_local` script then go to `Improving the Data Treatment`_ and manually 
-   assess the data quality and fix problems before running `run_cluster`.
-#. Run each configuration file independently
+To setup and start processing, the easiest method is to start the project wizard graphical user interface and
+follow the instructions.
 
-.. note::
+.. sourcecode:: sh
+
+	$ ara-projectw
 	
-	For Frank Lab members, you must source Arachnid to get full access to pySpider (EACH time you start a terminal window).
-	
-	.. sourcecode:: sh
-	
-		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
+Alternatively, the following subsections describe how to create and run a program from the command line.
 
 Creating a project
 ------------------
 
-The `spi-project` script generates an entire pySPIDER project including
+The `sp-project` script generates an entire pySPIDER project including
 	
 	- Directories
 	- Configuration files
@@ -52,41 +48,40 @@ the program without arguments.
 
 .. sourcecode:: sh
 	
-	$ spi-project
+	$ sp-project
 	ERROR:root:Option --input-files requires a value - found empty
-	#  Program:	spi-project
+	#  Program:	sp-project
 	#  Version:	0.0.1
 	
 	#  Generate all the scripts and directories for a pySPIDER project
 	#  
-	#  $ spi-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
+	#  $ sp-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
 	#  
 
 	
 	input-files:                            #               (-i)    List of input filenames containing micrographs
 	output:                                 #               (-o)    Output directory with project name
-	raw-reference:                          #               (-r)    Raw reference volume
-	ext:                                    #               (-e)    Extension for SPIDER (three characters)
-	is-ccd:                         False   #	Set true if the micrographs were collected on a CCD (and have not been processed)
+	raw-reference:                          #               (-r)    Raw reference volume - optional
+	is-film:                         False   #		Set true if the micrographs were collected on film (or have been processed)
 	apix:                           0.0     #       Pixel size, A
 	voltage:                        0.0     #       Electron energy, KeV
 	cs:                             0.0     #       Spherical aberration, mm
-	pixel-diameter:                 0       #       Actual size of particle, pixels
+	particle-diameter:              0       #       Longest diameter of the particle, angstroms
 	...
 
-The values shown above (for brevity only a partial list covering all required parameters) are all 
+The values shown above (for brevity this is only a partial list of all available parameters) are all 
 required for this script to run.
 
 The values for each option can be set as follows:
 
 .. sourcecode:: sh
 	
-	$ spi-project ../mic*.tif -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
+	$ sp-project ../mic*.mrc -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
 
 Let's look at each parameter on the command line above.
 
-The `../mic*.tif` is a list of micrographs. The shell in most operating systems understands that `*` is a wildcard 
-character that allows you to select all files in directory `../` that start with `mic` and end with `.tif`. You do
+The `../mic*.mrc` is a list of micrographs. The shell in most operating systems understands that `*` is a wildcard 
+character that allows you to select all files in directory `../` that start with `mic` and end with `.mrc`. You do
 not need to convert the micrographs to SPIDER format, that will be taken care of for you. In fact, the micrographs
 are not converted at all, only the output particle projection windows are required to be in SPIDER format for
 pySPIDER.
@@ -95,21 +90,21 @@ The `-o ribosome_70s` defines the name of the root output directory, which in th
 directories and configuration files/scripts will be created in this output directory (:ref:`see below <project-directory>`).
 
 The `-r emd_1001.map` defines the raw reference volume. Ideally, this will be in MRC format with the pixel-size in the header. If not,
-then you will need to edit the :py:mod:`reference` script to set the pixel size.
-
-The `-e spi` defines the extension used in the SPIDER project. This is required by SPIDER and should be three characters.
-
-The `-w 4` defines the number of cores to use for parallel processing.
+then you will need set the :option:`--curr-apix` parameter to set the proper pixel size.
 
 The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--pixel-diameter 220` microscope parameters that define the experiment.
+
+The following are additional, recommended options.
+
+The `-w 4` defines the number of cores to use for parallel processing.
 
 The `--scatter-doc ribosome` will download a ribosome scattering file to 8A, otherwise you should specify an existing scattering file
 or nothing.
 
 .. note::
 
-	When processing unprocessed (i.e. inverted) CCD micrographs `--is-ccd` should be added to the command above.
-	In the configuration file, this should be `is-ccd: True`
+	When processing processed (i.e. already contrast inverted, e.g. film) micrographs `--is-film` should be added to the command above.
+	In the configuration file, this should be `is-film: True`
 
 .. _project-directory:
 
@@ -119,7 +114,7 @@ The command above will create a directory called `ribosome_70s` with the followi
 
 	$ ls -R ribosome_70s
 	ribosome_70s/:
-	cluster  local run_cluster run_local
+	cluster  local run_local
 	
 	ribosome_70s/cluster:
 	align.cfg  data  refine.cfg  refinement  win
@@ -141,8 +136,8 @@ The command above will create a directory called `ribosome_70s` with the followi
 In the `ribosome_70s` directory, you will find two scripts: one to invoke all local scripts and one
 to invoke the cluster scripts.
 
-Running Local Scripts
----------------------
+Running Scripts
+---------------
 
 To run all the local scripts in the proper order, use the following suggested command:
 
@@ -156,42 +151,27 @@ To run all the local scripts in the proper order, use the following suggested co
 	
 	All paths are setup relative to you executing a script from the project directory, e.g. `ribosome_70s`.
 
-Running Cluster Scripts
------------------------
-
-Running scripts on the cluster is slightly more complicated. The `spi-project` script tries to guess the proper command
-under the following assumptions:
-
- #. Your account is setup to run an MPI job on the cluster
- #. You have a machinefile for MPI
- #. You have SSH-AGENT or some non-password enabled setup
- #. Your cluster does not use a schdueling system like PBS or Torque
-
-If your files are not accessible to the cluster, then you only need to copy the `cluster` directory and the
-`run_cluster` script to the cluster. 
-
-.. sourcecode:: sh
-
-	$ cd ribosome_70s
-	
-	$ scp -r cluster run_cluster username@cluster:~/ribosome_70s
-
-To run all cluster scripts in the proper order, use the following suggested command:
-
-.. sourcecode:: sh
-
-	$ cd ribosome_70s
-	
-	$ nohup sh run_cluster > /dev/null &
-
-.. note::
-
-	You will find your refined, amplitude-enhanced volume in `ribosome_70s/cluster/refinement` with the 
-	name (assuming you specified `scattering-doc` with the appropriate file): e.g. after 13 iterations 
-	of refinement, it will be called `enh_align_0013.spi`.
-
 Improving the Data Treatment
 ============================
+
+Screening
+---------
+
+Manually screening micrographs, power spectra and particle windows can all be done in `ara-view`.
+
+.. sourcecode:: sh
+
+	$ ara-view
+
+This program has several features:
+
+  - Micrograph and power spectra screening can be done simutaneously
+  - It can be used while collecting data, the `Load More` button will find more micrographs
+  - Saving is only necessary when you are finished. It writes out SPIDER compatible selection files
+
+Additional processing
+---------------------
+
 
 Arachnid is geared toward automated data processing. Algorithms are currently under development to
 handle each the of the steps below. Until such algorithms have been developed, it is recommended
@@ -200,16 +180,6 @@ that you use the SPIDER alternatives listed below.
 .. note:: 
 	
 	Arachnid was intended to be compatible with SPIDER batch files.
-
-Micrograph screening
---------------------
-
-This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
-
-Power spectra screening
------------------------
-
-This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
 	
 Manual CTF fitting
 ------------------
@@ -221,12 +191,6 @@ will write out a new defocus file
 	
 	It is recommended that you rename the current defocus file first, then save the new defocus file 
 	with the original name of the current defocus file.
-
-Particle screening
-------------------
-
-- This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
-- Alternatively with `Verify By View <http://www.wadsworth.org/spider_doc/spider/docs/techs/verify/batch/instr-apsh.htm#verify>`_
 
 Classification
 --------------
@@ -273,81 +237,6 @@ Running Isolated Scripts
 
 This section covers running Arachnid scripts in isolation, i.e. when you only want to use Arachnid for one
 procedure in the single-particle reconstruction workflow.
-
-.. note::
-	
-	For Frank Lab members, you must source Arachnid to get full access to pySpider (EACH time you start a terminal window).
-	
-	.. sourcecode:: sh
-	
-		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
-		
-Micrograph Selection
---------------------
-
-Using ap-view (or view) (Frank Lab)
-
-1. Create micrograph stacks
-
-Decimate micrographs (on Linux)
-
-.. sourcecode:: sh
-
-	ap-prepare mic* -o mic_000000.ext -w decimate --bin-factor 8
-
-ap-view (also called view on mac and windows) requires a stack of images for 
-selection. After decimating your micrographs, you can stack them into small groups.
-
-To do this: Download :download:`stack_images.py <../arachnid/snippets/stack_images.py>`, edit to
-set your micrograph file names and then run.
-
-.. sourcecode:: sh
-	
-	$ python stack_images.py
-
-If you set the output filename in stack_images.py as micrograph_stack_0001.spi, then you will have
-the following outputs:
-
- -  micrograph_stack_0001.spi,  micrograph_stack_0002.spi ...  micrograph_stack_XXXX.spi
- -  sel_micrograph_stack_0001.spi,  sel_micrograph_stack_0002.spi ...  sel_micrograph_stack_XXXX.spi
- -  selall_micrograph_stack_XXXXb.spi
-
-2. Load data into ap-view (or view)
-
- - Open selall_micrograph_stack_XXXXb.spi
- - Open micrograph_stack_0001.spi
- - Open sel_micrograph_stack_0001.spi
- - Save project!
- - Start selecting
- - When finished Save as ".sdat"
-
-3. Remap selection files
-
-On Linux, run the following command:
-
-To do this: Download :download:`postporcess_mic_select <../arachnid/snippets/postprocess_mic_select.py>`, edit to
-set your micrograph file names and then run.
-
-.. sourcecode:: sh
-	
-	$ python postporcess_mic_select.py
-
-Power Spectra Selection
------------------------
-
-1. Stack all power spectra
-
-.. sourcecode:: sh
-
-	ap-stack pow_* -o pow_stack_01.ext --document pow_select_01.ext
-
-2. Load data into ap-view (or view)
-
- - Open pow_stack_01.ext
- - Open pow_select_01.ext
- - Save project!
- - Start selecting
- - When finished Save as ".sdat"
 
 Particle Selection
 ------------------
