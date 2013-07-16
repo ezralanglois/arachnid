@@ -72,7 +72,9 @@ numpy2mrc = {
 intbyteorder = {
     0x11110000: 'big',
     0x44440000: 'little', #hack
-    0x44410000: 'little' #0x4144 - 16708
+    0x44410000: 'little', #0x4144 - 16708
+    286326784: 'big',
+    1145110528: 'little',
 }
 byteorderint = {
     'big': 0x11110000,
@@ -127,10 +129,10 @@ def _gen_header():
         ('amean', numpy.float32),
         ('ispg', numpy.int32),
         ('nsymbt', numpy.int32),
-        ('extra', 'S100'),
     ]
     
     header_image_dtype = numpy.dtype( shared_fields+[
+        ('extra', 'S100'),
         ('xorigin', numpy.float32), #208 320  4   char    cmap;      Contains "MAP "
         ('yorigin', numpy.float32),
         ('zorigin', numpy.float32),
@@ -269,7 +271,9 @@ def is_readable(filename):
         except: return False
     if h['mode'][0] not in mrc2numpy: return False
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
-       (h['byteorder'][0].byteswap()&-65536) not in intbyteorder: return False
+       (h['byteorder'][0].byteswap()&-65536) not in intbyteorder and \
+       h['alpha'][0] != 90.0 and h['beta'][0] != 90.0 and h['gamma'][0] != 90.0: # this line hack for non-standard writers
+        return False
     if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz')]): return False
     return True
 
