@@ -313,6 +313,9 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
               List of tuples, modules and their specific parameters
     '''
     
+    if 'particle_diameter' in extra and 'pixel_diameter' not in extra:
+        extra['pixel_diameter'] = extra['particle_diameter']/extra['apix']
+    
     data_ext = ext
     if ext[0] != '.': ext = '.'+ext
     else: data_ext = ext[1:]
@@ -635,15 +638,16 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", is_film=False,        help="Set true if the micrographs were collected on film (or have been processed)", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0), required=True)
-    pgroup.add_option("", pixel_diameter=0,     help="Actual size of particle, pixels", gui=dict(minimum=0), required=True)
+    pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, angstroms", gui=dict(minimum=0), required=True)
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
-    pgroup.add_option("", scattering_doc="",    help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     
     
     # Additional options to change
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
     group.add_option("",    cluster_mode=_cluster_modes, help="Set the cluster mode", default=_cluster_default)
+    group.add_option("",    scattering_doc="",      help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
     group.add_option("",    window_size=0,          help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
+    group.add_option("",    curr_apix=0.0,          help="Current pixel size of the reference", gui=dict(minimum=0.0))
     group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
     group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
     group.add_option("-m",  mpi_mode=('Default', 'All Cluster', 'All single node'), help="Setup scripts to run with their default setup or on the cluster or on a single node: ", default=0)
@@ -672,8 +676,8 @@ def check_options(options, main_option=False):
         raise OptionValueError, "No electron energy in KeV specified (--voltage), either specifiy it or an existing SPIDER params file"
     if options.cs == 0.0:
         raise OptionValueError, "No spherical aberration in mm specified (--cs), either specifiy it or an existing SPIDER params file"
-    if options.pixel_diameter == 0.0:
-        raise OptionValueError, "No actual size of particle in pixels specified (--pixel_diameter), either specifiy it or an existing SPIDER params file"
+    if options.particle_diameter == 0.0:
+        raise OptionValueError, "No longest diameter of the particle in angstroms specified (--particle-diameter), either specifiy it or an existing SPIDER params file"
     
 
 def main():
