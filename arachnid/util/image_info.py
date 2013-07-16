@@ -10,7 +10,7 @@ import logging, os, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output="", test_size=0, all=False, stat=False, **extra):
+def batch(files, output="", test_size=0, all=False, stat=False, force=False, **extra):
     '''Generate a relion selection file
     
     :Parameters:
@@ -45,8 +45,10 @@ def batch(files, output="", test_size=0, all=False, stat=False, **extra):
                 raise ValueError, "%s - nx != nx: %d != %d"%(filename, header['ny'], size[1])
             if header['nz'] != size[2]:
                 raise ValueError, "%s - nx != nx: %d != %d"%(filename, header['nz'], size[2])
-        if ndimage_file.spider.is_readable(filename) and 1 == 0:
+        if force and ndimage_file.spider.is_readable(filename):
             header = ndimage_file.spider.read_header(filename)
+        elif force and ndimage_file.mrc.is_readable(filename):
+            header = ndimage_file.mrc.read_header(filename)
         else:
             header = ndimage_file.read_header(filename)
         header['name'] = os.path.basename(filename)
@@ -82,6 +84,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-t", test_size=0,                   help="Test if the image sizes are consistent")
     group.add_option("-a", all=False,                   help="Print the entire header in long format")
     group.add_option("-s", stat=False,                   help="Estimate statistics")
+    group.add_option("-f", force=False,                   help="Force internal formats")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
