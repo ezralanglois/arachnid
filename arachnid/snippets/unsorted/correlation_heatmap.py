@@ -22,10 +22,10 @@ To run:
 import sys
 #sys.path.append('~/workspace/arachnida/src')
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
-import matplotlib
-matplotlib.use("Agg")
+
+from arachnid.core.util.matploblib_nogui import pylab
 from arachnid.core.metadata import format, spider_utility
-import pylab, os, numpy
+import os, numpy
 
 if __name__ == '__main__':
 

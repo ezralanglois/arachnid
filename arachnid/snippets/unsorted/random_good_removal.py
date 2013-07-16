@@ -1,7 +1,5 @@
 ''' Add negative set back and remove random good set
 
-See http://matplotlib.org/ for more details on customizing plotting.
-
 Download to edit and run: :download:`random_good_removal.py <../../arachnid/snippets/random_good_removal.py>`
 
 To run:

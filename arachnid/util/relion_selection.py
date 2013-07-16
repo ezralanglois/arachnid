@@ -126,11 +126,8 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Nov 27, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-try:
-    import matplotlib
-    matplotlib.use('Agg')
-    #import matplotlib.cm as cm
-except: pass
+
+from ..core.util.matploblib_nogui import pylab
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image import eman2_utility, ndimage_file #, ndimage_utility
@@ -302,10 +299,6 @@ def view_distrubtion(vals, views, output, column, select="", **extra):
         format.write(output, ref, header=['ref'])
         header = [('c_%d'%(i+1)) for i in xrange(len(groups))]
         format.write(output, numpy.hstack((numpy.arange(1, len(ref_hist)+1)[:, numpy.newaxis], ref_hist)), header=['id', 'full']+header, prefix='hist_text_')
-        try: 
-            import pylab
-            pylab;
-        except: pylab=None
         
         if pylab is not None:
             '''
@@ -330,11 +323,6 @@ def view_distrubtion(vals, views, output, column, select="", **extra):
         
         format.write(output, ref, header=['ref'])
         format.write(output, numpy.hstack((numpy.arange(1, len(ref_hist)+1)[:, numpy.newaxis], ref_hist[:, numpy.newaxis])), header=['id', 'count'], prefix='hist_text_')
-        
-        try: 
-            import pylab
-            pylab;
-        except: pylab=None
         
         if pylab is not None:
             '''

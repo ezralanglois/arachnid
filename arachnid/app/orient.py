@@ -283,21 +283,6 @@ def frame_search_cost_function(frame, images, curimg, rot, midx, order, n):
         err += rotate.rotate_error(curimg[:idx.shape[0]], inplane, midx)
     #idx = numpy.argwhere(pix==int(numpy.max(pix)/2)).squeeze()
     return err
-    
-def angular_distribution(rot, order=6, output="", **extra):
-    '''
-    '''
-    
-    import matplotlib
-    matplotlib.use("Agg")
-    import pylab
-    
-    res=6
-    euler = orient_utility.ensure_euler(rot)
-    pix = healpix.ang2pix(res, euler[:, 1:])
-    pylab.clf()
-    pylab.hist(pix, healpix.res2npix(res))
-    pylab.savefig(format_utility.new_filename(output, suffix='_angular_distribution_hist', ext='.png'), dpi=500)
 
 def build_label(files):
     '''

@@ -22,8 +22,7 @@ To run:
 from arachnid.core.metadata import format, format_utility
 from arachnid.core.image import analysis
 from arachnid.core.orient import healpix
-import matplotlib, numpy
-matplotlib;
+import numpy
 import pylab, os
 
 if __name__ == '__main__':

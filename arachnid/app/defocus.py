@@ -9,7 +9,7 @@ tracing;
 from ..core.metadata import format, spider_params, spider_utility, format_utility
 format;
 from ..core.image import ndimage_utility, ndimage_file, eman2_utility
-from ..core.image.ndplot import pylab
+from ..core.util.matploblib_nogui import pylab
 import numpy, logging, os, scipy.optimize
 from ..pyspider import resolution
 

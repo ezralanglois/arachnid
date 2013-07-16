@@ -29,9 +29,7 @@ from arachnid.util import bench
 from arachnid.core.metadata import format, spider_utility,format_utility
 bench;
 import numpy #, logging
-import matplotlib
-matplotlib.use('Agg')
-import pylab
+from arachnid.core.util.matploblib_nogui import pylab
 
 #format.mrccoord._logger.setLevel(logging.DEBUG)
 

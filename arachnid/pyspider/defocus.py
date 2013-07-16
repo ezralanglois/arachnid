@@ -156,13 +156,6 @@ import os, numpy, logging, itertools #, scipy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-try: 
-    import pylab
-    pylab;
-except:
-    tracing.log_import_error("Cannot import plotting libraries - plotting disabled", _logger)
-    pylab=None
-
 def process(filename, output, id_len=0, **extra):
     ''' Esimate the defocus of the given micrograph
     
@@ -515,6 +508,7 @@ def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     ''' Create a labeled power spectra for display
     '''
     
+    pylab = plotting.pylab
     if pylab is None: return img
     fig = pylab.figure(dpi=dpi, facecolor='white')
     ax = pylab.axes(frameon=False)
@@ -559,6 +553,7 @@ def plot_scatter(output, x, x_label, y, y_label, dpi=72):
     ''' Plot a histogram of the distribution
     '''
     
+    pylab=plotting.pylab
     if pylab is None: return
     
     fig = pylab.figure(dpi=dpi)
@@ -579,6 +574,7 @@ def plot_histogram(output, vals, x_label, th=None, dpi=72):
     ''' Plot a histogram of the distribution
     '''
     
+    pylab=plotting.pylab
     if pylab is None: return
     
     fig = pylab.figure(dpi=dpi)

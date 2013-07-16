@@ -5,8 +5,6 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 .. Created on Sep 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import matplotlib
-matplotlib.use("Agg")
 
 from ..core.app.program import run_hybrid_program
 from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold #, analysis

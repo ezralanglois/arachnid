@@ -3,9 +3,7 @@
 .. Created on Jan 24, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import matplotlib
-matplotlib.use('Agg')
-import pylab
+from ..core.util.matploblib_nogui import pylab
 from ..core.app import program
 #from ..core.util import plotting
 from ..core.metadata import spider_utility, spider_params, format_utility, format #, format_utility

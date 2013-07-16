@@ -3,8 +3,6 @@
 .. Created on Jan 11, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import matplotlib
-matplotlib.use('Agg')
 from ..core.app import program
 from ..core.util import plotting
 from ..core.metadata import spider_utility, format, format_utility, spider_params

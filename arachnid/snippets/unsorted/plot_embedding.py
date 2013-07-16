@@ -23,8 +23,7 @@ from arachnid.core.metadata import format, format_utility, spider_utility
 from arachnid.core.image import ndimage_file, ndimage_utility
 from arachnid.core.util import plotting
 #from arachnid.core.util import numpy_ext
-import matplotlib, numpy
-matplotlib;
+import numpy
 import pylab, os, itertools
 
 def plot_embedding(x, y, selection=None, best=None, markersize=3, dpi=80):

@@ -13,12 +13,11 @@ To run:
    :lines: 16-
    :linenos:
 '''
-import matplotlib
-matplotlib.use('Agg')
+from arachnid.core.util.matploblib_nogui import pylab
 import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1/')
 from arachnid.core.metadata import format, format_utility
-import pylab, numpy
+import numpy
 
 if __name__ == '__main__':
 

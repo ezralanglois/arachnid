@@ -3,6 +3,9 @@
 .. Created on Oct 16, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+
+
+from matploblib_nogui import pylab, matplotlib
 try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 except:
@@ -15,14 +18,6 @@ import numpy, logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
-
-try:
-    import pylab
-    pylab;
-except:
-    from ..app import tracing
-    tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
-    pylab=None
 
 
 def is_plotting_disabled(): return pylab is None
