@@ -60,7 +60,7 @@ class MainWindow(QtGui.QWizard):
         
         self.connect(self, QtCore.SIGNAL("currentIdChanged(int)"), self.onPageChanged)
         self.connect(self.ui.referenceLineEdit, QtCore.SIGNAL("editingFinished()"), self.onReferenceEditChanged)
-        #self.connect(self.ui.micrographFileLineEdit, QtCore.SIGNAL("editingFinished()"), self.onMicrographLineEditChanged)
+        #self.connect(self.ui.micFileLineEdit, QtCore.SIGNAL("editingFinished()"), self.onMicrographLineEditChanged)
         self.connect(self.ui.extensionLineEdit, QtCore.SIGNAL("editingFinished()"), self.onExtensionEditChanged)
         self.connect(self.jobUpdateTimer, QtCore.SIGNAL("timeout()"), self.onMonitorUpdate  )
         
@@ -73,7 +73,7 @@ class MainWindow(QtGui.QWizard):
         self.loadSettings()
         
         #Page 1
-        self.ui.micrographFileLineEdit.setText(self.param['input_files'])
+        self.ui.micFileLineEdit.setText(self.param['input_files'])
         self.param['input_files']=""
         if self.param['is_film']:
             self.ui.invertCheckBox.setCheckState(QtCore.Qt.Unchecked)
@@ -612,11 +612,11 @@ class MainWindow(QtGui.QWizard):
             self.param['is_film'] = self.ui.invertCheckBox.checkState() != QtCore.Qt.Checked
     
     @qtSlot()
-    def on_micrographFileLineEdit_editingFinished(self):
+    def on_micFileLineEdit_editingFinished(self):
         '''
         '''
         
-        text = str(self.ui.micrographFileLineEdit.text())
+        text = str(self.ui.micFileLineEdit.text())
         files = []
         for filename in text.split(','):
             files.extend(glob.glob(filename))
@@ -677,7 +677,7 @@ class MainWindow(QtGui.QWizard):
         
         self.param['input_files'] = filenames
         self.param['orig_files'] = filenames
-        self.ui.micrographFileLineEdit.setText(filenames)
+        self.ui.micFileLineEdit.setText(filenames)
         
         if self.ui.invertCheckBox.checkState() == QtCore.Qt.Checked:
             self.micrograph.invertPixels()

@@ -48,7 +48,7 @@
         <number>6</number>
        </property>
        <item row="0" column="0">
-        <widget class="QLineEdit" name="micrographFileLineEdit">
+        <widget class="QLineEdit" name="micFileLineEdit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>2</horstretch>
@@ -65,6 +65,9 @@
          <property name="icon">
           <iconset resource="../../icons/icons.qrc">
            <normaloff>:/mini/mini/folder.png</normaloff>:/mini/mini/folder.png</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -230,6 +233,9 @@
               <iconset resource="../../icons/icons.qrc">
                <normaloff>:/mini/mini/folder.png</normaloff>:/mini/mini/folder.png</iconset>
              </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
              <property name="flat">
               <bool>true</bool>
              </property>
@@ -339,6 +345,9 @@
             <widget class="QPushButton" name="emdbDownloadPushButton">
              <property name="text">
               <string>Download</string>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
              </property>
             </widget>
            </item>

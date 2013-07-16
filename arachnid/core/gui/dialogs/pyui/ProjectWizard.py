@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ProjectWizard.ui'
 #
-# Created: Sat Jul  6 20:55:48 2013
+# Created: Tue Jul 16 06:11:01 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,19 +30,20 @@ class Ui_ProjectWizard(object):
         self.gridLayout.setContentsMargins(6, 6, 6, 6)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
-        self.micrographFileLineEdit = QtGui.QLineEdit(self.widget)
+        self.micFileLineEdit = QtGui.QLineEdit(self.widget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(2)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.micrographFileLineEdit.sizePolicy().hasHeightForWidth())
-        self.micrographFileLineEdit.setSizePolicy(sizePolicy)
-        self.micrographFileLineEdit.setObjectName("micrographFileLineEdit")
-        self.gridLayout.addWidget(self.micrographFileLineEdit, 0, 0, 1, 1)
+        sizePolicy.setHeightForWidth(self.micFileLineEdit.sizePolicy().hasHeightForWidth())
+        self.micFileLineEdit.setSizePolicy(sizePolicy)
+        self.micFileLineEdit.setObjectName("micFileLineEdit")
+        self.gridLayout.addWidget(self.micFileLineEdit, 0, 0, 1, 1)
         self.micrographFilePushButton = QtGui.QPushButton(self.widget)
         self.micrographFilePushButton.setText("")
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/mini/mini/folder.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.micrographFilePushButton.setIcon(icon)
+        self.micrographFilePushButton.setAutoDefault(False)
         self.micrographFilePushButton.setFlat(True)
         self.micrographFilePushButton.setObjectName("micrographFilePushButton")
         self.gridLayout.addWidget(self.micrographFilePushButton, 0, 1, 1, 1)
@@ -128,6 +129,7 @@ class Ui_ProjectWizard(object):
         self.referenceFilePushButton = QtGui.QPushButton(self.widget_3)
         self.referenceFilePushButton.setText("")
         self.referenceFilePushButton.setIcon(icon)
+        self.referenceFilePushButton.setAutoDefault(False)
         self.referenceFilePushButton.setFlat(True)
         self.referenceFilePushButton.setObjectName("referenceFilePushButton")
         self.gridLayout_3.addWidget(self.referenceFilePushButton, 0, 1, 1, 1)
@@ -183,6 +185,7 @@ class Ui_ProjectWizard(object):
         self.emdbNumberLineEdit.setObjectName("emdbNumberLineEdit")
         self.horizontalLayout_3.addWidget(self.emdbNumberLineEdit)
         self.emdbDownloadPushButton = QtGui.QPushButton(self.widget_8)
+        self.emdbDownloadPushButton.setAutoDefault(False)
         self.emdbDownloadPushButton.setObjectName("emdbDownloadPushButton")
         self.horizontalLayout_3.addWidget(self.emdbDownloadPushButton)
         self.verticalLayout_6.addWidget(self.widget_8)
@@ -390,3 +393,4 @@ class Ui_ProjectWizard(object):
 
 from arachnid.core.gui.icons import icons_rc
 icons_rc;
+
