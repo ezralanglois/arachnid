@@ -1,6 +1,19 @@
 ''' Low-level binding of SPIDER code to Python
 
 .. currentmodule:: arachnid.core.image.spi
+
+
+Spider filters (_spider_filter)
+===============================
+
+.. function:: ramp(img)
+
+   Remove change in illumination across an image
+    
+   :param img: Input/output image
+   :type img: array
+   :return: Tuple of image and exit code (0 means success)
+   :rtype: array, int
 '''
 
 try: 
