@@ -77,7 +77,7 @@ void knn_offset(I* row_ind, size_type nr, I* offsets, size_type on)
 {
 	for(size_type i=0;i<nr;++i)
 	{
-		if (row_ind[i] > on) fprintf(stderr, "offset: %d > %d\n", row_ind[i], on);
+		if (row_ind[i] > on) fprintf(stderr, "offset: %d > %d\n", int(row_ind[i]), int(on));
 		offsets[row_ind[i]]++;
 	}
 }
@@ -543,8 +543,8 @@ void finalize_heap(T* data, size_type nd, I* col_ind, size_type nc, size_type of
 		}
 		if( c != k )
 		{
-			fprintf(stderr, "Bug for row: %ld -- %ld == %ld\n", r+offset, c, k);
-			for(hcur=hbeg;hcur != hend;++hcur) fprintf(stderr, "%f - %ld\n", hcur->first, hcur->second);
+			fprintf(stderr, "Bug for row: %ld -- %ld == %ld\n", long(r+offset), long(c), long(k));
+			for(hcur=hbeg;hcur != hend;++hcur) fprintf(stderr, "%f - %ld\n", float(hcur->first), long(hcur->second));
 			exit(1);
 		}
 	}

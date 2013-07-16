@@ -534,7 +534,7 @@ C       ------------------- ONELINE -------------------------------
         DIMENSION      W(0:N2,N,N)
         COMPLEX        BI(0:N2,N),X(0:N2,N,N),BTQ
         DIMENSION      DM(6)
-        REAL      	  TABI(0:LTAB)
+        REAL		   TABI(0:LTAB)
 
 C        PARAMETER      (LTAB=4999)
 C        COMMON  /TABS/ LN2,FLTB,TABI(0:LTAB)

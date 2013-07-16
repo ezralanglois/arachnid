@@ -3,6 +3,7 @@
 		SUBROUTINE SETUP_REPROJECT_3Q(VOL, RADIUS, NX, NY, NZ, NN)
 
 		REAL          		   		:: VOL(NX,NY,NZ)
+		INTEGER						:: RADIUS, NX, NY, NZ, NN
 
 cf2py threadsafe
 cf2py intent(inplace) :: VOL
@@ -30,6 +31,8 @@ C ---------------------------------------------------------------------------
 		REAL          		   		:: VOL(NX,NY,NZ)
 		REAL                  		:: PRJ(NX,NY)
 		INTEGER                  	:: VI(5,NN)
+		INTEGER						:: NX,NY,NZ,NN
+		REAL						:: PSI,THE,PHI,RI
 
 cf2py threadsafe
 cf2py intent(inplace) :: VOL, PRJ, VI
@@ -59,6 +62,8 @@ C ---------------------------------------------------------------------------
 		REAL                  		:: PRJ(NX,NY,NANG)
 		REAL                  		:: ANG(3,NANG)
 		INTEGER, ALLOCATABLE        :: VI(:,:)
+		INTEGER						:: NX,NY,NZ,NANG
+		REAL						:: RI
 
 cf2py threadsafe
 cf2py intent(inplace) :: VOL, PRJ, ANG

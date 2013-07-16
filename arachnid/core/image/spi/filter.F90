@@ -319,7 +319,7 @@
 		 REAL             		:: LCUT,HCUT
          REAL             		:: B(LSD,N2R)
 		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
-         REAL, PARAMETER  :: PI = 3.14159265358979323846
+         REAL,PARAMETER  		:: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -391,8 +391,8 @@
 		 REAL             		:: LCUT,HCUT
          REAL             		:: B(LSD,N2R)
 		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
-		 DOUBLE PRECISION :: AVE
-         REAL, PARAMETER  :: PI = 3.14159265358979323846
+		 DOUBLE PRECISION 		:: AVE
+         REAL,PARAMETER  		:: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -480,6 +480,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,SIGMA
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -588,6 +589,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,SIGMA
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -696,6 +698,7 @@
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2
 	REAL             :: LCUT,HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -817,6 +820,7 @@
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2
 	REAL             :: LCUT, HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -938,8 +942,9 @@
 	DOUBLE PRECISION :: AVE
 	REAL             :: F,F2
 	REAL             :: FP, FS
-	REAL             :: FP2, FS2,LCUT,HCUT
-    REAL, PARAMETER  :: PI = 3.14159265358979323846
+	REAL             :: FP2,FS2,LCUT,HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
+    REAL, PARAMETER	 :: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -1079,6 +1084,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,LCUT,HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
     REAL, PARAMETER  :: PI = 3.14159265358979323846
 
 !f2py threadsafe
@@ -1218,6 +1224,7 @@
 		 SUBROUTINE  RAMP(IMG,NSAM,NROW,RETVAL)
 
          DOUBLE PRECISION IMG(NSAM,NROW)
+         INTEGER		  NSAM,NROW,RETVAL
          DOUBLE PRECISION BETAI
          DOUBLE PRECISION C,D,EPS,B1,B2,A,F,R2,DN1,DN2
          DOUBLE PRECISION Q(6),S(9),QYX1,QYX2,QX1X2 &
@@ -1307,7 +1314,8 @@
          SUBROUTINE  HISTEQ(QK2,NSR1,QK6,NSR2,QK1,N,LENH,ITRMAX)
 
          REAL       ::  QK1(N),QK2(NSR1)
-         LOGICAL   ::  QK6(NSR2)
+         LOGICAL    ::  QK6(NSR2)
+         INTEGER    ::	NSR1,NSR2,N,LENH,ITRMAX
 
 !f2py intent(in) :: NSR1,NSR2,N,LENH,ITRMAX
 !f2py intent(inout) :: QK2, QK2, QK1

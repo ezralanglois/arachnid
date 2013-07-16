@@ -2,7 +2,8 @@
 
 		SUBROUTINE SETUP_BP3F(TABI,LTAB,N2)
 
-        REAL      TABI(0:LTAB)
+        REAL      :: TABI(0:LTAB)
+        INTEGER   :: LTAB, N2
 !f2py threadsafe
 !f2py intent(in) ::  LTAB, N2
 !f2py intent(inout) :: TABI
@@ -40,6 +41,7 @@
 		REAL          		       :: NR(0:N2,N,N)
         COMPLEX                    :: X(0:N2,N,N)
         REAL                       :: V(NS, NS, NS)
+        INTEGER   				   :: N2, N, NS
 !f2py threadsafe
 !f2py intent(inplace) :: X, NR, V
 !f2py intent(in) :: N, N2, NS
@@ -85,6 +87,8 @@
 		REAL                       :: DMS(3,3)
         REAL                  	   :: SS(6)
 		REAL      	  			   :: TABI(L)
+		REAL					   :: PSI,THE,PHI
+		INTEGER					   :: NS,N,N2,L
 
         COMPLEX, ALLOCATABLE, DIMENSION(:,:)   :: BI
 !f2py threadsafe

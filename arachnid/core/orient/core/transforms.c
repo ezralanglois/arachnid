@@ -1844,7 +1844,9 @@ py_superimposition_matrix(
                 double *v1py = (double *)((char *)PyArray_DATA(v1) + v1s0);
                 double *v1pz = (double *)((char *)PyArray_DATA(v1) + v1s0*2);
 
+#ifdef __INTEL_COMPILER
                 #pragma vector always
+#endif
                 for (i = 0; i < size; i++) {
                     v0x = v0px[i] - v0t[0];
                     v0y = v0py[i] - v0t[1];
@@ -1961,7 +1963,9 @@ py_superimposition_matrix(
                 for (j = 0; j < 3; j++) {
                     p = (double*)((char *)PyArray_DATA(v0) + j*v0s0);
                     dt = v0t[j];
+#ifdef __INTEL_COMPILER
                     #pragma vector always
+#endif
                     for (i = 0; i < size; i++) {
                         t = p[i] - dt;
                         v0s += t*t;
@@ -1985,7 +1989,9 @@ py_superimposition_matrix(
                 for (j = 0; j < 3; j++) {
                     p = (double*)((char *)PyArray_DATA(v1) + j*v1s0);
                     dt = v1t[j];
+#ifdef __INTEL_COMPILER
                     #pragma vector always
+#endif
                     for (i = 0; i < size; i++) {
                         t = p[i] - dt;
                         v1s += t*t;
@@ -3426,7 +3432,9 @@ py_vector_norm(
             (PyArray_STRIDE(data, 0) == sizeof(double))) {
             Py_ssize_t i;
             double* dptr = PyArray_DATA(data);
+#ifdef __INTEL_COMPILER
             #pragma vector always
+#endif
             for (i = 0; i < PyArray_DIM(data, 0); i++) {
                 len += dptr[i] * dptr[i];
             }
@@ -3507,7 +3515,9 @@ py_vector_norm(
             while (dit->index < dit->size) {
                 dptr = (double *)dit->dataptr;
                 len = 0.0;
+#ifdef __INTEL_COMPILER
                 #pragma vector always
+#endif
                 for (s = 0; s < size; s++) {
                     len += dptr[s]*dptr[s];
                 }
@@ -3609,12 +3619,16 @@ py_unit_vector(
             double *optr = (double *)PyArray_DATA(out);
             double len = 0.0;
 
+#ifdef __INTEL_COMPILER
             #pragma vector always
+#endif
             for (i = 0; i < size; i++) {
                 len += dptr[i]*dptr[i];
             }
             len = 1.0 / sqrt(len);
+#ifdef __INTEL_COMPILER
             #pragma vector always
+#endif
             for (i = 0; i < size; i++) {
                 optr[i] = dptr[i] * len;
             }
@@ -3678,12 +3692,16 @@ py_unit_vector(
                 len = 0.0;
                 optr = (double *)oit->dataptr;
                 dptr = (double *)dit->dataptr;
+#ifdef __INTEL_COMPILER
                 #pragma vector always
+#endif
                 for (i = 0; i < size; i++) {
                     len += dptr[i]*dptr[i];
                 }
                 len = 1.0 / sqrt(len);
+#ifdef __INTEL_COMPILER
                 #pragma vector always
+#endif
                 for (i = 0; i < size; i++) {
                     optr[i] = dptr[i] * len;
                 }

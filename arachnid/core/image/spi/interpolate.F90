@@ -4,6 +4,7 @@
 		SUBROUTINE INTERPOLATE_FS_2(BUF1,NXLD,NY,BUF2,NX2,NY2,NX,IRTFLG)
 		REAL              :: BUF1(NXLD,NY)
         REAL              :: BUF2(NX2,NY2)
+        INTEGER			  :: NXLD,NY,NX2,NY2,NX,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inout) :: BUF1,BUF2
@@ -19,6 +20,7 @@
 		SUBROUTINE INTERPOLATE_FS_3(BUFIN,NXLD,NY,NZ,BUFOUT,NX2,NY2,NZ2,NX)
         REAL              :: BUFIN (NXLD, NY,  NZ)
         REAL              :: BUFOUT(NX2,  NY2, NZ2)
+        INTEGER			  :: NXLD,NY,NZ,NX2,NY2,NZ2,NX
 
 !f2py threadsafe
 !f2py intent(inout) :: BUFIN,BUFOUT
@@ -29,8 +31,9 @@
 
 		END
 ! ---------------------------------------------------------------------------
-		SUBROUTINE FINTERPOLATE2(X,LSD, NROW,Y, LSD2,NROW2,NSAM,NSAM2)
-		DIMENSION   X(LSD,NROW), Y(LSD2,NROW2)
+		SUBROUTINE FINTERPOLATE2(X,LSD,NROW,Y,LSD2,NROW2,NSAM,NSAM2)
+		REAL   			  :: X(LSD,NROW), Y(LSD2,NROW2)
+        INTEGER			  :: LSD,NROW,LSD2,NROW2,NSAM,NSAM2
 
 !f2py threadsafe
 !f2py intent(inout) :: X,Y
@@ -43,8 +46,8 @@
 
 ! ---------------------------------------------------------------------------
 		SUBROUTINE FINTERPOLATE3(X3,LSD,NROW,NSLICE,Y3,LSDN,NROWN,NSLICEN,NSAM,NSAMN)
-        DIMENSION   X3(LSD,NROW,NSLICE)
-        DIMENSION   Y3(LSDN,NROWN,NSLICEN)
+        REAL   			  :: X3(LSD,NROW,NSLICE), Y3(LSDN,NROWN,NSLICEN)
+        INTEGER			  :: LSD,NROW,NSLICE,LSDN,NROWN,NSLICEN,NSAM,NSAMN
 
 !f2py threadsafe
 !f2py intent(inout) :: X3,Y3
@@ -62,6 +65,7 @@
 		REAL 						:: Q2(NX1,NY1,NZ1)
 		DOUBLE PRECISION 			:: PX,PY,PZ,RX,RY,RZ
 		DOUBLE PRECISION 			:: TMP1,TMP2,TMP3
+        INTEGER			  			:: NX,NY,NZ,NX1,NY1,NZ1
 
 !f2py threadsafe
 !f2py intent(inplace) :: Q1,Q2

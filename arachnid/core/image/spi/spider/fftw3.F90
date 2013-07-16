@@ -421,7 +421,7 @@ C             CHANGE FFTW FORMAT TO SPIDER FFT FORMAT
 C             SPIDER IMAGINARY PARTS HAVE OPPOSITE SIGNS FROM FFTW 
 
 c$omp         parallel do private(i)
-	      DO I = 2,2*JH*NROW*NSLICE,2	
+	      DO I = 2,2*JH*NROW*NSLICE,2
 	         BUF(I) = -BUF(I)           
    	      ENDDO
            ENDIF
@@ -440,7 +440,7 @@ C             CHANGE FFTW FORMAT TO SPIDER FFT FORMAT
 C             SPIDER IMAGINARY PARTS HAVE OPPOSITE SIGNS FROM FFTW 
 
 c$omp         parallel do private(i)
-	      DO I = 2,2*JH*NROW*NSLICE,2	
+	      DO I = 2,2*JH*NROW*NSLICE,2
 	         BUF(I) = -BUF(I)           
  	      ENDDO
            ENDIF
