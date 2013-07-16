@@ -33,13 +33,14 @@ mrc2numpy = {
 ## mapping of numpy type to MRC mode
 numpy2mrc = {
     ## convert these to int8
-    numpy.uint8: 0,
+    numpy.int8: 0,
+#    numpy.uint8: 0,
     numpy.bool: 0,
     numpy.bool_: 0,
 
     ## convert these to int16
     numpy.int16: 1,
-    numpy.int8: 1,
+#    numpy.int8: 1,
 
     ## convert these to float32
     numpy.float32: 2,
