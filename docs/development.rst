@@ -16,39 +16,10 @@ Arachnid supports two types of scripting: applications and fast prototyping. App
 that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
 a way to test new ideas, perform a simple task quickly or customize objects such as plots.
 
-The Snippets below cover a set of examples for writing fast-prototype code. These
+The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
 examples range from unstacking a SPIDER image stack to customizing the FSC plot.
 
-.. currentmodule:: arachnid.snippets
 
-.. autosummary::
-    :nosignatures:
-    :toctree: api_generated/
-    :template: api_module.rst
-    
-    plot_fsc
-    unstack
-    filter_volume
-    mask_volume
-    reconstruct
-    reconstruct3
-    postprocess_volume
-    estimate_resolution
-    center_images
-    plot_angles
-    scale_align
-    corrupt_particles
-    phase_flip
-    stack_images
-    postprocess_mic_select
-    merge_select
-    fsc_spi_to_emdb
-    defocus_group
-    normalize
-    uniform_view_subset
-    relion_traceback
-    box_micrograph
-    transform_image
  
 -------------------------------
 Application Programs Interface
@@ -169,6 +140,17 @@ errors is `valgrind <http://valgrind.org/>`_.
 .. sourcecode:: sh
 
 	$ valgrind -v --suppressions=valgrind-python.supp python my_test_script.py
+	
+
+Testing compilation of code
+---------------------------
+
+To test whether your code has any problems such as uninitalized variable, use the following flags in the environment for GCC type compilers.
+
+.. sourcecode:: sh
+
+	export CFLAGS="-Werror -Wno-unused-function -Wno-unknown-pragmas -Wno-format" CXXFLAGS="-Werror -Wno-format -Wno-unknown-pragmas -Wno-unused-function"
+	export FFLAGS="-Werror -Wno-unused-function -Wtabs" F90FLAGS="-Werror -Wno-unused-function -Wtabs" F77FLAGS="-Werror -Wno-unused-function -Wtabs"
 
 Documentation Hack
 ==================

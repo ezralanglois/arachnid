@@ -1,6 +1,6 @@
 ''' Arachnid Reconstruction Snippets - Example code you can download and edit to customize for simple tasks
 
-.. currentmodule:: arachnid.snippets
+.. currentmodule:: arachnid.snippets.reconstruction
 
 .. autosummary::
     :nosignatures:

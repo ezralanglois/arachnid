@@ -1,6 +1,6 @@
 ''' Reconstruct a volume
 
-Download to edit and run: :download:`reconstruct.py <../../arachnid/snippets/reconstruct.py>`
+Download to edit and run: :download:`reconstruct.py <../../arachnid/snippets/reconstruction/reconstruct.py>`
 
 To run:
 
@@ -8,7 +8,7 @@ To run:
     
     $ python reconstruct.py
 
-.. literalinclude:: ../../arachnid/snippets/reconstruct.py
+.. literalinclude:: ../../arachnid/snippets/reconstruction/reconstruct.py
    :language: python
    :lines: 16-
    :linenos:
