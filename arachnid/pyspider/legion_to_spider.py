@@ -189,6 +189,8 @@ def convert_to_spider(files, output, offset=0):
     for f in update:
         output_file = spider_utility.spider_filename(output, index+1)
         if os.path.exists(output_file): os.unlink(output_file)
+        if not os.path.exists(f): 
+            continue
         try:
             os.symlink(os.path.abspath(f), output_file)
         except:
