@@ -272,9 +272,9 @@ def is_readable(filename):
         except: return False
     if h['mode'][0] not in mrc2numpy: return False
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
-       (h['byteorder'][0].byteswap()&-65536) not in intbyteorder and \
-       h['alpha'][0] != 90.0 and h['beta'][0] != 90.0 and h['gamma'][0] != 90.0: # this line hack for non-standard writers
-        return False
+       (h['byteorder'][0].byteswap()&-65536) not in intbyteorder:
+            if h['alpha'][0] != 90.0 or h['beta'][0] != 90.0 or h['gamma'][0] != 90.0: # this line hack for non-standard writers
+                return False
     if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz')]): return False
     return True
 
