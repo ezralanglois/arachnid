@@ -13,7 +13,6 @@ import numpy, os, logging, itertools, collections, glob, copy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-
 class MainWindow(QtGui.QMainWindow):
     ''' Main window display for the plotting tool
     '''
@@ -45,7 +44,7 @@ class MainWindow(QtGui.QMainWindow):
         self.base_level = None
         self.image_list = []
         
-        if not os.path.exists(self.inifile): self.on_actionHelp_triggered()
+        #if not os.path.exists(self.inifile): self.on_actionHelp_triggered()
         
         self.imageListModel = QtGui.QStandardItemModel(self)
         self.ui.imageListView.setModel(self.imageListModel)
@@ -113,6 +112,15 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tabWidget.setCurrentIndex(0)
         else:
             self.ui.tabWidget.setCurrentIndex(1)
+            files = glob.glob('local/pow/pow*.*')
+            if len(files) > 0:
+                tmp = glob.glob('local/mic/mic*.*')
+                if len(tmp) > 0:
+                    files.append(tmp[0])
+                val = QtGui.QMessageBox.question(self, 'Load files?', 'Found decimated micrographs and power spectra for screening in current project directory. Would you like to load them?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                if val == QtGui.QMessageBox.Yes:
+                    self.openImageFiles(files)
+            
          
     @qtSlot()   
     def on_actionAdvanced_Settings_triggered(self):
@@ -457,13 +465,33 @@ Additional tips:
         files = [str(f) for f in files]
         invalid = [filename for filename in files if not spider_utility.is_spider_filename(filename)]
         ids = [spider_utility.spider_id(filename) for filename in files if spider_utility.is_spider_filename(filename)]
+        if len(ids) == 0:return
+        id = ids[0] if self.imagefile == "" else self.imagefile
+        imagefiles=set()
+        for filename in files:
+            if not spider_utility.is_spider_filename(filename): continue
+            f = spider_utility.spider_filename(filename, id)
+            imagefiles.add(f)
+        
         _logger.info("Loading %d image files"%len(ids))
+        self.ui.imageFileComboBox.blockSignals(True)
+        found=None
+        for imagefile in imagefiles:
+            if self.ui.imageFileComboBox.findData(imagefile) == -1:
+                self.ui.imageFileComboBox.addItem( os.path.basename(str(imagefile)), imagefile )
+                if found is None: 
+                    self.imagefile = imagefile
+                    found = self.ui.imageFileComboBox.count()-1
+        if found is not None: self.ui.imageFileComboBox.setCurrentIndex(found)
+        self.ui.imageFileComboBox.blockSignals(False)
+        '''
         if  len(files) > 0 and (self.imagefile == "" or self.imagefile != spider_utility.spider_filename(str(files[0]), self.imagefile)):
             self.ui.imageFileComboBox.blockSignals(True)
             self.ui.imageFileComboBox.addItem( os.path.basename(str(files[0])), files[0] )
             self.ui.imageFileComboBox.setCurrentIndex(self.ui.imageFileComboBox.count()-1)
             self.ui.imageFileComboBox.blockSignals(False)
             self.imagefile = files[0]
+        '''
         self.updateImageFiles(ids)
         self.on_loadImagesPushButton_clicked()
         
@@ -539,7 +567,7 @@ Additional tips:
             item = QtGui.QStandardItem(icon, "%d/%d"%(label[i, 0], label[i, 1]+1))
             item.setData(i+start, QtCore.Qt.UserRole)
             self.imageListModel.appendRow(item)
-            _logger.info("%d -> %s"%(i, str(label[i, :3])))
+            #_logger.info("%d -> %s"%(i, str(label[i, :3])))
             if label[i, 2] > 0:
                 self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
         self.connect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
