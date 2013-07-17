@@ -67,10 +67,15 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionBackward.setEnabled(False)
         
         self.settingsDialog = SettingsDialog(self)
-        self.advanced_settings = self.settingsDialog.addOptions(
+        self.advanced_settings, self.advanced_names = self.settingsDialog.addOptions(
                                  'Advanced', [ 
                                         dict(downsample_type=('bilinear', 'ft', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
-                                        dict(film=False, help="Set true to disable contrast inversion")
+                                        dict(film=False, help="Set true to disable contrast inversion"),
+                                        dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
+                                        dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True)),
+                                        dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True)),
+                                        dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True)),
+                                        dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True)),
                                   ])
         self.file_settings={}
                                   
@@ -161,26 +166,9 @@ Additional tips:
         '''
         
         # todo save the color model
-        self.advanced_settings.zoom = self.ui.imageZoomDoubleSpinBox.value()
-        self.advanced_settings.contrast = self.ui.contrastSlider.value()
-        self.advanced_settings.imageCount = self.ui.imageCountSpinBox.value()
-        self.advanced_settings.decimate = self.ui.decimateSpinBox.value() 
-        self.advanced_settings.clamp = self.ui.clampDoubleSpinBox.value()
-        
-        if self.imagefile not in self.file_settings:
-            self.file_settings[self.imagefile] = copy.deepcopy(self.advanced_settings)
+        self.storeSettings()
         self.imagefile = str(self.ui.imageFileComboBox.itemData(index))#.toString())
-        if self.imagefile not in self.file_settings:
-            self.file_settings[self.imagefile] = copy.deepcopy(self.advanced_settings)
-        
-        self.advanced_settings=self.file_settings[self.imagefile]
-        setValueBlock(self.ui.zoomSlider, int(self.ui.zoomSlider.maximum()*self.advanced_settings.zoom))
-        setValueBlock(self.ui.contrastSlider,self.advanced_settings.contrast)
-        setValueBlock(self.ui.imageCountSpinBox,self.advanced_settings.imageCount)
-        setValueBlock(self.ui.decimateSpinBox,self.advanced_settings.decimate)
-        setValueBlock(self.ui.clampDoubleSpinBox,self.advanced_settings.clamp)
-        setValueBlock(self.ui.imageZoomDoubleSpinBox,self.advanced_settings.zoom)
-        
+        self.restoreSettings()        
         self.on_loadImagesPushButton_clicked()
         
     def loadSelections(self):
@@ -230,13 +218,55 @@ Additional tips:
             self.selectfout.write("%d,%d,%d\n"%tuple(self.imagelabel[idx, :3]))
         self.selectfout.flush()
         self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.imagelabel)))
+        
+    def restoreSettings(self, imagefile=None):
+        ''' Restore the settings in the GUI based on the file type
+        '''
+        
+        if imagefile is None: imagefile=self.imagefile
+        if imagefile == "": return
+        if imagefile not in self.file_settings:
+            self.file_settings[imagefile] = copy.copy(self.advanced_settings)
+        
+        self.copySettings(self.file_settings[imagefile])
+        setValueBlock(self.ui.zoomSlider, int(self.ui.zoomSlider.maximum()*float(self.advanced_settings.zoom)))
+        setValueBlock(self.ui.contrastSlider,int(self.advanced_settings.contrast))
+        setValueBlock(self.ui.imageCountSpinBox,int(self.advanced_settings.imageCount))
+        setValueBlock(self.ui.decimateSpinBox,int(self.advanced_settings.decimate))
+        setValueBlock(self.ui.clampDoubleSpinBox,float(self.advanced_settings.clamp))
+        setValueBlock(self.ui.imageZoomDoubleSpinBox,float(self.advanced_settings.zoom))
+        
+    def storeSettings(self, imagefile=None):
+        ''' Store the settings with associated file type
+        '''
+        
+        if imagefile == "": return
+        if imagefile is None: imagefile=self.imagefile
+        self.advanced_settings.zoom = self.ui.imageZoomDoubleSpinBox.value()
+        self.advanced_settings.contrast = self.ui.contrastSlider.value()
+        self.advanced_settings.imageCount = self.ui.imageCountSpinBox.value()
+        self.advanced_settings.decimate = self.ui.decimateSpinBox.value() 
+        self.advanced_settings.clamp = self.ui.clampDoubleSpinBox.value()
+        
+        self.file_settings[imagefile] = copy.copy(self.advanced_settings)
+            
+    def copySettings(self, val):
+        '''
+        '''
+        
+        for key in self.advanced_names:
+            self.advanced_settings.setProperty(key, getattr(val, key))
     
     def saveSettings(self):
         ''' Save the settings of the controls in the settings map
         '''
         
         settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
-        self.settingsDialog.saveState(settings)
+        for key,val in self.file_settings.iteritems():
+            settings.beginGroup(key)
+            self.copySettings(val)
+            self.settingsDialog.saveState(settings)
+            settings.endGroup()
         for name, method in self.settings_map.iteritems():
             settings.setValue(name, method[0]())
     
@@ -246,7 +276,6 @@ Additional tips:
         
         if os.path.exists(self.inifile):
             settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
-            self.settingsDialog.restoreState(settings)
             for name, method in self.settings_map.iteritems():
                 try:
                     if method[2] is not None:
@@ -254,8 +283,15 @@ Additional tips:
                     else:
                         method[1](settings.value(name))
                 except:
-                    print name, settings.value(name), method[2]
+                    print '***Error', name, settings.value(name), method[2]
                     raise
+            self.storeSettings()
+            for key in self.imageFiles():
+                settings.beginGroup(key)
+                self.settingsDialog.restoreState(settings)
+                self.file_settings[key] = copy.copy(self.advanced_settings)
+                settings.endGroup()
+            self.restoreSettings()
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -428,7 +464,6 @@ Additional tips:
             self.ui.imageFileComboBox.setCurrentIndex(self.ui.imageFileComboBox.count()-1)
             self.ui.imageFileComboBox.blockSignals(False)
             self.imagefile = files[0]
-        print ids
         self.updateImageFiles(ids)
         self.on_loadImagesPushButton_clicked()
         

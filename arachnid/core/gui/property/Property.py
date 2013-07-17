@@ -188,7 +188,9 @@ class Property(QtCore.QObject):
             if hasattr(self.property_obj, 'metaObject'):
                 prop = self.property_obj.metaObject().property(self.property_obj.metaObject().indexOfProperty(self.objectName()))
                 if prop.isWritable() and not prop.isConstant(): return False
-            else: return False
+            else: 
+                if 'readonly' in self.hints and self.hints['readonly']: return True
+                return False
         return True
     
     def setEditorHints(self, hints):
