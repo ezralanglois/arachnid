@@ -120,7 +120,6 @@ class PropertyModel(QtCore.QAbstractItemModel):
             
             for propName in props:
                 metaProperty = getattr(propertyObject.__class__, propName)
-                print '*******', propName, propertyObject.staticMetaObject.property(2).name(), propertyObject.staticMetaObject.property(2).isFlagType()
                 for propertyClass in Property.PROPERTIES:
                     p = propertyClass.create(propName, rindex, propertyObject, metaProperty, currentItem)
                     if p is not None: break

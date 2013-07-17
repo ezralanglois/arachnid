@@ -61,7 +61,6 @@ def _create_settings_dialog(parser, options, name=None, config_file="", style_sh
         try:
             sheet = "".join(fin.readlines())
             app.setStyleSheet(sheet)
-            print sheet
         finally: fin.close()
     QtCore.QCoreApplication.setOrganizationName("Frank Lab")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
