@@ -51,7 +51,7 @@ def main_train():
     app = QtGui.QApplication([])
     QtCore.QCoreApplication.setOrganizationName("Frank Lab")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
-    QtCore.QCoreApplication.setApplicationName(arachnid.__project__)
+    QtCore.QCoreApplication.setApplicationName(arachnid.__project__+'.image_picker')
     QtCore.QCoreApplication.setApplicationVersion(arachnid.__version__)
     dialog = Trainer() 
     dialog.show()

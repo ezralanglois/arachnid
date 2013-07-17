@@ -65,7 +65,7 @@ def _create_settings_dialog(parser, options, name=None, config_file="", style_sh
         finally: fin.close()
     QtCore.QCoreApplication.setOrganizationName("Frank Lab")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
-    QtCore.QCoreApplication.setApplicationName(arachnid.__project__)
+    QtCore.QCoreApplication.setApplicationName(arachnid.__project__+'.settings.'+os.path.basename(sys.argv[0]))
     QtCore.QCoreApplication.setApplicationVersion(arachnid.__version__)
     # Read given config file, command line - open button
     dialog = Dialog()

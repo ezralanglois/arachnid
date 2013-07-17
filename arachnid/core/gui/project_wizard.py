@@ -31,7 +31,7 @@ def main():
     app = QtGui.QApplication([])
     QtCore.QCoreApplication.setOrganizationName("Frank Lab")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
-    QtCore.QCoreApplication.setApplicationName(arachnid.__project__)
+    QtCore.QCoreApplication.setApplicationName(arachnid.__project__+'.project_wizard')
     QtCore.QCoreApplication.setApplicationVersion(arachnid.__version__)
     dialog = Wizard() 
     dialog.show()

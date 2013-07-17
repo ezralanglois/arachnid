@@ -32,7 +32,7 @@ def main():
     app = QtGui.QApplication([])
     QtCore.QCoreApplication.setOrganizationName("Frank Lab")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
-    QtCore.QCoreApplication.setApplicationName(arachnid.__project__)
+    QtCore.QCoreApplication.setApplicationName(arachnid.__project__+'.embed_viewer')
     QtCore.QCoreApplication.setApplicationVersion(arachnid.__version__)
     dialog = Viewer() 
     dialog.show()
