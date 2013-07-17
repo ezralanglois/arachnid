@@ -145,7 +145,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app import program, tracing
+from ..core.app import program
 from ..core.metadata import format, spider_params, spider_utility, format_utility
 from ..core.image import ndimage_file, eman2_utility, ndimage_utility, analysis
 from ..core.parallel import mpi_utility

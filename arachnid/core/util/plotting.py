@@ -5,7 +5,7 @@
 '''
 
 
-from matploblib_nogui import pylab, matplotlib
+from matplotlib_nogui import pylab, matplotlib
 try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 except:

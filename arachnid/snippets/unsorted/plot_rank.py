@@ -17,7 +17,7 @@ import sys
 #sys.path.append('~/workspace/arachnida/src')
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
-from arachnid.core.util.matploblib_nogui import pylab
+from arachnid.core.util.matplotlib_nogui import pylab
 from arachnid.core.metadata import format, format_utility
 
 if __name__ == "__main__":

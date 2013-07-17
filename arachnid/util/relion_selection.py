@@ -127,7 +127,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.util.matploblib_nogui import pylab
+from ..core.util.matplotlib_nogui import pylab
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image import eman2_utility, ndimage_file #, ndimage_utility

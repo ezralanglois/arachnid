@@ -29,7 +29,7 @@ from arachnid.util import bench
 from arachnid.core.metadata import format, spider_utility,format_utility
 bench;
 import numpy #, logging
-from arachnid.core.util.matploblib_nogui import pylab
+from arachnid.core.util.matplotlib_nogui import pylab
 
 #format.mrccoord._logger.setLevel(logging.DEBUG)
 
