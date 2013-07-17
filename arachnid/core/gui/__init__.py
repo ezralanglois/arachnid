@@ -38,8 +38,9 @@ from ..metadata import format, format_utility, spider_utility
 format;
 format_utility;
 spider_utility;
-from ..image import analysis, ndimage_file, ndimage_utility, eman2_utility
+from ..image import analysis, ndimage_file, ndimage_utility, eman2_utility, ndimage_interpolate
 analysis;
 ndimage_file;
 ndimage_utility;
 eman2_utility;
+ndimage_interpolate;
