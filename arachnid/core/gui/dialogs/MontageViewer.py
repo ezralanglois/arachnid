@@ -535,13 +535,13 @@ Additional tips:
         
         if len(self.imagelabel) == 0: return
         count = self.ui.imageCountSpinBox.value()
+        self.disconnect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         self.imageListModel.clear()
         start = self.ui.pageSpinBox.value()*count
         label = self.imagelabel[start:(self.ui.pageSpinBox.value()+1)*count]
         bin_factor = self.ui.decimateSpinBox.value()
         nstd = self.ui.clampDoubleSpinBox.value()
         img = None
-        self.disconnect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         self.image_list = []
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         for i, img in enumerate(iter_images(self.imagefile, label[:, :2])):
