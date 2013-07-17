@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MontageViewer.ui'
 #
-# Created: Sat Jul  6 20:55:30 2013
+# Created: Tue Jul 16 16:16:15 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -270,6 +270,11 @@ class Ui_MainWindow(object):
         icon14.addPixmap(QtGui.QPixmap(":/mini/mini/arrow_refresh.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionLoad_More.setIcon(icon14)
         self.actionLoad_More.setObjectName("actionLoad_More")
+        self.actionAdvanced_Settings = QtGui.QAction(MainWindow)
+        icon15 = QtGui.QIcon()
+        icon15.addPixmap(QtGui.QPixmap(":/mini/mini/wrench_orange.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionAdvanced_Settings.setIcon(icon15)
+        self.actionAdvanced_Settings.setObjectName("actionAdvanced_Settings")
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionLoad_More)
         self.toolBar.addAction(self.actionSave)
@@ -277,6 +282,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionBackward)
         self.toolBar.addAction(self.actionForward)
         self.toolBar.addSeparator()
+        self.toolBar.addAction(self.actionAdvanced_Settings)
         self.toolBar.addAction(self.actionHelp)
 
         self.retranslateUi(MainWindow)
@@ -331,6 +337,10 @@ class Ui_MainWindow(object):
         self.actionHelp.setToolTip(QtGui.QApplication.translate("MainWindow", "Display help dialog", None, QtGui.QApplication.UnicodeUTF8))
         self.actionLoad_More.setText(QtGui.QApplication.translate("MainWindow", "Load More", None, QtGui.QApplication.UnicodeUTF8))
         self.actionLoad_More.setToolTip(QtGui.QApplication.translate("MainWindow", "Search for additional micrographs in directories already in use", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionAdvanced_Settings.setText(QtGui.QApplication.translate("MainWindow", "Advanced Settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionAdvanced_Settings.setToolTip(QtGui.QApplication.translate("MainWindow", "Open the Advanced Settings Dialog", None, QtGui.QApplication.UnicodeUTF8))
 
 from arachnid.core.gui.icons import icons_rc
 icons_rc;
+
+

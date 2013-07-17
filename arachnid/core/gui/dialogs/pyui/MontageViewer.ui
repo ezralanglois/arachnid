@@ -415,6 +415,7 @@
    <addaction name="actionBackward"/>
    <addaction name="actionForward"/>
    <addaction name="separator"/>
+   <addaction name="actionAdvanced_Settings"/>
    <addaction name="actionHelp"/>
   </widget>
   <action name="actionOpen">
@@ -574,6 +575,18 @@
    </property>
    <property name="toolTip">
     <string>Search for additional micrographs in directories already in use</string>
+   </property>
+  </action>
+  <action name="actionAdvanced_Settings">
+   <property name="icon">
+    <iconset resource="../../icons/icons.qrc">
+     <normaloff>:/mini/mini/wrench_orange.png</normaloff>:/mini/mini/wrench_orange.png</iconset>
+   </property>
+   <property name="text">
+    <string>Advanced Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the Advanced Settings Dialog</string>
    </property>
   </action>
  </widget>

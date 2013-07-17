@@ -5,9 +5,10 @@
 '''
 from pyui.MontageViewer import Ui_MainWindow
 from ..util.qt4_loader import QtGui,QtCore,qtSlot
+from SettingsDialog import Dialog as SettingsDialog
 
-from .. import ndimage_file, ndimage_utility, spider_utility, eman2_utility, format #, format_utility, analysis, 
-import numpy, os, logging, itertools, collections, glob
+from .. import ndimage_file, ndimage_utility, spider_utility, format, ndimage_interpolate #, format_utility, analysis, 
+import numpy, os, logging, itertools, collections, glob, copy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -65,6 +66,15 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionForward.setEnabled(False)
         self.ui.actionBackward.setEnabled(False)
         
+        self.settingsDialog = SettingsDialog(self)
+        self.advanced_settings = self.settingsDialog.addOptions(
+                                 'Advanced', [ 
+                                        dict(downsample_type=('bilinear', 'ft', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
+                                        dict(film=False, help="Set true to disable contrast inversion")
+                                  ])
+        self.file_settings={}
+                                  
+        
         self.settings_map = { "main_window/geometry": (self.saveGeometry, self.restoreGeometry, None),
                               "main_window/windowState": (self.saveState, self.restoreState, None),
                               "model/files": (self.imageFiles, self.setImageFiles, None),
@@ -98,7 +108,13 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tabWidget.setCurrentIndex(0)
         else:
             self.ui.tabWidget.setCurrentIndex(1)
-            
+         
+    @qtSlot()   
+    def on_actionAdvanced_Settings_triggered(self):
+        ''' Display the advanced settings
+        '''
+        
+        self.settingsDialog.exec_()
     
     @qtSlot()
     def on_actionHelp_triggered(self):
@@ -144,7 +160,27 @@ Additional tips:
                 Current index in combo box
         '''
         
+        # todo save the color model
+        self.advanced_settings.zoom = self.ui.imageZoomDoubleSpinBox.value()
+        self.advanced_settings.contrast = self.ui.contrastSlider.value()
+        self.advanced_settings.imageCount = self.ui.imageCountSpinBox.value()
+        self.advanced_settings.decimate = self.ui.decimateSpinBox.value() 
+        self.advanced_settings.clamp = self.ui.clampDoubleSpinBox.value()
+        
+        if self.imagefile not in self.file_settings:
+            self.file_settings[self.imagefile] = copy.deepcopy(self.advanced_settings)
         self.imagefile = str(self.ui.imageFileComboBox.itemData(index))#.toString())
+        if self.imagefile not in self.file_settings:
+            self.file_settings[self.imagefile] = copy.deepcopy(self.advanced_settings)
+        
+        self.advanced_settings=self.file_settings[self.imagefile]
+        setValueBlock(self.ui.zoomSlider, int(self.ui.zoomSlider.maximum()*self.advanced_settings.zoom))
+        setValueBlock(self.ui.contrastSlider,self.advanced_settings.contrast)
+        setValueBlock(self.ui.imageCountSpinBox,self.advanced_settings.imageCount)
+        setValueBlock(self.ui.decimateSpinBox,self.advanced_settings.decimate)
+        setValueBlock(self.ui.clampDoubleSpinBox,self.advanced_settings.clamp)
+        setValueBlock(self.ui.imageZoomDoubleSpinBox,self.advanced_settings.zoom)
+        
         self.on_loadImagesPushButton_clicked()
         
     def loadSelections(self):
@@ -200,6 +236,7 @@ Additional tips:
         '''
         
         settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+        self.settingsDialog.saveState(settings)
         for name, method in self.settings_map.iteritems():
             settings.setValue(name, method[0]())
     
@@ -209,15 +246,8 @@ Additional tips:
         
         if os.path.exists(self.inifile):
             settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+            self.settingsDialog.restoreState(settings)
             for name, method in self.settings_map.iteritems():
-                '''
-                try:
-                    val = getattr(settings.value(name), method[2])()
-                except:
-                    print name, settings.value(name)
-                    raise
-                if isinstance(val, tuple): val = val[0]
-                '''
                 try:
                     if method[2] is not None:
                         method[1](method[2](settings.value(name)))
@@ -395,8 +425,10 @@ Additional tips:
         if  len(files) > 0 and (self.imagefile == "" or self.imagefile != spider_utility.spider_filename(str(files[0]), self.imagefile)):
             self.ui.imageFileComboBox.blockSignals(True)
             self.ui.imageFileComboBox.addItem( os.path.basename(str(files[0])), files[0] )
+            self.ui.imageFileComboBox.setCurrentIndex(self.ui.imageFileComboBox.count()-1)
             self.ui.imageFileComboBox.blockSignals(False)
             self.imagefile = files[0]
+        print ids
         self.updateImageFiles(ids)
         self.on_loadImagesPushButton_clicked()
         
@@ -448,10 +480,13 @@ Additional tips:
         img = None
         self.disconnect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         self.image_list = []
+        zoom = self.ui.imageZoomDoubleSpinBox.value()
         for i, img in enumerate(iter_images(self.imagefile, label[:, :2])):
             if hasattr(img, 'ndim'):
+                if not self.advanced_settings.film:
+                    ndimage_utility.invert(img, img)
                 img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
-                if bin_factor > 1.0: img = eman2_utility.decimate(img, bin_factor)
+                if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 qimg = numpy_to_qimage(img)
             else: qimg = img
             
@@ -473,9 +508,13 @@ Additional tips:
             if label[i, 2] > 0:
                 self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
         self.connect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
-        if self.imagesize == 0:
-            self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
-            self.on_imageZoomDoubleSpinBox_valueChanged()
+        #if self.imagesize == 0:
+        #    self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
+        #    self.on_imageZoomDoubleSpinBox_valueChanged()
+        
+        self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
+        n = max(5, int(self.imagesize*zoom))
+        self.ui.imageListView.setIconSize(QtCore.QSize(n, n))
             
         batch_count = float(len(self.imagelabel)/count)
         self.ui.pageSpinBox.setSuffix(" of %d"%batch_count)
@@ -501,7 +540,7 @@ Additional tips:
             icon.addPixmap(pix,QtGui.QIcon.Normal)
             icon.addPixmap(pix,QtGui.QIcon.Selected)
             self.imageListModel.item(i).setIcon(icon)
-        
+    
     @qtSlot(float)
     def on_imageZoomDoubleSpinBox_valueChanged(self, zoom=None):
         ''' Called when the user wants to plot only a subset of the data
@@ -653,6 +692,23 @@ Additional tips:
         
         self.updateImageFiles()
 
+
+        
+def setValueBlock(widget, val):
+    ''' Set the value of a widget while blocking events
+    
+    :Parameters:
+    
+    widget : QWidget
+             Widget to set value
+    val : object
+          Value to set
+    '''
+    
+    widget.blockSignals(True)
+    widget.setValue(val)
+    widget.blockSignals(False)
+    
 def iter_images(filename, index):
     ''' Wrapper for iterate images that support color PNG files
     
