@@ -895,6 +895,7 @@ class OptionParser(optparse.OptionParser):
         (options, args) = optparse.OptionParser.parse_args(self, args, values)
         if hasattr(options, self.add_input_files):
             input_files = getattr(options, self.add_input_files)
+            setattr(options, self.add_input_files+"_orig", input_files)
             _logger.debug("Checking input files - has input "+str(input_files))
             for f in input_files:
                 try: args.index(f)
@@ -911,7 +912,7 @@ class OptionParser(optparse.OptionParser):
                     else: 
                         args.append(f)
             options.input_files = optlist(args)
-            _logger.debug("Checking input files - has input "+str(options.input_files))
+            _logger.debug("Checking input files - has input "+str(getattr(options, self.add_input_files)))
         options._parser = self
         return (options, args)
     
@@ -1228,6 +1229,8 @@ class OptionParser(optparse.OptionParser):
             value = getattr(values, option.dest, None)
             if value is None: continue
             if option.dest == self.add_input_files:
+                if hasattr(options, self.add_input_files+"_orig"):
+                    value = getattr(options, self.add_input_files+"_orig")
                 value = compress_filenames(value)
             if option.is_choice_index(): value = option.choices[value]
             help = option.help
