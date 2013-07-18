@@ -186,11 +186,14 @@ def convert_to_spider(files, output, offset=0):
     mapped = dict([(v.araLeginonFilename, v.araSpiderID) for v in mapping if v.araSpiderID > 0 and os.path.exists(v.araLeginonFilename)])
     update = [f for f in files if f not in mapped]
     index = len(mapped)+offset
+    for f in files:
+        if f in mapped and not os.path.exists(f):
+            os.unlink(spider_utility.spider_filename(output, index+1))
+            
     for f in update:
         output_file = spider_utility.spider_filename(output, index+1)
         if os.path.exists(output_file): os.unlink(output_file)
-        if not os.path.exists(f): 
-            continue
+        if not os.path.exists(f): continue
         try:
             os.symlink(os.path.abspath(f), output_file)
         except:
