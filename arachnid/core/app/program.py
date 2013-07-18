@@ -114,7 +114,9 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         sys.exit(1)
     except:
         exc_type, exc_value = sys.exc_info()[:2]
-        _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
+        try:
+            _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
+        except: pass
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
 
@@ -391,7 +393,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, output_option)
     options, args = parser.parse_args_with_config()
     
-    if 1 == 0:
+    if 1 == 0: # test for bad options
         unset = parser.collect_unset_options()
         if len(unset) > 0:
             for opt in unset:
