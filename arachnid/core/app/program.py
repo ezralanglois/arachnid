@@ -54,7 +54,7 @@ import arachnid as root_module
 import file_processor
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.INFO)
 
 def run_hybrid_program(name, description, usage=None, supports_MPI=True, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
     ''' Run the main function or other entry points in the calling module
@@ -83,11 +83,19 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
     if not use_version and main_template == file_processor: use_version=True
+    _logger.debug("Checking options ...")
     try:
         args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
     except VersionChange:
         main_module.main()
         return
+    except settings.OptionValueError:
+        sys.exit(10)
+    except:
+        _logger.exception("Unexpected error occurred")
+        raise
+        
+    _logger.debug("Checking options ... finished.")
     
     #mpi_utility.mpi_init(param, **param)
     if supports_OMP:
@@ -106,17 +114,21 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
             openmp.set_thread_count(0)
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
     try:
-        if main_template is not None: main_template.main(args, main_module, **param)
-        else: main_module.batch(args, **param)
+        if main_template is not None: 
+            _logger.debug("Running template ...")
+            main_template.main(args, main_module, **param)
+            _logger.debug("Running template ... finished.")
+        else: 
+            _logger.debug("Running batch ...")
+            main_module.batch(args, **param)
+            _logger.debug("Running batch ... finished.")
     except IOError, e:
         _logger.error("***"+str(e)+see_also)
         _logger.exception("Ensuring exception logged")
         sys.exit(1)
     except:
         exc_type, exc_value = sys.exc_info()[:2]
-        try:
-            _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
-        except: pass
+        _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
 

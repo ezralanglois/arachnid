@@ -1064,6 +1064,7 @@ class OptionParser(optparse.OptionParser):
         if comments: self._write_header(fout)
         self._write_options(fout, self.option_list, values, flag_len, comments)
         self._write_group_options(fout, self.option_groups, values, flag_len, comments)
+        if fout == sys.stdout: sys.stdout.flush()
         '''
         groups = sorted(self.option_groups, key=_attrgetter('group_order'))
         for group in groups:
@@ -1386,7 +1387,7 @@ class OptionParser(optparse.OptionParser):
         
         logging.error(msg)
         self.write(values=values)
-        sys.exit(10)
+        raise OptionValueError, "Failed when testing options"
     
     def create_property_tree(self, param, factory, property_class=object, converter=lambda x:x, option_list=None, title=None, option_groups=[], tree=None, order=0):
         ''' Create a property tree used to create a graphical user
