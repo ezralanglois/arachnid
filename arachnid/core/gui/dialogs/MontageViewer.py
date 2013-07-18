@@ -86,15 +86,6 @@ class MainWindow(QtGui.QMainWindow):
                               "model/imagesize": (self.imageSize, self.setImageSize, int),
                               "model/imageids": (self.imageIDs, self.setImageIDs, None),
                              }
-        """
-        self.settings_map = { "main_window/geometry": (self.saveGeometry, self.restoreGeometry, 'toByteArray'),
-                              "main_window/windowState": (self.saveState, self.restoreState, 'toByteArray'),
-                              "model/files": (self.imageFiles, self.setImageFiles, 'toPyObject'),
-                              "model/imagefile": (self.imageFile, self.setImageFile, 'toString'),
-                              "model/imagesize": (self.imageSize, self.setImageSize, 'toInt'),
-                              "model/imageids": (self.imageIDs, self.setImageIDs, 'toPyObject'),
-                             }
-        """
         for widget in vars(self.ui):
             widget = getattr(self.ui, widget)
             val = widget_settings(widget)
