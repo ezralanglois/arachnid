@@ -398,11 +398,12 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
                 print opt
             sys.exit(1)
         sys.exit(0)
-        
+    
     options.create_cfg = settings_editor.display(parser, options, **vars(options))
     
     if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
     #parser.write("."+parser.default_config_filename(), options)
+    if hasattr(main_module, "update_options"): main_module.update_options(options)
     if options.create_cfg != "":     
         if len(parser.skipped_flags) > 0:
             _logger.warn("The following options where skipped in the old configuration file, you may need to update the new option names in config file you created")
@@ -412,16 +413,16 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             pass
         elif options.create_cfg == '1' or options.create_cfg.lower() == 'true' or options.create_cfg.lower() == 'y' or options.create_cfg.lower() == 't':
             parser.write(values=options)
-            sys.exit(0)
+            if not hasattr(options, 'noexit'): sys.exit(0)
         else:
             parser.write(options.create_cfg, options)
-            sys.exit(0)
+            if not hasattr(options, 'noexit'): sys.exit(0)
     
     additional = [tracing, settings_editor]
     if main_template is not None and main_template != main_module: additional.append(main_template)
     try:
         for module in dependents+additional:
-            if not hasattr(module, "update_options"): continue
+            if not hasattr(module, "update_options") or module==main_module: continue
             module.update_options(options)
         parser.validate(options)
         for module in dependents+additional:
