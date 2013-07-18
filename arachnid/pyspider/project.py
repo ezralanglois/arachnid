@@ -171,7 +171,7 @@ from ..core.app import program
 from ..app import autopick
 from ..util import crop, relion_selection #, mic_select
 import reference, defocus, align, refine, legion_to_spider, autorefine, create_align
-import os, glob, logging, re
+import os, logging, re #, glob
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -220,7 +220,7 @@ def batch(files, output, leginon_filename="", leginon_offset=0, **extra):
     
     id_len = spider_utility.spider_id_length(os.path.splitext(files[0])[0])
     if id_len == 0: raise ValueError, "Input file not a SPIDER file - id length 0"
-    modules, param, config_path = workflow(compress_filenames(files), output, id_len, **extra)
+    modules, param, config_path = workflow(files, output, id_len, **extra)
     
     write_config(modules, param, config_path, output, **extra)
     _logger.info("Completed")
@@ -279,6 +279,7 @@ def write_config(modules, param, config_path, output, **extra):
         progress_file = os.path.join(output, 'progress_%s.txt'%type)
         scripts.append((os.path.join(output, 'run_%s'%type), progress_file))
         fout.write("#!/bin/bash\n")
+        fout.write("sp-project -c local/project.cfg\n")
         if type == 'cluster':
             fout.write('MACHINEFILE="machinefile"\n')
             fout.write('if [ ! -e "$MACHINEFILE" ] ; then \n')
@@ -433,30 +434,6 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
         settings.update(log_file=os.path.join(os.path.basename(settings['config_path']), 'log', module_name(mod)+'.log'))
     
     return modules, param, config_path
-
-def compress_filenames(files):
-    ''' Test if all filenames have a similar prefix and replace the suffix
-    with a wildcard ('*'). 
-    
-    :Parameters:
-    
-    files : list
-            List of filenames
-    
-    :Returns:
-    
-    files : list
-            List of filenames - possibly single entry with wild card
-    '''
-    
-    for i in xrange(len(files)):
-        if not os.path.isabs(files[i]):
-            files[i] = os.path.abspath(files[i])
-    if len(files) > 1:
-        tmp = os.path.commonprefix(files)+'*'
-        if len(glob.glob(tmp)) == len(files): files = [tmp]
-        else: _logger.warn("No common prefix: %d != %d - %s"%(len(glob.glob(tmp)), len(files), tmp))
-    return files
 
 def module_name(mod):
     ''' Return the name of the module
@@ -662,6 +639,12 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",    leginon_filename="mapped_micrographs/mic_0000000", help="Filename used to map legion files to SPIDER filenames")
     group.add_option("",    leginon_offset=0,       help="Offset for SPIDER id")
     parser.add_option_group(group)
+
+def update_options(options):
+    # Update the options
+    
+    setattr(options, 'noexit', True)
+    options.create_cfg = os.path.join(options.output, 'local', 'project.cfg')
     
 def check_options(options, main_option=False):
     #Check if the option values are valid
@@ -669,7 +652,7 @@ def check_options(options, main_option=False):
     
     #spider_params.check_options(options) # interactive
     if len(options.ext) != 3: raise OptionValueError, "SPIDER extension must be three characters"
-
+    
     if options.apix == 0.0:
         raise OptionValueError, "No pixel size in angstroms specified (--apix), either specifiy it or an existing SPIDER params file"
     if options.voltage == 0.0:
