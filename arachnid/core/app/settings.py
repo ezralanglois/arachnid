@@ -2013,5 +2013,8 @@ def compress_filenames(files):
         if i > 1:
             tmp = os.path.commonprefix(files[:i])
             if tmp != "": prefixes[os.path.dirname(tmp)]=tmp
-    
-    return optlist([v+'*' for v in prefixes.values()])
+    prefixes = [v+'*' for v in prefixes.values()]
+    test=[]
+    for f in prefixes:
+        test.extend(glob.glob(f)) 
+    return optlist(test) if len(test) == len(files) else files # Ensure its not a subset
