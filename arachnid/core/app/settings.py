@@ -1226,6 +1226,8 @@ class OptionParser(optparse.OptionParser):
             if option.dest is None: continue
             value = getattr(values, option.dest, None)
             if value is None: continue
+            if option.dest == self.add_input_files:
+                value = compress_filenames(value)
             if option.is_choice_index(): value = option.choices[value]
             help = option.help
             flag_sep = "".join(["\t" for i in xrange(flag_len-len(name[1:])/8)])
@@ -1897,7 +1899,6 @@ def setup_options_from_doc(parser, *args, **kwargs):
             if help is None: raise ValueError, "Cannot find documentation for parameter %s"%args[-i]
             type = parameter_type(args[-i], doc)
             param = {args[-i]: defaults[-i]}
-            #print func, args, defaults, doc
             if type.find('noupdate') != -1:
                 param['dependent']=False
             if type.find('infile') != -1:
@@ -1984,3 +1985,33 @@ def convert(val):
         except: pass
     return val
 
+def compress_filenames(files):
+    ''' Test if all filenames have a similar prefix and replace the suffix
+    with a wildcard ('*'). 
+    
+    :Parameters:
+    
+    files : list
+            List of filenames
+    
+    :Returns:
+    
+    files : list
+            List of filenames - possibly single entry with wild card
+    '''
+    
+    try: ""+files # Test if its already a compressed string
+    except: pass
+    else: return files
+    
+    if len(files) <= 1: return files
+    
+    prefixes = {}
+    for i in xrange(len(files)):
+        if not os.path.isabs(files[i]):
+            files[i] = os.path.abspath(files[i])
+        if i > 1:
+            tmp = os.path.commonprefix(files[:i])
+            if tmp != "": prefixes[os.path.dirname(tmp)]=tmp
+    
+    return optlist([v+'*' for v in prefixes.values()])
