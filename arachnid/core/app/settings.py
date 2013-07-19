@@ -2021,4 +2021,4 @@ def compress_filenames(files):
     test=[]
     for f in prefixes:
         test.extend(glob.glob(f)) 
-    return optlist(test) if len(test) == len(files) else files # Ensure its not a subset
+    return optlist(prefixes) if len(test) == len(files) else files # Ensure its not a subset
