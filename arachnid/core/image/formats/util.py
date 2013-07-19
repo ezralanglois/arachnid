@@ -3,6 +3,7 @@
 .. Created on Jul 18, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+import numpy
 
 def open(filename, mode):
     ''' Open a stream to filename
@@ -68,7 +69,7 @@ def update_header(dest, source, header_map, tag=None):
                 except: pass
     return dest
 
-def read_image(f, dtype, shape, dlen, swap, order='C'):
+def read_image(f, dtype, dlen, shape, swap, order='C'):
     ''' Read an image from a file using random file acess
     
     :Parameters:
@@ -77,10 +78,10 @@ def read_image(f, dtype, shape, dlen, swap, order='C'):
         Input file stream
     dtype : dtype
             Data type 
-    shape : tuple
-            Shape of the array 
     dlen : int
            Number of elements
+    shape : tuple
+            Shape of the array 
     swap : bool
            Swap the byte order
     order : str

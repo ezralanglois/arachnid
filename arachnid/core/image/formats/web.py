@@ -49,7 +49,7 @@ c-contiguous or row-major and fortran-contiguous or column major are supported.
 .. Created on Jul 18, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import numpy, sys, logging, os
+import numpy, logging, os
 import util
 
 _logger = logging.getLogger(__name__)
@@ -251,9 +251,9 @@ def array_from_header(header):
     
     dtype = numpy.dtype(header['dtype'][0]+str(header['byte_num'][0]))
     shape = (header['nx'][0], header['ny'][0], header['nz'][0])
-    if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
+    if header_dtype.newbyteorder()==header.dtype: dtype = dtype.newbyteorder()
     return (int(header_dtype.itemsize+int(header['extended'])),
-           (dtype, shape, numpy.prod(shape), 
+           (dtype, numpy.prod(shape), shape, 
            header_dtype.newbyteorder()==header.dtype, header['order'][0],) )
 
 def read_image(filename, index=None, header=None, cache=None):
@@ -281,8 +281,7 @@ def read_image(filename, index=None, header=None, cache=None):
         #if header is not None: util.update_header(header, h, web2ara, 'web')
         if idx >= count_images(h): raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count_images(h))
         offset, ar_args = array_from_header(h)
-        dlen = numpy.prod(shape)
-        f.seek(offset + idx * dlen * dtype.itemsize)
+        f.seek(offset + idx * ar_args[1] * ar_args[0].itemsize)
         out = util.read_image(f, *ar_args)
     finally:
         util.close(filename, f)
