@@ -68,7 +68,7 @@ lists each supported extension with its corresponding file format.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from .. import eman2_utility
-from spider import _update_header
+import util
 import logging, struct, os, numpy
 
 _logger = logging.getLogger(__name__)
@@ -162,7 +162,7 @@ def read_image(filename, index=None, header=None, cache=None):
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, int(index))
     #_logger.debug("read_image-2")
-    if header is not None: _update_header(emdata.todict(), header, eman2ara)
+    if header is not None: util.update_header(emdata.todict(), header, eman2ara)
     type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
         if emdata.get_attr('MRC.nlabels') > 0:
@@ -286,7 +286,7 @@ def write_image(filename, img, index=None, header=None, type=None):
     if not eman2_utility.is_em(img): 
         img = eman2_utility.numpy2em(img)
     h={'apix_x': 1.0}
-    header=_update_header(h, header, ara2eman)
+    header=util.update_header(h, header, ara2eman)
     for key, val in header.iteritems(): img.set_attr(key, val)
     if type is None:
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))

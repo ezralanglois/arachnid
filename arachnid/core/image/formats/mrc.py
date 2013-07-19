@@ -12,7 +12,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import numpy, sys, logging, os
-from spider import _open, _close, _update_header
+import util
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -322,7 +322,7 @@ def read_mrc_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = _open(filename, 'r')
+    f = util.open(filename, 'r')
     try:
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_image_dtype, count=1)
@@ -344,7 +344,7 @@ def read_mrc_header(filename, index=None):
             nxb = int(h['nx'][0])
             raise IOError, "Not an MRC file: %d, %d, %d -- %d,%d,%s ||| %d, %d, %d -- %d, %d ||| %s"%(test1, test2, test3, mode, nx, vals3, test1b, test2b, test3b, modeb, nxb, str(filename))
     finally:
-        _close(filename, f)
+        util.close(filename, f)
     return h
 
 def is_volume(filename):
@@ -360,7 +360,7 @@ def count_images(filename):
     
     :Parameters:
     
-    filename : str or file objectfou
+    filename : str or file object
                Filename or open stream for a file
     
     :Returns:
@@ -391,12 +391,12 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = _open(filename, 'r')
+    f = util.open(filename, 'r')
     if index is None: index = 0
     try:
         h = read_mrc_header(f)
         count = count_images(h)
-        if header is not None:  _update_header(header, h, mrc2ara, 'mrc')
+        if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
         d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         if header_image_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
@@ -421,7 +421,7 @@ def iter_images(filename, index=None, header=None):
                 out = out.byteswap().newbyteorder()
             yield out
     finally:
-        _close(filename, f)
+        util.close(filename, f)
 
 def read_image(filename, index=None, header=None, cache=None):
     ''' Read an image from the specified file in the MRC format
@@ -442,7 +442,7 @@ def read_image(filename, index=None, header=None, cache=None):
     '''
     
     idx = 0 if index is None else index
-    f = _open(filename, 'r')
+    f = util.open(filename, 'r')
     try:
         h = read_mrc_header(f)
         
@@ -458,7 +458,7 @@ def read_image(filename, index=None, header=None, cache=None):
             if fl[:len('label')] == 'label': continue
             _logger.error("Header-swap - %s: %s"%(str(fl), str(h2[fl][0])))
         '''
-        if header is not None: _update_header(header, h, mrc2ara, 'mrc')
+        if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
         count = count_images(h)
         if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
         if index is None and count == h['nx'][0]:
@@ -482,7 +482,7 @@ def read_image(filename, index=None, header=None, cache=None):
                 _logger.error("%d == %d == %d -- %d,%d"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0])))
                 raise
     finally:
-        _close(filename, f)
+        util.close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
     if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap().newbyteorder()
     return out
@@ -532,12 +532,12 @@ def write_image(filename, img, index=None, header=None):
         raise TypeError, "Unsupported type for MRC writing: %s"%str(img.dtype)
     
     mode = 'rb+' if index is not None and index > 0 else 'wb+'
-    f = _open(filename, mode)
+    f = util.open(filename, mode)
     if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
         h = numpy.zeros(1, header_image_dtype)
-        _update_header(h, mrc_defaults, ara2mrc)
+        util.update_header(h, mrc_defaults, ara2mrc)
         pix = header.get('apix', 1.0) if header is not None else 1.0
-        header=_update_header(h, header, ara2mrc, 'mrc')
+        header=util.update_header(h, header, ara2mrc, 'mrc')
         header['nx'] = img.T.shape[0]
         header['ny'] = img.T.shape[1] if img.ndim > 1 else 1
         if header['nz'] == 0:
@@ -585,7 +585,7 @@ def write_image(filename, img, index=None, header=None):
             if index > 0: f.seek(int(1024+int(h['nsymbt'])+index*img.ravel().shape[0]*img.dtype.itemsize))
         img.tofile(f)
     finally:
-        _close(filename, f)
+        util.close(filename, f)
 
 if __name__ == '__main__':
     

@@ -11,6 +11,7 @@
 '''
 from arachnid.core.metadata import type_utility
 import numpy, os, logging
+import util
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -101,70 +102,6 @@ def is_readable(filename):
     if (int(h['labrec'])*int(h['lenbyt'])) != int(h['labbyt']): 
         return False
     return True
-
-def _update_header(dest, source, header_map, tag=None):
-    ''' Map values from or to the format and the internal header
-    
-    :Parameters:
-    
-    dest : array or dict
-           Destination of the header values
-    source : array or dict
-             Source of the header values    
-    header_map : dict
-                 Map from destination to source
-    tag : str
-          Format specific attribute tag
-                 
-    :Returns:
-    
-    dest : array or dict
-           Destination of the header values
-    '''
-    
-    if source is None: return dest
-    keys = dest.dtype.names if hasattr(dest, 'dtype') else dest.keys()
-    tag = None
-    for key in keys:
-        try:
-            dest[key] = source[header_map.get(key, key)]
-        except:
-            if tag is not None:
-                try: dest[key] = source[tag+"_"+key]
-                except: pass
-    return dest
-
-def _open(filename, mode):
-    ''' Open a stream to filename
-    
-    :Parameters:
-    
-    filename : str
-               Name of the file
-    mode : str
-           Mode to open file
-             
-    :Returns:
-        
-    fd : File
-         File descriptor
-    '''
-    
-    try: "+"+filename
-    except: f = filename
-    else:  f = open(filename, mode)
-    return f
-
-def _close(filename, fd):
-    ''' Close the file descriptor (if it was opened by caller)
-    
-    filename : str
-               Name of the file
-    fd : File
-         File descriptor
-    '''
-    
-    if fd != filename: fd.close()
     
 def read_header(filename, index=None):
     ''' Read the SPIDER header
@@ -215,7 +152,7 @@ def read_spider_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = _open(filename, 'r')
+    f = util.open(filename, 'r')
     try:
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_dtype, count=1)
@@ -231,7 +168,7 @@ def read_spider_header(filename, index=None):
             f.seek(offset)
             h = numpy.fromfile(f, dtype=h.dtype, count=1)
     finally:
-        _close(filename, f)
+        util.close(filename, f)
     return h
 
 def read_image(filename, index=None, header=None):
@@ -252,12 +189,12 @@ def read_image(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = _open(filename, 'r')
+    f = util.open(filename, 'r')
     h = None
     try:
         if index is None: index = 0
         h = read_spider_header(f)
-        if header is not None: _update_header(header, h, spi2ara, 'spi')
+        if header is not None: util.update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
@@ -274,7 +211,7 @@ def read_image(filename, index=None, header=None):
                 _logger.error("%d != %d*%d = %d"%(out.ravel().shape[0], int(h['nx']), int(h['ny']), int(h['nx'])*int(h['ny'])))
                 raise
     finally:
-        _close(filename, f)
+        util.close(filename, f)
     return out
 
 def iter_images(filename, index=None, header=None):
@@ -295,11 +232,11 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = _open(filename, 'r')
+    f = util.open(filename, 'r')
     if index is None: index = 0
     try:
         h = read_spider_header(f)
-        if header is not None: _update_header(header, h, spi2ara, 'spi')
+        if header is not None: util.update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
@@ -315,7 +252,7 @@ def iter_images(filename, index=None, header=None):
             elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
             yield out
     finally:
-        _close(filename, f)
+        util.close(filename, f)
 
 def count_images(filename):
     ''' Count the number of images in the file
@@ -376,13 +313,13 @@ def write_image(filename, img, index=None, header=None):
     except: raise TypeError, "Unsupported type for SPIDER writing: %s"%str(img.dtype)
     
     mode = 'a' if index is not None and index > 0 else 'w'
-    f = _open(filename, mode)
+    f = util.open(filename, mode)
     try:
         if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
             h = numpy.zeros(1, header_dtype)
             even = header['fourier_even'] if header is not None and 'fourier_even' in header else None
-            _update_header(h, spi_defaults, ara2spi)
-            header=_update_header(h, header, ara2spi, 'spi')
+            util.update_header(h, spi_defaults, ara2spi)
+            header=util.update_header(h, header, ara2spi, 'spi')
             
             # Image size in header
             header['nx'] = img.T.shape[0]
@@ -426,7 +363,7 @@ def write_image(filename, img, index=None, header=None):
         fheader.tofile(f)
         img.tofile(f)
     finally:
-        _close(filename, f)
+        util.close(filename, f)
 
 
 
