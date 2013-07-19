@@ -784,6 +784,7 @@ def iter_images(filename, index):
         index = numpy.asarray(index)
         if index.ndim == 2: index = index[:, 0]
         for i in xrange(len(index)):
+            qimg = QtGui.QImage()
             if not qimg.load(spider_utility.spider_filename(filename, int(index[i]))): raise IOError, "Unable to read image"
             yield qimg
     else:
