@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>695</width>
+    <height>551</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <property name="margin">
+     <number>0</number>
+    </property>
+    <item>
+     <layout class="QHBoxLayout" name="centralHLayout">
+      <item>
+       <widget class="QDockWidget" name="dockWidget">
+        <property name="maximumSize">
+         <size>
+          <width>524287</width>
+          <height>524287</height>
+         </size>
+        </property>
+        <property name="features">
+         <set>QDockWidget::AllDockWidgetFeatures</set>
+        </property>
+        <property name="allowedAreas">
+         <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+        </property>
+        <widget class="QWidget" name="dockWidgetContents">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widget" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <widget class="QTabWidget" name="tabWidget">
+               <property name="currentIndex">
+                <number>1</number>
+               </property>
+               <widget class="QWidget" name="tab">
+                <attribute name="title">
+                 <string>General</string>
+                </attribute>
+                <layout class="QFormLayout" name="formLayout">
+                 <property name="fieldGrowthPolicy">
+                  <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_8">
+                   <property name="text">
+                    <string>Zoom</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="imageZoomDoubleSpinBox">
+                   <property name="minimum">
+                    <double>0.010000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QSlider" name="zoomSlider">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>100</number>
+                   </property>
+                   <property name="value">
+                    <number>100</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::NoTicks</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>Contrast</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QSlider" name="contrastSlider">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>400</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>40</number>
+                   </property>
+                   <property name="value">
+                    <number>200</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::NoTicks</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QSpinBox" name="pageSpinBox">
+                   <property name="suffix">
+                    <string> of 0</string>
+                   </property>
+                   <property name="maximum">
+                    <number>99999</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label_4">
+                   <property name="text">
+                    <string>Page</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="tab_2">
+                <attribute name="title">
+                 <string>Loading</string>
+                </attribute>
+                <layout class="QFormLayout" name="formLayout_3">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_3">
+                   <property name="toolTip">
+                    <string>Number of images to display at once</string>
+                   </property>
+                   <property name="text">
+                    <string>Viewable</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QSpinBox" name="imageCountSpinBox">
+                   <property name="toolTip">
+                    <string>Number of images to display at once</string>
+                   </property>
+                   <property name="frame">
+                    <bool>true</bool>
+                   </property>
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>9999999</number>
+                   </property>
+                   <property name="value">
+                    <number>10</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>Decimate</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QDoubleSpinBox" name="decimateSpinBox">
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>16.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QPushButton" name="loadImagesPushButton">
+                   <property name="text">
+                    <string>Reload</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons/icons.qrc">
+                     <normaloff>:/mini/mini/arrow_rotate_clockwise.png</normaloff>:/mini/mini/arrow_rotate_clockwise.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>Clamp</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="clampDoubleSpinBox">
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>5.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListView" name="imageListView">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>2</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="showDropIndicator" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::MultiSelection</enum>
+        </property>
+        <property name="movement">
+         <enum>QListView::Static</enum>
+        </property>
+        <property name="isWrapping" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="viewMode">
+         <enum>QListView::IconMode</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>695</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionOpen"/>
+   <addaction name="actionLoad_More"/>
+   <addaction name="separator"/>
+   <addaction name="actionBackward"/>
+   <addaction name="actionForward"/>
+   <addaction name="separator"/>
+   <addaction name="actionAdvanced_Settings"/>
+   <addaction name="actionHelp"/>
+  </widget>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/folder.png</normaloff>:/mini/mini/folder.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a file to plot or a stack of images to display</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+O</string>
+   </property>
+  </action>
+  <action name="actionFitToView">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/arrow_in.png</normaloff>:/mini/mini/arrow_in.png</iconset>
+   </property>
+   <property name="text">
+    <string>Fit to View</string>
+   </property>
+   <property name="toolTip">
+    <string>Fit all images to view</string>
+   </property>
+  </action>
+  <action name="actionHome">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/house.png</normaloff>:/mini/mini/house.png</iconset>
+   </property>
+   <property name="text">
+    <string>home</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset the view</string>
+   </property>
+  </action>
+  <action name="actionZoom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/zoom_out.png</normaloff>:/mini/mini/zoom_out.png</iconset>
+   </property>
+   <property name="text">
+    <string>zoom</string>
+   </property>
+   <property name="toolTip">
+    <string>Use the cursor to zoom in on an area of the plot</string>
+   </property>
+  </action>
+  <action name="actionForward">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/resultset_next.png</normaloff>:/mini/mini/resultset_next.png</iconset>
+   </property>
+   <property name="text">
+    <string>forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Step forward in action history</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+  </action>
+  <action name="actionBackward">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/resultset_previous.png</normaloff>:/mini/mini/resultset_previous.png</iconset>
+   </property>
+   <property name="text">
+    <string>backward</string>
+   </property>
+   <property name="toolTip">
+    <string>Step backward in action history</string>
+   </property>
+   <property name="shortcut">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/disk.png</normaloff>:/mini/mini/disk.png</iconset>
+   </property>
+   <property name="text">
+    <string>save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the current plot</string>
+   </property>
+  </action>
+  <action name="actionShow_Options">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/database_table.png</normaloff>:/mini/mini/database_table.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Options</string>
+   </property>
+   <property name="toolTip">
+    <string>Display dialog to configure plot options</string>
+   </property>
+  </action>
+  <action name="actionHide_Controls">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/application_side_list.png</normaloff>:/mini/mini/application_side_list.png</iconset>
+   </property>
+   <property name="text">
+    <string>Hide Controls</string>
+   </property>
+   <property name="toolTip">
+    <string>Hide the controls</string>
+   </property>
+  </action>
+  <action name="actionOriginal_Size">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/arrow_out.png</normaloff>:/mini/mini/arrow_out.png</iconset>
+   </property>
+   <property name="text">
+    <string>Original Size</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom images to original size</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/help.png</normaloff>:/mini/mini/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
+   </property>
+   <property name="toolTip">
+    <string>Display help dialog</string>
+   </property>
+  </action>
+  <action name="actionLoad_More">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/arrow_refresh.png</normaloff>:/mini/mini/arrow_refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load More</string>
+   </property>
+   <property name="toolTip">
+    <string>Search for additional micrographs in directories already in use</string>
+   </property>
+  </action>
+  <action name="actionAdvanced_Settings">
+   <property name="icon">
+    <iconset resource="../icons/icons.qrc">
+     <normaloff>:/mini/mini/wrench_orange.png</normaloff>:/mini/mini/wrench_orange.png</iconset>
+   </property>
+   <property name="text">
+    <string>Advanced Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the Advanced Settings Dialog</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>
