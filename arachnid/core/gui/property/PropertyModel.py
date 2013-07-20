@@ -39,6 +39,19 @@ class PropertyModel(QtCore.QAbstractItemModel):
                                   QtGui.QColor.fromRgb(84, 141, 212),
                                   QtGui.QColor.fromRgb(148, 138, 84)]
     
+    def addOptionList(self, option_list):
+        ''' Add options from list/dict format
+        '''
+        
+        from arachnid.core.app import settings
+        parser = settings.OptionParser('', version='0.0.1', description="")
+        for option in option_list:
+            parser.add_option("", **option)
+        values = parser.get_default_values()
+        names = vars(values).keys()
+        self.addOptions(parser.get_config_options(), parser.option_groups, values)
+        return values, names
+    
     def addOptions(self, option_list, option_groups, option_values, parent=None, rindex=0):
         ''' Add command line options to the Property Tree Model
         
@@ -519,8 +532,10 @@ class PropertyModel(QtCore.QAbstractItemModel):
         '''
         
         parentItem = self.rootItem
-        if parent.isValid(): parentItem = parent.internalPointer()
-        if row >= len(parentItem.children()) or row < 0: return QtCore.QModelIndex()
+        if parent.isValid(): 
+            parentItem = parent.internalPointer()
+        if row >= len(parentItem.children()) or row < 0: 
+            return QtCore.QModelIndex()
         return self.createIndex(row, column, parentItem.children()[row])
     
     def saveState(self, settings, parent = QtCore.QModelIndex()):

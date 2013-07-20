@@ -4,8 +4,9 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.MontageViewer import Ui_MainWindow
-from util.qt4_loader import QtGui,QtCore,qtSlot
+from util.qt4_loader import QtGui,QtCore,qtSlot,QtWebKit
 from util import qimage_utility
+import property
 from ..metadata import spider_utility, format
 from ..image import ndimage_utility, ndimage_file, ndimage_interpolate
 import glob, os #, itertools
@@ -20,7 +21,7 @@ class MainWindow(QtGui.QMainWindow):
     '''
     
     def __init__(self, parent=None):
-        "Initialize a basic viewer window"
+        "Initialize a image display window"
         
         QtGui.QMainWindow.__init__(self, parent)
         
@@ -35,7 +36,6 @@ class MainWindow(QtGui.QMainWindow):
         _logger.info("\rBuilding main window ...")
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        #self.connect(self.ui.zoomSlider, QtCore.SIGNAL("valueChanged(int)"), self.on_imageZoomDoubleSpinBox_valueChanged)
         
         # Setup variables
         self.lastpath = str(QtCore.QDir.currentPath())
@@ -44,6 +44,7 @@ class MainWindow(QtGui.QMainWindow):
         self.file_index = []
         self.color_level = None
         self.base_level = None
+        self.inifile = '' #'ara_view.ini'
         
         # Image View
         self.imageListModel = QtGui.QStandardItemModel(self)
@@ -54,6 +55,58 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionBackward.setEnabled(False)
         self.setup()
         
+        # Custom Actions
+        
+        action = self.ui.dockWidget.toggleViewAction()
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/application_side_list.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        action.setIcon(icon8)
+        self.ui.toolBar.insertAction(self.ui.actionHelp, action)
+        
+        # Create advanced settings
+        
+        property.setView(self.ui.advancedSettingsTreeView)
+        #self.advancedSettingsModel = PropertyModel(self)
+        #self.ui.advancedSettingsTreeView.setModel(self.advancedSettingsModel)
+        
+        self.advanced_settings, self.advanced_names = self.ui.advancedSettingsTreeView.model().addOptionList([ 
+                                dict(downsample_type=('bilinear', 'ft', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
+                                dict(film=False, help="Set true to disable contrast inversion"),
+                                dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
+                                dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True)),
+                                dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True)),
+                                dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True)),
+                                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True)),
+                          ])
+        self.ui.advancedSettingsTreeView.setStyleSheet('QTreeView::item[readOnly="true"]{ color: #000000; }')
+        
+        for i in xrange(self.ui.advancedSettingsTreeView.model().rowCount()-1, 0, -1):
+            if self.ui.advancedSettingsTreeView.model().index(i, 0).internalPointer().isReadOnly():
+                self.ui.advancedSettingsTreeView.setRowHidden(i, QtCore.QModelIndex(), True)
+        
+        # Help system
+        self.helpDialog = QtGui.QDialog(self)
+        self.helpLayout = QtGui.QVBoxLayout(self.helpDialog)
+        self.webView = QtWebKit.QWebView(self.helpDialog)
+        self.helpLayout.addWidget(self.webView)
+        self.helpLayout.setContentsMargins(0,0,0,0)
+        
+        # Load the settings
+        _logger.info("\rLoading settings ...")
+        self.loadSettings()
+        
+    def closeEvent(self, evt):
+        '''Window close event triggered - save project and global settings 
+        
+        :Parameters:
+            
+        evt : QCloseEvent
+              Event for to close the main window
+        '''
+        
+        self.saveSettings()
+        QtGui.QMainWindow.closeEvent(self, evt)
+        
     def setup(self):
         ''' Display specific setup
         '''
@@ -61,7 +114,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.imageListView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     
     # Slots for GUI
+    @qtSlot()
+    def on_actionHelp_triggered(self):
+        ''' Display the help dialog
+        '''
         
+        self.webView.load(QtCore.QUrl('http://www.google.com'))
+        self.helpDialog.show()
+           
     @qtSlot(int)
     def on_pageSpinBox_valueChanged(self, val):
         ''' Called when the user changes the group number in the spin box
@@ -169,10 +229,10 @@ class MainWindow(QtGui.QMainWindow):
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         for i, (imgname, img) in enumerate(iter_images(self.files, index)):
             if hasattr(img, 'ndim'):
-                #if not self.advanced_settings.film:
-                #    ndimage_utility.invert(img, img)
+                if not self.advanced_settings.film:
+                    ndimage_utility.invert(img, img)
                 img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
-                if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor)#, self.advanced_settings.downsample_type)
+                if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 qimg = qimage_utility.numpy_to_qimage(img)
             else: qimg = img
             
@@ -224,6 +284,24 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle("File count: %d - Image count: %d"%(len(self.files), len(self.file_index)))
         self.on_loadImagesPushButton_clicked()
     
+    def saveSettings(self):
+        ''' Save the settings of widgets
+        '''
+        
+        if self.inifile == "": return
+        settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+        settings.setValue('main_window/geometry', self.saveGeometry())
+        settings.setValue('main_window/windowState', self.saveState())
+        
+    def loadSettings(self):
+        ''' Load the settings of widgets
+        '''
+        
+        if self.inifile == "" or not os.path.exists(self.inifile): return
+        settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+        self.restoreGeometry(settings.value('main_window/geometry'))
+        self.restoreState(settings.value('main_window/windowState'))
+
 def iter_images(files, index):
     ''' Wrapper for iterate images that support color PNG files
     
