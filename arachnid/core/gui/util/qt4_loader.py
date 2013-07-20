@@ -16,8 +16,8 @@ with the QT graphical user interface (GUI) library.
 '''
 
 try: 
-    from PySide import QtGui, QtCore
-    QtGui, QtCore;
+    from PySide import QtGui, QtCore, QtWebKit
+    QtGui, QtCore, QtWebKit;
     #raise ImportError, "Dum"
     qtSignal=QtCore.Signal
     qtSlot= QtCore.Slot
@@ -32,8 +32,8 @@ except ImportError:
     sip.setapi('QTime', 2)
     sip.setapi('QUrl', 2)
     
-    from PyQt4 import QtGui, QtCore
-    QtGui, QtCore;
+    from PyQt4 import QtGui, QtCore, QtWebKit
+    QtGui, QtCore, QtWebKit;
     qtSignal=QtCore.pyqtSignal
     qtSlot= QtCore.pyqtSlot
     qtProperty= QtCore.pyqtProperty
