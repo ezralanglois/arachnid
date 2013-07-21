@@ -1,5 +1,7 @@
 ''' Graphical user interface for displaying images
 
+Todo status - file being displayed
+
 .. Created on Jul 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -66,9 +68,6 @@ class MainWindow(QtGui.QMainWindow):
         # Create advanced settings
         
         property.setView(self.ui.advancedSettingsTreeView)
-        #self.advancedSettingsModel = PropertyModel(self)
-        #self.ui.advancedSettingsTreeView.setModel(self.advancedSettingsModel)
-        
         self.advanced_settings, self.advanced_names = self.ui.advancedSettingsTreeView.model().addOptionList([ 
                                 dict(downsample_type=('bilinear', 'ft', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
                                 dict(film=False, help="Set true to disable contrast inversion"),
@@ -81,7 +80,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.advancedSettingsTreeView.setStyleSheet('QTreeView::item[readOnly="true"]{ color: #000000; }')
         
         for i in xrange(self.ui.advancedSettingsTreeView.model().rowCount()-1, 0, -1):
-            if self.ui.advancedSettingsTreeView.model().index(i, 0).internalPointer().isReadOnly():
+            if self.ui.advancedSettingsTreeView.model().index(i, 0).internalPointer().isReadOnly(): # Hide widget items (read only)
                 self.ui.advancedSettingsTreeView.setRowHidden(i, QtCore.QModelIndex(), True)
         
         # Help system
@@ -250,6 +249,7 @@ class MainWindow(QtGui.QMainWindow):
             item = QtGui.QStandardItem(icon, "%s/%d"%(os.path.basename(imgname[0]), imgname[1]))
             item.setData(i+start, QtCore.Qt.UserRole)
             self.imageListModel.appendRow(item)
+            self.notify_added_item(item)
         
         self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
         n = max(5, int(self.imagesize*zoom))
@@ -260,6 +260,20 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.pageSpinBox.setMaximum(batch_count)
         self.ui.actionForward.setEnabled(self.ui.pageSpinBox.value() < batch_count)
         self.ui.actionBackward.setEnabled(self.ui.pageSpinBox.value() > 0)
+    
+    # Abstract methods
+    
+    def notify_added_item(self, item):
+        '''
+        '''
+        
+        pass
+    
+    def notify_added_files(self, newfiles):
+        '''
+        '''
+        
+        pass
     
     # Other methods
     
@@ -274,15 +288,21 @@ class MainWindow(QtGui.QMainWindow):
         
         fileset=set(self.files)
         newfiles = [f for f in files if f not in fileset]
-        index = len(self.files)
+        self.notify_added_files(newfiles)
+        self.updateFileIndex(newfiles)
         self.files.extend(newfiles)
-        for filename in newfiles:
-            count = ndimage_file.count_images(filename)
-            self.file_index.extend([(index, i) for i in xrange(count)])
-            index += 1
-        
         self.setWindowTitle("File count: %d - Image count: %d"%(len(self.files), len(self.file_index)))
         self.on_loadImagesPushButton_clicked()
+        
+    def updateFileIndex(self, newfiles):
+        '''
+        '''
+        
+        index = len(self.files)
+        for filename in newfiles:
+            count = ndimage_file.count_images(filename)
+            self.file_index.extend([[index, i, 0] for i in xrange(count)])
+            index += 1
     
     def saveSettings(self):
         ''' Save the settings of widgets
@@ -328,9 +348,10 @@ def iter_images(files, index):
         '''
         for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename, index)):
         '''
-        for f,index in index:
-            img = ndimage_utility.normalize_min_max(ndimage_file.read_image(files[f], index))
-            yield (files[f], index), img
+        for idx in index:
+            f, i = idx[:2]
+            img = ndimage_utility.normalize_min_max(ndimage_file.read_image(files[f], i))
+            yield (files[f], i), img
         '''
         for filename in files:
             for i, img in enumerate(itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename))):
