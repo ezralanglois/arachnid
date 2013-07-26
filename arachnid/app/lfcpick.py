@@ -513,6 +513,7 @@ def initialize(files, param):
         _logger.info("Window size: %d"%(offset*2))
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
+    return files
 
 def reduce_all(val, confusion, file_index, **extra):
     # Process each input file in the main thread (for multi-threaded code)

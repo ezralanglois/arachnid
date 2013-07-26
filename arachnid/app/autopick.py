@@ -223,7 +223,9 @@ def write_example(mic, coords, box_image="", **extra):
     
     if box_image == "" or ImageDraw is None: return
     
-    offset, bin_factor = lfcpick.init_param(**extra)[1:3]
+    radius, offset, bin_factor = lfcpick.init_param(**extra)[:3]
+    mic = eman2_utility.gaussian_high_pass(mic, 0.25/radius, True)
+    ndimage_utility.replace_outlier(mic, 4.0, 4.0, None, mic)
     mic = scipy.misc.toimage(mic).convert("RGB")
     draw = ImageDraw.Draw(mic)
     
@@ -233,7 +235,7 @@ def write_example(mic, coords, box_image="", **extra):
         draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#ff4040")
     mic.save(box_image)
 
-def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
+def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, oldmode=False, **extra):
     ''' Search a micrograph for particles using a template
     
     :Parameters:
@@ -274,7 +276,9 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
         raise
     if not disable_prune:
         _logger.debug("Classify peaks")
-        if experimental:
+        if oldmode:
+            sel = classify_windows_old(img, peaks, **extra)
+        elif experimental:
             sel = classify_windows_new(img, peaks, **extra)
         else:
             sel = classify_windows(img, peaks, **extra)
@@ -391,7 +395,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         #npdata[:, :] = win
         #eman2_utility.ramp(emdata)
         #win[:, :] = npdata
-        win=ndimage_filter.ramp(win)
+        #win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
@@ -461,10 +465,10 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
-        sel = numpy.logical_and(dsel, sel)
-        
+        sel = numpy.logical_and(dsel, sel)    
     
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
+    #else: remove_overlap(scoords, radius, sel)
     return sel
 
 def classify_windows_old(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, **extra):
@@ -718,6 +722,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         
     
     if remove_aggregates: classify_aggregates(scoords, offset, sel)
+    else: remove_overlap(scoords, radius, sel)
     return sel
 
 def outlier_rejection(feat, prob):
@@ -793,6 +798,27 @@ def classify_aggregates(scoords, offset, sel):
     sel[off[dist]] = 0
     return sel
 
+def remove_overlap(scoords, radius, sel):
+    '''
+    '''
+    
+    coords = scoords[:, 1:3]
+    i=0
+    radius *= 1.1
+    idx = numpy.argwhere(sel).squeeze()
+    while i < len(idx):
+        dist = scipy.spatial.distance.cdist(coords[idx[i+1:]], coords[idx[i]].reshape((1, len(coords[idx[i]]))), metric='euclidean').ravel()
+        osel = dist < radius
+        if numpy.sum(osel) > 0:
+            if numpy.alltrue(scoords[idx[i], 0] > scoords[idx[i+1:], 0]):
+                sel[idx[i+1:][osel]]=0
+                idx = numpy.argwhere(sel).squeeze()
+            else:
+                sel[idx[i]]=0
+        else:
+            i+=1
+    
+
 def initialize(files, param):
     # Initialize global parameters for the script
     
@@ -806,7 +832,7 @@ def initialize(files, param):
         if param['box_image']!="":
             try:os.makedirs(os.path.dirname(param['box_image']))
             except: pass
-    return lfcpick.initialize(files, param)
+    return sorted(lfcpick.initialize(files, param))
 
 def reduce_all(val, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -831,9 +857,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   pca_mode=1.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
     group.add_option("",   iter_threshold=1,            help="Number of times to iterate thresholding")
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
+    group.add_option("",   oldmode=False,               help="Use the old version of AutoPicker!")
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
-    group.add_option("",   experimental2=False,          help="Use the latest experimental features, 2nd generation!")
-    group.add_option("",   real_space_nstd=2.5,          help="Cutoff for real space PCA")
+    group.add_option("",   experimental2=False,         help="Use the latest experimental features, 2nd generation!")
+    group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
     
     pgroup.add_option_group(group)
