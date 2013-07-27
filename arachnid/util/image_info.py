@@ -64,6 +64,8 @@ def batch(files, output="", test_size=0, all=False, stat=False, force=False, **e
                     print "STD: ", numpy.std(img)
                     print "Max: ", numpy.max(img)
                     print "Min: ", numpy.min(img)
+                    print "Unique: ", len(numpy.unique(img))
+                
                     #avg += numpy.mean(img)
                     #std += numpy.std(img)
                 #print "Mean: ", avg/count
@@ -82,8 +84,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "Image information", "Options to view image information",  id=__name__)
     group.add_option("-t", test_size=0,                   help="Test if the image sizes are consistent")
-    group.add_option("-a", all=False,                   help="Print the entire header in long format")
-    group.add_option("-s", stat=False,                   help="Estimate statistics")
+    group.add_option("-a", all=False,                     help="Print the entire header in long format")
+    group.add_option("-s", stat=False,                    help="Estimate statistics")
     group.add_option("-f", force=False,                   help="Force internal formats")
     pgroup.add_option_group(group)
     if main_option:
