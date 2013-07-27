@@ -5,7 +5,7 @@
 '''
 
 from .. import mrc, eman_format
-import numpy, os
+import numpy, os #, sys
 
 test_file = 'test.mrc'
 
@@ -13,8 +13,6 @@ def test_is_format_header():
     '''
     '''
     
-    ar = numpy.zeros(1, dtype=mrc.header_stack_dtype)
-    assert(mrc.is_format_header(ar))
     ar = numpy.zeros(1, dtype=mrc.header_image_dtype)
     assert(mrc.is_format_header(ar))
     ar = numpy.zeros(1, dtype=numpy.float)
@@ -52,7 +50,8 @@ def test_read_image():
     '''
     '''
     
-    empty_image = numpy.zeros((78,200))
+    numpy.random.seed(1)
+    empty_image = numpy.random.rand(78,200).astype('<f4')
     eman_format.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, mrc.read_image(test_file))
     os.unlink(test_file)
@@ -61,7 +60,8 @@ def test_write_image():
     '''
     '''
     
-    empty_image = numpy.zeros((78,200))
+    numpy.random.seed(1)
+    empty_image = numpy.random.rand(78,200)
     mrc.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, eman_format.read_image(test_file))
     os.unlink(test_file)

@@ -115,10 +115,43 @@ def create_header(shape, dtype, order='C', header=None):
     h['dtype']= dtype.str[:2]
     h['byte_num']=int(dtype.str[2])
     h['order']=order
-    h['pixelSpacing']=0.0
+    h['pixelSpacing']=header.get('pixelSpacing', 0.0) if header is not None else 0.0
     h['extended_ident']=""
     h['extended']=0
     return h
+
+def array_from_header(header):
+    ''' Convert header information to array parameters
+    
+    :Parameters:
+    
+    header : header_dtype
+             Header fields
+    
+    :Returns:
+    
+    header : dict
+             File header
+    dtype : dtype
+            Data type
+    shape : tuple
+            Shape of the array
+    order : str
+            Order of the array
+    offset : int
+             Header offset
+    swap : bool
+            Swap byte order
+    '''
+    
+    imheader = dict(pixelSpacing=header['pixelSpacing'][0])
+    
+    dtype = numpy.dtype(header['dtype'][0]+str(header['byte_num'][0]))
+    shape = (header['nx'][0], header['ny'][0], header['nz'][0])
+    if header_dtype.newbyteorder()==header.dtype: dtype = dtype.newbyteorder()
+    return (int(header_dtype.itemsize+int(header['extended'])),
+           (imheader, dtype, numpy.prod(shape), shape, 
+           header_dtype.newbyteorder()==header.dtype, header['order'][0],) )
 
 def cache_data():
     ''' Get keywords to be added as data cache
@@ -163,7 +196,7 @@ def read_web_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     m=None
     try:
         #curr = f.tell()
@@ -227,34 +260,33 @@ def count_images(filename):
     else: h = read_web_header(filename)
     return h['count'][0]
 
-def array_from_header(header):
-    ''' Convert header information to array parameters
+def read_header(filename, index=None):
+    ''' Read the WEB header
     
     :Parameters:
     
-    header : header_dtype
-             Header fields
+    filename : str or file object
+               Filename or open stream for a file
+    index : int, ignored
+            Index of image to get the header, if None, the stack header (Default: None)
     
     :Returns:
-    
-    dtype : dtype
-            Data type
-    shape : tuple
-            Shape of the array
-    order : str
-            Order of the array
-    offset : int
-             Header offset
-    swap : bool
-            Swap byte order
+        
+    header : dict
+             Dictionary with header information
     '''
     
-    dtype = numpy.dtype(header['dtype'][0]+str(header['byte_num'][0]))
-    shape = (header['nx'][0], header['ny'][0], header['nz'][0])
-    if header_dtype.newbyteorder()==header.dtype: dtype = dtype.newbyteorder()
-    return (int(header_dtype.itemsize+int(header['extended'])),
-           (dtype, numpy.prod(shape), shape, 
-           header_dtype.newbyteorder()==header.dtype, header['order'][0],) )
+    h = read_web_header(filename, index)
+    header={}
+    header['apix']=float(h['pixelSpacing'][0])
+    header['count'] = int(h['nz'][0]) if int(h['nz'][0])!=int(h['nx'][0]) else 1
+    header['nx'] = int(h['nx'][0])
+    header['ny'] = int(h['ny'][0])
+    header['nz'] = int(h['nz'][0]) if int(h['nz'][0])==int(h['nx'][0]) else 1
+    for key in h.dtype.fields.iterkeys():
+        header['web_'+key] = h[key][0]
+    header['format'] = 'mrc'
+    return header
 
 def read_image(filename, index=None, header=None, cache=None):
     ''' Read an image from the specified file in the WEB format
@@ -275,7 +307,7 @@ def read_image(filename, index=None, header=None, cache=None):
     '''
     
     idx = 0 if index is None else index
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     try:
         h = read_web_header(f)
         #if header is not None: util.update_header(header, h, web2ara, 'web')
@@ -305,7 +337,7 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     if index is None: index = 0
     try:
         h = read_web_header(f)
@@ -352,9 +384,10 @@ def write_image(filename, img, index=None, header=None):
     header : dict, optional
              Dictionary of header values
     '''
+    if header is None and hasattr(img, 'header'): header=img.header
     
     mode = 'rb+' if index is not None and index > 0 else 'wb+'
-    f = util.open(filename, mode)
+    f = util.uopen(filename, mode)
     if header is None or not is_format_header(header):
         header = create_header(img.shape, img.dtype, img.order, header)
     try:

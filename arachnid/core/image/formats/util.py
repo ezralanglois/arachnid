@@ -4,8 +4,9 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import numpy
+from ..ndimage import ndimage
 
-def open(filename, mode):
+def uopen(filename, mode):
     ''' Open a stream to filename
     
     :Parameters:
@@ -69,13 +70,15 @@ def update_header(dest, source, header_map, tag=None):
                 except: pass
     return dest
 
-def read_image(f, dtype, dlen, shape, swap, order='C'):
+def read_image(f, header, dtype, dlen, shape, swap, order='C'):
     ''' Read an image from a file using random file acess
     
     :Parameters:
     
     f : stream
         Input file stream
+    header : dict
+             Header
     dtype : dtype
             Data type 
     dlen : int
@@ -100,4 +103,4 @@ def read_image(f, dtype, dlen, shape, swap, order='C'):
         out.shape = out.shape[::-1]
         out = out.transpose()
     if swap:out = out.byteswap().newbyteorder()
-    return out
+    return ndimage(out, header)

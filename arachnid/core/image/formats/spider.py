@@ -46,6 +46,54 @@ def _create_header_dtype(vtype='<f4'):
 
 header_dtype = _create_header_dtype()
 
+
+def create_header(shape, dtype, order='C', header=None):
+    ''' Create a header for the SPIDER image format
+    
+    @todo support header parameters
+    
+    :Parameters:
+    
+    shape : tuple
+            Shape of the array 
+    dtype : numpy.dtype 
+            Data type for NumPy ndarray
+    header : dict
+             Header values  for image
+    :Returns:
+    
+    h : dtype
+        Data type for NumPy ndarray describing the header
+    '''
+    
+    pass
+
+def array_from_header(header):
+    ''' Convert header information to array parameters
+    
+    :Parameters:
+    
+    header : header_dtype
+             Header fields
+    
+    :Returns:
+    
+    header : dict
+             File header
+    dtype : dtype
+            Data type
+    shape : tuple
+            Shape of the array
+    order : str
+            Order of the array
+    offset : int
+             Header offset
+    swap : bool
+            Swap byte order
+    '''
+    
+    pass
+
 def cache_data():
     ''' Get keywords to be added as data cache
     
@@ -152,7 +200,7 @@ def read_spider_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     try:
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_dtype, count=1)
@@ -189,7 +237,7 @@ def read_image(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     h = None
     try:
         if index is None: index = 0
@@ -232,7 +280,7 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     if index is None: index = 0
     try:
         h = read_spider_header(f)
@@ -308,12 +356,13 @@ def write_image(filename, img, index=None, header=None):
     #float64
     #complex64
     
+    if header is None and hasattr(img, 'header'): header=img.header
     dtype = numpy.complex64 if numpy.iscomplexobj(img) else numpy.float32
     try: img = img.astype(dtype)
     except: raise TypeError, "Unsupported type for SPIDER writing: %s"%str(img.dtype)
     
     mode = 'a' if index is not None and index > 0 else 'w'
-    f = util.open(filename, mode)
+    f = util.uopen(filename, mode)
     try:
         if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
             h = numpy.zeros(1, header_dtype)
