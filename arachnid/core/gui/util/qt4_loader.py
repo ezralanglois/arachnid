@@ -32,8 +32,12 @@ except ImportError:
     sip.setapi('QTime', 2)
     sip.setapi('QUrl', 2)
     
-    from PyQt4 import QtGui, QtCore, QtWebKit
-    QtGui, QtCore, QtWebKit;
+    from PyQt4 import QtGui, QtCore
+    try: 
+        from PyQt4 import QtWebKit
+        QtWebKit;
+    except: pass
+    QtGui, QtCore
     qtSignal=QtCore.pyqtSignal
     qtSlot= QtCore.pyqtSlot
     qtProperty= QtCore.pyqtProperty
