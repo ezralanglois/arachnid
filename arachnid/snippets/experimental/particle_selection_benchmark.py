@@ -61,8 +61,9 @@ if __name__ == '__main__':
     select = sys.argv[1]
     coords1_file = sys.argv[2]        # image_file = "data/dala_01.spi"
     coords2_file = sys.argv[3]        # align_file = "data/align_01.spi"
-    defocus_file=sys.argv[4]           # output_file="stack01.spi"
-    output=sys.argv[5]           # output_file="stack01.spi"
+    defocus_file=sys.argv[4]          # output_file="stack01.spi"
+    output=sys.argv[5]                # output_file="stack01.spi"
+    good=sys.argv[6] if len(sys.argv) > 6 else None
     pixel_radius = 100
     use_bins=True
     use_equal=True
@@ -80,6 +81,15 @@ if __name__ == '__main__':
             del defocus_dict[i]
     defvals = format_utility.map_object_list(defocus_dict)
     defmap = numpy.zeros((len(select), 4))
+    if good is not None:
+        good = format.read(good)
+        goodmap = {}
+        for g in good:
+            stack_file, stack_id = spider_utility.relion_file(g.rlnImageName)
+            stack_file=spider_utility.spider_id(stack_file)
+            if stack_file not in goodmap: goodmap[stack_file]=set()
+            goodmap[stack_file].add(stack_id)
+            
     for s in select:
         coords1 = format.read(coords1_file, spiderid=s.araSpiderID, numeric=True)
         if not os.path.exists(spider_utility.spider_filename(coords2_file, s.araLeginonFilename)):
@@ -90,6 +100,11 @@ if __name__ == '__main__':
         except:
             print spider_utility.spider_filename(coords2_file, s.araLeginonFilename)
             raise
+        
+        if good is not None:
+            try: goodcur = goodmap[spider_utility.spider_id(s.araSpiderID)]
+            except: coords1=[]
+            else: coords1 = [c for c in coords1 if c.id in goodcur]
         
         benchmark = numpy.vstack(([c.x for c in coords2], [c.y for c in coords2])).T.astype(numpy.float)
         autop = numpy.vstack(([c.x for c in coords1], [c.y for c in coords1])).T.astype(numpy.float)
