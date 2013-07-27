@@ -15,6 +15,7 @@ try:
     QtGui;
 except:
     QtGui=None
+    _logger.addHandler(logging.StreamHandler())
     tracing.log_import_error("Failed to import PyQT4 module - certain functionality will not be available - graphical user interface", _logger)
     _logger.exception("message")
 else:
