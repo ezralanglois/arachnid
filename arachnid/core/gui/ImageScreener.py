@@ -2,13 +2,17 @@
 
 @todo - cross index based on spider id - settings!
 
+@todo - save
+
+@todo - fix advanced settings load
+
 .. Created on Jul 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
 from ImageViewer import MainWindow as ImageViewerWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot
-import os
+import os, numpy
 
 class MainWindow(ImageViewerWindow):
     ''' Main window display for the plotting tool
@@ -23,6 +27,15 @@ class MainWindow(ImageViewerWindow):
         self.selectfout = open(self.selectfile, 'a')
         self.selectedCount = 0
         self.loadSelections()
+    
+    def advancedSettings(self):
+        ''' Get a list of advanced settings
+        '''
+        
+        
+        return [ 
+               dict(show_images=('All', 'Selected', 'Unselected'), help="Show images of specified type"),
+               ]+ImageViewerWindow.sharedAdvancedSettings(self)
         
     def setup(self):
         ''' Display specific setup
@@ -43,6 +56,17 @@ class MainWindow(ImageViewerWindow):
         self.selectfout.close()
         ImageViewerWindow.closeEvent(self, evt)
         
+    def getSettings(self):
+        ''' Get the settings object
+        '''
+        
+        '''
+        return QtCore.QSettings(QtCore.QSettings.IniFormat, QtCore.QSettings.UserScope, "Arachnid", "ImageScreen")
+        '''
+        
+        if self.inifile == "": return None
+        return QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+        
     # Loading
     def loadSelections(self):
         ''' Load the selections from the default selection file
@@ -57,8 +81,9 @@ class MainWindow(ImageViewerWindow):
         for line in fin:
             if line =="": continue
             if line[0] == '@':
-                self.files.append(line[1:].strip())
-                self.updateFileIndex([self.files[-1]])
+                f = line[1:].strip()
+                self.updateFileIndex([f])
+                self.files.append(f)
             else:
                 vals = [int(v) for v in line.strip().split(',')]
                 if self.file_index[vals[0]][0] != vals[1]: raise ValueError, "Failed to load internal selection file - file id %d != %d"%(self.file_index[vals[0]][0], vals[1])
@@ -74,7 +99,7 @@ class MainWindow(ImageViewerWindow):
         ''' Called when an image is added to the view
         '''
         
-        if self.file_index[item.data(QtCore.Qt.UserRole)][2] > 0:
+        if self.file_index[item.data(QtCore.Qt.UserRole), 2] > 0:
             self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
     
     def notify_added_files(self, newfiles):
@@ -83,6 +108,28 @@ class MainWindow(ImageViewerWindow):
         
         for f in newfiles:
             self.selectfout.write("@%s\n"%f)
+    
+    def imageSubset(self, index, count):
+        '''
+        '''
+        
+        if self.advanced_settings.show_images == 'Selected':
+            idx = numpy.argwhere(self.file_index[:, 2]>0)
+            return self.file_index[idx[index*count:(index+1)*count].squeeze()],idx[index*count:]
+        elif self.advanced_settings.show_images == 'Unselected':
+            idx = numpy.argwhere(self.file_index[:, 2]==0)
+            return self.file_index[idx[index*count:(index+1)*count].squeeze()],idx[index*count:]
+        return ImageViewerWindow.imageSubset(self, index, count)
+    
+    def imageTotal(self):
+        '''
+        '''
+        
+        if self.advanced_settings.show_images == 'Selected':
+            return numpy.sum(self.file_index[:, 2]>0)
+        elif self.advanced_settings.show_images == 'Unselected':
+            return numpy.sum(self.file_index[:, 2]==0)
+        return ImageViewerWindow.imageTotal(self)
     
     @qtSlot()
     def on_loadImagesPushButton_clicked(self):
@@ -110,12 +157,14 @@ class MainWindow(ImageViewerWindow):
             idx = index.data(QtCore.Qt.UserRole)
             self.file_index[idx][2] = 1
             self.selectedCount+=1
-            self.selectfout.write("%d,%d,%d,%d\n"%tuple([idx]+self.file_index[idx]))
+            self.selectfout.write('%d,'%idx)
+            self.selectfout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
         for index in deselected.indexes():
             idx = index.data(QtCore.Qt.UserRole)
             self.file_index[idx][2] = 0
             self.selectedCount-=1
-            self.selectfout.write("%d,%d,%d,%d\n"%tuple([idx]+self.file_index[idx]))
+            self.selectfout.write('%d,'%idx)
+            self.selectfout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
         self.selectfout.flush()
         self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.file_index)))
         
