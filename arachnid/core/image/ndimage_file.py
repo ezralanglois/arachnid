@@ -168,7 +168,9 @@ def copy_to_spider(filename, tempfile, index=None):
     
     if is_spider_format(filename) and os.path.splitext(filename)[1] == os.path.splitext(tempfile)[1]: return filename
     
-    img = read_image(filename, index)
+    if mrc.is_readable(filename):
+        img = mrc.read_image(filename, index)
+    else: img = read_image(filename, index)
     spider_writer.write_spider_image(tempfile, img)
     #for index, img in enumerate(iter_images(filename)):
     #    spider_writer.write_image(tempfile, img, index)
