@@ -281,6 +281,7 @@ def write_image(filename, img, index=None, header=None, type=None):
            Format in which to write image
     '''
     
+    if header is None and hasattr(img, 'header'): header=img.header
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not eman2_utility.is_em(img): 
