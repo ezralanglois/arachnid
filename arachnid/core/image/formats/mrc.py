@@ -101,8 +101,6 @@ def _gen_header():
     
     header_image_dtype : numpy.dtype
                          Header for an MRC image
-    header_stack_dtype : numpy.dtype
-                         Header for an MRC stack
     '''
     
     shared_fields = [
@@ -153,68 +151,64 @@ def _gen_header():
         ('label9', 'S80'),
     ])
     
-    header_stack_dtype = numpy.dtype( shared_fields+[
-        ("dvid", numpy.uint16),
-        ("nblank", numpy.uint16),
-        ("itst", numpy.int32),
-        ("blank", 'S24'),
-        ("nintegers", numpy.uint16), # 92 134  4   int     next;
-        ("nfloats", numpy.uint16),
-        ("sub", numpy.uint16),
-        ("zfac", numpy.uint16),
-        ("min2", numpy.float32),
-        ("max2", numpy.float32),
-        ("min3", numpy.float32),
-        ("max3", numpy.float32),
-        ("min4", numpy.float32),
-        ("max4", numpy.float32),
-        ("type", numpy.uint16),
-        ("lensum", numpy.uint16),
-        ("nd1", numpy.uint16),
-        ("nd2", numpy.uint16),
-        ("vd1", numpy.uint16),
-        ("vd2", numpy.uint16),
-        ("min5", numpy.float32),
-        ("max5", numpy.float32),
-        ("numtimes", numpy.uint16),
-        ("imgseq", numpy.uint16),
-        ("xtilt", numpy.float32),
-        ("ytilt", numpy.float32),
-        ("ztilt", numpy.float32),
-        ("numwaves", numpy.uint16),
-        ("wave1", numpy.uint16),
-        ("wave2", numpy.uint16),
-        ("wave3", numpy.uint16),
-        ("wave4", numpy.uint16),
-        ("wave5", numpy.uint16),
-        ("xorigin", numpy.float32),
-        ("yorigin", numpy.float32),
-        ("zorigin", numpy.float32),
-        ("nlabels", numpy.int32),
-        ('label0', 'S80'),
-        ('label1', 'S80'),
-        ('label2', 'S80'),
-        ('label3', 'S80'),
-        ('label4', 'S80'),
-        ('label5', 'S80'),
-        ('label6', 'S80'),
-        ('label7', 'S80'),
-        ('label8', 'S80'),
-        ('label9', 'S80'),
-    ] )
-    
-    return header_image_dtype, header_stack_dtype
+    return header_image_dtype
 
 # --------------------------------------------------------------------
 # End attribution
 # --------------------------------------------------------------------
 
-header_image_dtype = _gen_header()[0] #, header_stack_dtype 
+header_image_dtype = _gen_header()
 
 mrc2ara={'': ''}
 mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_image_dtype.names]))
-#mrc2ara.update(dict([(h[0], 'mrc'+h[0]) for h in header_stack_dtype.names]))
 ara2mrc=dict([(val, key) for key,val in mrc2ara.iteritems()])
+
+def create_header(shape, dtype, order='C', header=None):
+    ''' Create a header for the MRC image format
+    
+    @todo support header parameters
+    
+    :Parameters:
+    
+    shape : tuple
+            Shape of the array 
+    dtype : numpy.dtype 
+            Data type for NumPy ndarray
+    header : dict
+             Header values  for image
+    :Returns:
+    
+    h : dtype
+        Data type for NumPy ndarray describing the header
+    '''
+    
+    pass
+
+def array_from_header(header):
+    ''' Convert header information to array parameters
+    
+    :Parameters:
+    
+    header : header_dtype
+             Header fields
+    
+    :Returns:
+    
+    header : dict
+             File header
+    dtype : dtype
+            Data type
+    shape : tuple
+            Shape of the array
+    order : str
+            Order of the array
+    offset : int
+             Header offset
+    swap : bool
+            Swap byte order
+    '''
+    
+    pass
 
 def cache_data():
     ''' Get keywords to be added as data cache
@@ -241,13 +235,7 @@ def is_format_header(h):
           Test if dtype matches format dtype
     '''
     
-    return h.dtype == header_image_dtype or h.dtype == header_image_dtype.newbyteorder() #or h.dtype == header_stack_dtype or h.dtype == header_stack_dtype.newbyteorder()
-           
-
-def bin(x, digits=0): 
-    oct2bin = ['000','001','010','011','100','101','110','111'] 
-    binstring = [oct2bin[int(n)] for n in oct(x)] 
-    return ''.join(binstring).lstrip('0').zfill(digits)
+    return h.dtype == header_image_dtype or h.dtype == header_image_dtype.newbyteorder()
 
 def is_readable(filename):
     ''' Test if the file read has a valid MRC header
@@ -322,7 +310,7 @@ def read_mrc_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     try:
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_image_dtype, count=1)
@@ -391,7 +379,7 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     if index is None: index = 0
     try:
         h = read_mrc_header(f)
@@ -442,7 +430,7 @@ def read_image(filename, index=None, header=None, cache=None):
     '''
     
     idx = 0 if index is None else index
-    f = util.open(filename, 'r')
+    f = util.uopen(filename, 'r')
     try:
         h = read_mrc_header(f)
         
@@ -474,13 +462,18 @@ def read_image(filename, index=None, header=None, cache=None):
         if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
-        if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:   out = out.reshape( (int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0])) )
+        if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:
+             if h['mapc'][0] == 2 and h['mapr'][0]==1:
+                 out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
+                 for i in xrange(out.shape[2]):
+                     out[:, :, i] = out[:, :, i].squeeze().T
+             else:
+                 out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
         elif int(h['ny']) > 1:
-            try:
+            if h['mapc'][0] == 2 and h['mapr'][0]==1:
+                out = out.reshape( (int(h['nx'][0]), int(h['ny'][0])) ).transpose() # Test this!
+            else:
                 out = out.reshape( (int(h['ny'][0]), int(h['nx'][0])) )
-            except:
-                _logger.error("%d == %d == %d -- %d,%d"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0])))
-                raise
     finally:
         util.close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
@@ -527,12 +520,13 @@ def write_image(filename, img, index=None, header=None):
              Dictionary of header values
     '''
     
+    if header is None and hasattr(img, 'header'): header=img.header
     try: img = img.astype(mrc2numpy[numpy2mrc[img.dtype.type]])
     except:
         raise TypeError, "Unsupported type for MRC writing: %s"%str(img.dtype)
     
     mode = 'rb+' if index is not None and index > 0 else 'wb+'
-    f = util.open(filename, mode)
+    f = util.uopen(filename, mode)
     if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
         h = numpy.zeros(1, header_image_dtype)
         util.update_header(h, mrc_defaults, ara2mrc)
@@ -541,7 +535,7 @@ def write_image(filename, img, index=None, header=None):
         header['nx'] = img.T.shape[0]
         header['ny'] = img.T.shape[1] if img.ndim > 1 else 1
         if header['nz'] == 0:
-            header['nz'] = img.T.shape[2] if img.ndim > 2 else 1
+            header['nz'] = img.shape[2] if img.ndim > 2 else 1
         header['mode'] = numpy2mrc[img.dtype.type]
         header['mx'] = header['nx']
         header['my'] = header['ny']
@@ -586,6 +580,8 @@ def write_image(filename, img, index=None, header=None):
         img.tofile(f)
     finally:
         util.close(filename, f)
+        
+
 
 if __name__ == '__main__':
     
