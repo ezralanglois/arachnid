@@ -379,7 +379,7 @@ Additional tips:
         '''
         
         select = self.imagelabel
-        filename = str(QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save document as"), self.lastpath))
+        filename = QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save document as"), self.lastpath)
         if isinstance(filename, tuple): filename = filename[0]
         if filename != "":
             mics = numpy.unique(select[:, 0])
@@ -544,12 +544,14 @@ Additional tips:
                 qimg = numpy_to_qimage(img)
             else: qimg = img
             
+            '''
             if self.color_level is not None:
                 qimg.setColorTable(self.color_level)
             else: 
                 self.base_level = qimg.colorTable()
                 self.color_level = adjust_level(change_contrast, self.base_level, self.ui.contrastSlider.value())
                 qimg.setColorTable(self.color_level)
+            '''
             self.image_list.append(qimg)
             pix = QtGui.QPixmap.fromImage(qimg)
             icon = QtGui.QIcon()
