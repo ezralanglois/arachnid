@@ -3,8 +3,18 @@
 .. Created on Jul 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from qt4_loader import QtGui
+from qt4_loader import QtGui,QtCore
 import numpy
+
+def qimage_to_html(qimg):
+    '''
+    '''
+    
+    ba = QtCore.QByteArray()
+    buffer = QtCore.QBuffer(ba)
+    buffer.open(QtCore.QIODevice.WriteOnly)
+    qimg.save(buffer, 'PNG')
+    return "<img src=\"data:img/png;base64,%s\">"%str(buffer.data().toBase64())
 
 def _grayScaleColorModel(colortable=None):
     '''Create an RBG color table in gray scale
@@ -28,6 +38,10 @@ _basetable = _grayScaleColorModel()
 def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
     ''' Convert a Numpy array to a PyQt4.QImage
     
+    .. note::
+        
+        Some code adopted from: http://kogs-www.informatik.uni-hamburg.de/~meine/software/vigraqt/qimage2ndarray.py
+    
     :Parameters:
     
     img : numpy.ndarray
@@ -44,7 +58,22 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
            QImage representation
     '''
     
-    if img.ndim != 2: raise ValueError, "Only gray scale images are supported for conversion, %d"%img.ndim
+    if img.ndim == 3 and img.shape[2] in (3,4):
+        bgra = numpy.empty((img.shape[0], img.shape[1], 4), numpy.uint8, 'C')
+        bgra[...,0] = img[...,2]
+        bgra[...,1] = img[...,1]
+        bgra[...,2] = img[...,0]
+        if img.shape[2] == 3:
+            bgra[...,3].fill(255)
+            fmt = QtGui.QImage.Format_RGB32
+        else:
+            bgra[...,3] = img[...,3]
+            fmt = QtGui.QImage.Format_ARGB32
+    
+        qimage = QtGui.QImage(bgra.data, img.shape[1], img.shape[0], fmt)
+        qimage._numpy = bgra
+        return qimage
+    elif img.ndim != 2: raise ValueError, "Only gray scale images are supported for conversion, %d"%img.ndim
     img = normalize_min_max(img, 0, 255.0, out=img)
     img = numpy.require(img, numpy.uint8, 'C')
     h, w = img.shape
