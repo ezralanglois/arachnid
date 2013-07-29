@@ -27,7 +27,7 @@ def main():
         raise
         sys.exit(1)
     
-    dialog = Viewer() 
+    dialog = Viewer()
     dialog.show()
     if len(sys.argv) > 1:
         dialog.openImageFiles(sys.argv[1:])
