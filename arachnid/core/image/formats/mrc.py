@@ -28,6 +28,7 @@ mrc2numpy = {
     4: numpy.complex64,
 
     6: numpy.uint16,    # according to UCSF
+    7: numpy.uint8,    # according to UCSF
 }
 
 ## mapping of numpy type to MRC mode
@@ -58,6 +59,7 @@ numpy2mrc = {
 
     ## convert these to uint16
     numpy.uint16: 6,
+    numpy.uint8: 7,
 }
 '''
     if(IsLittleEndian())
