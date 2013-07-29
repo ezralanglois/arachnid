@@ -123,7 +123,7 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
         if feat is not None:
             sel, rsel, dist = one_class_classification(feat, **extra)
             try:
-                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], feat)), input_vals[0], label, header='select,dist,rot,group', prefix='pca_')
+                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (1,5,6,7)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror', prefix='pca_')
             except:
                 _logger.error("sel: %s - dist: %s - align: %s - label: %s"%(str(sel.shape), str(dist.shape), str(align[:, 0].shape), str(label[:, 1].shape)))
                 raise
