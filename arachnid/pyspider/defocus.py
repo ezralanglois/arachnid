@@ -235,7 +235,7 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     format.write(spi.replace_ext(output_roo), ro_arr[:, :3], default_format=format.spiderdoc, header="index,spatial_freq,amplitude".split(','))
     return ro_arr[:, 1:3]
 
-def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], du_type=3, window_size=256, x_overlap=50, offset=50, output_pow=None, bin_factor=None, invert=None, output_mic=None, bin_micrograph=None, **extra):
+def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2, du_nstd=[], du_type=3, window_size=256, x_overlap=50, offset=50, output_pow=None, bin_factor=None, invert=None, output_mic=None, bin_micrograph=None, **extra):
     ''' Calculate the power spectra from the given file
     
     :Parameters:
@@ -291,7 +291,13 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
             if output_mic != "" and bin_micrograph > 0:
                 fac = bin_micrograph/bin_factor
                 if fac > 1: img = eman2_utility.decimate(mic, fac)
-                ndimage_file.spider_writer.write_image(output_mic, img)
+                if use_8bit:
+                    img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
+                    img = ndimage_utility.normalize_min_max(img)*255
+                    img = img.astype(numpy.uint8)
+                    ndimage_file.mrc.write_image(os.path.splitext(output_mic)[0]+".mrc", img)
+                else:
+                    ndimage_file.spider_writer.write_image(output_mic, img)
             #window_size /= bin_factor
             x_overlap_norm = 100.0 / (100-x_overlap)
             step = max(1, window_size*x_overlap_norm)
@@ -612,6 +618,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
     group.add_option("",   bin_micrograph=8.0,                             help="Number of times to decimate the micrograph - for micrograph selection (not used for defocus estimation)")
     group.add_option("",   summary=False,                                  help="Write out a summary for the power spectra")
+    group.add_option("",  use_8bit=False,                                   help="Write decimate micrograph as 8-bit mrc")
     pgroup.add_option_group(group)
     
     setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, for_window_in_micrograph
