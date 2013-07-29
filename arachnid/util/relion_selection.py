@@ -745,7 +745,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
     group.add_option("-m", minimum_group=20,                help="Minimum number of particles per defocus group", gui=dict(minimum=0, singleStep=1))
-    group.add_option("",   bin_factor=1.0,                  help="Number of times to decimate parameters")
+    group.add_option("",   bin_factor=1.0,                  help="Number of times to decimate parameters") # to do set automatically
     group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
     group.add_option("",   scale=1.0,                       help="Used to scale the translations in a relion file")
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
