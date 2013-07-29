@@ -10,7 +10,7 @@ try:
     import pylab
     pylab;
 except:
-    from ..core.app import tracing, logging
+    from ..app import tracing, logging
     tracing.log_import_error("Cannot import plotting libraries - plotting disabled", logging.getLogger())
     pylab=None
 
