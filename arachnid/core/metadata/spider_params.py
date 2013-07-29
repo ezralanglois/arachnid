@@ -39,7 +39,6 @@ Examples
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import logging, math, numpy
-import format
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -114,7 +113,15 @@ def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window_size=0,
     vals[18] = xmag
     #20 - Scanning resolution (7 or 14 microns)
     vals[19] = res
-    format.write(output, vals, header=['param'], format=format.spiderdoc)
+
+    
+    fout = open(output, 'w')
+    fout.write('; \tparam\n')
+    try:
+        for i in xrange(len(vals)):
+            fout.write('%2d  1\t%11g\n'%(i+1, vals[i]))
+    finally:
+        fout.close()
 
 def read(filename, extra=None):
     '''Read spider parameters
