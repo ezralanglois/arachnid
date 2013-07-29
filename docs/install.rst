@@ -7,6 +7,11 @@ Installation
 
 .. automodule:: setup
 
+Anaconda
+========
+
+conda install -c https://conda.binstar.org/asmeurer pyside
+
 Installing an official release
 ==============================
 
