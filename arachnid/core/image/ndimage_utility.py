@@ -1654,6 +1654,33 @@ def biggest_object(img, out=None):
     out[label == biggest] = 1
     return out
 
+def histeq(img, hist_bins=256, **extra):
+    ''' Equalize the histogram of an image
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    hist_bins : int
+                Number of bins for the histogram
+    
+    :Returns:
+    
+    img : array
+          Histogram equalized image
+          
+    .. note::
+    
+        http://www.janeriksolem.net/2009/06/histogram-equalization-with-python-and.html
+    '''
+    
+    imhist,bins = numpy.histogram(img.flatten(),hist_bins,normed=True)
+    cdf = imhist.cumsum() #cumulative distribution function
+    cdf = 255 * cdf / cdf[-1] #normalize
+    im2 = numpy.interp(img.flatten(), bins[:-1], cdf)#use linear interpolation of cdf to find new pixel values
+    img = im2.reshape(img.shape)
+    return img
+
 def biggest_object_select(img):
     ''' Get the biggest object in a binary image
     
