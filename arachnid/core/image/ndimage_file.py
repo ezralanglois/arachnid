@@ -434,6 +434,10 @@ def get_write_format(filename):
             Write format for given file extension
     '''
     
+    try:
+        if mrc.is_writable(filename):
+            return mrc
+    except: pass
     for f in _formats:
         if f.is_writable(filename): return f
     return _default_write_format
@@ -474,7 +478,7 @@ def get_read_format(filename):
     '''
     
     try:
-        if mrc.is_readable(filename) and mrc.count_images(filename) > 1 and not mrc.is_volume(filename):
+        if mrc.is_readable(filename):
             return mrc
     except: pass
     for f in _formats:
@@ -488,10 +492,19 @@ def _load():
     #from formats import mrc
     formats = []#mrc]
     try: from formats import eman_format
-    except: tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
-    else: formats.append(eman_format)
+    except: 
+        formats.extend([mrc,spider])
+        default_format=spider
+        tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
+    else:
+        if eman_format.eman2_utility.EMAN2 is not None:
+            formats.append(eman_format)
+            default_format=eman_format
+        else:
+            formats.extend([mrc,spider])
+            default_format=spider
     if len(formats) == 0: raise ImportError, "No image format modules loaded!"
-    return formats, eman_format
+    return formats, default_format
 
 _formats, _default_write_format = _load()
 
