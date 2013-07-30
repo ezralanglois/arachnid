@@ -6,11 +6,11 @@
     :nosignatures:
     :template: api_module.rst
     
-    reconstruction
+    pyspider
     
-:mod:`arachnid.snippets.reconstruction`
+:mod:`arachnid.snippets.pyspider`
 =======================================
 
-.. automodule:: arachnid.snippets.reconstruction
+.. automodule:: arachnid.snippets.pyspider
 
 '''
