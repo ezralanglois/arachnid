@@ -648,8 +648,7 @@ def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1):
     '''
     
     if offset > 0 and offset < 1.0: offset = int(offset*mic.shape[0])
-    overlap_norm = 1.0 / (1.0-overlap)
-    step = max(1, window_size*overlap_norm)
+    step = max(1, window_size*overlap)
     rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
     return powerspec_avg(rwin, pad)

@@ -207,8 +207,8 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
     if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
     #window_size /= bin_factor
-    overlap_norm = 1.0 / (1.0-overlap)
-    step = max(1, window_size*overlap_norm)
+    #overlap_norm = 1.0 / (1.0-overlap)
+    step = max(1, window_size*overlap)
     rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
     
