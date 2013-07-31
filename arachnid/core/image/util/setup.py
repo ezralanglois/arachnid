@@ -24,8 +24,11 @@ def configuration(parent_package='',top_path=None):
     
     compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
     
-    config.add_extension('_image_utility', sources=['image_utility.i', 'radon.c'], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['image_utility.h'], swig_opts=['-c++'], extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
-    config.add_extension('_manifold', sources=['manifold.i'], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['manifold.hpp'], swig_opts=['-c++'], extra_info = blas_opt, extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
+    
+    img_src = 'image_utility_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'image_utility_wrap.cpp')) else 'image_utility.i'
+    man_src = 'manifold_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'manifold_wrap.cpp')) else 'manifold.i'
+    config.add_extension('_image_utility', sources=[img_src, 'radon.c'], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['image_utility.h'], swig_opts=['-c++'], extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
+    config.add_extension('_manifold', sources=[man_src], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['manifold.hpp'], swig_opts=['-c++'], extra_info = blas_opt, extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
     config.add_include_dirs(os.path.dirname(__file__))
     return config
 
