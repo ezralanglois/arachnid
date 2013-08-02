@@ -231,8 +231,10 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.exception("Logging to %s"%log_file)
             ch = logging.StreamHandler()
-            ch.addFilter(ExceptionFilter())
-            handlers.append(logging.FileHandler(default_error_log, mode='w'))
+            try:
+                handlers.append(logging.FileHandler(default_error_log, mode='w'))
+            except: pass
+            else: ch.addFilter(ExceptionFilter())
             handlers.append(ch)
         try:    log_level_name = log_level_val[log_level]
         except: log_level_name = log_level
