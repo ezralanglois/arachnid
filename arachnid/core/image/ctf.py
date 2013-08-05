@@ -254,7 +254,7 @@ def energy_cutoff(roo, energy=0.95):
              Offset when energy drops below cutoff
     '''
     
-    return numpy.searchsorted(numpy.cumsum(roo)/roo.sum(), 0.95)
+    return numpy.searchsorted(numpy.cumsum(roo)/roo.sum(), energy)
 
 def noise_model(p, freq):
     '''Model describing the noise growth
