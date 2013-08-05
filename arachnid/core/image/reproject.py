@@ -16,6 +16,33 @@ try:
 except:
     _spider_reproject=None
     tracing.log_import_error('Failed to load _spider_reproject.so module', _logger)
+    
+def project_polar(img, inner_radius=None, outer_radius=None, out=None):
+    ''' Project an image into polar space
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    inner_radius : int
+                   Radius to start
+    outer_radius : int
+                   Radius to stop
+    out : array
+          Image data in polar space
+    
+    :Returns:
+    
+    out : array
+          Image data in polar space
+    '''
+    
+    if inner_radius is None: inner_radius = 0
+    if outer_radius is None: outer_radius = min((img.shape[0]-1)/2, (img.shape[1]-1)/2)
+    if out is None: out = numpy.zeros((int(2*numpy.pi*outer_radius), outer_radius-inner_radius+1), dtype=img.dtype)
+    else: out = out[:int(2*numpy.pi*outer_radius), :outer_radius-inner_radius+1]
+    _spider_reproject.project_polar(img,out,inner_radius,outer_radius)
+    return out
 
 def reproject_3q_mp(vol, rad, ang, out=None, thread_count=0):
     '''

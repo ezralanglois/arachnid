@@ -91,3 +91,31 @@ c$omp          parallel do private(i)
 
 		END
 
+
+C ---------------------------------------------------------------------------
+
+		SUBROUTINE PROJECT_POLAR(PRJ,OUT,NX,NY,NXP,NYP,MR,NR)
+
+		REAL                  		:: PRJ(NX,NY)
+		REAL                  		:: OUT(NXP,NYP)
+		INTEGER						:: NX,NY,MR,NR,NXP,NYP
+
+cf2py threadsafe
+cf2py intent(inplace) :: PRJ,OUT
+cf2py intent(in) :: NX,NY,MR,NR
+cf2py intent(hide) :: NX,NY,NXP,NYP
+
+		IXC = NX/2+1
+		IYC = NY/2+1
+
+		DO  J=MR,NR
+		  DO I=1,NXP
+		     FI     = (I-1) * DFI
+		     XS     = COS(FI) * J
+		     YS     = SIN(FI) * J
+		     OUT(I,J-MR+1) = QUADRI(XS+IXC,YS+IYC,NX,NY,X) * SQRT(REAL(J))
+		  ENDDO
+		ENDDO
+
+		END
+
