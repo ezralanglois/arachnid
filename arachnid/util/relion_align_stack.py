@@ -12,7 +12,7 @@ import logging, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, **extra):
+def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rtsq=False, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -72,8 +72,9 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, **extra
                 pix=angle_map[theta][phi][cl]
             else:
                 pix=angle_map[theta][phi]
-            if img is not None:
-                img = rotate.rotate_image(img, psi, dx, dy)
+            if use_rtsq:
+                if img is not None:
+                    img = rotate.rotate_image(img, psi, dx, dy)
         if img is not None:
             ndimage_file.write_image(output, img, index)
         values[index, 1] = theta
@@ -105,6 +106,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",      help="Base filename for output volume and half volumes, which will be named raw_$output, raw1_$output, raw2_$output", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-r", resolution=0,   help="Healpix resolution")
         pgroup.add_option("-a", align_only=False,   help="Write alignment file only")
+        pgroup.add_option("-d", use_rtsq=False,   help="Rotate/translate output stack")
 
 #def check_options(options, main_option=False):
     #Check if the option values are valid
