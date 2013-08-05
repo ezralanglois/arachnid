@@ -1010,6 +1010,8 @@ def fftamp(img, s=None, out=None):
 def polar(image, center=None, out=None):
     '''Transform image into log-polar representation
     
+    @todo - add radius range
+    
     :Parameters:
     
     image : numpy.ndarray
@@ -1022,7 +1024,7 @@ def polar(image, center=None, out=None):
     :Returns:
     
     out : numpy.ndarray
-          Image in log polar space
+          Image in polar space (radius, angle)
     '''
     
     ny, nx = image.shape[:2]
@@ -1041,7 +1043,7 @@ def polar(image, center=None, out=None):
     coords = numpy.vstack((xi, yi))
     
     #if out is None: out = numpy.empty(xi.shape[0]*yi.shape[0]).reshape((xi.shape[0],yi.shape[0]))
-    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny))#, output=out)
+    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny)).T
     #return out
 
 def cart2polar(x, y):
