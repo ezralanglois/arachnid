@@ -30,7 +30,6 @@ To run:
    :lines: 33-
    :linenos:
 '''
-from arachnid.core.image import ndimage_utility, ndimage_file
 from arachnid.core.spider import spider
 
 if __name__ == '__main__':           # This line is not necessary for script execution, but helps when building the documentation
