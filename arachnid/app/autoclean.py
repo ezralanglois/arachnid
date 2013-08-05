@@ -213,11 +213,11 @@ def init_root(files, param):
     # Initialize global parameters for the script
     
     if mpi_utility.is_root(**param):
-        if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution: %f"%param['resolution'])
+        if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
         if param['use_rtsq']: _logger.info("Rotate and translate data stack")
         _logger.info("Rejection precision: %f"%param['prob_reject'])
         _logger.info("Number of Eigenvalues: %f"%param['neig'])
-        if param['order'] > 0: _logger.info("Angular order: %f"%param['order'])
+        if param['order'] > 0: _logger.info("Angular order %f sampling %f degrees "%(param['order'], healpix.nside2pixarea(param['order'], True)))
         #_logger.info("nsamples: %f"%param['nsamples'])
         
     group = None
@@ -286,7 +286,6 @@ def finalize(files, output, output_embed, sel_by_mic, finished, nsamples, thread
     _logger.info("Selected %d projections"%(tot))
     _logger.info("Completed")
 
-
 def rotational_sample(label, align, nsamples, angle_range, **extra):
     '''
     '''
@@ -301,16 +300,34 @@ def rotational_sample(label, align, nsamples, angle_range, **extra):
         align2[i*nsamples:(i+1)*nsamples, 0]=scipy.linspace(-angle_range/2.0, angle_range/2.0, nsamples,True)
     return label2, align2
 
-def create_mask(files, pixel_diameter, resolution, apix, **extra):
+def create_mask(files, pixel_diameter, apix, **extra):
     '''
     '''
     
     img = ndimage_file.read_image(files[0])
     mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
-    bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
-    _logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
+    bin_factor = decimation_level(apix, pixel_diameter=pixel_diameter, **extra)
+    #bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
+    #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
     if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
     return mask
+
+def resolution_from_order(apix, pixel_diameter, order, resolution, **extra):
+    '''
+    '''
+    
+    if order == 0: return resolution
+    return numpy.tan(healpix.nside2pixarea(order))*pixel_diameter*apix
+
+def decimation_level(apix, window, **extra):
+    '''
+    '''
+    
+    resolution = resolution_from_order(apix, **extra)
+    dec = resolution / (apix*3)
+    d = float(window)/dec + 10
+    d = window/float(d)
+    return min(max(d, 1), 8)
 
 def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, disable_bispec=False, use_rtsq=False, **extra):
     '''
@@ -320,7 +337,8 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
     elif align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
     if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
     ndimage_utility.vst(img, img)
-    bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
+    bin_factor = decimation_level(apix, resolution=resolution, **extra)
+    #bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
     if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
     if mask.shape[0] != img.shape[0]:
         _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
@@ -450,7 +468,6 @@ def read_alignment(files, alignment="", order=0, **extra):
     #refs = numpy.unique(ref)
     return label, align, ref
 
-
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
@@ -467,7 +484,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", single_view=0,                help="Test the algorithm on a specific view")
     group.add_option("", disable_bispec=False,          help="Disable bispectrum feature space")
     group.add_option("", cache_file="",                 help="Cache preprocessed data in matlab data files")
-    group.add_option("", order=0,                      help="Reorganize views based on their healpix order")
+    group.add_option("", order=0,                      help="Reorganize views based on their healpix order (overrides the resolution parameter)")
     group.add_option("", prob_reject=0.97,             help="Probablity that a rejected particle is bad", dependent=False)
     pgroup.add_option_group(group)
     if main_option:
