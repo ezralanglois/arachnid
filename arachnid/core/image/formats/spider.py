@@ -205,7 +205,7 @@ def read_spider_header(filename, index=None):
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_dtype, count=1)
         if not is_readable(h):
-            h = h.byteswap().newbyteorder()
+            h = h.newbyteorder()
         if not is_readable(h): raise IOError, "Not a SPIDER file"
         if index is not None:
             h_len = int(h['labbyt'])
@@ -242,6 +242,8 @@ def read_image(filename, index=None, header=None):
     try:
         if index is None: index = 0
         h = read_spider_header(f)
+        dtype = spi2numpy[float(h['iform'])]
+        if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
         if header is not None: util.update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
@@ -250,7 +252,7 @@ def read_image(filename, index=None, header=None):
         if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
         offset = h_len + index * (h_len+i_len)
         f.seek(offset)
-        out = numpy.fromfile(f, dtype=spi2numpy[float(h['iform'])], count=d_len)
+        out = numpy.fromfile(f, dtype=dtype, count=d_len)
         if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
         elif int(h['ny']) > 1: 
             try:
@@ -260,6 +262,7 @@ def read_image(filename, index=None, header=None):
                 raise
     finally:
         util.close(filename, f)
+    #if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap()
     return out
 
 def iter_images(filename, index=None, header=None):
@@ -284,6 +287,8 @@ def iter_images(filename, index=None, header=None):
     if index is None: index = 0
     try:
         h = read_spider_header(f)
+        dtype = spi2numpy[float(h['iform'])]
+        if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
         if header is not None: util.update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
@@ -295,7 +300,7 @@ def iter_images(filename, index=None, header=None):
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
         for i in index:
-            out = numpy.fromfile(f, dtype=spi2numpy[float(h['iform'])], count=d_len)
+            out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
             elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
             yield out

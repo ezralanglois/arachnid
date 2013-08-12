@@ -15,7 +15,7 @@ import numpy, sys, logging, os
 import util
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.INFO)
 
 mrc2numpy = {
     0: numpy.int8,
@@ -260,6 +260,14 @@ def is_readable(filename):
     else: 
         try: h = read_mrc_header(filename)
         except: return False
+    if _logger.isEnabledFor(logging.DEBUG):
+        _logger.debug("Mode: %d - %d"%(h['mode'][0], (h['mode'][0] not in mrc2numpy) ))
+        _logger.debug("Byteorder: %d - %d"%(h['byteorder'][0], ((h['byteorder'][0]&-65536) not in intbyteorder) ))
+        _logger.debug("Byteorder-swap: %d - %d"%((h['byteorder'][0].byteswap()&-65536), ((h['byteorder'][0].byteswap()&-65536) not in intbyteorder) ))
+        for name in ('alpha', 'beta', 'gamma'):
+            _logger.debug("%s: %f - %d"%(name, h[name][0], ((h[name][0] != 90.0) )))
+        for name in ('nx', 'ny', 'nz'):
+            _logger.debug("%s: %d - %d"%(name, h[name][0], (h[name][0] > 0 )))
     if h['mode'][0] not in mrc2numpy: return False
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder:
@@ -316,23 +324,7 @@ def read_mrc_header(filename, index=None):
     try:
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_image_dtype, count=1)
-        if not is_readable(h): h = h.byteswap().newbyteorder()
-        if not is_readable(h): 
-            
-            test1 = h['mode'][0] not in mrc2numpy
-            test2 = (h['byteorder'][0]&-65536) not in intbyteorder and (h['byteorder'][0].byteswap()&-65536) not in intbyteorder
-            test3 = not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen')])
-            vals3 = str([h[v][0] for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen')])
-            mode = int(h['mode'][0])
-            nx = int(h['nx'][0])
-            
-            h = h.byteswap().newbyteorder()
-            test1b = h['mode'][0] not in mrc2numpy
-            test2b = (h['byteorder'][0]&-65536) not in intbyteorder and (h['byteorder'][0].byteswap()&-65536) not in intbyteorder
-            test3b = not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz', 'xlen', 'ylen', 'zlen')])
-            modeb = int(h['mode'][0])
-            nxb = int(h['nx'][0])
-            raise IOError, "Not an MRC file: %d, %d, %d -- %d,%d,%s ||| %d, %d, %d -- %d, %d ||| %s"%(test1, test2, test3, mode, nx, vals3, test1b, test2b, test3b, modeb, nxb, str(filename))
+        if not is_readable(h): h = h.newbyteorder()
     finally:
         util.close(filename, f)
     return h
@@ -405,10 +397,9 @@ def iter_images(filename, index=None, header=None):
                 try:
                     out = out.reshape(int(h['ny'][0]), int(h['nx'][0]))
                 except:
-                    _logger.error("%d == %d == %d -- %d,%d"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0])))
+                    _logger.error("%d == %d == %d -- %d,%d (index: %d)"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0]), index))
                     raise
-            if header_image_dtype.newbyteorder()==h.dtype: 
-                out = out.byteswap().newbyteorder()
+            #if header_image_dtype.newbyteorder()==h.dtype:  out = out.byteswap()
             yield out
     finally:
         util.close(filename, f)
@@ -435,19 +426,6 @@ def read_image(filename, index=None, header=None, cache=None):
     f = util.uopen(filename, 'r')
     try:
         h = read_mrc_header(f)
-        
-        '''
-        for fl in h.dtype.names:
-            if fl[:len('label')] == 'label': continue
-            _logger.error("Header - %s: %s"%(str(fl), str(h[fl][0])))
-        
-        h2 = h.newbyteorder() #.newbyteorder()
-        
-        
-        for fl in h2.dtype.names:
-            if fl[:len('label')] == 'label': continue
-            _logger.error("Header-swap - %s: %s"%(str(fl), str(h2[fl][0])))
-        '''
         if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
         count = count_images(h)
         if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
@@ -457,8 +435,6 @@ def read_image(filename, index=None, header=None, cache=None):
             d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         if header_image_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
-        #_logger.error("%d == %d"%(os.stat(filename).st_size, h['nx'][0]*h['ny'][0]*h['nz'][0]*dtype.itemsize+1024+int(h['nsymbt'])))
-        #offset = 1024 + idx * d_len * dtype.itemsize
         offset = 1024+int(h['nsymbt']) + idx * d_len * dtype.itemsize
         total = file_size(f)
         if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
@@ -479,7 +455,7 @@ def read_image(filename, index=None, header=None, cache=None):
     finally:
         util.close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
-    if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap().newbyteorder()
+    #if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap()
     return out
 
 def file_size(fileobject):
