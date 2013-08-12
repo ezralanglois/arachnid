@@ -113,7 +113,8 @@ cf2py intent(hide) :: NX,NY,NXP,NYP
 		     FI     = (I-1) * DFI
 		     XS     = COS(FI) * J
 		     YS     = SIN(FI) * J
-		     OUT(I,J-MR+1) = QUADRI(XS+IXC,YS+IYC,NX,NY,X) * SQRT(REAL(J))
+		     OUT(I,J-MR+1) = QUADRI(XS+IXC,YS+IYC,NX,NY,X)
+     &        * SQRT(REAL(J))
 		  ENDDO
 		ENDDO
 
