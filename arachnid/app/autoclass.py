@@ -7,7 +7,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold #, analysis
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold #, ndimage_filter #, analysis
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 #from ..core.parallel import mpi_utility
@@ -280,7 +280,8 @@ def create_mask(files, pixel_diameter, **extra):
     bin_factor = decimation_level(**extra)
     #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
     if bin_factor > 1: 
-        mask = eman2_utility.decimate(mask, bin_factor)
+        mask = ndimage_interpolate.interpolate_fs(mask, bin_factor)
+        #mask = eman2_utility.decimate(mask, bin_factor)
         #bg = eman2_utility.decimate(bg, bin_factor)
     return mask #, bg
 
@@ -292,7 +293,9 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     #if align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(**extra)
-    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    if bin_factor > 1: 
+        img = ndimage_interpolate.interpolate_fs(img, bin_factor)
+        #img = eman2_utility.decimate(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     '''
     if bispec:
