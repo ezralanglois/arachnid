@@ -114,11 +114,13 @@ def write_ctf(raw, freq, roo, bg_window, ctf_output, apix, **extra):
 
 #bg_window
 
-def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, **extra):
+def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, **extra):
     '''Create enhanced 2D power spectra
     '''
     
     if plotting.is_plotting_disabled(): return pow
+    if mask_radius > 0:
+        pow *= ndimage_utility.model_disk(mask_radius, pow.shape)*-1+1
     pow = ndimage_utility.replace_outlier(pow, 3, 3, replace='mean')
     fig, ax=plotting.draw_image(pow, label=label, **extra)
     newax = ax.twinx()
@@ -211,6 +213,7 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
     step = max(1, window_size*overlap)
     rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
+    print rwin.shape
     
     # select good windows
     
@@ -327,6 +330,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", bg_window=21, help="Size of the background subtraction window")
     group.add_option("", cache_pow=False, help="Save 2D power spectra")
     group.add_option("", trunc_1D=False, help="Place trunacted 1D/model on color 2D power spectra")
+    group.add_option("", mask_radius=0,  help="Mask the center of the color power spectra")
     pgroup.add_option_group(group)
     
 def setup_main_options(parser, group):
