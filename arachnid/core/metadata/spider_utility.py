@@ -308,9 +308,16 @@ def is_spider_filename(filename):
     return_val : boolean 
                  True if filename conforms to Spider filename
     '''
+    
     try: int(filename)
     except: pass
     else: return True
+    
+    try: '+'+filename
+    except:
+        for f in filename:
+            if not is_spider_filename(f): return False
+        return True
     
     filename, ext = os.path.splitext(filename)
     return spider_id_length(filename) > 0
