@@ -16,7 +16,11 @@ with the QT graphical user interface (GUI) library.
 '''
 
 try: 
-    from PySide import QtGui, QtCore, QtWebKit
+    from PySide import QtGui, QtCore
+    try: 
+        from PyQt4 import QtWebKit
+        QtWebKit;
+    except: QtWebKit=None
     QtGui, QtCore, QtWebKit;
     #raise ImportError, "Dum"
     qtSignal=QtCore.Signal
@@ -36,7 +40,7 @@ except ImportError:
     try: 
         from PyQt4 import QtWebKit
         QtWebKit;
-    except: pass
+    except: QtWebKit=None
     QtGui, QtCore
     qtSignal=QtCore.pyqtSignal
     qtSlot= QtCore.pyqtSlot
