@@ -383,6 +383,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpen"/>
+   <addaction name="actionSave"/>
    <addaction name="actionLoad_More"/>
    <addaction name="separator"/>
    <addaction name="actionBackward"/>

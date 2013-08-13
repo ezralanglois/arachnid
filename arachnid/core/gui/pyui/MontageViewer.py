@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Sat Jul 20 17:29:11 2013
+# Created: Mon Aug 12 16:12:59 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -245,6 +245,7 @@ class Ui_MainWindow(object):
         self.actionAdvanced_Settings.setIcon(icon13)
         self.actionAdvanced_Settings.setObjectName("actionAdvanced_Settings")
         self.toolBar.addAction(self.actionOpen)
+        self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionLoad_More)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionBackward)
