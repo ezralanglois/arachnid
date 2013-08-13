@@ -459,7 +459,9 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             _logger.error("org: %s"%str(org.__class__.__name__))
             raise
     #param = vars(options)
-    if param['rank'] == 0 and use_version: param['vercontrol'], param['opt_changed'] = parser.version_control(options)
+    if param['rank'] == 0 and use_version: 
+        val = parser.version_control(options)
+        if val is not None:param['vercontrol'], param['opt_changed'] = val
     param['file_options'] = parser.collect_file_options()
     param['infile_deps'] = parser.collect_dependent_file_options(type='open')
     param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
