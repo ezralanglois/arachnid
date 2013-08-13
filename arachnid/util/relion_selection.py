@@ -373,7 +373,7 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", random_su
         for cl in clazzes:
             _logger.info("Class: %d has %d projections"%(cl, numpy.sum(cl==tmp)))
     
-    if select != "":
+    if select != "" and not isinstance(select, list):
         subset=[]
         try: select=int(select)
         except:
