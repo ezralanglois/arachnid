@@ -191,6 +191,7 @@ def em2numpy2em(fn):
               Image
         '''
         
+        if EMAN2 is None: return fn(img, *args, **kwargs)
         orig = img
         if is_em(img): img = em2numpy(img)
         res = fn(img, *args, **kwargs)
@@ -232,6 +233,7 @@ def em2numpy2res(fn):
               Image
         '''
         
+        if EMAN2 is None: return fn(img, *args, **kwargs)
         orig = img
         orig;
         if is_em(img): img = em2numpy(img)
