@@ -10,7 +10,7 @@ from util.qt4_loader import QtGui,QtCore,qtSlot,QtWebKit
 from util import qimage_utility
 import property
 from ..metadata import spider_utility, format
-from ..image import ndimage_utility, ndimage_file, ndimage_interpolate
+from ..image import ndimage_utility, ndimage_file, ndimage_interpolate, ndimage_filter
 import glob, os, numpy, scipy.misc #, itertools
 import logging
 
@@ -86,11 +86,13 @@ class MainWindow(QtGui.QMainWindow):
                 self.ui.advancedSettingsTreeView.setRowHidden(i, QtCore.QModelIndex(), True)
         
         # Help system
-        self.helpDialog = QtGui.QDialog(self)
-        self.helpLayout = QtGui.QVBoxLayout(self.helpDialog)
-        self.webView = QtWebKit.QWebView(self.helpDialog)
-        self.helpLayout.addWidget(self.webView)
-        self.helpLayout.setContentsMargins(0,0,0,0)
+        if QtWebKit is not None and 1 == 0:
+            self.helpDialog = QtGui.QDialog(self)
+            self.helpLayout = QtGui.QVBoxLayout(self.helpDialog)
+            self.webView = QtWebKit.QWebView(self.helpDialog)
+            self.helpLayout.addWidget(self.webView)
+            self.helpLayout.setContentsMargins(0,0,0,0)
+        else: self.webView=None
         
         # Load the settings
         _logger.info("\rLoading settings ...")
@@ -117,6 +119,9 @@ class MainWindow(QtGui.QMainWindow):
                dict(second_downsample=1.0, help="Factor to downsample second image"),
                dict(bin_window=8.0, help="Number of times to decimate coordinates (and window)"),
                dict(window=200, help="Size of window to box particle"),
+               dict(center_mask=0, help="Radius of mask for image center"),
+               dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
+               dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
                dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
                dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True)),
                dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True)),
@@ -140,6 +145,7 @@ class MainWindow(QtGui.QMainWindow):
         ''' Display specific setup
         '''
         
+        self.ui.toolBar.removeAction(self.ui.actionSave)
         self.ui.imageListView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     
     # Slots for GUI
@@ -147,9 +153,9 @@ class MainWindow(QtGui.QMainWindow):
     def on_actionHelp_triggered(self):
         ''' Display the help dialog
         '''
-        
-        self.webView.load(QtCore.QUrl('http://www.google.com'))
-        self.helpDialog.show()
+        if self.webView is not None:
+            self.webView.load(QtCore.QUrl('http://www.google.com'))
+            self.helpDialog.show()
            
     @qtSlot(int)
     def on_pageSpinBox_valueChanged(self, val):
@@ -271,11 +277,21 @@ class MainWindow(QtGui.QMainWindow):
         self.loaded_images = []
         self.base_level=None
         zoom = self.ui.imageZoomDoubleSpinBox.value()
+        masks={}
+        
         for i, (imgname, img) in enumerate(iter_images(self.files, index)):
             if hasattr(img, 'ndim'):
+                if self.advanced_settings.center_mask > 0 and img.shape not in masks:
+                    masks[img.shape]=ndimage_utility.model_disk(self.advanced_settings.center_mask, img.shape)*-1+1
                 if not self.advanced_settings.film:
                     ndimage_utility.invert(img, img)
                 img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
+                if self.advanced_settings.gaussian_high_pass > 0.0:
+                    img=ndimage_filter.filter_gaussian_highpass(img, self.advanced_settings.gaussian_high_pass)
+                if self.advanced_settings.gaussian_low_pass > 0.0:
+                    img=ndimage_filter.filter_gaussian_lowpass(img, self.advanced_settings.gaussian_low_pass)
+                if self.advanced_settings.center_mask > 0:
+                    img *= masks[img.shape]
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 img = self.box_particles(img, imgname)
                 qimg = qimage_utility.numpy_to_qimage(img)
@@ -296,7 +312,7 @@ class MainWindow(QtGui.QMainWindow):
             icon = QtGui.QIcon()
             icon.addPixmap(pix,QtGui.QIcon.Normal);
             icon.addPixmap(pix,QtGui.QIcon.Selected);
-            item = QtGui.QStandardItem(icon, "%s/%d"%(os.path.basename(imgname[0]), imgname[1]))
+            item = QtGui.QStandardItem(icon, "%s/%d"%(os.path.basename(imgname[0]), imgname[1]+1))
             if hasattr(start, '__iter__'):
                 item.setData(start[i], QtCore.Qt.UserRole)
             else:
