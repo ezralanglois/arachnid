@@ -310,7 +310,7 @@ def mean_azimuthal(img, center=None):
     return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel())
 
 @_em2numpy2res
-def find_peaks_fast(cc, width):
+def find_peaks_fast(cc, width, fwidth=None):
     ''' Find peaks in a cross-correlation map
     
     :Parameters:
@@ -326,6 +326,8 @@ def find_peaks_fast(cc, width):
             Array of peaks (peak, x, y)
     '''
     
+    if fwidth is None: fwidth = width/2.0
+    if fwidth > 0.0: cc=scipy.ndimage.filters.gaussian_filter(cc, sigma=fwidth, mode='constant')
     neighborhood = numpy.ones((int(width),int(width)))
     cc_peaks = (scipy.ndimage.filters.maximum_filter(cc, footprint=neighborhood)==cc) - \
                 scipy.ndimage.morphology.binary_erosion((cc==0), structure=neighborhood, border_value=1)
