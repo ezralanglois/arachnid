@@ -33,3 +33,5 @@ def main():
         dialog.openFiles(sys.argv[1:])
     
     sys.exit(app.exec_())
+
+

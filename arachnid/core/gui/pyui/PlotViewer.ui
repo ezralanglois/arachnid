@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
-    <height>635</height>
+    <width>762</width>
+    <height>654</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
     <item>
      <layout class="QHBoxLayout" name="centralHLayout">
       <item>
-       <widget class="QDockWidget" name="dockWidget">
+       <widget class="QDockWidget" name="plotDockWidget">
         <property name="features">
          <set>QDockWidget::AllDockWidgetFeatures</set>
         </property>
@@ -51,8 +51,17 @@
              <property name="fieldGrowthPolicy">
               <enum>QFormLayout::FieldsStayAtSizeHint</enum>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
               <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>10</number>
              </property>
              <item row="0" column="0">
               <widget class="QLabel" name="label">
@@ -176,7 +185,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>504</width>
+     <width>762</width>
      <height>22</height>
     </rect>
    </property>
@@ -205,12 +214,15 @@
    <addaction name="actionRefresh"/>
    <addaction name="actionShow_Options"/>
   </widget>
-  <widget class="QDockWidget" name="dockWidget_2">
+  <widget class="QDockWidget" name="imageDockWidget">
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>Image Controls</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>4</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -229,8 +241,17 @@
      <item>
       <widget class="QWidget" name="widget_3" native="true">
        <layout class="QFormLayout" name="formLayout_2">
-        <property name="margin">
+        <property name="leftMargin">
          <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
         </property>
         <item row="1" column="1">
          <widget class="QCheckBox" name="keepSelectedCheckBox">
@@ -256,24 +277,24 @@
         <item row="2" column="1">
          <widget class="QSpinBox" name="imageCountSpinBox"/>
         </item>
-        <item row="3" column="1">
+        <item row="4" column="1">
          <widget class="QComboBox" name="selectGroupComboBox"/>
         </item>
-        <item row="3" column="0">
+        <item row="4" column="0">
          <widget class="QLabel" name="label_11">
           <property name="text">
            <string>Highlight Group</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>Separation</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="5" column="1">
          <widget class="QSpinBox" name="imageSepSpinBox">
           <property name="minimum">
            <number>1</number>
@@ -289,7 +310,7 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
+        <item row="6" column="1">
          <widget class="QDoubleSpinBox" name="imageZoomDoubleSpinBox">
           <property name="minimum">
            <double>0.000000000000000</double>
@@ -305,14 +326,68 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
+        <item row="6" column="0">
          <widget class="QLabel" name="label_8">
           <property name="text">
            <string>Zoom</string>
           </property>
          </widget>
         </item>
+        <item row="3" column="1">
+         <widget class="QSpinBox" name="averageCountSpinBox">
+          <property name="maximum">
+           <number>10000</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Average</string>
+          </property>
+         </widget>
+        </item>
        </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>File Explorer</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="margin">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QTableView" name="fileTableView">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="showDropIndicator" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="dragDropOverwriteMode">
+        <bool>false</bool>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
       </widget>
      </item>
     </layout>

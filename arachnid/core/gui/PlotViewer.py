@@ -4,35 +4,38 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
+import logging
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 from util.qt4_loader import QtGui,QtCore,qtSlot
 if not hasattr(QtCore, 'pyqtSlot'):
     import matplotlib
     matplotlib.rcParams['backend.qt4']='PySide'
 
-'''
+
 try:
-    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+    from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 except:
-    print "Cannot import offset, upgrade matplotlib"
-'''
+    hdlr=logging.StreamHandler()
+    _logger.addHandler(hdlr)
+    _logger.warn("Cannot import offset, upgrade matplotlib")
+    _logger.removeHandler(hdlr)
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
-#import matplotlib.cm as cm, matplotlib.lines
+import matplotlib.cm as cm #, matplotlib.lines
 #
 
 from pyui.PlotViewer import Ui_MainWindow
-from util import qimage_utility
-from ..metadata import spider_utility #, format
-from ..image import ndimage_utility, ndimage_file, ndimage_interpolate
-import os, itertools #, glob, numpy
-import logging
+#from util import qimage_utility
+from ..metadata import format #, spider_utility #, format
+from ..image import ndimage_utility, ndimage_file, analysis, rotate #, ndimage_interpolate
+import os, itertools, numpy #, glob
 #import property
 
 
-_logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -58,12 +61,20 @@ class MainWindow(QtGui.QMainWindow):
         
         # Setup variables
         self.lastpath = str(QtCore.QDir.currentPath())
-        self.coordinates_file = ""
+        self.coordinates_files = []
         self.stack_file = ""
         self.inifile = "" #'ara_view.ini'
+        self.data=None
+        self.header=None
+        self.group_indices=None
+        self.label_cols=[]
+        self.rtsq_cols=[]
+        self.select_col=-1
+        self.markers=['s', 'o', '^', '>', 'v', 'd', 'p', 'h', '8', '+', 'x']
+        self.selectedImage = None
         
         # Setup Plotting View
-        self.fig = Figure((6.0, 4.0), dpi=self.ui.dpiSpinBox.value())
+        self.fig = Figure((6.0, 4.0))#, dpi=self.ui.dpiSpinBox.value())
         self.ui.canvas = FigureCanvas(self.fig)
         self.ui.canvas.setParent(self.ui.centralwidget)
         self.axes = self.fig.add_subplot(111)
@@ -79,12 +90,29 @@ class MainWindow(QtGui.QMainWindow):
         
         
         # Custom Actions
+        self.ui.toggleImageDockAction = self.ui.imageDockWidget.toggleViewAction()
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/image.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.toggleImageDockAction.setIcon(icon8)
+        self.ui.toolBar.insertAction(self.ui.actionShow_Options, self.ui.toggleImageDockAction)
+        self.ui.imageDockWidget.hide()
+        self.ui.toggleImageDockAction.setEnabled(False)
         
-        #action = self.ui.dockWidget.toggleViewAction()
-        #icon8 = QtGui.QIcon()
-        #icon8.addPixmap(QtGui.QPixmap(":/mini/mini/application_side_list.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        #action.setIcon(icon8)
-        #self.ui.toolBar.insertAction(self.ui.actionHelp, action)
+        action = self.ui.plotDockWidget.toggleViewAction()
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/chart_line.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        action.setIcon(icon8)
+        self.ui.toolBar.insertAction(self.ui.actionShow_Options, action)
+        
+        # Subset List
+        self.subsetListModel = QtGui.QStandardItemModel()
+        self.ui.subsetListView.setModel(self.subsetListModel)
+        
+        # File List
+        self.fileListModel = QtGui.QStandardItemModel()
+        self.ui.fileTableView.setModel(self.fileListModel)
+        self.fileListModel.setHorizontalHeaderLabels(['file', 'items'])
+        self.connect(self.ui.fileTableView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.openSelectedFile)
         
         # Create advanced settings
         
@@ -115,6 +143,20 @@ class MainWindow(QtGui.QMainWindow):
     # Slots for GUI
     
     #    Matplotlib actions
+        
+    @qtSlot()
+    def on_actionOpen_triggered(self):
+        ''' Called when someone clicks the Open Button
+        '''
+        
+        if self.ui.actionZoom.isChecked(): self.ui.actionZoom.trigger()
+        if self.ui.actionPan.isChecked(): self.ui.actionPan.trigger()
+        files = QtGui.QFileDialog.getOpenFileNames(self.ui.centralwidget, self.tr("Open a set of images or documents"), self.lastpath)
+        if isinstance(files, tuple): files = files[0]
+        if len(files) > 0:
+            self.lastpath = os.path.dirname(str(files[0]))
+            self.openFiles(files)
+    
     @qtSlot()
     def on_actionPan_triggered(self):
         '''Called when the user clicks the Pan button.
@@ -168,40 +210,81 @@ class MainWindow(QtGui.QMainWindow):
         
         self.ui.mpl_toolbar.edit_parameters( )
     
+    @qtSlot()
+    def on_actionRefresh_triggered(self):
+        ''' Redraw the plot
+        '''
+        
+        self.drawPlot()
     
-    # Abstract methods
+    @qtSlot(int)
+    def on_subsetComboBox_currentIndexChanged(self, index):
+        ''' Called when the user wants to plot only a subset of the data
+        
+        :Parameters:
+        
+        index : int
+                New index in the subset combobox
+        '''
+        
+        if index > 0:
+            index=self.ui.subsetComboBox.itemData(index)
+            vals = [str(v) for v in numpy.unique(self.data[:, index])]
+        else: vals = []
+        self.subsetListModel.clear()
+        for name in vals:
+            item = QtGui.QStandardItem(name)
+            item.setCheckState(QtCore.Qt.Checked)
+            item.setCheckable(True)
+            self.subsetListModel.appendRow(item)
     
-    def notify_added_item(self, item):
+    @qtSlot()
+    def on_selectAllPushButton_clicked(self):
         '''
         '''
         
-        pass
+        _logger.debug("select")
+        for i in xrange(self.subsetListModel.rowCount()):
+            self.subsetListModel.item(i).setCheckState(QtCore.Qt.Checked)
     
-    def notify_added_files(self, newfiles):
+    @qtSlot()
+    def on_unselectAllPushButton_clicked(self):
         '''
         '''
         
-        pass
+        _logger.debug("unselect")
+        for i in xrange(self.subsetListModel.rowCount()):
+            self.subsetListModel.item(i).setCheckState(QtCore.Qt.Unchecked)
     
-    # Other methods
-    
-    def addToolTipImage(self, imgname, item):
+    @qtSlot(int)
+    def on_imageCountSpinBox_valueChanged(self, index):
         '''
         '''
         
-        if imgname[1] == 0 and self.advanced_settings.second_image != "":
-            second_image = spider_utility.spider_filename(self.advanced_settings.second_image, imgname[0])
-            if os.path.exists(second_image):
-                img = read_image(second_image)
-                if hasattr(img, 'ndim'):
-                    nstd = self.advanced_settings.second_nstd
-                    bin_factor = self.advanced_settings.second_downsample
-                    img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
-                    if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
-                    qimg = qimage_utility.numpy_to_qimage(img)
-                else:
-                    qimg = img.convertToFormat(QtGui.QImage.Format_Indexed8)
-                item.setToolTip(qimage_utility.qimage_to_html(qimg))
+        self.drawImages()
+    
+    @qtSlot(int)
+    def on_imageSepSpinBox_valueChanged(self, index):
+        '''
+        '''
+        
+        self.drawImages()
+    
+    @qtSlot(float)
+    def on_imageZoomDoubleSpinBox_valueChanged(self, index):
+        '''
+        '''
+        
+        self.drawImages()
+        
+    @qtSlot(int)
+    def on_keepSelectedCheckBox_stateChanged(self, state):
+        '''
+        '''
+        
+        self.ui.selectGroupComboBox.setEnabled(state == QtCore.Qt.Checked)
+        self.clear()
+        self.drawImages()
     
     # Settings controls for persistance
     
@@ -239,8 +322,356 @@ class MainWindow(QtGui.QMainWindow):
         settings.beginGroup('Advanced')
         self.ui.advancedSettingsTreeView.model().restoreState(settings) #@todo - does not work!
         settings.endGroup()
+    
+    # Open Files
+    
+    def openSelectedFile(self, selected, deselected):
+        '''
+        '''
         
+        filename = selected.indexes()[0].data(QtCore.Qt.UserRole+1)
+        self.openFile(filename)
+    
+    def openFile(self, filename):
+        ''' Open a coordinate file
         
+        :Parameters:
+        
+        filename : str
+                   Input filename
+        '''
+        
+        self.data, self.header = format.read(filename, ndarray=True)
+        self.label_cols=[]
+        self.rtsq_cols=[]
+        self.select_col=-1
+        print self.data.shape, len(self.header)
+        print self.header.index('psi')
+        print self.header
+        print self.data[0]
+        try: self.label_cols.append(self.header.index('fileid'))
+        except: pass
+        try: self.label_cols.append(self.header.index('id'))
+        except: pass
+        try: self.rtsq_cols.extend([self.header.index('psi'),self.header.index('tx'),self.header.index('ty'),self.header.index('mirror')])
+        except: 
+            try: self.rtsq_cols.extend([self.header.index('psi'),self.header.index('tx'),self.header.index('ty')])
+            except: pass
+        try: self.select_col = self.header.index('select')
+        except: pass
+        
+        skip = set(self.label_cols+self.rtsq_cols+[self.select_col])
+        updateComboBox(self.ui.xComboBox, self.header, skip, index='c0')
+        updateComboBox(self.ui.yComboBox, self.header, skip, index='c1')
+        skip = set(self.label_cols)
+        updateComboBox(self.ui.colorComboBox, self.header, skip, 'select', first='None')
+        skip = set(self.label_cols+self.rtsq_cols+[self.select_col]+non_int_columns(self.data))
+        updateComboBox(self.ui.subsetComboBox, self.header, skip, first='None')
+        updateComboBox(self.ui.selectGroupComboBox, self.header, skip, first='None')
+        self.ui.selectGroupComboBox.setEnabled(False)
+        self.clear()
+        self.drawPlot()
+    
+    def openFiles(self, files):
+        ''' Open a collection of files, sort by content type
+        
+        :Parameters:
+        
+        files : list
+                List of input files
+        '''
+        
+        coordfile=None
+        for filename in files:
+            filename = str(filename)
+            if not ndimage_file.spider.is_readable(filename) and not ndimage_file.mrc.is_readable(filename) and  format.is_readable(filename):
+                nameItem = QtGui.QStandardItem(os.path.basename(filename))
+                nameItem.setData(filename)
+                nameItem.setToolTip(filename)
+                countItem = QtGui.QStandardItem(str(len(format.read(filename))))
+                countItem.setData(filename)
+                countItem.setToolTip(filename)
+                self.fileListModel.appendRow([nameItem, countItem])
+                self.coordinates_files.append(filename)
+                if coordfile is None: coordfile=nameItem #coordfile=filename
+            else:
+                self.stack_file = filename
+        self.coordinates_files = list(set(self.coordinates_files))
+        if coordfile is not None:
+            self.ui.fileTableView.selectionModel().setCurrentIndex(coordfile.index(), QtGui.QItemSelectionModel.Select|QtGui.QItemSelectionModel.Rows)
+            #self.openFile(coordfile)
+        if self.stack_file != "":
+            self.ui.toggleImageDockAction.setEnabled(True)
+            self.ui.imageDockWidget.show()
+            self.ui.canvas.mpl_connect('pick_event', self.displayImage)
+            
+    def dataSubset(self):
+        '''
+        '''
+        
+        s = self.ui.subsetComboBox.itemData(self.ui.subsetComboBox.currentIndex())
+        if s > -1:
+            selected = numpy.ones(self.data.shape[0], dtype=numpy.bool)
+            for i in xrange(self.subsetListModel.rowCount()):
+                sval = float(self.subsetListModel.item(i).text())
+                if self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked:
+                    selected = numpy.logical_or(self.selected, self.data[:, s]==sval)
+                else:
+                    selected[self.data[:, s]==sval]=0
+            data = self.data[selected]
+        else:
+            data = self.data
+        return data
+    
+    # Plot Points
+    def drawPlot(self, index=None):
+        ''' Draw a scatter plot
+        '''
+        
+        self.axes.clear()
+        data = self.dataSubset()
+        self.plotPointsAsScatter(data)
+        idx = self.drawImages(data, False)
+        self.highlightPoints(data, idx, False)
+        self.ui.canvas.draw()
+    
+    def plotPointsAsScatter(self, data=None, use_markers=False, markersize=10, pickersize=5):
+        '''
+        '''
+        
+        if data is None: data = self.dataSubset()
+        x = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+        y = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+        c = self.ui.colorComboBox.itemData(self.ui.colorComboBox.currentIndex())
+        color='r'
+        marker=self.markers[1]
+        cmap = None
+        self.group_indices=None
+        if c > -1: 
+            color = data[:, c]
+            if color.max() != color.min():
+                color -= color.min()
+                color /= color.max()
+                cmap = cm.jet
+            else: color='r'
+        
+        if cmap is not None and use_markers:
+            groups = numpy.unique(color)
+            self.group_indices=[]
+            for i, (g, marker) in enumerate(zip(groups, itertools.cycle(self.markers))):
+                sel = g==color
+                self.group_indices.append(numpy.argwhere(sel))
+                self.axes.scatter(data[sel, x], data[sel, y], c=cmap(g), picker=pickersize, s=markersize, marker=marker, edgecolor = 'face')
+        else:
+            self.axes.scatter(data[:, x], data[:, y], c=color, cmap=cmap, picker=pickersize, s=markersize, marker=marker, edgecolor = 'face')
+    
+    def highlightPoints(self, data, idx, draw=True):
+        '''
+        '''
+        
+        scol = self.ui.selectGroupComboBox.currentIndex()
+        if scol == 0 or idx is None: return
+        scol = self.ui.selectGroupComboBox.itemData(scol)
+        
+        x = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+        y = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+        if hasattr(idx, '__iter__'): idx=idx[0]
+        hindex = numpy.argwhere(data[:, scol] == data[idx, scol]).squeeze()
+        for h in hindex:
+            self.axes.scatter(self.data[h, x], self.data[h, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
+        if draw: self.ui.canvas.draw()
+    
+    # Plot Images
+    def clear(self):
+        ''' Clear the plot of images
+        '''
+        
+        clearImages(self.axes)
+        self.selectedImage = None
+        self.ui.canvas.draw()
+        
+    def drawImages(self, data=None, draw=True):
+        ''' Draw images on the plot
+        '''
+        
+        idx=None
+        if data is None: data = self.dataSubset()
+        if self.ui.keepSelectedCheckBox.checkState() == QtCore.Qt.Checked:
+            if self.selectedImage is not None:
+                neighbors = self.ui.averageCountSpinBox.value()
+                if neighbors > 2: idx=self.drawAverageImages(data, neighbors)
+                else: idx=self.drawSelectedImages(data)
+                x = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+                y = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+                self.axes.scatter(data[idx, x], data[idx, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
+        else:
+            self.drawRandomImages(data)
+        if draw: self.ui.canvas.draw()
+        return idx
+    
+    def drawSelectedImages(self, data):
+        ''' Draw a random subset of images on the plot
+        '''
+        
+        x = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+        y = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+        zoom = self.ui.imageZoomDoubleSpinBox.value()
+        radius = self.ui.imageSepSpinBox.value()
+        off = self.selectedImage
+        align = data[(off, ), self.rtsq_cols].reshape((1, len(self.rtsq_cols))) if len(self.rtsq_cols) > 2 else None
+        tmp = data[(off, ), self.label_cols].reshape((1, len(self.label_cols)))
+        for i, img in enumerate(iter_images(self.stack_file, tmp, align)):
+            im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
+            ab = AnnotationBbox(im, data[off, (x,y)], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+            self.axes.add_artist(ab)
+        return off
+    
+    def drawAverageImages(self, data, neighbors):
+        ''' Draw a random subset of images on the plot
+        '''
+        
+        x = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+        y = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+        zoom = self.ui.imageZoomDoubleSpinBox.value()
+        radius = self.ui.imageSepSpinBox.value()
+        off = self.selectedImage
+        idx = numpy.argsort(numpy.hypot(data[off, x]-data[:, x], data[off, y]-data[:, y]))[:neighbors+1].squeeze()
+        avg = None
+        data2 = data[idx]
+        sidx = numpy.argsort(data2[:, self.label_cols[0]])
+        data2 = data2[sidx]
+        align = data2[:, self.rtsq_cols] if len(self.rtsq_cols) > 2 else None
+        for img in iter_images(self.stack_file, data2[:, self.label_cols], align):
+            if avg is None: avg = img.copy()
+            else: avg += img
+        im = OffsetImage(avg, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
+        ab = AnnotationBbox(im, data[off, (x,y)], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        self.axes.add_artist(ab)
+        return idx
+    
+    def drawRandomImages(self, data):
+        ''' Draw a random subset of images on the plot
+        '''
+        
+        clearImages(self.axes)
+        n = self.ui.imageCountSpinBox.value()
+        total = len(data)
+        if n > total: n = total
+        if n < 2: return
+        idx = self.selectedImage if self.selectedImage is not None else numpy.random.randint(0, data.shape[0])
+        x = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+        y = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+        zoom = self.ui.imageZoomDoubleSpinBox.value()
+        radius = self.ui.imageSepSpinBox.value()
+        align = data[:, self.rtsq_cols] if len(self.rtsq_cols) > 2 else None
+        index = plot_random_sample_of_images(self.axes, self.stack_file, data[:, self.label_cols], data[:, (x,y)], align, radius, n, zoom, idx)
+        self.axes.scatter(data[index, x], data[index, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
+    
+    def displayImage(self, event_obj):
+        ''' Event invoked when user selects a data point
+        
+        :Parameters:
+        
+        event_obj : Event
+                Mouse click event
+        '''
+        
+        if len(event_obj.ind) == 0: return
+        xc = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+        yc = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+        x = event_obj.mouseevent.xdata
+        y = event_obj.mouseevent.ydata
+        if self.group_indices is not None and len(self.group_indices) > 0:
+            min_val = (1e20, None)
+            for group in self.group_indices:
+                ind = numpy.asarray([i for i in event_obj.ind if i < len(group)], dtype=numpy.int)
+                if len(ind) == 0: continue
+                ds = numpy.hypot(x-self.data[group[ind], xc], y-self.data[group[ind], yc])
+                if ds.min() < min_val[0]: min_val = (ds.min(), group[ind[ds.argmin()]])
+            self.selectedImage = min_val[1]
+        else:
+            ds = numpy.hypot(x-self.data[event_obj.ind, xc], y-self.data[event_obj.ind, yc])
+            self.selectedImage = event_obj.ind[ds.argmin()]
+        self.drawImages()
+        
+def plot_random_sample_of_images(ax, stack_file, label, xy, align, radius, n, zoom, keep=None):
+    '''
+    '''
+    
+    index = numpy.arange(len(xy), dtype=numpy.int)
+    numpy.random.shuffle(index)
+    off = numpy.argwhere(index==keep)
+    if off.shape[0] > 0:
+        off = off.squeeze()
+        index[off]=index[0]
+        index[0]=keep
+    assert(n>0)
+    vals = nonoverlapping_subset(ax, xy[index], radius, n)
+    index = index[vals]
+    if align is not None: align = align[index]
+    for i, img in enumerate(iter_images(stack_file, label[index], align)):
+        im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
+        ab = AnnotationBbox(im, xy[index[i]], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        ax.add_artist(ab)
+    return index
+
+def non_int_columns(data):
+    '''
+    '''
+    
+    subset=[]
+    for i in xrange(data.shape[1]):
+        if not numpy.alltrue(data[:, i]==data[:, i].astype(numpy.int)):
+            subset.append(i)
+    return subset
+
+def clearImages(ax):
+    '''
+    '''
+    
+    #del ax.lines[:]
+    i=0
+    while i < len(ax.collections):
+        obj = ax.collections[i]
+        if hasattr(obj, 'get_sizes') and len(obj.get_sizes()) > 0 and obj.get_sizes()[0]==45:
+            ax.collections.remove(obj)
+        else: i+=1
+    i=0
+    while i < len(ax.artists):
+        obj = ax.artists[i]
+        if isinstance(obj, AnnotationBbox):
+            ax.artists.remove(obj)
+        else: i+=1
+
+def updateComboBox(combo, values, skip=set(), index=None, first=None):
+    ''' Set values in a combobox without triggering a signal
+    
+    :Parameters:
+    
+    combo : QComboBox
+            Target combobox
+    value : list
+            List of string values to add
+    first : str, optional
+            First value to add to combobox
+    '''
+    
+    combo.blockSignals(True)
+    combo.clear()
+    j=0
+    if first is not None: 
+        combo.addItem(first, -1)
+        j+=1
+    
+    for i, v in enumerate(values):
+        if i in skip: continue
+        combo.addItem(v, i)
+        if index == v: index = j
+        j+=1
+    combo.blockSignals(False)
+    if index is not None and isinstance(index, int): 
+        combo.setCurrentIndex(index)
+
 def read_image(filename, index=None):
     '''
     '''
@@ -250,7 +681,7 @@ def read_image(filename, index=None):
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
         
 
-def iter_images(files, index):
+def iter_images(files, index, align=None):
     ''' Wrapper for iterate images that support color PNG files
     
     :Parameters:
@@ -264,8 +695,44 @@ def iter_images(files, index):
           Image array
     '''
     
+    if hasattr(index, 'ndim'): index = numpy.asarray(index, dtype=numpy.int)
+    i=0
     for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(files, index)):
+        if align is not None:
+            print index[i], align[i]
+            img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
+            if len(align[i]) > 3 and align[i,3] > 180: img = ndimage_utility.mirror(img)
+            i+=1
         yield img
-            
+
+def nonoverlapping_subset(ax, xy, radius, n):
+    ''' Find a non-overlapping subset of points on the given axes
+    
+    :Parameters:
+    
+    ax : Axes
+         Current axes
+    xy : array
+         2 column ndarray or tuple of two ndarrays
+    radius : float
+             Radius of exclusion
+    n : int
+        Maximum number of points
+    
+    :Returns:
+    
+    index : array
+            Selected indicies
+    '''
+    
+    if isinstance(xy, tuple):
+        x, y = xy
+        if x.ndim == 1: x=x.reshape((x.shape[0], 1))
+        if y.ndim == 1: y=y.reshape((y.shape[0], 1))
+        xy = numpy.hstack((x, y))
+    return analysis.subset_no_overlap(ax.transData.transform(xy), numpy.hypot(radius, radius)*2, n)
+
+
+
 
     
