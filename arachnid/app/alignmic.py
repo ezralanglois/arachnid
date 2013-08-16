@@ -457,6 +457,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("",   reverse=False,    help="Reverse the alignment order")
         pgroup.add_option("",   resolution=20.0,    help="Filter for micrograph alignment")
         pgroup.add_option("",   recalc_avg=False,    help="Recalculate average from known translation")
+        pgroup.add_option("",   apix=0.0,           help="Pixel size")
         
         
         parser.change_default(log_level=3)
@@ -471,12 +472,12 @@ def setup_main_options(parser, group):
     
     parser.change_default(bin_factor=1)
 
-def check_options(options, main_option=False):
+#def check_options(options, main_option=False):
     #Check if the option values are valid
-    from ..core.app.settings import OptionValueError
+    #from ..core.app.settings import OptionValueError
     
-    if not options.disable_align:
-        if options.param_file == "": raise OptionValueError('SPIDER Params file empty')
+    #if not options.disable_align:
+    #    if options.param_file == "": raise OptionValueError('SPIDER Params file empty')
 
 def main():
     #Main entry point for this script
