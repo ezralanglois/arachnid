@@ -76,7 +76,7 @@ def theta2nside(theta, max_res=8):
     area = numpy.zeros(max_res)
     for i in xrange(1, area.shape[0]):
         area[i] = nside2pixarea(i)
-    return numpy.argmin(numpy.abs(theta-area))
+    return numpy.argmin(numpy.abs(theta-area))+1
 
 def pmod(x, y):
     ''' Result is always positive
