@@ -7,7 +7,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate
+from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate, manifold
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
@@ -17,7 +17,7 @@ import logging, numpy, os, scipy, itertools, scipy.cluster.vq, scipy.spatial.dis
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cache_file="", **extra):#, neig=1, nstd=1.5
+def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cache_file="", avg_file="", dm=0, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -48,6 +48,7 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
         cache_file = spider_utility.spider_filename(cache_file, input_vals[0])
     
     openmp.set_thread_count(1)
+    
     data = ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, mask=mask, cache_file=cache_file, align=align, force_mat=True, **extra)
     _logger.info("Data: %s -- %s -- %s"%(str(data.shape), str(align.shape), str(label.shape)))
     assert(data.shape[0] == align.shape[0])
@@ -83,7 +84,14 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
     else:
         from sklearn.covariance import OAS
         
-        if 1 == 1:
+        if dm>0:
+            dist2 = manifold.knn(data, dm, 10000)
+            feat, eigv, index = manifold.diffusion_maps_dist(dist2, 2)
+            if index is not None:
+                feat2 = numpy.zeros((data.shape[0], feat.shape[1]), dtype=feat.dtype)
+                feat2[index]=feat
+                feat=feat2
+        elif 1 == 1:
             eigv, feat=analysis.dhr_pca(tst, tst, extra['neig'], expected, True)
             '''
             if eigv is None:
@@ -123,13 +131,23 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
         if feat is not None:
             sel, rsel, dist = one_class_classification(feat, **extra)
             try:
-                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (1,5,6,7)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror', prefix='pca_')
+                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (5,6,7,1)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror', prefix='pca_')
             except:
                 _logger.error("sel: %s - dist: %s - align: %s - label: %s"%(str(sel.shape), str(dist.shape), str(align[:, 0].shape), str(label[:, 1].shape)))
                 raise
             _logger.info("Finished embedding view: %d"%int(input_vals[0]))
         else:
             _logger.info("Skipping view (too few projections): %d"%int(input_vals[0]))
+    
+    if avg_file != "":
+        avg_file = spider_utility.spider_filename(avg_file, input_vals[0])
+        avg = None
+        for i, img in enumerate(ndimage_file.iter_images(input_files[0], label)):
+            if extra['use_rtsq']: img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
+            if avg is None: avg = img
+            else: avg += img
+        ndimage_file.write_image(avg_file, avg)
+    
     return input_vals, rsel
 
 def outlier_rejection(feat, prob):
@@ -211,6 +229,9 @@ def one_class_classification(feat, neig, nsamples, prob_reject, nstd=2.5, **extr
 
 def init_root(files, param):
     # Initialize global parameters for the script
+    
+    if param['order'] < 0:
+        param['order'] = order_from_resolution(**param)
     
     if mpi_utility.is_root(**param):
         if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
@@ -317,7 +338,17 @@ def resolution_from_order(apix, pixel_diameter, order, resolution, **extra):
     '''
     
     if order == 0: return resolution
-    return numpy.tan(healpix.nside2pixarea(order))*pixel_diameter*apix
+    res = numpy.tan(healpix.nside2pixarea(order))*pixel_diameter*apix
+    if res > resolution: resolution=res
+    return resolution
+
+def order_from_resolution(apix, pixel_diameter, order, resolution, **extra):
+    '''
+    '''
+    
+    theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )
+    _logger.info("Target sampling %f for resolution %f -> %d"%(theta_delta, resolution, healpix.theta2nside(numpy.deg2rad(theta_delta))))
+    return healpix.theta2nside(numpy.deg2rad(theta_delta))
 
 def decimation_level(apix, window, **extra):
     '''
@@ -459,7 +490,7 @@ def read_alignment(files, alignment="", order=0, **extra):
             if t > 180.0: t -= 180.0
             align[i, refidx] = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(t), numpy.deg2rad(align[i, 2]))
             rang = rotate.rotate_euler(ang[int(align[i, refidx])], (-align[i, 5], align[i, 1], align[i, 2]))
-            rot = -(rang[0]+rang[2])
+            rot = (rang[0]+rang[2])
             rt3d = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
             align[i, 5], align[i, 6], align[i, 7]=orient_utility.align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
             
@@ -486,6 +517,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", cache_file="",                 help="Cache preprocessed data in matlab data files")
     group.add_option("", order=0,                      help="Reorganize views based on their healpix order (overrides the resolution parameter)")
     group.add_option("", prob_reject=0.97,             help="Probablity that a rejected particle is bad", dependent=False)
+    group.add_option("", avg_file="",                   help="Write out an average for each view")
+    group.add_option("", dm=0,                         help="Use experimental mode")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
