@@ -120,6 +120,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, *
     
     if plotting.is_plotting_disabled(): return pow
     if mask_radius > 0:
+        mask_radius=int(ctf.resolution(mask_radius, len(roo), **extra))
         pow *= ndimage_utility.model_disk(mask_radius, pow.shape)*-1+1
     pow = ndimage_utility.replace_outlier(pow, 3, 3, replace='mean')
     fig, ax=plotting.draw_image(pow, label=label, **extra)
@@ -322,15 +323,15 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     group = OptionGroup(parser, "Power Spectra Creation", "Options to control power spectra creation",  id=__name__)
     group.add_option("", invert=False, help="Invert the contrast - used for unprocessed CCD micrographs")
-    group.add_option("", window_size=256, help="Size of the window for the power spec")
+    group.add_option("", window_size=256, help="Size of the window for the power spec (pixels)")
     group.add_option("", pad=2.0, help="Number of times to pad the power spec")
     group.add_option("", overlap=0.5, help="Amount of overlap between windows")
-    group.add_option("", offset=0, help="Offset from the edge of the micrograph")
+    group.add_option("", offset=0, help="Offset from the edge of the micrograph (pixels)")
     group.add_option("", from_power=False, help="Input is a powerspectra not a micrograph")
-    group.add_option("", bg_window=21, help="Size of the background subtraction window")
+    group.add_option("", bg_window=21, help="Size of the background subtraction window (pixels)")
     group.add_option("", cache_pow=False, help="Save 2D power spectra")
     group.add_option("", trunc_1D=False, help="Place trunacted 1D/model on color 2D power spectra")
-    group.add_option("", mask_radius=0,  help="Mask the center of the color power spectra")
+    group.add_option("", mask_radius=0,  help="Mask the center of the color power spectra (Resolution in Angstroms)")
     pgroup.add_option_group(group)
     
 def setup_main_options(parser, group):
