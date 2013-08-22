@@ -1,5 +1,6 @@
 docs/api_generated/
 dist
+scripts
 build
 *.mod
 *.sh
