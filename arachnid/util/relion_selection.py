@@ -130,7 +130,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.util.matplotlib_nogui import pylab
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
-from ..core.image import eman2_utility, ndimage_file #, ndimage_utility
+from ..core.image import ndimage_file, ndimage_utility
 from ..core.parallel import parallel_utility
 from ..core.orient import healpix
 import numpy, os, logging, operator, glob
@@ -478,14 +478,13 @@ def generate_relion_selection_file(files, img, output, param_file, select="", go
     if img.shape[0]%2 != 0: raise ValueError, "Relion requires even sized images"
     if img.shape[0] != img.shape[0]: raise ValueError, "Relion requires square images"
     if pixel_radius > 0:
-        #mask = ndimage_utility.model_disk(pixel_radius, img.shape[0])*-1+1
-        mask = eman2_utility.model_circle(pixel_radius, img.shape[0], img.shape[1])*-1+1
+        mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         avg = numpy.mean(img*mask)
         if numpy.allclose(0.0, avg):
             _logger.warn("Relion requires the background to be zero normalized, not %g"%avg)
     
     if test_all:
-        mask = eman2_utility.model_circle(pixel_radius, img.shape[0], img.shape[1])*-1+1
+        mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         for img in ndimage_file.iter_images(files):
              avg = numpy.mean(img*mask)
              std = numpy.std(img*mask)
@@ -706,9 +705,16 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     name_col = header.index('rlnImageName') if stack_file != "" else -1
     Tuple = data[0].__class__
     
-    stack_files=glob.glob(stack_file)
+    stack_files=glob.glob(os.path.dirname(stack_file))
     if len(stack_files) == 0: raise ValueError, "Cannot find --stack-file %s"%stack_file
     if len(stack_files) == 1: stack_files=stack_files[0]
+    
+    if isinstance(stack_files, list):
+        _logger.info("Listing possible stack files for %s"%stack_file)
+        for i in xrange(len(stack_files)):
+            stack_files[i] = os.path.join(stack_files[i], os.path.basename(stack_file))
+            _logger.info(" - %s"%stack_files[i])
+            
     
     for i in xrange(len(data)):
         vals = data[i] if not isinstance(data[i], tuple) else list(data[i])
