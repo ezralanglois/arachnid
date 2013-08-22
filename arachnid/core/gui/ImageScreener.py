@@ -148,10 +148,8 @@ class MainWindow(ImageViewerWindow):
         filename = QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save selection as"), self.lastpath)
         self.setEnabled(False)
         print 'progress'
-        progressDialog = QtGui.QProgressDialog('Saving...', "", 0,2,self)
+        progressDialog = QtGui.QProgressDialog('Saving...', "", 0,5,self)
         progressDialog.setWindowModality(QtCore.Qt.WindowModal)
-        progressDialog.setMinimumDuration(0)
-        progressDialog.setValue(1)
         progressDialog.show()
         if isinstance(filename, tuple): filename = filename[0]
         if filename != "":
@@ -161,17 +159,24 @@ class MainWindow(ImageViewerWindow):
                     QtGui.QMessageBox.critical(self, "Saving Relion Selection File", "You have opened more than one class stack. Cannot save a Relion Selection file!", QtGui.QMessageBox.Ok| QtGui.QMessageBox.Default|QtGui.QMessageBox.NoButton)
                     self.setEnabled(True)
                     return
+                
+                progressDialog.setValue(1)
                 _logger.info("Saving Relion selection file to %s"%filename)
                 class_column_name = 'rlnClassNumber'
                 vals = format.read(self.advanced_settings.relion, numeric=True)
+                progressDialog.setValue(2)
                 subset=[]
                 selected = set([v[1]+1 for v in self.file_index if v[2] > 0])
+                progressDialog.setValue(3)
                 for v in vals:
                     id = int(getattr(v, class_column_name))
                     if id in selected: subset.append(v)
+                progressDialog.setValue(4)
                 format.write(filename, subset)
+                progressDialog.setValue(5)
                 #relion_selection.select_class_subset(vals, select, filename)
             elif len(self.files) == 1 or len(self.files) == len(self.file_index):
+                progressDialog.setValue(3)
                 _logger.info("Saving single selection file to %s"%filename)
                 if not spider_utility.is_spider_filename(self.files) and len(self.files) > 1:
                     _logger.info("File names do not conform to SPIDER, writing as star file")
@@ -181,8 +186,11 @@ class MainWindow(ImageViewerWindow):
                     vals = [(spider_utility.spider_id(self.files[v[0]]),1) for v in self.file_index if v[2] > 0]
                 else:
                     vals = [(v[1]+1,1) for v in self.file_index if v[2] > 0]
+                progressDialog.setValue(4)
                 format.write(filename, vals, header='id,select'.split(','), default_format=format.spidersel)
+                progressDialog.setValue(5)
             else:
+                progressDialog.setValue(3)
                 _logger.info("Saving multiple selection files by stack to %s"%filename)
                 if not spider_utility.is_spider_filename(self.files):
                     _logger.info("File names do not conform to SPIDER, writing as star file")
@@ -198,8 +206,9 @@ class MainWindow(ImageViewerWindow):
                             micselect[mic].append((v[1]+1, 1))
                     for mic,vals in micselect.iteritems():
                         format.write(filename, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), default_format=format.spidersel) 
+                progressDialog.setValue(5)
         self.setEnabled(True)
-        progressDialog.hide()
+        #progressDialog.hide()
         print 'done'
         
     @qtSlot()
