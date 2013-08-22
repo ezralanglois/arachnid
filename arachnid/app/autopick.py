@@ -206,11 +206,11 @@ def process(filename, id_len=0, confusion=[], **extra):
         return filename, []
     _logger.debug("Write coordinates")
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
-    write_example(mic, coords, **extra)
+    write_example(mic, coords, filename, **extra)
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
-def write_example(mic, coords, box_image="", **extra):
+def write_example(mic, coords, filename, box_image="", **extra):
     ''' Write out an image with the particles boxed
     
     :Parameters:
@@ -233,6 +233,13 @@ def write_example(mic, coords, box_image="", **extra):
         x = box.x / bin_factor
         y = box.y / bin_factor
         draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#ff4040")
+    bench = lfcpick.benchmark.read_bench_coordinates(filename, **extra)
+    if bench is not None:
+        for box in bench:
+            x = box[0] / bin_factor
+            y = box[1] / bin_factor
+            draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#40ff40")
+        
     mic.save(box_image)
 
 def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, oldmode=False, **extra):

@@ -128,6 +128,7 @@ from ..core.app.program import run_hybrid_program
 from ..core.image import eman2_utility, ndimage_utility, ndimage_file
 from ..core.metadata import format_utility, format, spider_params, spider_utility
 from ..core.parallel import mpi_utility
+from ..util import bench as benchmark
 import os, logging
 import numpy
 
@@ -452,10 +453,10 @@ def read_bench_coordinates(fid, good_coords="", good="", bin_factor=1.0, **extra
     
     if good_coords == "" or not os.path.exists(format_utility.parse_header(good_coords)[0]): 
         return None
-    coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
+    coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True, spiderid=fid))
     if good != "":
         try:
-            selected = format_utility.tuple2numpy(format.read(good, numeric=True))[0].astype(numpy.int)
+            selected = format_utility.tuple2numpy(format.read(good, numeric=True, spiderid=fid))[0].astype(numpy.int)
         except:
             return None
         else:
@@ -519,7 +520,7 @@ def initialize(files, param):
 
 def reduce_all(val, confusion, file_index, **extra):
     # Process each input file in the main thread (for multi-threaded code)
-    from ..util import bench as benchmark
+    
     filename, coords = val
     
     coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
