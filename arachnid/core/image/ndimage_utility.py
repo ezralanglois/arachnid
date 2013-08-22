@@ -693,7 +693,8 @@ def dct_avg(imgs, pad):
     numpy.divide(avg, total, avg)
     return avg #scipy.fftpack.fftshift(avg).real
 
-def powerspec_avg(imgs, pad):
+
+def powerspec_sum(imgs, pad, avg=None, total=0.0):
     ''' Calculate an averaged power specra from a set of images
     
     :Parameters:
@@ -710,8 +711,6 @@ def powerspec_avg(imgs, pad):
     '''
     
     if pad is None or pad <= 0: pad = 1
-    avg = None
-    total = 0.0
     for img in imgs:
         pad_width = img.shape[0]*pad
         img = eman2_utility.ramp(img)
@@ -725,10 +724,35 @@ def powerspec_avg(imgs, pad):
         if avg is None: avg = fimg.copy()
         else: avg += fimg
         total += 1.0
+    return avg, total
+
+def powerspec_fin(avg, total):
+    '''
+    '''
+    
     avg = numpy.abs(numpy.fft.fftshift(avg))
     numpy.sqrt(avg, avg)
     numpy.divide(avg, total, avg)
-    return avg #scipy.fftpack.fftshift(avg).real
+    return avg
+
+def powerspec_avg(imgs, pad):
+    ''' Calculate an averaged power specra from a set of images
+    
+    :Parameters:
+    
+    imgs : iterable
+           Iterator of images
+    pad : int
+          Number of times to pad an image
+    
+    :Returns:
+    
+    avg_powspec : array
+                  Averaged power spectra
+    '''
+    
+    avg, total = powerspec_sum(imgs, pad)
+    return powerspec_fin(avg, total)
 
 def moving_average(img, window=3, out=None):
     ''' Estimate a moving average with a uniform distribution and given window size
