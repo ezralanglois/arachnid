@@ -1,5 +1,7 @@
 ''' Arachnid Image format
 
+@todo - transpose projection in volume
+
 This format describes a binary data that comprises a required fixed header (79 bytes) followed by an optional 
 variable-length header and then by the image data.
 
