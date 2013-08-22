@@ -319,7 +319,9 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
             ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
             power_spec = spi.cp(output_pow)
         else:
+            _logger.debug("Writing power spectra to %s"%spi.replace_ext(output_pow))
             ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
+            if not os.path.exists(spi.replace_ext(output_pow)): raise ValueError, "Bug in code: cannot find power spectra at %s"%spi.replace_ext(output_pow)
             power_spec = spi.cp(output_pow)
             spi.du(power_spec, 3, 3)
         
