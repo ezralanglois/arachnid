@@ -344,11 +344,11 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     
     count = ndimage_file.count_images(filename)
     if count > 1 and fraction > 1:
-        mic = ndimage_file.read_image(filename, cache=emdata)
+        mic = ndimage_file.read_image(filename, cache=emdata).astype(numpy.float32)
         for i in xrange(1, min(fraction, count)):
             mic += ndimage_file.read_image(filename, i, cache=emdata)
     else:
-        mic = ndimage_file.read_image(filename, cache=emdata)
+        mic = ndimage_file.read_image(filename, cache=emdata).astype(numpy.float32)
 
     if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
     if invert: mic = ndimage_utility.invert(mic)
@@ -430,7 +430,7 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
-def read_bench_coordinates(fid, good_coords="", good="", **extra):
+def read_bench_coordinates(fid, good_coords="", good="", bin_factor=1.0, **extra):
     ''' Read benchmark coordinates
     
     :Parameters:
@@ -450,7 +450,8 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
              Selected (x,y) coordinates
     '''
     
-    if good_coords == "" or not os.path.exists(good_coords): return None
+    if good_coords == "" or not os.path.exists(format_utility.parse_header(good_coords)[0]): 
+        return None
     coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
     if good != "":
         try:
@@ -463,7 +464,7 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
     x, y = header.index('x'), header.index('y')
     return numpy.vstack((coords[:, x], coords[:, y])).T
 
-def find_overlap(coords, benchmark, pixel_radius, bench_mult=1.2, **extra):
+def find_overlap(coords, benchmark, bench_mult=1.2, pixel_radius=1.0, **extra):
     '''Find the overlaping coordinates with the benchmark
     
     :Parameters:
@@ -483,6 +484,7 @@ def find_overlap(coords, benchmark, pixel_radius, bench_mult=1.2, **extra):
              Overlapping (x,y) coordinates
     '''
     
+    _logger.error("%s == %s"%(str(benchmark.max(0)), str(coords.max(0))))
     assert(benchmark.shape[1] == 2)
     benchmark=benchmark.copy()
     rad = pixel_radius*bench_mult
@@ -517,23 +519,37 @@ def initialize(files, param):
 
 def reduce_all(val, confusion, file_index, **extra):
     # Process each input file in the main thread (for multi-threaded code)
-
+    from ..util import bench as benchmark
     filename, coords = val
     
-    bench = read_bench_coordinates(filename, **extra)
-    if bench is not None:
-        if bench.shape[1] != 2:
-            _logger.error("bench: %s"%str(bench.shape))
-        overlap = find_overlap(coords[:, 1:3], bench, **extra)
-        confusion[file_index, 0] = len(coords) #len(peaks), len(selected), len(overlap)
-        confusion[file_index, 1] = len(bench)
-        confusion[file_index, 2] = len(overlap)
-        assert(len(overlap) <= len(coords))
-        assert(len(overlap) <= len(bench))
-        pre = float(len(overlap)) / len(coords) if len(coords) > 0 else 0
-        sen = float(len(overlap)) / len(bench) if len(bench)> 0 else 0
-        info = " - %d,%d,%d - precision: %f, recall: %f"%(len(coords), len(bench), len(overlap), pre, sen)
-    else: info = ""
+    coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
+    if not hasattr(coords, 'ndim') and (extra['good'] != "" or extra['good_coords'] != ""):
+        try:
+            vals = benchmark.benchmark(coords, filename, **extra)
+        except:
+            info=""
+        else:
+            confusion[file_index, 0] = vals[0]+vals[1]
+            confusion[file_index, 1] = vals[0]+vals[3]
+            confusion[file_index, 2] = vals[0]
+            pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
+            sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
+            info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
+    else:
+        bench = read_bench_coordinates(filename, **extra)
+        if bench is not None and len(coords) > 0:
+            if bench.shape[1] != 2:
+                _logger.error("bench: %s"%str(bench.shape))
+            overlap = benchmark.find_overlap(coords[:, 1:3], bench, **extra)
+            confusion[file_index, 0] = len(coords) #len(peaks), len(selected), len(overlap)
+            confusion[file_index, 1] = len(bench)
+            confusion[file_index, 2] = len(overlap)
+            assert(len(overlap) <= len(coords))
+            assert(len(overlap) <= len(bench))
+            pre = float(len(overlap)) / len(coords) if len(coords) > 0 else 0
+            sen = float(len(overlap)) / len(bench) if len(bench)> 0 else 0
+            info = " - %d,%d,%d - precision: %f, recall: %f"%(len(coords), len(bench), len(overlap), pre, sen)
+        else: info = ""
     return filename+info
 
 def finalize(files, confusion, output, **extra):

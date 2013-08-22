@@ -197,16 +197,15 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
     
     if good_coords == "": return None
     if os.path.exists(format_utility.parse_header(good_coords)[0]):
-        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True))
+        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True, spiderid=fid))
     else:
         return []
     if good != "":
         try:
-            selected = format_utility.tuple2numpy(format.read(good, numeric=True))[0].astype(numpy.int)
+            selected = format_utility.tuple2numpy(format.read(good, numeric=True, spiderid=fid))[0].astype(numpy.int)
         except:
             return []
         else:
-            print good, selected.shape
             assert(selected.shape[1]==2)
             selected = selected[:, 0]-1
             coords = coords[selected].copy().squeeze()
