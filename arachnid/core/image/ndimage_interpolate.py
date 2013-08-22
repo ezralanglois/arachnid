@@ -92,6 +92,8 @@ def interpolate_bilinear(img, out):
         if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
         else: shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
         out = numpy.zeros(shape, dtype=img.dtype)
+    else:
+        if out.dtype != numpy.float32: raise ValueError, "Requires float32 for out"
     if img.ndim == 2:
         img = img.reshape((img.shape[0], img.shape[1], 1))
         out = out.reshape((out.shape[0], out.shape[1], 1))
@@ -131,6 +133,7 @@ def interpolate_ft(img, out):
           Interpolated image
     '''
     
+    img = numpy.asarray(img, dtype=numpy.float32)
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Only interpolation of 2D and 3D images supported: input has %d-D"%img.ndim
     if not hasattr(out, 'ndim'):
         
@@ -141,6 +144,8 @@ def interpolate_ft(img, out):
             nx = int(img.shape[-1]/out)
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), _modnx(int(img.shape[2]/out))) if img.ndim == 3 else (int(img.shape[0]/out), _modnx(int(img.shape[1]/out)))
         out = numpy.zeros(shape, dtype=img.dtype)
+    else:
+        if out.dtype != numpy.float32: raise ValueError, "Requires float32 for out"
     if img.ndim == 2:
         img2 = numpy.zeros((img.shape[0], _modnx(img.shape[1])), dtype=numpy.float32)
         img2[:img.shape[0], :img.shape[1]]=img
@@ -181,6 +186,7 @@ def interpolate_fs(img, out):
           Interpolated image
     '''
     
+    img = numpy.asarray(img, dtype=numpy.float32)
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Only interpolation of 2D and 3D images supported: input has %d-D"%img.ndim
     if not hasattr(out, 'ndim'):
         if hasattr(out, '__len__'): 
@@ -188,6 +194,8 @@ def interpolate_fs(img, out):
         else: 
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
         out = numpy.zeros(shape, dtype=img.dtype)
+    else:
+        if out.dtype != numpy.float32: raise ValueError, "Requires float32 for out"
     if img.ndim == 2:
         img2 = numpy.zeros((img.shape[0], _modnx(img.shape[1])), dtype=numpy.float32)
         img2[:img.shape[0], :img.shape[1]]=img
