@@ -82,6 +82,10 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.centralHLayout.addWidget(self.ui.canvas)
         self.ui.centralHLayout.setStretchFactor(self.ui.canvas, 4)
         
+        #self.ui.canvas.mpl_connect('motion_notify_event', self.onHover)
+        self.ui.canvas.mpl_connect('pick_event', self.displayLabel)
+        self.annotation=None
+        
         # Setup Navigation Tool Bar
         self.ui.mpl_toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.mpl_toolbar.hide()
@@ -140,6 +144,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.fileTableView.setModel(self.fileListModel)
         self.fileListModel.setHorizontalHeaderLabels(['file', 'items'])
         self.connect(self.ui.fileTableView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.openSelectedFile)
+        
+        # Plot
         
         # Create advanced settings
         
@@ -459,6 +465,9 @@ class MainWindow(QtGui.QMainWindow):
             data = self.data
         return data
     
+                
+            
+    
     # Plot Points
     def drawPlot(self, index=None):
         ''' Draw a scatter plot
@@ -628,7 +637,36 @@ class MainWindow(QtGui.QMainWindow):
         else:
             ds = numpy.hypot(x-self.data[event_obj.ind, xc], y-self.data[event_obj.ind, yc])
             self.selectedImage = event_obj.ind[ds.argmin()]
+        self.displayLabel(event_obj, False)
         self.drawImages()
+    
+    # Plot label
+    def displayLabel(self, event_obj, repaint=True):
+        '''
+        '''
+        
+        print 'here'
+        if len(event_obj.ind) > 0:
+            xc = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
+            yc = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
+            x = event_obj.mouseevent.xdata
+            y = event_obj.mouseevent.ydata
+            ds = numpy.hypot(x-self.data[event_obj.ind, xc], y-self.data[event_obj.ind, yc])
+            idx = event_obj.ind[ds.argmin()]
+            #ds = numpy.hypot(x-self.data[:, xc], y-self.data[:, yc])
+            #idx = ds.argmin()
+            
+            text = " ".join([str(v) for v in self.data[idx, self.label_cols]])
+            if  self.annotation is None:
+                 self.annotation = self.axes.annotate(text, xy=(x,y),  xycoords='data',
+                            xytext=(-10, 10), textcoords='offset points',
+                            arrowprops=dict(arrowstyle="->")
+                            )
+                 self.annotation.draggable()
+            else:
+                self.annotation.xy = x,y
+                self.annotation.set_text(text)
+            if repaint: self.ui.canvas.draw()
         
 def plot_random_sample_of_images(ax, stack_file, label, xy, align, radius, n, zoom, keep=None, **extra):
     '''
