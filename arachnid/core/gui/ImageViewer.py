@@ -330,6 +330,7 @@ class MainWindow(QtGui.QMainWindow):
             self.imageListModel.appendRow(item)
             self.notify_added_item(item)
         self.ui.imageListView.setModel(self.imageListModel)
+        progressDialog.hide()
         
         self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
         n = max(5, int(self.imagesize*zoom))

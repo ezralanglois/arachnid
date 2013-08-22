@@ -385,10 +385,6 @@ class MainWindow(QtGui.QMainWindow):
         self.label_cols=[]
         self.rtsq_cols=[]
         self.select_col=-1
-        print self.data.shape, len(self.header)
-        print self.header.index('psi')
-        print self.header
-        print self.data[0]
         try: self.label_cols.append(self.header.index('fileid'))
         except: pass
         try: self.label_cols.append(self.header.index('id'))
@@ -488,7 +484,7 @@ class MainWindow(QtGui.QMainWindow):
         cmap = None
         self.group_indices=None
         if c > -1: 
-            color = data[:, c]
+            color = data[:, c].copy()
             if color.max() != color.min():
                 color -= color.min()
                 color /= color.max()
@@ -747,7 +743,6 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
     i=0
     for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(files, index)):
         if align is not None:
-            print index[i], align[i]
             img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
             if len(align[i]) > 3 and align[i,3] > 180: img = ndimage_utility.mirror(img)
             
