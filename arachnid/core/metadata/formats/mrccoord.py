@@ -168,7 +168,8 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
                 header[val] = key
         elif len(header) == 0: header.extend(line.split())
         line = fin.readline().strip()
-        if line[0] == ';': raise format_utility.ParseFormatError, "Cannot parse Spider file"
+        if len(header) == 1: raise format_utility.ParseFormatError, "Cannot parse mrccood file"
+        if line[0] != 'C': raise format_utility.ParseFormatError, "Cannot parse mrccood file"
         if not isinstance(header, dict) and len(header) != len(line.split()): raise format_utility.ParseFormatError, "Cannot parse header of LST document - header mismatch - "+str(len(header))+" != "+str(len(line.split()))+" - "+str(header)+" :: "+line
         if isinstance(filename, str): fin.close()
         return factory.create(header, **extra), header, line
