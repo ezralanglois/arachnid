@@ -6,6 +6,10 @@ This module creates a named tuple from a list of values.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from collections import namedtuple
+import logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def create(header, classname="BasicTuple", **extra):
     '''Create namedtuple from the given header
@@ -117,7 +121,12 @@ def get_values(value, header=None, float_format="%.8g", **extra):
         for h in header:
             v = getattr(value, h, 0.0)
             if isinstance(v, str): values.append(v)
-            else: values.append(float_format % float(v))
+            else: 
+                try:
+                    values.append(float_format % float(v))
+                except:
+                    _logger.error("Cannot convert: %s for %s"%(str(v), h))
+                    raise
     return values
 
 
