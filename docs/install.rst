@@ -10,7 +10,27 @@ Installation
 Anaconda
 ========
 
-conda install -c https://conda.binstar.org/asmeurer pyside
+Install Anaconda
+
+
+	$ sh /guam.raid.cluster.software/arachnid/Anaconda-1.6.1-Linux-x86_64.sh -b -p 
+	
+Install Accelerate
+
+Note that this step requires you obtain a license from https://store.continuum.io/cshop/accelerate/. This is free
+if you have an .edu email.
+	
+	$ conda install accelerate --yes
+	
+Install Arachnid
+
+	$ easy_install file:///guam.raid.cluster.software/arachnid/dist/arachnid-0.0.1-py2.7-linux-x86_64.egg
+
+Fix GUI
+
+	$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
+
+
 
 Installing an official release
 ==============================
