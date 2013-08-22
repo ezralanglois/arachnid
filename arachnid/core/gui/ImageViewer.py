@@ -270,7 +270,7 @@ class MainWindow(QtGui.QMainWindow):
         
         if len(self.files) == 0: return
         self.imageListModel.clear()
-        index, start=self.imageSubset(self.ui.pageSpinBox.value(), self.ui.imageCountSpinBox.value())
+        index, start=self.imageSubset(self.ui.pageSpinBox.value()-1, self.ui.imageCountSpinBox.value())
         bin_factor = self.ui.decimateSpinBox.value()
         nstd = self.ui.clampDoubleSpinBox.value()
         img = None
@@ -279,7 +279,15 @@ class MainWindow(QtGui.QMainWindow):
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         masks={}
         
+        
+        progressDialog = QtGui.QProgressDialog('Opening...', "Cancel", 0,len(index),self)
+        progressDialog.setWindowModality(QtCore.Qt.WindowModal)
+        progressDialog.show()
+        
+        self.ui.imageListView.setModel(None)
+        
         for i, (imgname, img) in enumerate(iter_images(self.files, index)):
+            progressDialog.setValue(i+1)
             if hasattr(img, 'ndim'):
                 if self.advanced_settings.center_mask > 0 and img.shape not in masks:
                     masks[img.shape]=ndimage_utility.model_disk(self.advanced_settings.center_mask, img.shape)*-1+1
@@ -321,12 +329,13 @@ class MainWindow(QtGui.QMainWindow):
             self.addToolTipImage(imgname, item)
             self.imageListModel.appendRow(item)
             self.notify_added_item(item)
+        self.ui.imageListView.setModel(self.imageListModel)
         
         self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
         n = max(5, int(self.imagesize*zoom))
         self.ui.imageListView.setIconSize(QtCore.QSize(n, n))
-            
-        batch_count = float(self.imageTotal()/self.ui.imageCountSpinBox.value())
+        
+        batch_count = numpy.ceil(float(self.imageTotal())/self.ui.imageCountSpinBox.value())
         self.ui.pageSpinBox.setSuffix(" of %d"%batch_count)
         self.ui.pageSpinBox.setMaximum(batch_count)
         self.ui.actionForward.setEnabled(self.ui.pageSpinBox.value() < batch_count)
@@ -512,16 +521,20 @@ def iter_images(files, index, average=False):
                 for img in ndimage_file.iter_images(f):
                     if avg is None: avg = img
                     else: avg+=img
-                img = ndimage_utility.normalize_min_max(avg)
+                try:
+                    img = ndimage_utility.normalize_min_max(avg)
+                except: img=avg
                 yield (f, 0), img 
         else:
             for idx in index:
                 f, i = idx[:2]
                 try:
-                    img = ndimage_utility.normalize_min_max(ndimage_file.read_image(files[f], i))
+                    img = ndimage_file.read_image(files[f], i) 
                 except:
                     print f, i, len(files)
                     raise
+                try:img=ndimage_utility.normalize_min_max(img)
+                except: pass
                 yield (files[f], i), img
         '''
         for filename in files:
