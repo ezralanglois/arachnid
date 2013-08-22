@@ -439,8 +439,13 @@ def select_class_subset(vals, select, output, column="rlnClassNumber", random_su
         micselect={}
         for v in subset:
             mic,par = spider_utility.relion_id(v.rlnImageName)
-            if mic not in micselect: micselect[mic]=[]
-            micselect[mic].append((par, 1))
+            if par is None:
+                
+                if mic not in micselect: micselect[mic]=[]
+            else:
+                if mic not in micselect: micselect[mic]=[]
+                micselect[mic].append((par, 1))
+        _logger.info("Writing SPIDER selection files for %d micrographs"%len(micselect))
         prefix=None
         if spider_utility.is_spider_filename(output):
             for mic,vals in micselect.iteritems():
@@ -701,6 +706,10 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     name_col = header.index('rlnImageName') if stack_file != "" else -1
     Tuple = data[0].__class__
     
+    stack_files=glob.glob(stack_file)
+    if len(stack_files) == 0: raise ValueError, "Cannot find --stack-file %s"%stack_file
+    if len(stack_files) == 1: stack_files=stack_files[0]
+    
     for i in xrange(len(data)):
         vals = data[i] if not isinstance(data[i], tuple) else list(data[i])
         if group_col >= 0 and group_map is not None:
@@ -714,7 +723,17 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
                 raise
         if x_col > -1: vals[x_col]*= scale
         if y_col > -1: vals[y_col]*= scale
-        if name_col > -1: vals[name_col] = spider_utility.relion_filename(stack_file, vals[name_col])
+        if name_col > -1: 
+            if isinstance(stack_files, list):
+                newfile = None
+                for f in stack_files:
+                    f = spider_utility.relion_filename(f, vals[name_col])
+                    if not os.path.exists(f): continue
+                    newfile=f
+                    break
+                vals[name_col] = newfile
+            else:
+                vals[name_col] = spider_utility.relion_filename(stack_file, vals[name_col])
         if hasattr(Tuple, '_make'): data[i] = Tuple._make(vals)
         else: data[i] = tuple(vals)
     
