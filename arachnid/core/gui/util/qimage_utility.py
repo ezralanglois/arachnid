@@ -74,7 +74,8 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
         qimage._numpy = bgra
         return qimage
     elif img.ndim != 2: raise ValueError, "Only gray scale images are supported for conversion, %d"%img.ndim
-    img = normalize_min_max(img, 0, 255.0, out=img)
+    if img.min() != img.max():
+        img = normalize_min_max(img, 0, 255.0, out=img)
     img = numpy.require(img, numpy.uint8, 'C')
     h, w = img.shape
     if width == 0: width = w
