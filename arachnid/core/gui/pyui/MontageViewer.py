@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Mon Aug 12 16:12:59 2013
+# Created: Mon Aug 19 14:25:20 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -80,6 +80,7 @@ class Ui_MainWindow(object):
         self.contrastSlider.setObjectName("contrastSlider")
         self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.contrastSlider)
         self.pageSpinBox = QtGui.QSpinBox(self.tab)
+        self.pageSpinBox.setMinimum(1)
         self.pageSpinBox.setMaximum(99999)
         self.pageSpinBox.setObjectName("pageSpinBox")
         self.formLayout.setWidget(3, QtGui.QFormLayout.FieldRole, self.pageSpinBox)
@@ -137,7 +138,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setContentsMargins(0, 2, 0, 0)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.advancedSettingsTreeView = QtGui.QTreeView(self.groupBox)
-        self.advancedSettingsTreeView.setEditTriggers(QtGui.QAbstractItemView.CurrentChanged|QtGui.QAbstractItemView.EditKeyPressed|QtGui.QAbstractItemView.SelectedClicked)
+        self.advancedSettingsTreeView.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed|QtGui.QAbstractItemView.SelectedClicked)
         self.advancedSettingsTreeView.setAlternatingRowColors(True)
         self.advancedSettingsTreeView.setIndentation(15)
         self.advancedSettingsTreeView.setUniformRowHeights(True)

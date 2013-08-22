@@ -21,7 +21,7 @@ from matplotlib.figure import Figure
 import matplotlib.cm as cm, matplotlib.lines
 from matplotlib._png import read_png
 
-from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility
+from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility, rotate
 import numpy, os, logging, itertools
 
 _logger = logging.getLogger(__name__)
@@ -45,6 +45,7 @@ class MainWindow(QtGui.QMainWindow):
         self.header = []
         self.selected = None
         self.selectedImage = None
+        self.rtsq=None
         self.groups=None
         self.highlight_index = 0
         default_markers=['s', 'o', '^', '>', 'v', 'd', 'p', 'h', '8', '+', 'x']
@@ -233,6 +234,10 @@ class MainWindow(QtGui.QMainWindow):
             if ids[i]: 
                 self.headermap[header[i]]=len(self.header)
                 self.header.append(header[i])
+        try:
+            self.rtsq = (self.header.index('psi'), self.header.index('tx'), self.header.index('ty'))
+        except:
+            self.rtsq = None
         
         try:select = self.header.index('select')
         except: select = None
@@ -454,6 +459,9 @@ class MainWindow(QtGui.QMainWindow):
                     if len(idx)==1: idx=idx[0]
                 except:pass
                 data = self.data[self.selected]
+                if self.rtsq is not None:
+                    rdata = data[:, self.rtsq]
+                else: rdata=None
                 data = data[:, (x,y)]
                 label = self.label[self.selected]
                 neighbors = self.ui.averageCountSpinBox.value()
@@ -462,6 +470,9 @@ class MainWindow(QtGui.QMainWindow):
                     idx = numpy.argsort(numpy.hypot(data[idx, 0]-data[:, 0], data[idx, 1]-data[:, 1]))[:neighbors+1].squeeze()
                     avg = None
                     for i, img in enumerate(iter_images(self.stack_file, label[idx])):
+                        if rdata is not None:
+                            print label[i], rdata[idx[i], 0], rdata[idx[i], 1], rdata[idx[i], 2]
+                            img = rotate.rotate_image(img, rdata[idx[i], 0], rdata[idx[i], 1], rdata[idx[i], 2])
                         if avg is None: avg = img.copy()
                         else: avg += img
                     im = OffsetImage(avg, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)

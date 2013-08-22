@@ -152,6 +152,9 @@
                    <property name="suffix">
                     <string> of 0</string>
                    </property>
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
                    <property name="maximum">
                     <number>99999</number>
                    </property>
@@ -296,7 +299,7 @@
                     <item>
                      <widget class="QTreeView" name="advancedSettingsTreeView">
                       <property name="editTriggers">
-                       <set>QAbstractItemView::CurrentChanged|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+                       <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
                       </property>
                       <property name="alternatingRowColors">
                        <bool>true</bool>
