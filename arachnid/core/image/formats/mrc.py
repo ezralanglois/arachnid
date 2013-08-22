@@ -325,6 +325,7 @@ def read_mrc_header(filename, index=None):
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_image_dtype, count=1)
         if not is_readable(h): h = h.newbyteorder()
+        if not is_readable(h): raise IOError, "Not MRC header"
     finally:
         util.close(filename, f)
     return h
