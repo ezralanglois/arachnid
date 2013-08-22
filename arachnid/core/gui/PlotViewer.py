@@ -26,12 +26,13 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.cm as cm #, matplotlib.lines
+import property
 #
 
 from pyui.PlotViewer import Ui_MainWindow
 #from util import qimage_utility
 from ..metadata import format #, spider_utility #, format
-from ..image import ndimage_utility, ndimage_file, analysis, rotate #, ndimage_interpolate
+from ..image import ndimage_utility, ndimage_file, analysis, rotate, ndimage_interpolate, ndimage_filter
 import os, itertools, numpy #, glob
 #import property
 
@@ -104,6 +105,32 @@ class MainWindow(QtGui.QMainWindow):
         action.setIcon(icon8)
         self.ui.toolBar.insertAction(self.ui.actionShow_Options, action)
         
+        
+        self.ui.toggleAdvancedDockAction = self.ui.advancedDockWidget.toggleViewAction()
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/cog_edit.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.toggleAdvancedDockAction.setIcon(icon8)
+        self.ui.toolBar.insertAction(self.ui.actionShow_Options, self.ui.toggleAdvancedDockAction)
+        self.ui.advancedDockWidget.hide()
+        
+        
+        action = self.ui.fileDockWidget.toggleViewAction()
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/folder_explore.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        action.setIcon(icon8)
+        self.ui.toolBar.insertAction(self.ui.actionShow_Options, action)
+        
+        
+        # Create advanced settings
+        
+        property.setView(self.ui.advancedSettingsTreeView)
+        self.advanced_settings, self.advanced_names = self.ui.advancedSettingsTreeView.model().addOptionList(self.advancedSettings())
+        self.ui.advancedSettingsTreeView.setStyleSheet('QTreeView::item[readOnly="true"]{ color: #000000; }')
+        
+        for i in xrange(self.ui.advancedSettingsTreeView.model().rowCount()-1, 0, -1):
+            if self.ui.advancedSettingsTreeView.model().index(i, 0).internalPointer().isReadOnly(): # Hide widget items (read only)
+                self.ui.advancedSettingsTreeView.setRowHidden(i, QtCore.QModelIndex(), True)
+        
         # Subset List
         self.subsetListModel = QtGui.QStandardItemModel()
         self.ui.subsetListView.setModel(self.subsetListModel)
@@ -139,6 +166,19 @@ class MainWindow(QtGui.QMainWindow):
         
         self.saveSettings()
         QtGui.QMainWindow.closeEvent(self, evt)
+    
+    def advancedSettings(self):
+        ''' Get a list of advanced settings
+        '''
+        
+        return [ 
+               dict(downsample_type=('bilinear', 'ft', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
+               dict(bin_factor=1.0, help="Factor to downsample image"),
+               dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
+               dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
+               #dict(film=False, help="Set true to disable contrast inversion"),
+               #dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
+               ]
     
     # Slots for GUI
     
@@ -415,7 +455,7 @@ class MainWindow(QtGui.QMainWindow):
             for i in xrange(self.subsetListModel.rowCount()):
                 sval = float(self.subsetListModel.item(i).text())
                 if self.subsetListModel.item(i).checkState() == QtCore.Qt.Checked:
-                    selected = numpy.logical_or(self.selected, self.data[:, s]==sval)
+                    selected = numpy.logical_or(selected, self.data[:, s]==sval)
                 else:
                     selected[self.data[:, s]==sval]=0
             data = self.data[selected]
@@ -520,7 +560,7 @@ class MainWindow(QtGui.QMainWindow):
         off = self.selectedImage
         align = data[(off, ), self.rtsq_cols].reshape((1, len(self.rtsq_cols))) if len(self.rtsq_cols) > 2 else None
         tmp = data[(off, ), self.label_cols].reshape((1, len(self.label_cols)))
-        for i, img in enumerate(iter_images(self.stack_file, tmp, align)):
+        for i, img in enumerate(iter_images(self.stack_file, tmp, align, **vars(self.advanced_settings))):
             im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
             ab = AnnotationBbox(im, data[off, (x,y)], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
             self.axes.add_artist(ab)
@@ -541,7 +581,7 @@ class MainWindow(QtGui.QMainWindow):
         sidx = numpy.argsort(data2[:, self.label_cols[0]])
         data2 = data2[sidx]
         align = data2[:, self.rtsq_cols] if len(self.rtsq_cols) > 2 else None
-        for img in iter_images(self.stack_file, data2[:, self.label_cols], align):
+        for img in iter_images(self.stack_file, data2[:, self.label_cols], align, **vars(self.advanced_settings)):
             if avg is None: avg = img.copy()
             else: avg += img
         im = OffsetImage(avg, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
@@ -564,7 +604,7 @@ class MainWindow(QtGui.QMainWindow):
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         radius = self.ui.imageSepSpinBox.value()
         align = data[:, self.rtsq_cols] if len(self.rtsq_cols) > 2 else None
-        index = plot_random_sample_of_images(self.axes, self.stack_file, data[:, self.label_cols], data[:, (x,y)], align, radius, n, zoom, idx)
+        index = plot_random_sample_of_images(self.axes, self.stack_file, data[:, self.label_cols], data[:, (x,y)], align, radius, n, zoom, idx, **vars(self.advanced_settings))
         self.axes.scatter(data[index, x], data[index, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
     
     def displayImage(self, event_obj):
@@ -594,7 +634,7 @@ class MainWindow(QtGui.QMainWindow):
             self.selectedImage = event_obj.ind[ds.argmin()]
         self.drawImages()
         
-def plot_random_sample_of_images(ax, stack_file, label, xy, align, radius, n, zoom, keep=None):
+def plot_random_sample_of_images(ax, stack_file, label, xy, align, radius, n, zoom, keep=None, **extra):
     '''
     '''
     
@@ -606,12 +646,20 @@ def plot_random_sample_of_images(ax, stack_file, label, xy, align, radius, n, zo
         index[off]=index[0]
         index[0]=keep
     assert(n>0)
+    
     vals = nonoverlapping_subset(ax, xy[index], radius, n)
     index = index[vals]
-    if align is not None: align = align[index]
-    for i, img in enumerate(iter_images(stack_file, label[index], align)):
+    label = label[index]
+    sidx = numpy.argsort(label[:, 0])
+    label = label[sidx]
+    if align is not None: 
+        align = align[index]
+        align = align[sidx]
+    
+    
+    for i, img in enumerate(iter_images(stack_file, label, align, **extra)):
         im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
-        ab = AnnotationBbox(im, xy[index[i]], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
+        ab = AnnotationBbox(im, xy[index[sidx[i]]], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
         ax.add_artist(ab)
     return index
 
@@ -681,7 +729,7 @@ def read_image(filename, index=None):
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
         
 
-def iter_images(files, index, align=None):
+def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, **extra):
     ''' Wrapper for iterate images that support color PNG files
     
     :Parameters:
@@ -702,7 +750,13 @@ def iter_images(files, index, align=None):
             print index[i], align[i]
             img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
             if len(align[i]) > 3 and align[i,3] > 180: img = ndimage_utility.mirror(img)
+            
             i+=1
+        if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, downsample_type)
+        if gaussian_high_pass > 0.0:
+            img=ndimage_filter.filter_gaussian_highpass(img, gaussian_high_pass)
+        if gaussian_low_pass > 0.0:
+            img=ndimage_filter.filter_gaussian_lowpass(img, gaussian_low_pass)
         yield img
 
 def nonoverlapping_subset(ax, xy, radius, n):

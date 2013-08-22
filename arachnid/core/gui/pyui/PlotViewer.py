@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/PlotViewer.ui'
 #
-# Created: Fri Aug 16 07:28:10 2013
+# Created: Fri Aug 16 09:47:18 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -164,9 +164,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.widget_3)
         self.imageDockWidget.setWidget(self.dockWidgetContents_2)
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.imageDockWidget)
-        self.dockWidget = QtGui.QDockWidget(MainWindow)
-        self.dockWidget.setAllowedAreas(QtCore.Qt.BottomDockWidgetArea|QtCore.Qt.TopDockWidgetArea)
-        self.dockWidget.setObjectName("dockWidget")
+        self.fileDockWidget = QtGui.QDockWidget(MainWindow)
+        self.fileDockWidget.setAllowedAreas(QtCore.Qt.BottomDockWidgetArea|QtCore.Qt.TopDockWidgetArea)
+        self.fileDockWidget.setObjectName("fileDockWidget")
         self.dockWidgetContents_3 = QtGui.QWidget()
         self.dockWidgetContents_3.setObjectName("dockWidgetContents_3")
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.dockWidgetContents_3)
@@ -181,8 +181,27 @@ class Ui_MainWindow(object):
         self.fileTableView.horizontalHeader().setStretchLastSection(True)
         self.fileTableView.verticalHeader().setVisible(False)
         self.verticalLayout_3.addWidget(self.fileTableView)
-        self.dockWidget.setWidget(self.dockWidgetContents_3)
-        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dockWidget)
+        self.fileDockWidget.setWidget(self.dockWidgetContents_3)
+        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.fileDockWidget)
+        self.advancedDockWidget = QtGui.QDockWidget(MainWindow)
+        self.advancedDockWidget.setFloating(True)
+        self.advancedDockWidget.setAllowedAreas(QtCore.Qt.NoDockWidgetArea)
+        self.advancedDockWidget.setObjectName("advancedDockWidget")
+        self.dockWidgetContents_4 = QtGui.QWidget()
+        self.dockWidgetContents_4.setObjectName("dockWidgetContents_4")
+        self.verticalLayout_4 = QtGui.QVBoxLayout(self.dockWidgetContents_4)
+        self.verticalLayout_4.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.advancedSettingsTreeView = QtGui.QTreeView(self.dockWidgetContents_4)
+        self.advancedSettingsTreeView.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked|QtGui.QAbstractItemView.EditKeyPressed|QtGui.QAbstractItemView.SelectedClicked)
+        self.advancedSettingsTreeView.setAlternatingRowColors(True)
+        self.advancedSettingsTreeView.setIndentation(15)
+        self.advancedSettingsTreeView.setUniformRowHeights(True)
+        self.advancedSettingsTreeView.setObjectName("advancedSettingsTreeView")
+        self.advancedSettingsTreeView.header().setCascadingSectionResizes(True)
+        self.verticalLayout_4.addWidget(self.advancedSettingsTreeView)
+        self.advancedDockWidget.setWidget(self.dockWidgetContents_4)
+        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.advancedDockWidget)
         self.actionOpen = QtGui.QAction(MainWindow)
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(":/mini/mini/folder.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -269,7 +288,8 @@ class Ui_MainWindow(object):
         self.label_5.setText(QtGui.QApplication.translate("MainWindow", "Separation", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("MainWindow", "Zoom", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("MainWindow", "Average", None, QtGui.QApplication.UnicodeUTF8))
-        self.dockWidget.setWindowTitle(QtGui.QApplication.translate("MainWindow", "File Explorer", None, QtGui.QApplication.UnicodeUTF8))
+        self.fileDockWidget.setWindowTitle(QtGui.QApplication.translate("MainWindow", "File Explorer", None, QtGui.QApplication.UnicodeUTF8))
+        self.advancedDockWidget.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Advanced", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", "Open", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setToolTip(QtGui.QApplication.translate("MainWindow", "Open a file to plot or a stack of images to display", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setShortcut(QtGui.QApplication.translate("MainWindow", "Meta+O", None, QtGui.QApplication.UnicodeUTF8))
