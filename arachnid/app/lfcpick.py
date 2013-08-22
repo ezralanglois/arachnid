@@ -465,14 +465,14 @@ def read_bench_coordinates(fid, good_coords="", good="", bin_factor=1.0, **extra
     x, y = header.index('x'), header.index('y')
     return numpy.vstack((coords[:, x], coords[:, y])).T
 
-def find_overlap(coords, benchmark, bench_mult=1.2, pixel_radius=1.0, **extra):
+def find_overlap(coords, bench, bench_mult=1.2, pixel_radius=1.0, **extra):
     '''Find the overlaping coordinates with the benchmark
     
     :Parameters:
         
     coords : numpy.ndarray
              Coorindates found by algorithm
-    benchmark : numpy.ndarray
+    bench : numpy.ndarray
                 Set of 'good' coordinates
     pixel_radius : int
                    Radius of the particle in pixels
@@ -485,19 +485,19 @@ def find_overlap(coords, benchmark, bench_mult=1.2, pixel_radius=1.0, **extra):
              Overlapping (x,y) coordinates
     '''
     
-    _logger.error("%s == %s"%(str(benchmark.max(0)), str(coords.max(0))))
-    assert(benchmark.shape[1] == 2)
-    benchmark=benchmark.copy()
+    _logger.error("%s == %s"%(str(bench.max(0)), str(coords.max(0))))
+    assert(bench.shape[1] == 2)
+    bench=bench.copy()
     rad = pixel_radius*bench_mult
     pixel_radius = rad*rad
     selected = []
-    if len(benchmark) > 0:
+    if len(bench) > 0:
         for i, f in enumerate(coords):
-            dist = f-benchmark
+            dist = f-bench
             numpy.square(dist, dist)
             dist = numpy.sum(dist, axis=1)
             if dist.min() < pixel_radius:
-                benchmark[dist.argmin(), :]=(1e20, 1e20)
+                bench[dist.argmin(), :]=(1e20, 1e20)
                 selected.append((i+1, 1))
     return selected
 
