@@ -56,7 +56,11 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, **
     cir = ctf.estimate_circularity(pow, beg, end)
     freq = numpy.arange(len(roo), dtype=numpy.float)
     
-    roo1, beg1 = ctf.factor_correction(roo, beg, end) if 1 == 1 else roo[beg:end]
+    try:
+        roo1, beg1 = ctf.factor_correction(roo, beg, end) if 1 == 1 else roo[beg:end]
+    except:
+        _logger.error("Unable to correct 1D for %d"%id)
+        return filename, [id, 0, 0, 0, 0]
     roo1=roo1[beg1:]
     old=beg
     beg = beg1+beg
@@ -174,7 +178,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, *
     return fig
     #return plotting.save_as_image(fig)
 
-def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", **extra):
+def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", average_frames=False, multitaper=False, **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -205,20 +209,52 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
         if os.path.exists(pow_cache):
             return ndimage_file.read_image(pow_cache)
     
-    mic = ndimage_file.read_image(filename)
-    if from_power: return mic
-    if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
-    if invert: ndimage_utility.invert(mic, mic)
-    #window_size /= bin_factor
-    #overlap_norm = 1.0 / (1.0-overlap)
     step = max(1, window_size*overlap)
-    rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
-    rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
-    print rwin.shape
-    
-    # select good windows
-    
-    pow = ndimage_utility.powerspec_avg(rwin, pad)
+    if from_power:
+        return ndimage_file.read_image(filename)
+    elif ndimage_file.count_images(filename) > 1 and not average_frames:
+        pow = None
+        _logger.info("Average power spectra over individual frames")
+        n = ndimage_file.count_images(filename)
+        for i in xrange(n):
+            mic = ndimage_file.read_image(filename, i).astype(numpy.float32)
+            if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+            if invert: ndimage_utility.invert(mic, mic)
+            rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
+            rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
+            if 1 == 1:
+                if pow is None: pow = ndimage_utility.powerspec_avg(rwin, pad)/float(n)
+                else: pow += ndimage_utility.powerspec_avg(rwin, pad)/float(n)
+            else:
+                if pow is None:
+                    pow, total = ndimage_utility.powerspec_sum(rwin, pad)
+                else:
+                    _logger.error("%d -- %f"%(total, pow.sum()))
+                    total+= ndimage_utility.powerspec_sum(rwin, pad, pow, total)[1]
+        pow=ndimage_utility.powerspec_fin(pow, total)
+    else:
+        if ndimage_file.count_images(filename) > 1 and average_frames:
+            mic = None
+            for i in xrange(ndimage_file.count_images(filename)):
+                if mic is None: mic = ndimage_file.read_image(filename, i)
+                else: mic += ndimage_file.read_image(filename, i)
+        else: 
+            mic = ndimage_file.read_image(filename)
+        mic = mic.astype(numpy.float32)
+        if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+        if invert: ndimage_utility.invert(mic, mic)
+        #window_size /= bin_factor
+        #overlap_norm = 1.0 / (1.0-overlap)
+        if multitaper:
+            from arachnid.core.image import _multitaper
+            pow = _multitaper.multitaper_psd(mic)[0]
+        else:
+            rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
+            rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
+            
+            # select good windows
+            
+            pow = ndimage_utility.powerspec_avg(rwin, pad)
     if cache_pow:
         ndimage_file.write_image(pow_cache, pow)
         plotting.draw_image(ndimage_utility.dct_avg(mic, pad), cmap=plotting.cm.hsv, output_filename=format_utility.add_prefix(pow_cache, "dct_"))
@@ -271,17 +307,18 @@ def reduce_all(filename, file_completed, defocus_arr, defocus_val, **extra):
     
     filename, vals = filename
     
-    defocus_arr[file_completed-1, :5]=vals
-    try:
-        defocus_arr[file_completed-1, 5] = defocus_val[int(vals[0])].defocus
-    except:
-        defocus_arr[file_completed-1, 5]=0
-        defocus_arr[file_completed-1, 6]=0
-    else:
+    if len(vals) > 0:
+        defocus_arr[file_completed-1, :5]=vals
         try:
-            defocus_arr[file_completed-1, 6] = defocus_val[int(vals[0])].astig_mag
+            defocus_arr[file_completed-1, 5] = defocus_val[int(vals[0])].defocus
         except:
-            defocus_arr[file_completed-1, 6] = 0
+            defocus_arr[file_completed-1, 5]=0
+            defocus_arr[file_completed-1, 6]=0
+        else:
+            try:
+                defocus_arr[file_completed-1, 6] = defocus_val[int(vals[0])].astig_mag
+            except:
+                defocus_arr[file_completed-1, 6] = 0
     
     return filename
 
@@ -332,6 +369,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", cache_pow=False, help="Save 2D power spectra")
     group.add_option("", trunc_1D=False, help="Place trunacted 1D/model on color 2D power spectra")
     group.add_option("", mask_radius=0,  help="Mask the center of the color power spectra (Resolution in Angstroms)")
+    group.add_option("", average_frames=False,  help="Average frames before estimating power spectra")
+    group.add_option("", multitaper=False,  help="Multi-taper PSD estimation")
+    
     pgroup.add_option_group(group)
     
 def setup_main_options(parser, group):
