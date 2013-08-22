@@ -57,7 +57,7 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
     tst = data-data.mean(0)
     neig=extra['neig']
     neig;
-    
+    keep = numpy.ones(len(data), dtype=numpy.int)
     
     if 1 == 0: #iterate
         try:
@@ -85,12 +85,18 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
         from sklearn.covariance import OAS
         
         if dm>0:
+            _logger.info("Embedding with %d neighbors"%dm)
             dist2 = manifold.knn(data, dm, 10000)
+            _logger.info("Dist2: %d"%dist2.data.shape[0])
+            dist2 = manifold.knn_reduce(dist2, dm-1, True)
+            _logger.info("Dist2b: %d"%dist2.data.shape[0])
             feat, eigv, index = manifold.diffusion_maps_dist(dist2, 2)
             if index is not None:
+                keep[:]=0
                 feat2 = numpy.zeros((data.shape[0], feat.shape[1]), dtype=feat.dtype)
                 feat2[index]=feat
                 feat=feat2
+                keep[index]=1
         elif 1 == 1:
             eigv, feat=analysis.dhr_pca(tst, tst, extra['neig'], expected, True)
             '''
@@ -129,13 +135,13 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
         _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
         rsel=None
         if feat is not None:
-            sel, rsel, dist = one_class_classification(feat, **extra)
+            sel, rsel, dist = one_class_classification(feat, keep.astype(numpy.bool), **extra)
             try:
-                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (5,6,7,1)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror', prefix='pca_')
+                format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], keep[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (5,6,7,1)], feat)), input_vals[0], label, header='select,keep,dist,rot,group,psi,tx,ty,mirror', prefix='pca_')
             except:
                 _logger.error("sel: %s - dist: %s - align: %s - label: %s"%(str(sel.shape), str(dist.shape), str(align[:, 0].shape), str(label[:, 1].shape)))
                 raise
-            _logger.info("Finished embedding view: %d"%int(input_vals[0]))
+            _logger.info("Finished embedding view: %d - %d == %d"%(int(input_vals[0]), keep.sum(), keep.astype(numpy.bool).sum()))
         else:
             _logger.info("Skipping view (too few projections): %d"%int(input_vals[0]))
     
@@ -171,7 +177,7 @@ def outlier_rejection(feat, prob):
     cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
     return dist < cut
 
-def one_class_classification(feat, neig, nsamples, prob_reject, nstd=2.5, **extra):
+def one_class_classification(feat, keep, neig, nsamples, prob_reject, nstd=2.5, **extra):
     '''
     '''
     
@@ -180,17 +186,18 @@ def one_class_classification(feat, neig, nsamples, prob_reject, nstd=2.5, **extr
         import scipy.stats
         feat=feat[:, :neig]
         try:
-            robust_cov = MinCovDet().fit(feat)
+            robust_cov = MinCovDet().fit(feat[keep])
             #robust_cov = GraphLasso().fit(feat)
             #robust_cov.location_ = feat.median(0)
         except:
-            robust_cov = EmpiricalCovariance().fit(feat)
-        dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
+            robust_cov = EmpiricalCovariance().fit(feat[keep])
+        dist = robust_cov.mahalanobis(feat - numpy.median(feat[keep], 0))
             
         #dist = robust_cov.mahalanobis(feat)
         cut = scipy.stats.chi2.ppf(prob_reject, feat.shape[1])
-        _logger.info("Cutoff: %d -- for df: %d"%(cut, feat.shape[1]))
-        sel = dist < cut
+        sel =  dist < cut
+        _logger.info("Cutoff: %d -- for df: %d | sel: %d | keep: %d"%(cut, feat.shape[1], numpy.sum(sel), numpy.sum(keep)))
+        sel = numpy.logical_and(keep, sel)
         #sel = analysis.robust_rejection(dist, nstd*1.4826)
     elif 1 == 1:
         from sklearn.covariance import EllipticEnvelope
