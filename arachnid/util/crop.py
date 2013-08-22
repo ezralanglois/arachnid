@@ -157,7 +157,7 @@ import numpy, os, logging, psutil
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, id_len=0, single=False, **extra):
+def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra):
     '''Crop a set of particles from a micrograph file with the specified
     coordinate file and write particles to an image stack.
     
@@ -180,15 +180,21 @@ def process(filename, id_len=0, single=False, **extra):
         tot = len(filename[1])
         fid = filename[0]
     else:
-        try:
-            tot = mrc_file.count_images(filename)
-        except: tot = ndimage_file.count_images(filename)
+        tot = None
         fid = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file', 'frame_align')
     try: coords = read_coordinates(**extra)
     except: 
         _logger.exception("Ignore this")
         return filename, 0, os.getpid()
+
+    if tot is None:
+        if mrc_file.is_readable(filename):
+            try:
+                tot = mrc_file.count_images(filename)
+            except: tot = ndimage_file.count_images(filename)
+        else: tot = ndimage_file.count_images(filename)
+        
     
     noise=extra['noise']
     radius, offset, bin_factor, tmp = init_param(**extra)
@@ -197,34 +203,45 @@ def process(filename, id_len=0, single=False, **extra):
     npdata = eman2_utility.em2numpy(emdata)
     
     #if extra['experimental']: return filename, len(coords)
-    
+    if frame_beg > 0: frame_beg -= 1
+    if frame_end < 0: frame_end = tot
     output=extra['output']
     if extra['frame_align'] != "":
         if not os.path.exists(extra['frame_align']):
             _logger.warn("No translation file, skipping %s"%str(filename))
             return filename, 0, os.getpid()
         align = format.read(extra['frame_align'], numeric=True)
+        if len(align) < (frame_end-frame_beg): 
+            _logger.warn("Skipping number of translations is less than frames %d, %d"%(frame_beg, frame_end))
+            return filename, 0, os.getpid()
     else: align=None
     coords_orig=None
-    for i in xrange(tot):
+
+    for i in xrange(frame_beg,frame_end):
         frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
-        _logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, i, tot))
+        _logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, i, frame_end))
         mic = read_micrograph(filename, i, **extra)    
         # translate
         npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
         bin_factor = extra['bin_factor']
-        if tot > 1: 
+        if tot > 1 and align is not None: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
+            j = i-frame_beg if len(align) == (frame_end-frame_beg) else i
             if extra['experimental']:
                 if coords_orig is None: 
-                    coords_orig=numpy.asarray(coords).copy()
-                coords = coords_orig[:, 1:3] - (align[i].dx/bin_factor, align[i].dy/bin_factor)
+                    coords = numpy.asarray(coords)
+                    coords_orig=coords.copy()
+                try:
+                    coords[:, 1:3] = coords_orig[:, 1:3] - (align[j].dx/bin_factor, align[j].dy/bin_factor)
+                except:
+                    _logger.error("%d < %d (%d) - %s"%(j, len(align), (frame_end-frame_beg), filename))
+                    raise
             else:
-                npmic[:] = eman2_utility.fshift(npmic, align[i].dx/bin_factor, align[i].dy/bin_factor)
-        if i == 0:
-            test_coordinates(npmic, coords, bin_factor)
+                npmic[:] = eman2_utility.fshift(npmic, align[j].dx/bin_factor, align[j].dy/bin_factor)
+        #if i == 0:
+        #    test_coordinates(npmic, coords_orig, bin_factor)
             
-        _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, tot))
+        _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
         for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
             npdata[:, :] = win
             
@@ -318,6 +335,7 @@ def read_micrograph(filename, index=0, emdata=None, bin_factor=1.0, sigma=1.0, f
         emmic=eman2_utility.numpy2em(mic)
         emmic.process_inplace("xform.flip",{"axis":"y"})
         mic[:]=eman2_utility.em2numpy(emmic)
+    mic = mic.astype(numpy.float32)
     if bin_factor > 1.0 and not disable_bin: 
         mic = eman2_utility.decimate(mic, bin_factor)
     if invert:
@@ -601,8 +619,14 @@ def init_root(files, param):
                 _logger.info("Processing example movie in reverse: %s"%str(files[0]))
             else:
                 _logger.info("Processing example movie: %s"%str(files[0]))
-            
-        _logger.info("Processing %d micrographs"%len(files))
+        
+        if tot > 0:
+            if param['frame_align'] != "":
+                _logger.info("Processing %d aligned movie micrographs"%len(files))
+            else:
+                _logger.info("Processing %d movie micrographs"%len(files))
+        else:
+            _logger.info("Processing %d micrographs"%len(files))
     
     files = mpi_utility.broadcast(files, **param)
     return files
@@ -625,7 +649,7 @@ def initialize(files, param):
             if not param['disable_normalize']: _logger.info("Normalize (xmipp style)")
         param['count'] = numpy.zeros(2, dtype=numpy.int)
         if len(files) > 0 and not isinstance(files[0], tuple):
-            _logger.info("Extracting windows from movies frames from micrograph stacks")
+            _logger.info("Extracting windows from micrograph stacks of movie frames")
     
     if mpi_utility.is_root(**param):
         selection_doc = format_utility.parse_header(param['selection_doc'])[0]
@@ -730,6 +754,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", single=False,             help="Single window (first)")
     group.add_option("", flip=False,                help="Flip micrograph")
     group.add_option("", reverse=False,             help="Reverse for reversied alignment")
+    group.add_option("", frame_beg=0,              help="Range for the number of frames")
+    group.add_option("", frame_end=-1,             help="Range for the number of frames")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
