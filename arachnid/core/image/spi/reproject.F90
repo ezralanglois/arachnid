@@ -82,6 +82,7 @@ c         MD   = .FALSE.
 
 c$omp          parallel do private(i)
                DO I=1,NANG
+c                  print *, ANG(3,I),ANG(2,I),ANG(1,I)
                   CALL WPRO_N(PRJ(1,1,I),
      &               NX,NY,NZ,VOL,
      &               NVOX,VI,NN,
