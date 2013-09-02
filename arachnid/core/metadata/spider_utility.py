@@ -56,7 +56,6 @@ def single_images(files):
         
     return groups.items()
     
-
 def select_subset(files, select, id_len=0):
     ''' Create a list of files based on the given selection
     
@@ -120,21 +119,43 @@ def relion_filename(filename, id):
 
     :Parameters:
     
-        filename : string
-                   A file name
+    filename : str
+               A file name
     
     :Returns:
         
-        return_val : Tuple 
-                     Micrograph ID, particle ID or Micrograph ID only
+    return_val : tuple 
+                 Micrograph ID, particle ID or Micrograph ID only
     '''
     
     pid=""
-    if id.find('@') != -1:
-        pid,id = id.split('@')
-    if is_spider_filename(filename):
-        return pid+"@"+spider_filename(filename, id)
+    try:int(id)
+    except:
+        if id.find('@') != -1:
+            pid,id = id.split('@')
+        if is_spider_filename(filename):
+            return pid+"@"+spider_filename(filename, id)
+    else: pid = str(id)
     return pid+"@"+filename
+
+def frame_filename(filename, id):
+    ''' Create a frame file name from a template and an ID
+    
+    :Parameters:
+    
+    filename : str
+               A file name
+    
+    :Returns:
+    
+    '''
+    
+    base = os.path.basename(filename)
+    pos = base.find('_')+1
+    if pos == -1: raise ValueError, "Not a valid frame filename"
+    end = base.find('_', pos)
+    if end == -1: raise ValueError, "Not a valid frame filename"
+    return os.path.join(os.path.dirname(filename), base[:pos]+str(id)+base[end:])
 
 def relion_file(filename, file_only=False):
     '''Extract the filename and stack index
@@ -148,13 +169,13 @@ def relion_file(filename, file_only=False):
 
     :Parameters:
     
-        filename : string
-                   A file name
+    filename : str
+               A file name
     
     :Returns:
         
-        return_val : Tuple 
-                     Micrograph ID, particle ID or Micrograph ID only
+    return_val : tuple 
+                  Micrograph ID, particle ID or Micrograph ID only
     '''
     
     if filename.find('@') != -1:
@@ -175,18 +196,18 @@ def relion_id(filename, idlen=0, use_int=True):
         (1, 10)
 
     :Parameters:
-    
-        filename : string
-                   A file name
-        idlen : integer 
-                Maximum length of ID (default 0)
-        use_int: boolean
-                 Convert to integer, (default True)
+
+    filename : str
+               A file name
+    idlen : int 
+            Maximum length of ID (default 0)
+    use_int : bool
+             Convert to integer, (default True)
     
     :Returns:
-        
-        return_val : Tuple 
-                     Micrograph ID, particle ID or Micrograph ID only
+    
+    return_val : Tuple 
+                 Micrograph ID, particle ID or Micrograph ID only
     '''
     
     if filename.find('@') != -1:
@@ -210,7 +231,7 @@ def spider_header_vals(line):
     
     :Parameters:
 
-    line : string
+    line : str
            A string header
         
     :Returns:
@@ -241,7 +262,7 @@ def spider_header_vars(line):
     
     :Parameters:
 
-    line : string
+    line : str
            A string header
     
     :Returns:
@@ -269,12 +290,12 @@ def spider_id_length(base):
     
     :Parameters:
 
-    base : string
+    base : str
           A file base name
     
     :Returns:
     
-    return_val : integer 
+    return_val : int 
                  Length of spider id
     '''
     
@@ -300,12 +321,12 @@ def is_spider_filename(filename):
     
     :Parameters:
 
-    filename : string
+    filename : str
                A file name
     
     :Returns:
     
-    return_val : boolean 
+    return_val : bool 
                  True if filename conforms to Spider filename
     '''
     
@@ -334,14 +355,14 @@ def spider_basename(filename, idlen=0):
 
     :Parameters:
     
-    filename : string
+    filename : str
                A file name
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
     
     :Returns:
     
-    return_val : string 
+    return_val : str 
                  Base spider filename
     '''
     
@@ -368,12 +389,12 @@ def spider_searchpath(filename, wildcard='*', idlen=0):
                A file name
     wildcard : str
                Wild card to substitute for spider ID
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
     
     :Returns:
     
-    return_val : string 
+    return_val : str 
                  Base spider filename with wildcard in place of ID
     '''
     
@@ -396,14 +417,14 @@ def spider_filepath(filename, idlen=0):
 
     :Parameters:
 
-    filename : string
+    filename : str
                A file name
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
     
     :Returns:
     
-    return_val : string 
+    return_val : str 
                  Base spider filename with extension
     '''
     
@@ -426,16 +447,16 @@ def spider_id(filename, idlen=0, use_int=True):
 
     :Parameters:
 
-    filename : string
+    filename : str
                A file name
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
-    use_int: boolean
+    use_int: bool
              Convert to integer, (default True)
     
     :Returns:
     
-    return_val : integer 
+    return_val : int 
                  Spider ID
     '''
     
@@ -467,11 +488,11 @@ def split_spider_id(id, idlen=0, use_int=True):
 
     :Parameters:
 
-    id : string
+    id : str
          Concatenated identifier (or a list of identifiers)
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
-    use_int: boolean
+    use_int: bool
              Convert to integer, (default True)
     
     :Returns:
@@ -584,16 +605,16 @@ def spider_filename(filename, id, idlen=0):
 
     :Parameters:
 
-    filename : string
+    filename : str
                A file name
-    id : integer or string
+    id : int or string
          Spider ID
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
     
     :Returns:
     
-    return_val : string
+    return_val : str
                  A new spider file name
     '''
     
@@ -626,11 +647,11 @@ def file_map(filename, selection, id_len=0, ensure_exist=False):
     
     :Parameters:
 
-    filename : string
+    filename : str
                A file name
-    id : integer or string
+    id : int or string
          Spider ID
-    idlen : integer 
+    idlen : int 
             Maximum length of ID (default 0)
     
     :Returns:
@@ -662,7 +683,7 @@ def extract_id(filename, id_len=0):
     
     :Parameters:
     
-    filename : string
+    filename : str
                Processed filename
     id_len : int
              Maximum length of integer ID
