@@ -18,6 +18,27 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
 
+def rotation_from_euler(psi, theta, phi, axis='rzyz'):
+    '''
+    '''
+    
+    return transforms.rotation_from_matrix(transforms.euler_matrix(numpy.deg2rad(psi), numpy.deg2rad(theta), numpy.deg2rad(phi), axis))
+
+#ouble alpha, double beta, double gamma,
+def euler_to_vector(theta, phi):
+    '''
+    '''
+    
+    theta = numpy.deg2rad(theta)
+    phi = numpy.deg2rad(phi)
+    ct = numpy.cos(theta)
+    cp = numpy.cos(phi)
+    st = numpy.sin(theta)
+    sp = numpy.sin(phi)
+    sc = st * ct
+    ss = sp * st
+    return sc, ss, cp
+
 def fit_rotation(feat, maxfev=0):
     '''
     '''
@@ -106,6 +127,12 @@ def optimal_inplace_rotation_mp(euler, row, col, worker_count=0, out=None):
     for i, d in process_queue.for_mapped(optimal_inplane_rotation_worker, worker_count, len(row), euler, row, col):
         out[i]=d
     return out
+
+def convert_euler(psi,theta,phi, faxis='rzyz', taxis='rxyz'):
+    '''
+    '''
+    
+    return tuple(numpy.rad2deg(transforms.euler_from_matrix(transforms.euler_matrix(numpy.deg2rad(psi), numpy.deg2rad(theta), numpy.deg2rad(phi), faxis), taxis)))
 
 def optimal_inplane_rotation_worker(beg, end, euler, row, col, process_number=None):
     '''
