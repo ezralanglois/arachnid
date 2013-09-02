@@ -308,7 +308,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     '''
     
     if pylab is None: return 
-    pylab.switch_backend('cairo.png')
+    pylab.switch_backend('Agg')#cairo.png')
     coeff = None
     if not disable_sigmoid:
         try: coeff = fitting.fit_sigmoid(x, y)
