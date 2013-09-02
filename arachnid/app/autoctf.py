@@ -66,7 +66,10 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, **
     beg = beg1+beg
     # correct for noice and bfactor
     #defocus, err = ctf.estimate_defocus_spi(roo[beg:end], freq[beg:end], len(roo), **extra)[:2]
-    defocus, err = ctf.estimate_defocus_spi(roo1, freq[beg:end], len(roo), **extra)[:2]
+    if extra['cs'] == 0.0:
+        defocus, err = ctf.estimate_defocus_orig(roo1, freq[beg:end], len(roo), **extra)[:2]
+    else:
+        defocus, err = ctf.estimate_defocus_spi(roo1, freq[beg:end], len(roo), **extra)[:2]
     
     vals = [id, defocus, err, cir, res]
     
@@ -130,7 +133,10 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, *
     fig, ax=plotting.draw_image(pow, label=label, **extra)
     newax = ax.twinx()
     
-    model = ctf.ctf_model_spi(defocus, freq, len(roo), **extra)**2
+    if extra['cs'] == 0.0:
+        model = ctf.ctf_model_orig(defocus, freq, len(roo), **extra)**2
+    else:
+        model = ctf.ctf_model_spi(defocus, freq, len(roo), **extra)**2
     
     if True:
         linestyle = '-'
@@ -178,7 +184,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, *
     return fig
     #return plotting.save_as_image(fig)
 
-def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", average_frames=False, multitaper=False, **extra):
+def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", disable_average=False, multitaper=False, trans_file="", frame_beg=0, frame_end=-1, **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -212,7 +218,7 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
     step = max(1, window_size*overlap)
     if from_power:
         return ndimage_file.read_image(filename)
-    elif ndimage_file.count_images(filename) > 1 and not average_frames:
+    elif ndimage_file.count_images(filename) > 1 and disable_average:
         pow = None
         _logger.info("Average power spectra over individual frames")
         n = ndimage_file.count_images(filename)
@@ -233,11 +239,24 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
                     total+= ndimage_utility.powerspec_sum(rwin, pad, pow, total)[1]
         pow=ndimage_utility.powerspec_fin(pow, total)
     else:
-        if ndimage_file.count_images(filename) > 1 and average_frames:
+        if ndimage_file.count_images(filename) > 1 and not disable_average:
+            trans = format.read(trans_file, numeric=True, spiderid=filename) if trans_file != "" else None
             mic = None
-            for i in xrange(ndimage_file.count_images(filename)):
-                if mic is None: mic = ndimage_file.read_image(filename, i)
-                else: mic += ndimage_file.read_image(filename, i)
+            if trans is not None:
+                if frame_beg > 0: frame_beg -= 1
+                if frame_end == -1: frame_end=len(trans)
+                for i in xrange(frame_beg, frame_end):
+                    frame = ndimage_file.read_image(filename, i)
+                    j = i-frame_beg if len(trans) == (frame_end-frame_beg) else i
+                    asset(j>=0)
+                    frame = eman2_utility.fshift(frame, trans[j].dx, trans[j].dy)
+                    if mic is None: mic = frame
+                    else: mic += frame
+            else:
+                for i in xrange(ndimage_file.count_images(filename)):
+                    frame = ndimage_file.read_image(filename, i)
+                    if mic is None: mic = frame
+                    else: mic += frame
         else: 
             mic = ndimage_file.read_image(filename)
         mic = mic.astype(numpy.float32)
@@ -274,6 +293,9 @@ def initialize(files, param):
         _logger.info("Pad: %f"%param['pad'])
         _logger.info("Overlap: %f"%param['overlap'])
         _logger.info("Plotting disabled: %d"%plotting.is_plotting_disabled())
+        
+        if param['cs'] == 0.0:
+            _logger.info("Using CTF model appropriate for 0 CS")
         if param['select'] != "":
             select = format.read(param['select'], numeric=True)
             files = spider_utility.select_subset(files, select)
@@ -369,7 +391,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", cache_pow=False, help="Save 2D power spectra")
     group.add_option("", trunc_1D=False, help="Place trunacted 1D/model on color 2D power spectra")
     group.add_option("", mask_radius=0,  help="Mask the center of the color power spectra (Resolution in Angstroms)")
-    group.add_option("", average_frames=False,  help="Average frames before estimating power spectra")
+    group.add_option("", disable_average=False,  help="Average power spectra not frames")
+    group.add_option("", frame_beg=0,              help="Range for the number of frames")
+    group.add_option("", frame_end=-1,             help="Range for the number of frames")
+    group.add_option("", trans_file="",  help="Translations for individual frames")
     group.add_option("", multitaper=False,  help="Multi-taper PSD estimation")
     
     pgroup.add_option_group(group)
