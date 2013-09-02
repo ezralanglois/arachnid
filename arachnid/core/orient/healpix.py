@@ -83,7 +83,7 @@ def pmod(x, y):
     '''
     
     if y == 0: return x
-    return x - y * math.floor(float(x)/y);
+    return x - y * math.floor(float(x)/y)
     
 def nside2pixarea(resolution, degrees=False):
     """Give pixel area given nside.
@@ -136,10 +136,15 @@ def _ensure_theta(theta, half=False):
             Theta value in proper range
     '''
     
+    if half and theta >= numpy.pi/2: theta = numpy.pi - theta
+    return theta
+    
+    '''
     if theta >= numpy.pi: 
         if half: theta = theta - numpy.pi
         else: theta = theta - numpy.pi/2
     return theta
+    '''
 
 def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
@@ -166,8 +171,15 @@ def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
     '''
     
     resolution = pow(2, resolution)
+    if scheme not in ('nest', 'ring'): raise ValueError, "scheme must be nest or ring"
     _pix2ang = getattr(_healpix, 'pix2ang_%s'%scheme)
-    return _pix2ang(int(resolution), int(pix))
+    if hasattr(pix, '__iter__'):
+        if out is None: out = numpy.zeros((len(pix), 2))
+        for i in xrange(len(pix)):
+            out[i, :] = _pix2ang(int(resolution), int(pix[i]))
+        return out
+    else:
+        return _pix2ang(int(resolution), int(pix))
 
 def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
@@ -206,14 +218,19 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         for t, p in theta:
             t = pmod(t, numpy.pi)
             p = pmod(p, twopi)
-            #t = _ensure_theta(t, half)
+            t = _ensure_theta(t, half)
+            # 0 - 90 180-270
+            # -90 - 90
+            # - 180
             out[i] = _ang2pix(int(resolution), float(t), float(p))
             i += 1
         return out
     else:
         _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
         if phi is None: "phi must not be None when theta is a float"
-        #theta = _ensure_theta(theta, half)
+        theta = pmod(theta, numpy.pi)
+        phi = pmod(phi, twopi)
+        theta = _ensure_theta(theta, half)
         return _ang2pix(int(resolution), float(theta), float(phi))
 
 def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
