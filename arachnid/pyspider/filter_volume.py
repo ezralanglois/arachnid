@@ -177,7 +177,7 @@ def ensure_pixel_size(spi, filename, **extra):
         _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f"%(bin_factor, extra['window'], w, extra['apix'], params['apix']))
     return params
 
-def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, bw_pass=0.05, bw_stop=0.05, outputfile=None, **extra):
+def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, bw_pass=0.05, bw_stop=0.05, reg=0.006, outputfile=None, **extra):
     ''' Low-pass filter the specified volume
     
     :Parameters:
@@ -196,6 +196,8 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
               Offset for pass band of the butterworth lowpass filter (sp-bw_pass)
     bw_stop : float
               Offset for stop band of the butterworth lowpass filter (sp+bw_stop)
+    reg : float
+          Regularization for total variance denoising
     outputfile : str
                  Output filename for filtered volume
     extra : dict
@@ -212,7 +214,7 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
         from ..core.image import ndimage_file
         _logger.info("Total variation filter")
         img = ndimage_file.read_image(spi.replace_ext(filename))
-        img = tv_denoise(img, weight=0.006, eps=2.e-4, n_iter_max=200)
+        img = tv_denoise(img, weight=reg, eps=2.e-4, n_iter_max=200)
         ndimage_file.write_image(spi.replace_ext(outputfile), img)
         return outputfile
     
@@ -305,6 +307,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-o", output="",      help="Output filename for filtered volume with correct number of digits (e.g. masked_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=15.0,        help="Resolution to filter the volumes")
+        #pgroup.add_option("-g", reg=0.006,              help="Regularization parameter for TVD (4)")
     setup_options_from_doc(parser, filter_volume_lowpass, group=pgroup)
     if main_option:
         setup_options_from_doc(parser, spider.open_session, filter_volume_highpass, group=pgroup)
