@@ -183,8 +183,9 @@ class MainWindow(QtGui.QMainWindow):
         ''' Called when someone clicks the Open Button
         '''
         
-        files = glob.glob(spider_utility.spider_searchpath(self.imagefile))
-        _logger.info("Found %d files on %s"%(len(files), spider_utility.spider_searchpath(self.imagefile)))
+        if len(self.files) == 0: return
+        files = glob.glob(spider_utility.spider_searchpath(self.files[0]))
+        _logger.info("Found %d files on %s"%(len(files), spider_utility.spider_searchpath(self.files[0])))
         if len(files) > 0:
             self.openImageFiles([str(f) for f in files if not format.is_readable(str(f))])
     
@@ -292,7 +293,7 @@ class MainWindow(QtGui.QMainWindow):
                 if self.advanced_settings.center_mask > 0 and img.shape not in masks:
                     masks[img.shape]=ndimage_utility.model_disk(self.advanced_settings.center_mask, img.shape)*-1+1
                 if not self.advanced_settings.film:
-                    ndimage_utility.invert(img, img)
+                    if img.max() != img.min(): ndimage_utility.invert(img, img)
                 img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
                 if self.advanced_settings.gaussian_high_pass > 0.0:
                     img=ndimage_filter.filter_gaussian_highpass(img, self.advanced_settings.gaussian_high_pass)
