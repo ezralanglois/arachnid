@@ -277,6 +277,7 @@ class MainWindow(QtGui.QMainWindow):
             index=self.ui.subsetComboBox.itemData(index)
             vals = [str(v) for v in numpy.unique(self.data[:, index])]
         else: vals = []
+        
         self.subsetListModel.clear()
         for name in vals:
             item = QtGui.QStandardItem(name)
@@ -465,9 +466,6 @@ class MainWindow(QtGui.QMainWindow):
             data = self.data
         return data
     
-                
-            
-    
     # Plot Points
     def drawPlot(self, index=None):
         ''' Draw a scatter plot
@@ -478,6 +476,7 @@ class MainWindow(QtGui.QMainWindow):
         self.plotPointsAsScatter(data)
         idx = self.drawImages(data, False)
         self.highlightPoints(data, idx, False)
+        self.annotation=None
         self.ui.canvas.draw()
     
     def plotPointsAsScatter(self, data=None, use_markers=False, markersize=10, pickersize=5):
@@ -523,7 +522,7 @@ class MainWindow(QtGui.QMainWindow):
         if hasattr(idx, '__iter__'): idx=idx[0]
         hindex = numpy.argwhere(data[:, scol] == data[idx, scol]).squeeze()
         for h in hindex:
-            self.axes.scatter(self.data[h, x], self.data[h, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
+            self.axes.scatter(data[h, x], data[h, y], marker='o', s=45, facecolors='none', edgecolors='r', visible=True)
         if draw: self.ui.canvas.draw()
     
     # Plot Images
@@ -621,21 +620,23 @@ class MainWindow(QtGui.QMainWindow):
                 Mouse click event
         '''
         
+        if not hasattr(event_obj, 'ind'): return
         if len(event_obj.ind) == 0: return
         xc = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
         yc = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
         x = event_obj.mouseevent.xdata
         y = event_obj.mouseevent.ydata
+        data = self.dataSubset()
         if self.group_indices is not None and len(self.group_indices) > 0:
             min_val = (1e20, None)
             for group in self.group_indices:
                 ind = numpy.asarray([i for i in event_obj.ind if i < len(group)], dtype=numpy.int)
                 if len(ind) == 0: continue
-                ds = numpy.hypot(x-self.data[group[ind], xc], y-self.data[group[ind], yc])
+                ds = numpy.hypot(x-data[group[ind], xc], y-data[group[ind], yc])
                 if ds.min() < min_val[0]: min_val = (ds.min(), group[ind[ds.argmin()]])
             self.selectedImage = min_val[1]
         else:
-            ds = numpy.hypot(x-self.data[event_obj.ind, xc], y-self.data[event_obj.ind, yc])
+            ds = numpy.hypot(x-data[event_obj.ind, xc], y-data[event_obj.ind, yc])
             self.selectedImage = event_obj.ind[ds.argmin()]
         self.displayLabel(event_obj, False)
         self.drawImages()
@@ -645,27 +646,35 @@ class MainWindow(QtGui.QMainWindow):
         '''
         '''
         
-        print 'here'
-        if len(event_obj.ind) > 0:
+        if hasattr(event_obj, 'ind') and len(event_obj.ind) > 0:
+            data = self.dataSubset()
             xc = self.ui.xComboBox.itemData(self.ui.xComboBox.currentIndex())
             yc = self.ui.yComboBox.itemData(self.ui.yComboBox.currentIndex())
             x = event_obj.mouseevent.xdata
             y = event_obj.mouseevent.ydata
-            ds = numpy.hypot(x-self.data[event_obj.ind, xc], y-self.data[event_obj.ind, yc])
-            idx = event_obj.ind[ds.argmin()]
-            #ds = numpy.hypot(x-self.data[:, xc], y-self.data[:, yc])
-            #idx = ds.argmin()
+            if self.group_indices is not None and len(self.group_indices) > 0:
+                min_val = (1e20, None)
+                for group in self.group_indices:
+                    ind = numpy.asarray([i for i in event_obj.ind if i < len(group)], dtype=numpy.int)
+                    if len(ind) == 0: continue
+                    ds = numpy.hypot(x-data[group[ind], xc], y-data[group[ind], yc])
+                    if ds.min() < min_val[0]: min_val = (ds.min(), group[ind[ds.argmin()]])
+                idx = min_val[1]
+            else: 
+                ds = numpy.hypot(x-data[event_obj.ind, xc], y-data[event_obj.ind, yc])
+                idx = event_obj.ind[ds.argmin()]
             
-            text = " ".join([str(v) for v in self.data[idx, self.label_cols]])
+            text = " ".join([str(v) for v in data[idx, self.label_cols]])
             if  self.annotation is None:
                  self.annotation = self.axes.annotate(text, xy=(x,y),  xycoords='data',
-                            xytext=(-10, 10), textcoords='offset points',
+                            xytext=(-15, 15), textcoords='offset points',
                             arrowprops=dict(arrowstyle="->")
                             )
                  self.annotation.draggable()
             else:
                 self.annotation.xy = x,y
                 self.annotation.set_text(text)
+                self.annotation.set_visible(True)
             if repaint: self.ui.canvas.draw()
         
 def plot_random_sample_of_images(ax, stack_file, label, xy, align, radius, n, zoom, keep=None, **extra):
@@ -739,6 +748,10 @@ def updateComboBox(combo, values, skip=set(), index=None, first=None):
     '''
     
     combo.blockSignals(True)
+    if index is not None and not isinstance(index, int):
+        if index not in set(values): index=None
+    if index is None and combo.count() > 0:
+        index = combo.currentIndex()
     combo.clear()
     j=0
     if first is not None: 
