@@ -241,6 +241,7 @@ def init_root(files, param):
         param['order'] = order_from_resolution(**param)
     
     if mpi_utility.is_root(**param):
+        if param['cache_file']: _logger.info("Using cache file: '%s'"%param['cache_file'])
         if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
         if param['use_rtsq']: _logger.info("Rotate and translate data stack")
         _logger.info("Rejection precision: %f"%param['prob_reject'])
@@ -549,6 +550,10 @@ def main():
                         Example:
                          
                         $ ara-autoclean input-stack.spi -o coords.dat -p params.spi
+                        
+                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
+                        exit 0
+                        
                       ''',
         use_version = True,
         supports_OMP=True,
