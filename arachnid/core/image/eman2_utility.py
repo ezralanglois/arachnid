@@ -469,6 +469,58 @@ def decimate(img, bin_factor=0, force_even=False, **extra):
         img = em2numpy(orig).copy()
     return img
 
+def butterworth_low_pass(img, bw_lo, bw_falloff, pad=False, **extra):
+    ''' Filter an image with the Gaussian high pass filter
+    
+    :Parameters:
+
+    img : EMAN2.EMData
+          Image requiring filtering
+    ghp_sigma : float
+                Frequency range
+    pad : bool
+          Pad image
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+
+    val : EMAN2.EMData
+          Filtered image
+    '''
+    
+    orig = img
+    if not is_em(img): img = numpy2em(img)
+    img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_LOW_PASS,    "low_cutoff_frequency": bw_lo, "high_cutoff_frequency": bw_lo+bw_falloff, "dopad" : pad})
+    if not is_em(orig): img = em2numpy(img).copy()
+    return img
+
+def butterworth_high_pass(img, bw_hi, bw_falloff, pad=False, **extra):
+    ''' Filter an image with the Gaussian high pass filter
+    
+    :Parameters:
+
+    img : EMAN2.EMData
+          Image requiring filtering
+    ghp_sigma : float
+                Frequency range
+    pad : bool
+          Pad image
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+
+    val : EMAN2.EMData
+          Filtered image
+    '''
+    
+    orig = img
+    if not is_em(img): img = numpy2em(img)
+    img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_HIGH_PASS,   "low_cutoff_frequency": bw_hi+bw_falloff, "high_cutoff_frequency": bw_hi, "dopad" : pad})
+    if not is_em(orig): img = em2numpy(img).copy()
+    return img
+
 def butterworth_band_pass(img, bw_lo, bw_hi, bw_falloff, pad=False, **extra):
     ''' Filter an image with the Gaussian high pass filter
     
