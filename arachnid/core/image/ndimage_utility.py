@@ -1007,6 +1007,29 @@ def compress_image(img, mask, out=None):
         out[:] = img.ravel()[mask.ravel()>0.5]
     return out
 
+def uncompress_image(img, mask, out=None):
+    ''' Compress the valid region of an image with the given mask into 1D array
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    mask : numpy.ndarray
+           Binary mask of valid pixesl
+    out : numpy.ndarray
+          Output 1D-array
+    
+    :Returns:
+        
+    out : numpy.ndarray
+          Output 1D-array
+    '''
+    
+    if out is None:
+        out = numpy.zeros(mask.shape, img.dtype)
+    out.ravel()[mask.ravel()>0.5] = img
+    return out
+
 @_em2numpy2em
 def fftamp(img, s=None, out=None):
     ''' Calculate the power spectra of an image
