@@ -441,9 +441,9 @@ def read(filename, columns=None, header=None, ndarray=False, **extra):
     try:
         vals = map(factory, format.reader(fin, header, lastline, **extra))
     except:
-        _logger.error("header: %s"%str(header))
-        _logger.error("lastline: %s"%str(lastline))
-        _logger.error("format: %s"%str(format))
+        _logger.debug("header: %s"%str(header))
+        _logger.debug("lastline: %s"%str(lastline))
+        _logger.debug("format: %s"%str(format))
         raise
     if ndarray: return format_utility.tuple2numpy(vals)
     return vals
