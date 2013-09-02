@@ -1,6 +1,6 @@
 ''' Generate selection files to interface SPIDER and RELION
 
-This script (`ara-selrelion`) can generate a RELION selection file from a list of stacks, a defocus
+This script (`ara-selrelion`) generates a RELION selection file from a list of stacks, a defocus
 file and a SPIDER params file. It can also take a RELION selection file and a SPIDER selection file
 and generate a new RELION selection file. Finally, it can generate a set of SPIDER selection files (by micrograph)
 from a RELION selection file.
@@ -705,11 +705,13 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     name_col = header.index('rlnImageName') if stack_file != "" else -1
     Tuple = data[0].__class__
     
-    stack_files=glob.glob(os.path.dirname(stack_file))
-    if len(stack_files) == 0: raise ValueError, "Cannot find --stack-file %s"%stack_file
-    if len(stack_files) == 1: stack_files=stack_files[0]
+    if stack_file != "" and os.path.dirname(stack_file) != "":
+        stack_files=glob.glob(os.path.dirname(stack_file))
+        if len(stack_files) == 0: raise ValueError, "Cannot find --stack-file %s"%stack_file
+        if len(stack_files) == 1: stack_files=stack_files[0]
+    else: stack_files=None
     
-    if isinstance(stack_files, list):
+    if stack_files is not None and isinstance(stack_files, list):
         _logger.info("Listing possible stack files for %s"%stack_file)
         for i in xrange(len(stack_files)):
             stack_files[i] = os.path.join(stack_files[i], os.path.basename(stack_file))
