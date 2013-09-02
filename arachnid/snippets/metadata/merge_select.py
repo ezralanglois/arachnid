@@ -14,7 +14,6 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import format, format_utility
-import numpy
 
 
 if __name__ == '__main__':
@@ -25,8 +24,12 @@ if __name__ == '__main__':
     ctf_select_file = ""
     output_file = ""
     
-    micrographs, header = format_utility.tuple2numpy(format.read(ctf_select_file, numeric=True))
-    
-    selection = numpy.asarray(format.read(montage_select_file, numeric=True, header='id,select'.split(',')), dtype=numpy.int)[:, 0]-1
-    micrographs = micrographs[selection]
-    format.write(output_file, micrographs, default_format=format.spiderdoc, header=header)
+    micrographs = format_utility.map_object_list(format.read(ctf_select_file, numeric=True))
+    selection = format.read(montage_select_file, numeric=True, header='id,select'.split(','))
+    subset=[]
+    for sel in selection:
+        try:
+            subset.append(micrographs[sel.id])
+        except:
+            print "Id not found", sel.id
+    format.write(output_file, subset, default_format=format.spiderdoc)
