@@ -97,26 +97,31 @@ def finalize_bp3f(fftvol, weight, image_size, cleanup_fft):
         return vol
     if cleanup_fft: _spider_reconstruct.cleanup_bp3f()
     
-def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_image=None, **extra):
+def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_image=None, psi='psi', theta='theta', phi='phi', **extra):
     '''
     '''
     
     try:
-        pad_size = image_size*npad
-        #_logger.error("here1: %f, %f"%(pad_size, npad))
+        try:
+            pad_size = image_size*npad
+        except:
+            _logger.error("image_size: %s | npad: %s"%(str(image_size), str(npad)))
+            raise
         tabi = numpy.zeros(4999, dtype=numpy.float32)
         forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
         weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=tabi.dtype)
-        #_logger.error("here2")
         
         _spider_reconstruct.setup_bp3f(tabi, pad_size)
-        #_logger.error("here3")
-        for i, img in gen:
-            a = align[i]
-            #_logger.debug("%f,%f,%f"%(a[0], a[1], a[2]))
-            if process_image is not None: img = process_image(img, a, **extra)
-            _spider_reconstruct.backproject_bp3f(img.T, forvol, weight, tabi, a[0], a[1], a[2])
-        #_logger.error("here5")
+        if len(align) > 0 and hasattr(align[0], psi):
+            for i, img in gen:
+                a = align[i]
+                if process_image is not None: img = process_image(img, a, **extra)
+                _spider_reconstruct.backproject_bp3f(img.T, forvol, weight, tabi, getattr(a, psi), getattr(a, theta), getattr(a, phi))
+        else:
+            for i, img in gen:
+                a = align[i]
+                if process_image is not None: img = process_image(img, a, **extra)
+                _spider_reconstruct.backproject_bp3f(img.T, forvol, weight, tabi, a[0], a[1], a[2])
     except:
         _logger.exception("Error in backproject worker")
         raise
