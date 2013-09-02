@@ -12,4 +12,5 @@ console_scripts = [
  'frameavg = arachnid.util.average_frame:main',
  'info = arachnid.util.image_info:main',
  'relion-stack = arachnid.util.relion_align_stack:main',
+ 'coverage = arachnid.util.coverage:main',
 ]
