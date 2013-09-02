@@ -4,8 +4,122 @@
 .. Created on Dec 4, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import numpy, scipy
+import numpy, scipy, scipy.fftpack, math
 import ndimage_utility
+
+from ..app import tracing
+import logging
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
+try: 
+    from spi import _spider_ctf
+    _spider_ctf;
+except:
+    _spider_ctf=None
+    tracing.log_import_error('Failed to load _spider_ctf.so module', _logger)
+
+
+
+#defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None
+#param = spider_session.generate_ctf_param(defocus, cs, window, source, defocus_spread, ampcont, envelope_half_width, **extra)
+#session.invoke('tf ct', spider_image(outputfile), *param)
+'''
+    
+    if isinstance(cs, dict):
+        extra.update(cs)
+        return generate_ctf_param(defocus, **extra)
+    if elambda is None: 
+        if voltage is None: raise spider_parameter.SpiderParameterError, "Wavelength of the electrons is not set as elambda or voltage"
+        elambda = 12.398 / math.sqrt(voltage * (1022.0 + voltage))
+    if maximum_spatial_freq is None: 
+        if apix is None: raise spider_parameter.SpiderParameterError, "patial frequency radius corresponding to the maximum radius is not set as maximum_spatial_freq or apix"
+        maximum_spatial_freq = 0.5/apix
+    if pad is None or pad < 1: pad = 1
+    if isinstance(window, tuple): window = (window[0]*pad, window[1]*pad)
+    else: window = (window*pad, )
+    return spider_tuple(cs), spider_tuple(defocus, elambda), spider_tuple(*window), spider_tuple(maximum_spatial_freq), spider_tuple(source, defocus_spread), spider_tuple(astigmatism, azimuth), spider_tuple(ampcont, envelope_half_width), spider_tuple(ctf_sign)
+
+'''
+
+def correct(img, ctfimg):
+    ''' Corret the CTF of an image
+    
+    :Parameters:
+    
+    :Returns:
+    
+    '''
+    
+    '''
+        fimg = scipy.fftpack.fftn(img)
+        #fimg = numpy.fft.fftshift(fimg)
+        fimg *= ctfimg.T
+        return scipy.fftpack.ifftn(img).real
+    '''
+    nsam = (img.shape[1]+2) if (img.shape[1]%2) == 0 else (img.shape[1]+1)
+    out = numpy.zeros((img.shape[0], nsam), dtype=img.dtype)
+    out[:, :img.shape[1]] = img
+    _spider_ctf.correct_image(out.T, ctfimg.T, out.shape[0])
+    return out[:, :img.shape[1]]
+
+def phase_flip_transfer_function(out, defocus, cs, ampcont, envelope_half_width=10000, voltage=None, elambda=None, apix=None, maximum_spatial_freq=None, source=0.0, defocus_spread=0.0, astigmatism=0.0, azimuth=0.0, ctf_sign=-1.0, **extra):
+    ''' Create a transfer function for phase flipping
+    
+    :Parameters:
+    
+    out : size, tuple, array
+          Size of square ransfer function image, tuple of dimensions, or image
+    defocus : float
+              Amount of defocus, in Angstroems
+    cs : object
+         Spherical aberration constant
+    ampcont : float
+              Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
+    envelope_half_width : float
+                          Envelope parameter specifies the 2 sigma level of the Gaussian
+    voltage : float
+              Voltage of microscope (Defaut: None)
+    elambda : float
+              Wavelength of the electrons (Defaut: None)
+    apix : float
+           Size of pixel in angstroms  (Defaut: None)
+    maximum_spatial_freq : float
+                           Spatial frequency radius corresponding to the maximum radius (Defaut: None)
+    source : float
+             Size of the illumination source in reciprocal Angstroems
+    defocus_spread : float
+                     Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
+    astigmatism : float
+                  Defocus difference due to axial astigmatism (Defaut: 0)
+    azimuth : float
+              Angle, in degrees, that characterizes the direction of astigmatism (Defaut: 0)
+    ctf_sign : float
+               Application of the transfer function results in contrast reversal if underfocus (Defaut: -1)
+    
+    :Returns:
+    
+    out : array
+          Transfer function image
+    '''
+    
+    if elambda is None: 
+        if voltage is None: raise ValueError, "Wavelength of the electrons is not set as elambda or voltage"
+        elambda = 12.398 / math.sqrt(voltage * (1022.0 + voltage))
+    if maximum_spatial_freq is None: 
+        if apix is None: raise ValueError, "Patial frequency radius corresponding to the maximum radius is not set as maximum_spatial_freq or apix"
+        maximum_spatial_freq = 0.5/apix
+        
+    if isinstance(out, tuple):
+        nsam = (out[0]+2)/2 if (out[0]%2) == 0 else (out[0]+1)/2
+        out = numpy.zeros((out[1], nsam), dtype=numpy.complex64)
+    elif isinstance(out, int):
+        nsam = (out+2)/2 if (out%2) == 0 else (out+1)/2
+        out = numpy.zeros((out, nsam), dtype=numpy.complex64)
+    else:
+        if out.dtype != numpy.complex64: raise ValueError, "Requires complex64 for out"
+    _spider_ctf.transfer_function_phase_flip_2d(out.T, out.shape[0], float(cs), float(defocus), float(maximum_spatial_freq), float(elambda), float(source), float(defocus_spread), float(astigmatism), float(azimuth), float(ampcont), 0.0, int(ctf_sign))
+    return out
 
 def factor_correction(roo, beg, end):
     '''
@@ -642,7 +756,7 @@ def frequency(sfreq, n, apix, **extra):
     dk = k/n
     return sfreq.astype(numpy.float)*dk
 
-def ctf_model_orig(dz1, sfreq, n, ampcont, cs, voltage, apix):
+def ctf_model_orig(dz1, sfreq, n, ampcont, cs, voltage, apix, **extra):
     ''' CTF model with non-generalized variables dependent on voltage
     
     Useful for CS-correct microscopes when the CS is 0

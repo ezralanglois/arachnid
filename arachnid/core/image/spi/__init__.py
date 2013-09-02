@@ -53,5 +53,10 @@ try:
 except:pass
 
 
+try: 
+    import _spider_ctf
+    _spider_ctf;
+except:pass
+
 
 
