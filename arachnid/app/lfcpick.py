@@ -516,41 +516,49 @@ def initialize(files, param):
         _logger.info("Window size: %d"%(offset*2))
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
+    
+    assert('selection_doc' in param)
+    _logger.error("selection:\"%s\""%param['selection_doc'])
+    if 'selection_doc' in param and param['selection_doc'] != "":
+        select = format.read(param['selection_doc'], numeric=True)
+        oldcnt = len(files)
+        files = spider_utility.select_subset(files, select)
+        _logger.info("Selecting %d files from %d"%(len(files), oldcnt))
     return files
 
 def reduce_all(val, confusion, file_index, **extra):
     # Process each input file in the main thread (for multi-threaded code)
     
     filename, coords = val
-    
-    coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
-    if not hasattr(coords, 'ndim') and (extra['good'] != "" or extra['good_coords'] != ""):
-        try:
-            vals = benchmark.benchmark(coords, filename, **extra)
-        except:
-            info=""
+    info=""
+    if len(coords) > 0:
+        coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
+        if not hasattr(coords, 'ndim') and (extra['good'] != "" or extra['good_coords'] != ""):
+            try:
+                vals = benchmark.benchmark(coords, filename, **extra)
+            except:
+                info=""
+            else:
+                confusion[file_index, 0] = vals[0]+vals[1]
+                confusion[file_index, 1] = vals[0]+vals[3]
+                confusion[file_index, 2] = vals[0]
+                pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
+                sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
+                info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
         else:
-            confusion[file_index, 0] = vals[0]+vals[1]
-            confusion[file_index, 1] = vals[0]+vals[3]
-            confusion[file_index, 2] = vals[0]
-            pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
-            sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
-            info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
-    else:
-        bench = read_bench_coordinates(filename, **extra)
-        if bench is not None and len(coords) > 0:
-            if bench.shape[1] != 2:
-                _logger.error("bench: %s"%str(bench.shape))
-            overlap = benchmark.find_overlap(coords[:, 1:3], bench, **extra)
-            confusion[file_index, 0] = len(coords) #len(peaks), len(selected), len(overlap)
-            confusion[file_index, 1] = len(bench)
-            confusion[file_index, 2] = len(overlap)
-            assert(len(overlap) <= len(coords))
-            assert(len(overlap) <= len(bench))
-            pre = float(len(overlap)) / len(coords) if len(coords) > 0 else 0
-            sen = float(len(overlap)) / len(bench) if len(bench)> 0 else 0
-            info = " - %d,%d,%d - precision: %f, recall: %f"%(len(coords), len(bench), len(overlap), pre, sen)
-        else: info = ""
+            bench = read_bench_coordinates(filename, **extra)
+            if bench is not None and len(coords) > 0:
+                if bench.shape[1] != 2:
+                    _logger.error("bench: %s"%str(bench.shape))
+                overlap = benchmark.find_overlap(coords[:, 1:3], bench, **extra)
+                confusion[file_index, 0] = len(coords) #len(peaks), len(selected), len(overlap)
+                confusion[file_index, 1] = len(bench)
+                confusion[file_index, 2] = len(overlap)
+                assert(len(overlap) <= len(coords))
+                assert(len(overlap) <= len(bench))
+                pre = float(len(overlap)) / len(coords) if len(coords) > 0 else 0
+                sen = float(len(overlap)) / len(bench) if len(bench)> 0 else 0
+                info = " - %d,%d,%d - precision: %f, recall: %f"%(len(coords), len(bench), len(overlap), pre, sen)
     return filename+info
 
 def finalize(files, confusion, output, **extra):
