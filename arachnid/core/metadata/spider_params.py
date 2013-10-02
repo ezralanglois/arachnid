@@ -43,7 +43,7 @@ import logging, math, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window_size=0, ampcont=0.1, res=7, envelope_half_width=10000.00, particle_diameter=None, **extra):
+def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window=0, ampcont=0.1, res=7, envelope_half_width=10000.00, particle_diameter=None, **extra):
     ''' Create a SPIDER params file from a set of parameters
     
     :Parameters:
@@ -60,7 +60,7 @@ def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window_size=0,
            Magnification
     pixel_diameter : int
                      Actual size of particle, pixels
-    window_size : int
+    window : int
                   Particle window size, pixels 
     ampcont : float
               Amplitude contrast ratio
@@ -76,9 +76,9 @@ def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window_size=0,
         if particle_diameter is None: raise ValueError, "Requires pixel_diameter or particle_diameter"
         pixel_diameter = particle_diameter/apix
     
-    if window_size == 0:
-        window_size = int(pixel_diameter * 1.3)
-        if (window_size%2)==1: window_size += 1
+    if window == 0:
+        window = int(pixel_diameter * 1.3)
+        if (window%2)==1: window += 1
             
     vals = numpy.zeros(20)
     # 1 - Zip flag (0 = Do not unzip, 1 = Needs to be unzipped)
@@ -106,7 +106,7 @@ def write(output, apix, voltage, cs, pixel_diameter=None, xmag=0, window_size=0,
     #16 - Decimation factor
     vals[15] = 1
     #17 - Particle window size, pixels 
-    vals[16] = window_size
+    vals[16] = window
     #18 - Actual size of particle, pixels
     vals[17] = pixel_diameter
     #19 - Magnification
@@ -140,8 +140,44 @@ def read(filename, extra=None):
           Spider parameter dictionary
     '''
     
+        
     param = {}
     if 'comm' not in param or param['comm'] is None or param['comm'].Get_rank() == 0:
+        fin = file(filename, 'r')
+        for line in fin:
+            if line.strip() == "": continue
+            if line.strip()[:4] == "<EMX": break
+        fin.close()
+        if line.strip()[:4] == "<EMX":
+            _logger.debug("Detected EMX file")
+            import xml.etree.ElementTree
+            tree = xml.etree.ElementTree.parse(filename)
+            mic=tree.getroot()._children[0]
+            #root._children[0].findall('cs')[0].text
+            namemap=dict(acceleratingVoltage='voltage',
+                         cs='cs',
+                         amplitudeContrast='ampcont',
+                         pixelSpacing=dict(X='apix'))
+            for key, val in namemap.iteritems():
+                if isinstance(val, dict):
+                    tmp=mic.findall(key)[0]
+                    param[val.values()[0]]=float(tmp.findall(val.keys()[0])[0].text)
+                else:
+                    param[val]=float(mic.findall(key)[0].text)
+            param['lam'] = 12.398 / math.sqrt(param['voltage'] * (1022.0 + param['voltage']))
+            param['maxfreq'] = 0.5 / param['apix']
+            if 'comm' in param and param['comm'] is not None:
+                param = param['comm'].bcast(param)
+            if extra is not None: extra.update(param)
+            bin_factor = extra.get('bin_factor', 1.0) if extra is not None else 1.0
+            param['width']=0
+            param['height']=0
+            param['window']=0
+            param['pixel_diameter']=0
+            param['dec_level']=0
+            if bin_factor > 1.0: param.update(update_params(bin_factor, **param))
+            if extra is not None: extra.update(param)
+            return param
         bin_factor = extra.get('bin_factor', 1.0) if extra is not None else 1.0
         #      1    2     3      4      5    6     7    8          9            10        11      12             13         14    15    16   17         18         19  20
         keys="zip,format,width,height,apix,voltage,cs,source,defocus_spread,astigmatism,azimuth,ampcont,envelope_half_width,lam,maxfreq,dec_level,window,pixel_diameter,xmag,res".split(',')
@@ -219,7 +255,7 @@ def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diamet
     return dict(dec_level=bin_factor,
                 width=int(width*factor), 
                 height=int(height*factor), 
-                apix=apix/factor, 
+                apix=apix*bin_factor, 
                 maxfreq=maxfreq*factor, 
                 window=int(window*factor), 
                 pixel_diameter=int(pixel_diameter*factor))

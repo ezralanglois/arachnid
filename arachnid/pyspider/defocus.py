@@ -300,7 +300,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
                     ndimage_file.spider_writer.write_image(output_mic, img)
             #window_size /= bin_factor
             x_overlap_norm = 100.0 / (100-x_overlap)
-            step = max(1, window_size*x_overlap_norm)
+            step = max(1, window_size/x_overlap_norm)
             rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
             try:
                 rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
@@ -399,8 +399,12 @@ def initialize(files, param):
         except: pass
     mpi_utility.barrier(**param)
     param['spi'] = spider.open_session(files, **param)
-    spider_params.read(param['spi'].replace_ext(param['param_file']), param)
-    param['output'] = param['spi'].replace_ext(param['output'])
+    if not os.path.exists(param['spi'].replace_ext(param['param_file'])):
+        spider_params.read(param['param_file'], param)
+    else:
+        spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    if os.path.splitext(param['output'])[1]!='.emx':
+        param['output'] = param['spi'].replace_ext(param['output'])
     param['output_pow'] = param['spi'].replace_ext(param['output_pow'])
     param['output_roo'] = param['spi'].replace_ext(param['output_roo'])
     param['output_ctf'] = param['spi'].replace_ext(param['output_ctf'])
@@ -435,6 +439,10 @@ def initialize(files, param):
             if len(newvals) > 0:
                 format.write(param['output'], newvals, default_format=format.spiderdoc)
             param['output_offset']=len(newvals)
+        if os.path.splitext(param['output'])[1] == '.emx':
+            fout = open(param['output'], 'w')
+            fout.write('<EMX version="1.0">\n')
+            fout.close()
     
     if mpi_utility.is_root(**param):
         param['defocus_arr'] = numpy.zeros((len(files), 5))
@@ -465,22 +473,60 @@ def init_process(input_files, rank=0, **extra):
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
 
+'''
+
+df1 = defocus + astig/2
+df2 = defocus - astig/2
+if astig < 0
+ang = astig + 45
+
+
+defocus = (DFMID1 + DFMID2)/2;
+astig = (DFMID2 - DFMID1);
+angle_astig = ANGAST - 45;
+if (astig < 0) {
+astig = -astig;
+angle_astig = angle_astig + 90;
+}
+'''
+
 def reduce_all(filename, file_completed, file_count, output, defocus_arr, output_offset=0, **extra):
     # Process each input file in the main thread (for multi-threaded code) 38.25 - 3:45
     
     filename, defocus_vals = filename
-    try:
-        defocus_arr[file_completed-1, :]=defocus_vals
-    except:
-        _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
-        raise
-    format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
-                 header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if (file_completed+output_offset) > 1 else 'w', write_offset=file_completed+output_offset)
+    
+    if os.path.splitext(output)[1] == '.emx':
+        fout = open(output, 'a')
+        defocusU = defocus_vals[1] + defocus_vals[3]/2
+        defocusV = defocus_vals[1] - defocus_vals[3]/2
+        defocusUAngle = numpy.mod(defocus_vals[2]-45.0, 180.0)
+        fout.write(
+        '''
+        <micrograph fileName="%s">
+        <defocusU unit="nm">%f</defocusU>
+        <defocusV unit="nm">%f</defocusV>
+        <defocusUAngle unit="deg">%f</defocusUAngle>
+        </micrograph>
+        '''%(os.path.basename(filename), defocusU/10.0, defocusV/10.0, defocusUAngle))
+        fout.close()
+    else:
+        try:
+            defocus_arr[file_completed-1, :]=defocus_vals
+        except:
+            _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
+            raise
+        mode = 'a' if (file_completed+output_offset) > 1 else 'w'
+        format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
+                     header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode=mode, write_offset=file_completed+output_offset)
     return filename
 
 def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, summary=False, **extra):
     # Finalize global parameters for the script
     
+    if os.path.splitext(output)[1] == '.emx':
+        fout = open(output, 'a')
+        fout.write('</EMX>\n')
+        fout.close()
     if len(files) > 0:
         plot_histogram(output, defocus_arr[:, 1], 'Defocus')
         plot_histogram(output, defocus_arr[:, 3], 'Astigmatism')
