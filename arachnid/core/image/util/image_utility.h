@@ -1,3 +1,57 @@
+//#include <complex>
+
+template<class T>
+inline void sine_psd(std::complex<T>* img, int nix, int niy, T* out, int nox, int noy, int klim, int npad)
+{
+	int nf = nix/npad;
+	int np2 = nix;
+	T ck = 1.0/T(klim*klim);
+	for(int mx=0;mx<nf;++mx)
+	{
+		int mx2 = mx*2;
+		for(int my=0;my<nf;++my)
+		{
+			int my2 = my*2;
+			for(int kx=0;kx<klim;++kx)
+			{
+				int jx1 = (mx2+np2-(kx+1))%np2;
+				int jx2 = (mx2+(kx+1))%np2;
+				for(int ky=0;ky<klim;++ky)
+				{
+					int jy1 = (my2+np2-(ky+1))%np2;
+					int jy2 = (my2+(ky+1))%np2;
+					std::complex<T> zz = img[jx1+jx2*nix]-img[jy1+jy2*nix];
+					T wk = (1.0 - ck*T(kx)*T(kx))* (1.0 - ck*T(ky)*T(ky));
+					out[mx+my*nix] += ( std::real(zz)*std::real(zz) + std::imag(zz)*std::imag(zz) )*wk;
+				}
+			}
+			out[mx+my*nix] *= (6.0*T(klim)/T(4*klim*klim+3*klim-1));
+		}
+	}
+}
+
+template<class T>
+inline void sine_psd_1D(std::complex<T>* roo, int nrx, T* out1, int nox1, int klim, int npad)
+{
+	int nf = nrx/npad;
+	int np2 = nrx;
+	T ck = 1.0/T(klim*klim);
+	for(int m=0;m<nf;++m)
+	{
+		int m2 = m*2;
+		for(int k=0;k<klim;++k)
+		{
+			int j1 = (m2+np2-(k+1))%np2;
+			int j2 = (m2+(k+1))%np2;
+			std::complex<T> zz = roo[j1]-roo[j2];
+			T wk = (1.0 - ck*T(k)*T(k));
+			out1[m] += ( std::real(zz)*std::real(zz) + std::imag(zz)*std::imag(zz) )*wk;
+		}
+		out1[m] *= (6.0*T(klim)/T(4*klim*klim+3*klim-1));
+	}
+}
+
+
 /** Calculate a radon transform matrix.
  *
  *
