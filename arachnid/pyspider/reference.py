@@ -99,7 +99,7 @@ import logging, os, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
+def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=False, **extra):
     ''' Create a reference from from a given density map
     
     :Parameters:
@@ -149,8 +149,9 @@ def process(filename, spi, output, resolution, curr_apix=0.0, **extra):
     _logger.debug("Resizing volume")
     filename = resize_volume(filename, spi, curr_apix, outputfile=output, **extra)
     _logger.info("Finished: %d,%d"%(3,5))
-    _logger.debug("Centering volume")
-    filename = center_volume(filename, spi, output)
+    if not disable_center:
+        _logger.debug("Centering volume")
+        filename = center_volume(filename, spi, output)
     _logger.info("Finished: %d,%d"%(4,5))
     return filename
 
@@ -246,6 +247,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
         pgroup.add_option("",   curr_apix=0.0,          help="Current pixel size of the input volume (only necessary if not MRC)")
         pgroup.add_option("",   new_window=0.0,         help="Set bin_factor based on new window size")
+        pgroup.add_option("",   disable_center=False,   help="Disable centering")
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
         parser.change_default(thread_count=4, log_level=3)
 
