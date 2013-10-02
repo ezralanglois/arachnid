@@ -378,7 +378,8 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     #spi.spider_results(False)
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - started: %d"%mpi_utility.get_rank(**extra))
     spi.flush()
-    mpi_utility.gather_all(align, align[curr_slice], **extra)
+    tmp=align[curr_slice].copy()
+    mpi_utility.gather_all(align, tmp, **extra) # fix gatherall with INPLACE
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - finished: %d"%mpi_utility.get_rank(**extra))
 
 def align_projections_sm(spi, ap_sel, align, reference, angle_doc, angle_num, offset=0, cache_file=None, input_stack=None, reference_stack=None, **extra):
