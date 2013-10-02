@@ -345,6 +345,7 @@ def numpy2em(im, e=None):
     '''
         
     try:
+        im = numpy.require(im, numpy.float32)
         if e is None: e = EMAN2.EMData()
         EMAN2.EMNumPy.numpy2em(im, e)
         return e
