@@ -670,7 +670,7 @@ def generate_ctf_param(defocus, cs=None, window=None, source=None, defocus_sprea
         maximum_spatial_freq = 0.5/apix
     if pad is None or pad < 1: pad = 1
     if isinstance(window, tuple): window = (window[0]*pad, window[1]*pad)
-    else: window = (window*pad, )
+    else: window = (window*pad, window*pad)
     return spider_tuple(cs), spider_tuple(defocus, elambda), spider_tuple(*window), spider_tuple(maximum_spatial_freq), spider_tuple(source, defocus_spread), spider_tuple(astigmatism, azimuth), spider_tuple(ampcont, envelope_half_width), spider_tuple(ctf_sign)
 
 def ensure_output_recon3(session, outputfile):
