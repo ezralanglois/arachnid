@@ -242,9 +242,14 @@ def read_image(filename, index=None, header=None):
     try:
         if index is None: index = 0
         h = read_spider_header(f)
-        dtype = spi2numpy[float(h['iform'])]
-        if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
-        if header is not None: util.update_header(header, h, spi2ara, 'spi')
+        dtype = numpy.dtype(spi2numpy[float(h['iform'])])
+        try:
+            if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
+        except:
+            _logger.error("dtype: %s"%str(dtype))
+            raise
+        #if header is not None: util.update_header(header, h, spi2ara, 'spi')
+        if header is not None: header.update(read_header(h))
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
@@ -287,19 +292,21 @@ def iter_images(filename, index=None, header=None):
     if index is None: index = 0
     try:
         h = read_spider_header(f)
-        dtype = spi2numpy[float(h['iform'])]
+        dtype = numpy.dtype(spi2numpy[float(h['iform'])])
         if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
         if header is not None: util.update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
         count = count_images(h)
-        if numpy.any(index >= count): raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
-        offset = h_len + index * (h_len+i_len)
+        if numpy.any(index >= count):  raise IOError, "Index exceeds number of images in stack: %s < %d"%(str(index), count)
+        offset = h_len + 0 * (h_len+i_len)
         f.seek(offset)
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
+        last=0
         for i in index:
+            if i != (last+1): f.seek(int(h_len + i * (h_len+i_len)))
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
             elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
@@ -323,7 +330,7 @@ def count_images(filename):
     
     if hasattr(filename, 'dtype'): h=filename
     else: h = read_spider_header(filename)
-    return max(int(h['istack']), 1)
+    return max(int(h['maxim']), 1)
 
 def is_writable(filename):
     ''' Test if the image extension of the given filename is understood

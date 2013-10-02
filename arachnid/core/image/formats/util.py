@@ -3,8 +3,17 @@
 .. Created on Jul 18, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import numpy
+import numpy, os, bz2
 from ..ndimage import ndimage
+
+def fromfile(fin, dtype, count, sep=''):
+    '''
+    '''
+    
+    if hasattr(fin, 'fileno'):
+        return numpy.fromfile(fin, dtype, count, sep)
+    else:
+        return numpy.frombuffer(fin.read(count*dtype.itemsize), dtype, count)
 
 def uopen(filename, mode):
     ''' Open a stream to filename
@@ -22,9 +31,14 @@ def uopen(filename, mode):
          File descriptor
     '''
     
+    
     try: "+"+filename
     except: f = filename
-    else:  f = open(filename, mode)
+    else:
+        if os.path.splitext(filename)[1]=='.bz2':
+            f = bz2.BZ2File(filename, mode)
+        else:
+            f = open(filename, mode)
     return f
 
 def close(filename, fd):

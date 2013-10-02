@@ -259,7 +259,8 @@ def is_readable(filename):
             raise ValueError, "Array dtype incorrect"
     else: 
         try: h = read_mrc_header(filename)
-        except: return False
+        except: 
+            return False
     if _logger.isEnabledFor(logging.DEBUG):
         _logger.debug("Mode: %d - %d"%(h['mode'][0], (h['mode'][0] not in mrc2numpy) ))
         _logger.debug("Byteorder: %d - %d"%(h['byteorder'][0], ((h['byteorder'][0]&-65536) not in intbyteorder) ))
@@ -292,7 +293,7 @@ def read_header(filename, index=None):
              Dictionary with header information
     '''
     
-    h = read_mrc_header(filename, index)
+    h = read_mrc_header(filename, index) if not hasattr(filename, 'ndim') else filename
     header={}
     header['apix']=float(h['xlen'][0])/float(h['nx'][0])
     header['count'] = int(h['nz'][0]) if int(h['nz'][0])!=int(h['nx'][0]) else 1
@@ -323,7 +324,7 @@ def read_mrc_header(filename, index=None):
     f = util.uopen(filename, 'r')
     try:
         #curr = f.tell()
-        h = numpy.fromfile(f, dtype=header_image_dtype, count=1)
+        h = util.fromfile(f, dtype=header_image_dtype, count=1)
         if not is_readable(h): h = h.newbyteorder()
         if not is_readable(h): raise IOError, "Not MRC header"
     finally:
@@ -391,8 +392,10 @@ def iter_images(filename, index=None, header=None):
             raise
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
+        last = 0
         for i in index:
-            out = numpy.fromfile(f, dtype=dtype, count=d_len)
+            if i != (last+1): f.seek(int(1024+int(h['nsymbt'])+ i * d_len * dtype.itemsize))
+            out = util.fromfile(f, dtype=dtype, count=d_len)
             if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0]))
             elif int(h['ny'][0]) > 1:
                 try:
@@ -427,7 +430,8 @@ def read_image(filename, index=None, header=None, cache=None):
     f = util.uopen(filename, 'r')
     try:
         h = read_mrc_header(f)
-        if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
+        #if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
+        if header is not None: header.update(read_header(h))
         count = count_images(h)
         if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
         if index is None and count == h['nx'][0]:
@@ -440,7 +444,7 @@ def read_image(filename, index=None, header=None, cache=None):
         total = file_size(f)
         if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
-        out = numpy.fromfile(f, dtype=dtype, count=d_len)
+        out = util.fromfile(f, dtype=dtype, count=d_len)
         if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:
              if h['mapc'][0] == 2 and h['mapr'][0]==1:
                  out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
