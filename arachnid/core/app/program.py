@@ -79,13 +79,15 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
                     If specified, then add `-o, --output` option with given help string
     '''
     
-    _logger.addHandler(logging.StreamHandler())
+    #_logger.addHandler(logging.StreamHandler())
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
     if not use_version and main_template == file_processor: use_version=True
     _logger.debug("Checking options ...")
     try:
         args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
+    except SystemExit:
+        return
     except VersionChange:
         main_module.main()
         return
@@ -209,7 +211,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
              Output filename of the configuration file
     '''
     
-    _logger.addHandler(logging.StreamHandler())
+    #_logger.addHandler(logging.StreamHandler())
     main_template = file_processor if file_processor.supports(main_module) else None
     parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
     parser.change_default(**extra)
@@ -284,7 +286,7 @@ def read_config(main_module, description="", config_path=None, supports_MPI=Fals
              Output filename of the configuration file
     '''
     
-    _logger.addHandler(logging.StreamHandler())
+    #_logger.addHandler(logging.StreamHandler())
     main_template = file_processor if file_processor.supports(main_module) else None
     parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
     name = main_module.__name__
@@ -403,7 +405,11 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     
     description="\n#  ".join([s.strip() for s in description.split("\n")])
     parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, output_option)
-    options, args = parser.parse_args_with_config()
+    
+    try: options, args = parser.parse_args_with_config()    
+    except settings.OptionValueError, inst:
+        on_error(parser, inst, parser.get_default_values())
+        raise settings.OptionValueError, "Failed when parsing options"
     
     if 1 == 0: # test for bad options
         unset = parser.collect_unset_options()
@@ -445,11 +451,13 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
         if hasattr(main_module, "check_main_options"): main_module.check_main_options(options)
         if hasattr(main_module, "check_options"): main_module.check_options(options, True)
     except settings.OptionValueError, inst:
-        parser.error(inst.msg, options)
+        on_error(parser, inst, options)
+        raise settings.OptionValueError, "Failed when testing options"
+        #parser.error(inst.msg, options)
     
     param = vars(options)
     mpi_utility.mpi_init(param, **param)
-    _logger.removeHandler(_logger.handlers[0])
+    #_logger.removeHandler(_logger.handlers[0])
     tracing.configure_logging(**param)
     for org in dependents:
         try:
@@ -461,13 +469,24 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     #param = vars(options)
     if param['rank'] == 0 and use_version: 
         val = parser.version_control(options)
-        if val is not None:param['vercontrol'], param['opt_changed'] = val
+        if val is not None: param['vercontrol'], param['opt_changed'] = val
     param['file_options'] = parser.collect_file_options()
     param['infile_deps'] = parser.collect_dependent_file_options(type='open')
     param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
     param.update(update_file_param(max_filename_len, supports_MPI, **param))
     args = param['input_files'] #options.input_files
     return args, param
+
+def on_error(parser, inst, options):
+    '''
+    '''
+    
+    param = vars(options)
+    print
+    tracing.configure_logging(**param)
+    _logger.error(inst.msg)
+    print parser.get_usage(), "See %s for more information regarding this error"%tracing.default_logfile(**param)
+    print
 
 def update_file_param(max_filename_len, warning, file_options, home_prefix=None, local_temp="", shared_scratch="", local_scratch="", **extra):
     ''' Create a soft link to the home_prefix and change all filenames to
