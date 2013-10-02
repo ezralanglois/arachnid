@@ -241,7 +241,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
                 k+=1
         label = label[:k]
         '''
-    elif len(files) == 1:
+    elif len(files) > 1:
         _logger.info("Assuming micrograph selection file: --select-file %s"%select_file)
         select = format.read(select_file, header=select_header, numeric=True)
         select, header = format_utility.tuple2numpy(select)
