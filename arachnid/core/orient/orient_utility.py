@@ -36,7 +36,7 @@ def coarse_angles(resolution, align): # The bitterness of men who fear human pro
         rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
         rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
         new_ang[i, 1:]=(align[i,1], align[i,2], rot, tx, ty)
-        if len(align[0])>5: align[5] = ipix
+        if len(align[0])>6: align[6] = ipix
     return new_ang
 
 def coarse_angles2(resolution, align):
