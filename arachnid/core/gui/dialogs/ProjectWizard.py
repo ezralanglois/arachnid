@@ -5,7 +5,7 @@
 '''
 from pyui.ProjectWizard import Ui_ProjectWizard
 from ..util import BackgroundTask
-from ..util.qt4_loader import QtCore, QtGui, qtSlot
+from ..util.qt4_loader import QtCore, QtGui, qtSlot, qtSignal
 
 from .. import property
 from .. import ndimage_file, ndimage_utility, spider_utility
@@ -16,15 +16,34 @@ from arachnid.pyspider import project
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+'''
+import sys,traceback
+def getTraceback(exceptionTraceback):
+    traceback.print_tb(
+            exceptionTraceback,
+            None,
+            sys.stdout
+        )
+def exceptHook( exceptionType, exceptionValue, exceptionTraceback):   
+    getTraceback(exceptionTraceback)
+    print exceptionType
+    print exceptionValue
+'''
+
 class MainWindow(QtGui.QWizard):
     ''' Main window display for the plotting tool
     '''
+    
+    taskFinished = qtSignal(object)
     
     def __init__(self, parent=None):
         "Initialize a basic viewer window"
         
         
         QtGui.QWizard.__init__(self, parent)
+        
+        #sys.excepthook = exceptHook
+        
         self.ui = Ui_ProjectWizard()
         self.ui.setupUi(self)
         self.lastpath = str(QtCore.QDir.currentPath())
@@ -49,7 +68,7 @@ class MainWindow(QtGui.QWizard):
                       'curr_apix':0.0, 'raw_reference':'',
                       'cluster_mode': project._cluster_default,
                       'apix': 0.0, 'voltage': 0.0, 'particle_diameter': 0.0, 'cs': 0.0,
-                      'worker_count': 0, 'thread_count': 1, 'window_size': 0, 'ext': 'dat'
+                      'worker_count': 0, 'thread_count': 1, 'window': 0, 'ext': 'dat'
                      }
         self.appparam = {'page': 0, 'pid': -1, 'pid_time': -1} # save run state - pid - test if exists
         self.settings = []
@@ -92,7 +111,7 @@ class MainWindow(QtGui.QWizard):
                   ('Ribosome-50S', '1456', ':/icons/icons/ribosome_60S_32x32.png'),
                   ('Ribosome-30S', '5503', ':/icons/icons/ribosome30s_32x32.png'),
                   ('Ribosome-80S', '2275', ':/icons/icons/ribosome80s_32x32.png'),
-                  ('Ribosome-60S', '2168', ':/icons/icons/ribosome_60S_32x32.png'),
+                  ('Ribosome-60S', '1705', ':/icons/icons/ribosome_60S_32x32.png'),
                   ('Ribosome-40S', '1925', ':/icons/icons/ribosome_40S_32x32.png'),]
         for entry in canned:
             icon = QtGui.QIcon()
@@ -101,7 +120,8 @@ class MainWindow(QtGui.QWizard):
             item.setData(entry[1], QtCore.Qt.UserRole)
             self.emdbCannedModel.appendRow(item)
         self.ui.emdbCannedListView.setModel(self.emdbCannedModel)
-        self.connect(self, QtCore.SIGNAL('taskFinished(PyQt_PyObject)'), self.onDownloadFromEMDBComplete)
+        
+        self.taskFinished.connect(self.onDownloadFromEMDBComplete)
         
         #Page 3
         self.ui.pixelSizeDoubleSpinBox.setValue(self.param['apix'])
@@ -116,7 +136,7 @@ class MainWindow(QtGui.QWizard):
                 self.ui.workerCountSpinBox.setValue(multiprocessing.cpu_count())
             except: pass
         self.ui.threadCountSpinBox.setValue(self.param['thread_count'])
-        self.ui.windowSizeSpinBox.setValue(self.param['window_size'])
+        self.ui.windowSizeSpinBox.setValue(self.param['window'])
         self.ui.extensionLineEdit.setText(self.param['ext'])
         
         for mode in project._cluster_modes:
@@ -208,6 +228,8 @@ class MainWindow(QtGui.QWizard):
         elif page == 2:
             if self.param['raw_reference'] != "" and os.path.exists(self.param['raw_reference']):
                 enable = self.param['curr_apix'] > 0
+                self.ui.referenceTabWidget.setCurrentIndex(0)
+                
             else:
                 enable=True
         elif page == 3:
@@ -361,7 +383,7 @@ class MainWindow(QtGui.QWizard):
             
         for mod, param in self.modules:
             param.update( vars(self.fine_param[mod]) )
-        self.scripts = project.write_config(self.modules, self.fullparam, self.config_path, self.output, **self.param)
+        self.scripts = project.write_config(self.modules, self.fullparam, self.config_path, self.output, support_project=False, **self.param)
         self.jobListModel.clear()
         for mod, param in self.modules:
             item = QtGui.QStandardItem(self.jobStatusIcons[0], project.module_name(mod))
@@ -431,9 +453,9 @@ class MainWindow(QtGui.QWizard):
         ''' Called when the user clicks the invert contrast button
         '''
         
-        self.param['window_size'] = value
+        self.param['window'] = value
     
-    @qtSlot(name='on_extensionLineEdit_editingFinished')
+    #@qtSlot(name='on_extensionLineEdit_editingFinished')
     def onExtensionEditChanged(self):
         '''
         '''
@@ -547,7 +569,7 @@ class MainWindow(QtGui.QWizard):
         self.param['curr_apix'] = value
         self.onPageChanged()
     
-    @qtSlot(name='on_referenceLineEdit_editingFinished')
+    #@qtSlot(name='on_referenceLineEdit_editingFinished')
     def onReferenceEditChanged(self):
         '''
         '''
@@ -587,13 +609,15 @@ class MainWindow(QtGui.QWizard):
                 self.param['raw_reference'] = str(filename)
             else:
                 QtGui.QMessageBox.warning(self, "Warning", "File is not a volume: %s"%str(img.shape))
-                if self.param['curr_apix'] == 0:
-                    header = ndimage_file.read_header(filename)
-                    self.ui.referencePixelSizeDoubleSpinBox.blockSignals(True)
-                    self.ui.referencePixelSizeDoubleSpinBox.setValue(str(header['apix']))
-                    self.ui.referencePixelSizeDoubleSpinBox.blockSignals(False)
-                    self.param['curr_apix'] = header['apix']
+            if self.param['curr_apix'] == 0:
+                header = ndimage_file.read_header(filename)
+                self.ui.referencePixelSizeDoubleSpinBox.blockSignals(True)
+                self.ui.referencePixelSizeDoubleSpinBox.setValue(header['apix'])
+                self.ui.referencePixelSizeDoubleSpinBox.blockSignals(False)
+                self.param['curr_apix'] = header['apix']
+
         self.onPageChanged()
+
         return self.param['raw_reference']
     
     ####################################################################################
