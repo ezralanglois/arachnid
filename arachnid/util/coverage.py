@@ -63,7 +63,7 @@ def batch(files, output, dpi, chimera=False, **extra):
     
     _logger.info("Completed")
     
-def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, radius=60, center=0, **extra):
+def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_radius=60, ball_center=0, ball_size=1.0, mirror=False, count_mode=2, color_map='cool', **extra):
     '''
     '''
     
@@ -71,12 +71,30 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, radius=
     total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
     count = numpy.histogram(pix, total)[0]
     maxcnt = count.max()
+    pix = numpy.arange(total, dtype=numpy.int)
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
+    _logger.info("Number of angles %d for resolution %d"%(len(angs), view_resolution))
     fout = open(output, 'w')
-    fout.write('.color 1 0 0\n')
+    
+    # Todo empty shape
+    # Fix orientation
+    
+    cmap = getattr(cm, color_map)
+    if count_mode == 0:
+        fout.write('.color 1 0 0\n')
     for i in xrange(len(angs)):
-        v1,v2,v3 = orient_utility.euler_to_vector(angs[i, 0], angs[i, 1])
-        fout.write('.sphere %f %f %f %f\n'%(v1*radius+center, v2*radius+center, v3*radius+center, count[pix[i]]/float(maxcnt)))
+        v1,v2,v3 = orient_utility.euler_to_vector(angs[i, 1], angs[i, 0])
+        ncnt = count[i]/float(maxcnt)
+        if count_mode != 0:
+            r, g, b = cmap(ncnt)[:3]
+            fout.write('.color %f %f %f\n'%(r, g, b))
+            if count_mode == 1: ncnt=1.0
+            
+        fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
+        if mirror:
+            v1,v2,v3 = orient_utility.euler_to_vector(angs[i, 1], 180+angs[i, 0])
+            fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
+            
     fout.close()
 
 def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9, hide_zero_marker=False, use_scale=False, label_view=[], **extra):
@@ -201,13 +219,18 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-d", dpi=300,                 help="Resolution of the image in dots per inch")
     group.add_option("-r", view_resolution=3,       help="Group views into a coarse grid: (2) 15 deg, (3) 7.5 deg ...")
     group.add_option("-a", area_mult=1.0,           help="Cirle area multiplier")
-    group.add_option("", disable_mirror=False,      help="Disable mirroring over the equator")
+    group.add_option("", disable_mirror=False,      help="Disable mirroring over the equator for counting")
+    group.add_option("", mirror=False,              help="Mirroring over the equator for visualization")
+    group.add_option("", count_mode=('Shape', 'Color', 'Both'),              help="Mirroring over the equator for visualization", default=2)
     group.add_option("", hide_zero_marker=False,    help="Hide the zero markers")
     group.add_option("", color_map='cool',          help="Set the color map")
     group.add_option("", alpha=0.9,                 help="Transparency of the marker (1.0 = solid, 0.0 = no color)")
     group.add_option("", use_scale=False,           help="Display scale and color instead of color bar")
     group.add_option("", label_view=[],             help="List of views to label with number and Euler Angles (theta,phi)")
     group.add_option("", chimera=False,             help="Write out Chimera bild file")
+    group.add_option("", ball_radius=60,            help="Radius from center for ball projections")
+    group.add_option("", ball_size=1.0,             help="Size of largest ball projection")
+    group.add_option("", ball_center=0,             help="Offset from center for ball projections")
     
     pgroup.add_option_group(group)
     
