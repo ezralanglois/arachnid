@@ -46,11 +46,11 @@ def coarse_angles2(resolution, align):
     
     ang = healpix.angles(resolution)
     resolution = pow(2, resolution)
-    new_ang=numpy.zeros((len(ang), 6))
+    new_ang=numpy.zeros((len(align), len(align[0])))
     for i in xrange(len(align)):
         theta=align[i,1]
         if align[i,1] > 180.0: theta -= 180.0
-        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(align[i,1]), numpy.deg2rad(align[i,2]))        
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(align[i,2]))        
         
         refquat = spider_to_quaternion(ang[ipix])
         curquat = spider_to_quaternion((-align[i,3], theta, align[i,2]))
