@@ -338,7 +338,7 @@ def create_refinement(vals, output, **extra):
     '''
     '''
     
-    #spider_params.write(os.path.join(os.path.dirname(output), 'params'+os.path.splitext(output)[1]), 0.0, vals[0].rlnVoltage, rlnSphericalAberration, pixel_diameter, window_size=window_size, cs=vals[0].rlnAmplitudeContrast)
+    #spider_params.write(os.path.join(os.path.dirname(output), 'params'+os.path.splitext(output)[1]), 0.0, vals[0].rlnVoltage, rlnSphericalAberration, pixel_diameter, window=window, cs=vals[0].rlnAmplitudeContrast)
     align = numpy.zeros((len(vals), 18))
     align[:, 4] = numpy.arange(1, len(vals)+1)
     for i in xrange(len(vals)):
@@ -481,7 +481,7 @@ def generate_relion_selection_file(files, img, output, param_file, select="", go
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         avg = numpy.mean(img*mask)
         if numpy.allclose(0.0, avg):
-            _logger.warn("Relion requires the background to be zero normalized, not %g"%avg)
+            _logger.warn("Relion requires the background to be zero normalized, not %g -- for radius %d"%(avg, pixel_radius))
     
     if test_all:
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
