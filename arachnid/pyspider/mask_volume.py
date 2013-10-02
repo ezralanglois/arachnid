@@ -132,10 +132,13 @@ def process(filename, output, **extra):
                Filename for correct location
     '''
     
-    extra.update(filter_volume.ensure_pixel_size(filename=filename, **extra))
+    tempfile1 = extra['spi'].replace_ext('tmp1_spi_file')
+    filename1 = ndimage_file.copy_to_spider(filename, tempfile1)
+    if 'apix' in extra:
+        extra.update(filter_volume.ensure_pixel_size(filename=filename1, **extra))
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])
-    mask_volume(filename, output, mask_output=format_utility.add_prefix(output, "mask_"), **extra)
+    mask_volume(filename1, output, mask_output=format_utility.add_prefix(output, "mask_"), **extra)
     return filename
 
 def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra):
@@ -209,7 +212,7 @@ def spherical_mask(filename, outputfile, spi, volume_mask, mask_edge_width=10, p
     '''
     
     if filename == outputfile: filename = spi.cp(filename)
-    if pixel_diameter is None: raise ValueError, "pixel_diameter must be set"
+    if pixel_diameter is None: raise ValueError, "pixel_diameter must be set with SPIDER params files --param-file"
     width = spider.image_size(spi, filename)[0]/2+1
     radius = pixel_diameter/2+mask_edge_width/2 if volume_mask == 'C' else pixel_diameter/2+mask_edge_width
     return spi.ma(filename, radius, (width, width, width), volume_mask, 'C', mask_edge_width, outputfile=outputfile)
@@ -278,14 +281,19 @@ def tightmask(spi, filename, outputfile, threshold='A', ndilate=1, gk_size=3, gk
     :Returns:
     
     outputfile : str
+       
                  Output tight masked volume
     '''
-    
+    pref_filename=filename
     if pre_filter > 0.0:
-        filename = spi.fq(filename, spi.GAUS_LP, filter_radius=apix/pre_filter, outputfile=mask_output)
-        filename = spi.replace_ext(filename)
+        if apix is None and pre_filter > 0.5: raise ValueError, "Filtering requires SPIDER params file --param-file"
+        if apix is None and pre_filter < 0.5:
+            pref_filename = spi.fq(filename, spi.GAUS_LP, filter_radius=pre_filter, outputfile=format_utility.add_prefix(mask_output, "prefilt_"))
+        else: 
+            pref_filename = spi.fq(filename, spi.GAUS_LP, filter_radius=apix/pre_filter, outputfile=format_utility.add_prefix(mask_output, "prefilt_"))
+        pref_filename = spi.replace_ext(pref_filename)
     
-    img = ndimage_file.read_image(filename)
+    img = ndimage_file.read_image(pref_filename)
     
     mask = None
     if mask_output is not None and os.path.exists(spi.replace_ext(mask_output)):
@@ -302,8 +310,9 @@ def tightmask(spi, filename, outputfile, threshold='A', ndilate=1, gk_size=3, gk
             mask_output = spi.replace_ext(mask_output)
             ndimage_file.write_image(mask_output, mask)
     else:
-        _logger.info("Using pre-generated tight-mask")
+        _logger.info("Using pre-generated tight-mask: %s"%(mask_output))
         
+    img = ndimage_file.read_image(filename)
     ndimage_file.write_image(outputfile, img*mask)
     return outputfile
 
@@ -334,7 +343,8 @@ def initialize(files, param):
     # Initialize global parameters for the script
     
     param['spi'] = spider.open_session(files, **param)
-    spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    if param['param_file'] != "":
+        spider_params.read(param['spi'].replace_ext(param['param_file']), param)
 
 def finalize(files, **extra):
     # Finalize global parameters for the script
@@ -347,7 +357,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of input filenames containing volumes", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for masked volume with correct number of digits (e.g. masked_0000.spi)", gui=dict(filetype="save"), required_file=True)
-        spider_params.setup_options(parser, pgroup, True)
+        spider_params.setup_options(parser, pgroup, False)
     mgroup = OptionGroup(parser, "Masking", "Option to control masking",  id=__name__, group_order=0)
     setup_options_from_doc(parser, mask_volume, spherical_mask, tightmask, group=mgroup)
     pgroup.add_option_group(mgroup)
@@ -360,7 +370,7 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     
     if main_option:
-        spider_params.check_options(options)
+        #spider_params.check_options(options)
         if options.volume_mask == 'N':
             raise OptionValueError, "Invalid parameter: --volume-mask should not be set to 'N', this means no masking"
         if options.volume_mask == "":
