@@ -22,6 +22,8 @@ The directory structure and placement of the scripts is illustrated below:
     |         --- autopick.cfg
     |         \|
     |         --- crop.cfg
+    |         \|
+    |         --- project.cfg
     |     \|
     |     --- cluster
     |         \|
@@ -225,7 +227,7 @@ def batch(files, output, leginon_filename="", leginon_offset=0, **extra):
     write_config(modules, param, config_path, output, **extra)
     _logger.info("Completed")
     
-def write_config(modules, param, config_path, output, **extra):
+def write_config(modules, param, config_path, output, support_project=True, **extra):
     ''' Write out a configuration file for each script in the reconstruction protocol
     
     :Parameters:
@@ -279,7 +281,8 @@ def write_config(modules, param, config_path, output, **extra):
         progress_file = os.path.join(output, 'progress_%s.txt'%type)
         scripts.append((os.path.join(output, 'run_%s'%type), progress_file))
         fout.write("#!/bin/bash\n")
-        fout.write("sp-project -c local/project.cfg\n")
+        if support_project:
+            fout.write("sp-project -c local/project.cfg\n")
         if type == 'cluster':
             fout.write('MACHINEFILE="machinefile"\n')
             fout.write('if [ ! -e "$MACHINEFILE" ] ; then \n')
@@ -329,13 +332,13 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
     mn_base = os.path.basename(config_path['MN'])
     sn_base = os.path.basename(config_path['SN'])
     param = dict(
-        param_file = os.path.join(mn_base, 'data', 'params'+ext),
+        param_file = os.path.join(mn_base, 'data', 'params'+'.'+data_ext),
         reference = os.path.join(mn_base, 'data', 'reference'),
-        defocus_file = os.path.join(mn_base, 'data', 'defocus'),
-        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_'+"".zfill(id_len)+ext),
-        output_pow = os.path.join(sn_base, "pow", "pow_"+"".zfill(id_len)+ext),
-        output_mic = os.path.join(sn_base, "mic", "mic_dec_"+"".zfill(id_len)+ext),
-        stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+ext),
+        defocus_file = os.path.join(mn_base, 'data', 'defocus'+'.'+data_ext),
+        coordinate_file = os.path.join(sn_base, 'coords', 'sndc_'+"".zfill(id_len)+'.'+data_ext),
+        output_pow = os.path.join(sn_base, "pow", "pow_"+"".zfill(id_len)+'.'+data_ext),
+        output_mic = os.path.join(sn_base, "mic", "mic_dec_"+"".zfill(id_len)+'.'+data_ext),
+        stacks = os.path.join(mn_base, 'win', 'win_'+"".zfill(id_len)+'.'+data_ext),
         alignment = os.path.join(mn_base, 'refinement', 'align_0000'),
         starfile = os.path.join(mn_base, 'data', 'data.star'),
     )
@@ -355,7 +358,7 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
                         ])
     modules.extend( [
                (defocus,  dict(input_files=input_files,
-                               output=param['defocus_file']+'.'+data_ext,
+                               output=param['defocus_file'],
                                run_type='HB',
                                supports_MPI=True,
                                )),
@@ -410,9 +413,7 @@ def workflow(input_files, output, id_len, raw_reference, ext='dat', cluster_mode
                                supports_MPI=False,
                                )),
         ])
-    
-    del extra['window_size']
-    
+        
     if 'home_prefix' in extra:
         if extra['home_prefix'] == "":
             extra['home_prefix'] = os.path.abspath(output)
@@ -623,7 +624,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Additional", "Optional parameters to set", group_order=0,  id=__name__)
     group.add_option("",    cluster_mode=_cluster_modes, help="Set the cluster mode", default=_cluster_default)
     group.add_option("",    scattering_doc="",      help="Filename for x-ray scatter file; set to ribosome for a default, 8A scattering file (optional, but recommended)", gui=dict(filetype="open"))
-    group.add_option("",    window_size=0,          help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
+    group.add_option("",    window=0,               help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     group.add_option("",    curr_apix=0.0,          help="Current pixel size of the reference", gui=dict(minimum=0.0))
     group.add_option("",    xmag=0.0,               help="Magnification (optional)", gui=dict(minimum=0))
     group.add_option("-e",  ext="dat",              help="Extension for SPIDER (three characters)", required=True, gui=dict(maxLength=3))
