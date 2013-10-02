@@ -261,6 +261,8 @@ def auto_update_param(res_iteration, refine_index, alignvals, unchanged, max_res
     #extra.update(theta_delta=theta_delta_est(resolution_start, **extra))
     if refine_index > 1 and extra['theta_delta'] < restrict_angle:
         extra.update(angle_range = angular_restriction(alignvals, **extra))
+    if max(extra['trans_range'], 1)>= extra['trans_max'] and refine_index > 0:
+        return auto_update_param(res_iteration, refine_index-1, alignvals, unchanged, max_resolution, overfilter, restrict_angle, **extra)
     extra.update(trans_range=max(extra['trans_range'], 1), min_resolution=res_iteration[refine_index-1, 1]*overfilter)
     res_iteration[refine_index-1, 2]=extra['trans_range']
     return extra
