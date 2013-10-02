@@ -169,6 +169,7 @@ def batch(files, refine_spi=False, views=0, frame="", **extra):
         if len(vals) > 1:
             vals = format_utility.combine(vals)
         else: vals = vals[0]
+        
         vals = select_good(vals, **extra)
         
         if frame != "":
@@ -181,9 +182,23 @@ def batch(files, refine_spi=False, views=0, frame="", **extra):
             select_class_subset(vals, **extra)
     _logger.info("Completed")
     
-def select_good(vals, good, **extra):
+def select_good(vals, good, min_defocus, max_defocus, **extra):
     '''
     '''
+    
+    old_vals = vals
+    vals = []
+    old_max=(1e20, -1e20)
+    new_max=(1e20, -1e20)
+    for v in old_vals:
+        if v.rlnDefocusU < max_defocus and v.rlnDefocusU > min_defocus:
+            vals.append(v)
+            if v.rlnDefocusU  > new_max[1]: new_max = (new_max[0], v.rlnDefocusU )
+            if v.rlnDefocusU  < new_max[0]: new_max = (v.rlnDefocusU, new_max[1] )
+        if v.rlnDefocusU  > old_max[1]: old_max = (old_max[0], v.rlnDefocusU )
+        if v.rlnDefocusU  < old_max[0]: old_max = (v.rlnDefocusU, old_max[1] )
+    _logger.info("Original Defocus Range: %f, %f"%old_max)
+    _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     
     if good == "": return vals
     
