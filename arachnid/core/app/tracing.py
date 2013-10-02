@@ -106,6 +106,7 @@ class Logger(logging.Logger):
 
 loaded = False
 
+
 log_level_val = ['critical', 'error', 'warning', 'info', 'debug', 'debug_more']
 log_level_map = {'critical':    logging.CRITICAL,
                  'error':       logging.ERROR,
@@ -168,6 +169,12 @@ def setup_options(parser, pgroup=None):
         pgroup.add_option_group(group)
     else:
         parser.add_option_group(group)
+        
+def default_logfile(rank=0, **extra):
+    '''
+    '''
+    
+    return "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
 
 def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tmp="", disable_stderr=False, **extra):
     '''Configure logging with use selected options
@@ -207,7 +214,7 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             log_file = base+socket.gethostname()+"_"+str(rank)+ext
             #if remote_tmp != "": log_file = os.path.join(remote_tmp, log_file)
         handlers = []
-        default_error_log = "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
+        default_error_log = default_logfile(rank)
         
         try: 
             if log_file != "":
@@ -244,7 +251,10 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
         root.setLevel(level)
         while len(root.handlers) > 0: root.removeHandler(root.handlers[0])
         for ch in handlers:
-            ch.setFormatter(logging.Formatter(log_formats[log_level_name]))
+            if not isinstance(ch, logging.FileHandler) and isinstance(ch, logging.StreamHandler) and supports_colors():
+                ch.setFormatter(ColoredFormatter(log_formats[log_level_name]))
+            else: 
+                ch.setFormatter(logging.Formatter(log_formats[log_level_name]))
             root.addHandler(ch)
             ch.setLevel(level)
         root.setLevel(level)
@@ -279,7 +289,7 @@ def print_import_warnings():
     '''
     
     for errormsg in _log_import_errors:
-        logging.warn(errormsg)
+        logging.warn(errormsg, extra=dict(tofile=True))
     
 '''   
 def archive(parser, archives, archive_path, config_file, **extra):
@@ -363,6 +373,16 @@ def check_options(options):
     
     pass
 
+def supports_colors():
+    '''
+    '''
+    try:
+        import curses
+        curses.setupterm()
+        #window.getbkgd()
+        return curses.tigetnum('colors') > 2
+    except: return False
+
 if not loaded:
     loaded = True
     
@@ -379,7 +399,24 @@ if not loaded:
             '''
             pass
     h = NullHandler()
-    logging.getLogger("vispider").addHandler(h)
+    logging.getLogger("arachnid").addHandler(h)
+ 
+RESET_SEQ = "\033[0m"
+COLOR_SEQ = "\033[1;%dm"
+#BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+RED=1
+COLORS={'ERROR': RED}   
+class ColoredFormatter(logging.Formatter):
+
+    def __init__(self, msg):
+        logging.Formatter.__init__(self, msg)
+
+    def format(self, record):
+        levelname = record.levelname
+        if levelname in COLORS:
+            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ
+            record.levelname = levelname_color
+        return logging.Formatter.format(self, record)
 
 class ExceptionFilter(logging.Filter):
     '''Disallows exceptions to be logged
@@ -401,7 +438,7 @@ class ExceptionFilter(logging.Filter):
         
         #print "here: ", record.exc_info
         #record.exc_info  = None
-        return record.exc_info is None
+        return record.exc_info is None and not hasattr(record, 'tofile')
     
 
 if logging._loggerClass != Logger: logging.setLoggerClass(Logger)
