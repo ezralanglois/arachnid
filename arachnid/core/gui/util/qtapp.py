@@ -21,6 +21,7 @@ def create_app():
     '''
     import arachnid
     if QtGui is None: return None
+    #QtGui.QApplication.setStyle('cde')
     app = QtGui.QApplication([])
     QtCore.QCoreApplication.setOrganizationName("CryoSoft")
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
