@@ -482,6 +482,47 @@ def fastdot_t1(s1_t, s2, out=None, alpha=1.0, beta=0.0):
     _manifold.gemm_t1(s1_t, s2, out, float(alpha), float(beta))
     return out
 
+def max_dist(samp, batch=10000):
+    '''
+    '''
+    
+    dtype = samp.dtype
+    nbatch = max(1, int(samp.shape[0]/float(batch)))
+    batch = int(samp.shape[0]/float(nbatch))
+    dense = numpy.empty((batch,batch), dtype=dtype)
+    a = (samp**2).sum(axis=1)
+    maxval = -1e20
+    for r in xrange(0, samp.shape[0], batch):
+        rnext = min(r+batch, samp.shape[0])
+        s1 = samp[r:rnext]
+        for c in xrange(0, samp.shape[0], batch):
+            s2 = samp[c:min(c+batch, samp.shape[0])]
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            
+            if hasattr(_manifold, 'gemm'):
+                try:
+                    _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
+                except:
+                    _logger.error("s1: %s - s2: %s - tmp: %s"%(str(s1.dtype), str(s2.dtype), str(tmp.dtype)))
+                    raise
+                dist2=tmp
+            elif hasattr(scipy.linalg, 'fblas'):
+                dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+            else:
+                dist2 = numpy.dot(s1, s2.T)
+                numpy.multiply(-2.0, dist2, dist2)
+            
+            
+            try:
+                dist2 += a[c:c+batch]#, numpy.newaxis]
+            except:
+                _logger.error("dist2.shape=%s -- a.shape=%s -- %d,%d,%d"%(str(dist2.shape), str(a.shape), c, c+batch, batch))
+                raise
+            dist2 += a[r:rnext, numpy.newaxis]
+            val=dist2.max()
+            if val > maxval: maxval = val
+    return maxval
+
 def knn(samp, k, batch=10000, kernel_cum=None):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
@@ -543,8 +584,6 @@ def knn(samp, k, batch=10000, kernel_cum=None):
                 dist2 = numpy.dot(s1, s2.T)
                 numpy.multiply(-2.0, dist2, dist2)
             
-            if kernel_cum is not None:
-                _manifold.kernel_range(tmp.ravel(), kernel_cum)
             
             try:
                 dist2 += a[c:c+batch]#, numpy.newaxis]
@@ -552,14 +591,18 @@ def knn(samp, k, batch=10000, kernel_cum=None):
                 _logger.error("dist2.shape=%s -- a.shape=%s -- %d,%d,%d"%(str(dist2.shape), str(a.shape), c, c+batch, batch))
                 raise
             dist2 += a[r:rnext, numpy.newaxis]
+            if kernel_cum is not None:
+                _manifold.kernel_range(tmp.ravel(), kernel_cum)
             _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c), k)
         _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
 
     del dist2, dense
     row = numpy.empty(n, dtype=numpy.longlong)
     tmp = row.reshape((samp.shape[0], k))
+    tmp2 = data.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
         tmp[r, :]=r
+        assert(numpy.all(tmp2[r][:-2] <= tmp2[r][1:-1]))
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
 def euclidean_distance2(X, Y):
