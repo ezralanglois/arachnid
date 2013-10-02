@@ -124,7 +124,8 @@ def read_image_mat(filename, label, image_processor, shared=False, cache_file=No
     for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, queue_limit=100, **extra):
         mat[row, :] = data.ravel()[:img.shape[0]]
     if force_mat:
-        scipy.io.savemat(cache_file, dict(data=mat, label=label), oned_as='column', format='5')
+        if cache_file is not None and cache_file != "":
+            scipy.io.savemat(cache_file, dict(data=mat, label=label), oned_as='column', format='5')
     else:
         if cache_file is not None and cache_file != "":
             _logger.info("Caching image matrix")
@@ -191,6 +192,7 @@ def is_readable(filename):
            True if the format is recognized
     '''
     
+    filename = readlinkabs(filename)
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
     return get_read_format(filename) is not None
 
@@ -210,6 +212,7 @@ def read_header(filename, index=None):
           Array with header information in the file
     '''
     
+    filename = readlinkabs(filename)
     format = get_read_format_except(filename)
     return format.read_header(filename, index)
 
@@ -229,11 +232,7 @@ def read_image(filename, index=None, **extra):
           Array with header information in the file
     '''
     
-    try:
-        filename = readlinkabs(filename)
-    except:
-        _logger.error("Problem with: %s"%str(filename))
-        raise
+    filename = readlinkabs(filename)
     format = get_read_format_except(filename)
     return format.read_image(filename, index, **extra)
 
@@ -253,7 +252,7 @@ def readlinkabs(link):
     
     if not os.path.islink(link):  return link
     p = os.readlink(link)
-    if os.path.isabs(p): return p
+    if os.path.isabs(p) or not os.path.isabs(link): return p
     return os.path.join(os.path.dirname(link), p)
 
 def process_images(input_file, output_file, transform_func, index=None, **extra):
@@ -288,6 +287,7 @@ def iter_images(filename, index=None):
                 yield read_image(f, id-1)
         else:
             for f in filename:
+                f = readlinkabs(f)
                 for img in iter_images(f):
                     yield img
         return
@@ -310,6 +310,7 @@ def iter_images(filename, index=None):
                 sel = numpy.argwhere(id == index[:, 0]).ravel()
                 if beg != sel[0]: raise ValueError, "Array must be sorted by file ids: %d != %d -- %f, %f"%((beg), sel[0], index[beg, 0], beg)
                 try:
+                    filename = readlinkabs(filename)
                     for img in iter_images(filename, index[sel, 1]):
                         yield img
                 except:
@@ -330,6 +331,7 @@ def iter_images(filename, index=None):
         
         
     if index is not None and hasattr(index, '__iter__') and not hasattr(index, 'ndim'): index = numpy.asarray(index)
+    filename = readlinkabs(filename)
     format = get_read_format_except(filename)
     for img in format.iter_images(filename, index):
         yield img
@@ -356,6 +358,7 @@ def count_images(filename):
             total += format.count_images(f)
         return total
     else:
+        filename = readlinkabs(filename)
         format = get_read_format_except(filename)
     return format.count_images(filename)
 
@@ -456,12 +459,21 @@ def get_read_format_except(filename):
             Read format for given file
     '''
     
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+    try:
+        link=filename
+        filename = readlinkabs(filename)
+    except:
+        _logger.error("Problem with: %s"%str(filename))
+        raise
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s (%s)"%(filename, link)
     f = get_read_format(filename)
     if f is not None: 
         #_logger.debug("Using format: %s"%str(f))
         return f
-    raise IOError, "Could not find format for %s\n\n Installing EMAN2 adds addtional formats to Arachnid"%filename
+    if spider_writer.eman2_utility.EMAN2 is not None:
+        raise IOError, "Could not find format for %s"%filename
+    else:
+        raise IOError, "Could not find format for %s\n\n Installing EMAN2 adds addtional formats to Arachnid"%filename
 
 def get_read_format(filename):
     ''' Get the write format for the image
@@ -476,6 +488,14 @@ def get_read_format(filename):
     write : format
             Read format for given file
     '''
+    
+    try:
+        link=filename
+        filename = readlinkabs(filename)
+    except:
+        _logger.error("Problem with: %s"%str(filename))
+        raise
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s (%s)"%(filename, link)
     
     try:
         if mrc.is_readable(filename):
