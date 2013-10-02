@@ -4,9 +4,10 @@
 .. codeauthor:: robertlanglois
 '''
 import numpy
-import transforms
+import transforms,healpix
 import logging, scipy, scipy.optimize
 from ..parallel import process_queue
+from ..image import rotate
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -17,6 +18,51 @@ try:
 except:
     from ..app import tracing
     tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
+    
+def coarse_angles(resolution, align): # The bitterness of men who fear human progress
+    '''
+    TODO: disable mirror
+    '''
+    
+    ang = healpix.angles(resolution)
+    resolution = pow(2, resolution)
+    new_ang=numpy.zeros((len(align), len(align[0])))
+    for i in xrange(len(align)):
+        theta=align[i,1]
+        if align[i,1] > 180.0: theta -= 180.0
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(align[i,2]))
+        rang = rotate.rotate_euler(ang[ipix], (-align[i,3], theta, align[i,2]))
+        rot = (rang[0]+rang[2])
+        rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
+        rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
+        new_ang[i, 1:]=(align[i,1], align[i,2], rot, tx, ty)
+        if len(align[0])>5: align[5] = ipix
+    return new_ang
+
+def coarse_angles2(resolution, align):
+    '''
+    TODO: disable mirror
+    '''
+    
+    ang = healpix.angles(resolution)
+    resolution = pow(2, resolution)
+    new_ang=numpy.zeros((len(ang), 6))
+    for i in xrange(len(align)):
+        theta=align[i,1]
+        if align[i,1] > 180.0: theta -= 180.0
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(align[i,1]), numpy.deg2rad(align[i,2]))        
+        
+        refquat = spider_to_quaternion(ang[ipix])
+        curquat = spider_to_quaternion((-align[i,3], theta, align[i,2]))
+        curquat[1:] = -curquat[1:]
+        rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(refquat, curquat), 'rzyz'))
+        rot = rot[0]+rot[2]
+        
+        rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
+        rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
+        new_ang[i, 1:]=(align[i,1], align[i,2], rot, tx, ty)
+        if len(align[0])>6: align[6] = ipix
+    return new_ang
 
 def rotation_from_euler(psi, theta, phi, axis='rzyz'):
     '''
@@ -24,20 +70,25 @@ def rotation_from_euler(psi, theta, phi, axis='rzyz'):
     
     return transforms.rotation_from_matrix(transforms.euler_matrix(numpy.deg2rad(psi), numpy.deg2rad(theta), numpy.deg2rad(phi), axis))
 
-#ouble alpha, double beta, double gamma,
-def euler_to_vector(theta, phi):
+
+def euler_to_vector(phi, theta):
     '''
+    
+    .. note::
+        
+        http://xmipp.cnb.csic.es/~xmipp/trunk/xmipp/documentation/html/geometry_8cpp_source.html
+    
     '''
     
     theta = numpy.deg2rad(theta)
     phi = numpy.deg2rad(phi)
-    ct = numpy.cos(theta)
-    cp = numpy.cos(phi)
-    st = numpy.sin(theta)
-    sp = numpy.sin(phi)
-    sc = st * ct
-    ss = sp * st
-    return sc, ss, cp
+    cp = numpy.cos(phi)   # ca
+    ct = numpy.cos(theta) # cb
+    sp = numpy.sin(phi)   # sa
+    st = numpy.sin(theta) # sb
+    sc = st * cp          #sb * ca;
+    ss = st * sp          #sb * sa;
+    return sc, ss, ct
 
 def fit_rotation(feat, maxfev=0):
     '''

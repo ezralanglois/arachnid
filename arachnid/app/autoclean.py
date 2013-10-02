@@ -149,7 +149,10 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
         avg_file = spider_utility.spider_filename(avg_file, input_vals[0])
         avg = None
         for i, img in enumerate(ndimage_file.iter_images(input_files[0], label)):
-            if extra['use_rtsq']: img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
+            if extra['use_rtsq']: 
+                
+                tx, ty = (align[i, 6]/extra['apix'], align[i, 7]/extra['apix']) if extra['scale_spi'] else (align[i, 6], align[i, 7])
+                img = rotate.rotate_image(img, align[i, 5], tx, ty)
             if avg is None: avg = img
             else: avg += img
         ndimage_file.write_image(avg_file, avg)
@@ -241,6 +244,7 @@ def init_root(files, param):
         param['order'] = order_from_resolution(**param)
     
     if mpi_utility.is_root(**param):
+        if param['scale_spi']: _logger.info("Scaling translations by pixel size (pySPIDER input)")
         if param['cache_file']: _logger.info("Using cache file: '%s'"%param['cache_file'])
         if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
         if param['use_rtsq']: _logger.info("Rotate and translate data stack")
@@ -368,11 +372,15 @@ def decimation_level(apix, window, **extra):
     d = window/float(d)
     return min(max(d, 1), 8)
 
-def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, disable_bispec=False, use_rtsq=False, **extra):
+def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, disable_bispec=False, use_rtsq=False, scale_spi=False, **extra):
     '''
     '''
     
-    if use_rtsq: img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
+    if use_rtsq: 
+        if scale_spi:
+            img = rotate.rotate_image(img, align[i, 5], align[i, 6]/apix, align[i, 7]/apix)
+        else:
+            img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
     elif align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
     if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
     ndimage_utility.vst(img, img)
@@ -428,7 +436,7 @@ def group_by_reference(label, align, ref):
         group.append((r, label[sel], align[sel]))
     return group
 
-def read_alignment(files, alignment="", order=0, **extra):
+def read_alignment(files, alignment="", order=0, random_view=0, **extra):
     ''' Read alignment parameters
     
     :Parameters:
@@ -490,7 +498,11 @@ def read_alignment(files, alignment="", order=0, **extra):
                     label[:, 1] = numpy.arange(0, len(align[total:end]))
                 total = end
             align = numpy.asarray(alignvals)
+    mirror = align[:, 1].copy()
     if order > 0:
+        tmp = align[:, (0,1,2,5,6,7,refidx)]
+        tmp[:] = orient_utility.coarse_angles(order, tmp)
+        '''
         resolution = pow(2, order)
         ang = healpix.angles(order)
         for i in xrange(len(align)):
@@ -500,10 +512,13 @@ def read_alignment(files, alignment="", order=0, **extra):
             rang = rotate.rotate_euler(ang[int(align[i, refidx])], (-align[i, 5], align[i, 1], align[i, 2]))
             rot = (rang[0]+rang[2])
             rt3d = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
-            align[i, 5], align[i, 6], align[i, 7]=orient_utility.align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
-            
-            
-    ref = align[:, refidx].astype(numpy.int)
+            align[i, 5], align[i, 6], align[i, 7]=orient_utility.align_param_3D_to_2D_simple(rot, rt3d[1], rt3d[2])
+        '''
+    if random_view>0:
+        ref = numpy.random.randint(0, random_view, len(align))
+    else:
+        ref = align[:, refidx].astype(numpy.int)
+    align[:, 1]=mirror
     #refs = numpy.unique(ref)
     return label, align, ref
 
@@ -519,6 +534,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", neig=2,                    help="Number of eigen vectors to use", dependent=False)
     group.add_option("", expected=0.8,                    help="Expected fraction of good data", dependent=False)
     group.add_option("", max_eig=8,                    help="Maximum number of eigen vectors saved")
+    group.add_option("", scale_spi=False,             help="Scale the SPIDER translation (if refinement was done by pySPIDER")
     #group.add_option("", nstd=2.5,                    help="Number of deviations from the median", dependent=False)
     group.add_option("", single_view=0,                help="Test the algorithm on a specific view")
     group.add_option("", disable_bispec=False,          help="Disable bispectrum feature space")
@@ -527,6 +543,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", prob_reject=0.97,             help="Probablity that a rejected particle is bad", dependent=False)
     group.add_option("", avg_file="",                   help="Write out an average for each view")
     group.add_option("", dm=0,                         help="Use experimental mode")
+    group.add_option("", random_view=0,                 help="Set number of views to assign randomly, 0 means skip this")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
