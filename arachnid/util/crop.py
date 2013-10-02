@@ -211,35 +211,25 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
             _logger.warn("No translation file, skipping %s"%str(filename))
             return filename, 0, os.getpid()
         align = format.read(extra['frame_align'], numeric=True)
+        align = format_utility.map_object_list(align)
         if len(align) < (frame_end-frame_beg): 
             _logger.warn("Skipping number of translations is less than frames %d, %d"%(frame_beg, frame_end))
             return filename, 0, os.getpid()
     else: align=None
-    coords_orig=None
 
     for i in xrange(frame_beg,frame_end):
         frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
-        _logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, i, frame_end))
-        mic = read_micrograph(filename, i, **extra)    
+        if align is not None:
+            id=align[i].id
+        else:id=i
+        _logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
+        mic = read_micrograph(filename, id, **extra)    
         # translate
         npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
         bin_factor = extra['bin_factor']
         if tot > 1 and align is not None: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
-            j = i-frame_beg if len(align) == (frame_end-frame_beg) else i
-            if extra['experimental']:
-                if coords_orig is None: 
-                    coords = numpy.asarray(coords)
-                    coords_orig=coords.copy()
-                try:
-                    coords[:, 1:3] = coords_orig[:, 1:3] - (align[j].dx/bin_factor, align[j].dy/bin_factor)
-                except:
-                    _logger.error("%d < %d (%d) - %s"%(j, len(align), (frame_end-frame_beg), filename))
-                    raise
-            else:
-                npmic[:] = eman2_utility.fshift(npmic, align[j].dx/bin_factor, align[j].dy/bin_factor)
-        #if i == 0:
-        #    test_coordinates(npmic, coords_orig, bin_factor)
+            npmic[:] = eman2_utility.fshift(npmic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
             
         _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
         for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
