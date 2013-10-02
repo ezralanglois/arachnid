@@ -182,6 +182,8 @@ class MainWindow(QtGui.QMainWindow):
                dict(bin_factor=1.0, help="Factor to downsample image"),
                dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
                dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
+               dict(trans_scale=0.0, help="Value to scale translations (usually pixel size)"),
+               
                #dict(film=False, help="Set true to disable contrast inversion"),
                #dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
                ]
@@ -585,9 +587,11 @@ class MainWindow(QtGui.QMainWindow):
         sidx = numpy.argsort(data2[:, self.label_cols[0]])
         data2 = data2[sidx]
         align = data2[:, self.rtsq_cols] if len(self.rtsq_cols) > 2 else None
+        print 'averaging'
         for img in iter_images(self.stack_file, data2[:, self.label_cols], align, **vars(self.advanced_settings)):
             if avg is None: avg = img.copy()
             else: avg += img
+        avg = ndimage_utility.normalize_min_max(avg)
         im = OffsetImage(avg, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
         ab = AnnotationBbox(im, data[off, (x,y)], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
         self.axes.add_artist(ab)
@@ -776,7 +780,7 @@ def read_image(filename, index=None):
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
         
 
-def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, **extra):
+def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, trans_scale=0.0, **extra):
     ''' Wrapper for iterate images that support color PNG files
     
     :Parameters:
@@ -792,9 +796,14 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
     
     if hasattr(index, 'ndim'): index = numpy.asarray(index, dtype=numpy.int)
     i=0
-    for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(files, index)):
+    #for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(files, index)):
+    for img in ndimage_file.iter_images(files, index):
         if align is not None:
-            img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
+            if trans_scale > 0:
+                print trans_scale, align[i, 0], align[i, 1]/trans_scale, align[i, 2]/trans_scale, align[i,3]
+                img = rotate.rotate_image(img, align[i, 0], align[i, 1]/trans_scale, align[i, 2]/trans_scale)
+            else:
+                img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
             if len(align[i]) > 3 and align[i,3] > 180: img = ndimage_utility.mirror(img)
             
             i+=1
@@ -803,6 +812,7 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
             img=ndimage_filter.filter_gaussian_highpass(img, gaussian_high_pass)
         if gaussian_low_pass > 0.0:
             img=ndimage_filter.filter_gaussian_lowpass(img, gaussian_low_pass)
+        img = ndimage_utility.normalize_min_max(img)
         yield img
 
 def nonoverlapping_subset(ax, xy, radius, n):
