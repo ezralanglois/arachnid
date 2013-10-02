@@ -18,3 +18,8 @@ try:
     import _image_utility
     _image_utility;
 except: pass
+
+try: 
+    import _ctf
+    _ctf;
+except: pass
