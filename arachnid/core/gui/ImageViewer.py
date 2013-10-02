@@ -1,6 +1,8 @@
 ''' Graphical user interface for displaying images
 
-Todo status - file being displayed
+@todo file list - selectable, sortable, metadata
+
+@todo - detect raw images
 
 .. Created on Jul 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -62,6 +64,9 @@ class MainWindow(QtGui.QMainWindow):
         self.imageListModel = QtGui.QStandardItemModel(self)
         self.ui.imageListView.setModel(self.imageListModel)
         
+        #self.templateListModel = QtGui.QStandardItemModel(self)
+        #self.ui.templateListView.setModel(self.templateListModel)
+        
         # Empty init
         self.ui.actionForward.setEnabled(False)
         self.ui.actionBackward.setEnabled(False)
@@ -111,10 +116,14 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         return [ 
-               dict(downsample_type=('bilinear', 'ft', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
-               dict(film=False, help="Set true to disable contrast inversion"),
+               dict(downsample_type=('ft', 'bilinear', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
+               dict(invert=False, help="Perform contrast inversion"),
                dict(coords="", help="Path to coordinate file", gui=dict(filetype='open')),
-               dict(second_image="", help="Path to a second image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
+               dict(hide_coords=False, help="Hide the loaded coordinates"),
+               dict(second_image="", help="Path to a tooltip image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
+               dict(alternate_image="", help="Path to a alternate image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
+               dict(load_alternate=False, help="Load the alternate image"),
+               dict(power_spectra=0, help="Estimate a powerspectra on the fly and save as a tool tip", gui=dict()),
                dict(second_nstd=5.0, help="Outlier removal for second image loading"),
                dict(second_downsample=1.0, help="Factor to downsample second image"),
                dict(bin_window=8.0, help="Number of times to decimate coordinates (and window)"),
@@ -156,13 +165,21 @@ class MainWindow(QtGui.QMainWindow):
         if self.webView is not None:
             self.webView.load(QtCore.QUrl('http://www.google.com'))
             self.helpDialog.show()
-           
-    @qtSlot(int)
-    def on_pageSpinBox_valueChanged(self, val):
-        ''' Called when the user changes the group number in the spin box
+          
+    @qtSlot()
+    def on_reloadPageButton_clicked(self):
+        '''
         '''
         
         self.on_loadImagesPushButton_clicked()
+    
+           
+#    @qtSlot(int)
+#    def on_pageSpinBox_valueChanged(self, val):
+#        ''' Called when the user changes the group number in the spin box
+#        '''
+#        
+#        self.on_loadImagesPushButton_clicked()
     
     @qtSlot()
     def on_actionForward_triggered(self):
@@ -170,6 +187,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         self.ui.pageSpinBox.setValue(self.ui.pageSpinBox.value()+1)
+        self.on_loadImagesPushButton_clicked()
     
     @qtSlot()
     def on_actionBackward_triggered(self):
@@ -177,6 +195,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         self.ui.pageSpinBox.setValue(self.ui.pageSpinBox.value()-1)
+        self.on_loadImagesPushButton_clicked()
     
     @qtSlot()
     def on_actionLoad_More_triggered(self):
@@ -187,7 +206,7 @@ class MainWindow(QtGui.QMainWindow):
         files = glob.glob(spider_utility.spider_searchpath(self.files[0]))
         _logger.info("Found %d files on %s"%(len(files), spider_utility.spider_searchpath(self.files[0])))
         if len(files) > 0:
-            self.openImageFiles([str(f) for f in files if not format.is_readable(str(f))])
+            self.openImageFiles(files) #[str(f) for f in files if not format.is_readable(str(f))])
     
     @qtSlot()
     def on_actionOpen_triggered(self):
@@ -198,7 +217,8 @@ class MainWindow(QtGui.QMainWindow):
         if isinstance(files, tuple): files = files[0]
         if len(files) > 0:
             self.lastpath = os.path.dirname(str(files[0]))
-            self.openImageFiles([str(f) for f in files if not format.is_readable(str(f))])
+            #self.openImageFiles([str(f) for f in files if not format.is_readable(str(f))])
+            self.openImageFiles(files)
     
     @qtSlot(int)
     def on_contrastSlider_valueChanged(self, value):
@@ -287,12 +307,18 @@ class MainWindow(QtGui.QMainWindow):
         
         self.ui.imageListView.setModel(None)
         
-        for i, (imgname, img) in enumerate(iter_images(self.files, index)):
+        template = None
+        if self.advanced_settings.alternate_image != "" and self.advanced_settings.load_alternate:
+            template = self.advanced_settings.alternate_image
+        
+        
+        added_items=[]
+        for i, (imgname, img) in enumerate(iter_images(self.files, index, template)):
             progressDialog.setValue(i+1)
             if hasattr(img, 'ndim'):
                 if self.advanced_settings.center_mask > 0 and img.shape not in masks:
                     masks[img.shape]=ndimage_utility.model_disk(self.advanced_settings.center_mask, img.shape)*-1+1
-                if not self.advanced_settings.film:
+                if self.advanced_settings.invert:
                     if img.max() != img.min(): ndimage_utility.invert(img, img)
                 img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
                 if self.advanced_settings.gaussian_high_pass > 0.0:
@@ -329,9 +355,11 @@ class MainWindow(QtGui.QMainWindow):
             
             self.addToolTipImage(imgname, item)
             self.imageListModel.appendRow(item)
-            self.notify_added_item(item)
+            added_items.append(item)
+            
         self.ui.imageListView.setModel(self.imageListModel)
         progressDialog.hide()
+        for item in added_items:self.notify_added_item(item)
         
         self.imagesize = img.shape[0] if hasattr(img, 'shape') else img.width()
         n = max(5, int(self.imagesize*zoom))
@@ -387,12 +415,23 @@ class MainWindow(QtGui.QMainWindow):
                 if hasattr(img, 'ndim'):
                     nstd = self.advanced_settings.second_nstd
                     bin_factor = self.advanced_settings.second_downsample
-                    img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
+                    if nstd > 0: img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
                     if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                     qimg = qimage_utility.numpy_to_qimage(img)
                 else:
                     qimg = img.convertToFormat(QtGui.QImage.Format_Indexed8)
                 item.setToolTip(qimage_utility.qimage_to_html(qimg))
+        elif self.advanced_settings.power_spectra > 3:
+            mic = ndimage_file.read_image(imgname[0], imgname[1])
+            print "Start estimation"
+            img = ndimage_utility.perdiogram(mic, self.advanced_settings.power_spectra, 1, 0.5, 0)
+            nstd = self.advanced_settings.second_nstd
+            if nstd > 0: img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
+            print "Finished estimation"
+            qimg = qimage_utility.numpy_to_qimage(img)
+            item.setToolTip(qimage_utility.qimage_to_html(qimg))
+        else:
+            item.setToolTip('%d@%s'%(imgname[1], imgname[0]))
     
     def box_particles(self, img, fileid):
         ''' Draw particle boxes on each micrograph
@@ -401,7 +440,7 @@ class MainWindow(QtGui.QMainWindow):
         if ImageDraw is None:
             _logger.warn("No PIL loaded")
             return img
-        if self.advanced_settings.coords == "": return img
+        if self.advanced_settings.coords == "" or self.advanced_settings.hide_coords: return img
         if isinstance(fileid, tuple): fileid=fileid[0]
         coords=format.read(self.advanced_settings.coords, spiderid=fileid, numeric=True)
         
@@ -435,6 +474,8 @@ class MainWindow(QtGui.QMainWindow):
     def updateFileIndex(self, newfiles):
         '''
         '''
+        
+        #self.templateListModel
         
         if hasattr(self.file_index, 'ndim'):
             self.file_index = self.file_index.tolist()
@@ -490,7 +531,7 @@ def read_image(filename, index=None):
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
         
 
-def iter_images(files, index, average=False):
+def iter_images(files, index, template=None, average=False):
     ''' Wrapper for iterate images that support color PNG files
     
     :Parameters:
@@ -505,12 +546,15 @@ def iter_images(files, index, average=False):
     '''
     
     qimg = QtGui.QImage()
-    if qimg.load(files[0]):
+    if template is not None: filename=spider_utility.spider_filename(template, files[0])
+    else: filename = files[0]
+    if qimg.load(filename):
         if isinstance(index[0], str): files = index
         else:files = [files[i[0]] for i in index]
         for filename in files:
             qimg = QtGui.QImage()
-            if not qimg.load(filename): raise IOError, "Unable to read image"
+            if template is not None: filename=spider_utility.spider_filename(template, filename)
+            if not qimg.load(filename): raise IOError, "Unable to read image - %s"%filename
             yield (filename,0), qimg
     else:
         # todo reorganize with
@@ -520,6 +564,7 @@ def iter_images(files, index, average=False):
         if isinstance(index[0], str):
             for f in index:
                 avg = None
+                if template is not None: f=spider_utility.spider_filename(template, f)
                 for img in ndimage_file.iter_images(f):
                     if avg is None: avg = img
                     else: avg+=img
@@ -530,14 +575,16 @@ def iter_images(files, index, average=False):
         else:
             for idx in index:
                 f, i = idx[:2]
+                filename = files[f]
+                if template is not None: filename=spider_utility.spider_filename(template, filename)
                 try:
-                    img = ndimage_file.read_image(files[f], i) 
+                    img = ndimage_file.read_image(filename, i) 
                 except:
                     print f, i, len(files)
                     raise
                 try:img=ndimage_utility.normalize_min_max(img)
                 except: pass
-                yield (files[f], i), img
+                yield (filename, i), img
         '''
         for filename in files:
             for i, img in enumerate(itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename))):
