@@ -1953,51 +1953,6 @@ class Session(spider_session.Session):
         session.invoke('rtd sq', spider_stack(inputfile, stack_total), spider_select(select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, stack_total), spider_select(outputsel))
         return outputfile
     
-    def rt_sq_single(session, inputfile, alignment, interpolation=None, outputfile=None, **extra):
-        '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
-        around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
-        terms "clockwise" and "counter-clockwise" refer to the mirrored x-y system used for 
-        image display) Output image has SAME size as input image.
-                
-        `Original Spider (RT SQ) <http://www.wadsworth.org/spider_doc/spider/docs/man/rtsq.html>`_
-        
-        .. todo :: 
-        
-            - Set of stacked images unsupported
-            - Single image unsupported
-        
-        :Parameters:
-        
-        session : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image projection stack
-        alignment : tuple
-                    PHI, DX, DY
-        interpolation : str, optional
-                        Type of interpolation
-        outputfile : str
-                     Filename of output image (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
-        
-        :Returns:
-            
-            outputfile : str
-                         Filename of output image
-        '''
-        
-        if interpolation is not None:
-            v = session.get_version()
-            if v[0] < 20: interpolation = None
-        
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
-        if interpolation is not None and interpolation.upper() == "FS":
-            session.invoke('rt sf', spider_image(inputfile), spider_image(outputfile), spider_tuple(alignment[0], 1), spider_tuple(*alignment[1:3]))
-        else:
-            session.invoke('rt sq', spider_image(inputfile), spider_image(outputfile), spider_tuple(alignment[0], 1), spider_tuple(*alignment[1:3]))
-        return outputfile
-    
     def rt_sq(session, inputfile, alignment, input_select=None, alignment_cols=(6,0,7,8), interpolation=None, outputfile=None, **extra):
         '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
         around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
@@ -2773,6 +2728,51 @@ class Session(spider_session.Session):
         '''
         
         return spider_session.spider_command_fifo(session, 'wu', inputfile, outputfile, "Take square root of an image")
+    
+def rt_sq_single(session, inputfile, alignment, interpolation=None, outputfile=None, **extra):
+    '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
+    around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
+    terms "clockwise" and "counter-clockwise" refer to the mirrored x-y system used for 
+    image display) Output image has SAME size as input image.
+            
+    `Original Spider (RT SQ) <http://www.wadsworth.org/spider_doc/spider/docs/man/rtsq.html>`_
+    
+    .. todo :: 
+    
+        - Set of stacked images unsupported
+        - Single image unsupported
+    
+    :Parameters:
+    
+    session : Session
+              Current spider session
+    inputfile : str
+                Filename of input image projection stack
+    alignment : tuple
+                PHI, DX, DY
+    interpolation : str, optional
+                    Type of interpolation
+    outputfile : str
+                 Filename of output image (If none, temporary incore file is used and returned)
+    extra : dict
+            Unused key word arguments
+    
+    :Returns:
+        
+        outputfile : str
+                     Filename of output image
+    '''
+    
+    if interpolation is not None:
+        v = session.get_version()
+        if v[0] < 20: interpolation = None
+    
+    if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+    if interpolation is not None and interpolation.upper() == "FS":
+        session.invoke('rt sf', spider_image(inputfile), spider_image(outputfile), spider_tuple(alignment[0], 1), spider_tuple(*alignment[1:3]))
+    else:
+        session.invoke('rt sq', spider_image(inputfile), spider_image(outputfile), spider_tuple(alignment[0], 1), spider_tuple(*alignment[1:3]))
+    return outputfile
 
 def supports_internal_rtsq(session):
     ''' TEst if the SPIDER version supports internal RTSQ

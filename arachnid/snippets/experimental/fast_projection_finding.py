@@ -115,8 +115,8 @@ if __name__ == '__main__':
         al,lal = alignmap[val[0]][val[1]]
         #print al
         ipimg=spi.ip((image_file, i+1), (extra['window'], extra['window']))
-        #rimg=spi.rt_sq_single(ipimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
-        rimg=spi.rt_sq_single(ipimg, (lal.psi, lal.tx/extra['apix'], lal.ty/extra['apix']), outputfile=tmp_img)
+        #rimg=spider.rt_sq_single(spi,ipimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
+        rimg=spider.rt_sq_single(spi,ipimg, (lal.psi, lal.tx/extra['apix'], lal.ty/extra['apix']), outputfile=tmp_img)
         
         img = ndimage_file.read_image(spi.replace_ext(tmp_img))
         if i == 0: print "Image shape: ", img.shape, extra['window']

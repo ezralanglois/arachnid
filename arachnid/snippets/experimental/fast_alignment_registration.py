@@ -196,12 +196,12 @@ if __name__ == '__main__':
             iimg=spi.ip((image_file, i+1), (extra['window'], extra['window']))
             if mode == 0:
                 tx, ty = orient_utility.align_param_2D_to_3D_simple(al.psi, al.tx/extra['apix'], al.ty/extra['apix'])[1:]
-                spi.rt_sq_single(iimg, (0, tx, ty), outputfile=tmp_img)
+                spider.rt_sq_single(spi,iimg, (0, tx, ty), outputfile=tmp_img)
             elif mode == 1:
-                #spi.rt_sq_single(iimg, (al.psi, 0, 0), outputfile=tmp_img)
-                spi.rt_sq_single(iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
+                #spider.rt_sq_single(spi,iimg, (al.psi, 0, 0), outputfile=tmp_img)
+                spider.rt_sq_single(spi,iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
             else:
-                spi.rt_sq_single(iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
+                spider.rt_sq_single(spi,iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
             img = ndimage_file.read_image(spi.replace_ext(tmp_img))
             if al.theta > 179.99: img = eman2_utility.mirror(img)
             img = image_transform((0,img))
@@ -239,12 +239,12 @@ if __name__ == '__main__':
             if mode == 0 and 1 == 0:
                 tx, ty = orient_utility.align_param_2D_to_3D_simple(al.psi, al.tx/extra['apix'], al.ty/extra['apix'])[1:]
                 spi.sh_f(iimg, (tx, ty), outputfile=tmp_img)
-                #spi.rt_sq_single(iimg, (0, tx, ty), outputfile=tmp_img)
+                #spider.rt_sq_single(spi,iimg, (0, tx, ty), outputfile=tmp_img)
             elif mode == 1 or 1 == 1:
-                #spi.rt_sq_single(iimg, (al.psi, 0, 0), outputfile=tmp_img)
-                spi.rt_sq_single(iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
+                #spider.rt_sq_single(spi,iimg, (al.psi, 0, 0), outputfile=tmp_img)
+                spider.rt_sq_single(spi,iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
             else:
-                spi.rt_sq_single(iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
+                spider.rt_sq_single(spi,iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
             img = ndimage_file.read_image(spi.replace_ext(tmp_img))
             if al.theta > 179.99: img = eman2_utility.mirror(img)
             #ndimage_file.write_image(trans_exp_stack, img, i)

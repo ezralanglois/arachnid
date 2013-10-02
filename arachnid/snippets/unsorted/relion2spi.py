@@ -49,7 +49,7 @@ if __name__ == '__main__':
         ctf = spi.tf_ct(defocus=defocus, outputfile=ctf, **params)
         ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file), id-1)
         psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
-        rimage=spi.rt_sq_single(temp_spider_file, (psi, dx, dy), interpolation='FS')
+        rimage=spider.rt_sq_single(spi, temp_spider_file, (psi, dx, dy), interpolation='FS')
         ftimage = spi.ft(rimage, outputfile=ftimage)           # Fourier transform reference volume
         ctfimage = spi.mu(ftimage, ctf, outputfile=ctfimage)           # Multiply volume by the CTF
         spi.ft(ctfimage, outputfile=(output_stack, outid))
