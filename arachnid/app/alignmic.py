@@ -308,7 +308,7 @@ def select_peak(cc_map):
     '''
     '''
     
-    if numpy.iscomplex(cc_map): cc_map=numpy.absolute(cc_map)
+    if numpy.iscomplex(cc_map.ravel()[0]): cc_map=numpy.absolute(cc_map)
     y,x = numpy.unravel_index(numpy.argmax(cc_map), cc_map.shape)
     x -= cc_map.shape[1]/2
     y -= cc_map.shape[0]/2
