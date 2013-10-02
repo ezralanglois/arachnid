@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #n = ndimage_file.count_images(image_file)
     resolution = pow(2, healpix_order)
     for i, img in enumerate(ndimage_file.iter_images(files)):
-        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(align[i, 1]), numpy.deg2rad(align[i, 2]))
+        ipix = healpix._healpix.ang2pix_ring(resolution, healpix.pmod(numpy.deg2rad(align[i, 1]), numpy.pi), healpix.pmod(numpy.deg2rad(align[i, 2]), 2*numpy.pi))
         #count[ipix]+=1
         rang = rotate.rotate_euler(ang[ipix], align[i, :3])
         rot = -(rang[0]+rang[2])
