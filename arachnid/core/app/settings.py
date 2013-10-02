@@ -727,13 +727,14 @@ class OptionParser(optparse.OptionParser):
         '''Construct an OptionParser
         '''
         
-        #if usage is None: usage = "Usage: %prog inputfile1 inputfile2 --option-name value ..."
+        usage = "" if usage is None else usage+"\n\n"
+        usage += "%prog -h or %prog --help for more help"
         optparse.OptionParser.__init__(self, usage, option_list, option_class, version, conflict_handler, description, formatter, add_help_option, prog)
         self.comment=comment
         self.separator=separator
         self.add_input_files = add_input_files
         self.validators = {}
-        self.skipped_flags = [] 
+        self.skipped_flags = []
         
     def add_validator(self, key, validator, **extra):
         '''Add a validator and default keyword arguments required by the validator
@@ -858,7 +859,8 @@ class OptionParser(optparse.OptionParser):
         try:
             options=self.parse_args()[0]
         except optparse.OptionError, inst:
-            self.error(inst.msg, options)
+            raise OptionValueError, inst.msg
+            #self.error(inst.msg, options)
         config_file = None
         if options.config_file != "":
             config_file = options.config_file
@@ -868,7 +870,8 @@ class OptionParser(optparse.OptionParser):
                 config_file = os.path.join("cfg", config_file)
             else: config_file = options.config_file
             if not os.path.exists(config_file): 
-                self.error("Cannot find specified configuration file: "+options.config_file, options)
+                raise OptionValueError, "Cannot find specified configuration file: "+options.config_file
+                #self.error("Cannot find specified configuration file: "+options.config_file, options)
         return self.parse_all(args, values, config_file)
     
     def parse_args(self, args=sys.argv[1:], values=None):
@@ -948,7 +951,10 @@ class OptionParser(optparse.OptionParser):
             if pos > -1: line = line[:pos]
             line = line.strip()
             if line == "": continue
-            key, val = line.split(self.separator, 1)
+            try:
+                key, val = line.split(self.separator, 1)
+            except:
+                raise
             key = key.strip()
             val = val.strip()
             if key == "" or val == "": continue
@@ -1377,6 +1383,12 @@ class OptionParser(optparse.OptionParser):
         
         return os.path.splitext(os.path.basename(self.program_name()))[0]+".cfg"
     
+    def print_help(self, file=None):
+        '''
+        '''
+        
+        self.write()
+    
     def error(self, msg, values=None):
         '''Log an error, write configuration file and exit program
         
@@ -1388,6 +1400,7 @@ class OptionParser(optparse.OptionParser):
                  Object containing option name/value pairs
         '''
         
+        raise OptionValueError, msg
         logging.error(msg)
         self.write(values=values)
         raise OptionValueError, "Failed when testing options"
