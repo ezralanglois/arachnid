@@ -27,10 +27,11 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
     
     relion_data = format.read(files[0], numeric=True)
     _logger.info("Processing: %s with %d projections with bin factor %f"%(files[0], len(relion_data), bin_factor))
-    values = numpy.zeros((len(relion_data), 17))
+    values = numpy.zeros((len(relion_data), 18))
     img = None
     has_subset = hasattr(relion_data[0], 'rlnRandomSubset')
     has_class = hasattr(relion_data[0], 'rlnClassNumber')
+    has_ang = hasattr(relion_data[0], 'rlnAngleTilt')
     
     angle_map={}
     ref_index=0
@@ -38,45 +39,47 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
         stack_file, stack_id = spider_utility.relion_file(projection.rlnImageName)
         if not align_only:
             img = ndimage_file.read_image(stack_file, stack_id-1)
-        if resolution>0:
-            pix = healpix.ang2pix(resolution, numpy.deg2rad(projection.rlnAngleTilt), numpy.deg2rad(projection.rlnAngleRot))
-            theta, phi = numpy.rad2deg(healpix.pix2ang(resolution, pix))
-            rang = rotate.rotate_euler((0, theta, phi), (projection.rlnAnglePsi, projection.rlnAngleTilt, projection.rlnAngleRot))
-            psi = (rang[0]+rang[2])
-            psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(psi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
-            if index < 10:
-                _logger.info("%f,%f,%f -> %f,%f,%f | %f,%f == %f,%f"%(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor, psi, dx, dy, projection.rlnAngleTilt, projection.rlnAngleRot, theta, phi))
-            
-            if img is not None:
-                img = rotate.rotate_image(img, psi, dx, dy)
-        else:
-            psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
-            theta = projection.rlnAngleTilt
-            phi = projection.rlnAngleRot
-            pix=0
-            if theta not in angle_map:
-                angle_map[theta]={}
-            if has_class:
-                if phi not in angle_map[theta]:
-                    angle_map[theta][phi]={}
-                cl = projection.rlnClassNumber
-                if cl not in angle_map[theta][phi]:
-                    ref_index += 1
-                    angle_map[theta][phi][cl] = ref_index
-            else:
-                if phi not in angle_map[theta]:
-                    angle_map[theta][phi]={}
-                    ref_index += 1
-                    angle_map[theta][phi] = ref_index
-            if has_class:
-                pix=angle_map[theta][phi][cl]
-            else:
-                pix=angle_map[theta][phi]
-            if use_rtsq:
+        if has_ang:
+            if resolution>0:
+                pix = healpix.ang2pix(resolution, numpy.deg2rad(projection.rlnAngleTilt), numpy.deg2rad(projection.rlnAngleRot))
+                theta, phi = numpy.rad2deg(healpix.pix2ang(resolution, pix))
+                rang = rotate.rotate_euler((0, theta, phi), (projection.rlnAnglePsi, projection.rlnAngleTilt, projection.rlnAngleRot))
+                psi = (rang[0]+rang[2])
+                psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(psi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
+                if index < 10:
+                    _logger.info("%f,%f,%f -> %f,%f,%f | %f,%f == %f,%f"%(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor, psi, dx, dy, projection.rlnAngleTilt, projection.rlnAngleRot, theta, phi))
+                
                 if img is not None:
                     img = rotate.rotate_image(img, psi, dx, dy)
-        if img is not None:
-            ndimage_file.write_image(output, img, index)
+            else:
+                psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
+                theta = projection.rlnAngleTilt
+                phi = projection.rlnAngleRot
+                pix=0
+                if theta not in angle_map:
+                    angle_map[theta]={}
+                if has_class:
+                    if phi not in angle_map[theta]:
+                        angle_map[theta][phi]={}
+                    cl = projection.rlnClassNumber
+                    if cl not in angle_map[theta][phi]:
+                        ref_index += 1
+                        angle_map[theta][phi][cl] = ref_index
+                else:
+                    if phi not in angle_map[theta]:
+                        angle_map[theta][phi]={}
+                        ref_index += 1
+                        angle_map[theta][phi] = ref_index
+                if has_class:
+                    pix=angle_map[theta][phi][cl]
+                else:
+                    pix=angle_map[theta][phi]
+                if use_rtsq:
+                    if img is not None:
+                        img = rotate.rotate_image(img, psi, dx, dy)
+            if img is not None:
+                ndimage_file.write_image(output, img, index)
+        else: theta, phi, pix, psi, dx, dy = 0, 0, 0, 0, 0, 0
         values[index, 1] = theta
         values[index, 2] = phi
         values[index, 3] = pix
@@ -87,9 +90,10 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
         if has_subset: values[index, 14] = projection.rlnRandomSubset
         values[index, 15] = spider_utility.spider_id(stack_file)
         values[index, 16] = stack_id
+        values[index, 17] = projection.rlnDefocusU
     
     _logger.info("Writing alignment file")
-    format.write(output, values, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id".split(','), prefix="align_")
+    format.write(output, values, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), prefix="align_")
     if has_subset:
         format.write(output, numpy.vstack((numpy.argwhere(values[:, 14]==1).ravel()+1, numpy.ones(numpy.sum(values[:, 14]==1)))).T, header="id,select".split(','), prefix="h1_sel_")
         format.write(output, numpy.vstack((numpy.argwhere(values[:, 14]==2).ravel()+1, numpy.ones(numpy.sum(values[:, 14]==2)))).T, header="id,select".split(','), prefix="h2_sel_")
