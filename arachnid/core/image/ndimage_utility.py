@@ -80,6 +80,38 @@ def mirror(img, out=None):
     out[:, yoff:] = numpy.fliplr(img[:, yoff:])
     return out
 
+def fourier_shift_complex(img, rl, im, pad=1):
+    ''' Shift using sinc interpolation
+    
+    :Parameters:
+    
+    img : array
+          2D or 3D array of pixels
+    dx : float
+         Shift in x-direction
+    dy : float
+         Shift in y-direction
+    dz : float
+         Shift in z-direction
+    pad : float
+          Amount of padding
+    
+    :Returns:
+    
+    out : array
+          2D or 3D array of pixel shift (according to input)
+    '''
+    
+    if img.ndim != 2 and img.ndim != 3: raise ValueError, "Only works with 2 or 3D images"
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
+    fimg = scipy.fftpack.fftn(img)
+    fimg *= numpy.complex(rl, im)
+    img = scipy.fftpack.ifftn(fimg).real
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
 def fourier_shift(img, dx, dy, dz=0, pad=1):
     ''' Shift using sinc interpolation
     
@@ -259,26 +291,6 @@ def rotavg(img, out=None):
     if out.shape[2] == 1: out = out.reshape((out.shape[0], out.shape[1]))
     return out
 
-'''
-radial_average(
-%% Compute radially average power spectrum
-[X Y] = meshgrid(-dimMax/2:dimMax/2-1, -dimMax/2:dimMax/2-1);
-    % Make Cartesian grid
-[theta rho] = cart2pol(X, Y);
-    % Convert to polar coordinate axes
-rho = round(rho);
-i = cell(floor(dimMax/2) + 1, 1);
-for r = 0:floor(dimMax/2)
-   i{r + 1} = find(rho == r);
-end
-Pf = zeros(1, floor(dimMax/2)+1);
-for r = 0:floor(dimMax/2)
-   Pf(1, r + 1) = nanmean( imgfp( i{r+1} ) );
-end
-
-#numpy.nansum(dat, axis=1) / numpy.sum(numpy.isfinite(dat), axis=1)
-'''
-
 def mean_azimuthal(img, center=None):
     ''' Calculate the sum of a 2D array along the azimuthal
     
@@ -343,6 +355,25 @@ def find_peaks_fast(cc, width, fwidth=None):
     cc = cc.ravel()[offsets].copy().squeeze()
     return numpy.hstack((cc[:, numpy.newaxis], x[:, numpy.newaxis], y[:, numpy.newaxis]))
 
+def grid_image(shape, center=None):
+    '''
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    if center is None: cx, cy = shape[0]/2, shape[1]/2
+    elif not hasattr(center, '__iter__'): cx, cy = center, center
+    else: cx, cy = center
+    #radius2 = radius+1
+    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
+    return x, y
+
+def radial_image(shape, center=None):
+    '''
+    '''
+    
+    x, y = grid_image(shape, center)
+    return x**2+y**2
+
 #@numpy2em_d
 def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     ''' Create a disk of given radius with background zero and foreground 1
@@ -369,13 +400,39 @@ def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     
     if not hasattr(shape, '__iter__'): shape = (shape, shape)
     a = numpy.zeros(shape, dtype, order)
-    if center is None: cx, cy = shape[0]/2, shape[1]/2
-    elif not hasattr(center, '__iter__'): cx, cy = center, center
-    else: cx, cy = center
-    #radius2 = radius+1
-    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
-    index = x**2 + y**2 <= radius**2
-    a[index]=1
+    irad = radial_image(shape, center)
+    a[irad <= radius**2]=1
+    return a
+
+def model_ring(rmin, rmax, shape, center=None, dtype=numpy.int, order='C'):
+    ''' Create a disk of given radius with background zero and foreground 1
+    
+    :Parameters:
+    
+    shape : int or sequence of two ints
+            Shape of the new array, e.g., (2, 2) or 2
+    center : int or sequence of two ints, optional
+             Center of the disk, if not specified then use the center of the image
+    dtype : data-type, optional
+            The desired data-type for the array. Default is numpy.int
+    order : {'C', 'F'}, optional
+            Whether to store multidimensional data in C- or Fortran-contiguous (row- or column-wise) order in memory
+    
+    :Returns:
+    
+    img : numpy.ndarray
+          Disk image
+    
+    .. todo:: create numpy2em_d decorator
+    
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    a = numpy.zeros(shape, dtype, order)
+    irad = radial_image(shape, center)
+    rmin = rmin**2
+    rmax = rmax**2
+    a[numpy.logical_and(irad > rmin, irad < rmax)]=1
     return a
 
 def cross_correlate_raw(img, template, phase=False, out=None):
@@ -645,7 +702,28 @@ def powerspec1d(img):
     fimg = fimg*fimg.conjugate()
     return mean_azimuthal(numpy.abs(numpy.fft.fftshift(fimg)))[1:fimg.shape[0]/2]
 
-def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1):
+def multitaper_power_spectra(mic, half_nbw=9, low_bias=False, shift=True):
+    '''
+    '''
+    
+    import _multitaper
+    n = min(mic.shape)
+    mic_sq = mic[:n, :n]
+    n_tapers_max = int(2 * half_nbw)
+    dpss2, eigvals = _multitaper.dpss_windows(mic_sq.shape[1], half_nbw, n_tapers_max,low_bias=low_bias)
+    pow = mic_sq.copy()
+    pow[:]=0
+    mic_sq = mic_sq - numpy.mean(mic_sq, axis=-1)[:, numpy.newaxis]
+    weights = numpy.sqrt(eigvals)
+    for i in xrange(dpss2.shape[0]):
+        for j in xrange(dpss2.shape[0]):
+            tmp = numpy.outer(dpss2[i], dpss2[j])
+            fmic = scipy.fftpack.fft2(mic_sq*tmp)
+            pow += numpy.abs(weights[i]*weights[j]*fmic)**2
+        pow *= 2 / numpy.sum(numpy.abs(weights[:, numpy.newaxis,numpy.newaxis]) ** 2, axis=-3)
+    return numpy.fft.fftshift(pow).copy()
+
+def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True):
     '''
     '''
     
@@ -653,7 +731,7 @@ def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1):
     step = max(1, window_size*overlap)
     rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
-    return powerspec_avg(rwin, pad)
+    return powerspec_avg(rwin, pad, shift)
 
 def dct_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
@@ -693,7 +771,6 @@ def dct_avg(imgs, pad):
     numpy.divide(avg, total, avg)
     return avg #scipy.fftpack.fftshift(avg).real
 
-
 def powerspec_sum(imgs, pad, avg=None, total=0.0):
     ''' Calculate an averaged power specra from a set of images
     
@@ -713,7 +790,8 @@ def powerspec_sum(imgs, pad, avg=None, total=0.0):
     if pad is None or pad <= 0: pad = 1
     for img in imgs:
         pad_width = img.shape[0]*pad
-        img = eman2_utility.ramp(img)
+        #if eman2_utility.EMAN2 is not None:
+        #    img = eman2_utility.ramp(img)
         img = img.copy()
         img -= img.min()
         img /= img.max()
@@ -726,16 +804,16 @@ def powerspec_sum(imgs, pad, avg=None, total=0.0):
         total += 1.0
     return avg, total
 
-def powerspec_fin(avg, total):
+def powerspec_fin(avg, total, shift=True):
     '''
     '''
     
-    avg = numpy.abs(numpy.fft.fftshift(avg))
+    avg = numpy.abs(numpy.fft.fftshift(avg).copy()) if shift else numpy.abs(avg)
     numpy.sqrt(avg, avg)
     numpy.divide(avg, total, avg)
     return avg
 
-def powerspec_avg(imgs, pad):
+def powerspec_avg(imgs, pad, shift=True):
     ''' Calculate an averaged power specra from a set of images
     
     :Parameters:
@@ -752,7 +830,7 @@ def powerspec_avg(imgs, pad):
     '''
     
     avg, total = powerspec_sum(imgs, pad)
-    return powerspec_fin(avg, total)
+    return powerspec_fin(avg, total, shift)
 
 def moving_average(img, window=3, out=None):
     ''' Estimate a moving average with a uniform distribution and given window size
@@ -920,6 +998,51 @@ def pad_image(img, shape, fill=0.0, out=None):
     out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
     return out
 
+def filter_annular_bp(img, freq1, freq2):
+    ''' Filter an image with a Gaussian low pass filter
+    
+    Todo: optimize kernel
+    
+    :Parameters:
+    
+    img : array
+          Image to filter
+    sigma : float
+            Cutoff frequency
+    out : array
+          Filtered image
+    
+    :Returns:
+    
+    out : array
+          Filtered image
+    '''
+    
+    img = img.astype(numpy.complex64) # todo percison based on input
+    kernel = numpy.zeros(img.shape, dtype=img.dtype)
+    irad = radial_image(img.shape)
+    val =  (1.0/(1.0+numpy.exp(((numpy.sqrt(irad)-freq1))/(10.0))))*(1.0-(numpy.exp(-irad /(2*freq2*freq2))))
+    kernel[:, :].real = val
+    kernel[:, :].imag = val
+    return filter_image(img, kernel)
+
+
+def spiral_transform(img):
+    '''
+    Todo: optimize kernel
+    '''
+    
+    cx, cy = img.shape[0]/2, img.shape[1]/2
+    img = img.astype(numpy.complex64) # todo percison based on input
+    kernel = numpy.zeros(img.shape, dtype=img.dtype)
+    for i in xrange(kernel.shape[0]):
+        for j in xrange(kernel.shape[1]):
+            v1, v2 = i-cx, j-cy
+            if v1 == 0 and v2 == 0: continue
+            kernel[i,j] = numpy.complex(v2,v1)/numpy.sqrt( numpy.power(float(v1), 2)+numpy.power(float(v2), 2) )
+    return filter_image(img, kernel)
+    
+
 def filter_gaussian_lp(img, sigma, out=None):
     ''' Filter an image with a Gaussian low pass filter
     
@@ -978,9 +1101,14 @@ def filter_image(img, kernel, pad=1):
     .. todo:: filter padding
     '''
         
+    #fimg = scipy.fftpack.fftn(img)
+    #kernel = scipy.fftpack.ifftshift(kernel)
+    #numpy.multiply(fimg, kernel, fimg)
+    #return scipy.fftpack.ifftn(fimg).real
+
     fimg = scipy.fftpack.fftshift(scipy.fftpack.fftn(img))
     numpy.multiply(fimg, kernel, fimg)
-    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real
+    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy()
 
 @_em2numpy2em
 def compress_image(img, mask, out=None):
@@ -1056,7 +1184,7 @@ def fftamp(img, s=None, out=None):
     out = numpy.abs(fimg, out)
     return out
 
-def polar(image, center=None, out=None):
+def polar(image, center=None, out=None, rng=None):
     '''Transform image into log-polar representation
     
     @todo - add radius range
@@ -1081,7 +1209,8 @@ def polar(image, center=None, out=None):
     x, y = index_coords(image, center)
     r, theta = cart2polar(x, y)
     
-    r_i = numpy.linspace(r.min(), r.max(), nx)
+    if rng is None: rng = (r.min(), r.max())
+    r_i = numpy.linspace(rng[0], rng[1], nx)
     theta_i = numpy.linspace(theta.min(), theta.max(), ny)
     theta_grid, r_grid = numpy.meshgrid(theta_i, r_i)
     
@@ -1641,6 +1770,15 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     _logger.debug("Tight mask - finished")
     return out, threshold
 
+def dialate_mask(img, ndialate, out=None):
+    '''
+    '''
+    
+    if out is None: out = numpy.empty_like(img)
+    elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
+    out[:]=scipy.ndimage.binary_dilation(out, elem, ndialate)
+    return out
+
 def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
     ''' Create a centered Gaussian kernel
     
@@ -1725,6 +1863,33 @@ def histeq(img, hist_bins=256, **extra):
     '''
     
     imhist,bins = numpy.histogram(img.flatten(),hist_bins,normed=True)
+    cdf = imhist.cumsum() #cumulative distribution function
+    cdf = 255 * cdf / cdf[-1] #normalize
+    im2 = numpy.interp(img.flatten(), bins[:-1], cdf)#use linear interpolation of cdf to find new pixel values
+    img = im2.reshape(img.shape)
+    return img
+
+def hist_match(img, ref, hist_bins=256, **extra):
+    ''' Equalize the histogram of an image
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    hist_bins : int
+                Number of bins for the histogram
+    
+    :Returns:
+    
+    img : array
+          Histogram equalized image
+          
+    .. note::
+    
+        http://www.janeriksolem.net/2009/06/histogram-equalization-with-python-and.html
+    '''
+    
+    imhist,bins = numpy.histogram(ref.flatten(),hist_bins,normed=True)
     cdf = imhist.cumsum() #cumulative distribution function
     cdf = 255 * cdf / cdf[-1] #normalize
     im2 = numpy.interp(img.flatten(), bins[:-1], cdf)#use linear interpolation of cdf to find new pixel values
