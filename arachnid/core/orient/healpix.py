@@ -2,16 +2,16 @@
 
 It works with Euler angles in the ZYZ convention.
 
-Resolution     nside       total    theta      half sphere  half sphere sum
-----------     -----       -----    -----      -----------  ---------------
-1              2           48       29.32      28           28
-2              4           192      14.66      104          132
-3              8           768      7.33       400          532
-4              16          3072     3.66       1568         2100
-5              32          12288    1.83       6208         8308
-6              64          49152    0.92       24704        33012
-7              128         196608   0.46       98560        131572
-8              256         786432   0.23       393728       525300
+Resolution     nside       total    theta      half sphere (equator)  half sphere  half sphere sum
+----------     -----       -----    -----      ---------------------  -----------  ---------------
+1              2           48       29.32      28                     20           20
+2              4           192      14.66      104                    88           108
+3              8           768      7.33       400                    368          476
+4              16          3072     3.66       1568                   1504         1980
+5              32          12288    1.83       6208                   6080         8060
+6              64          49152    0.92       24704                  24448        32508
+7              128         196608   0.46       98560                  98048        130556
+8              256         786432   0.23       393728                 392704       523260
 
 .. Created on Aug 17, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -38,12 +38,12 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
 
-def angles(resolution, out=None):
+def angles(resolution, half=False, out=None):
     '''
     '''
     
     nsample = pow(2, resolution)
-    npix = 12*nsample*nsample
+    npix = 12*nsample*nsample if not half else 6*nsample*nsample - nsample*2 # +nsample*2 add the equator projections
     ang = numpy.zeros(2)
     if out is None:
         out = numpy.zeros((npix, 3))
@@ -52,21 +52,26 @@ def angles(resolution, out=None):
         out[i, 1:]=numpy.rad2deg(ang)
     return out
     
-def angles_gen(resolution, out=None):
+def angles_gen(resolution, deg=False, half=False, out=None):
     '''
     '''
     
     nsample = pow(2, resolution)
-    npix = 12*nsample*nsample
+    npix = 12*nsample*nsample if not half else 6*nsample*nsample - nsample*2
     ang = numpy.zeros(2)
     for i in xrange(npix):
-        yield _healpix.pix2ang_ring(nsample, i, ang)
+        if deg:
+            yield numpy.rad2deg(_healpix.pix2ang_ring(nsample, i, ang))
+        else:
+            yield _healpix.pix2ang_ring(nsample, i, ang)
 
-def res2npix(resolution):
+def res2npix(resolution, half=False, equator=False):
     '''
     '''
     
     nsample = pow(2, resolution)
+    if half:
+        return 6*nsample*nsample + nsample*2 if equator else 6*nsample*nsample - nsample*2
     return 12*nsample*nsample
 
 def theta2nside(theta, max_res=8):
