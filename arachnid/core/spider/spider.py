@@ -3080,8 +3080,9 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
         try:
             ctfimage = session.mu(ftimage, ctf, outputfile=ctfimage)               # Multiply volume by the CTF
         except:
-            _logger.error("ftimage: %s"%str(session.fi_h(ftimage, ('NSAM', 'NROW', ))))
-            _logger.error("ctf: %s"%str(session.fi_h(ctf, ('NSAM', 'NROW', ))))
+            _logger.error('input: %s - %d'%(str(inputfile), stack_count))
+            #_logger.error("ftimage: %s"%str(session.fi_h(ftimage, ('NSAM', 'NROW', ))))
+            #_logger.error("ctf: %s"%str(session.fi_h(ctf, ('NSAM', 'NROW', ))))
             raise
         session.ft(ctfimage, outputfile=outputfile) 
 
