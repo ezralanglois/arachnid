@@ -10,7 +10,7 @@ While this script is included with the installed package, it is intended
 to be edited before being run. It is recommended you download it from
 the link below.
 
-:download:`Download script <../../arachnid/snippets/mask_volume.py>`
+:download:`Download script <../../arachnid/snippets/pyspider/mask_volume.py>`
 
 .. seealso::
 
@@ -25,7 +25,7 @@ To run:
     
     $ python mask_volume.py
 
-.. literalinclude:: ../../arachnid/snippets/mask_volume.py
+.. literalinclude:: ../../arachnid/snippets/pyspider/mask_volume.py
    :language: python
    :lines: 33-
    :linenos:

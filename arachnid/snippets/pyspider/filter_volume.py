@@ -11,7 +11,7 @@ While this script is included with the installed package, it is intended
 to be edited before being run. It is recommended you download it from
 the link below.
 
-:download:`Download script <../../arachnid/snippets/filter_volume.py>`
+:download:`Download script <../../arachnid/snippets/pyspider/filter_volume.py>`
 
 .. seealso::
 
@@ -22,7 +22,7 @@ the link below.
 
 Requirements
     
-    - :doc:`Installation <install>` of the Arachnid Python package
+    - :doc:`Installation <../install>` of the Arachnid Python package
     - Installation of the SPIDER package (binary)
         
         - Download: http://www.wadsworth.org/spider_doc/spider/docs/spi-register.html
@@ -34,9 +34,9 @@ To run:
     
     $ python filter_volume.py
 
-.. literalinclude:: ../../arachnid/snippets/filter_volume.py
+.. literalinclude:: ../../arachnid/snippets/pyspider/filter_volume.py
    :language: python
-   :lines: 39-
+   :lines: 42-
    :linenos:
 '''
 from arachnid.core.spider import spider
