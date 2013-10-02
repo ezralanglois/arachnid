@@ -13,7 +13,7 @@ Anaconda
 Install Anaconda
 
 
-	$ sh /guam.raid.cluster.software/arachnid/Anaconda-1.6.1-Linux-x86_64.sh -b -p 
+	$ sh /guam.raid.cluster.software/arachnid/Anaconda-1.6.1-Linux-x86_64.sh -b -p $HOME/anaconda
 	
 Install Accelerate
 
@@ -24,7 +24,7 @@ if you have an .edu email.
 	
 Install Arachnid
 
-	$ easy_install file:///guam.raid.cluster.software/arachnid/dist/arachnid-0.0.1-py2.7-linux-x86_64.egg
+	$ easy_install file:///guam.raid.cluster.software/arachnid/dist/arachnid-0.1.1-py2.7-linux-x86_64.egg
 
 Fix GUI
 
