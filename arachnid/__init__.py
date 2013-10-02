@@ -41,7 +41,7 @@
 
 
 __project__ = "arachnid"
-__version__ = "0.0.1"
+__version__ = "0.1.1"
 __author__ = "Robert Langlois"
 __copyright__ = "Copyright (C) 2012, Robert Langlois"
 __license__ = "GPL"
