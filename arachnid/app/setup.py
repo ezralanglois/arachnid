@@ -13,4 +13,5 @@ console_scripts = [
  'samplevar = arachnid.app.sample_variance:main',
  'autoclass = arachnid.app.autoclass:main',
  'orient = arachnid.app.orient:main',
+ 'autoctf2 = arachnid.app.autoctf2:main',
 ]
