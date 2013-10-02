@@ -205,7 +205,11 @@ def process(filename, id_len=0, confusion=[], **extra):
         _logger.info("Skipping: %s"%filename)
         return filename, []
     _logger.debug("Write coordinates")
-    coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
+    if len(peaks) == 0:
+        _logger.info("Skipping: %s - no particles found"%filename)
+        return filename, []
+        
+    coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, len(peaks)+1, dtype=numpy.int)) if peaks.shape[0] > 0 else []
     write_example(mic, coords, filename, **extra)
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
@@ -874,6 +878,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-s", selection_doc="",       help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
         # move next three options to benchmark
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
@@ -914,6 +919,10 @@ def main():
                         Example: Unprocessed CCD micrograph
                          
                         $ ara-autopick input-stack.spi -o coords.dat -r 110 --invert
+                        
+                        
+                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
+                        exit 0
                       ''',
         use_version = True,
         supports_OMP=True,
