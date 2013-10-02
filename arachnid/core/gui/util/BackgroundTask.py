@@ -3,34 +3,44 @@
 .. Created on Jan 29, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..util.qt4_loader import QtCore
+from ..util.qt4_loader import QtCore, qtSignal
+
+class TaskSignal(QtCore.QObject):
+    '''
+    '''
+    taskFinished = qtSignal(object)
+    taskStarted = qtSignal(object)
+    taskUpdated = qtSignal(object)
+    
+    
 
 class BackgroundTask(QtCore.QRunnable):
     def __init__(self, parent, functor, *args):
         QtCore.QRunnable.__init__(self)
         self.functor=functor
         self.args=args
-        self.signal = QtCore.QObject()
-        self.connect_obj(parent, QtCore.QObject.connect)
+        self.signal = TaskSignal()
+        self.connect_obj(parent, 'connect')
         self._parent=parent
     
     def run(self):
-        self.signal.emit(QtCore.SIGNAL('taskStarted(PyQt_PyObject)'), self.args)
+        self.signal.taskStarted.emit(self.args)
         for val in self.functor(*self.args):
-            self.signal.emit(QtCore.SIGNAL('taskUpdated(PyQt_PyObject)'), val)
-        self.signal.emit(QtCore.SIGNAL('taskFinished(PyQt_PyObject)'), val)
+            self.signal.taskUpdated.emit(val)
+        self.signal.taskFinished.emit(val)
     
     def connect_obj(self, parent, connect):
         '''
         '''
         
-        connect(self.signal, QtCore.SIGNAL('taskStarted(PyQt_PyObject)'), parent, QtCore.SIGNAL('taskStarted(PyQt_PyObject)'))
-        connect(self.signal, QtCore.SIGNAL('taskUpdated(PyQt_PyObject)'), parent, QtCore.SIGNAL('taskUpdated(PyQt_PyObject)'))
-        connect(self.signal, QtCore.SIGNAL('taskFinished(PyQt_PyObject)'), parent, QtCore.SIGNAL('taskFinished(PyQt_PyObject)'))
-    
+        for signal in ('taskFinished', 'taskStarted', 'taskUpdated'):
+            if not hasattr(parent, signal): continue
+            sig = getattr(self.signal, signal)
+            psig = getattr(parent, signal)
+            getattr(sig, connect)(psig)
+            
     def disconnect(self, val=None):
-        print "disconnecing"
-        self.connect_obj(self._parent, QtCore.QObject.disconnect)
+        self.connect_obj(self._parent, 'disconnect')
 
 def launch(parent, functor, *args):
     '''Launch a task into the background using QT Threads
