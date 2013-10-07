@@ -1213,12 +1213,12 @@ def search_model_2d(pow, dfmin, dfmax, fstep, rmin, rmax, ampcont, cs, voltage, 
     if pre_decimate > 0:
         pow_sm = eman2_utility.decimate(pow, float(pow.shape[0])/pre_decimate)
     else: pow_sm = pow
-    print pre_decimate, pow_sm.shape, pow.shape
-    #pow = pow.T.copy()
-    pow_sm = pow_sm[:, :pow_sm.shape[0]/2].copy()
     thetatr = wl/(apix*min(pow_sm.shape))
+    pow_sm = pow_sm.copy()
+    pow_sm = pow_sm[:pow_sm.shape[0]/2, :].copy()
+    pow_sm = pow_sm.T.copy()
     smooth_2d(pow_sm, rmin)
-                    
+    
     p=0
     for k in xrange(0, 18):
         for i in xrange(i1, i2+1):
@@ -1233,9 +1233,11 @@ def search_model_2d(pow, dfmin, dfmax, fstep, rmin, rmax, ampcont, cs, voltage, 
                 p+=1
                 
     if pre_decimate > 0 and 1 == 0:
-        smooth_2d(pow, rmin)
         thetatr = wl/(apix*min(pow.shape))
-        pow = pow[:, :pow.shape[0]/2].copy()
+        pow = pow.copy()
+        pow = pow[:pow.shape[0]/2, :].copy()
+        pow = pow.T.copy()
+        smooth_2d(pow, rmin)
     else:
         pow = pow_sm
     
@@ -1258,7 +1260,7 @@ def smooth_2d(pow, rmin):
     size = numpy.asarray(pow.shape, dtype=numpy.int32)
     _ctf.msmooth(pow.T, size, int(nw), buf.T)
 
-def ctf_2d(pow, dfmid1, dfmid2, angast, ampcont, cs, voltage, apix=None, xmag=None, res=None, **extra):
+def ctf_2d(pow, dfmid1, dfmid2, angast, ampcont, cs, voltage, rmin, rmax, apix=None, xmag=None, res=None, **extra):
     '''
           DO 200 L=1,JXYZ(1)/2
         LL=L-1
@@ -1287,6 +1289,11 @@ C            OUT(IS)=POWER(ID)/DRMS1*SQRT(2.0*PI)
           ENDIF
     '''
     
+    if rmin < rmax: rmin, rmax = rmax, rmin
+    if rmin > 50: rmin = 50.0
+    rmin = apix/rmin
+    rmax = apix/rmax
+    rmin2, rmax2 = rmin**2,rmax**2
     if apix is None: apix = res*(10.0**4.0)/xmag
     cs *= 10**7.0
     kv = voltage*1000.0
@@ -1299,11 +1306,10 @@ C            OUT(IS)=POWER(ID)/DRMS1*SQRT(2.0*PI)
             j = m + pow.shape[1]/2
             if j > pow.shape[1]: j = j - pow.shape[1] + 1
             j=pow.shape[1]-j+1
-            if j>=pow.shape[1]: print j, pow.shape[1]
-            if i>=pow.shape[0]: print i, pow.shape[0]
-            assert(j<pow.shape[1])
-            assert(i<pow.shape[0])
-            pow.ravel()[j+pow.shape[1]*i] = ctf_2d_value(l, m, dfmid1, dfmid2, angast, cs, wl, ampcont, thetatr)**2
+            res2 = (float(l)/pow.shape[0])**2 + (float(m)/pow.shape[1])**2
+            if res2 <= rmax2 and res2 >= rmin2:
+                pow.ravel()[j+pow.shape[1]*i] = ctf_2d_value(l, m, dfmid1, dfmid2, angast, cs, wl, ampcont, thetatr)**2
+            else: pow.ravel()[j+pow.shape[1]*i]=0
 
 def ctf_2d_value(ix, iy, dfmid1, dfmid2, angast, cs, wl, wgh, thetatr):
     '''
