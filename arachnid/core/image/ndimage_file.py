@@ -232,6 +232,7 @@ def read_image(filename, index=None, **extra):
           Array with header information in the file
     '''
     
+    if isinstance(filename, tuple): filename,index=filename
     filename = readlinkabs(filename)
     format = get_read_format_except(filename)
     return format.read_image(filename, index, **extra)
@@ -471,7 +472,7 @@ def get_read_format_except(filename):
         #_logger.debug("Using format: %s"%str(f))
         return f
     if spider_writer.eman2_utility.EMAN2 is not None:
-        raise IOError, "Could not find format for %s"%filename
+        raise IOError, "Could not find format for '%s'"%filename
     else:
         raise IOError, "Could not find format for %s\n\n Installing EMAN2 adds addtional formats to Arachnid"%filename
 
@@ -510,21 +511,21 @@ def _load():
     '''
     
     #from formats import mrc
-    formats = []#mrc]
+    image_formats = []#mrc]
     try: from formats import eman_format
     except: 
-        formats.extend([mrc,spider])
+        image_formats.extend([mrc,spider])
         default_format=spider
         tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
     else:
         if eman_format.eman2_utility.EMAN2 is not None:
-            formats.append(eman_format)
+            image_formats.append(eman_format)
             default_format=eman_format
         else:
-            formats.extend([mrc,spider])
+            image_formats.extend([mrc,spider])
             default_format=spider
-    if len(formats) == 0: raise ImportError, "No image format modules loaded!"
-    return formats, default_format
+    if len(image_formats) == 0: raise ImportError, "No image format modules loaded!"
+    return image_formats, default_format
 
 _formats, _default_write_format = _load()
 
