@@ -26,7 +26,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.metadata import format_alignment #format, 
-from arachnid.core.image import ndimage_file, rotate #, eman2_utility
+from arachnid.core.image import ndimage_file, rotate, eman2_utility
 from arachnid.core.orient import healpix, orient_utility
 import numpy
 
@@ -53,47 +53,17 @@ if __name__ == '__main__':
     sys.stdout.flush()
     
     align2 = numpy.zeros((align.shape[0], align.shape[1]+1))
-    align2[:, :align.shape[1]]=align
-    align2[:]=orient_utility.coarse_angles2(healpix_order, align2)
+    print align2.shape
+    orient_utility.coarse_angles2(healpix_order, align, True, align2)
+    print align2[:6, 6]
     for i, img in enumerate(ndimage_file.iter_images(files)):
         ipix = align2[i, 6]
         rot = align2[i, 3]
         tx = align2[i, 4]
         ty = align2[i, 5]
         img[:] = rotate.rotate_image(img, rot, tx, ty)
+        if align2[i, 1] > 180.0: img[:] = eman2_utility.mirror(img) 
         avg[ipix] += img
-    
-    
-    
-    '''
-    if 1==0:
-        #count = numpy.zeros(len(ang))
-        #n = ndimage_file.count_images(image_file)
-        resolution = pow(2, healpix_order)
-        for i, img in enumerate(ndimage_file.iter_images(files)):
-            t = align[i, 1]
-            if t > 180.0: t -= 180.0
-            ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(t), numpy.deg2rad(align[i, 2]))
-            #count[ipix]+=1
-            rang = rotate.rotate_euler(ang[ipix], (-align[i, 3], t, align[i, 2]))
-            rot = (rang[0]+rang[2])
-            rt3d = orient_utility.align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
-            #print rt3d
-            rot, tx, ty = orient_utility.align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
-            #print rt3d, '--', rot, tx, ty
-            #print rot, orient_utility.optimal_inplace_rotation(align[i, :3], ang[ipix].reshape((1, len(ang[ipix]))))[0]
-            #assert(rot == orient_utility.optimal_inplace_rotation(align[i, :3], ang[ipix].reshape((1, len(ang[ipix]))))[0])
-            #rot = orient_utility.optimal_inplace_rotation(align[i, :3], ang[ipix].reshape((1, len(ang[ipix]))))[0] #-align[i, 0]
-            #print "%d of %d -- psi: %f --- ipix: %d"%(i+1, n, rot[0], ipix)
-            #sys.stdout.flush()
-            img[:] = rotate.rotate_image(img, rot, tx, ty)
-            #if align[i, 1] > 180.0: img[:] = eman2_utility.mirror(img)
-            #if t > 180.0: t -= 180.0
-            #ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(t), numpy.deg2rad(align[i, 2]))
-            avg[ipix] += img
-        #for i in xrange(len(count)):
-        #    print "%d: %d"%(i, count[i])
-    '''
     ndimage_file.write_stack(output_file, avg)
 
 
