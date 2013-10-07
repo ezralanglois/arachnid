@@ -6,7 +6,7 @@
 from ..core.app import program
 from ..core.util import plotting
 from ..core.metadata import spider_utility, format, format_utility, spider_params
-from ..core.image import ndimage_file, ndimage_utility, eman2_utility, ctf #, analysis
+from ..core.image import ndimage_file, ndimage_utility, eman2_utility, ctf, analysis
 from ..core.parallel import mpi_utility
 import os, numpy, logging, sys
 
@@ -36,15 +36,17 @@ def process(filename, output, id_len=0, use_emx=False, **extra):
     
     id = spider_utility.spider_id(filename, id_len)
     output = spider_utility.spider_filename(output, id)
-    pow = generate_powerspectra(filename, **extra)
     
     if 1 == 0:
+        pow = generate_powerspectra(filename, shift=True, **extra)
         vals = ctf.estimate_defocus_fast(pow.copy(), **extra)
         pow = pow.T.copy()
     else:
+        pow = generate_powerspectra(filename, shift=False, **extra)
         vals=ctf.search_model_2d(pow, **extra)
         sys.stdout.flush()
-        #pow=numpy.fft.fftshift(pow).copy()
+        pow=numpy.fft.fftshift(pow).copy()
+        opow = pow.copy()
         pow = pow.T.copy()
     ctf.ctf_2d(pow, *vals, **extra)
     pow[:pow.shape[0]/2, :] = ndimage_utility.histeq(pow[:pow.shape[0]/2, :])
@@ -53,6 +55,23 @@ def process(filename, output, id_len=0, use_emx=False, **extra):
     print vals[0], vals[1], numpy.rad2deg(vals[2])
     vals=list(vals)
     vals[2]=numpy.rad2deg(vals[2])
+    
+    fig, ax=plotting.draw_image(ndimage_utility.histeq(opow), **extra)
+    
+    tmp = ndimage_utility.normalize_min_max(pow)
+    tmp = ndimage_utility.histeq(tmp)
+    if 1 == 0: # model mask
+        hpow = pow[:pow.shape[0]/2, :pow.shape[0]/2].copy()
+        mask = numpy.ones(pow.shape, dtype=numpy.bool)
+        mask[:pow.shape[0]/2, :pow.shape[0]/2]=hpow < analysis.otsu(pow)
+        tmp = numpy.ma.array(tmp, mask = mask)
+        #tmp = numpy.ma.array(tmp, mask = numpy.logical_not(numpy.logical_or(mask == mask.max(), mask == mask.min())))
+    else:
+        mask = numpy.ones(pow.shape, dtype=numpy.bool)
+        mask[:pow.shape[0]/2, :pow.shape[0]/2]=0
+        tmp = numpy.ma.array(tmp, mask = mask)
+    ax.imshow(tmp, cmap=plotting.cm.gray, alpha=1.0)
+    fig.savefig(os.path.splitext(output)[0]+".png", dpi=extra['dpi'], bbox_inches='tight', pad_inches = 0.0)
     
     if use_emx:
         if vals[0] < vals[1]:
@@ -65,7 +84,7 @@ def process(filename, output, id_len=0, use_emx=False, **extra):
     print 'Found:', vals
     return filename, vals
 
-def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", multitaper=False, disable_average=False, trans_file="", frame_beg=0, frame_end=-1, **extra):
+def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, rmin, rmax, shift=True, from_power=False, cache_pow=False, pow_cache="", multitaper=False, disable_average=False, trans_file="", frame_beg=0, frame_end=-1, **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -110,15 +129,15 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
             rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
             rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
             if 1 == 1:
-                if pow is None: pow = ndimage_utility.powerspec_avg(rwin, pad, False)/float(n)
-                else: pow += ndimage_utility.powerspec_avg(rwin, pad, False)/float(n)
+                if pow is None: pow = ndimage_utility.powerspec_avg(rwin, pad, shift)/float(n)
+                else: pow += ndimage_utility.powerspec_avg(rwin, pad, shift)/float(n)
             else:
                 if pow is None:
                     pow, total = ndimage_utility.powerspec_sum(rwin, pad)
                 else:
                     _logger.error("%d -- %f"%(total, pow.sum()))
                     total+= ndimage_utility.powerspec_sum(rwin, pad, pow, total)[1]
-        pow=ndimage_utility.powerspec_fin(pow, total)
+        pow=ndimage_utility.powerspec_fin(pow, total, shift)
     else:
         if ndimage_file.count_images(filename) > 1 and not disable_average:
             trans = format.read(trans_file, numeric=True, spiderid=filename) if trans_file != "" else None
@@ -142,12 +161,18 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
             mic = ndimage_file.read_image(filename)
 
         if multitaper:
+            if rmin < rmax: rmin, rmax = rmax, rmin
             _logger.info("Estimating multitaper")
-            pow = ndimage_utility.multitaper_power_spectra(mic, 9, False, False)
             if window_size > 0:
-                pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
+                n=window_size/2
+                c = min(mic.shape)/2
+                mic=mic[c-n:c+n, c-n:c+n]
+            pow = ndimage_utility.multitaper_power_spectra(mic, int(round(rmax)), True, shift)
+            #if window_size > 0:
+            #    pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
         else:
-            pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset, False)
+            _logger.info("Estimating periodogram")
+            pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset, shift)
     return pow
     
 def initialize(files, param):
@@ -161,6 +186,8 @@ def initialize(files, param):
         _logger.info("Window size: %f"%param['window_size'])
         _logger.info("Pad: %f"%param['pad'])
         _logger.info("Overlap: %f"%param['overlap'])
+        _logger.info("Defocus Search: %f-%f by %f"%(param['dfmin'],param['dfmax'],param['fstep']))
+        _logger.info("Resolution Range: %f-%f"%(param['rmin'],param['rmax']))
         _logger.info("Plotting disabled: %d"%plotting.is_plotting_disabled())
         _logger.info("Microscope parameters")
         _logger.info(" - Voltage: %f"%param['voltage'])
@@ -242,6 +269,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         
         pgroup.add_option("",   disable_color=False, help="Disable output of color 2d power spectra")
         pgroup.add_option("-s", select="",           help="Selection file")
+        pgroup.add_option("",   dpi=100,              help="Resolution in dots per inche for color figure images")
         
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmarking",  id=__name__)
         group.add_option("-d", defocus_file="", help="File containing defocus values")
@@ -254,7 +282,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "CTF Estimation", "Options to control CTF Estimation",  id=__name__)
     group.add_option("", dfmin=5000, help="Minimum defocus value to search")
     group.add_option("", dfmax=70000, help="Maximum defocus value to search")
-    group.add_option("", fstep=1000, help="Defocus search step size")
+    group.add_option("", fstep=200, help="Defocus search step size")
     group.add_option("", rmin=50.0, help="Minimum resolution to match")
     group.add_option("", rmax=7.5, help="Maximum resolution to match")
 

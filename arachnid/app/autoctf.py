@@ -374,7 +374,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, p
     return fig
     #return plotting.save_as_image(fig)
 
-def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", disable_average=False, multitaper=False, trans_file="", frame_beg=0, frame_end=-1, decimate_to=256, **extra):
+def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, from_power=False, cache_pow=False, pow_cache="", disable_average=False, multitaper=False, rmax=9, biased=False, trans_file="", frame_beg=0, frame_end=-1, decimate_to=256, **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -455,9 +455,14 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
         #window_size /= bin_factor
         #overlap_norm = 1.0 / (1.0-overlap)
         if multitaper:
-            pow = ndimage_utility.multitaper_power_spectra(mic, 9, True)
+            _logger.info("Estimating multitaper")
             if window_size > 0:
-                pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
+                n=window_size/2
+                c = min(mic.shape)/2
+                mic=mic[c-n:c+n, c-n:c+n]
+            pow = ndimage_utility.multitaper_power_spectra(mic, rmax, biased)
+            #if window_size > 0:
+            #    pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
         else:
             
             pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset)
@@ -636,6 +641,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", trans_file="",  help="Translations for individual frames")
     group.add_option("", multitaper=False,  help="Multi-taper PSD estimation")
     group.add_option("", experimental=False,  help="Experimental mode")
+    group.add_option("", rmax=9,              help="Maximum resolution for multitaper")
+    group.add_option("", biased=False,              help="Biased multitaper")
     
     pgroup.add_option_group(group)
     
