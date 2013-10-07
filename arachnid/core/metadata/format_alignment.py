@@ -6,9 +6,13 @@
 
 import format, spider_utility, format_utility
 import numpy
-#from ..orient import orient_utility
+from ..orient import orient_utility
+import logging
 
-def read_alignment(filename, image_file, **extra):
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.INFO)
+
+def read_alignment(filename, image_file, use_3d=False, **extra):
     ''' Read an alignment file and organize images
     
     Supports both SPIDER and relion
@@ -18,23 +22,50 @@ def read_alignment(filename, image_file, **extra):
     
     id_len = extra['id_len'] if 'id_len' in extra else 0
     if 'format' in extra: del extra['format']
+    if 'numeric' not in extra: extra['numeric']=True
     if format.get_format(filename, **extra) == format.star:
         align = format.read(filename, **extra)
         param = numpy.zeros((len(align), 6))
         files = []
-        for i in xrange(len(align)):
-            files.append(spider_utility.relion_file(align[i].rlnImageName))
-            param[i, 0] = align[i].rlnAnglePsi
-            param[i, 1] = align[i].rlnAngleTilt
-            param[i, 2] = align[i].rlnAngleRot
-            #param[i, 3] = align[i].
-            param[i, 4] = align[i].rlnOriginX
-            param[i, 5] = align[i].rlnOriginY
+        if use_3d:
+            _logger.info("Standard Relion alignment file - leave 3D")
+            for i in xrange(len(align)):
+                files.append(spider_utility.relion_file(align[i].rlnImageName))
+                param[i, 0] = align[i].rlnAnglePsi
+                param[i, 1] = align[i].rlnAngleTilt
+                param[i, 2] = align[i].rlnAngleRot
+                #param[i, 3] = align[i].
+                param[i, 4] = align[i].rlnOriginX
+                param[i, 5] = align[i].rlnOriginY
+        else:
+            _logger.info("Standard Relion alignment file - convert to 2D")
+            for i in xrange(len(align)):
+                files.append(spider_utility.relion_file(align[i].rlnImageName))
+                param[i, 1] = align[i].rlnAngleTilt
+                param[i, 2] = align[i].rlnAngleRot
+                rot, tx, ty = orient_utility.align_param_3D_to_2D_simple(align[i].rlnAnglePsi, align[i].rlnOriginX, align[i].rlnOriginY)
+                param[i, 3] = rot
+                param[i, 4] = tx
+                param[i, 5] = ty
+            
     else:
         align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
         param = numpy.zeros((len(align), 6))
-        param[:, :3] = align[:, :3]
-        param[:, 3:] = align[:, 5:8]
+        if use_3d:
+            if numpy.sum(align[:, 5]) != 0.0:
+                _logger.info("Standard SPIDER alignment file - convert to 3D")
+                for i in xrange(len(align)):
+                    rot, tx, ty = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
+                    param[i, 0] = rot
+                    param[i, 1:3] = align[i, 1:3]
+                    param[i, 4:6] = (tx, ty)
+            else:
+                _logger.info("Detected non-standard SPIDER alignment file with only angles")
+                param[:, :3] = align[:, :3]
+        else:
+            _logger.info("Standard SPIDER alignment file - leave 2D")
+            param[:, :3] = align[:, :3]
+            param[:, 3:] = align[:, 5:8]
         if align.shape[1] == 15:
             files = []
             for i in xrange(len(align)):
