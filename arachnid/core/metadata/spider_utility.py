@@ -14,6 +14,15 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
+def images2label(images):
+    ''' Convert an image list to an ID label array
+    '''
+    
+    label = numpy.zeros((len(images), 2))
+    for i in xrange(len(images)):
+        label[i, :] = (spider_id(images[i][0]), images[i][1])
+    return label
+
 def single_images(files):
     ''' Organize a set of files into groups of single images
     
