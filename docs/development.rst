@@ -149,8 +149,30 @@ To test whether your code has any problems such as uninitalized variable, use th
 
 .. sourcecode:: sh
 
-	export CFLAGS="-Werror -Wno-unused-function -Wno-unknown-pragmas -Wno-format" CXXFLAGS="-Werror -Wno-format -Wno-unknown-pragmas -Wno-unused-function"
-	export FFLAGS="-Werror -Wno-unused-function -Wtabs" F90FLAGS="-Werror -Wno-unused-function -Wtabs" F77FLAGS="-Werror -Wno-unused-function -Wtabs"
+	$ export CFLAGS="-Werror -Wno-unused-function -Wno-unknown-pragmas -Wno-format" CXXFLAGS="-Werror -Wno-format -Wno-unknown-pragmas -Wno-unused-function"
+	$ export FFLAGS="-Werror -Wno-unused-function -Wtabs" F90FLAGS="-Werror -Wno-unused-function -Wtabs" F77FLAGS="-Werror -Wno-unused-function -Wtabs"
+
+Creating a binary Anaconda package
+==================================
+
+.. sourcecode:: sh
+	
+	# Clean out all non-package code
+	$ conda package -r
+	
+	# Install non-package arachnid code
+	$ cd %arachnid$
+	$ python setup.py install 
+	
+	# Create distribution directory  
+	$ mkdir dist				
+	$ cd dist
+	
+	# Create Package
+	$ conda package --pkg-name=arachnid --pkg-version=$version 
+	
+	# Create index (Optional, used for local respository)
+	$ conda index				
 
 Documentation Hack
 ==================
