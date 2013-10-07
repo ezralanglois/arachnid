@@ -39,9 +39,14 @@
 
 '''
 
+try:
+    from _version import __version__ as v
+    __version__ = v
+    del v
+except ImportError:
+    __version__ = "UNKNOWN"
 
 __project__ = "arachnid"
-__version__ = "0.1.1"
 __author__ = "Robert Langlois"
 __copyright__ = "Copyright (C) 2012, Robert Langlois"
 __license__ = "GPL"

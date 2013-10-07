@@ -195,8 +195,9 @@ except:
     import setuptools
 from numpy.distutils.core import setup
 from distutils.core import Command
+from distutils import command
 from distutils import log
-import os, fnmatch,sys
+import os, fnmatch, sys, re,subprocess
 import arachnid, arachnid.setup
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
@@ -262,6 +263,72 @@ def rglob(pattern, root=os.curdir):
             filenames.append( os.path.join(path, filename) )
     return filenames
 
+
+#####
+VERSION_PY = """
+# This file is originally generated from Git information by running 'setup.py
+# sdist'. Distribution tarballs contain a pre-generated copy of this file.
+
+__version__ = '%s'
+"""
+
+def update_version_py():
+    '''
+    Adopted from https://github.com/warner/python-ecdsa
+    '''
+    
+    if not os.path.isdir(".git"):
+        print "This does not appear to be a Git repository."
+        return
+    try:
+        p = subprocess.Popen(["git", "describe",
+                              "--tags"], #, "--dirty", "--always"
+                             stdout=subprocess.PIPE)
+    except EnvironmentError:
+        print "unable to run git, leaving ecdsa/_version.py alone"
+        return
+    stdout = p.communicate()[0]
+    if p.returncode != 0:
+        print "unable to run git, leaving ecdsa/_version.py alone"
+        return
+    # we use tags like "v0.5", so strip the prefix
+    assert stdout.startswith("v")
+    ver = stdout[len("v"):].strip()
+    # Ensure the version number is compatiable with eggs - Robert Langlois
+    ver = ver.replace('-', '_') 
+    f = open("arachnid/_version.py", "w")
+    f.write(VERSION_PY % ver)
+    f.close()
+    print "set arachnid/_version.py to '%s'" % ver
+
+def get_version():
+    '''
+    Adopted from https://github.com/warner/python-ecdsa
+    '''
+    
+    try:
+        f = open("arachnid/_version.py")
+    except EnvironmentError:
+        return None
+    for line in f.readlines():
+        mo = re.match("__version__ = '([^']+)'", line)
+        if mo:
+            ver = mo.group(1)
+            n=ver.find('_')
+            # Do not want to update every git commit
+            if n  != -1:ver = ver[:n]
+            return ver
+    return None
+
+class sdist(command.sdist.sdist):
+    '''Adopted from https://github.com/warner/python-ecdsa
+    '''
+    def run(self):
+        update_version_py()
+        self.distribution.metadata.version = get_version()
+        print 'Update version', self.distribution.metadata.version
+        return command.sdist.sdist.run(self)
+
 class check_dep(Command):
     ''' Check if the dependencies listed in `install_requires` and `extras_require`
     are currently installed and on the Python path.
@@ -325,7 +392,7 @@ if __name__ == '__main__':
             setup_requires = [
             'Sphinx>=1.0.4',
             ],
-            cmdclass = {'check': check_dep},
+            cmdclass = {'check': check_dep, 'sdist':sdist},
             **kwargs
     )
 
