@@ -26,7 +26,7 @@ static PyObject* py_get_max_threads(PyObject *obj)
 #	ifdef _OPENMP
     return PyInt_FromLong(omp_get_max_threads());
 #   else
-    return PyInt_FromLong(-1);
+    return PyInt_FromLong(0);
 #	endif
 }
 

@@ -15,6 +15,19 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import OpenMP module - certain functionality will not be available", _logger)
     _omp = None
+    
+def is_openmp_enabled():
+    ''' Test if OpenMP is enabled
+    
+    :Returns:
+    
+    out : bool
+          True if openmp is enabled
+    '''
+    
+    if _omp is not None:
+        return _omp.get_max_threads() > 0
+    return False
 
 def set_thread_count(thread_count):
     ''' Set the number of threads to be used by OpenMP
