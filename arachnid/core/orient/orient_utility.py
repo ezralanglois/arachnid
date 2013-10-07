@@ -18,51 +18,63 @@ try:
 except:
     from ..app import tracing
     tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
-    
-def coarse_angles(resolution, align): # The bitterness of men who fear human progress
-    '''
-    TODO: disable mirror
-    '''
-    
-    ang = healpix.angles(resolution)
-    resolution = pow(2, resolution)
-    new_ang=numpy.zeros((len(align), len(align[0])))
-    for i in xrange(len(align)):
-        theta=align[i,1]
-        if align[i,1] > 180.0: theta -= 180.0
-        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(align[i,2]))
-        rang = rotate.rotate_euler(ang[ipix], (-align[i,3], theta, align[i,2]))
-        rot = (rang[0]+rang[2])
-        rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
-        rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
-        new_ang[i, 1:]=(align[i,1], align[i,2], rot, tx, ty)
-        if len(align[0])>6: align[6] = ipix
-    return new_ang
 
-def coarse_angles2(resolution, align):
+def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
+    '''
+    '''
+    
+    rang = rotate.rotate_euler(frame, (-inplane, theta, phi))
+    rot = (rang[0]+rang[2])
+    rt3d = align_param_2D_to_3D_simple(inplane, dx, dy)
+    return align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
+
+def coarse_angles(resolution, align, half=False, out=None): # The bitterness of men who fear human progress
     '''
     TODO: disable mirror
     '''
     
     ang = healpix.angles(resolution)
     resolution = pow(2, resolution)
-    new_ang=numpy.zeros((len(align), len(align[0])))
+    if out is None: out=numpy.zeros((len(align), len(align[0])))
+    cols = out.shape[1]
     for i in xrange(len(align)):
-        theta=align[i,1]
-        if align[i,1] > 180.0: theta -= 180.0
-        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(align[i,2]))        
+        theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        if i < 3:
+            print '--- ', align[i,1], align[i,2], half, theta, phi
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
+        rot, tx, ty = rotate_into_frame_2d(ang[ipix], theta, phi, align[i, 3], align[i,4], align[i,5])
+        #rang = rotate.rotate_euler(ang[ipix], (-align[i,3], theta, phi))
+        #rot = (rang[0]+rang[2])
+        #rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
+        #rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
+        out[i, 1:align.shape[1]]=(align[i,1], align[i,2], rot, tx, ty)
+        if cols>6: out[i, 6] = ipix
+    return out
+
+def coarse_angles2(resolution, align, half=False, out=None):
+    '''
+    TODO: disable mirror
+    '''
+    
+    ang = healpix.angles(resolution)
+    resolution = pow(2, resolution)
+    if out is None: out=numpy.zeros((len(align), len(align[0])))
+    cols = out.shape[1]
+    for i in xrange(len(align)):
+        theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))        
         
         refquat = spider_to_quaternion(ang[ipix])
-        curquat = spider_to_quaternion((-align[i,3], theta, align[i,2]))
+        curquat = spider_to_quaternion((-align[i,3], theta, phi))
         curquat[1:] = -curquat[1:]
         rot = numpy.rad2deg(transforms.euler_from_quaternion(transforms.quaternion_multiply(refquat, curquat), 'rzyz'))
         rot = rot[0]+rot[2]
         
         rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
         rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
-        new_ang[i, 1:]=(align[i,1], align[i,2], rot, tx, ty)
-        if len(align[0])>6: align[6] = ipix
-    return new_ang
+        out[i, 1:align.shape[1]]=(align[i,1], align[i,2], rot, tx, ty)
+        if cols>6: out[i, 6] = ipix
+    return out
 
 def rotation_from_euler(psi, theta, phi, axis='rzyz'):
     '''
@@ -186,6 +198,14 @@ def convert_euler(psi,theta,phi, faxis='rzyz', taxis='rxyz'):
     return tuple(numpy.rad2deg(transforms.euler_from_matrix(transforms.euler_matrix(numpy.deg2rad(psi), numpy.deg2rad(theta), numpy.deg2rad(phi), faxis), taxis)))
 
 def optimal_inplane_rotation_worker(beg, end, euler, row, col, process_number=None):
+    '''
+    '''
+    
+    for i in xrange(beg, end):
+        rang = rotate.rotate_euler(euler[row[i]], euler[col[i]])
+        yield i, (rang[0]+rang[2])
+        
+def optimal_inplane_rotation_worker_old(beg, end, euler, row, col, process_number=None):
     '''
     '''
     
