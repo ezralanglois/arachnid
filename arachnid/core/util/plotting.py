@@ -70,6 +70,7 @@ def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_
     '''
     '''
     
+    img = img.copy()
     fig = pylab.figure(0, dpi=dpi, facecolor=facecolor)
     img -= img.min()
     img /= img.max()
