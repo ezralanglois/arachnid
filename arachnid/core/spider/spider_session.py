@@ -128,7 +128,11 @@ class Session(object):
             try: os.remove(self.pipename)
             except: pass
         _logger.debug("Using PIPE = %s"%self.pipename)
-        os.mkfifo(self.pipename)
+        try:
+            os.mkfifo(self.pipename)
+        except: 
+            _logger.error("Pipe exists: %s"%self.pipename)
+            raise
         if tmp_path == "": tmp_path = None
         self.tmp_path = tmp_path
         if 1 == 0:
@@ -136,7 +140,8 @@ class Session(object):
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=self.spider_err.fileno()) #stdout=subprocess.PIPE
         else:
             #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-            self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.devnull = open(os.devnull, 'w')
+            self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=self.devnull)
             self.spider_err = self.spider.stderr
         self.spider_proc = len(Session.PROCESSES)
         Session.PROCESSES.append(self.spider)
@@ -264,7 +269,7 @@ class Session(object):
                 n = line.find('VERSION:')
                 if n != -1: break
             if n == -1:
-                raise ValueError, "Error invoking SPIDER executable on path: %s - This could mean your tmp_path flag is not write accessible"%self.spiderexec
+                raise ValueError, "Error invoking SPIDER executable on path: %s - This could mean your tmp_path flag is not write accessible: %s"%(self.spiderexec, str(tmp_path))
             line = line[(n+len('VERSION:')+1):]
             line = line.strip().split()
             self.version = tuple([int(v) for v in line[1].split('.')])
@@ -362,6 +367,9 @@ class Session(object):
     def close(self):
         ''' Close the Spider session
         '''
+        
+        try:self.devnull.close()
+        except: pass
         
         _logger.debug("Attempting to close SPIDER")
         if hasattr(self, 'spider') and self.spider is not None:
