@@ -7,9 +7,9 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold #, ndimage_filter #, analysis
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor #, ndimage_filter #, analysis
 from ..core.orient import healpix, orient_utility
-from ..core.metadata import spider_utility, format, format_utility, spider_params
+from ..core.metadata import spider_utility, format, format_utility, spider_params, format_alignment
 #from ..core.parallel import mpi_utility
 from ..core.parallel import openmp
 import logging, numpy, os, scipy, scipy.cluster.vq, scipy.spatial.distance
@@ -29,14 +29,15 @@ def batch(files, output, **extra):
     _logger.info("Neighbors: %d"%(extra['neighbors']))
     
     if 1 == 1:
-        label, ref, align, data = create_sparse_dataset(files, **extra)
+        label, align, data = create_sparse_dataset(files, **extra)
+        label = spider_utility.images2label(label)
     else:
-        label, ref, align, data = create_dataset(files, **extra)
+        label, align, data = create_dataset(files, **extra)
     
     _logger.info("Number of samples: %d"%len(label))
     _logger.info("Number of references: %d"%data.shape[1])
     #ref[:] = healpix.ang2pix(healpix_order(**extra), numpy.deg2rad(align[:, 1:3]))
-    ref[:] = healpix.ang2pix(1, numpy.deg2rad(align[:, 1:3]))
+    ref = healpix.ang2pix(1, numpy.deg2rad(align[:, 1:3]))
     feat, index = kernel_pca(data, **extra)
     if index is not None:
         _logger.info("Using subset!")
@@ -87,7 +88,7 @@ def create_dataset(files, cache_file="", **extra):
     '''
     '''
     
-    label, align, ref = read_alignment(files, **extra)
+    label, ref, align = read_alignment(files, **extra)
     _logger.info("Read alignment file with %d projections"%len(label))
     if cache_file != "" and (os.path.exists(cache_file) or os.path.exists(cache_file+'.mat')):
         _logger.info("Loading distance matrix from cache")
@@ -116,8 +117,8 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
     '''
     '''
     
-    label, align, refp = read_alignment(files, **extra)
-    _logger.info("Read alignment file with %d projections"%len(label))
+    images, align = read_alignment(files, **extra)
+    _logger.info("Read alignment file with %d projections"%len(images))
         
     _logger.info("Generating quaternions")
     ang = align[:, :3].copy()
@@ -148,7 +149,7 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         mask = create_mask(files, **extra)
         _logger.info("Reading images from disk")
         openmp.set_thread_count(1)
-        samp = ndimage_file.read_image_mat(files[0], label, image_transform, False, cache_file, align=align, mask=mask, dtype=numpy.float32, **extra)
+        samp = ndimage_processor.create_matrix_from_file(images, image_transform, align=align, mask=mask, dtype=numpy.float32, **extra)
         openmp.set_thread_count(extra['thread_count'])
         mask = numpy.ascontiguousarray(numpy.argwhere(mask.ravel() > 0).squeeze())
         if 1 == 1:
@@ -180,7 +181,7 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             _logger.info("%f,%f"%(sigma[i], kernel_cum[1, i]))
     _logger.info("Image data2: %f-%f"%(numpy.min(qneigh.data[:neighbors+1]), numpy.max(qneigh.data[:neighbors+1])))
     _logger.info("Angle data2: %f-%f"%(numpy.rad2deg(numpy.min(epsdata[:neighbors+1])), numpy.rad2deg(numpy.max(epsdata[:neighbors+1]))))
-    return label, refp, align, qneigh
+    return images, align, qneigh
 
 def generate_references(filename, label, align, reference="", **extra):
     '''
@@ -251,6 +252,8 @@ def read_alignment(files, alignment="", is_dala=False, **extra):
             List of tuples, one for each view containing: view id, image labels and alignment parameters
     '''
     
+    return format_alignment.read_alignment(alignment, files[0], use_3d=True)
+    
     if len(files) == 1:
         spiderid = files[0] if not os.path.exists(alignment) else None
         align = format.read_alignment(alignment, spiderid=spiderid)
@@ -280,7 +283,7 @@ def create_mask(files, pixel_diameter, **extra):
     bin_factor = decimation_level(**extra)
     #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
     if bin_factor > 1: 
-        mask = ndimage_interpolate.interpolate_fs(mask, bin_factor)
+        mask = ndimage_interpolate.interpolate_ft(mask, bin_factor)
         #mask = eman2_utility.decimate(mask, bin_factor)
         #bg = eman2_utility.decimate(bg, bin_factor)
     return mask #, bg
@@ -294,7 +297,7 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(**extra)
     if bin_factor > 1: 
-        img = ndimage_interpolate.interpolate_fs(img, bin_factor)
+        img = ndimage_interpolate.interpolate_ft(img, bin_factor)
         #img = eman2_utility.decimate(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     '''
