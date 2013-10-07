@@ -29,7 +29,10 @@ class MainWindow(ImageViewerWindow):
         
         ImageViewerWindow.__init__(self, parent)
         self.inifile = 'ara_screen.ini'
-        self.selectfile = 'ara_view_select.csv'
+        
+        # Load the settings
+        _logger.info("\rLoading settings ...")
+        self.loadSettings()
         
         icon8 = QtGui.QIcon()
         icon8.addPixmap(QtGui.QPixmap(":/mini/mini/feed_disk.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -37,18 +40,31 @@ class MainWindow(ImageViewerWindow):
         self.ui.actionSave_Inverted.setToolTip("Save inverted selection")
         self.ui.actionSave_Inverted.setObjectName("actionSave_Inverted")
         self.ui.toolBar.insertAction(self.ui.actionLoad_More, self.ui.actionSave_Inverted)
-        QtCore.QMetaObject.connectSlotsByName(self)
+        #QtCore.QMetaObject.connectSlotsByName(self)
+        self.ui.actionSave_Inverted.triggered.connect(self.on_actionSave_Inverted_triggered)
         
         try:
-            self.selectfout = open(self.selectfile, 'a')
+            self.selectfout = open(self.advanced_settings.select_file, 'a')
         except:  
             path = QtGui.QFileDialog.getExistingDirectory(self.ui.centralwidget, self.tr("Open an existing directory to save the selections"), self.lastpath)
             if isinstance(path, tuple): path = path[0]
             self.inifile = os.path.join(path, 'ara_screen.ini')
-            self.selectfile = os.path.join(path, 'ara_view_select.csv')
-            self.selectfout = open(self.selectfile, 'a')
+            self.advanced_settings.select_file = os.path.join(path, 'ara_view_select.csv')
+            self.selectfout = open(self.advanced_settings.select_file, 'a')
         self.selectedCount = 0
         self.loadSelections()
+        
+    
+    def showEvent(self, evt):
+        '''Window close event triggered - save project and global settings 
+        
+        :Parameters:
+            
+        evt : QCloseEvent
+              Event for to close the main window
+        '''
+        
+        QtGui.QMainWindow.showEvent(self, evt)
     
     def advancedSettings(self):
         ''' Get a list of advanced settings
@@ -58,6 +74,7 @@ class MainWindow(ImageViewerWindow):
         return [ 
                dict(show_images=('All', 'Selected', 'Unselected'), help="Show images of specified type"),
                dict(relion="", help="Path to a relion selection file", gui=dict(filetype='open')),
+               dict(select_file="ara_screen_model.csv", help="Location of output selection file", gui=dict(readonly=True)),
                ]+ImageViewerWindow.sharedAdvancedSettings(self)
         
     def setup(self):
@@ -95,12 +112,14 @@ class MainWindow(ImageViewerWindow):
         ''' Load the selections from the default selection file
         '''
         
-        if not os.path.exists(self.selectfile): return
+        if not os.path.exists(self.advanced_settings.select_file): 
+            _logger.warn("No selection file found - assuming new project (%s)"%self.advanced_settings.select_file)
+            return
         
         self.files = []
         self.file_index = []
         self.selectedCount=0
-        fin = open(self.selectfile, 'r')
+        fin = open(self.advanced_settings.select_file, 'r')
         for line in fin:
             if line =="": continue
             if line[0] == '@':
@@ -116,6 +135,12 @@ class MainWindow(ImageViewerWindow):
         fin.close()
         if len(self.files) > 0:
             self.on_loadImagesPushButton_clicked()
+    
+    def is_empty(self):
+        '''
+        '''
+        
+        return len(self.files) == 0
     
     # Overriden methods
     def notify_added_item(self, item):
@@ -158,7 +183,7 @@ class MainWindow(ImageViewerWindow):
     
     # Slots for GUI
     
-    @qtSlot()
+    #@qtSlot()
     def on_actionSave_Inverted_triggered(self):
         ''' Invert the current selection
         '''

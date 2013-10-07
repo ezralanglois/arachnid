@@ -99,9 +99,20 @@ class MainWindow(QtGui.QMainWindow):
             self.helpLayout.setContentsMargins(0,0,0,0)
         else: self.webView=None
         
+        
+    def showEvent(self, evt):
+        '''Window close event triggered - save project and global settings 
+        
+        :Parameters:
+            
+        evt : QCloseEvent
+              Event for to close the main window
+        '''
+        
         # Load the settings
         _logger.info("\rLoading settings ...")
         self.loadSettings()
+        QtGui.QMainWindow.showEvent(self, evt)
         
     def advancedSettings(self):
         '''
@@ -119,7 +130,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(downsample_type=('ft', 'bilinear', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
                dict(invert=False, help="Perform contrast inversion"),
                dict(coords="", help="Path to coordinate file", gui=dict(filetype='open')),
-               dict(hide_coords=False, help="Hide the loaded coordinates"),
+               dict(show_coords=False, help="Hide the loaded coordinates"),
                dict(second_image="", help="Path to a tooltip image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
                dict(alternate_image="", help="Path to a alternate image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
                dict(load_alternate=False, help="Load the alternate image"),
@@ -131,12 +142,25 @@ class MainWindow(QtGui.QMainWindow):
                dict(center_mask=0, help="Radius of mask for image center"),
                dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
                dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
+               dict(show_label=False, help="Show the labels below each image"),
                dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
                dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True)),
                dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True)),
                dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True)),
                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True)),
                ]
+        
+    def setAlternateImage(self, filename):
+        '''
+        '''
+        
+        self.advanced_settings.alternate_image=filename
+        
+    def setCoordinateFile(self, filename):
+        '''
+        '''
+        
+        self.advanced_settings.coords=filename
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -347,7 +371,10 @@ class MainWindow(QtGui.QMainWindow):
             icon = QtGui.QIcon()
             icon.addPixmap(pix,QtGui.QIcon.Normal);
             icon.addPixmap(pix,QtGui.QIcon.Selected);
-            item = QtGui.QStandardItem(icon, "%s/%d"%(os.path.basename(imgname[0]), imgname[1]+1))
+            if self.advanced_settings.show_label:
+                item = QtGui.QStandardItem(icon, "%s/%d"%(os.path.basename(imgname[0]), imgname[1]+1))
+            else:
+                item = QtGui.QStandardItem(icon, "")
             if hasattr(start, '__iter__'):
                 item.setData(start[i], QtCore.Qt.UserRole)
             else:
@@ -440,7 +467,7 @@ class MainWindow(QtGui.QMainWindow):
         if ImageDraw is None:
             _logger.warn("No PIL loaded")
             return img
-        if self.advanced_settings.coords == "" or self.advanced_settings.hide_coords: return img
+        if self.advanced_settings.coords == "" or not self.advanced_settings.show_coords: return img
         if isinstance(fileid, tuple): fileid=fileid[0]
         coords=format.read(self.advanced_settings.coords, spiderid=fileid, numeric=True)
         
@@ -580,7 +607,8 @@ def iter_images(files, index, template=None, average=False):
                 try:
                     img = ndimage_file.read_image(filename, i) 
                 except:
-                    print f, i, len(files)
+                    ndimage_file.spider_writer.read_image(filename)
+                    print f, i, len(files), files[f], template, filename
                     raise
                 try:img=ndimage_utility.normalize_min_max(img)
                 except: pass

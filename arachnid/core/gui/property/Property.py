@@ -629,6 +629,16 @@ class NumericProperty(Property):
             self.singleStep = self.hints["singleStep"] if "singleStep" in self.hints else 0.1
             self.decimals = self.hints["decimals"] if "decimals" in self.hints else 2
     
+    def setValue(self, val):
+        '''
+        '''
+        
+        if isinstance( self.value(), ( int, long ) ):
+            val = int(val)
+        else:
+            val = float(val)
+        Property.setValue(self, val)
+    
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a NumericProperty
@@ -802,6 +812,16 @@ class BoolProperty(Property):
         if isinstance(property.property(name), bool):
             return cls(name, group, property, hints, doc, parent)
         return None
+    
+    def setValue(self, val):
+        '''
+        '''
+        
+        try: ""+val
+        except:
+            Property.setValue(self, val)
+        else:
+            Property.setValue(self, val.lower()=='true')
     
     def isBool(self):
         '''Test if property defines a Bool
@@ -1181,7 +1201,7 @@ class FilenameProperty(Property):
         
         _logger.debug("setValue Qstring")
         if value is not None:    
-            Property.setValue(self, value)
+            Property.setValue(self, str(value))
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
@@ -1402,6 +1422,18 @@ class StringProperty(Property):
         if isinstance(property.property(name), basestring) or isinstance(property.property(name), list):
             return cls(name, group, property, hints, doc, parent)
         return None
+    
+    def setValue(self, value):
+        '''Set the value for the property
+        
+        :Parameters:
+        
+        value : QObject
+               Value to store
+        '''
+        
+        if value is not None:
+            Property.setValue(self, str(value))
     
 def is_int(f):
     '''Test if the float value is an integer
