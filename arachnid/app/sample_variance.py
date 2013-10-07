@@ -56,7 +56,7 @@ def estimate_sample_variance(filename, output, sample_size, thread_count, volume
     ''' 
     '''
     
-    image_files, align = format_alignment.read_alignment(filename, **extra)
+    image_files, align = format_alignment.read_alignment(filename, use_3d=False, **extra)
     image_size = ndimage_file.read_image(image_files).shape[0] if isinstance(image_files, str) else ndimage_file.read_image(image_files[0][0]).shape[0]
     if sample_size == 0: sample_size = len(align)
     elif sample_size < 1.0: sample_size = int(sample_size*len(align))
