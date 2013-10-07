@@ -94,9 +94,9 @@ def is_readable(filename):
     
     if not os.path.exists(filename): return False
     try: 
-        type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
+        type = eman2_utility.EMAN2.EMUtil.get_image_type(str(filename))
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
-    except: 
+    except:
         return False
     
 def read_header(filename, index=None):
