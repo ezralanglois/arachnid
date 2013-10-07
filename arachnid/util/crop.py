@@ -222,7 +222,7 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
         if align is not None:
             id=align[i].id
         else:id=i
-        _logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
+        #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
         mic = read_micrograph(filename, id, **extra)    
         # translate
         npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
@@ -249,7 +249,7 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
             else:
                 image_writer.write_image(output, emdata, index)
             if single: break
-            _logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
+        #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     return filename, len(coords), os.getpid()
 
 def test_coordinates(npmic, coords, bin_factor):
