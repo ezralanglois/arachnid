@@ -12,7 +12,7 @@ from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
 import eman2_utility
 import analysis
-import numpy, scipy, math, logging, scipy.ndimage
+import numpy, scipy, math, logging, scipy.ndimage, numpy.fft
 import scipy.fftpack, scipy.signal
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
@@ -80,6 +80,28 @@ def mirror(img, out=None):
     out[:, yoff:] = numpy.fliplr(img[:, yoff:])
     return out
 
+def mirror_ud(img, out=None):
+    ''' Mirror projection (SPIDER convention)
+    
+    :Parameters:
+    
+    img : array
+          Image
+    
+    :Returns:
+    
+    out : array
+          Mirrored image
+    '''
+    
+    if img.ndim != 2: raise ValueError, "Mirroring only works with 2D images"
+    xoff = 1 if numpy.mod(img.shape[0], 2) == 0 else 0
+    #yoff = 1 if numpy.mod(img.shape[1], 2) == 0 else 0
+    if out is None: out = img.copy()
+    else: out[:]=img[:]
+    out[xoff:, :] = numpy.flipud(img[xoff:, :])
+    return out
+
 def fourier_shift_complex(img, rl, im, pad=1):
     ''' Shift using sinc interpolation
     
@@ -139,10 +161,17 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
     if pad > 1:
         shape = img.shape
         img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
-    fimg = scipy.fftpack.fftn(img)
-    if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
-    else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy))
-    img = scipy.fftpack.ifftn(fimg).real
+    if img.ndim == 2:
+        fimg = numpy.fft.fft(img, img.shape[0], 0)
+        fimg = numpy.fft.fft(fimg, img.shape[1], 1)
+        fimg = scipy.ndimage.fourier_shift(fimg, (-dy, -dx), -1, 0)
+        fimg = numpy.fft.ifft(fimg, img.shape[1], 1)
+        img = numpy.fft.ifft(fimg, img.shape[0], 0).real
+    else:
+        fimg = scipy.fftpack.fftn(img)
+        if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
+        else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy), -1)
+        img = scipy.fftpack.ifftn(fimg).real
     if pad > 1: img = depad_image(img, shape)
     return img
 
@@ -721,7 +750,7 @@ def multitaper_power_spectra(mic, half_nbw=9, low_bias=False, shift=True):
             fmic = scipy.fftpack.fft2(mic_sq*tmp)
             pow += numpy.abs(weights[i]*weights[j]*fmic)**2
         pow *= 2 / numpy.sum(numpy.abs(weights[:, numpy.newaxis,numpy.newaxis]) ** 2, axis=-3)
-    return numpy.fft.fftshift(pow).copy()
+    return numpy.fft.fftshift(pow).copy() if shift else pow.copy()
 
 def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True):
     '''
