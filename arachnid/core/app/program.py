@@ -96,6 +96,9 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
     except:
         _logger.exception("Unexpected error occurred")
         raise
+    _logger.info("Program: %s"%(main_module.__name__), extra=dict(tofile=True))
+    _logger.info("Version: %s"%(str(root_module.__version__)), extra=dict(tofile=True))
+    
         
     _logger.debug("Checking options ... finished.")
     
@@ -113,7 +116,10 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
             openmp.set_thread_count(param['thread_count'])
             _logger.info("Multi-threading with OpenMP - set thread count to %d"%openmp.get_max_threads())
         elif 'worker_count' in param and param['worker_count'] > 1:
-            openmp.set_thread_count(0)
+            openmp.set_thread_count(1)
+    else:
+        _logger.warn("Script does not support OpenMP - set OMP_NUM_THREADS in environment (otherwise developer needs to set supports_OMP in the script)", extra=dict(tofile=True))
+        
     see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
     try:
         if main_template is not None: 
