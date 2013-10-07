@@ -38,6 +38,74 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
 
+
+def ensure_valid_deg(theta, phi, half=False):
+    '''
+    '''
+    
+    theta = pmod(theta, 180.0)
+    phi = pmod(phi, 360.0)
+    if half: return mirror_so2_deg(theta, phi)
+    return theta,phi
+
+def mirror_so2_deg(theta, phi):
+    ''' Mirror the angles of a projection
+    
+    Assumes Euler ZYZ in degrees, psi,theta,phi
+    
+    :Parameters:
+    
+    theta : float
+            Longitude 0 <= theta <= 180.0
+    phi : float
+            Latitude 0 <= theta <= 360.0
+            
+    :Returns:
+    
+    theta : float
+            Longitude 0 <= theta <= 90.0
+    phi : float
+            Latitude 0 <= theta <= 360.0
+    
+    '''
+    
+    if theta > 180.0: 
+        theta -= 180.0
+    elif theta > 90.0:
+        theta -= 90.0
+        phi += 180.0
+    theta = pmod(theta, 180.0)
+    phi = pmod(phi, 360.0)
+    return theta, phi
+
+def mirror_so2(theta, phi):
+    ''' Mirror the angles of a projection
+    
+    Assumes Euler ZYZ in radians, psi,theta,phi
+    
+    :Parameters:
+    
+    theta : float
+            Longitude 0 <= theta <= 180.0
+    phi : float
+            Latitude 0 <= theta <= 360.0
+            
+    :Returns:
+    
+    theta : float
+            Longitude 0 <= theta <= 90.0
+    phi : float
+            Latitude 0 <= theta <= 360.0
+    
+    '''
+    
+    if theta > numpy.pi: 
+        theta -= numpy.pi
+    elif theta > (numpy.pi/2):
+        theta -= numpy.pi/2
+        phi += numpy.pi
+    return theta, phi
+
 def angles(resolution, half=False, out=None):
     '''
     '''
@@ -125,32 +193,6 @@ def nside2pixarea(resolution, degrees=False):
     if degrees: pixarea = numpy.rad2deg(numpy.rad2deg(pixarea))
     return numpy.sqrt(pixarea)
 
-def _ensure_theta(theta, half=False):
-    ''' Ensure theta falls in the proper range, 0-180.0
-    
-    :Parameters:
-    
-    theta : float
-            Theta value
-    half : bool, optional
-           If true, then assume theta can be mirrored
-           
-    :Returns:
-    
-    theta : float
-            Theta value in proper range
-    '''
-    
-    if half and theta >= numpy.pi/2: theta = numpy.pi - theta
-    return theta
-    
-    '''
-    if theta >= numpy.pi: 
-        if half: theta = theta - numpy.pi
-        else: theta = theta - numpy.pi/2
-    return theta
-    '''
-
 def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
     
@@ -223,10 +265,7 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         for t, p in theta:
             t = pmod(t, numpy.pi)
             p = pmod(p, twopi)
-            t = _ensure_theta(t, half)
-            # 0 - 90 180-270
-            # -90 - 90
-            # - 180
+            if half: t, p = mirror_so2(t,p)
             out[i] = _ang2pix(int(resolution), float(t), float(p))
             i += 1
         return out
@@ -235,7 +274,7 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         if phi is None: "phi must not be None when theta is a float"
         theta = pmod(theta, numpy.pi)
         phi = pmod(phi, twopi)
-        theta = _ensure_theta(theta, half)
+        if half: theta, phi = mirror_so2(theta, phi)
         return _ang2pix(int(resolution), float(theta), float(phi))
 
 def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
@@ -273,7 +312,7 @@ def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         if out is None: out = numpy.zeros((len(theta), 2))
         i = 0
         for t, p in theta:
-            t = _ensure_theta(t, half)
+            if half: t, p = mirror_so2(t,p)
             pix = _ang2pix(int(resolution), float(t), float(p))
             out[i, :] = _pix2ang(int(resolution), int(pix))
             i += 1
@@ -281,7 +320,7 @@ def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
     else:
         _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
         if phi is None: "phi must not be None when theta is a float"
-        theta = _ensure_theta(theta, half)
+        if half: theta, phi = mirror_so2(theta, phi)
         return _ang2pix(int(resolution), float(theta), float(phi))
 
 
