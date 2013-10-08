@@ -35,6 +35,17 @@ spi2numpy = {
     -21: numpy.complex64,
     -22: numpy.complex64, #Even
 }
+'''
+
+spi2numpy = {
+     1: numpy.float64,
+     3: numpy.float64,
+    -11: numpy.complex128,
+    -12: numpy.complex128, #Even
+    -21: numpy.complex128,
+    -22: numpy.complex128, #Even
+}
+'''
 
 ## mapping of numpy type to MRC mode
 numpy2spi = {
@@ -250,14 +261,26 @@ def read_image(filename, index=None, header=None):
             raise
         #if header is not None: util.update_header(header, h, spi2ara, 'spi')
         if header is not None: header.update(read_header(h))
+        
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
+        
         count = count_images(h)
+        
         if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
-        offset = h_len + index * (h_len+i_len)
+        if int(h['istack']) > 0:
+            offset = h_len*2 + index * (h_len+i_len)
+        else:
+            if count > 1: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
+            offset = h_len
+        if count > 1:
+            if file_size(f) != (h_len + count * (h_len+i_len)): raise ValueError, "file size != header: %d != %d - %d"%(file_size(f), (h_len + count * (h_len+i_len)), count)
+        else:
+            if file_size(f) != (h_len + count * i_len): raise ValueError, "file size != header: %d != %d - %d"%(file_size(f), (h_len + count * (h_len+i_len)), count)
         f.seek(offset)
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
+        #assert(out.ravel().shape[0]==d_len)
         if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
         elif int(h['ny']) > 1: 
             try:
@@ -426,6 +449,11 @@ def write_image(filename, img, index=None, header=None):
     finally:
         util.close(filename, f)
 
+
+def file_size(fileobject):
+    fileobject.seek(0,2) # move the cursor to the end of the file
+    size = fileobject.tell()
+    return size
 
 
 
