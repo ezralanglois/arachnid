@@ -42,6 +42,7 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
         ctf.smooth_2d(pow, extra['apix']/25.0)
         assert(numpy.alltrue(numpy.isfinite(pow)))
     
+    
     raw = ndimage_utility.mean_azimuthal(pow)[:pow.shape[0]/2]
     raw[1:] = raw[:len(raw)-1]
     raw[:2]=0
@@ -69,16 +70,20 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     
     # initial estimate with outlier removal?
     beg = ctf.first_zero(roo, **extra)
+    st = int(ctf.resolution(30.0, len(raw), **extra))
+    plotting.plot_line('line.png', [ctf.resolution(i, len(raw), **extra) for i in xrange(st, len(raw))], raw[st:], dpi=300)
     
     # Estimate by drop in error
     end = ctf.energy_cutoff(numpy.abs(roo[beg:]))+beg
     if end == 0: end = len(roo)
+    end2 = int(ctf.resolution(extra['rmax'], len(roo), **extra))
+    if end > end2: end = end2
     
     res = ctf.resolution(end, len(roo), **extra)
     assert(numpy.alltrue(numpy.isfinite(pow)))
     cir = 0.0#ctf.estimate_circularity(pow, beg, end)
     freq = numpy.arange(len(roo), dtype=numpy.float)
-    
+    #sp-project /home/ryans/data/data_sept10/counted/*.spi --voltage 300 --apix 1.5844 --cs 2.26
     try:
         roo1, beg1 = ctf.factor_correction(roo, beg, end) if 1 == 1 else roo[beg:end]
     except:
@@ -465,7 +470,9 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
             #    pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
         else:
             
-            pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset)
+            pow, nwin = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset, ret_more=True)
+            _logger.info("Averaging over %d windows"%nwin)
+            
             '''
             assert(numpy.alltrue(numpy.isfinite(pow)))
             if rwin.shape[0] == 1 and decimate_to > 0:
