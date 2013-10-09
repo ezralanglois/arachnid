@@ -39,8 +39,6 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
     cols = out.shape[1]
     for i in xrange(len(align)):
         theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
-        if i < 3:
-            print '--- ', align[i,1], align[i,2], half, theta, phi
         ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
         rot, tx, ty = rotate_into_frame_2d(ang[ipix], theta, phi, align[i, 3], align[i,4], align[i,5])
         #rang = rotate.rotate_euler(ang[ipix], (-align[i,3], theta, phi))
@@ -53,7 +51,7 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
 
 def coarse_angles2(resolution, align, half=False, out=None):
     '''
-    TODO: disable mirror
+    Does not work!
     '''
     
     ang = healpix.angles(resolution)
