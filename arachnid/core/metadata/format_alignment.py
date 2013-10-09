@@ -7,6 +7,7 @@
 import format, spider_utility, format_utility
 import numpy
 from ..orient import orient_utility
+from ..image import ndimage_file
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
     
     '''
     
+    if not isinstance(image_file, str) and len(image_file) == 1: image_file=image_file[0]
     id_len = extra['id_len'] if 'id_len' in extra else 0
     if 'format' in extra: del extra['format']
     if 'numeric' not in extra: extra['numeric']=True
@@ -54,22 +56,37 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
         if use_3d:
             if numpy.sum(align[:, 5]) != 0.0:
                 _logger.info("Standard SPIDER alignment file - convert to 3D")
-                for i in xrange(len(align)):
-                    rot, tx, ty = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
-                    param[i, 0] = rot
-                    param[i, 1:3] = align[i, 1:3]
-                    param[i, 4:6] = (tx, ty)
+                if numpy.all(align[:,5]==0): 
+                    _logger.info("Detected non-standard SPIDER alignment file with no 2D parameters")
+                    param[:, :3] = align[:, :3]
+                else:
+                    for i in xrange(len(align)):
+                        rot, tx, ty = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
+                        param[i, 0] = rot
+                        param[i, 1:3] = align[i, 1:3]
+                        param[i, 4:6] = (tx, ty)
             else:
                 _logger.info("Detected non-standard SPIDER alignment file with only angles")
                 param[:, :3] = align[:, :3]
         else:
             _logger.info("Standard SPIDER alignment file - leave 2D")
-            param[:, :3] = align[:, :3]
-            param[:, 3:] = align[:, 5:8]
-        if align.shape[1] == 15:
+            param[:, 1:3] = align[:, 1:3]
+            if param.shape[1] > 7:
+                param[:, 3:] = align[:, 5:8]
+                
+            else:
+                _logger.info("Detected non-standard SPIDER alignment file with only angles")
+            if numpy.any(align[:,0]!=0): 
+                param[:, 3]=-align[:,0]
+        if align.shape[1] <= 15:
             files = []
-            for i in xrange(len(align)):
-                files.append( (image_file, int(i+1)) )
+            if isinstance(image_file, str) and align[:, 4].max() > ndimage_file.count_images(image_file):
+                for i in xrange(len(align)):
+                    files.append( (image_file, int(i+1)) )
+            else:
+                idx = align[:, 4].astype(numpy.int)
+                for i in xrange(len(align)):
+                    files.append( (image_file, idx[i]) )
         else:
             files=[]
             label = align[:, 15:17].astype(numpy.int)
