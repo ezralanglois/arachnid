@@ -108,9 +108,8 @@ class Session(object):
         if not os.path.exists(self.spiderexec): raise ValueError, "Cannot find spider executable: "+self.spiderexec
         self.get_version(tmp_path)
         assert(len(self.dataext)==3)
-        if rank == 0:
-            _logger.info("SPIDER Version = %d.%d"%self.version)
-        _logger.warn("Using command: %s"%self.spiderexec)
+        if rank == 0 or rank is None:
+            _logger.info("SPIDER Version = %d.%d - %s"%(self.version, self.spiderexec))
         if os.path.exists(os.path.join(os.path.dirname(self.spiderexec), 'Nextresults')):
             os.environ['SPBIN_DIR'] = os.path.dirname(self.spiderexec) + os.sep
             _logger.debug("SPBIN_DIR = %s"%os.environ['SPBIN_DIR'])
