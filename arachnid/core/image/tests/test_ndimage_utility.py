@@ -53,9 +53,9 @@ def test_fourier_shift():
     orig = numpy.random.rand(50,50).astype(numpy.float32)
     #test1 = eman2_utility.fshift(orig.copy(), 12.5, 3.2)
     #test2 = ndimage_utility.fourier_shift(orig.copy(), 12.5, 3.2)
-    test1 = eman2_utility.fshift(orig.copy(), 1, 1)
-    test2 = ndimage_utility.fourier_shift(orig.copy(), 1, 1)
-    numpy.testing.assert_allclose(test2, test1, rtol=1e-2)
+    test1_eman = eman2_utility.fshift(orig.copy(), 1, -1)
+    test2_numpy = ndimage_utility.fourier_shift(orig.copy(), 1, -1)
+    numpy.testing.assert_allclose(test2_numpy, test1_eman, rtol=1.0, atol=1e-4)
 
 def test_mean_azimuthal():
     '''
