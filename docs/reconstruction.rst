@@ -161,13 +161,14 @@ Manually screening micrographs, power spectra and particle windows can all be do
 
 .. sourcecode:: sh
 
-	$ ara-view
+	$ ara-screen
 
 This program has several features:
 
   - Micrograph and power spectra screening can be done simutaneously
   - It can be used while collecting data, the `Load More` button will find more micrographs
   - Saving is only necessary when you are finished. It writes out SPIDER compatible selection files
+  - Coordinates from AutoPicker can be displayed on the mcirographs
 
 Additional processing
 ---------------------
