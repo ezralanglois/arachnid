@@ -1,5 +1,8 @@
 '''
 
+FFT distance function
+https://gist.github.com/endolith/1257010
+
 http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 
 .. Created on Sep 21, 2012
@@ -163,6 +166,7 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             openmp.set_thread_count(extra['thread_count'])
             #rot = orient_utility.optimal_inplace_rotation2(align[:, :3], qneigh.row, qneigh.col)
             _logger.info("Recalculating distances: %s"%str(samp.dtype))
+            rot[:] = -rot
             rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
         else:
             _logger.info("Calculating restricted")
@@ -253,7 +257,7 @@ def read_alignment(files, alignment="", is_dala=False, **extra):
     '''
     
     return format_alignment.read_alignment(alignment, files[0], use_3d=True)
-    
+    '''
     if len(files) == 1:
         spiderid = files[0] if not os.path.exists(alignment) else None
         align = format.read_alignment(alignment, spiderid=spiderid)
@@ -271,6 +275,7 @@ def read_alignment(files, alignment="", is_dala=False, **extra):
         align[:, 0]=-align[:, 5]
     ref = align[:, refidx].astype(numpy.int)
     return label, align, ref
+    '''
     
 def create_mask(files, pixel_diameter, **extra):
     '''
