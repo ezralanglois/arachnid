@@ -38,6 +38,7 @@ if __name__ == '__main__':
     align_file = sys.argv[2]        # align_file = "data/align_01.spi"
     healpix_order=int(sys.argv[3])  # 2
     output_file=sys.argv[4]         # output_file="stack01.spi"
+    mirror = False
     
     ang = healpix.angles(healpix_order)
     files, align = format_alignment.read_alignment(align_file, image_file)
@@ -53,16 +54,16 @@ if __name__ == '__main__':
     sys.stdout.flush()
     
     align2 = numpy.zeros((align.shape[0], align.shape[1]+1))
-    print align2.shape
-    orient_utility.coarse_angles2(healpix_order, align, True, align2)
-    print align2[:6, 6]
+    print 'here1', align[:3]
+    orient_utility.coarse_angles(healpix_order, align, mirror, align2)
+    print 'here2', align2[:3]
     for i, img in enumerate(ndimage_file.iter_images(files)):
         ipix = align2[i, 6]
         rot = align2[i, 3]
         tx = align2[i, 4]
         ty = align2[i, 5]
         img[:] = rotate.rotate_image(img, rot, tx, ty)
-        if align2[i, 1] > 180.0: img[:] = eman2_utility.mirror(img) 
+        if mirror and align2[i, 1] > 180.0: img[:] = eman2_utility.mirror(img) 
         avg[ipix] += img
     ndimage_file.write_stack(output_file, avg)
 
