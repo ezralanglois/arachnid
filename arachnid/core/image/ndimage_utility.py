@@ -102,38 +102,6 @@ def mirror_ud(img, out=None):
     out[xoff:, :] = numpy.flipud(img[xoff:, :])
     return out
 
-def fourier_shift_complex(img, rl, im, pad=1):
-    ''' Shift using sinc interpolation
-    
-    :Parameters:
-    
-    img : array
-          2D or 3D array of pixels
-    dx : float
-         Shift in x-direction
-    dy : float
-         Shift in y-direction
-    dz : float
-         Shift in z-direction
-    pad : float
-          Amount of padding
-    
-    :Returns:
-    
-    out : array
-          2D or 3D array of pixel shift (according to input)
-    '''
-    
-    if img.ndim != 2 and img.ndim != 3: raise ValueError, "Only works with 2 or 3D images"
-    if pad > 1:
-        shape = img.shape
-        img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
-    fimg = scipy.fftpack.fftn(img)
-    fimg *= numpy.complex(rl, im)
-    img = scipy.fftpack.ifftn(fimg).real
-    if pad > 1: img = depad_image(img, shape)
-    return img
-
 def fourier_shift(img, dx, dy, dz=0, pad=1):
     ''' Shift using sinc interpolation
     
@@ -162,11 +130,16 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
         shape = img.shape
         img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
     if img.ndim == 2:
-        fimg = numpy.fft.fft(img, img.shape[0], 0)
-        fimg = numpy.fft.fft(fimg, img.shape[1], 1)
-        fimg = scipy.ndimage.fourier_shift(fimg, (-dy, -dx), -1, 0)
-        fimg = numpy.fft.ifft(fimg, img.shape[1], 1)
-        img = numpy.fft.ifft(fimg, img.shape[0], 0).real
+        if 1==0:
+            fimg = numpy.fft.fft(img, img.shape[0], 0)
+            fimg = numpy.fft.fft(fimg, img.shape[1], 1)
+            fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
+            fimg = numpy.fft.ifft(fimg, img.shape[1], 1)
+            img = numpy.fft.ifft(fimg, img.shape[0], 0).real
+        else:
+            fimg = scipy.fftpack.fft2(img)
+            fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
+            img = scipy.fftpack.ifftn(fimg).real
     else:
         fimg = scipy.fftpack.fftn(img)
         if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
@@ -742,17 +715,17 @@ def multitaper_power_spectra(mic, half_nbw=9, low_bias=False, shift=True):
     dpss2, eigvals = _multitaper.dpss_windows(mic_sq.shape[1], half_nbw, n_tapers_max,low_bias=low_bias)
     pow = mic_sq.copy()
     pow[:]=0
-    mic_sq = mic_sq - numpy.mean(mic_sq, axis=-1)[:, numpy.newaxis]
+    mic_sq = mic_sq - numpy.mean(mic_sq)#, axis=-1)[:, numpy.newaxis]
     weights = numpy.sqrt(eigvals)
     for i in xrange(dpss2.shape[0]):
         for j in xrange(dpss2.shape[0]):
             tmp = numpy.outer(dpss2[i], dpss2[j])
             fmic = scipy.fftpack.fft2(mic_sq*tmp)
             pow += numpy.abs(weights[i]*weights[j]*fmic)**2
-        pow *= 2 / numpy.sum(numpy.abs(weights[:, numpy.newaxis,numpy.newaxis]) ** 2, axis=-3)
+    pow *= 2 / numpy.sum(numpy.abs(weights[:, numpy.newaxis,numpy.newaxis]) ** 2, axis=-3)
     return numpy.fft.fftshift(pow).copy() if shift else pow.copy()
 
-def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True):
+def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, ret_more=False):
     '''
     '''
     
@@ -760,7 +733,7 @@ def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True)
     step = max(1, window_size*overlap)
     rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
-    return powerspec_avg(rwin, pad, shift)
+    return powerspec_avg(rwin, pad, shift) if not ret_more else powerspec_avg(rwin, pad, shift), rwin.shape[0]
 
 def dct_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
