@@ -3,33 +3,81 @@ Installation
 =============
 
 
-.. currentmodule:: arachnid
+FrankLab
+========
 
-.. automodule:: setup
+
+Install Anaconda
+
+.. sourcecode:: sh
+
+	$ cd <to-path-where-anaconda-will-be-installed>
+	
+	$ /guam.raid.cluster.software/arachnid/install
+	
+Update Arachnid
+
+.. sourcecode:: sh
+
+	$ conda install arachnid --yes -fq
 
 Anaconda
 ========
 
+Move to the directory you wish to install Anaconda
+
 Install Anaconda
 
+.. sourcecode:: sh
 
-	$ sh /guam.raid.cluster.software/arachnid/Anaconda-1.6.1-Linux-x86_64.sh -b -p $HOME/anaconda
+	$ cd <to-path-where-anaconda-will-be-installed>
+	$ sh Anaconda-1.6.1-Linux-x86_64.sh -b -p $PWD/anaconda
+
+Ensure Anaconda is on your path
+
+.. sourcecode:: sh
+
+	# Bash Shell
+	$ export PATH=$PWD/anaconda/bin:$PATH 
+	
+	# C-Shell
+	$ setenv PATH $PWD/anaconda/bin:$PATH
+
+Alternatively, you can add these commands to your $HOME/.bashrc or $HOME/.cshrc.
 	
 Install Accelerate
 
-Note that this step requires you obtain a license from https://store.continuum.io/cshop/accelerate/. This is free
+Note that this step requires you obtain a license from https://store.continuum.io/cshop/accelerate/. This is free.
 if you have an .edu email.
-	
-	$ conda install accelerate --yes
-	
-Install Arachnid
 
-	$ easy_install file:///guam.raid.cluster.software/arachnid/dist/arachnid-0.1.1-py2.7-linux-x86_64.egg
+.. sourcecode:: sh
+
+	$ conda install accelerate --yes
 
 Fix GUI
 
+.. sourcecode:: sh
+
 	$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
+Installing Arachnid in Anaconda
+===============================
+
+Add the Arachnid channel to your $HOME/.condarc
+
+.. sourcecode:: sh
+
+	$ echo "channels:" > $HOME/.condarc
+	$ echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
+	$ echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
+	$ echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
+	$ echo "  - http://guam/arachnid/dist" >> $HOME/.condarc
+
+Install Arachnid
+
+.. sourcecode:: sh
+
+	$ conda install arachnid --yes
 
 
 Installing an official release
@@ -61,5 +109,10 @@ python modules. The install command is::
 
   python setup.py install
 
+
+
+.. currentmodule:: arachnid
+
+.. automodule:: setup
 
 
