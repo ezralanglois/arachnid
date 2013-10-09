@@ -115,7 +115,7 @@ def create_header(shape, dtype, order='C', header=None):
     h['nz']=shape[2] if len(shape) > 2 else 1
     h['count']=shape[3] if len(shape) > 3 else 1 
     h['dtype']= dtype.str[:2]
-    h['byte_num']=int(dtype.str[2])
+    h['byte_num']=int(dtype.str[2:])
     h['order']=order
     h['pixelSpacing']=header.get('pixelSpacing', 0.0) if header is not None else 0.0
     h['extended_ident']=""
@@ -198,7 +198,7 @@ def read_web_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     m=None
     try:
         #curr = f.tell()
@@ -309,7 +309,7 @@ def read_image(filename, index=None, header=None, cache=None):
     '''
     
     idx = 0 if index is None else index
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     try:
         h = read_web_header(f)
         #if header is not None: util.update_header(header, h, web2ara, 'web')
@@ -339,7 +339,7 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     if index is None: index = 0
     try:
         h = read_web_header(f)

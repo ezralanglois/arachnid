@@ -211,7 +211,7 @@ def read_spider_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     try:
         #curr = f.tell()
         h = numpy.fromfile(f, dtype=header_dtype, count=1)
@@ -248,7 +248,7 @@ def read_image(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     h = None
     try:
         if index is None: index = 0
@@ -269,15 +269,17 @@ def read_image(filename, index=None, header=None):
         count = count_images(h)
         
         if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
-        if int(h['istack']) > 0:
-            offset = h_len*2 + index * (h_len+i_len)
-        else:
-            if count > 1: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
-            offset = h_len
+        
+        if count > 1 and int(h['istack']) == 0: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
+        offset = h_len*2 + index * (h_len+i_len) if int(h['istack']) > 0 else h_len
         if count > 1:
-            if file_size(f) != (h_len + count * (h_len+i_len)): raise ValueError, "file size != header: %d != %d - %d"%(file_size(f), (h_len + count * (h_len+i_len)), count)
+            if file_size(f) != (h_len + count * (h_len+i_len)): 
+                raise ValueError, "file size != header: %d != %d - %d"%(file_size(f), (h_len + count * (h_len+i_len)), count)
         else:
-            if file_size(f) != (h_len + count * i_len): raise ValueError, "file size != header: %d != %d - %d"%(file_size(f), (h_len + count * (h_len+i_len)), count)
+            if file_size(f) != (h_len + count * i_len): 
+                f.seek(h_len + index * (h_len+i_len))
+                h2 = read_spider_header(f)
+                raise ValueError, "file size != header: %d != %d - %d + %d * %d -- %d,%d == %d,%d"%(file_size(f), (h_len + count * i_len), h_len, count, i_len, int(h['istack']), int(h['imgnum']), int(h2['istack']), int(h2['imgnum'])  )
         f.seek(offset)
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
         #assert(out.ravel().shape[0]==d_len)
@@ -311,7 +313,7 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     if index is None: index = 0
     try:
         h = read_spider_header(f)
@@ -323,13 +325,18 @@ def iter_images(filename, index=None, header=None):
         i_len = d_len * 4
         count = count_images(h)
         if numpy.any(index >= count):  raise IOError, "Index exceeds number of images in stack: %s < %d"%(str(index), count)
-        offset = h_len + 0 * (h_len+i_len)
-        f.seek(offset)
+        #offset = h_len + 0 * (h_len+i_len)
+        f.seek(h_len)
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
         last=0
+        if count > 1 and int(h['istack']) == 0: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
+        
         for i in index:
-            if i != (last+1): f.seek(int(h_len + i * (h_len+i_len)))
+            if i != (last+1): 
+                offset = h_len*2 + i * (h_len+i_len)
+                f.seek(int(offset))
+            else: f.seek(h_len, 1)
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
             elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
@@ -396,7 +403,7 @@ def write_image(filename, img, index=None, header=None):
     try: img = img.astype(dtype)
     except: raise TypeError, "Unsupported type for SPIDER writing: %s"%str(img.dtype)
     
-    mode = 'a' if index is not None and index > 0 else 'w'
+    mode = 'rb+' if index is not None and index > 0 else 'wb+'
     f = util.uopen(filename, mode)
     try:
         if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
@@ -415,6 +422,8 @@ def write_image(filename, img, index=None, header=None):
             if 1024%int(header['lenbyt']) != 0: 
                 header['labrec'] = int(header['labrec'])+1
             header['labbyt'] = int(header['labrec'] ) * int(header['lenbyt'])
+            imgsize = img.ravel().shape[0]*4
+            headsize = int(header['labbyt'])
             
             # 
             #header['irec']
@@ -437,13 +446,14 @@ def write_image(filename, img, index=None, header=None):
             fheader[idx-1]=float(header[name])
         
         if index is not None:
-            fheader[_header_map['maxim']] = index+1
-            fheader[_header_map['imgnum']] = index+1
-            fheader[_header_map['istack']] = 2
+            fheader[_header_map['maxim']-1] = index+1
+            fheader[_header_map['imgnum']-1] = index+1
+            fheader[_header_map['istack']-1] = 2
+            
             f.seek(0)
             fheader.tofile(f)
-            fheader[_header_map['istack']] = 0
-            f.seek(index * (int(header['nx']) * int(header['ny']) * int(header['nz']) * 4 + int(header['labbyt'])))
+            fheader[_header_map['istack']-1] = 0
+            f.seek(index * (imgsize + headsize)+headsize)
         fheader.tofile(f)
         img.tofile(f)
     finally:

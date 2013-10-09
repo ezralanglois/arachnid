@@ -22,10 +22,12 @@ def test_is_readable():
     '''
     '''
     
-    empty_image = numpy.zeros((78,78))
-    eman_format.write_image(test_file, empty_image)
-    assert(spider.is_readable(test_file))
-    os.unlink(test_file)
+    try:
+        empty_image = numpy.zeros((78,78))
+        eman_format.write_image(test_file, empty_image)
+        assert(spider.is_readable(test_file))
+    finally:
+        os.unlink(test_file)
 
 def test_read_header():
     '''
@@ -37,55 +39,80 @@ def test_iter_images():
     '''
     '''
     
-    empty_image = numpy.zeros((78,200))
-    empty_image2 = numpy.ones((78,200))
-    eman_format.write_image(test_file, empty_image)#, 0)
-    #eman_format.write_image(test_file, empty_image2, 1)
-    for i, img in enumerate(spider.iter_images(test_file)):
-        ref = empty_image if i == 0 else empty_image2
-        numpy.testing.assert_allclose(ref, img)
-    os.unlink(test_file)
+    try:
+        imgs = []
+        for i in xrange(3):
+            imgs.append(numpy.random.rand(78,200).astype('<f4').copy())
+        for i, img in enumerate(imgs):
+            eman_format.write_image(test_file, img, i)
+        for i, img in enumerate(spider.iter_images(test_file)):
+            numpy.testing.assert_allclose(imgs[i], img)
+    finally:
+        os.unlink(test_file)
     
 def test_read_image():
     '''
     '''
     
-    empty_image1 = numpy.random.rand(78,200).astype('<f4')
-    eman_format.write_image(test_file, empty_image1)
-    numpy.testing.assert_allclose(empty_image1, spider.read_image(test_file))
-    os.unlink(test_file)
+    try:
+        empty_image1 = numpy.random.rand(78,200).astype('<f4').copy()
+        eman_format.write_image(test_file, empty_image1)
+        numpy.testing.assert_allclose(empty_image1, spider.read_image(test_file))
+    finally:
+        os.unlink(test_file)
     
 def test_read_stack():
     '''
     '''
     
-    empty_image1 = numpy.random.rand(78,200).astype('<f4')
-    empty_image2 = numpy.random.rand(78,200).astype('<f4')
-    eman_format.write_image(test_file, empty_image1, 0)
-    eman_format.write_image(test_file, empty_image2, 1)
-    numpy.testing.assert_allclose(empty_image1, spider.read_image(test_file, 0))
-    numpy.testing.assert_allclose(empty_image2, spider.read_image(test_file, 1))
-    os.unlink(test_file)
+    try:
+        empty_image1 = numpy.random.rand(78,200).astype('<f4')
+        empty_image2 = numpy.random.rand(78,200).astype('<f4')
+        eman_format.write_image(test_file, empty_image1, 0)
+        eman_format.write_image(test_file, empty_image2, 1)
+        numpy.testing.assert_allclose(empty_image1, spider.read_image(test_file, 0))
+        numpy.testing.assert_allclose(empty_image2, spider.read_image(test_file, 1))
+    finally:
+        os.unlink(test_file)
     
 def test_read_image_endian():
     '''
     '''
     
-    empty_image = numpy.random.rand(78,200).astype('>f4')
-    eman_format.write_image(test_file, empty_image)
-    numpy.testing.assert_allclose(empty_image, spider.read_image(test_file))
-    os.unlink(test_file)
+    try:
+        empty_image = numpy.random.rand(78,200).astype('>f4')
+        eman_format.write_image(test_file, empty_image)
+        numpy.testing.assert_allclose(empty_image, spider.read_image(test_file))
+    finally:
+        os.unlink(test_file)
 
 def test_write_image():
     '''
     '''
     
-    empty_image = numpy.random.rand(78,200).astype('<f4')
-    spider.write_image(test_file, empty_image)
-    spi_img = spider.read_image(test_file)
-    numpy.testing.assert_allclose(empty_image, spi_img)
-    numpy.testing.assert_allclose(empty_image, eman_format.read_image(test_file))
-    os.unlink(test_file)
+    try:
+        empty_image = numpy.random.rand(78,200).astype('<f4')
+        spider.write_image(test_file, empty_image)
+        numpy.testing.assert_allclose(empty_image, spider.read_image(test_file))
+        numpy.testing.assert_allclose(empty_image, eman_format.read_image(test_file))
+    finally:
+        os.unlink(test_file)
+
+def test_write_stack():
+    '''
+    '''
+    
+    try:
+        empty_image1 = numpy.random.rand(78,200).astype('<f4')
+        empty_image2 = numpy.random.rand(78,200).astype('<f4')
+        spider.write_image(test_file, empty_image1, 0)
+        spider.write_image(test_file, empty_image2, 1)
+        numpy.testing.assert_allclose(empty_image1, spider.read_image(test_file, 0))
+        numpy.testing.assert_allclose(empty_image1, eman_format.read_image(test_file, 0))
+        numpy.testing.assert_allclose(empty_image2, spider.read_image(test_file, 1))
+        numpy.testing.assert_allclose(empty_image2, eman_format.read_image(test_file, 1))
+    finally:
+        os.unlink(test_file)
 
 
 

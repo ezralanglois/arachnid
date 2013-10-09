@@ -37,9 +37,11 @@ def test_iter_images():
     '''
     '''
     
-    empty_image = numpy.zeros((78,200))
-    empty_image2 = numpy.ones((78,200))
-    eman_format.write_image(test_file, empty_image)#, 0)
+    empty_image = numpy.random.rand(78,200).astype('<f4')
+    empty_image2 = numpy.random.rand(78,200).astype('<f4')
+    mrc.write_image(test_file, empty_image, 0)
+    mrc.write_image(test_file, empty_image2, 1)
+    #eman_format.write_image(test_file, empty_image)#, 0)
     #eman_format.write_image(test_file, empty_image2, 1)
     for i, img in enumerate(mrc.iter_images(test_file)):
         ref = empty_image if i == 0 else empty_image2
@@ -51,8 +53,23 @@ def test_read_image():
     '''
     
     numpy.random.seed(1)
-    empty_image = numpy.random.rand(78,200).astype('<f4')
-    eman_format.write_image(test_file, empty_image)
+    #empty_image = numpy.random.rand(78,200).astype('<f4')
+    empty_image = numpy.random.rand(78,200).astype(numpy.float32)
+    mrc.write_image(test_file, empty_image)
+    #eman_format.write_image(test_file, empty_image)
+    
+    numpy.testing.assert_allclose(empty_image, eman_format.read_image(test_file))
+    numpy.testing.assert_allclose(empty_image, mrc.read_image(test_file))
+    os.unlink(test_file)
+    
+def test_read_image64():
+    '''
+    '''
+    
+    numpy.random.seed(1)
+    empty_image = numpy.random.rand(78,200).astype(numpy.float64)
+    #eman_format.write_image(test_file, empty_image)
+    mrc.write_image(test_file, empty_image)
     numpy.testing.assert_allclose(empty_image, mrc.read_image(test_file))
     os.unlink(test_file)
     

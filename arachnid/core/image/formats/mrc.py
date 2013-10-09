@@ -321,7 +321,7 @@ def read_mrc_header(filename, index=None):
           Array with header information in the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     try:
         #curr = f.tell()
         h = util.fromfile(f, dtype=header_image_dtype, count=1)
@@ -375,7 +375,7 @@ def iter_images(filename, index=None, header=None):
           Array with image information from the file
     '''
     
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     if index is None: index = 0
     try:
         h = read_mrc_header(f)
@@ -383,8 +383,9 @@ def iter_images(filename, index=None, header=None):
         if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
         d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        if header_image_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
-        offset = 1024+int(h['nsymbt'])+ 0 * d_len * dtype.itemsize;
+        if header_image_dtype.newbyteorder()==h.dtype: 
+            dtype = dtype.newbyteorder()
+        offset = 1024+int(h['nsymbt'])+ 0 * d_len * dtype.itemsize
         try:
             f.seek(int(offset))
         except:
@@ -396,6 +397,9 @@ def iter_images(filename, index=None, header=None):
         for i in index:
             if i != (last+1): f.seek(int(1024+int(h['nsymbt'])+ i * d_len * dtype.itemsize))
             out = util.fromfile(f, dtype=dtype, count=d_len)
+            
+            out = reshape_data(out, h, index, count)
+            '''
             if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0]))
             elif int(h['ny'][0]) > 1:
                 try:
@@ -403,6 +407,7 @@ def iter_images(filename, index=None, header=None):
                 except:
                     _logger.error("%d == %d == %d -- %d,%d (index: %d)"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0]), index))
                     raise
+            '''
             #if header_image_dtype.newbyteorder()==h.dtype:  out = out.byteswap()
             yield out
     finally:
@@ -427,7 +432,7 @@ def read_image(filename, index=None, header=None, cache=None):
     '''
     
     idx = 0 if index is None else index
-    f = util.uopen(filename, 'r')
+    f = util.uopen(filename, 'rb')
     try:
         h = read_mrc_header(f)
         #if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
@@ -439,28 +444,53 @@ def read_image(filename, index=None, header=None, cache=None):
         else:
             d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        if header_image_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
+        if header_image_dtype.newbyteorder()==h.dtype:
+            dtype = dtype.newbyteorder()
         offset = 1024+int(h['nsymbt']) + idx * d_len * dtype.itemsize
         total = file_size(f)
         if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
         out = util.fromfile(f, dtype=dtype, count=d_len)
-        if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:
-             if h['mapc'][0] == 2 and h['mapr'][0]==1:
-                 out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
-                 for i in xrange(out.shape[2]):
-                     out[:, :, i] = out[:, :, i].squeeze().T
-             else:
-                 out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
-        elif int(h['ny']) > 1:
-            if h['mapc'][0] == 2 and h['mapr'][0]==1:
-                out = out.reshape( (int(h['nx'][0]), int(h['ny'][0])) ).transpose() # Test this!
-            else:
-                out = out.reshape( (int(h['ny'][0]), int(h['nx'][0])) )
+        out = reshape_data(out, h, index, count)
     finally:
         util.close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
     #if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap()
+    return out
+
+def reshape_data(out, h, index, count):
+    ''' Reshape the data to the proper dimensions
+    
+    :Parameters:
+    
+    out : array
+          Array with image information from the file
+    h : array
+        Header information
+    index : int
+            Index of image
+    count : int
+            Number of images in file
+    
+    :Returns:
+    
+    out : array
+          Array with image information from the file
+    
+    '''
+    
+    if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:
+         if h['mapc'][0] == 2 and h['mapr'][0]==1:
+             out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
+             for i in xrange(out.shape[2]):
+                 out[:, :, i] = out[:, :, i].squeeze().T
+         else:
+             out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
+    elif int(h['ny']) > 1:
+        if h['mapc'][0] == 2 and h['mapr'][0]==1:
+            out = out.reshape( (int(h['ny'][0]), int(h['nx'][0])) ) #.transpose() # Test this!
+        else:
+            out = out.reshape( (int(h['ny'][0]), int(h['nx'][0])) )
     return out
 
 def file_size(fileobject):
