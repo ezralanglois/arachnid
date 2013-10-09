@@ -22,6 +22,28 @@ _logger.setLevel(logging.DEBUG)
 
 def is_plotting_disabled(): return pylab is None
 
+def plot_line(output, x, y, x_label=None, y_label=None, color=None, dpi=72):
+    ''' Plot a scatter plot
+    '''
+    
+    if pylab is None: return
+    
+    fig = pylab.figure(dpi=dpi)
+    ax = fig.add_subplot(111)
+    if x is None: 
+        x = numpy.arange(len(y))
+    ax.plot(x, y)
+    ax.invert_xaxis()
+        
+    if x_label is not None: pylab.xlabel(x_label)
+    if y_label is not None: pylab.ylabel(y_label)
+    
+    prefix = ""
+    if x_label is not None: prefix += x_label.lower().replace(' ', '_')+"_"
+    if y_label is not None: prefix += y_label.lower().replace(' ', '_')+"_"
+    
+    fig.savefig(format_utility.new_filename(output, prefix+"summary_", ext="png"), dpi=dpi)
+
 def plot_scatter(output, x, x_label, y, y_label, color=None, dpi=72):
     ''' Plot a scatter plot
     '''
