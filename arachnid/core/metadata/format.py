@@ -370,7 +370,7 @@ def is_readable(filename, **extra):
     except: return False
     return True
     
-def read(filename, columns=None, header=None, ndarray=False, **extra):
+def read(filename, columns=None, header=None, ndarray=False, map_ids=None, **extra):
     '''Read a document from the specified file
     
     This function calls open_file to create the filename, then calls get_formats to
@@ -446,6 +446,7 @@ def read(filename, columns=None, header=None, ndarray=False, **extra):
         _logger.debug("format: %s"%str(format))
         raise
     if ndarray: return format_utility.tuple2numpy(vals)
+    elif map_ids: return format_utility.map_object_list(vals, map_ids)
     return vals
 
 def write(filename, values, mode='w', **extra):
