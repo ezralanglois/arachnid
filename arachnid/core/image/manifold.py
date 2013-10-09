@@ -542,21 +542,29 @@ def knn(samp, k, batch=10000, kernel_cum=None):
             Sparse distance matrix in COO format
     '''
     
-    if not numpy.issubdtype(samp.dtype, float):
+    complex=False
+    if numpy.iscomplexobj(samp):
+        complex=True
+        dtype = numpy.dtype('f%d'%(samp.dtype.itemsize/2))
+    elif not numpy.issubdtype(samp.dtype, float):
         samp = samp.astype(numpy.float)
+        dtype = samp.dtype
+    else: dtype = samp.dtype
     
     k = int(k)
     k+=1 # include self as a neighbor
     n = samp.shape[0]*k
-    dtype = samp.dtype
     nbatch = max(1, int(samp.shape[0]/float(batch)))
     batch = int(samp.shape[0]/float(nbatch))
     data = numpy.empty(n, dtype=dtype)
     col = numpy.empty(n, dtype=numpy.longlong)
-    dense = numpy.empty((batch,batch), dtype=dtype)
+    dense = numpy.empty((batch,batch), dtype=samp.dtype)
     
     #gemm = scipy.linalg.fblas.dgemm
-    a = (samp**2).sum(axis=1)
+    if complex:
+        a = (numpy.abs(samp)**2).sum(axis=1)
+    else:
+        a = (samp**2).sum(axis=1)
     assert(a.shape[0]==samp.shape[0])
     for r in xrange(0, samp.shape[0], batch):
         rnext = min(r+batch, samp.shape[0])
@@ -566,25 +574,20 @@ def knn(samp, k, batch=10000, kernel_cum=None):
             s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
             
-            # Using fblas requires you switch the order of the row and col
-            #s1 = samp[c:min(c+batch, samp.shape[0])]
-            #tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s2.shape[0],s1.shape[0]))
-            #dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
-            
             if hasattr(_manifold, 'gemm'):
                 try:
                     _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
                 except:
                     _logger.error("s1: %s - s2: %s - tmp: %s"%(str(s1.dtype), str(s2.dtype), str(tmp.dtype)))
                     raise
-                dist2=tmp
+                dist2=tmp.real if complex else tmp
             elif hasattr(scipy.linalg, 'fblas'):
                 dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+                if complex: dist2 = dist2.real
             else:
                 dist2 = numpy.dot(s1, s2.T)
+                if complex: dist2 = dist2.real
                 numpy.multiply(-2.0, dist2, dist2)
-            
-            
             try:
                 dist2 += a[c:c+batch]#, numpy.newaxis]
             except:
