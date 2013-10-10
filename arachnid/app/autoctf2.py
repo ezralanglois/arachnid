@@ -13,7 +13,7 @@ import os, numpy, logging, sys
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, use_emx=False, **extra):
+def process(filename, output, id_len=0, use_emx=False, fastdef=False, **extra):
     ''' Esimate the defocus of the given micrograph
     
     :Parameters:
@@ -37,10 +37,11 @@ def process(filename, output, id_len=0, use_emx=False, **extra):
     id = spider_utility.spider_id(filename, id_len)
     output = spider_utility.spider_filename(output, id)
     
-    if 1 == 0:
+    if fastdef:
         pow = generate_powerspectra(filename, shift=True, **extra)
         vals = ctf.estimate_defocus_fast(pow.copy(), **extra)
         pow = pow.T.copy()
+        opow = pow.copy()
     else:
         pow = generate_powerspectra(filename, shift=False, **extra)
         vals=ctf.search_model_2d(pow, **extra)
@@ -295,6 +296,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", offset=0, help="Offset from the edge of the micrograph (pixels)")
     group.add_option("", from_power=False, help="Input is a powerspectra not a micrograph")
     group.add_option("", pre_decimate=0, help="Size of power spectra for brute force search")
+    group.add_option("", fastdef=False, help="Use the fast def algorithm")
+    
     #group.add_option("", cache_pow=False, help="Save 2D power spectra")
     group.add_option("", mask_radius=0,  help="Mask the center of the color power spectra (Resolution in Angstroms)")
     group.add_option("", disable_average=False,  help="Average power spectra not frames")
