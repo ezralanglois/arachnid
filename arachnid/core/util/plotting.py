@@ -22,7 +22,7 @@ _logger.setLevel(logging.DEBUG)
 
 def is_plotting_disabled(): return pylab is None
 
-def plot_line(output, x, y, x_label=None, y_label=None, color=None, dpi=72):
+def plot_line(output, x, y, x_label=None, y_label=None, color=None, marker_idx=None, dpi=72):
     ''' Plot a scatter plot
     '''
     
@@ -32,7 +32,12 @@ def plot_line(output, x, y, x_label=None, y_label=None, color=None, dpi=72):
     ax = fig.add_subplot(111)
     if x is None: 
         x = numpy.arange(len(y))
+    x = numpy.asarray(x)
+    y = numpy.asarray(y)
     ax.plot(x, y)
+    if marker_idx is not None:
+        ax.plot(x[marker_idx], y[marker_idx], linestyle='None', marker='+', color='r')
+    
     ax.invert_xaxis()
         
     if x_label is not None: pylab.xlabel(x_label)
