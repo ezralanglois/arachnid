@@ -733,7 +733,7 @@ def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True,
     step = max(1, window_size*overlap)
     rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
-    return powerspec_avg(rwin, pad, shift) if not ret_more else powerspec_avg(rwin, pad, shift), rwin.shape[0]
+    return powerspec_avg(rwin, pad, shift) if not ret_more else (powerspec_avg(rwin, pad, shift), rwin.shape[0])
 
 def dct_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
