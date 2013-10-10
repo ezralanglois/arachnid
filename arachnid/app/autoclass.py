@@ -166,7 +166,8 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             openmp.set_thread_count(extra['thread_count'])
             #rot = orient_utility.optimal_inplace_rotation2(align[:, :3], qneigh.row, qneigh.col)
             _logger.info("Recalculating distances: %s"%str(samp.dtype))
-            rot[:] = -rot
+            #rot[:] = -rot
+            rot[:]=0
             rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
         else:
             _logger.info("Calculating restricted")
