@@ -109,7 +109,7 @@ class Session(object):
         self.get_version(tmp_path)
         assert(len(self.dataext)==3)
         if rank == 0 or rank is None:
-            _logger.info("SPIDER Version = %d.%d - %s"%(self.version, self.spiderexec))
+            _logger.info("SPIDER Version = %d.%d - %s"%(self.version[0], self.version[1], self.spiderexec))
         if os.path.exists(os.path.join(os.path.dirname(self.spiderexec), 'Nextresults')):
             os.environ['SPBIN_DIR'] = os.path.dirname(self.spiderexec) + os.sep
             _logger.debug("SPBIN_DIR = %s"%os.environ['SPBIN_DIR'])
@@ -172,7 +172,10 @@ class Session(object):
         if is_linux():
             try:
                 self._invoke("[i] = 3.241","PI REG", "[i]") #, skip=True)
-            except: pass
+            except: 
+                try:
+                    self._invoke("[i] = 3.241","PI REG", "[i]") #, skip=True)
+                except: raise "Cannot invoke test command"
             response = ''
             while len(response) < 9:
                 response += self.registers.readline()
@@ -370,9 +373,9 @@ class Session(object):
         try:self.devnull.close()
         except: pass
         
-        _logger.debug("Attempting to close SPIDER")
+        _logger.info("Attempting to close SPIDER", extra=dict(tofile=True))
         if hasattr(self, 'spider') and self.spider is not None:
-            _logger.debug("Closing SPIDER")
+            _logger.info("Closing SPIDER", extra=dict(tofile=True))
             if _logger.getEffectiveLevel() > logging.DEBUG:
                 self.spider.stdin.write('en d\n')
             else:
