@@ -14,6 +14,7 @@
 #include "numpy/arrayobject.h"
 #include <limits>
 #include <cmath>
+#include <complex>
 #include <vector>
 #include <algorithm>
 #define USE_BLAS
@@ -30,6 +31,7 @@ extern "C" {
 %}
 
 %include "manifold.hpp"
+%include <std_complex.i>
 
 %feature("autodoc", "0");
 
@@ -54,6 +56,10 @@ extern "C" {
 %inline %{
 typedef long size_type;
 %}
+
+
+%numpy_typemaps( std::complex<float> , NPY_CFLOAT , int)
+%numpy_typemaps( std::complex<double> , NPY_CDOUBLE, int)
 
 
 /** Declare the numpy array data types
@@ -82,6 +88,15 @@ typedef long size_type;
 %enddef
 
 
+%apply (std::complex<float>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<float>* samp1, int n1, int m1)};
+%apply (std::complex<float>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<float>* samp2, int n2, int m2)};
+%apply (std::complex<float>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<float>* distm, int n3, int m3)};
+
+%apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* samp1, int n1, int m1)};
+%apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* samp2, int n2, int m2)};
+%apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* distm, int n3, int m3)};
+
+
 %define DECLARE_DATA_TYPE( itype )
 DECLARE_DATA_TYPE2(int, itype)
 DECLARE_DATA_TYPE2(float, itype)
@@ -103,6 +118,8 @@ DECLARE_DATA_TYPE(unsigned long)
 //%template(f_name)   f_name<itype,int>;
 %template(f_name)   f_name<itype,float>;
 %template(f_name)   f_name<itype,double>;
+#%template(f_name)   f_name<itype, std::complex<float> >;
+#%template(f_name)   f_name<itype, std::complex<double> >;
 %template(f_name)   f_name<itype,long double>; // bug in version 11 of pgi compiler fixed in 11.6
 %enddef
 

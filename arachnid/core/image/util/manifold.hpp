@@ -10,9 +10,17 @@ inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE tran
 {
 	cblas_dgemm(order, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
+inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE transa, const enum CBLAS_TRANSPOSE transb, const int m, const int n, const int k, const std::complex<float> alpha, const std::complex<float>* A, const int lda, const std::complex<float>* B, const int ldb, const std::complex<float> beta, std::complex<float>* C, const int ldc)
+{
+	cblas_cgemm(order, transa, transb, m, n, k, &alpha, A, lda, B, ldb, &beta, C, ldc);
+}
+inline void x_gemm(const enum CBLAS_ORDER order, const enum CBLAS_TRANSPOSE transa, const enum CBLAS_TRANSPOSE transb, const int m, const int n, const int k, const std::complex<double> alpha, const std::complex<double>* A, const int lda, const std::complex<double>* B, const int ldb, const std::complex<double> beta, std::complex<double>* C, const int ldc)
+{
+	cblas_zgemm(order, transa, transb, m, n, k, &alpha, A, lda, B, ldb, &beta, C, ldc);
+}
 
 template<class T>
-void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n3, int m3, double alpha, double beta)
+void gemm(T* samp1, int n1, int m1, T* samp2, int n2, int m2, T* distm, int n3, int m3, T alpha, T beta)
 {
 	//x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans,      n1, n2, m1, T(alpha), samp1, m1, samp2, m1, T(beta), distm, n2);
 	x_gemm(CblasRowMajor, CblasNoTrans, CblasTrans, n1, n2, m1, T(alpha), samp1, m1, samp2, m2, T(beta), distm, m3);

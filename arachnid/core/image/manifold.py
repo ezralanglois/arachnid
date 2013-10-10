@@ -559,6 +559,8 @@ def knn(samp, k, batch=10000, kernel_cum=None):
     data = numpy.empty(n, dtype=dtype)
     col = numpy.empty(n, dtype=numpy.longlong)
     dense = numpy.empty((batch,batch), dtype=samp.dtype)
+    alpha = -2.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
+    beta = 0.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
     
     #gemm = scipy.linalg.fblas.dgemm
     if complex:
@@ -573,21 +575,22 @@ def knn(samp, k, batch=10000, kernel_cum=None):
         for c in xrange(0, samp.shape[0], batch):
             s2 = samp[c:min(c+batch, samp.shape[0])]
             tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            if complex: s2=s2.conjugate()
             
             if hasattr(_manifold, 'gemm'):
                 try:
-                    _manifold.gemm(s1, s2, tmp, -2.0, 0.0)
+                    _manifold.gemm(s1, s2, tmp, alpha, beta)
                 except:
                     _logger.error("s1: %s - s2: %s - tmp: %s"%(str(s1.dtype), str(s2.dtype), str(tmp.dtype)))
                     raise
                 dist2=tmp.real if complex else tmp
             elif hasattr(scipy.linalg, 'fblas'):
-                dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
+                dist2 = scipy.linalg.fblas.dgemm(alpha, s1.T, s2.T, trans_a=True, beta=beta, c=tmp.T, overwrite_c=1).T
                 if complex: dist2 = dist2.real
             else:
                 dist2 = numpy.dot(s1, s2.T)
                 if complex: dist2 = dist2.real
-                numpy.multiply(-2.0, dist2, dist2)
+                numpy.multiply(alpha, dist2, dist2)
             try:
                 dist2 += a[c:c+batch]#, numpy.newaxis]
             except:
