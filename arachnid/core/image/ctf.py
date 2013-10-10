@@ -47,8 +47,8 @@ def normalize_wb(img, rmin, rmax, sel):
     assert(numpy.sum(sel)>0)
     img_mod = img.copy()
     rang = (rmax-rmin)/2.0
-    freq2 = float(img.shape[0])/(rang/1);
-    freq1 = float(img.shape[0])/(rang/15);
+    freq2 = float(img.shape[0])/(rang/1)
+    freq1 = float(img.shape[0])/(rang/15)
     img_norm = ndimage_utility.filter_annular_bp(img, freq1, freq2)
     sph = ndimage_utility.spiral_transform(img_norm)
     
@@ -100,7 +100,7 @@ def unwrapping(wphase, ormod, lam, size):
     min_quality=0.01
     numpy.abs(ormod, ormod)
     jmax, imax = numpy.unravel_index(ormod.argmax(), ormod.shape)
-    quality_vals = ((ormod/ormod[imax,jmax])*(max_levels-1)).round()
+    quality_vals = ((ormod/ormod[imax,jmax])*(max_levels-1)).round()# pos or neg?
     
     # pre-compute
     gaussian = numpy.zeros((2*size+1, 2*size+1))
@@ -117,7 +117,7 @@ def unwrapping(wphase, ormod, lam, size):
     unwphase[imax, jmax]=wphase[imax, jmax]
     processed[imax, jmax]=True
     pqueue = []
-    heapq.heappush(pqueue, (-quality_vals[imax, jmax], imax, jmax)) # pos or neg?
+    heapq.heappush(pqueue, (quality_vals[imax, jmax], imax, jmax)) 
     pred, cor, norm = 0.0, 0.0, 0.0
     while len(pqueue)>0:
         i, j = heapq.heappop(pqueue)[1:]
@@ -148,7 +148,7 @@ def unwrapping(wphase, ormod, lam, size):
                 unwphase[ni, nj] = pred/norm + (lam*cor)/norm
                 processed[ni, nj]=True
                 norm, pred, cor = 0.0, 0.0, 0.0
-                heapq.heappush(pqueue, (-quality_vals[ni, nj], ni, nj))
+                heapq.heappush(pqueue, (quality_vals[ni, nj], ni, nj))
     return unwphase
 
 def zernike_order(n):
