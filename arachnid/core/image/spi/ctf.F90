@@ -1,4 +1,40 @@
 
+
+! ---------------------------------------------------------------------------
+		SUBROUTINE FFT2_IMAGE(IMG, NSAM3, NROW, NSAM)
+		REAL 						:: IMG(NSAM3,NROW)
+!f2py threadsafe
+!f2py intent(inout) :: IMG
+!f2py intent(in) :: NSAM, NROW, NSAM3
+!f2py intent(hide) :: NSAM3, NROW
+
+		INV=1
+		CALL FMRS_2(IMG,NSAM,NROW,INV)
+
+		END
+
+! ---------------------------------------------------------------------------
+		SUBROUTINE CORRECT_IMAGE_FOURIER(IMG, B, NSAM3, NROW, NSAM2, NSAM)
+
+		COMPLEX 					:: B(NSAM2,NROW)
+		REAL 						:: IMG(NSAM3,NROW)
+!f2py threadsafe
+!f2py intent(inout) :: IMG, B
+!f2py intent(in) :: NSAM, NROW, NSAM2,NSAM3
+!f2py intent(hide) :: NSAM3, NROW, NSAM2
+
+		!print *, 'nsam3=', NSAM3
+		!CALL FLUSH()
+		INV=1
+		CALL FMRS_2(IMG,NSAM,NROW,INV)
+
+
+        CALL MULT_CTF(IMG, B, NSAM2, NROW)
+
+
+
+		END
+
 ! ---------------------------------------------------------------------------
 		SUBROUTINE CORRECT_IMAGE(IMG, B, NSAM3, NROW, NSAM2, NSAM)
 
@@ -24,6 +60,8 @@
 
 
 		END
+
+! ---------------------------------------------------------------------------
 
 		SUBROUTINE MULT_CTF(IMG, B, NSAM, NROW)
 

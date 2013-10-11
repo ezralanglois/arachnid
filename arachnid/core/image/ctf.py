@@ -332,9 +332,18 @@ def estimate_defocus_fast(pow, rmin, rmax, eps_phase=2.0, window_phase=10, **ext
     defocus_u=defocus+asig_mag
     defocus_v=defocus-asig_mag
     return defocus_u, defocus_v, numpy.deg2rad(asig_ang)
-        
 
-def correct(img, ctfimg):
+def spider_fft2(img):
+    '''
+    '''
+    
+    nsam = (img.shape[1]+2) if (img.shape[1]%2) == 0 else (img.shape[1]+1)
+    out = numpy.zeros((img.shape[0], nsam), dtype=img.dtype)
+    out[:, :img.shape[1]] = img
+    _spider_ctf.fft2_image(out.T, img.shape[0])
+    return out
+
+def correct(img, ctfimg, fourier=False):
     ''' Corret the CTF of an image
     
     :Parameters:
@@ -343,17 +352,16 @@ def correct(img, ctfimg):
     
     '''
     
-    '''
-        fimg = scipy.fftpack.fftn(img)
-        #fimg = numpy.fft.fftshift(fimg)
-        fimg *= ctfimg.T
-        return scipy.fftpack.ifftn(img).real
-    '''
     nsam = (img.shape[1]+2) if (img.shape[1]%2) == 0 else (img.shape[1]+1)
     out = numpy.zeros((img.shape[0], nsam), dtype=img.dtype)
     out[:, :img.shape[1]] = img
-    _spider_ctf.correct_image(out.T, ctfimg.T, out.shape[0])
-    return out[:, :img.shape[1]]
+    if fourier:
+        _spider_ctf.correct_image_fourier(out.T, ctfimg.T, img.shape[0])
+        out = out.ravel()[::2] + 1j*out.ravel()[1::2]
+        return out.reshape((img.shape[0], nsam))
+    else:
+        _spider_ctf.correct_image(out.T, ctfimg.T, img.shape[0])
+        return out[:, :img.shape[1]]
 
 def phase_flip_transfer_function(out, defocus, cs, ampcont, envelope_half_width=10000, voltage=None, elambda=None, apix=None, maximum_spatial_freq=None, source=0.0, defocus_spread=0.0, astigmatism=0.0, azimuth=0.0, ctf_sign=-1.0, **extra):
     ''' Create a transfer function for phase flipping
