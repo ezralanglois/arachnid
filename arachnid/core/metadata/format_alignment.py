@@ -27,7 +27,7 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
     if 'numeric' not in extra: extra['numeric']=True
     if format.get_format(filename, **extra) == format.star:
         align = format.read(filename, **extra)
-        param = numpy.zeros((len(align), 6))
+        param = numpy.zeros((len(align), 7))
         files = []
         if use_3d:
             _logger.info("Standard Relion alignment file - leave 3D")
@@ -39,6 +39,7 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
                 #param[i, 3] = align[i].
                 param[i, 4] = align[i].rlnOriginX
                 param[i, 5] = align[i].rlnOriginY
+                param[i, 6] = align[i].rlnDefocusU
         else:
             _logger.info("Standard Relion alignment file - convert to 2D")
             for i in xrange(len(align)):
@@ -49,10 +50,13 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
                 param[i, 3] = rot
                 param[i, 4] = tx
                 param[i, 5] = ty
+                param[i, 6] = align[i].rlnDefocusU
             
     else:
         align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
-        param = numpy.zeros((len(align), 6))
+        param = numpy.zeros((len(align), 7))
+        if align.shape[1] > 17: 
+            param[:, 6] = align[:, 17]
         if use_3d:
             if numpy.sum(align[:, 5]) != 0.0:
                 _logger.info("Standard SPIDER alignment file - convert to 3D")
