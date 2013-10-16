@@ -137,7 +137,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(power_spectra=0, help="Estimate a powerspectra on the fly and save as a tool tip", gui=dict()),
                dict(second_nstd=5.0, help="Outlier removal for second image loading"),
                dict(second_downsample=1.0, help="Factor to downsample second image"),
-               dict(bin_window=8.0, help="Number of times to decimate coordinates (and window)"),
+               dict(bin_window=6.0, help="Number of times to decimate coordinates (and window)"),
                dict(window=200, help="Size of window to box particle"),
                dict(center_mask=0, help="Radius of mask for image center"),
                dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
