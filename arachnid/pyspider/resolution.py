@@ -174,7 +174,7 @@ def process(filename, output, **extra):
     _logger.info(" - Resolution = %f - between %s and %s --- (0.5) = %f | (0.143) = %f"%(res, filename[0], filename[1], res1, res2))
     return filename, fsc, apix
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
@@ -235,7 +235,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
     write_xml(os.path.splitext(outputfile)[0]+'.xml', vals[:, 1], vals[:, 3])
     if pylab is not None:
-        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid)
+        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid, 0.5, disable_scale)
     return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T, extra['apix']
 
 def write_xml(output, x, y):
@@ -286,7 +286,7 @@ def ensure_pixel_size(spi, filename, **extra):
         _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f (%f)"%(bin_factor, extra['window'], w, extra['apix'], params['apix'], extra['dec_level']))
     return params
 
-def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5):
+def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5, disable_scale=False):
     '''Write a resolution image plot to a file
     
     :Parameters:
@@ -316,6 +316,9 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     pylab.clf()
     if coeff is not None:
         pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
+    if disable_scale:
+        y -= y.min()
+        y /= y.max()
     markers=['r--', 'b--']
     for i, yp in enumerate([0.5, 0.143]):
         if coeff is not None:
@@ -331,13 +334,16 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
             pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA (%.2f-criterion)$'%(xp, res, yp))
     
     pylab.plot(x, y)
-    pylab.axis([0.0,freq_rng, 0.0,1.0])
+    if not disable_scale:
+        pylab.axis([0.0,freq_rng, 0.0,1.0])
+    else:
+        pylab.axis([0.0,freq_rng, numpy.min(y), numpy.max(y)])
     pylab.xlabel('Normalized Spatial Frequency')# ($\AA^{-1}$)
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", dpi=dpi)
 
-def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
+def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False):
     '''Write a resolution image plot to a file comparing multiple FSC curves
     
     :Parameters:
@@ -379,7 +385,8 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
     lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
     #pylab.legend(loc=1)
     # detect drop below some number, stop range there?
-    pylab.axis([0.0,0.5,0.0,1.0])
+    if not disable_scale:
+        pylab.axis([0.0,0.5,0.0,1.0])
     pylab.xlabel('Normalized Spatial Frequency')# ($\AA^{-1}$)
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
@@ -452,6 +459,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("",   dpi=72,         help="Resolution of the output plot in dots per inch (DPI)")
         pgroup.add_option("",   disable_sigmoid=False, help="Disable the sigmoid model fitting")
         pgroup.add_option("",   ova=False,      help="One-versus-all, the last one versus all other listed volumes")
+        pgroup.add_option("",   disable_scale=False,      help="Scale y-axis automatically")
         
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
