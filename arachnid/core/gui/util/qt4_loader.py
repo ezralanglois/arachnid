@@ -18,7 +18,7 @@ with the QT graphical user interface (GUI) library.
 try: 
     from PySide import QtGui, QtCore
     try: 
-        from PyQt4 import QtWebKit
+        from PySide import QtWebKit
         QtWebKit;
     except: QtWebKit=None
     QtGui, QtCore, QtWebKit;
