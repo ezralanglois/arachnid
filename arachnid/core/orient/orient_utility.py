@@ -19,6 +19,13 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
 
+def rotate_into_frame(frame, curr):
+    '''
+    '''
+    
+    rang = rotate.rotate_euler(frame, curr)
+    return -(rang[0]+rang[2])
+    
 def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
     '''
     '''
