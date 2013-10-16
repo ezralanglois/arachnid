@@ -664,7 +664,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   output_mic="",                                  help="Filename for output for decimated micrograph", gui=dict(filetype="save"), dependent=False)
     group.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
     group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
-    group.add_option("",   bin_micrograph=8.0,                             help="Number of times to decimate the micrograph - for micrograph selection (not used for defocus estimation)")
+    group.add_option("",   bin_micrograph=6.0,                             help="Number of times to decimate the micrograph - for micrograph selection (not used for defocus estimation)")
     group.add_option("",   summary=False,                                  help="Write out a summary for the power spectra")
     group.add_option("",  use_8bit=False,                                   help="Write decimate micrograph as 8-bit mrc")
     pgroup.add_option_group(group)
