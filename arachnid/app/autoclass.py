@@ -10,11 +10,11 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor #, ndimage_filter #, analysis
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params, format_alignment
 #from ..core.parallel import mpi_utility
-from ..core.parallel import openmp
+from ..core.parallel import openmp,process_queue
 import logging, numpy, os, scipy, scipy.cluster.vq, scipy.spatial.distance
 import scipy.io, scipy.sparse
 
@@ -154,7 +154,7 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         openmp.set_thread_count(1)
         samp = ndimage_processor.create_matrix_from_file(images, image_transform, align=align, mask=mask, dtype=numpy.float32, **extra)
         openmp.set_thread_count(extra['thread_count'])
-        mask = numpy.ascontiguousarray(numpy.argwhere(mask.ravel() > 0).squeeze())
+        #mask = numpy.ascontiguousarray(numpy.argwhere(mask.ravel() > 0).squeeze())
         if 1 == 1:
             samp = samp.astype(numpy.float32)
             n = int(numpy.sqrt(samp.shape[1]))
@@ -162,13 +162,18 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             _logger.info("Calculating change in rotation using %d threads"%extra['thread_count'])
             openmp.set_thread_count(1)
             #rot = orient_utility.optimal_inplace_rotation_mp(quat, qneigh.row, qneigh.col, extra['thread_count'])
-            rot = orient_utility.optimal_inplace_rotation_mp(align[:, :3], qneigh.row, qneigh.col, extra['thread_count'])
+            #rot = orient_utility.optimal_inplace_rotation_mp(align[:, :3], qneigh.row, qneigh.col, extra['thread_count'])
             openmp.set_thread_count(extra['thread_count'])
             #rot = orient_utility.optimal_inplace_rotation2(align[:, :3], qneigh.row, qneigh.col)
             _logger.info("Recalculating distances: %s"%str(samp.dtype))
+            
+            # calculate fft*ctf
+            # calculate distance
+            
             #rot[:] = -rot
-            rot[:]=0
-            rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
+            #rot[:]=0
+            optimal_inplace_rotation_mp(samp1, qneigh.row, qneigh.col, align[:, :3], qneigh.data, mask, align[:, 6], extra, extra['thread_count'])
+            #rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
         else:
             _logger.info("Calculating restricted")
             manifold.knn_restricted(qneigh, samp, mask)
@@ -187,6 +192,47 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
     _logger.info("Image data2: %f-%f"%(numpy.min(qneigh.data[:neighbors+1]), numpy.max(qneigh.data[:neighbors+1])))
     _logger.info("Angle data2: %f-%f"%(numpy.rad2deg(numpy.min(epsdata[:neighbors+1])), numpy.rad2deg(numpy.max(epsdata[:neighbors+1]))))
     return images, align, qneigh
+
+
+def optimal_inplace_rotation_mp(samp, row, col, rot, data, mask, defocus, ctf_param, worker_count=0):
+    '''
+    '''
+    
+    if worker_count  < 2:
+        return redistance_worker(0, len(row), samp, row, col, rot, mask, defocus, ctf_param)
+    for i, d in process_queue.for_mapped(redistance_worker, worker_count, len(row), samp, row, col, rot, mask, defocus, ctf_param):
+        data[i]=d
+
+
+def redistance_worker(beg, end, samp, row, col, align, mask, defocus, ctf_param, process_number=None):
+    '''
+    '''
+    
+    rctfimg=None
+    cctfimg=None
+    rdefocus_last=None
+    cdefocus_last=None
+    tmp = None
+    nmask = mask*-1+1
+    for i in xrange(beg, end):
+        rot = orient_utility.rotate_into_frame(align[row[i]], align[col[i]])
+        rimg = samp[row[i]]
+        cimg = rotate.rotate_image(samp[col[i]], rot)
+        rimg=ndimage_utility.normalize_standard(rimg, nmask, True)*mask
+        cimg=ndimage_utility.normalize_standard(cimg, nmask, True)*mask
+        if defocus[row[i]] != rdefocus_last:
+            rctfimg = ctf.phase_flip_transfer_function(mask.shape, defocus[row[i]], **ctf_param)
+            rdefocus_last=defocus[row[i]]
+        rimg = ctf.correct(rimg, rctfimg, True)
+        if defocus[col[i]] != cdefocus_last:
+            cctfimg=ctf.phase_flip_transfer_function(mask.shape, defocus[col[i]], **ctf_param)
+            cdefocus_last=defocus[col[i]]
+        cimg = ctf.correct(cimg, cctfimg, True)
+        tmp=numpy.subtract(rimg, cimg, tmp)
+        numpy.abs(tmp, tmp)
+        numpy.square(tmp,tmp)
+        d = numpy.sum(tmp).real
+        yield i, d
 
 def generate_references(filename, label, align, reference="", **extra):
     '''
@@ -286,7 +332,7 @@ def create_mask(files, pixel_diameter, **extra):
     mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
     #bg = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])*-1+1
     #bg[bg > 0] = numpy.mean(img[mask>0])
-    bin_factor = decimation_level(**extra)
+    bin_factor = 1#decimation_level(**extra)
     #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
     if bin_factor > 1: 
         mask = ndimage_interpolate.interpolate_ft(mask, bin_factor)
@@ -301,11 +347,13 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     #if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
     #if align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
     ndimage_utility.vst(img, img)
+    '''
     bin_factor = decimation_level(**extra)
     if bin_factor > 1: 
         img = ndimage_interpolate.interpolate_ft(img, bin_factor)
         #img = eman2_utility.decimate(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
+    '''
     '''
     if bispec:
         img, freq = ndimage_utility.bispectrum(img, img.shape[0]-1, 'gaussian')
@@ -315,7 +363,7 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     '''
     #if mask is not None:
     #    img = ndimage_utility.compress_image(img, mask)
-    if mask is not None: img *= mask
+    #if mask is not None: img *= mask
     return img
 
 def image_transform_sim(img, i, mask, var_one=True, align=None, bispec=False, apix=2.81, resolution=12.0, **extra):
