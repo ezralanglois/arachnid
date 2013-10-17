@@ -30,7 +30,7 @@ def interpolate(img, out, method='bilinear'):
     
     Available methods:
         
-        - bilinear: Bilinear interpolation
+        - bilinear: Bilinear interpolation (not suggest for production work)
         - ft: Energy preserving Fourier-based interpolation
         - fs: Fourier-based bicubic/tricubi spline interpolation
 
@@ -70,6 +70,9 @@ def interpolate_bilinear(img, out):
     (15,15)
     
     .. note::
+        
+        This code is not idential to SPIDER an may give different results
+        in some cases.
         
         See: http://www.wadsworth.org/spider_doc/spider/docs/man/ip.html
     
@@ -117,6 +120,9 @@ def interpolate_ft(img, out):
     (15,15)
     
     .. note::
+    
+        This code gives a slightly different answer than SPIDER, likely due to interpolation
+        error.
         
         See: http://www.wadsworth.org/spider_doc/spider/docs/man/ipft.html
     
@@ -136,7 +142,6 @@ def interpolate_ft(img, out):
     img = numpy.asarray(img, dtype=numpy.float32)
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Only interpolation of 2D and 3D images supported: input has %d-D"%img.ndim
     if not hasattr(out, 'ndim'):
-        
         if hasattr(out, '__len__'): 
             nx = int(out[-1])
             shape = (int(out[0]), int(out[1]), _modnx(int(out[2]))) if img.ndim == 3 else (int(out[0]), _modnx(int(out[1])))
@@ -150,7 +155,7 @@ def interpolate_ft(img, out):
         img2 = numpy.zeros((img.shape[0], _modnx(img.shape[1])), dtype=numpy.float32)
         img2[:img.shape[0], :img.shape[1]]=img
         _spider_interpolate.finterpolate2(img2.T, out.T, img.shape[1], nx) #img.shape[2], img.shape[1], img.shape[0]
-        out = out[:shape[0], :nx]
+        out = out[:, :nx]
     else:
         img2 = numpy.zeros((img.shape[0], img.shape[1], _modnx(img.shape[2])), dtype=numpy.float32)
         img2[:img.shape[0], :img.shape[1], :img.shape[2]]=img
@@ -170,6 +175,8 @@ def interpolate_fs(img, out):
     (15,15)
     
     .. note::
+        
+        This code returns the same image as SPIDER.
         
         See: http://www.wadsworth.org/spider_doc/spider/docs/man/ipfs.html
     
