@@ -30,34 +30,6 @@ except:
     tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
     _image_utility=None
 
-'''
- img         = double(img);
-   [rows,cols] = size(img);
-   cy          = round(rows/2);
-   cx          = round(cols/2);
-   
-   if exist('radius','var') == 0
-      radius = min(round(rows/2),round(cols/2))-1;
-   end
-   
-   if exist('angle','var') == 0
-      angle = 360;
-   end
-  
-   pcimg = [];
-   i     = 1;
-   
-   for r=0:radius
-      j = 1;
-      for a=0:2*pi/angle:2*pi-2*pi/angle
-         pcimg(i,j) = img(cy+round(r*sin(a)),cx+round(r*cos(a)));
-         j = j + 1;
-      end
-      i = i + 1;
-   end
-end
-'''
-
 def mirror(img, out=None):
     ''' Mirror projection (SPIDER convention)
     
@@ -283,7 +255,7 @@ def rotavg(img, out=None):
     img = numpy.asanyarray(img)
     if img.ndim != 2: raise ValueError, "Input array must be 2D"
     if out is None: out = img.copy()
-    avg = mean_azimuthal(img)
+    avg = (img)
     rmax = min(img.shape[0]/2 + img.shape[0]%2, img.shape[1]/2 + img.shape[1]%2)
     if img.ndim > 2: rmax = min(rmax, img.shape[2]/2 + img.shape[2]%2)
     if out.ndim==2: out=out.reshape((out.shape[0], out.shape[1], 1))
@@ -293,7 +265,7 @@ def rotavg(img, out=None):
     if out.shape[2] == 1: out = out.reshape((out.shape[0], out.shape[1]))
     return out
 
-def mean_azimuthal(img, center=None):
+def mean_azimuthal(img, center=None, ret_n=False):
     ''' Calculate the sum of a 2D array along the azimuthal
     
     :Parameters:
@@ -321,7 +293,41 @@ def mean_azimuthal(img, center=None):
     i, j = i-center[0], j-center[1]
     k = (j**2+i**2)**.5
     k = k.astype(int)
+    if ret_n:
+        return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel()), numpy.bincount(k.ravel())
     return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel())
+
+def std_azimuthal(img, center=None):
+    ''' Calculate the sum of a 2D array along the azimuthal
+    
+    :Parameters:
+    
+    img : array-like
+          Image array
+    center : tuple, optional
+              Coordaintes of the image center
+    
+    :Returns:
+    
+    out : array
+          Sum over the radial lines of the image
+    
+    .. note::
+    
+        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
+    '''
+    
+    img = numpy.asanyarray(img)
+    if img.ndim != 2: raise ValueError, "Input array must be 2D: %s"%str(img.shape)
+    
+    avg, cnt_n = mean_azimuthal(img, center, ret_n=True)
+    
+    avg2d = numpy.zeros(img.shape)
+    avg2d[len(avg), len(avg):] = avg
+    avg2d=rotavg(avg2d)
+    img -= avg2d
+    
+    return (mean_azimuthal(img**2, center) - mean_azimuthal(img, center)**2/cnt_n)/cnt_n
 
 @_em2numpy2res
 def find_peaks_fast(cc, width, fwidth=None):
@@ -713,12 +719,14 @@ def multitaper_power_spectra(mic, half_nbw=9, low_bias=False, shift=True):
     mic_sq = mic[:n, :n]
     n_tapers_max = int(2 * half_nbw)
     dpss2, eigvals = _multitaper.dpss_windows(mic_sq.shape[1], half_nbw, n_tapers_max,low_bias=low_bias)
+    _logger.info("Number of basis functions for %f bandwidth and %d tapers: %d"%(half_nbw, n_tapers_max, dpss2.shape[0]))
     pow = mic_sq.copy()
     pow[:]=0
     mic_sq = mic_sq - numpy.mean(mic_sq)#, axis=-1)[:, numpy.newaxis]
     weights = numpy.sqrt(eigvals)
     for i in xrange(dpss2.shape[0]):
         for j in xrange(dpss2.shape[0]):
+            _logger.error("i: %d < %d - j: %d < %d"%(i, dpss2.shape[0], j, dpss2.shape[0]))
             tmp = numpy.outer(dpss2[i], dpss2[j])
             fmic = scipy.fftpack.fft2(mic_sq*tmp)
             pow += numpy.abs(weights[i]*weights[j]*fmic)**2
@@ -1221,10 +1229,49 @@ def polar(image, center=None, out=None, rng=None):
     yi += center[1] # back to the lower-left corner...
     xi, yi = xi.flatten(), yi.flatten()
     coords = numpy.vstack((xi, yi))
-    
-    #if out is None: out = numpy.empty(xi.shape[0]*yi.shape[0]).reshape((xi.shape[0],yi.shape[0]))
+
     return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny)).T
     #return out
+
+def polar_to_cart(image, center=None, out=None, rng=None, order=0):
+    '''Transform image into log-polar representation
+    
+    Does not work!
+    
+    :Parameters:
+    
+    image : numpy.ndarray
+            Input image
+    angles : int, optional
+             Size of angle dimension
+    out : numpy.ndarray, optional
+          Image in log polar space
+    
+    :Returns:
+    
+    out : numpy.ndarray
+          Image in polar space (radius, angle)
+    '''
+    
+    ny, nx = image.shape[:2]
+    if center is None: center = (nx // 2, ny // 2)
+    x, y = index_coords(image, center)
+    new_r, new_t = cart2polar(x, y)
+    
+    if rng is None: rng = (new_r.min(), new_r.max())
+    r_i = numpy.linspace(rng[0], rng[1], nx)
+    theta_i = numpy.linspace(new_t.min(), new_t.max(), ny)
+    
+    ir = scipy.interpolate.interp1d(r_i, numpy.arange(len(r_i)), bounds_error=False)
+    it = scipy.interpolate.interp1d(theta_i, numpy.arange(len(theta_i)))
+    
+    new_ir = ir(new_r.ravel())
+    new_it = it(new_t.ravel())
+
+    new_ir[new_r.ravel() > r_i.max()] = len(r_i)-1
+    new_ir[new_r.ravel() < r_i.min()] = 0
+    
+    return scipy.ndimage.interpolation.map_coordinates(image, numpy.vstack((new_ir, new_it)), order=order).reshape((nx, ny)).T
 
 def cart2polar(x, y):
     r = numpy.sqrt(x**2 + y**2)
