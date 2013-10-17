@@ -44,6 +44,9 @@ if __name__ == '__main__':
     print orient_utility.align_param_2D_to_3D(numpy.deg2rad(align[0, 5]), align[0, 6], align[0, 7])
         
     iter_single_images = itertools.imap(eman2_utility.fshift, iter_single_images, tx, ty)
+    data = []
     for i, img in enumerate(iter_single_images):
+        data.append([psi[i], align[i, 1], align[i,2], align[i,17]])
         ndimage_file.write_image(spider_utility.spider_filename(output_file, int(align[i, 4])), img)
+    format.write(output_file, numpy.asarray(data), prefix='align_', header="psi,theta,phi,defocus".split(','))
 
