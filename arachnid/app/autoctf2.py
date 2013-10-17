@@ -39,6 +39,7 @@ def process(filename, output, id_len=0, use_emx=False, fastdef=False, **extra):
     
     if fastdef:
         pow = generate_powerspectra(filename, shift=True, **extra)
+        ndimage_file.write_image("test.spi", pow)
         vals = ctf.estimate_defocus_fast(pow.copy(), **extra)
         pow = pow.T.copy()
         opow = pow.copy()
@@ -85,7 +86,7 @@ def process(filename, output, id_len=0, use_emx=False, fastdef=False, **extra):
     print 'Found:', vals
     return filename, vals
 
-def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, rmin, rmax, shift=True, from_power=False, cache_pow=False, pow_cache="", multitaper=False, disable_average=False, trans_file="", frame_beg=0, frame_end=-1, **extra):
+def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pad, offset, rmin, rmax, shift=True, from_power=False, cache_pow=False, pow_cache="", multitaper=False, disable_average=False, trans_file="", frame_beg=0, frame_end=-1, pre_window_size=0, **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -164,17 +165,33 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
         if multitaper:
             if rmin < rmax: rmin, rmax = rmax, rmin
             _logger.info("Estimating multitaper")
-            if window_size > 0:
-                n=window_size/2
+            if pre_window_size > 0:
+                n=pre_window_size/2
                 c = min(mic.shape)/2
                 mic=mic[c-n:c+n, c-n:c+n]
             pow = ndimage_utility.multitaper_power_spectra(mic, int(round(rmax)), True, shift)
-            #if window_size > 0:
-            #    pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
+            if window_size > 0:
+                pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
+            pow = remove_artifacts(pow)
         else:
             _logger.info("Estimating periodogram")
             pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset, shift)
     return pow
+
+def remove_artifacts(pow):
+    '''
+    '''
+    
+    # polar?
+    #raw_avg = ndimage_utility.mean_azimuthal(pow)[:pow.shape[0]/2]
+    #raw_std = ndimage_utility.std_azimuthal(pow)[:pow.shape[0]/2]
+    _logger.info("Pow: %s"%str(pow.shape))
+    pol = ndimage_utility.polar(pow).copy()
+    ndimage_file.write_image('polar.spi', ndimage_utility.polar(pow, rng=(30, pow.shape[0]/2-1)).copy())
+    cart = ndimage_utility.polar_to_cart(pol.T).copy()
+    ndimage_file.write_image('cart.spi', cart)
+    return pow
+    
     
 def initialize(files, param):
     # Initialize global parameters for the script
@@ -291,6 +308,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Power Spectra Creation", "Options to control power spectra creation",  id=__name__)
     group.add_option("", invert=False, help="Invert the contrast - used for unprocessed CCD micrographs")
     group.add_option("", window_size=256, help="Size of the window for the power spec (pixels)")
+    group.add_option("", pre_window_size=0, help="Size of the window for the power spec (pixels)")
     group.add_option("", pad=2.0, help="Number of times to pad the power spec")
     group.add_option("", overlap=1.0, help="Amount of overlap between windows")
     group.add_option("", offset=0, help="Offset from the edge of the micrograph (pixels)")
