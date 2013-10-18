@@ -6,19 +6,39 @@ numpy arrays.
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+
+from ..app import tracing
 import logging
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
+
 try:
     import EMAN2
     import utilities
     import fundamentals
     EMAN2;
+    fundamentals;
+    utilities;
 except:
-    #logging.error("Cannot import EMAN2 libaries, ensure they are proplery installed and availabe on the PYTHONPATH")
+    tracing.log_import_error('Failed to load EMAN2 module', _logger)
     EMAN2 = None
+    fundamentals = None 
+    utilities = None
 import numpy
 
-_logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
+
+def is_avaliable():
+    ''' Test if EMAN2 is available
+    
+    :Returns:
+    
+    out : bool
+          True if the EMAN2 library is available
+    '''
+    
+    return EMAN2 is not None
+
 
 def fshift(img, x, y, z=0, out=None):
     ''' Shift an image
@@ -43,6 +63,8 @@ def fshift(img, x, y, z=0, out=None):
     img : array
           Transformed image
     '''
+    
+    if fundamentals is None: raise ImportError, "EMAN2/Sparx library not available, fshift requires EMAN2/Sparx"
     if out is None: out = img.copy()
     emdata = numpy2em(img)
     emdata = fundamentals.fshift(emdata, x, y, z)
@@ -68,6 +90,8 @@ def normalize_mask(img, mask, no_std=0, out=None):
     img : array
           Transformed image
     '''
+    
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, normalize_mask requires EMAN2/Sparx"
     if out is None: out = img.copy()
     emdata = numpy2em(img)
     emdata.process_inplace("normalize.mask", {"mask": numpy2em(mask), "no_sigma": no_std})
@@ -91,6 +115,8 @@ def mirror(img, out=None):
     img : array
           Transformed image
     '''
+    
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, mirror requires EMAN2/Sparx"
     if out is None: out = img.copy()
     emdata = numpy2em(img)
     emdata.process_inplace("mirror", {"axis":'x'})
@@ -123,6 +149,8 @@ def rot_shift2D(img, psi, tx=None, ty=None, m=None, out=None):
     img : array
           Transformed image
     '''
+    
+    if fundamentals is None: raise ImportError, "EMAN2/Sparx library not available, rot_shift2D requires EMAN2/Sparx"
     if tx is None:
         #m = psi[1] > 179.9
         tx = psi[6]
@@ -154,6 +182,7 @@ def model_circle(rad, x, y):
             Image with disk of radius `rad`
     '''
     
+    if utilities is None: raise ImportError, "EMAN2/Sparx library not available, model_circle requires EMAN2/Sparx"
     emdata =  utilities.model_circle(rad, x, y)
     return em2numpy(emdata).copy()
 
@@ -319,6 +348,7 @@ def em2numpy(im):
                 An numpy.ndarray holding image data
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, numpy2em requires EMAN2/Sparx"
     return EMAN2.EMNumPy.em2numpy(im)
 
 def numpy2em(im, e=None):
@@ -344,6 +374,7 @@ def numpy2em(im, e=None):
                 An EMAN2 image object
     '''
         
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, numpy2em requires EMAN2/Sparx"
     try:
         im = numpy.require(im, numpy.float32)
         if e is None: e = EMAN2.EMData()
@@ -370,6 +401,7 @@ def fsc(img1, img2, complex=False):
           Fourier shell correlation curve: (0) spatial frequency (1) FSC
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, fsc requires EMAN2/Sparx"
     if not is_em(img1): img1 = numpy2em(img1)
     if not is_em(img2): img2 = numpy2em(img2)
     if complex:
@@ -398,6 +430,7 @@ def ramp(img, inplace=True):
           Ramped Image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, ramp requires EMAN2/Sparx"
     orig = img
     if not is_em(img): img = numpy2em(img)
     if inplace: img.process_inplace("filter.ramp")
@@ -423,6 +456,7 @@ def histfit(img, mask, noise, debug=False):
           Enhanced image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, histfit requires EMAN2/Sparx"
     if debug:
         info, tag, img = utilities.ce_fit(img, noise, mask)
         print info, tag
@@ -449,6 +483,8 @@ def decimate(img, bin_factor=0, force_even=False, **extra):
     val : EMAN2.EMData
           Decimated image
     '''
+    
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, decimate requires EMAN2/Sparx"
     orig = img
     if not is_em(img): img = numpy2em(img)
     
@@ -490,6 +526,7 @@ def butterworth_low_pass(img, bw_lo, bw_falloff, pad=False, **extra):
           Filtered image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, butterworth_low_pass requires EMAN2/Sparx"
     orig = img
     if not is_em(img): img = numpy2em(img)
     img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_LOW_PASS,    "low_cutoff_frequency": bw_lo, "high_cutoff_frequency": bw_lo+bw_falloff, "dopad" : pad})
@@ -516,6 +553,7 @@ def butterworth_high_pass(img, bw_hi, bw_falloff, pad=False, **extra):
           Filtered image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, butterworth_high_pass requires EMAN2/Sparx"
     orig = img
     if not is_em(img): img = numpy2em(img)
     img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_HIGH_PASS,   "low_cutoff_frequency": bw_hi+bw_falloff, "high_cutoff_frequency": bw_hi, "dopad" : pad})
@@ -542,6 +580,7 @@ def butterworth_band_pass(img, bw_lo, bw_hi, bw_falloff, pad=False, **extra):
           Filtered image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, butterworth_band_pass requires EMAN2/Sparx"
     orig = img
     if not is_em(img): img = numpy2em(img)
     img = EMAN2.Processor.EMFourierFilter(img, {"filter_type" : EMAN2.Processor.fourier_filter_types.BUTTERWORTH_HIGH_PASS,   "low_cutoff_frequency": bw_hi+bw_falloff, "high_cutoff_frequency": bw_hi, "dopad" : pad})
@@ -569,6 +608,7 @@ def gaussian_high_pass(img, ghp_sigma=0.1, pad=False, **extra):
           Filtered image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, gaussian_high_pass requires EMAN2/Sparx"
     if ghp_sigma == 0.0: return img
     orig = img
     if not is_em(img): img = numpy2em(img)
@@ -596,6 +636,7 @@ def gaussian_low_pass(img, glp_sigma=0.1, pad=False, **extra):
           Filtered image
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, gaussian_low_pass requires EMAN2/Sparx"
     if glp_sigma == 0.0: return img
     orig = img
     if not is_em(img): img = numpy2em(img)
@@ -623,6 +664,7 @@ def setup_nn4(image_size, npad=2, sym='c1', weighting=1, **extra):
             Reconstructor, Fourier volume, Weight Volume, and numpy versions
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, setup_nn4 requires EMAN2/Sparx"
     fftvol = EMAN2.EMData()
     weight = EMAN2.EMData()
     param = {"size":image_size, "npad":npad, "symmetry":sym, "weighting":weighting, "fftvol": fftvol, "weight": weight}
@@ -651,6 +693,7 @@ def backproject_nn4_queue(qin, qout, shmem, shape, process_limit, process_number
             Reconstructor, Fourier volume, Weight Volume, and numpy versions
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, backproject_nn4_queue requires EMAN2/Sparx"
     npad, sym, weighting = extra.get('npad', 2), extra.get('sym', 'c1'), extra.get('weighting', 1)
     e = EMAN2.EMData()
     recon=None
@@ -690,6 +733,7 @@ def backproject_nn4_new(img, align=None, recon=None, **extra):
             Reconstructor, Fourier volume, Weight Volume, and numpy versions
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, backproject_nn4_new requires EMAN2/Sparx"
     npad, sym, weighting = extra.get('npad', 2), extra.get('sym', 'c1'), extra.get('weighting', 1)
     e = EMAN2.EMData()
     if not hasattr(img, 'ndim'):
@@ -734,6 +778,7 @@ def backproject_nn4(img, align=None, recon=None, **extra):
             Reconstructor, Fourier volume, Weight Volume, and numpy versions
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, backproject_nn4 requires EMAN2/Sparx"
     npad, sym, weighting = extra.get('npad', 2), extra.get('sym', 'c1'), extra.get('weighting', 1)
     if not hasattr(img, 'ndim'):
         for i, val in enumerate(img):
@@ -764,6 +809,7 @@ def finalize_nn4(recon, recon2=None, npad=2, sym='c1', weighting=1):
           Volume as a numpy array
     '''
     
+    if EMAN2 is None: raise ImportError, "EMAN2/Sparx library not available, finalize_nn4 requires EMAN2/Sparx"
     if recon2 is not None:
         fftvol = recon[1]+recon2[1]
         weight = recon[2]+recon2[2]
