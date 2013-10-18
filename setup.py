@@ -377,7 +377,6 @@ if __name__ == '__main__':
             'gui_scripts': arachnid.setup.gui_scripts
           },
           long_description = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read(),
-          #test_suite = 'arachnid.testing',
           data_files=[('rst', rglob("*.rst"))],
           install_requires = [
             'numpy>=1.3.0',
@@ -391,8 +390,10 @@ if __name__ == '__main__':
             },
             setup_requires = [
             'Sphinx>=1.0.4',
+            'nose>=1.0',
             ],
             cmdclass = {'check': check_dep, 'sdist':sdist},
+            test_suite = 'nose.collector',
             **kwargs
     )
 
