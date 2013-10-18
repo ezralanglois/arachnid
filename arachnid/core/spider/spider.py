@@ -2917,7 +2917,7 @@ def nonspi_file(session, filename, temp):
         filename=temp
     return session.replace_ext(filename)
 
-def open_session(args, spider_path="", data_ext="", thread_count=0, enable_results=False, rank=None, local_temp=None, **extra):
+def open_session(args, spider_path="", data_ext="", thread_count=1, enable_results=False, rank=None, local_temp=None, **extra):
     '''Opens a spider session
     
     :Parameters:
