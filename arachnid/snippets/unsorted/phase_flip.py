@@ -19,8 +19,7 @@ To run:
 '''
 from arachnid.core.metadata import spider_params, format
 from arachnid.core.parallel import mpi_utility
-from arachnid.core.image import ndimage_file
-from arachnid.core.spider import spider
+from arachnid.core.spider import spider,spider_file
 #import numpy
 
 if __name__ == '__main__':
@@ -48,7 +47,7 @@ if __name__ == '__main__':
         else: defocus = particle.rlnDefocusU
         ctf = spi.tf_ct(defocus=defocus, outputfile=ctf, **params)
         #temp_spider_file
-        ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file), id-1)
+        spider_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file), id-1)
         ftimage = spi.ft(temp_spider_file, outputfile=ftimage)           # Fourier transform reference volume
         ctfimage = spi.mu(ftimage, ctf, outputfile=ctfimage)           # Multiply volume by the CTF
         spi.ft(ctfimage, outputfile=(output_stack, outid))

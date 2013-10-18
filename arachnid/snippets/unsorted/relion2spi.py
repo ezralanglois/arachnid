@@ -20,8 +20,7 @@ To run:
 from arachnid.core.metadata import spider_params, format, spider_utility
 from arachnid.core.parallel import mpi_utility
 from arachnid.core.orient import orient_utility
-from arachnid.core.image import ndimage_file
-from arachnid.core.spider import spider
+from arachnid.core.spider import spider, spider_file
 #import numpy
 
 if __name__ == '__main__':
@@ -47,7 +46,7 @@ if __name__ == '__main__':
             defocus = (projection.rlnDefocusU + projection.rlnDefocusV) / 2.0
         else: defocus = projection.rlnDefocusU
         ctf = spi.tf_ct(defocus=defocus, outputfile=ctf, **params)
-        ndimage_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file), id-1)
+        spider_file.copy_to_spider(filename, spi.replace_ext(temp_spider_file), id-1)
         psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
         rimage=spider.rt_sq_single(spi, temp_spider_file, (psi, dx, dy), interpolation='FS')
         ftimage = spi.ft(rimage, outputfile=ftimage)           # Fourier transform reference volume
