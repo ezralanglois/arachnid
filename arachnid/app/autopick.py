@@ -337,14 +337,7 @@ def ccf_center(img, template):
              Cross-correlation map
     '''
     
-    if eman2_utility.is_em(img):
-        emimg = img
-        img = eman2_utility.em2numpy(emimg)
-    if eman2_utility.is_em(template):
-        emtemplate = template
-        template = eman2_utility.em2numpy(emtemplate)
     cc_map = ndimage_utility.cross_correlate(img, template)
-    #cc_map = eman2_utility.numpy2em(cc_map)
     return cc_map
 
 def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, **extra):
@@ -379,8 +372,6 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     
     _logger.debug("Total particles: %d"%len(scoords))
     radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    #emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    #npdata = eman2_utility.em2numpy(emdata)
     dgmask = ndimage_utility.model_disk(radius/2, offset*2)
     masksm = dgmask
     maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
@@ -388,12 +379,9 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
     #data = numpy.zeros((len(scoords), masksm.ravel().shape[0]))
     #data = None #numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    if eman2_utility.is_em(mic):
-        emmic = mic
-        mic = eman2_utility.em2numpy(emmic)
+    assert(not eman2_utility.is_em(mic))
     
-    npmask = eman2_utility.em2numpy(mask)
-    npmask[:] = eman2_utility.model_circle(int(radius*1.2+1), offset*2, offset*2) * (eman2_utility.model_circle(int(radius*0.9), offset*2, offset*2)*-1+1)
+    mask[:] = ndimage_utility.model_disk(int(radius*1.2+1), (offset*2, offset*2)) * (ndimage_utility.model_disk(int(radius*0.9), (offset*2, offset*2))*-1+1)
     datar=None
     
     imgs=[]
@@ -403,15 +391,12 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         #if data is None:
         #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        #npdata[:, :] = win
-        #eman2_utility.ramp(emdata)
-        #win[:, :] = npdata
         #win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), npmask)
-        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, npmask, False), npmask)
+        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), mask)
+        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, mask, False), mask)
         
         if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
         datar[i, :] = ar
@@ -600,39 +585,27 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     
     _logger.debug("Total particles: %d"%len(scoords))
     radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    #emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    #npdata = eman2_utility.em2numpy(emdata)
     dgmask = ndimage_utility.model_disk(radius/2, offset*2)
     masksm = dgmask
     maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    #data = numpy.zeros((len(scoords), masksm.ravel().shape[0]))
-    #data = None #numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    if eman2_utility.is_em(mic):
-        emmic = mic
-        mic = eman2_utility.em2numpy(emmic)
+    assert(not eman2_utility.is_em(mic))
     
-    npmask = eman2_utility.em2numpy(mask)
-    npmask[:] = eman2_utility.model_circle(int(radius*1.2+1), offset*2, offset*2) * (eman2_utility.model_circle(int(radius*0.9), offset*2, offset*2)*-1+1)
+    mask[:] = ndimage_utility.model_disk(int(radius*1.2+1), (offset*2, offset*2)) * (ndimage_utility.model_disk(int(radius*0.9), (offset*2, offset*2))*-1+1)
     datar=None
     
     imgs=[]
     bin_factor=1.0
     _logger.debug("Windowing %d particles"%len(scoords))
     for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
-        #if data is None:
-        #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        #npdata[:, :] = win
-        #eman2_utility.ramp(emdata)
-        #win[:, :] = npdata
         win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), npmask)
-        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, npmask, False), npmask)
+        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), mask)
+        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, mask, False), mask)
         
         if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
         datar[i, :] = ar
@@ -706,7 +679,6 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     
     if experimental2 and 1 == 0: # New untested contaminant removal algorithm - looks at pixel correlation
         out = numpy.zeros(numpy.sum(sel))
-        #npmask = eman2_utility.em2numpy(mask)
         j=0
         for i in numpy.argwhere(sel).squeeze():
             img = imgs[i]
@@ -721,7 +693,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
                 val = d[:2]*numpy.dot(V[:2], rimg.T).T
                 out[j] = numpy.max(scipy.stats.normaltest(val)[0]) #normaltest
             else:
-                #img=ndimage_utility.compress_image(img, npmask)
+                #img=ndimage_utility.compress_image(img, mask)
                 out[j] = numpy.max(scipy.stats.normaltest(img)[0]) #normaltest
             j += 1
         th = analysis.otsu(out, int(numpy.sqrt(numpy.sum(sel))))

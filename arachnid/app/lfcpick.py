@@ -185,12 +185,6 @@ def search(img, use_spectrum=False, overlap_mult=1.2, limit=0, noise=False, **ex
     template = create_template(**extra)
     radius, offset, bin_factor, mask = init_param(**extra)
     if noise:
-        if eman2_utility.is_em(img):
-            emimg = img
-            img = eman2_utility.em2numpy(emimg)
-        if eman2_utility.is_em(template):
-            emtemplate = template
-            template = eman2_utility.em2numpy(emtemplate)
         cc_map = ndimage_utility.cross_correlate(img, template)
     elif use_spectrum: cc_map = scf_center(img, template, mask)
     else: cc_map = lfc(img, template, mask)
@@ -232,17 +226,12 @@ def search_peaks(cc_map, radius, overlap_mult, peak_last=None):
             List of peaks and coordinates
     '''
     
-    if 1 == 0:
-        peaks = cc_map.peak_ccf(radius*overlap_mult)
-        if peak_last is not None: peaks = eman2_utility.EMAN2.Util.merge_peaks(peak_last, peaks, 2*radius)
-    else:
-        #noise
+    peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
+    if peak_last is not None:
+        cc_map[:, :] = 0
+        cc_map[peaks[:, 1:]] = peaks[:, 0]
+        cc_map[peak_last[:, 1:]] = peak_last[:, 0]
         peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
-        if peak_last is not None:
-            cc_map[:, :] = 0
-            cc_map[peaks[:, 1:]] = peaks[:, 0]
-            cc_map[peak_last[:, 1:]] = peak_last[:, 0]
-            peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
     return peaks
 
 def scf_center(img, template, mask):
@@ -261,14 +250,12 @@ def scf_center(img, template, mask):
         
     cc_map : EMData
              Spectrum enhanced cross-correlation map
-             
-    .. todo:: replace acf with fftconvolve
     
          > r = numpy.correlate(x, x)
     '''
     
     cc_map = lfc(img, template, mask)
-    template = eman2_utility.acf(template)
+    template = ndimage_utility.acf(template)
     map2 = lfc(cc_map, template, mask)
     cc_map.mult(map2)
     return cc_map
@@ -289,32 +276,10 @@ def lfc(img, template, mask):
         
     cc_map : EMData
              Cross-correlation map
-    
-    def fft_correlate(A,B,*args,**kwargs):
-    return S.signal.fftconvolve(A,B[::-1,::-1,...],*args,**kwargs)
     '''
     
-    if 1 == 0:
-        cc_map = img.calc_ccf(template)
-        cc_map.process_inplace("xform.phaseorigin.tocenter")
-        if mask.get_xsize() < img.get_xsize():
-            inv_sigma_image = img.calc_fast_sigma_image(mask)
-            inv_sigma_image.process_inplace("math.invert.carefully",{"zero_to": 1.0})
-        else: inv_sigma_image = mask
-        cc_map.mult(inv_sigma_image)
-    else:
-        if eman2_utility.is_em(img):
-            emimg = img
-            img = eman2_utility.em2numpy(emimg)
-        if eman2_utility.is_em(template):
-            emtemplate = template
-            template = eman2_utility.em2numpy(emtemplate)
-        if eman2_utility.is_em(mask):
-            emmask = mask
-            mask = eman2_utility.em2numpy(emmask)
-        cc_map = ndimage_utility.cross_correlate(img, template)
-        cc_map /= ndimage_utility.local_variance(img, mask)
-        #cc_map = eman2_utility.numpy2em(cc_map)
+    cc_map = ndimage_utility.cross_correlate(img, template)
+    cc_map /= ndimage_utility.local_variance(img, mask)
     return cc_map
 
 def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, fraction=1, **extra):
@@ -379,16 +344,10 @@ def create_template(template, disk_mult=1.0, disable_bin=False, **extra):
         if bin_factor > 1.0 and not disable_bin: img = eman2_utility.decimate(img, bin_factor)
         return img
     radius, offset = init_param(**extra)[:2]
-    template = eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
-    if True:
-        kernel_size = int(radius) #
-        if (kernel_size%2)==0: kernel_size += 1
-        try:
-            return eman2_utility.utilities.gauss_edge(template, kernel_size = kernel_size, gauss_standard_dev = 3)
-        except:
-            _logger.error("template(%d,%d) - %d, %f"%(template.get_xsize(), template.get_ysize(), radius, disk_mult))
-            raise
-    else: return template
+    template = ndimage_utility.model_disk(int(radius*disk_mult), (int(offset*2), int(offset*2)), dtype=numpy.float32)
+    kernel_size = int(radius) #
+    if (kernel_size%2)==0: kernel_size += 1
+    return ndimage_utility.gaussian_smooth(template, kernel_size, 3)
 
 def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **extra):
     ''' Ensure all parameters have the proper scale and create a mask
@@ -427,84 +386,14 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
     if window == 1.0: window = 1.4
     if window < (2*rad): offset = int(window*rad)
     width = offset*2
-    mask = eman2_utility.utilities.model_circle(rad, width, width)
+    mask = ndimage_utility.model_disk(rad, (width, width))
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
-
-def read_bench_coordinates(fid, good_coords="", good="", bin_factor=1.0, **extra):
-    ''' Read benchmark coordinates
-    
-    :Parameters:
-        
-    pixel_radius : int
-                   Current SPIDER ID
-    good_coords : str
-                  Filename for input benchmark coordinates
-    good : str
-           Filename for optional selection file to select good coordinates
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-        
-    coords : numpy.ndarray
-             Selected (x,y) coordinates
-    '''
-    
-    if good_coords == "" or not os.path.exists(format_utility.parse_header(good_coords)[0]): 
-        return None
-    coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True, spiderid=fid))
-    if good != "":
-        try:
-            selected = format_utility.tuple2numpy(format.read(good, numeric=True, spiderid=fid))[0].astype(numpy.int)
-        except:
-            return None
-        else:
-            selected = selected[:, 0]-1
-            coords = coords[selected].copy().squeeze()
-    x, y = header.index('x'), header.index('y')
-    return numpy.vstack((coords[:, x], coords[:, y])).T
-
-def find_overlap(coords, bench, bench_mult=1.2, pixel_radius=1.0, **extra):
-    '''Find the overlaping coordinates with the benchmark
-    
-    :Parameters:
-        
-    coords : numpy.ndarray
-             Coorindates found by algorithm
-    bench : numpy.ndarray
-                Set of 'good' coordinates
-    pixel_radius : int
-                   Radius of the particle in pixels
-    bench_mult : float
-                 Amount of allowed overlap (pixel_radius*bench_mult)
-    
-    :Returns:
-        
-    coords : list
-             Overlapping (x,y) coordinates
-    '''
-    
-    _logger.error("%s == %s"%(str(bench.max(0)), str(coords.max(0))))
-    assert(bench.shape[1] == 2)
-    bench=bench.copy()
-    rad = pixel_radius*bench_mult
-    pixel_radius = rad*rad
-    selected = []
-    if len(bench) > 0:
-        for i, f in enumerate(coords):
-            dist = f-bench
-            numpy.square(dist, dist)
-            dist = numpy.sum(dist, axis=1)
-            if dist.min() < pixel_radius:
-                bench[dist.argmin(), :]=(1e20, 1e20)
-                selected.append((i+1, 1))
-    return selected
 
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param['emdata'] = eman2_utility.EMAN2.EMData()
+    param.update(ndimage_file.cache_data())
     param["confusion"] = numpy.zeros((len(files), 4))
     
     if mpi_utility.is_root(**param):
@@ -517,7 +406,6 @@ def initialize(files, param):
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
     
-    assert('selection_doc' in param)
     _logger.error("selection:\"%s\""%param['selection_doc'])
     if 'selection_doc' in param and param['selection_doc'] != "":
         select = format.read(param['selection_doc'], numeric=True)
@@ -531,34 +419,18 @@ def reduce_all(val, confusion, file_index, **extra):
     
     filename, coords = val
     info=""
-    if len(coords) > 0:
+    if len(coords) > 0 and (extra['good'] != "" or extra['good_coords'] != ""):
         coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
-        if not hasattr(coords, 'ndim') and (extra['good'] != "" or extra['good_coords'] != ""):
-            try:
-                vals = benchmark.benchmark(coords, filename, **extra)
-            except:
-                info=""
-            else:
-                confusion[file_index, 0] = vals[0]+vals[1]
-                confusion[file_index, 1] = vals[0]+vals[3]
-                confusion[file_index, 2] = vals[0]
-                pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
-                sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
-                info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
+        try:
+            vals = benchmark.benchmark(coords, filename, **extra)
+        except:pass
         else:
-            bench = read_bench_coordinates(filename, **extra)
-            if bench is not None and len(coords) > 0:
-                if bench.shape[1] != 2:
-                    _logger.error("bench: %s"%str(bench.shape))
-                overlap = benchmark.find_overlap(coords[:, 1:3], bench, **extra)
-                confusion[file_index, 0] = len(coords) #len(peaks), len(selected), len(overlap)
-                confusion[file_index, 1] = len(bench)
-                confusion[file_index, 2] = len(overlap)
-                assert(len(overlap) <= len(coords))
-                assert(len(overlap) <= len(bench))
-                pre = float(len(overlap)) / len(coords) if len(coords) > 0 else 0
-                sen = float(len(overlap)) / len(bench) if len(bench)> 0 else 0
-                info = " - %d,%d,%d - precision: %f, recall: %f"%(len(coords), len(bench), len(overlap), pre, sen)
+            confusion[file_index, 0] = vals[0]+vals[1]
+            confusion[file_index, 1] = vals[0]+vals[3]
+            confusion[file_index, 2] = vals[0]
+            pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
+            sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
+            info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
     return filename+info
 
 def finalize(files, confusion, output, **extra):
