@@ -9,6 +9,29 @@ from a collection of electron micrographs.
 	:depth: 1
 	:local:
 	:backlinks: none
+	
+Quick Start
+===========
+
+The following commands must be run in the same directory.
+
+1. Generate a project workflow in current directory
+
+	.. sourcecode:: sh
+		
+		$ sp-project ../mic*.mrc -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --particle-diameter 220
+
+2. Start the workflow
+
+	.. sourcecode:: sh
+	
+		$ nohup sh run_local  > local.log &
+
+3. Start manual micrograph/power spectra selection (Give some time for processing to start if not complete)
+
+	.. sourcecode:: sh
+	
+		$ ara-screen
 
 Getting Started
 ===============
@@ -25,13 +48,6 @@ this point you should have two things:
 
 The default mode for project generation assumes that you will perform angular refinement and classification
 with Relion. There are several additional options that are availabe using the :option:`--cluster-mode`.
-
-To setup and start processing, the easiest method is to start the project wizard graphical user interface and
-follow the instructions.
-
-.. sourcecode:: sh
-
-	$ ara-projectw
 	
 Alternatively, the following subsections describe how to create and run a program from the command line.
 
@@ -55,7 +71,7 @@ the program without arguments.
 	
 	#  Generate all the scripts and directories for a pySPIDER project
 	#  
-	#  $ sp-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
+	#  $ sp-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --particle-diameter 220 --scatter-doc ribosome
 	#  
 
 	
@@ -76,7 +92,7 @@ The values for each option can be set as follows:
 
 .. sourcecode:: sh
 	
-	$ sp-project ../mic*.mrc -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
+	$ sp-project ../mic*.mrc -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --particle-diameter 220 --scatter-doc ribosome
 
 Let's look at each parameter on the command line above.
 
@@ -92,7 +108,7 @@ directories and configuration files/scripts will be created in this output direc
 The `-r emd_1001.map` defines the raw reference volume. Ideally, this will be in MRC format with the pixel-size in the header. If not,
 then you will need set the :option:`--curr-apix` parameter to set the proper pixel size.
 
-The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--pixel-diameter 220` microscope parameters that define the experiment.
+The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--particle-diameter 220` microscope parameters that define the experiment.
 
 The following are additional, recommended options.
 
@@ -158,6 +174,10 @@ Screening
 ---------
 
 Manually screening micrographs, power spectra and particle windows can all be done in `ara-view`.
+
+.. note:: 
+	
+	Launch this program in the project directory and it will automatically find all necessary files.
 
 .. sourcecode:: sh
 
