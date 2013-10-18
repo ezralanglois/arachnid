@@ -552,21 +552,19 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     gen1 = ndimage_file.iter_images(dala_stack, even)
     gen2 = ndimage_file.iter_images(dala_stack, odd)
     #vol = reconstruct_engine.reconstruct3_nn4_mp(image_size, gen1, gen2, align1, align2)
-    if 1 == 1:
-        if boost:
-            weights = reweight(align)[curr_slice]
-            gen1 = itertools.imap(functools.partial(reweight_image, weights=weights[even]), enumerate(gen1))
-            gen2 = itertools.imap(functools.partial(reweight_image, weights=weights[odd]), enumerate(gen2))
-        else: weights=None
-        # boost
-        # exp weight based on -cc
-        # try different modes - defocus based - view based
-        align = align[curr_slice]
-        image_size = ndimage_file.read_image(dala_stack).shape[0]
-        vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
-        #vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
-    else:
-        vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
+    
+    if boost:
+        weights = reweight(align)[curr_slice]
+        gen1 = itertools.imap(functools.partial(reweight_image, weights=weights[even]), enumerate(gen1))
+        gen2 = itertools.imap(functools.partial(reweight_image, weights=weights[odd]), enumerate(gen2))
+    else: weights=None
+    # boost
+    # exp weight based on -cc
+    # try different modes - defocus based - view based
+    align = align[curr_slice]
+    image_size = ndimage_file.read_image(dala_stack).shape[0]
+    vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
+
     header={'apix':extra['apix']}
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
