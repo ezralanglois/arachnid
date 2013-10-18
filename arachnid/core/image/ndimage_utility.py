@@ -10,7 +10,7 @@ custom wrapped fortran functions (taken from SPIDER).
 '''
 from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
-import eman2_utility
+#import eman2_utility
 import analysis
 import numpy, scipy, math, logging, scipy.ndimage, numpy.fft
 import scipy.fftpack, scipy.signal
@@ -18,7 +18,6 @@ import scipy.ndimage.filters
 import scipy.ndimage.morphology
 import scipy.sparse
 from filters import linear
-#import eman2_utility
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -443,6 +442,35 @@ def model_ring(rmin, rmax, shape, center=None, dtype=numpy.int, order='C'):
     a[numpy.logical_and(irad > rmin, irad < rmax)]=1
     return a
 
+def acf(img, out=None):
+    ''' Autocorrelate an image with itself
+    
+    :Parameters:
+    
+    img : array
+          Large image to match
+    out : array
+          Cross-correlation map (same dim as large image)
+    
+    .. todo:: 
+          
+        def fft_correlate(A,B,*args,**kwargs):
+        return S.signal.fftconvolve(A,B[::-1,::-1,...],*args,**kwargs)
+    
+    .. todo:: optimize fft
+    
+    :Returns:
+    
+    out : array
+         Cross-correlation map (same dim as large image)
+    '''
+    
+    if out is None: out = numpy.empty_like(img)
+    fp1 = scipy.fftpack.fft2(img)
+    numpy.multiply(fp1, fp1.conj(), fp1)
+    out[:,:] = numpy.absolute(scipy.fftpack.ifft2(fp1)).real
+    return scipy.fftpack.fftshift(out)
+
 def cross_correlate_raw(img, template, phase=False, out=None):
     ''' Cross-correlate an image with a template
     
@@ -764,13 +792,6 @@ def dct_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         #pad_width = img.shape[0]*pad
-        if 1 == 0:
-            img = eman2_utility.ramp(img)
-            img = img.copy()
-            img -= img.min()
-            img /= img.max()
-            img -= img.mean()
-            img /= img.std()
         
         fimg=scipy.fftpack.dct(scipy.fftpack.dct(img.T, axis=-1, norm='ortho').T, axis=-2, norm='ortho')
         
@@ -1256,22 +1277,18 @@ def polar_to_cart(image, center=None, out=None, rng=None, order=0):
     ny, nx = image.shape[:2]
     if center is None: center = (nx // 2, ny // 2)
     x, y = index_coords(image, center)
-    new_r, new_t = cart2polar(x, y)
+    r, theta = cart2polar(x, y)
     
-    if rng is None: rng = (new_r.min(), new_r.max())
+    if rng is None: rng = (r.min(), r.max())
     r_i = numpy.linspace(rng[0], rng[1], nx)
-    theta_i = numpy.linspace(new_t.min(), new_t.max(), ny)
-    
-    ir = scipy.interpolate.interp1d(r_i, numpy.arange(len(r_i)), bounds_error=False)
-    it = scipy.interpolate.interp1d(theta_i, numpy.arange(len(theta_i)))
-    
-    new_ir = ir(new_r.ravel())
-    new_it = it(new_t.ravel())
+    theta_i = numpy.linspace(theta.min(), theta.max(), ny)
+    theta_grid, r_grid = numpy.meshgrid(theta_i, r_i)
+    xi, yi = polar2cart(r_grid, theta_grid)
+    r, theta = cart2polar(xi, yi)
+    xi, yi = r.flatten(), theta.flatten()
+    coords = numpy.vstack((xi, yi))
 
-    new_ir[new_r.ravel() > r_i.max()] = len(r_i)-1
-    new_ir[new_r.ravel() < r_i.min()] = 0
-    
-    return scipy.ndimage.interpolation.map_coordinates(image, numpy.vstack((new_ir, new_it)), order=order).reshape((nx, ny)).T
+    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny)).T
 
 def cart2polar(x, y):
     r = numpy.sqrt(x**2 + y**2)
@@ -1807,17 +1824,42 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
         elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
         out[:]=scipy.ndimage.binary_dilation(out, elem, ndilate)
     
-    # Smooth the image with a Gausian kernel of size `kernel_size`, and smoothness `gauss_standard_dev`
-    #return scipy.ndimage.filters.gaussian_filter(out, sigma, mode='reflect', output=out)
     
     if gk_size > 0 and gk_sigma > 0:
         _logger.debug("Smoothing in real space")
-        K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
-        K /= (numpy.mean(K)*numpy.prod(K.shape))
-        _logger.debug("Smoothing in real space - convolution")
-        out[:]=scipy.ndimage.convolve(out, K)#, mode='mirror')
+        out = gaussian_smooth(out, gk_size, gk_sigma, out)
     _logger.debug("Tight mask - finished")
     return out, threshold
+
+def gaussian_smooth(img, gk_size=3, gk_sigma=3.0, out=None):#, mode='reflect', cval=0.0):
+    ''' Perform real space smoothing with a Gaussian kernel on an image
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    gk_size : int, optional
+              Size of Gaussian kernel used for real space smoothing
+    gk_sigma : float, optional
+               Sigma value for Gaussian kernel
+    out : numpy.ndarray, optional
+          Output image
+                     
+    :Returns:
+
+    out : numpy.ndarray
+          Output image
+    '''
+    
+    if out is None: out = numpy.empty_like(img)
+    # Smooth the image with a Gausian kernel of size `kernel_size`, and smoothness `gauss_standard_dev`
+    #return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect', output=out)
+    K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
+    
+    K  /= (K.mean()*numpy.prod(K.shape))
+    out[:] = scipy.signal.convolve2d(img, K, mode='same', boundary='wrap') #symm
+    #out[:]=scipy.ndimage.convolve(img, K, mode='mirror')#, mode=mode, cval=cval)#, mode='mirror')
+    return out
 
 def dialate_mask(img, ndialate, out=None):
     '''
@@ -1849,17 +1891,19 @@ def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
     '''
     
     from util._new_numpy import meshgrid
-    shape = numpy.asarray(shape)/2
+    shape = numpy.asarray(shape)
+    center = numpy.asarray(shape, dtype=numpy.int)//2
     sigma2 = 2*sigma*sigma
     sr2pi = numpy.sqrt(2.0*numpy.pi)
     rng=[]
-    for s in shape: rng.append(numpy.arange(-s, s+1, dtype=numpy.float))
+    norm = 1.0
+    for s,c in zip(shape,center): 
+        rng.append(numpy.arange(0, s, dtype=numpy.float)-c)
+        norm *= 1.0/(sigma*sr2pi)
     rng = meshgrid(*rng, indexing='xy')
     val = (rng[0].astype(numpy.float)**2)/sigma2
-    norm = 1.0/(sigma*sr2pi)
     for i in xrange(1, len(rng)):
         val += (rng[i].astype(numpy.float)**2)/sigma2
-        norm *= 1.0/(sigma*sr2pi)
     out = numpy.exp(-val, out)
     return numpy.multiply(out, norm, out)
 
