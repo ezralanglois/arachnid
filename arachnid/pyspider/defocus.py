@@ -149,7 +149,7 @@ from ..core.app import program
 from ..core.metadata import format, spider_params, spider_utility, format_utility
 from ..core.image import ndimage_file, eman2_utility, ndimage_utility, analysis
 from ..core.parallel import mpi_utility
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 from ..core.util import plotting
 import os, numpy, logging, itertools #, scipy
 
@@ -312,18 +312,11 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
         
         
         #remove_line(npowerspec)
-        if 1 == 0:
-            mask = eman2_utility.model_circle(npowerspec.shape[0]*(4.0/extra['pixel_diameter']), npowerspec.shape[0], npowerspec.shape[1])
-            sel = mask*-1+1
-            npowerspec[mask.astype(numpy.bool)] = numpy.mean(npowerspec[sel.astype(numpy.bool)])
-            ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
-            power_spec = spi.cp(output_pow)
-        else:
-            _logger.debug("Writing power spectra to %s"%spi.replace_ext(output_pow))
-            ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
-            if not os.path.exists(spi.replace_ext(output_pow)): raise ValueError, "Bug in code: cannot find power spectra at %s"%spi.replace_ext(output_pow)
-            power_spec = spi.cp(output_pow)
-            spi.du(power_spec, 3, 3)
+        _logger.debug("Writing power spectra to %s"%spi.replace_ext(output_pow))
+        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
+        if not os.path.exists(spi.replace_ext(output_pow)): raise ValueError, "Bug in code: cannot find power spectra at %s"%spi.replace_ext(output_pow)
+        power_spec = spi.cp(output_pow)
+        spi.du(power_spec, 3, 3)
         
         
         assert(output_pow != "" and output_pow is not None)
@@ -570,7 +563,7 @@ def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     
     start = img.shape[0]*(8.0/pixel_diameter)
     start = min_freq(ctf[start:])+start
-    mask = eman2_utility.model_circle(start, img.shape[0], img.shape[1])
+    mask = ndimage_utility.model_disk(start, img.shape)
     sel = mask*-1+1
     img[mask.astype(numpy.bool)] = numpy.mean(img[sel.astype(numpy.bool)])
     ax.imshow(img, cmap=pylab.cm.gray)
@@ -686,7 +679,7 @@ def check_options(options, main_option=False):
         for f in options.input_files:
             if not ndimage_file.is_readable(f): 
                 raise OptionValueError, "Unrecognized image format for input-file: %s \n Check if you have permission to access this file and this file is in an acceptable format"%f
-        if ndimage_file.is_spider_format(options.input_files[0]) and options.data_ext == "":
+        if spider_file.is_spider_image(options.input_files[0]) and options.data_ext == "":
             raise OptionValueError, "You must set --data-ext when the input file is not in SPIDER format"
 
 def main():
