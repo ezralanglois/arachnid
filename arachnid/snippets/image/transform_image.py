@@ -14,7 +14,7 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import format, spider_utility, format_utility
-from arachnid.core.image import ndimage_file, ndimage_utility, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_utility, eman2_utility, ndimage_processor
 import numpy, logging, scipy.io, os
 
 def read_alignment(files, alignment="", **extra):
@@ -150,6 +150,6 @@ if __name__ == '__main__':
     r, label, align = group_by_reference(*read_alignment([input_image_file], input_align_file))[0]
     label, align = rotational_sample(label, align, nsamples, angle_range)
     mask = create_mask([input_image_file], pixel_diameter, resolution, apix)
-    data = ndimage_file.read_image_mat([input_image_file], label, image_transform, shared=False, mask=mask, cache_file=None, align=align, resolution=resolution, apix=apix, thread_count=thread_count)
+    data = ndimage_processor.read_image_mat([input_image_file], label, image_transform, shared=False, mask=mask, cache_file=None, align=align, resolution=resolution, apix=apix, thread_count=thread_count)
     scipy.io.savemat(output_mat_file, {'data': data})
     

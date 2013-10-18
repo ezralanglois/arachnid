@@ -2,7 +2,7 @@
 .. Created on Oct 22, 2012
 .. codeauthor:: robertlanglois
 '''
-from arachnid.core.image import ndimage_file
+from arachnid.core.image import ndimage_file, ndimage_processor
 from arachnid.app import autoclean
 from sklearn import decomposition
 import numpy
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     
     view, label, align = autoclean.read_alignment([stack_file], align_file)[0]
     
-    data = ndimage_file.read_image_mat(stack_file, label, dummy)
+    data = ndimage_processor.read_image_mat(stack_file, label, dummy)
     
     ica = decomposition.FastICA()
     comp = ica.fit(data).transform(data)
