@@ -77,6 +77,28 @@ _logger.setLevel(logging.DEBUG)
 eman2ara={'apix': 'apix_x'}
 ara2eman=dict([(val, key) for key,val in eman2ara.iteritems()])
 
+def cache_data():
+    ''' Get keywords to be added as data cache
+    
+    :Returns:
+    
+    extra : dict
+            Keyword arguments
+    '''
+    
+    return dict(emdata=eman2_utility.EMAN2.EMData())
+
+def is_avaliable():
+    ''' Test if EMAN2 can be found
+    
+    :Returns:
+    
+    out : bool
+          True if the EMAN2 library is available
+    '''
+    
+    return eman2_utility.is_avaliable()
+
 def is_readable(filename):
     ''' Test if the input filename of the image is in a recognized
     format.
@@ -95,7 +117,7 @@ def is_readable(filename):
     if not os.path.exists(filename): return False
     filename = str(filename)
     try: 
-        type = eman2_utility.EMAN2.EMUtil.get_image_type(str(filename))
+        type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except:
         return False
