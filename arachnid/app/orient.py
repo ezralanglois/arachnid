@@ -6,7 +6,7 @@
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, manifold, rotate, analysis
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, manifold, rotate, analysis, ndimage_processor
 from ..core.metadata import spider_utility, format, spider_params, format_utility
 from ..core.orient import orient_utility, healpix
 from ..core.parallel import process_queue
@@ -77,7 +77,7 @@ def recover_relative_orientation(files, output, neighbors, neighbor_start, neigh
                 _logger.info("Using bispec mode: %d"%extra['bispec_mode'])
             mask=create_mask(files, **extra)
             mask;
-            data = ndimage_file.read_image_mat(files[0], label, image_transform, mask=None, **extra)
+            data = ndimage_processor.read_image_mat(files[0], label, image_transform, mask=None, **extra)
             _logger.info("Dataset: %d,%d"%data.shape)
             if extra['bispec']:
                 _logger.info("Using bispectrum representation")
@@ -179,7 +179,7 @@ def recover_relative_orientation_old(files, output, neighbors, neighbor_batch, *
         _logger.info("Reading images: %f"%(decimation_level(**extra)))
         mask=create_mask(files, **extra)
         mask;
-        data = ndimage_file.read_image_mat(files[0], label, image_transform, mask=None, **extra)
+        data = ndimage_processor.read_image_mat(files[0], label, image_transform, mask=None, **extra)
         if extra['bispec'] and extra['bispec_mode']==0:
             _logger.info("Using bispectrum representation")
             data -= data.min(axis=0)
@@ -217,7 +217,7 @@ def frame_search_mp(files, label, rot, thread_count=0, cache_file=None, **extra)
     _logger.info("Reading images")
     images, = load_from_cache(cache_file, 'images')
     if images is None:
-        images = ndimage_file.read_image_mat(files[0], label, image_transform, mask=None, compress=False, cache_file=None, dtype=numpy.float32, thread_count=thread_count, **extra)
+        images = ndimage_processor.read_image_mat(files[0], label, image_transform, mask=None, compress=False, cache_file=None, dtype=numpy.float32, thread_count=thread_count, **extra)
         save_to_cache(cache_file, images=images)
     _logger.info("Done: %s"%str(images.dtype))
     program.openmp.set_thread_count(1)

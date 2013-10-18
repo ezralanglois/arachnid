@@ -46,7 +46,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
-from ..core.image import ndimage_file, manifold, ndimage_utility, eman2_utility
+from ..core.image import ndimage_file, manifold, ndimage_utility, eman2_utility, ndimage_processor
 from ..core.orient import orient_utility, transforms
 from ..core.parallel import process_queue
 import logging, os, numpy, scipy.ndimage.interpolation
@@ -95,7 +95,7 @@ def batch(files, output, neighbors, dimension, batch, eps, **extra):
     
     _logger.info("Reading %d images"%len(label))
     mask = create_mask(files, **extra)
-    shm_data = ndimage_file.read_image_mat(files, label, image_transform, shared=shared, mask=mask, cache_file=cache_file, **extra)
+    shm_data = ndimage_processor.read_image_mat(files, label, image_transform, shared=shared, mask=mask, cache_file=cache_file, **extra)
     
     _logger.info("Revising distances with %d threads"%extra.get('thread_count', 1))
     # 4. replace distances with rotated distance - rotate align so all projections spiral out

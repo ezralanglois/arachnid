@@ -7,7 +7,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate, manifold
+from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate, manifold, ndimage_processor
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
@@ -49,7 +49,7 @@ def process(input_vals, input_files, output, expected, id_len=0, max_eig=30, cac
     
     openmp.set_thread_count(1)
     
-    data = ndimage_file.read_image_mat(input_files, label, image_transform, shared=False, mask=mask, cache_file=cache_file, align=align, force_mat=True, **extra)
+    data = ndimage_processor.read_image_mat(input_files, label, image_transform, shared=False, mask=mask, cache_file=cache_file, align=align, force_mat=True, **extra)
     _logger.info("Data: %s -- %s -- %s"%(str(data.shape), str(align.shape), str(label.shape)))
     assert(data.shape[0] == align.shape[0])
     assert(data.shape[0] == label.shape[0])

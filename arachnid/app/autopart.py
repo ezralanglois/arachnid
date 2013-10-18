@@ -5,7 +5,7 @@
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility #, analysis
+from ..core.image import ndimage_file, eman2_utility, ndimage_utility, ndimage_processor #, analysis
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 import logging, numpy, os, sys #, itertools, sys, scipy
 from ..core.learn.deep import SdA
@@ -27,7 +27,7 @@ def classify(files, label, align, train_idx, train_y, **extra):
     '''
     
     mask = create_mask(files, **extra)
-    data = ndimage_file.read_image_mat(files, label, image_transform, shared=False, mask=mask, cache_file=None, align=align, **extra)
+    data = ndimage_processor.read_image_mat(files, label, image_transform, shared=False, mask=mask, cache_file=None, align=align, **extra)
     data -= data.min(axis=0)
     data /= data.max(axis=0)
     ha = 2*len(train_idx)/3
