@@ -12,6 +12,8 @@ SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html
 from ..app import tracing
 import logging, numpy
 import ndimage_interpolate as ndinter
+import scipy.fftpack
+import ndimage_utility
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -24,6 +26,38 @@ except:
     #_logger.addHandler(logging.StreamHandler())
     #_logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
+    
+"""
+
+def _zeropad2(x, shape):
+    '''Pad a two-dimensional NumPy array with zeros along its borders
+    to the specified shape.
+    '''
+    m, n = x.shape
+    p, q = shape
+    assert p > m
+    assert q > n
+    tb = (p - m) / 2
+    lr = (q - n) / 2
+    xpadded = _zeros(shape, dtype=complex64)
+    xpadded[tb:tb + m, lr:lr + n] = x
+    return xpadded
+"""
+def resample_fourier_window(img, out):
+    ''' Attempt at fourier resampling
+    '''
+    
+    if not hasattr(out, 'ndim'):
+        if hasattr(out, '__len__'): 
+            shape = tuple([int(o) for o in out])
+        else: 
+            shape = tuple([int(s/out) for s in img.shape])
+        out = numpy.zeros(shape, dtype=img.dtype)
+    if out.shape[0] > img.shape[0]: raise ValueError, "Upsamping not currently supported"
+    fimg = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
+    fimg = ndimage_utility.crop_window(fimg, img.shape[0]/2, img.shape[1]/2, (out.shape[0], out.shape[1]))
+    out[:] = scipy.fftpack.ifftshift(scipy.fftpack.ifft2(fimg)).real
+    return out
     
 def interpolate(img, out, method='bilinear'):
     ''' Interpolate the size of the input image
