@@ -138,17 +138,11 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
     #. :ref:`Options shared by SPIDER params scripts... <param-options>`
 
-.. todo:: replace image_reader with ndimage_format
-
 .. Created on Nov 27, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-ndimage_file=None
-from ..core.image import eman2_utility, ndimage_utility, ndimage_file, ndimage_filter # - replace image_reader and writer
-#from ..core.image import reader as image_reader, writer as image_writer
-image_reader=None
-image_writer=None
+from ..core.image import eman2_utility, ndimage_utility, ndimage_file, ndimage_filter
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image.formats import mrc as mrc_file
 from ..core.parallel import mpi_utility
@@ -244,10 +238,7 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
                 coord = coords[index]
                 x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
                 _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
-            if ndimage_file is not None:
-                ndimage_file.write_image(output, emdata, index)
-            else:
-                image_writer.write_image(output, emdata, index)
+            ndimage_file.write_image(output, emdata, index)
             if single: break
         #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     return filename, len(coords), os.getpid()
@@ -317,10 +308,7 @@ def read_micrograph(filename, index=0, emdata=None, bin_factor=1.0, sigma=1.0, f
         index=None
     
     offset = init_param(bin_factor=bin_factor, **extra)[1]
-    if ndimage_file is not None:
-        mic = ndimage_file.read_image(filename, index, cache=emdata)
-    else:
-        mic = image_reader.read_image(filename, index, emdata=emdata)
+    mic = ndimage_file.read_image(filename, index, cache=emdata)
     if flip:
         emmic=eman2_utility.numpy2em(mic)
         emmic.process_inplace("xform.flip",{"axis":"y"})
@@ -365,17 +353,12 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
     '''
     
     if noise != "": 
-        if ndimage_file is not None:
-            return eman2_utility.numpy2em(ndimage_file.read_image(noise))
-        return image_reader.read_image(noise)
+        return eman2_utility.numpy2em(ndimage_file.read_image(noise))
     noise_file = format_utility.add_prefix(output, "noise_")
     if os.path.exists(noise_file):
         _logger.warn("Found cached noise file: %s - delete if you want to regenerate"%noise_file)
-        if ndimage_file is not None:
-            img = ndimage_file.read_image(noise_file)
-            return eman2_utility.numpy2em(img)
-        return image_reader.read_image(noise_file)
-    
+        img = ndimage_file.read_image(noise_file)
+        return eman2_utility.numpy2em(img)    
     try:
         tot = mrc_file.count_images(filename)
     except: tot = ndimage_file.count_images(filename)
@@ -426,16 +409,10 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
         std = numpy.std(eman2_utility.em2numpy(win))
         if std < best[0]: best = (std, win)
         if noise_stack and i < 11: 
-            if ndimage_file is not None:
-                ndimage_file.write_image(noise_file, win, i)
-            else:
-                image_writer.write_image(noise_file, win, i)
+            ndimage_file.write_image(noise_file, win, i)
     noise_win = best[1]
     if not noise_stack:
-        if ndimage_file is not None:
-            ndimage_file.write_image(noise_file, noise_win)
-        else:
-            image_writer.write_image(noise_file, noise_win)
+        ndimage_file.write_image(noise_file, noise_win)
     return noise_win
 
 def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **extra):
@@ -702,11 +679,8 @@ def initialize(files, param):
         else: param['noise']=None
         
     else: 
-        if ndimage_file is not None:
-            param['noise'] =  eman2_utility.numpy2em(ndimage_file.read_image(param['noise']))
-        else:
-            param['noise'] = image_reader.read_image(param['noise'])
-    param['emdata'] = eman2_utility.EMAN2.EMData()
+        param['noise'] =  eman2_utility.numpy2em(ndimage_file.read_image(param['noise']))
+    param.update(ndimage_file.cache_data())
     return files
 
 def reduce_all(val, count, id_len, **extra):
