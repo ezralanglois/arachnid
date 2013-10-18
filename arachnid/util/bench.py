@@ -196,7 +196,9 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
     '''
     
     if good_coords == "": return None
-    if os.path.exists(format_utility.parse_header(good_coords)[0]):
+    good_coords2=format_utility.parse_header(good_coords)[0]
+    good_coords2=spider_utility.spider_filename(good_coords2, fid)
+    if os.path.exists(good_coords2):
         coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True, spiderid=fid))
     else:
         return []
@@ -209,6 +211,7 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
             assert(selected.shape[1]==2)
             selected = selected[:, 0]-1
             coords = coords[selected].copy().squeeze()
+    _logger.info("Read %d benchmark coords from: %s"%(len(coords), good_coords2), extra=dict(tofile=True))
     x, y = header.index('x'), header.index('y')
     return numpy.vstack((coords[:, x], coords[:, y])).T
 
