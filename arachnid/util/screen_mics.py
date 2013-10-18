@@ -37,9 +37,6 @@ def process(filename, output, bin_factor, sigma, film, clamp_window, window=0, i
         mic = eman2_utility.decimate(mic, bin_factor)
     if sigma > 0.0 and window > 0:
         mic = eman2_utility.gaussian_high_pass(mic, sigma/(window), True)
-        if eman2_utility.is_em(mic): 
-            emic=mic
-            mic = eman2_utility.em2numpy(emic).copy()
     if not film: ndimage_utility.invert(mic, mic)
     ndimage_utility.replace_outlier(mic, clamp_window, out=mic)
     ndimage_file.write_image(output, mic)
