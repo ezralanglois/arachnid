@@ -2,12 +2,12 @@
 .. Created on Jun 30, 2013
 .. codeauthor:: robertlanglois
 '''
-from .. import ndimage_filter, eman2_utility,ndimage_utility
+from .. import ndimage_filter, eman2_utility, ndimage_utility
 import numpy, numpy.testing
 
 full_test=False
 
-def test_ramp():
+def test_ramp(): # Big difference with this function!
     '''
     '''
     
@@ -16,7 +16,10 @@ def test_ramp():
     for i in xrange(wedge.shape[1]):
         wedge[:, i] += (i+1)
     img = orig + wedge
-    out = ndimage_filter.ramp(img.copy())
+    
+    img2 = img.T.copy()
+    out = ndimage_filter.ramp(img2)
+    out[:, :] = out.T
     try: numpy.testing.assert_allclose(img, out)
     except: pass
     else: raise ValueError, "Image did not change"
@@ -25,7 +28,7 @@ def test_ramp():
         numpy.testing.assert_allclose(out2, out, rtol=1e-3)
 
 def test_histogram_match():
-    ''' ..todo:: add further testing here
+    '''
     '''
     
     rad, width, bins = 13, 78, 128
@@ -66,6 +69,7 @@ def test_filter_gaussian_lowpass_2d():
     fimg=ndimage_filter.filter_gaussian_lowpass(img, sigma, 2)
     if full_test: 
         simg=spider_filter(img, filter_type=3, filter_radius=sigma)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_gaussian_lowpass_3d():
@@ -76,6 +80,7 @@ def test_filter_gaussian_lowpass_3d():
     fimg=ndimage_filter.filter_gaussian_lowpass(img, sigma, 2)
     if full_test:
         simg=spider_filter(img, filter_type=3, filter_radius=sigma)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_gaussian_highpass_2d():
@@ -86,6 +91,7 @@ def test_filter_gaussian_highpass_2d():
     fimg=ndimage_filter.filter_gaussian_highpass(img, sigma, 2)
     if full_test:
         simg=spider_filter(img, filter_type=4, filter_radius=sigma)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_gaussian_highpass_3d():
@@ -96,6 +102,7 @@ def test_filter_gaussian_highpass_3d():
     fimg=ndimage_filter.filter_gaussian_highpass(img, sigma, 2)
     if full_test:
         simg=spider_filter(img, filter_type=4, filter_radius=sigma)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_butterworth_lowpass_2d():
@@ -106,6 +113,7 @@ def test_filter_butterworth_lowpass_2d():
     fimg=ndimage_filter.filter_butterworth_lowpass(img, lcut, hcut , 2)
     if full_test:
         simg=spider_filter(img, filter_type=7, pass_band=lcut, stop_band=hcut)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
 
 
@@ -117,6 +125,7 @@ def test_filter_butterworth_lowpass_3d():
     fimg=ndimage_filter.filter_butterworth_lowpass(img, lcut, hcut, 2)
     if full_test:
         simg=spider_filter(img, filter_type=7, pass_band=lcut, stop_band=hcut)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_butterworth_highpass_2d():
@@ -127,6 +136,7 @@ def test_filter_butterworth_highpass_2d():
     fimg=ndimage_filter.filter_butterworth_highpass(img, lcut, hcut, 2)
     if full_test:
         simg=spider_filter(img, filter_type=8, pass_band=lcut, stop_band=hcut)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_butterworth_highpass_3d():
@@ -137,6 +147,7 @@ def test_filter_butterworth_highpass_3d():
     fimg=ndimage_filter.filter_butterworth_highpass(img, lcut, hcut, 2)
     if full_test:
         simg=spider_filter(img, filter_type=8, pass_band=lcut, stop_band=hcut)
+        print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
         numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
 
 def test_filter_raised_cosine_lowpass_2d():
@@ -150,6 +161,7 @@ def test_filter_raised_cosine_lowpass_2d():
             simg=spider_filter(img, filter_type=9, pass_band=lcut, stop_band=hcut)
         except: pass
         else:
+            print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
             numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_raised_cosine_lowpass_3d():
@@ -163,6 +175,7 @@ def test_filter_raised_cosine_lowpass_3d():
             simg=spider_filter(img, filter_type=9, pass_band=lcut, stop_band=hcut)
         except: pass
         else:
+            print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
             numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_raised_cosine_highpass_2d():
@@ -176,6 +189,7 @@ def test_filter_raised_cosine_highpass_2d():
             simg=spider_filter(img, filter_type=10, pass_band=lcut, stop_band=hcut)
         except: pass
         else:
+            print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
             numpy.testing.assert_allclose(simg, fimg, rtol=1e-2)
     
 def test_filter_raised_cosine_highpass_3d():
@@ -189,6 +203,7 @@ def test_filter_raised_cosine_highpass_3d():
             simg=spider_filter(img, filter_type=10, pass_band=lcut, stop_band=hcut)
         except: pass
         else:
+            print numpy.linalg.norm(simg.ravel()-fimg.ravel(), 2), numpy.sqrt(numpy.sum(fimg**2))
             numpy.testing.assert_allclose(simg, fimg, rtol=1e-3)
 
 

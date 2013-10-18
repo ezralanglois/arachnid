@@ -13,6 +13,53 @@ try:
 except: pylab=None
 
 
+def test_gaussian_kernel():
+    '''
+    '''
+    
+    kernel_size=3
+    gauss_standard_dev=3.0
+    test1em = eman2_utility.utilities.model_gauss(gauss_standard_dev, kernel_size , kernel_size)
+    test1 = eman2_utility.em2numpy(test1em)
+    test2 = ndimage_utility.gaussian_kernel((kernel_size,kernel_size), gauss_standard_dev)
+    print numpy.linalg.norm(test1-test2, 2)
+    numpy.testing.assert_allclose(test2, test1, rtol=1e-5)
+
+
+def test_gaussian_smooth():
+    '''
+    '''
+    
+    kernel_size=3
+    gauss_standard_dev=3.0
+    orig = numpy.random.rand(51,51).astype(numpy.float32)
+    test1em = eman2_utility.utilities.gauss_edge(eman2_utility.numpy2em(orig.copy()), kernel_size = kernel_size, gauss_standard_dev = gauss_standard_dev)
+    test1 = eman2_utility.em2numpy(test1em)
+    test2 = ndimage_utility.gaussian_smooth(orig, kernel_size, gauss_standard_dev)
+    print numpy.linalg.norm(test1-test2, 2), numpy.sqrt(numpy.sum(test1**2)), numpy.sqrt(numpy.sum(test2**2))
+    numpy.testing.assert_allclose(test2, test1, rtol=1e-5)
+    
+def test_template():
+    '''
+    '''
+    radius, offset, disk_mult = 25, 64, 0.6
+    kernel_size = int(radius)
+    if (kernel_size%2)==0: kernel_size += 1
+    test2em=eman2_utility.utilities.gauss_edge(eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1), kernel_size = kernel_size, gauss_standard_dev = 3)
+    test2 = eman2_utility.em2numpy(test2em)
+    test1= ndimage_utility.gaussian_smooth(ndimage_utility.model_disk(int(radius*disk_mult), (int(offset*2), int(offset*2)), dtype=numpy.float32), kernel_size, 3)
+    numpy.testing.assert_allclose(test2, test1, rtol=1e-5)
+
+def test_acf():
+    '''
+    '''
+    
+    orig = numpy.random.rand(51,51).astype(numpy.float32)
+    test1em = eman2_utility.fundamentals.acf(eman2_utility.numpy2em(orig.copy()))
+    test1 = eman2_utility.em2numpy(test1em)
+    test2 = ndimage_utility.acf(orig)
+    numpy.testing.assert_allclose(test2, test1, rtol=1.0, atol=1e-4)
+
 def test_mirror_odd():
     '''
     '''
@@ -117,7 +164,7 @@ def test_tight_mask():
     '''
     
     try:
-        from utilities  import gauss_edge, model_gauss
+        from utilities  import gauss_edge
         from morphology import binarize, dilation
     except: return
     rad, width = 13, 78
@@ -128,11 +175,6 @@ def test_tight_mask():
     mask = obj + numpy.random.rand(width,width)*0.2
     emmask = eman2_utility.numpy2em(mask)
     threshold = analysis.otsu(mask.ravel())
-    
-    if 1 == 0: # Close but off by numerical precision
-        kern = model_gauss(gauss_standard_dev, kernel_size , kernel_size)
-        K = ndimage_utility.gaussian_kernel((kernel_size,kernel_size), gauss_standard_dev)
-        numpy.testing.assert_allclose(eman2_utility.em2numpy(kern), K)
     
     if 1 == 1:
         m1 = eman2_utility.EMAN2.Util.get_biggest_cluster(binarize(emmask, threshold))
@@ -231,11 +273,12 @@ def test_find_peaks_fast():
     
     ecc2 = emdata.calc_ccf(emtemp)
     peaks1 = numpy.asarray(ecc2.peak_ccf(rad))
-    peaks1 = peaks1.reshape((len(peaks1)/3, 3))
-    peaks2 = ndimage_utility.find_peaks_fast(ecc2, rad)
-    peaks1 = peaks1[numpy.argsort(peaks1[:, 0])[::-1]]
-    peaks2 = peaks2[numpy.argsort(peaks2[:, 0])[::-1]]
-    #numpy.testing.assert_allclose(peaks1, peaks2)
+    if len(peaks1)>0:
+        peaks1 = peaks1.reshape((len(peaks1)/3, 3))
+        peaks2 = ndimage_utility.find_peaks_fast(ecc2, rad)
+        peaks1 = peaks1[numpy.argsort(peaks1[:, 0])[::-1]]
+        peaks2 = peaks2[numpy.argsort(peaks2[:, 0])[::-1]]
+        #numpy.testing.assert_allclose(peaks1, peaks2)
 
 def test_cross_correlate():
     '''
