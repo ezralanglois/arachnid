@@ -132,7 +132,7 @@ from ..core.util.matplotlib_nogui import pylab
 from ..core.image import ndimage_file
 from ..core.metadata import format, format_utility, spider_utility, spider_params
 from ..core.util import fitting
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import mask_volume
 import logging, os, numpy
 
@@ -160,8 +160,8 @@ def process(filename, output, **extra):
     spi = extra['spi']
     tempfile1 = spi.replace_ext('tmp1_spi_file')
     tempfile2 = spi.replace_ext('tmp2_spi_file')
-    filename1 = ndimage_file.copy_to_spider(filename[0], tempfile1)
-    filename2 = ndimage_file.copy_to_spider(filename[1], tempfile2)
+    filename1 = spider_file.copy_to_spider(filename[0], tempfile1)
+    filename2 = spider_file.copy_to_spider(filename[1], tempfile2)
     filename = (filename1, filename2)
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])

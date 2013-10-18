@@ -92,7 +92,7 @@ from ..core.app.program import run_hybrid_program
 from ..core.metadata import spider_params, spider_utility
 from ..core.parallel import mpi_utility
 from ..core.image import ndimage_file
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import filter_volume
 import logging, os, numpy
 
@@ -132,11 +132,11 @@ def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=Fal
         _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
     tempfile = mpi_utility.safe_tempfile(spi.replace_ext('tmp_spi_file'))
     try:
-        filename = ndimage_file.copy_to_spider(filename, tempfile)
+        filename = spider_file.copy_to_spider(filename, tempfile)
     except:
         if os.path.dirname(tempfile) == "": raise
         tempfile = mpi_utility.safe_tempfile(spi.replace_ext('tmp_spi_file'), False)
-        filename = ndimage_file.copy_to_spider(filename, tempfile)
+        filename = spider_file.copy_to_spider(filename, tempfile)
     w, h, d = spi.fi_h(filename, ('NSAM', 'NROW', 'NSLICE'))
     if w != h: raise ValueError, "Width does not match height - requires box"
     if w != d: raise ValueError, "Width does not match depth - requires box"

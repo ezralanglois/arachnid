@@ -105,7 +105,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.metadata import spider_params, spider_utility, format_utility
+from ..core.metadata import spider_params, spider_utility, format_utility, spider_file
 from ..core.image import ndimage_utility, ndimage_file
 from ..core.spider import spider
 import filter_volume
@@ -133,7 +133,7 @@ def process(filename, output, **extra):
     '''
     
     tempfile1 = extra['spi'].replace_ext('tmp1_spi_file')
-    filename1 = ndimage_file.copy_to_spider(filename, tempfile1)
+    filename1 = spider_file.copy_to_spider(filename, tempfile1)
     if 'apix' in extra:
         extra.update(filter_volume.ensure_pixel_size(filename=filename1, **extra))
     if spider_utility.is_spider_filename(filename[0]):
