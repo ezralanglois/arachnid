@@ -125,7 +125,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.image import eman2_utility, ndimage_utility, ndimage_file
+from ..core.image import ndimage_utility, ndimage_file, ndimage_interplate #eman2_utility
 from ..core.metadata import format_utility, format, spider_params, spider_utility
 from ..core.parallel import mpi_utility
 from ..util import bench as benchmark
@@ -316,7 +316,9 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     else:
         mic = ndimage_file.read_image(filename, cache=emdata).astype(numpy.float32)
 
-    if bin_factor > 1.0 and not disable_bin: mic = eman2_utility.decimate(mic, bin_factor)
+    if bin_factor > 1.0 and not disable_bin: 
+        mic = ndimage_interplate.interplate_ft(mic, bin_factor)
+        #mic = eman2_utility.decimate(mic, bin_factor)
     if invert: mic = ndimage_utility.invert(mic)
     return mic
 
@@ -341,7 +343,9 @@ def create_template(template, disk_mult=1.0, disable_bin=False, **extra):
     if template != "": 
         img= ndimage_file.read_image(template)
         bin_factor=extra['bin_factor']
-        if bin_factor > 1.0 and not disable_bin: img = eman2_utility.decimate(img, bin_factor)
+        if bin_factor > 1.0 and not disable_bin: 
+            img = ndimage_interplate.interplate_ft(img, bin_factor)
+            #img = eman2_utility.decimate(img, bin_factor)
         return img
     radius, offset = init_param(**extra)[:2]
     template = ndimage_utility.model_disk(int(radius*disk_mult), (int(offset*2), int(offset*2)), dtype=numpy.float32)

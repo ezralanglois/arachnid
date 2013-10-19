@@ -154,7 +154,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import tracing
 from ..core.app.program import run_hybrid_program
-from ..core.image import eman2_utility, ndimage_utility, analysis, ndimage_filter
+from ..core.image import ndimage_utility, analysis, ndimage_filter
 from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
 import numpy, scipy, logging, scipy.misc, numpy.linalg
@@ -228,7 +228,7 @@ def write_example(mic, coords, filename, box_image="", **extra):
     if box_image == "" or ImageDraw is None: return
     
     radius, offset, bin_factor = lfcpick.init_param(**extra)[:3]
-    mic = eman2_utility.gaussian_high_pass(mic, 0.25/radius, True)
+    mic = ndimage_filter.filter_gaussian_highpass(mic, 0.25/radius, 2)
     ndimage_utility.replace_outlier(mic, 4.0, 4.0, None, mic)
     mic = scipy.misc.toimage(mic).convert("RGB")
     draw = ImageDraw.Draw(mic)
@@ -246,7 +246,7 @@ def write_example(mic, coords, filename, box_image="", **extra):
         
     mic.save(box_image)
 
-def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, oldmode=False, **extra):
+def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
     
     :Parameters:
@@ -269,7 +269,7 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
     template = lfcpick.create_template(**extra)
     radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
     _logger.debug("Filter micrograph")
-    img = eman2_utility.gaussian_high_pass(img, 0.25/radius, True)
+    img = ndimage_filter.filter_gaussian_highpass(img, 0.25/radius, 2)
     _logger.debug("Template-matching")
     cc_map = ccf_center(img, template)
     _logger.debug("Find peaks")
@@ -287,9 +287,7 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
         raise
     if not disable_prune:
         _logger.debug("Classify peaks")
-        if oldmode:
-            sel = classify_windows_old(img, peaks, **extra)
-        elif experimental:
+        if experimental:
             sel = classify_windows_new(img, peaks, **extra)
         else:
             sel = classify_windows(img, peaks, **extra)
@@ -377,9 +375,6 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    #data = numpy.zeros((len(scoords), masksm.ravel().shape[0]))
-    #data = None #numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    assert(not eman2_utility.is_em(mic))
     
     mask[:] = ndimage_utility.model_disk(int(radius*1.2+1), (offset*2, offset*2)) * (ndimage_utility.model_disk(int(radius*0.9), (offset*2, offset*2))*-1+1)
     datar=None
@@ -467,92 +462,6 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     #else: remove_overlap(scoords, radius, sel)
     return sel
 
-def classify_windows_old(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, **extra):
-    ''' Classify particle windows from non-particle windows
-    
-    :Parameters:
-        
-    mic : EMData
-          Micrograph
-    scoords : list
-              List of potential particle coordinates
-    dust_sigma : float
-                 Number of standard deviations for removal of outlier dark pixels
-    xray_sigma : float
-                 Number of standard deviations for removal of outlier light pixels
-    disable_threshold : bool
-                        Disable noise removal with threshold selection
-    remove_aggregates : bool
-                        Set True to remove aggregates
-    pca_mode : float
-               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
-    iter_threshold : int
-                     Number of times to repeat thresholding
-    extra : dict
-            Unused key word arguments
-    
-    :Returns:
-        
-    sel : numpy.ndarray
-          Bool array of selected good windows 
-    '''
-    
-    _logger.debug("Total particles: %d"%len(scoords))
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    npdata = eman2_utility.em2numpy(emdata)
-    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
-    masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
-    vfeat = None #numpy.zeros((len(scoords)))
-    data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    if eman2_utility.is_em(mic):
-        emmic = mic
-        mic = eman2_utility.em2numpy(emmic)
-
-    bin_factor=1.0
-    _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
-        if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        if 1 == 1:
-            npdata[:, :] = win
-            eman2_utility.ramp(emdata)
-            win[:, :] = npdata
-        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        if vfeat is not None:
-            vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
-        amp = ndimage_utility.fourier_mellin(win)*maskap
-        ndimage_utility.vst(amp, amp)
-        ndimage_utility.normalize_standard(amp, masksm, out=amp)
-        ndimage_utility.compress_image(amp, masksm, data[i])
-    
-    _logger.debug("Performing PCA")
-    feat, idx = analysis.pca(data, data, pca_mode)[:2]
-    if feat.ndim != 2:
-        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-    assert(idx > 0)
-    assert(feat.shape[0]>1)
-    _logger.debug("Eigen: %d"%idx)
-    dsel = analysis.one_class_classification_old(feat)
-    
-    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
-    if vfeat is not None:
-        sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
-    else: sel = dsel
-    if not disable_threshold:
-        for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel)
-            dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
-            sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel)
-        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
-        sel = numpy.logical_and(tsel, sel)
-        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))      
-
-    if remove_aggregates: classify_aggregates(scoords, offset, sel)
-    return sel
-
 def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, **extra):
     ''' Classify particle windows from non-particle windows
     
@@ -590,7 +499,6 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    assert(not eman2_utility.is_em(mic))
     
     mask[:] = ndimage_utility.model_disk(int(radius*1.2+1), (offset*2, offset*2)) * (ndimage_utility.model_disk(int(radius*0.9), (offset*2, offset*2))*-1+1)
     datar=None
@@ -840,7 +748,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   pca_mode=1.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
     group.add_option("",   iter_threshold=1,            help="Number of times to iterate thresholding")
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
-    group.add_option("",   oldmode=False,               help="Use the old version of AutoPicker!")
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
     group.add_option("",   experimental2=False,         help="Use the latest experimental features, 2nd generation!")
     group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
