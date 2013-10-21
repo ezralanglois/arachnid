@@ -722,8 +722,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", frame_end=-1,             help="Range for the number of frames")
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", "--micrograph-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", "--particle-stack",   output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", coordinate_file="",     help="File containing coordinates of objects", gui=dict(filetype="open"), required_file=True)
         pgroup.add_option("-d", selection_doc="",       help="Selection file for a subset of good windows", gui=dict(filetype="open"), required_file=False)
         parser.change_default(log_level=3)
