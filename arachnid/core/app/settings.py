@@ -1230,7 +1230,7 @@ class OptionParser(optparse.OptionParser):
         for option in options:
             if len(option._long_opts) == 0 or option.is_not_config(): continue
             name = option._long_opts[0]
-            code = option._short_opts[0] if len(option._short_opts) > 0 else ""
+            code = ",".join(option._short_opts+option._long_opts[1:]) if len(option._short_opts) > 0 else ""
             if option.dest is None: continue
             value = getattr(values, option.dest, None)
             if value is None: continue
