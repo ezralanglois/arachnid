@@ -178,6 +178,7 @@ def convert_to_spider(files, output, offset=0):
     '''
     
     if len(files)==0: return files
+    files = sorted(files)
     base = os.path.splitext(output)[0]
     select = format_utility.add_prefix(base+".star", 'sel_')
     output = base+os.path.splitext(files[0])[1]
