@@ -491,7 +491,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         fileset=set(self.files)
-        newfiles = [f for f in files if f not in fileset]
+        newfiles = sorted([f for f in files if f not in fileset])
         self.notify_added_files(newfiles)
         self.updateFileIndex(newfiles)
         self.files.extend(newfiles)
