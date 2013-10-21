@@ -285,15 +285,17 @@ class MainWindow(ImageViewerWindow):
                      List of deselected items in the list
         '''
         
-        
+        print 'total:', self.file_index.shape
         for index in selected.indexes():
             idx = index.data(QtCore.Qt.UserRole)
+            if hasattr(idx, '__iter__'): idx = idx[0]
             self.file_index[idx][2] = 1
             self.selectedCount+=1
             self.selectfout.write('%d,'%idx)
             self.selectfout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
         for index in deselected.indexes():
             idx = index.data(QtCore.Qt.UserRole)
+            if hasattr(idx, '__iter__'): idx = idx[0]
             self.file_index[idx][2] = 0
             self.selectedCount-=1
             self.selectfout.write('%d,'%idx)
