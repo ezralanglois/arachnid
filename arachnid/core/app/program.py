@@ -427,7 +427,11 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     
     options.create_cfg = settings_editor.display(parser, options, **vars(options))
     
-    if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
+    # Disable automatic version update
+    #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
+    #
+    #
+    
     #parser.write("."+parser.default_config_filename(), options)
     if hasattr(main_module, "update_options"): main_module.update_options(options)
     if options.create_cfg != "":     
