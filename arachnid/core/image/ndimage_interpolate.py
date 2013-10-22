@@ -18,6 +18,15 @@ import ndimage_utility
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+
+
+try:
+    from util import _resample
+    _resample;
+except:
+    _resample=None
+    tracing.log_import_error('Failed to load _resample.so module', _logger)
+
 try:
     from spi import _spider_interpolate
     _spider_interpolate;
@@ -26,6 +35,55 @@ except:
     #_logger.addHandler(logging.StreamHandler())
     #_logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
+    
+def decimate_sinc_blackman(img, bin_factor, kernel_size=15):
+    '''
+    '''
+    
+    shape = numpy.asarray(img.shape)
+    shape /= bin_factor
+    bin_factor = 1.0/bin_factor
+    fc = 0.5*bin_factor
+    ksize=1999
+    ltab = int(round(ksize/1.25))
+    mhalf = kernel_size//2
+    fltb = ltab/(mhalf)
+    freq = numpy.arange(kernel_size, dtype=numpy.float)/fltb
+    freq[0] = 1e-7
+    twopi = 2*numpy.pi
+    k = numpy.sin(twopi*freq*fc)/freq*( 0.52 - 0.5*numpy.cos(twopi*-(freq-mhalf)/kernel_size) + 0.08*numpy.cos(2*twopi*(freq-mhalf)/kernel_size)  )
+    k = numpy.outer(k,k)
+    out = scipy.ndimage.filters.convolve(img, k, mode='mirror').copy()
+    return scipy.ndimage.zoom(out, bin_factor, order=2, prefilter=False)
+    
+    
+def sincblackman(bin_factor, template_min = 15, kernel_size=2002, dtype=numpy.float32):
+    '''
+    '''
+    
+    bin_factor = 1.0/bin_factor
+    frequency_cutoff = 0.5*bin_factor
+    kernel = numpy.zeros(kernel_size, dtype=dtype)
+    _resample.sinc_blackman_kernel(kernel, int(template_min), float(frequency_cutoff))
+    return kernel
+
+def downsample(img, kernel, out):
+    '''
+    '''
+    
+    scale=None
+    if not hasattr(out, 'ndim'):
+        if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
+        else:
+            scale = 1.0/out 
+            shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
+        out = numpy.zeros(shape, dtype=img.dtype)
+    else:
+        if out.dtype != img.dtype: raise ValueError, "Requires output and input of the same dtype"
+    if kernel.dtype != img.dtype: raise ValueError, "Requires kernel and input of the same dtype"
+    if scale is None: scale = float(out.shape[0])/float(img.shape[0])
+    _resample.downsample(img, out, kernel, scale)
+    return out
     
 """
 
@@ -55,7 +113,7 @@ def resample_fourier_window(img, out):
         out = numpy.zeros(shape, dtype=img.dtype)
     if out.shape[0] > img.shape[0]: raise ValueError, "Upsamping not currently supported"
     fimg = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
-    fimg = ndimage_utility.crop_window(fimg, img.shape[0]/2, img.shape[1]/2, (out.shape[0], out.shape[1]))
+    fimg = ndimage_utility.crop_window2(fimg, img.shape[0]/2, img.shape[1]/2, (out.shape[0], out.shape[1]))
     out[:] = scipy.fftpack.ifftshift(scipy.fftpack.ifft2(fimg)).real
     return out
     

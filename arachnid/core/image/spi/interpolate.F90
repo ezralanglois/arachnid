@@ -41,7 +41,6 @@
 !f2py intent(hide) :: NROW,NROW2,LSD,LSD2
 
 			CALL FINT(X, Y, NSAM, NROW, NSAM2, NROW2, LSD, LSD2)
-
 		END
 
 ! ---------------------------------------------------------------------------

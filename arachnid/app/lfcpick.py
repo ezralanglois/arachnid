@@ -125,7 +125,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_utility, ndimage_file, ndimage_interplate #eman2_utility
+from ..core.image import ndimage_utility, ndimage_file, ndimage_interpolate
 from ..core.metadata import format_utility, format, spider_params, spider_utility
 from ..core.parallel import mpi_utility
 from ..util import bench as benchmark
@@ -282,7 +282,7 @@ def lfc(img, template, mask):
     cc_map /= ndimage_utility.local_variance(img, mask)
     return cc_map
 
-def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, fraction=1, **extra):
+def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, fraction=1, ds_kernel=None, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
@@ -316,13 +316,12 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     else:
         mic = ndimage_file.read_image(filename, cache=emdata).astype(numpy.float32)
 
-    if bin_factor > 1.0 and not disable_bin: 
-        mic = ndimage_interplate.interplate_ft(mic, bin_factor)
-        #mic = eman2_utility.decimate(mic, bin_factor)
+    if bin_factor > 1.0 and not disable_bin:
+        mic = ndimage_interpolate.downsample(mic, ds_kernel, bin_factor)
     if invert: mic = ndimage_utility.invert(mic)
     return mic
 
-def create_template(template, disk_mult=1.0, disable_bin=False, **extra):
+def create_template(template, disk_mult=1.0, disable_bin=False, ds_kernel=None, **extra):
     ''' Read a template from a file or create a soft disk
     
     :Parameters:
@@ -339,13 +338,14 @@ def create_template(template, disk_mult=1.0, disable_bin=False, **extra):
     template : EMData
                Template read from file or uniform disk with soft edge
     '''
+    #template = eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
+    #return eman2_utility.utilities.gauss_edge(template, kernel_size = kernel_size, gauss_standard_dev = 3)
     #mic = ndimage_file.read_image(template)
     if template != "": 
         img= ndimage_file.read_image(template)
         bin_factor=extra['bin_factor']
         if bin_factor > 1.0 and not disable_bin: 
-            img = ndimage_interplate.interplate_ft(img, bin_factor)
-            #img = eman2_utility.decimate(img, bin_factor)
+            mic = ndimage_interpolate.downsample(mic, ds_kernel, bin_factor)
         return img
     radius, offset = init_param(**extra)[:2]
     template = ndimage_utility.model_disk(int(radius*disk_mult), (int(offset*2), int(offset*2)), dtype=numpy.float32)
@@ -399,7 +399,7 @@ def initialize(files, param):
     
     param.update(ndimage_file.cache_data())
     param["confusion"] = numpy.zeros((len(files), 4))
-    
+    param["ds_kernel"] = ndimage_interpolate.sincblackman(param['bin_factor'], dtype=numpy.float32)
     if mpi_utility.is_root(**param):
         if os.path.dirname(param['output']) != "":
             if not os.path.exists(os.path.dirname(param['output'])):
@@ -459,6 +459,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   disable_bin=False,   help="Disable micrograph decimation")
     group.add_option("",   invert=False,        help="Invert the contrast of CCD micrographs")
     group.add_option("",   fraction=0,          help="Number of dose fractionated images to average")
+    
     
     
     if main_option:

@@ -23,3 +23,8 @@ try:
     import _ctf
     _ctf;
 except: pass
+
+try: 
+    import _resample
+    _resample;
+except: pass

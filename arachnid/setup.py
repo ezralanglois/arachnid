@@ -26,7 +26,9 @@ def ccompiler_options():
     # Todo test for PGI compiler
         
     openmp_enabled, needs_gomp = detect_openmp()
-    compiler_args = ['-O3', '-funroll-loops'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
+    #'-march=k8', '-mfpmath=sse', '-m64', '-ffast-math', '-pipe'
+    #'-O3', '-march=athlon-xp', '-mfpmath=sse', '-msse', '-funroll-loops', '-pipe'
+    compiler_args = ['-O2', '-funroll-loops', '-msse2', '-mfpmath=sse']#, '-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
     if openmp_enabled:
         compiler_args.append('-fopenmp')
     compiler_libraries = [] #['gomp'] if needs_gomp else []
