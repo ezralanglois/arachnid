@@ -6,7 +6,7 @@
 from ..core.app import program
 from ..core.util import plotting
 from ..core.metadata import spider_utility, format, format_utility, spider_params
-from ..core.image import ndimage_file, ndimage_utility, eman2_utility, ctf, analysis
+from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate, ctf, analysis
 from ..core.parallel import mpi_utility
 import os, numpy, logging, sys
 
@@ -126,7 +126,7 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
         n = ndimage_file.count_images(filename)
         for i in xrange(n):
             mic = ndimage_file.read_image(filename, i).astype(numpy.float32)
-            if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+            if bin_factor > 1: mic = ndimage_interpolate.downsample(mic, bin_factor)
             if invert: ndimage_utility.invert(mic, mic)
             rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
             rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
@@ -151,7 +151,7 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
                     frame = ndimage_file.read_image(filename, i)
                     j = i-frame_beg if len(trans) == (frame_end-frame_beg) else i
                     assert(j>=0)
-                    frame = eman2_utility.fshift(frame, trans[j].dx, trans[j].dy)
+                    frame = ndimage_utility.fourier_shift(frame, trans[j].dx, trans[j].dy)
                     if mic is None: mic = frame
                     else: mic += frame
             else:
@@ -171,7 +171,7 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
                 mic=mic[c-n:c+n, c-n:c+n]
             pow = ndimage_utility.multitaper_power_spectra(mic, int(round(rmax)), True, shift)
             if window_size > 0:
-                pow = eman2_utility.decimate(pow, float(pow.shape[0])/window_size)
+                pow = ndimage_interpolate.downsample(pow, float(pow.shape[0])/window_size)
             pow = remove_artifacts(pow)
         else:
             _logger.info("Estimating periodogram")

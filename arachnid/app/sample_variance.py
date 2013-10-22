@@ -8,7 +8,7 @@
 from ..core.app import program
 from ..core.metadata import spider_params, format_alignment, spider_utility, format_utility
 from ..core.parallel import mpi_utility, process_tasks
-from ..core.image import ndimage_file, reconstruct, eman2_utility
+from ..core.image import ndimage_file, reconstruct, ndimage_filter
 from ..core.util import numpy_ext
 from ..core.orient import healpix
 import logging, numpy, itertools, os
@@ -225,7 +225,7 @@ def filter_volume(vol, resolution=0, apix=0, **extra):
     '''
     
     if resolution > 0 and apix > 0:
-        vol = eman2_utility.gaussian_low_pass(vol, apix/resolution)
+        vol = ndimage_filter.gaussian_lowpass(vol, apix/resolution)
     return vol
 
 def sample_weights(align, view_resolution, view_eps, **extra):

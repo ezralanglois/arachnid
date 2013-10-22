@@ -6,7 +6,7 @@
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, manifold, rotate, analysis, ndimage_processor
+from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility, manifold, rotate, analysis, ndimage_processor, ndimage_filter
 from ..core.metadata import spider_utility, format, spider_params, format_utility
 from ..core.orient import orient_utility, healpix
 from ..core.parallel import process_queue
@@ -303,9 +303,9 @@ def create_mask(files, pixel_diameter, **extra):
     '''
     
     img = ndimage_file.read_image(files[0])
-    mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
     bin_factor = decimation_level(**extra)
-    if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
+    if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
     _logger.info("Mask of radius = %d -- width = %d -- bin = %d"%(int(pixel_diameter/2.0), img.shape[0], mask.shape[0]))
     return mask
 
@@ -315,8 +315,8 @@ def image_transform(img, i, mask, var_one=False, bispec=False, compress=True, bi
     
     #ndimage_utility.vst(img, img)
     bin_factor = decimation_level(apix=apix, **extra)
-    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
-    img = eman2_utility.gaussian_low_pass(img, 0.48)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
+    img = ndimage_filter.gaussian_lowpass(img, 0.48)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     if bispec and compress:
         img, freq = ndimage_utility.bispectrum(img, img.shape[0]-1, 'gaussian')

@@ -10,7 +10,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
+from ..core.image import ndimage_file, ndimage_utility, reproject, rotate, ndimage_interpolate, ndimage_filter, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params, format_alignment
 #from ..core.parallel import mpi_utility
@@ -280,7 +280,7 @@ def generate_reference_projections(reference, pixel_diameter, **extra):
     reference = ndimage_file.read_image(reference)
     bin_factor = decimation_level(**extra)
     _logger.info("Decimate data by %f for resolution %f"%(bin_factor, extra['resolution']))
-    if bin_factor > 1: reference = ndimage_interpolate.interpolate_bilinear(reference, bin_factor) #reference = eman2_utility.decimate(reference, bin_factor)
+    if bin_factor > 1: reference = ndimage_interpolate.interpolate_ft(reference, bin_factor) # downsample - 3d
     # decimate to window size
     # normalize projections
     angles = healpix.angles(healpix_order(pixel_diameter, **extra))
@@ -329,29 +329,26 @@ def create_mask(files, pixel_diameter, **extra):
     '''
     
     img = ndimage_file.read_image(files[0])
-    mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
-    #bg = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])*-1+1
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
+    #bg = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)*-1+1
     #bg[bg > 0] = numpy.mean(img[mask>0])
     bin_factor = 1#decimation_level(**extra)
     #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
     if bin_factor > 1: 
-        mask = ndimage_interpolate.interpolate_ft(mask, bin_factor)
-        #mask = eman2_utility.decimate(mask, bin_factor)
-        #bg = eman2_utility.decimate(bg, bin_factor)
+        mask = ndimage_interpolate.downsample(mask, bin_factor)
     return mask #, bg
 
 def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extra):
     '''
     '''
     
-    #if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
-    #if align[i, 0] != 0: img = eman2_utility.rot_shift2D(img, align[i, 0], 0, 0, 0)
+    #if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
+    #if align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
     ndimage_utility.vst(img, img)
     '''
     bin_factor = decimation_level(**extra)
     if bin_factor > 1: 
-        img = ndimage_interpolate.interpolate_ft(img, bin_factor)
-        #img = eman2_utility.decimate(img, bin_factor)
+        img = ndimage_interpolate.downsample(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     '''
     '''
@@ -364,14 +361,6 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     #if mask is not None:
     #    img = ndimage_utility.compress_image(img, mask)
     #if mask is not None: img *= mask
-    return img
-
-def image_transform_sim(img, i, mask, var_one=True, align=None, bispec=False, apix=2.81, resolution=12.0, **extra):
-    '''
-    '''
-    
-    if resolution > 0 and apix > 0: img = eman2_utility.gaussian_low_pass(img, apix/resolution, 1)
-    img = eman2_utility.normalize_mask(img, mask)
     return img
 
 def decimation_level(resolution, apix, window, **extra):

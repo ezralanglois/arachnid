@@ -5,7 +5,7 @@
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, ndimage_processor #, analysis
+from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility, ndimage_processor #, analysis
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 import logging, numpy, os, sys #, itertools, sys, scipy
 from ..core.learn.deep import SdA
@@ -43,10 +43,10 @@ def create_mask(files, pixel_diameter, resolution, apix, **extra):
     '''
     
     img = ndimage_file.read_image(files[0])
-    mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     _logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor, resolution, apix))
-    if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
+    if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
     return mask
 
 def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, **extra):
@@ -55,10 +55,10 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, **
     
     if align is not None:
         assert(align[i, 0]==0)
-        if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
+        if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
-    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     if 1 == 0:
         img, freq = ndimage_utility.bispectrum(img, 0.5, 'gaussian', 1.0)

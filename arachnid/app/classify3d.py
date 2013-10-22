@@ -46,7 +46,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
-from ..core.image import ndimage_file, manifold, ndimage_utility, eman2_utility, ndimage_processor
+from ..core.image import ndimage_file, manifold, ndimage_utility, ndimage_interpolate, ndimage_processor
 from ..core.orient import orient_utility, transforms
 from ..core.parallel import process_queue
 import logging, os, numpy, scipy.ndimage.interpolation
@@ -156,12 +156,11 @@ def recalculate_distance_worker(beg, end, shm_data, shm_qneigh, shm_quat, mask, 
         #frame = transforms.quaternion_inverse(quat[qneigh.col[b]])
         frame = quat[qneigh.col[b]]
         #if not numpy.alltrue(numpy.isfinite(euler)): raise ValueError, "Non finite values detected in array"
-        rdata = data[r].reshape((n,n)) #eman2_utility.rot_shift2D(data[r].reshape((n,n)), -euler[0], 0, 0, 0)
+        rdata = data[r].reshape((n,n))
         if euler[0] != 0: 
             rdata = scipy.ndimage.interpolation.rotate(rdata, -euler[0], mode='wrap')
             diff = (rdata.shape[0]-n)/2
             rdata = rdata[diff:(rdata.shape[0]-diff), diff:(rdata.shape[0]-diff)]
-        #if euler[0] != 0: rdata = eman2_utility.rot_shift2D(rdata, -euler[0], 0, 0, 0)
         if process_number == 0 and r < (beg+100):
             avg = rdata.copy()
         
@@ -173,8 +172,6 @@ def recalculate_distance_worker(beg, end, shm_data, shm_qneigh, shm_quat, mask, 
             cdata = scipy.ndimage.interpolation.rotate(data[c].reshape((n,n)), -(euler[0]+euler[2]), mode='wrap')
             diff = (cdata.shape[0]-n)/2
             cdata = cdata[diff:(cdata.shape[0]-diff), diff:(cdata.shape[0]-diff)]
-            #cdata = eman2_utility.rot_shift2D(data[c].reshape((n,n)), -(euler[0]+euler[2]), 0, 0, 0)
-            #cdata = eman2_utility.rot_shift2D(data[c].reshape((n,n)), euler[2], 0, 0, 0)
             if process_number == 0 and r < (beg+100):
                 avg+=cdata
             cdata = ndimage_utility.compress_image(cdata, mask)
@@ -189,10 +186,10 @@ def create_mask(files, pixel_diameter, resolution, apix, **extra):
     '''
     
     img = ndimage_file.read_image(files[0])
-    mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     _logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor, resolution, apix))
-    if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
+    if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
     return mask
 
 def image_transform(img, i, mask, resolution, apix, var_one=True, **extra):
@@ -201,7 +198,7 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, **extra):
     
     ndimage_utility.vst(img, img)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
-    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     #img = ndimage_utility.compress_image(img, mask)
     return img

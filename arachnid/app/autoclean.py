@@ -7,7 +7,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, eman2_utility, analysis, ndimage_utility, rotate, manifold, ndimage_processor
+from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, manifold, ndimage_processor, ndimage_interpolate
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
@@ -338,11 +338,11 @@ def create_mask(files, pixel_diameter, apix, **extra):
     '''
     
     img = ndimage_file.read_image(files[0])
-    mask = eman2_utility.model_circle(int(pixel_diameter/2.0), img.shape[0], img.shape[1])
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
     bin_factor = decimation_level(apix, pixel_diameter=pixel_diameter, **extra)
     #bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
     #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
-    if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
+    if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
     return mask
 
 def resolution_from_order(apix, pixel_diameter, order, resolution, **extra):
@@ -382,11 +382,11 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
         else:
             img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
     elif align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
-    if align[i, 1] > 179.999: img = eman2_utility.mirror(img)
+    if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(apix, resolution=resolution, **extra)
     #bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
-    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
     if mask.shape[0] != img.shape[0]:
         _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
     assert(mask.shape[0]==img.shape[0])

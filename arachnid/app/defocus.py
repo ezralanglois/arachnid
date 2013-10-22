@@ -8,7 +8,7 @@ from ..core.app import tracing
 tracing;
 from ..core.metadata import format, spider_params, spider_utility, format_utility
 format;
-from ..core.image import ndimage_utility, ndimage_file, eman2_utility
+from ..core.image import ndimage_utility, ndimage_file, ndimage_interpolate
 from ..core.util.matplotlib_nogui import pylab
 import numpy, logging, os, scipy.optimize
 from ..pyspider import resolution
@@ -134,7 +134,7 @@ def read_micrograph(filename, bin_factor, **extra):
     
     img = ndimage_file.read_image(filename)
     if bin_factor != 1.0 and bin_factor != 0.0:
-        img = eman2_utility.decimate(img, bin_factor)
+        img = ndimage_interpolate.downsample(img, bin_factor)
     return img
 
 def read_stack(filename, bin_factor, **extra):
@@ -155,7 +155,7 @@ def read_stack(filename, bin_factor, **extra):
     
     for img in ndimage_file.iter_images(filename):
         if bin_factor != 1.0 and bin_factor != 0.0:
-            img = eman2_utility.decimate(img, bin_factor)
+            img = ndimage_interpolate.downsample(img, bin_factor)
         yield img
 
 def esimate_astigmatism(powerspec, ampcont, cs, voltage, **extra):

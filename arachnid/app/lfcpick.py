@@ -338,9 +338,7 @@ def create_template(template, disk_mult=1.0, disable_bin=False, ds_kernel=None, 
     template : EMData
                Template read from file or uniform disk with soft edge
     '''
-    #template = eman2_utility.utilities.model_circle(int(radius*disk_mult), int(offset*2), int(offset*2), 1)
-    #return eman2_utility.utilities.gauss_edge(template, kernel_size = kernel_size, gauss_standard_dev = 3)
-    #mic = ndimage_file.read_image(template)
+    
     if template != "": 
         img= ndimage_file.read_image(template)
         bin_factor=extra['bin_factor']

@@ -7,7 +7,7 @@ from ..core.util.matplotlib_nogui import pylab
 from ..core.app import program
 #from ..core.util import plotting
 from ..core.metadata import spider_utility, spider_params, format_utility, format #, format_utility
-from ..core.image import ndimage_file, ndimage_utility, eman2_utility, align, rotate #, ctf #, analysis
+from ..core.image import ndimage_file, ndimage_utility, align, rotate, ndimage_interpolate, ndimage_filter #, ctf #, analysis
 from ..core.image.formats import mrc as mrc_file
 from ..core.parallel import mpi_utility
 import numpy, logging, scipy, scipy.stats #, os, scipy
@@ -143,16 +143,17 @@ def align_micrographs(files, id, param, output, quality_test=False, frame_limit=
         fity = numpy.poly1d(numpy.polyfit([0, frame_limit],[0, dyl],1))
         sum2=sum.copy()
         sum3=sum.copy()
+        kernel = ndimage_interpolate.sincblackman(2, dtype=sum3.dtype)
         for i, f in enumerate(files[1:frame_limit]):
             _logger.info("Processing: %d of %d"%(i, frame_limit))
             img = read_micrograph(f, **extra)
             
             sum3+=img
-            pow = ndimage_utility.perdiogram(eman2_utility.decimate(sum3, 2))
+            pow = ndimage_utility.perdiogram(ndimage_interpolate.downsample(sum3, 2, kernel))
             ndimage_file.write_image(powo_output, pow, i)
             
-            sum2+=eman2_utility.fshift(img, fitx(i), fity(i))
-            pow = ndimage_utility.perdiogram(eman2_utility.decimate(sum2, 2))
+            sum2+=ndimage_utility.fourier_shift(img, fitx(i), fity(i))
+            pow = ndimage_utility.perdiogram(ndimage_interpolate.downsample(sum2, 2, kernel))
             ndimage_file.write_image(powi_output, pow, i)
             
             
@@ -173,7 +174,7 @@ def align_micrographs(files, id, param, output, quality_test=False, frame_limit=
             pylab.plot(x, param[:, 1], 'b--')
             pylab.savefig(format_utility.new_filename(output, 'tracking_iter', ext="png"), dpi=200)
         except: pass
-        simg = eman2_utility.fshift(img, dx, dy)
+        simg = ndimage_utility.fourier_shift(img, dx, dy)
         '''
         p1 = snr(prev.ravel(), img.ravel())
         p2 = snr(prev.ravel(), simg.ravel())
@@ -184,7 +185,7 @@ def align_micrographs(files, id, param, output, quality_test=False, frame_limit=
         _logger.info("%d/%d - Shift: %d, %d -- %f"%(id, i+1, dx, dy, res))#, p1, p2, p3, p4)) -- sing: %f, %f | avg: %f, %f
         #_logger.info("%d/%d - Shift: %d, %d -- %f - Shift-prev: %d, %d -- %f"%(id, i+1, dx, dy, res, dx2, dy2, res2))#, p1, p2, p3, p4)) -- sing: %f, %f | avg: %f, %f
         if quality_test:
-            pow = ndimage_utility.perdiogram(eman2_utility.decimate(sum, 2))
+            pow = ndimage_utility.perdiogram(ndimage_interpolate.downsample(sum, 2, kernel))
             ndimage_file.write_image(pow_output, pow, i)
         #prev = simg
     
@@ -228,8 +229,8 @@ def align_win(img, ref, id, cc_output, quality_test, apix, resolution, pixel_dia
     '''
     '''
     
-    ref = eman2_utility.gaussian_low_pass(ref, apix/resolution)
-    #ref = eman2_utility.gaussian_high_pass(ref, 0.5/pixel_diameter)
+    ref = ndimage_filter.gaussian_lowpass(img, apix/resolution, 1)
+    #ref = ndimage_filter.gaussian_highpass(ref, 0.5/pixel_diameter)
     #ref = ndimage_utility.dog(ref, pixel_diameter/8.0)
     #img = ndimage_utility.dog(img, pixel_diameter/8.0)
     window_size = (numpy.min(ref.shape)-offset*2)/2
@@ -249,7 +250,7 @@ def align_win(img, ref, id, cc_output, quality_test, apix, resolution, pixel_dia
         best = (-1e20, 0, 0)
         for x in xrange(-2, 3):
             for y in xrange(-2, 3):
-                simg = eman2_utility.fshift(img1, x, y)
+                simg = ndimage_utility.fourier_shift(img1, x, y)
                 p = snr(ref1.ravel(), simg.ravel())
                 if p > best[0]: best=(p, x, y)
         x, y = best[1:]
@@ -265,7 +266,7 @@ def align_win2(img, ref, id, cc_output, quality_test, apix, resolution, pixel_di
     '''
     '''
     
-    ref = eman2_utility.gaussian_low_pass(ref, apix/resolution)
+    ref = ndimage_filter.gaussian_lowpass(ref, apix/resolution)
     window_size = (numpy.min(ref.shape)-offset*2)/2
     #cc_map_sum = None
     xc, yc = offset, offset
@@ -287,13 +288,13 @@ def align_pair(img, ref, id, cc_output, quality_test, apix, resolution=20.0, exp
     if experimental: return align_win(img, ref, id, cc_output, quality_test, apix, resolution, **extra)
     
     if not quality_test:
-        ref = eman2_utility.gaussian_low_pass(ref, apix/resolution)
+        ref = ndimage_filter.gaussian_lowpass(ref, apix/resolution)
     cc_map = ndimage_utility.cross_correlate(img, ref)
     
     if quality_test:
         best = (-1e20, None)
         for i, f in enumerate(scipy.linspace(apix*2.25, 30, 10)):
-            fcc_map = eman2_utility.gaussian_low_pass(cc_map, apix/f)
+            fcc_map = ndimage_filter.gaussian_lowpass(cc_map, apix/f)
             ndimage_file.write_image(cc_output, fcc_map, i)
             x, y = select_peak(fcc_map)
             d=fcc_map[x,y]
@@ -325,7 +326,7 @@ def average(filename, param, experimental):
         if experimental and 1 == 0:
             sum+=rotate.rotate_image(img, 0, param[i+1, 0], param[i+1, 1])
         elif param is not None:
-            sum+=eman2_utility.fshift(img, param[i+1, 0], param[i+1, 1])
+            sum+=ndimage_utility.fourier_shift(img, param[i+1, 0], param[i+1, 1])
         else: sum += img
     return sum
 
@@ -339,7 +340,7 @@ def average_iter(filename, param, experimental):
         if experimental and 1 == 0:
             sum+=rotate.rotate_image(img, 0, param[i+1, 0], param[i+1, 1])
         elif param is not None:
-            sum+=eman2_utility.fshift(img, param[i+1, 0], param[i+1, 1])
+            sum+=ndimage_utility.fourier_shift(img, param[i+1, 0], param[i+1, 1])
         else: sum += img
     return sum
 
@@ -359,9 +360,12 @@ def read_micrograph_iter(filename, bin_factor, invert, pixel_diameter, **extra):
     ''' Read an process a micrograph
     '''
     
+    kernel=None
     for mic in read_image_iter(filename):
-    #mic = eman2_utility.gaussian_high_pass(mic, 0.5/(pixel_diameter*bin_factor))
-        if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+    #mic = dimage_filter.gaussian_highpass(mic, 0.5/(pixel_diameter*bin_factor)) 
+        if bin_factor > 1: 
+            if kernel is None: kernel = ndimage_interpolate.sincblackman(bin_factor, dtype=mic.dtype)
+            mic = ndimage_interpolate.downsample(mic, bin_factor, kernel)
         if invert: ndimage_utility.invert(mic, mic)
         yield mic
 
@@ -384,8 +388,8 @@ def read_micrograph(filename, bin_factor, invert, pixel_diameter, **extra):
     '''
     
     mic = read_image(filename)
-    #mic = eman2_utility.gaussian_high_pass(mic, 0.5/(pixel_diameter*bin_factor))
-    if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+    #mic = ndimage_filter.gaussian_highpass(mic, 0.5/(pixel_diameter*bin_factor))
+    if bin_factor > 1: mic = ndimage_interpolate.downsample(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
     return mic
     
