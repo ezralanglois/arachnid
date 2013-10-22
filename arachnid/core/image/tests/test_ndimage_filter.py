@@ -7,6 +7,16 @@ import numpy, numpy.testing
 
 full_test=False
 
+def test_filter_gaussian_highpass_2d_new():
+    # Fails test: Max diff:  0.797096076993 -0.05879157885
+    rad, width, bins = 13, 78, 128
+    sigma = 0.1
+    img = numpy.random.normal(8, 4, (width,width)).astype(numpy.float32)
+    fimg=ndimage_filter.gaussian_highpass(img.copy(), sigma, 0)
+    img = eman2_utility.gaussian_high_pass(img, sigma, 0)
+    numpy.testing.assert_allclose(fimg, img, rtol=1.0, atol=1.0e-5)
+    
+
 def test_ramp(): # Big difference with this function!
     '''
     '''

@@ -103,6 +103,13 @@
 	    X1     = FLOAT(N2S/2)**2
 	    Y1     = FLOAT(NR2)  **2
 
+	   	!omega = params["cutoff_abs"];
+		!omega = 0.5f/omega/omega;
+		!argx = argy + float(jx*jx)*dx2;
+		!1.0f-exp(-argx*omega);
+		!dx = 1.0f/float(nxp);
+		!float dx2 = dx*dx
+
 		IRTFLG=0
 		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
 	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &

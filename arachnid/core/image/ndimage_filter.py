@@ -11,6 +11,7 @@ SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html
 '''
 from ..app import tracing
 import logging, numpy
+import scipy.fftpack
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -114,6 +115,7 @@ def filter_gaussian_lowpass(img, sigma, pad=2):
           Filtered image
     '''
     
+    if pad < 1: pad =1
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Supports only 2D or 3D images"
     if img.ndim == 3:
         nxp = int(img.shape[2]*pad)
@@ -153,6 +155,7 @@ def filter_gaussian_highpass(img, sigma, pad=2):
           Filtered image
     '''
     
+    if pad < 1: pad =1
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Supports only 2D or 3D images"
     if img.ndim == 3:
         nxp = int(img.shape[2]*pad)
@@ -194,6 +197,7 @@ def filter_butterworth_lowpass(img, lcut, hcut, pad=2):
           Filtered image
     '''
     
+    if pad < 1: pad =1
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Supports only 2D or 3D images"
     if img.ndim == 3:
         nxp = int(img.shape[2]*pad)
@@ -235,6 +239,7 @@ def filter_butterworth_highpass(img, lcut, hcut, pad=2):
           Filtered image
     '''
     
+    if pad < 1: pad =1
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Supports only 2D or 3D images"
     if img.ndim == 3:
         nxp = int(img.shape[2]*pad)
@@ -276,6 +281,7 @@ def filter_raised_cosine_lowpass(img, lcut, hcut, pad=2):
           Filtered image
     '''
     
+    if pad < 1: pad =1
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Supports only 2D or 3D images"
     if img.ndim == 3:
         nxp = int(img.shape[2]*pad)
@@ -317,6 +323,7 @@ def filter_raised_cosine_highpass(img, lcut, hcut, pad=2):
           Filtered image
     '''
     
+    if pad < 1: pad =1
     if img.ndim != 3 and img.ndim != 2: raise ValueError, "Supports only 2D or 3D images"
     if img.ndim == 3:
         nxp = int(img.shape[2]*pad)
@@ -333,4 +340,184 @@ def filter_raised_cosine_highpass(img, lcut, hcut, pad=2):
             raise StandardError, "An unknown error occurred in the rcos filter"
         out = out[:img.shape[0], :img.shape[1]]
     return out
+
+def gaussian_lowpass_kernel(shape, low_cutoff, dtype):
+    '''
+    .. note:: 
+        
+        Implementation follows from SPARX
+        
+    '''
+    
+    omega = 0.5/low_cutoff/low_cutoff
+    kernel = numpy.zeros(shape, dtype=dtype)
+    x,y = grid_image(shape)
+    dx2 = (1.0/shape[0])**2
+    dy2 = (1.0/shape[1])**2
+    irad = x**2*dx2+y**2*dy2
+    kernel[:, :] = numpy.exp(-irad*omega)
+    return kernel
+
+def gaussian_lowpass(img, low_cutoff, pad=1):
+    ''' Apply a Gaussian highpass filter to an image
+    
+    .. seealso:: :py:func:`gaussian_highpass_kernel`
+    
+    :Parameters:
+    
+    img : array
+          Image
+    low_cutoff : float
+                 Low-frequency cutoff
+    pad : int
+          Padding
+    
+    :Returns:
+    
+    out : array
+          Filtered image
+    '''
+    
+    ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
+    else: img = img.astype(ctype)
+    img = filter_image(img, gaussian_lowpass_kernel(img.shape, low_cutoff, img.dtype), pad)
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
+def gaussian_highpass_kernel(shape, high_cutoff, dtype):
+    '''
+    .. note:: 
+        
+        Implementation follows from SPARX
+        
+    '''
+    
+    omega = 0.5/high_cutoff/high_cutoff
+    kernel = numpy.zeros(shape, dtype=dtype)
+    x,y = grid_image(shape)
+    dx2 = (1.0/shape[0])**2
+    dy2 = (1.0/shape[1])**2
+    irad = x**2*dx2+y**2*dy2
+    kernel[:, :] = 1.0-numpy.exp(-irad*omega)
+    return kernel
+
+def gaussian_highpass(img, high_cutoff, pad=1):
+    ''' Apply a Gaussian highpass filter to an image
+    
+    .. seealso:: :py:func:`gaussian_highpass_kernel`
+    
+    :Parameters:
+    
+    img : array
+          Image
+    high_cutoff : float
+                 High-frequency cutoff
+    pad : int
+          Padding
+    
+    :Returns:
+    
+    out : array
+          Filtered image
+    '''
+    
+    ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
+    else: img = img.astype(ctype)
+    img = filter_image(img, gaussian_highpass_kernel(img.shape, high_cutoff, img.dtype), pad)
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
+def filter_image(img, kernel, pad=1):
+    '''
+    '''
+    
+    if img.ndim == 2:
+        fimg = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
+        numpy.multiply(fimg, kernel, fimg)
+        return scipy.fftpack.ifft2(scipy.fftpack.ifftshift(fimg)).real.copy()
+    else:
+        fimg = scipy.fftpack.fftshift(scipy.fftpack.fftn(img))
+        numpy.multiply(fimg, kernel, fimg)
+        return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy()
+
+def pad_image(img, shape, fill=0.0, out=None):
+    ''' Pad an image with zeros
+    
+    :Parameters:
+    
+    img : array
+          Image to pad
+    shape : tuple
+            Dimensions of new image
+    fill : float
+           Value to fill array with
+    out : array
+          Padded image
+    
+    :Returns:
+    
+    out : array
+          Padded image
+    '''
+    
+    cx = (shape[0]-img.shape[0])/2
+    cy = (shape[1]-img.shape[1])/2
+    if out is None: 
+        if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
+        out = numpy.zeros(shape, dtype=img.dtype)
+        if fill == 'm':
+            out[0:cx, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
+            out[cx+img.shape[0]:, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
+            out[cx:cx+img.shape[0], 0:cy] = img[:, 0:cx]
+            out[cx:cx+img.shape[0], cy+img.shape[1]:] = img[:, 0:cx]
+        elif fill == 'e': 
+            out[:, :] = (img[0, :].sum()+img[:, 0].sum()+img[len(img)-1, :].sum()+img[:, len(img)-1].sum()) / (img.shape[0]*2+img.shape[1]*2 - 4)
+        elif fill == 'r': out[:, :] = numpy.random.normal(img.mean(), img.std(), shape)
+        elif fill != 0: out[:, :] = fill
+    out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
+    return out
+
+def depad_image(img, shape, out=None):
+    ''' Depad an image
+    
+    :Parameters:
+    
+    img : array
+          Image to pad
+    shape : tuple
+            Dimensions of new image
+    out : array
+          Padded image
+    
+    :Returns:
+    
+    out : array
+          Padded image
+    '''
+    
+    if out is None: 
+        if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
+        out = numpy.zeros(shape)
+    cx = (img.shape[0]-shape[0])/2
+    cy = (img.shape[1]-shape[1])/2
+    out[:,:] = img[cx:cx+shape[0], cy:cy+shape[1]]
+    return out
+
+def grid_image(shape, center=None):
+    '''
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    if center is None: cx, cy = shape[0]/2, shape[1]/2
+    elif not hasattr(center, '__iter__'): cx, cy = center, center
+    else: cx, cy = center
+    #radius2 = radius+1
+    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
+    return x, y
 
