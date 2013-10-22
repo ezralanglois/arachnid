@@ -129,7 +129,7 @@ def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=Fal
     if curr_apix == 0: 
         if header['apix'] == 0: raise ValueError, "Pixel size of input volume is unknown - please use `--curr-apix` to set it"
         curr_apix = header['apix']
-        _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
+    _logger.info("Pixel size: %f for %s"%(curr_apix, filename))
     tempfile = mpi_utility.safe_tempfile(spi.replace_ext('tmp_spi_file'))
     try:
         filename = spider_file.copy_to_spider(filename, tempfile)
