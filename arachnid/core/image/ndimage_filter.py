@@ -476,7 +476,7 @@ def pad_image(img, shape, fill=0.0, out=None):
             out[cx+img.shape[0]:, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
             out[cx:cx+img.shape[0], 0:cy] = img[:, 0:cx]
             out[cx:cx+img.shape[0], cy+img.shape[1]:] = img[:, 0:cx]
-        elif fill == 'e': 
+        elif fill == 'e':
             out[:, :] = (img[0, :].sum()+img[:, 0].sum()+img[len(img)-1, :].sum()+img[:, len(img)-1].sum()) / (img.shape[0]*2+img.shape[1]*2 - 4)
         elif fill == 'r': out[:, :] = numpy.random.normal(img.mean(), img.std(), shape)
         elif fill != 0: out[:, :] = fill
@@ -517,7 +517,6 @@ def grid_image(shape, center=None):
     if center is None: cx, cy = shape[0]/2, shape[1]/2
     elif not hasattr(center, '__iter__'): cx, cy = center, center
     else: cx, cy = center
-    #radius2 = radius+1
     y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
     return x, y
 

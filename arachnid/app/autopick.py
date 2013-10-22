@@ -265,12 +265,10 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
     peaks : numpy.ndarray
             List of peaks and coordinates
     '''
-    #from arachnid.core.image import eman2_utility
     
     template = lfcpick.create_template(**extra)
     radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
     _logger.debug("Filter micrograph")
-    #img = eman2_utility.gaussian_high_pass(img, 0.25/radius, True)
     img = ndimage_filter.gaussian_highpass(img, 0.25/radius, 2)
     _logger.debug("Template-matching")
     cc_map = ccf_center(img, template)
