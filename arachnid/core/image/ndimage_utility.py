@@ -1664,6 +1664,7 @@ def crop_window(img, x, y, offset, out=None):
     out : numpy.ndarray
           Output window
     '''
+
     
     xb = x-offset
     yb = y-offset
@@ -1708,6 +1709,79 @@ def crop_window(img, x, y, offset, out=None):
         raise
     try:
         if dxb > 0: out[dyb:width-dye, :dxb] = img[yb:ye, xe:xe+dxb]
+    except:
+        _logger.error("Error in window5 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    return out
+
+@_em2numpy2em
+def crop_window2(img, x, y, offset, out=None):
+    ''' Extract a square window from an image
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    x : int
+        Center of window on x-axis
+    y : int
+        Center of window on y-axis
+    offset : int
+             Half-width of the window
+    out : numpy.ndarray
+          Output window
+                     
+    :Returns:
+    
+    out : numpy.ndarray
+          Output window
+    '''
+    
+    if not hasattr(offset, '__iter__'):
+        offset = (offset, offset)
+    
+    xb = x-offset[0]/2
+    yb = y-offset[1]/2
+    xe = xb+offset[0]
+    ye = yb+offset[1]
+    
+    if out is None: out = numpy.zeros(offset, dtype=img.dtype)
+    dxb, dyb, dxe, dye = 0, 0, 0, 0
+    if img.shape[1] < xe: 
+        dxe = xe-img.shape[1]
+        xe = img.shape[1]
+    if img.shape[0] < ye: 
+        dye = ye-img.shape[0]
+        ye = img.shape[0]
+    if xb < 0:
+        dxb = -xb
+        xb = 0
+    if yb < 0:
+        dyb = -yb
+        yb = 0
+    
+    try:
+        out[dyb:offset[0]-dye, dxb:offset[1]-dxe] = img[yb:ye, xb:xe]
+    except:
+        _logger.error("Error in window1 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
+        if dxe > 0: out[dyb:offset[0]-dye, offset[1]-dxe:] = img[yb:ye, xb-dxe:xb]
+    except:
+        _logger.error("Error in window2 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
+        if dye > 0: out[offset[0]-dye:, dxb:offset[1]-dxe] = img[yb-dye:yb, xb:xe]
+    except:
+        _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
+        if dyb > 0: out[:dyb, dxb:offset[1]-dxe] = img[ye:ye+dyb, xb:xe]
+    except:
+        _logger.error("Error in window4 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
+        if dxb > 0: out[dyb:offset[0]-dye, :dxb] = img[yb:ye, xe:xe+dxb]
     except:
         _logger.error("Error in window5 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise

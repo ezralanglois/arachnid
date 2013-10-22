@@ -12,6 +12,7 @@ try:
     pylab;
 except: pylab=None
 
+    
 
 def test_gaussian_kernel():
     '''
