@@ -345,7 +345,7 @@ def create_template(template, disk_mult=1.0, disable_bin=False, ds_kernel=None, 
         img= ndimage_file.read_image(template)
         bin_factor=extra['bin_factor']
         if bin_factor > 1.0 and not disable_bin: 
-            mic = ndimage_interpolate.downsample(mic, ds_kernel, bin_factor)
+            img = ndimage_interpolate.downsample(img, ds_kernel, bin_factor)
         return img
     radius, offset = init_param(**extra)[:2]
     template = ndimage_utility.model_disk(int(radius*disk_mult), (int(offset*2), int(offset*2)), dtype=numpy.float32)
