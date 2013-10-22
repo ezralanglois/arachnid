@@ -105,9 +105,9 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.metadata import spider_params, spider_utility, format_utility, spider_file
+from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.image import ndimage_utility, ndimage_file
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import filter_volume
 import logging, os
 
