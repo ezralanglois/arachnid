@@ -53,7 +53,7 @@ def test_downsample_sinc_blackman():
     test1 = eman2_utility.decimate(img, bin_factor)
     imgem = eman2_utility.numpy2em(img)
     img = eman2_utility.em2numpy(imgem)
-    test2 = ndimage_interpolate.downsample(img, kernel, bin_factor)
+    test2 = ndimage_interpolate.downsample(img, bin_factor, kernel)
     numpy.testing.assert_allclose(test1, test2)
 
 def spider_ip(img, **extra):
