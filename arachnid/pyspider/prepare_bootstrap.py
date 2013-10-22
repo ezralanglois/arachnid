@@ -91,7 +91,7 @@ def batch(files, output, param_file, image_file, **extra):
                         offset-=1
                     else: filename=filename
                     img = mrc_file.read_image(filename, offset)
-                    ndimage_file.spider_writer.write_spider_image(tmp_singe_stack, img)
+                    ndimage_file._default_write_format.write_spider_image(tmp_singe_stack, img)
                     filename = tmp_singe_stack
                 ftimage = spi.ft(filename, outputfile=ftimage, **extra)
                 ctfimage = spi.mu(ftimage, ctf, outputfile=ctfimage)

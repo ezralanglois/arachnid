@@ -98,7 +98,7 @@ def batch(files, output, film=False, **extra):
     for filename, index in update:
         img = ndimage_file.read_image(filename)
         if not film: ndimage_utility.invert(img, img)
-        ndimage_file.spider_writer.write_image(spider_utility.spider_filename(output, index), img)
+        ndimage_file._default_write_format.write_image(spider_utility.spider_filename(output, index), img)
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):

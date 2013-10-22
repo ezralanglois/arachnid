@@ -74,7 +74,7 @@ if __name__ == '__main__':
         if not os.path.exists(coord_file):
             logging.warn("Skipping - no coordinate file: %s"%coord_file)
             continue
-        mic = ndimage_file.spider_writer.read_image(filename)
+        mic = ndimage_file._default_write_format.read_image(filename)
         ndimage_utility.replace_outlier(mic, 2.5, out=mic)
         if bin_factor > 1.0:
             mic=eman2_utility.decimate(mic, bin_factor)

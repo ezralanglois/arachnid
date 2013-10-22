@@ -119,7 +119,7 @@ if __name__ == '__main__':
         sys.stdout.flush()
 
         output_file=spider_utility.spider_filename(output_file, filename)
-        mic = ndimage_file.spider_writer.read_image(filename)
+        mic = ndimage_file._default_write_format.read_image(filename)
         mic = eman2_utility.gaussian_high_pass(mic, 0.25/radius, True)
         
         

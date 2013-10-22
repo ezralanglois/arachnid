@@ -78,7 +78,7 @@ def batch(files, output, film=False, bin_factor=8.0, **extra):
         img = ndimage_file.read_image(filename)
         if bin_factor > 1.0: img = eman2_utility.decimate(img, bin_factor)
         if not film: ndimage_utility.invert(img, img)
-        ndimage_file.spider_writer.write_image(spider_utility.spider_filename(output, filename), img)
+        ndimage_file._default_write_format.write_image(spider_utility.spider_filename(output, filename), img)
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):

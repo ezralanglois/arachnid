@@ -297,7 +297,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
                     img = img.astype(numpy.uint8)
                     ndimage_file.mrc.write_image(os.path.splitext(output_mic)[0]+".mrc", img)
                 else:
-                    ndimage_file.spider_writer.write_image(output_mic, img)
+                    ndimage_file._default_write_format.write_image(output_mic, img)
             #window_size /= bin_factor
             x_overlap_norm = 100.0 / (100-x_overlap)
             step = max(1, window_size/x_overlap_norm)
