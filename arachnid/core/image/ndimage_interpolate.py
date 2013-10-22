@@ -48,6 +48,7 @@ def downsample(img, out, kernel=None):
     '''
     '''
     
+    if numpy.dtype(img.dtype).kind != 'f': raise ValueError, "Input array must be floating point, not %s"%numpy.dtype(img.dtype).kind
     scale=None
     if not hasattr(out, 'ndim'):
         if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
@@ -57,9 +58,9 @@ def downsample(img, out, kernel=None):
         out = numpy.zeros(shape, dtype=img.dtype)
     else:
         if out.dtype != img.dtype: raise ValueError, "Requires output and input of the same dtype"
-    if kernel.dtype != img.dtype: raise ValueError, "Requires kernel and input of the same dtype"
     if scale is None: scale = float(out.shape[0])/float(img.shape[0])
     if kernel is None: kernel=sincblackman(1.0/scale, dtype=img.dtype)
+    if kernel.dtype != img.dtype: raise ValueError, "Requires kernel and input of the same dtype"
     _resample.downsample(img, out, kernel, scale)
     return out
     
