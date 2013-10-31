@@ -147,7 +147,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import format, spider_params, spider_utility, format_utility
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, analysis
+from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility, analysis
 from ..core.parallel import mpi_utility
 from ..core.spider import spider, spider_file
 from ..core.util import plotting
@@ -290,7 +290,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
             mic = prepare_micrograph(ndimage_file.read_image(filename), bin_factor, invert)
             if output_mic != "" and bin_micrograph > 0:
                 fac = bin_micrograph/bin_factor
-                if fac > 1: img = eman2_utility.decimate(mic, fac)
+                if fac > 1: img = ndimage_interpolate.downsample(mic, fac)
                 if use_8bit:
                     img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
                     img = ndimage_utility.normalize_min_max(img)*255
@@ -345,7 +345,7 @@ def prepare_micrograph(mic, bin_factor, invert):
           Preprocessed micrograph
     '''
     
-    if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+    if bin_factor > 1: mic = ndimage_interpolate.downsample(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
     return mic
 
