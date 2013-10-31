@@ -2322,5 +2322,132 @@ def fit_ellipse(x, y):
   _logger.info("gevec: %s"%str(gevec))
   return tuple(gevec[:,idx].real)
 
+def fourier_shell_correlation(img1, img2, center=None, pad=1, out=None):
+    ''' Estimate the resolution using the Fourier Shell/Ring correlation. 
+    Works for both 2D and 3D images.
+    
+    :Parameters:
+    
+    img1 : array
+           Image data in 2D or 3D
+    img2 : array
+           Image data in 2D or 3D
+    
+    :Returns:
+    
+    out : array
+          1d radial profile
+    '''
+    
+    if img1.dim != img2.dim: raise ValueError, "Dimensions of array must match"
+    if img1.dim not in (2,3): raise ValueError, "Must be either 2 or 3D array"
+    if img1.shape != img2.shape: raise ValueError, "Shape of both arrays must match"
+    if pad > 1: 
+        img1 = pad_image(img1.astype(numpy.complex64), (int(img1.shape[0]*pad), int(img1.shape[1]*pad)), 'm')
+        img2 = pad_image(img2.astype(numpy.complex64), (int(img2.shape[0]*pad), int(img2.shape[1]*pad)), 'm')
+    if out is None: out = numpy.zeros(img1.shape)
+    
+    if img1.ndim == 2:
+        fimg1 = scipy.fftpack.fftshift(scipy.fftpack.fft2(img1))
+        fimg2 = scipy.fftpack.fftshift(scipy.fftpack.fft2(img2))
+    else:
+        fimg1 = scipy.fftpack.fftshift(scipy.fftpack.fftn(img1))
+        fimg2 = scipy.fftpack.fftshift(scipy.fftpack.fftn(img2))
+    
+        out[:] = numpy.multiply(fimg1, fimg2.conjugate()).real
+        numpy.abs(fimg1, fimg1)
+        numpy.square(fimg1.real, fimg1.real)
+        numpy.abs(fimg2, fimg2)
+        numpy.square(fimg2.real, fimg2.real)
+        numpy.multiply(fimg1.real, fimg2.real, fimg1.real)
+        numpy.sqrt(fimg1.real, fimg1.real)
+        numpy.divide(out, fimg1.real)
+    if img1.ndim == 2:
+        return mean_azimuthal(out, center)
+    else:
+        return mean_azimuthal_3d(out, center)
 
-  
+def sum_by_group(values, groups):
+    ''' Sum values by group labels
+    
+    :Parameters:
+    
+    values : array
+             Array of values to sum
+    groups : array
+             Array containing group membership for each value in `values` array
+             
+    :Returns:
+    
+    out : array
+          Size corresponding to the number of groups where each element
+          is the sum values in that group
+    
+    .. note::
+    
+        Taken from ResMap:  http://sourceforge.net/projects/resmap/
+        Originally from http://stackoverflow.com/questions/4373631/sum-array-by-number-in-numpy
+    '''
+    
+    order             = numpy.argsort(groups)
+    groups            = groups[order]
+    values            = values[order]
+    values.cumsum(out =values)
+    index             = numpy.ones(len(groups), dtype=numpy.bool)
+    index[:-1]        = groups[1:] != groups[:-1]
+    values            = values[index]
+    groups            = groups[index]
+    values[1:]        = values[1:] - values[:-1]
+    return values
+
+def mean_azimuthal_3d(image, center=None, binsize=1.0):
+    '''Calculate the spherically averaged profile.
+
+    :Parameters:
+    
+    image : array
+            3D image
+    center : tuple
+             The [x,y,z] pixel coordinates used as the center. The default is 
+             None, which then uses the center of the image (including 
+             fractional pixels).
+    binsize : float
+              Size of the averaging bin.  Can lead to strange results if
+              non-binsize factors are used to specify the center and the binsize is too large
+
+    :Returns:
+    
+    out : array
+          1D array containing mean radial average
+    
+    .. note::
+        
+        Taken from ResMap: http://sourceforge.net/projects/resmap/
+    
+    '''
+
+    n         = image.shape[0]
+
+    [x,y,z] = numpy.mgrid[ -n/2:n/2:numpy.complex(0,n),
+                        -n/2:n/2:numpy.complex(0,n),
+                        -n/2:n/2:numpy.complex(0,n) ]
+    r       = numpy.array(numpy.sqrt(x**2 + y**2 + z**2), dtype=numpy.float32)
+
+    nbins  = int(numpy.round( ((n/2.0) - 1) / binsize))
+    maxbin = nbins * binsize
+    bins   = numpy.linspace(0,maxbin,nbins)
+
+    # Find out which radial bin each point in the map belongs to
+    whichbin = numpy.digitize(r.flat,bins)
+
+    # how many per bin (i.e., histogram)?
+    # there are never any in bin 0, because the lowest index returned by digitize is 1
+    nr = numpy.bincount(whichbin)[1:]
+
+    # recall that bins are from 1 to nbins (which is expressed in array terms by xrange(1,nbins+1) )
+    radial_prof = sum_by_group(image.flat,whichbin)/nr
+
+    return radial_prof
+
+
+
