@@ -25,7 +25,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.metadata import format, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility, ndimage_utility
+from arachnid.core.image import ndimage_file, ndimage_interpolate, ndimage_utility #, ndimage_filter
 
 try: 
     from PIL import ImageDraw 
@@ -77,9 +77,9 @@ if __name__ == '__main__':
         mic = ndimage_file._default_write_format.read_image(filename)
         ndimage_utility.replace_outlier(mic, 2.5, out=mic)
         if bin_factor > 1.0:
-            mic=eman2_utility.decimate(mic, bin_factor)
+            mic=ndimage_interpolate.downsample(mic, bin_factor)
         if invert: ndimage_utility.invert(mic, mic)
-        #mic = eman2_utility.gaussian_high_pass(mic, 0.25/radius, True)
+        #mic = ndimage_filter.gaussian_highpass(mic, 0.25/radius, True)
         
         coords = format.read(coord_file, numeric=True)
         if select_file != "":

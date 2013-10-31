@@ -12,7 +12,7 @@ from arachnid.core.metadata import spider_utility
 from arachnid.core.image import ndimage_file,ndimage_utility
 from arachnid.core.image import reconstruct
 from arachnid.core.image import ctf
-from arachnid.core.image import eman2_utility
+from arachnid.core.image import ndimage_filter
 import numpy
 ctf;
 
@@ -42,11 +42,11 @@ def process_image(img, data, apix, mask, norm_mask, **extra):
     '''
     '''
     
-    img=eman2_utility.ramp(img)
+    img=ndimage_filter.ramp(img)
     ndimage_utility.replace_outlier(img, 2.5, out=img)
-    #img = eman2_utility.histfit(img, mask, noise_win)
+    #img = ndimage_filter.histfit(img, mask, noise_win)
     ndimage_utility.normalize_standard(img, norm_mask, out=img)
-    img = eman2_utility.fshift(img, data[3], data[4])
+    img = ndimage_utility.fourier_shift(img, data[3], data[4])
     ctfimg = ctf.phase_flip_transfer_function(img.shape, data[5], data[6], data[7], voltage=data[8], apix=apix)
     img = ctf.correct(img, ctfimg)
     return img

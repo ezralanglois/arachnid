@@ -21,7 +21,7 @@ import sys
 #sys.path.append('~/workspace/arachnida/src')
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 from arachnid.core.spider import spider
-from arachnid.core.image import ndimage_file, ndimage_utility, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_utility
 from arachnid.core.metadata import spider_params, format #, spider_utility
 from arachnid.core.orient import orient_utility
 #import scipy.spatial.distance
@@ -124,7 +124,7 @@ if __name__ == '__main__':
             #scale = log_base ** rx
             angle, x, y = orient_utility.align_param_3D_to_2D_simple(angle, x, y)
             if cc_map[ry,rx] > best[0]: best = (cc_map[ry,rx], angle, x, y, scale, j+1, 0)
-            img = eman2_utility.mirror(img)
+            img = ndimage_utility.mirror(img)
             cc_map = ndimage_utility.cross_correlate(img, template)
             x, y = numpy.unravel_index(numpy.argmax(cc_map), cc_map.shape)[::-1]
             x -= cc_map.shape[0]/2

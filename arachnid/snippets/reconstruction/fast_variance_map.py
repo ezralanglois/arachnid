@@ -18,7 +18,7 @@ import sys, os
 
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format, format_utility
-from arachnid.core.image import ndimage_file, reproject, ndimage_utility, eman2_utility, manifold
+from arachnid.core.image import ndimage_file, reproject, ndimage_utility, ndimage_filter, manifold
 from arachnid.core.image import reconstruct
 import logging, numpy, itertools #, functools
 ndimage_utility;
@@ -62,7 +62,7 @@ if __name__ == "__main__":
             '''
             
             if glp_sigma > 0:
-                img = eman2_utility.gaussian_low_pass(img, glp_sigma)
+                img = ndimage_filter.gaussian_lowpass(img, glp_sigma)
             img -= img.min()
             #ndimage_utility.normalize_min_max(img, out=img)
             return img
@@ -95,7 +95,7 @@ if __name__ == "__main__":
             '''
             
             if glp_sigma > 0:
-                img = eman2_utility.gaussian_low_pass(img, glp_sigma)
+                img = ndimage_filter.gaussian_lowpass(img, glp_sigma)
             #img -= img.min()
             avg = reproject.reproject_3q_single(refvol, img.shape[0]/2-3, align[:3].reshape((1, 3)))[0]
             img -= avg

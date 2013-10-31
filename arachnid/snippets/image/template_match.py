@@ -24,8 +24,8 @@ How to run command:
 import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 from arachnid.core.metadata import format_utility, spider_utility
-from arachnid.core.image import ndimage_file, ndimage_utility, eman2_utility, manifold
-
+from arachnid.core.image import ndimage_file, ndimage_utility, manifold
+from arachnid.core.image import ndimage_filter, ndimage_interpolate
 try: 
     from PIL import ImageDraw 
     ImageDraw;
@@ -120,13 +120,13 @@ if __name__ == '__main__':
 
         output_file=spider_utility.spider_filename(output_file, filename)
         mic = ndimage_file._default_write_format.read_image(filename)
-        mic = eman2_utility.gaussian_high_pass(mic, 0.25/radius, True)
+        mic = ndimage_filter.gaussian_highpass(mic, 0.25/radius, 2)
         
         
         if bin_factor > 1.0:
-            mic=eman2_utility.decimate(mic, bin_factor)
+            mic=ndimage_interpolate.downsample(mic, bin_factor)
         if invert: ndimage_utility.invert(mic, mic)
-        #mic = eman2_utility.gaussian_high_pass(mic, 0.25/radius, True)
+        #mic = ndimage_filter.gaussian_highpass(mic, 0.25/radius, 2)
         
         oradius = radius*1.2
         
@@ -134,7 +134,7 @@ if __name__ == '__main__':
         cc_map = ndimage_utility.cross_correlate(mic, template)
         boxmap=mic
         
-        mic = eman2_utility.gaussian_low_pass(mic, 2.0/radius, True)
+        mic = ndimage_filter.gaussian_lowpass(mic, 2.0/radius, 2)
         
         for fradius in [0.0, 2, radius, radius/2, 4.8]:
             coords = ndimage_utility.find_peaks_fast(cc_map, oradius, fradius)

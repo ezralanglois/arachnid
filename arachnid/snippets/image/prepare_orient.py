@@ -20,7 +20,7 @@ To run:
 import sys
 sys.path.append('~/workspace/arachnida/src')
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
-from arachnid.core.image import ndimage_file, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_interpolate, ndimage_utility
 from arachnid.core.orient import orient_utility
 from arachnid.core.metadata import format
 
@@ -35,8 +35,8 @@ if __name__ == '__main__':
     align = format.read_alignment(align_file)
     for i, img in enumerate(ndimage_file.iter_images(input_file)):
         dx, dy = orient_utility.align_param_2D_to_3D(align[i].psi, align[i].tx, align[i].ty)
-        img = eman2_utility.fshift(img, dx, dy)
-        img = eman2_utility.decimate(img, float(img.shape[0])/size)
+        img = ndimage_utility.fourier_shift(img, dx, dy)
+        img = ndimage_interpolate.downsample(img, float(img.shape[0])/size)
         ndimage_file.write_image(outputfile, img, i)
 
 

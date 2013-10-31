@@ -14,7 +14,7 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_utility
 from arachnid.core.orient import orient_utility
 import numpy, itertools
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     print tx[0], ty[0]
     print orient_utility.align_param_2D_to_3D(numpy.deg2rad(align[0, 5]), align[0, 6], align[0, 7])
         
-    iter_single_images = itertools.imap(eman2_utility.fshift, iter_single_images, tx, ty)
+    iter_single_images = itertools.imap(ndimage_utility.fourier_shift, iter_single_images, tx, ty)
     data = []
     for i, img in enumerate(iter_single_images):
         data.append([psi[i], align[i, 1], align[i,2], align[i,17]])

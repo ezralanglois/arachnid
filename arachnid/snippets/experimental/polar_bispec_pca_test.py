@@ -26,7 +26,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.metadata import format_alignment, format #format, 
-from arachnid.core.image import ndimage_file,  ndimage_utility, eman2_utility, analysis, manifold #, rotate, eman2_utility
+from arachnid.core.image import ndimage_file,  ndimage_utility, analysis, manifold, ndimage_interpolate
 import numpy, logging
 
 def image_transform(img, mask, bin_factor, align):
@@ -35,8 +35,8 @@ def image_transform(img, mask, bin_factor, align):
     
     #ndimage_utility.vst(img, img)
     #bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
-    if align[1] > 180.0: img = eman2_utility.mirror(img)
-    if bin_factor > 1: img = eman2_utility.decimate(img, bin_factor)
+    if align[1] > 180.0: img = ndimage_utility.mirror(img)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
     #ndimage_utility.normalize_standard_norm(img, mask, True, out=img)
     ndimage_utility.normalize_standard(img, mask, True, out=img)
     if 1 == 1:
@@ -74,8 +74,8 @@ if __name__ == '__main__':
     for i, img in enumerate(ndimage_file.iter_images(files)):
         if (i%100)==0:print i+1, ' of ', len(files)
         if mask is None:
-            mask = eman2_utility.model_circle(radius, img.shape[0], img.shape[1])
-            if bin_factor > 1: mask = eman2_utility.decimate(mask, bin_factor)
+            mask = ndimage_utility.model_disk(radius, img.shape)
+            if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
         print align[i, :3]
         img = image_transform(img, mask, bin_factor, align[i])
         if data is None: data = numpy.zeros((len(align), img.ravel().shape[0]), dtype=img.dtype)

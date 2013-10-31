@@ -16,7 +16,7 @@ To run:
 import sys, os
 #sys.path.append('~/workspace/arachnida/src')
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
-from arachnid.core.image import ndimage_file, eman2_utility, ndimage_utility
+from arachnid.core.image import ndimage_file, ndimage_utility
 from arachnid.core.metadata import format, format_utility, spider_params
 
 if __name__ == '__main__':
@@ -53,6 +53,6 @@ if __name__ == '__main__':
     mask = None
     for i, img in enumerate(ndimage_file.iter_images(image_file)):
         if mask is None:
-            mask = eman2_utility.model_circle(pixel_radius, img.shape[0], img.shape[1])*-1+1
+            mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         ndimage_utility.normalize_standard(img, mask, out=img)
         ndimage_file.write_image(output, img, i)

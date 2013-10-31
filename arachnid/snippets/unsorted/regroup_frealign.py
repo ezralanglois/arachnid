@@ -26,7 +26,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file #,  ndimage_utility, eman2_utility, analysis, manifold #, rotate, eman2_utility
+from arachnid.core.image import ndimage_file
 from arachnid.core.parallel import parallel_utility
 import numpy, glob #, logging
 

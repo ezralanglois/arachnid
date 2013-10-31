@@ -26,7 +26,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.metadata import format_alignment #format, 
-from arachnid.core.image import ndimage_file, rotate, eman2_utility
+from arachnid.core.image import ndimage_file, rotate, ndimage_utility
 from arachnid.core.orient import healpix, orient_utility
 import numpy
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         tx = align2[i, 4]
         ty = align2[i, 5]
         img[:] = rotate.rotate_image(img, rot, tx, ty)
-        if mirror and align2[i, 1] > 180.0: img[:] = eman2_utility.mirror(img) 
+        if mirror and align2[i, 1] > 180.0: img[:] = ndimage_utility.mirror(img) 
         avg[ipix] += img
     ndimage_file.write_stack(output_file, avg)
 

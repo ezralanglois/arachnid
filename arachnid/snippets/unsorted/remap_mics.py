@@ -19,7 +19,7 @@ import sys
 
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format, spider_utility, format_utility
-from arachnid.core.image import ndimage_file, ndimage_utility, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_utility, ndimage_filter
 import logging, glob, numpy
 
 if __name__ == "__main__":
@@ -88,8 +88,7 @@ if __name__ == "__main__":
         output = sys.argv[3]
         stacks = glob.glob(stack_file)
         vals = []
-        mask=eman2_utility.utilities.model_circle(90, 234,234)
-        norm_mask = eman2_utility.em2numpy(mask).copy()
+        norm_mask=ndimage_utility.model_disk(90, (234,234))
         norm_mask=norm_mask*-1+1
         for filename in glob.glob(image_file):
             ref = ndimage_file.read_image(filename)
@@ -111,21 +110,20 @@ if __name__ == "__main__":
         output = sys.argv[4]
     
         tracing.configure_logging(log_level=3)
-        mask=eman2_utility.utilities.model_circle(90, 234,234)
-        norm_mask = eman2_utility.em2numpy(mask).copy()
+        norm_mask=ndimage_utility.model_disk(90, (234,234))
         norm_mask=norm_mask*-1+1
         stacks = glob.glob(stack_file)
         vals = []
         for filename in glob.glob(image_file):
             mic = ndimage_file.read_image(filename)
             ndimage_utility.invert(mic, mic)
-            mic = eman2_utility.gaussian_high_pass(mic, 1.0/(234.0), True)
+            mic = ndimage_filter.gaussian_highpass(mic, 1.0/(234.0), True)
             best = (1e20, None)
             for stack in stacks:
                 win = ndimage_file.read_image(stack)
                 coords=format.read(spider_utility.spider_filename(coord_file, stack), numeric=True)
                 img = ndimage_utility.crop_window(mic, coords[0].x, coords[0].y, win.shape[0]/2)
-                win=eman2_utility.ramp(win)
+                win=ndimage_filter.ramp(win)
                 ndimage_utility.replace_outlier(win, 2.5, out=win)
                 ndimage_utility.normalize_standard(win, norm_mask, out=win)
                 dist = numpy.sum(numpy.square(img-win))

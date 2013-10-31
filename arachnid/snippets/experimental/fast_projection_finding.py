@@ -21,7 +21,7 @@ import sys
 #sys.path.append('~/workspace/arachnida/src')
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 from arachnid.core.spider import spider
-from arachnid.core.image import ndimage_file, eman2_utility, rotate #, ndimage_utility
+from arachnid.core.image import ndimage_file, ndimage_utility, rotate
 from arachnid.core.metadata import spider_params, format #, spider_utility
 #from arachnid.core.orient import orient_utility
 #import scipy.spatial.distance
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         
         img = ndimage_file.read_image(spi.replace_ext(tmp_img))
         if i == 0: print "Image shape: ", img.shape, extra['window']
-        if al.theta > 179.99: img = eman2_utility.mirror(img)
+        if al.theta > 179.99: img = ndimage_utility.mirror(img)
         best=(1e20, None)
             
         img -= img.mean()

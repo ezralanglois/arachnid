@@ -19,7 +19,7 @@ import sys
 
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file #, eman2_utility
+from arachnid.core.image import ndimage_file
 from arachnid.core.image import reconstruct
 import numpy,logging
 

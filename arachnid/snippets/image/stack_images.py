@@ -14,7 +14,7 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility, ndimage_utility
+from arachnid.core.image import ndimage_file, ndimage_interpolate, ndimage_utility
 import glob, numpy, os
 
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     output_file = spider_utility.spider_filename(output_file, stack_id)
     for filename in glob.glob(input_file):
         img = ndimage_file.read_image(filename)
-        if bin_factor > 1.0: img = eman2_utility.decimate(img, bin_factor)
+        if bin_factor > 1.0: img = ndimage_interpolate.downsample(img, bin_factor)
         if is_ccd: img = ndimage_utility.invert(img)
         ndimage_file.write_image(output_file, img, index)
         selection[index, 0] = spider_utility.spider_id(filename)

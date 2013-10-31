@@ -20,7 +20,7 @@ import sys
 
 from arachnid.core.metadata import spider_params, spider_utility
 #from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility, ndimage_utility
+from arachnid.core.image import ndimage_file, ndimage_interpolate, ndimage_utility
 import glob
 
 if __name__ == '__main__':
@@ -37,13 +37,13 @@ if __name__ == '__main__':
     radius = spider_params.read(params_file)['pixel_diameter']/2
     img = ndimage_file.read_image(input_files[0])
     mask = ndimage_utility.model_disk(radius, img.shape)*-1+1
-    mask = eman2_utility.decimate(mask, bin_factor)
+    mask = ndimage_interpolate.downsample(mask, bin_factor)
     
     for input_file in input_files:
         print 'processing ', input_file
         output_file = spider_utility.spider_filename(output_file, input_file)
         for i, img in enumerate(ndimage_file.iter_images(input_file)):
-            img = eman2_utility.decimate(img, bin_factor)
+            img = ndimage_interpolate.downsample(img, bin_factor)
             img=ndimage_utility.normalize_standard(img, mask)
             ndimage_file.write_image(output_file, img, i)
 

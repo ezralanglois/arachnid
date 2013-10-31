@@ -14,7 +14,7 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility, ndimage_utility
+from arachnid.core.image import ndimage_file, ndimage_utility
 import glob, numpy, os
 
 if __name__ == '__main__':
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 step = max(1, window_size*overlap)
                 rwin = ndimage_utility.rolling_window(avg, (window_size, window_size), (step, step))
                 npowerspec = ndimage_utility.powerspec_avg(rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3])), pad)
-                mask = eman2_utility.model_circle(npowerspec.shape[0]*(2.0/pixel_radius), npowerspec.shape[0], npowerspec.shape[1])
+                mask = ndimage_utility.model_disk(npowerspec.shape[0]*(2.0/pixel_radius), npowerspec.shape)
                 sel = mask*-1+1
                 npowerspec[mask.astype(numpy.bool)] = numpy.mean(npowerspec[sel.astype(numpy.bool)])
                 ndimage_file.write_image(pow_stack, npowerspec, 0)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                 w,h = cc_map.shape
                 x = w/2-x
                 y = h/2-y
-                imgs[j] = eman2_utility.fshift(img, x, y)
+                imgs[j] = ndimage_utility.fourier_shift(img, x, y)
                 avg+=imgs[j]
                 print i+1, x, y
                 last[j, :] = x, y

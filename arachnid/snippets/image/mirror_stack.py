@@ -19,7 +19,7 @@ import sys
 
 
 from arachnid.core.metadata import format #, format_utility, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility
+from arachnid.core.image import ndimage_file, ndimage_utility, ndimage_interpolate
 #import numpy
 
 if __name__ == '__main__':
@@ -35,8 +35,8 @@ if __name__ == '__main__':
     
     for i, img in enumerate(ndimage_file.iter_images(input_file)):
         if align[i].theta > 179.9:
-            img=eman2_utility.mirror(img)
-        if bin_factor > 1.0: img = eman2_utility.decimate(img, bin_factor)
+            img=ndimage_utility.mirror(img)
+        if bin_factor > 1.0: img = ndimage_interpolate.downsample(img, bin_factor)
         ndimage_file.write_image(output_file, img, i)
 
 

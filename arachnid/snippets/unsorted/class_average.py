@@ -17,9 +17,8 @@ import sys
 sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1/')
 
 from arachnid.core.metadata import format, format_utility, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility
-import numpy #, itertools
-eman2_utility;
+from arachnid.core.image import ndimage_file
+import numpy
 
 if __name__ == '__main__':
 
