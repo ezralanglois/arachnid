@@ -435,7 +435,12 @@ def ramp(img, inplace=True):
     if not is_em(img): img = numpy2em(img)
     if inplace: img.process_inplace("filter.ramp")
     else: img = img.process("filter.ramp")
-    if not is_em(orig): img = em2numpy(img).copy()
+    if not is_em(orig): 
+        if inplace:
+            orig[:]=em2numpy(img)
+            return orig
+        else:
+            img = em2numpy(img).copy()
     return img
 
 def histfit(img, mask, noise, debug=False):
