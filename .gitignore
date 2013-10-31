@@ -1,5 +1,8 @@
+MANIFEST
+arachnid/_version.py
 docs/api_generated/
 dist
+scripts
 build
 *.mod
 *.sh
