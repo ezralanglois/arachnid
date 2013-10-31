@@ -10,7 +10,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app.program import run_hybrid_program
-from ..core.image import ndimage_file, ndimage_utility, reproject, rotate, ndimage_interpolate, ndimage_filter, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
+from ..core.image import ndimage_file, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params, format_alignment
 #from ..core.parallel import mpi_utility

@@ -282,15 +282,13 @@ def lfc(img, template, mask):
     cc_map /= ndimage_utility.local_variance(img, mask)
     return cc_map
 
-def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, fraction=1, ds_kernel=None, **extra):
+def read_micrograph(filename, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, fraction=1, ds_kernel=None, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
         
     filename : str
                Filename for micrograph
-    emdata : EMData
-             Reuse allocated memory
     bin_factor : float
                 Downsampling factor
     sigma : float
@@ -310,11 +308,11 @@ def read_micrograph(filename, emdata=None, bin_factor=1.0, sigma=1.0, disable_bi
     
     count = ndimage_file.count_images(filename)
     if count > 1 and fraction > 1:
-        mic = ndimage_file.read_image(filename, cache=emdata).astype(numpy.float32)
+        mic = ndimage_file.read_image(filename, **extra).astype(numpy.float32)
         for i in xrange(1, min(fraction, count)):
-            mic += ndimage_file.read_image(filename, i, cache=emdata)
+            mic += ndimage_file.read_image(filename, i, **extra)
     else:
-        mic = ndimage_file.read_image(filename, cache=emdata).astype(numpy.float32)
+        mic = ndimage_file.read_image(filename, **extra).astype(numpy.float32)
 
     if bin_factor > 1.0 and not disable_bin:
         mic = ndimage_interpolate.downsample(mic, bin_factor, ds_kernel)
