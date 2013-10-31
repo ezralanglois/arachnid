@@ -53,7 +53,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import spider_utility #, format_utility, format
-from ..core.image import ndimage_file, ndimage_utility, eman2_utility
+from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ def batch(files, output, film=False, bin_factor=8.0, **extra):
     
     for filename in files:
         img = ndimage_file.read_image(filename)
-        if bin_factor > 1.0: img = eman2_utility.decimate(img, bin_factor)
+        if bin_factor > 1.0: img = ndimage_interpolate.downsample(img, bin_factor)
         if not film: ndimage_utility.invert(img, img)
         ndimage_file._default_write_format.write_image(spider_utility.spider_filename(output, filename), img)
     _logger.info("Completed")

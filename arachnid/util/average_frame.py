@@ -6,7 +6,7 @@
 
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_utility
-from ..core.image import ndimage_file, eman2_utility
+from ..core.image import ndimage_file, ndimage_utility
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ def process(filename, id_len=0, **extra):
         avg = None
         for i, filename in enumerate(filename[1][1:]):
             img = ndimage_file.read_image(filename, index)
-            img = eman2_utility.fshift(img, align[i].dx, align[i].dy)
+            img = ndimage_utility.fourier_shift(img, align[i].dx, align[i].dy)
             if avg is None: avg = img
             else: avg += img
         ndimage_file.write_image(extra['output'], img/len(filename[1]), index)

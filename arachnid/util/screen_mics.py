@@ -5,7 +5,7 @@
 '''
 from ..core.app.program import run_hybrid_program
 from ..core.metadata import format, spider_utility, spider_params #, format_utility, format, spider_params
-from ..core.image import ndimage_file, ndimage_utility, eman2_utility
+from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate, ndimage_filter
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -34,9 +34,9 @@ def process(filename, output, bin_factor, sigma, film, clamp_window, window=0, i
     output = spider_utility.spider_filename(output, filename, id_len)
     mic = ndimage_file.read_image(filename)
     if bin_factor > 1.0:
-        mic = eman2_utility.decimate(mic, bin_factor)
+        mic = ndimage_interpolate.downsample(mic, bin_factor)
     if sigma > 0.0 and window > 0:
-        mic = eman2_utility.gaussian_high_pass(mic, sigma/(window), True)
+        mic = ndimage_filter.gaussian_highpass(mic, sigma/(window), 2)
     if not film: ndimage_utility.invert(mic, mic)
     ndimage_utility.replace_outlier(mic, clamp_window, out=mic)
     ndimage_file.write_image(output, mic)

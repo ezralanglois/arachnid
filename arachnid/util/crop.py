@@ -142,7 +142,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app.program import run_hybrid_program
-from ..core.image import eman2_utility, ndimage_utility, ndimage_file, ndimage_filter
+from ..core.image import ndimage_utility, ndimage_file, ndimage_filter, ndimage_interpolate
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image.formats import mrc as mrc_file
 from ..core.parallel import mpi_utility
@@ -193,8 +193,6 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
     noise=extra['noise']
     radius, offset, bin_factor, tmp = init_param(**extra)
     norm_mask=tmp*-1+1
-    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    npdata = eman2_utility.em2numpy(emdata)
     
     #if extra['experimental']: return filename, len(coords)
     if frame_beg > 0: frame_beg -= 1
@@ -217,38 +215,30 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
             id=align[i].id
         else:id=i
         #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
-        mic = read_micrograph(filename, id, **extra)    
-        # translate
-        npmic = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
+        mic = read_micrograph(filename, id, **extra)
         bin_factor = extra['bin_factor']
         if tot > 1 and align is not None: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
-            npmic[:] = eman2_utility.fshift(npmic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
+            mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
             
         _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
-        for index, win in enumerate(ndimage_utility.for_each_window(npmic, coords, offset*2, bin_factor)):
-            npdata[:, :] = win
-            
-            #m = numpy.mean(npdata*npmask)
-            #s = numpy.std(npdata*npmask)
-            #_logger.error("0. index=%d, mean=%f, std=%f"%(index, m, s))
-            win = enhance_window(emdata, noise, norm_mask, **extra)
-            win.update()
-            if win.get_attr("minimum") == win.get_attr("maximum"):
+        for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, offset*2, bin_factor)):
+            win = enhance_window(win, noise, norm_mask, **extra)
+            if win.min() == win.max():
                 coord = coords[index]
                 x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
                 _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
-            ndimage_file.write_image(output, emdata, index)
+            ndimage_file.write_image(output, win, index)
             if single: break
         #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     return filename, len(coords), os.getpid()
 
-def test_coordinates(npmic, coords, bin_factor):
+def test_coordinates(mic, coords, bin_factor):
     ''' Test if the coordinates cover the micrograph properly
     
     :Parameters:
     
-    npmic : array
+    mic : array
             Array 2-D for micrograph
     coords : list
              List of namedtuple coordinates
@@ -267,25 +257,23 @@ def test_coordinates(npmic, coords, bin_factor):
     if numpy.min(coords[:, x]) < 0: raise ValueError, "Invalid x-coordate: %d"%numpy.min(coords[:, x])
     if numpy.min(coords[:, y]) < 0: raise ValueError, "Invalid y-coordate: %d"%numpy.min(coords[:, y])
     
-    if numpy.max(coords[:, x]) > npmic.shape[1]: 
+    if numpy.max(coords[:, x]) > mic.shape[1]: 
         raise ValueError, "The x-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.max(coords[:, x])
-    if numpy.max(coords[:, y]) > npmic.shape[0]: 
+    if numpy.max(coords[:, y]) > mic.shape[0]: 
         raise ValueError, "The y-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.max(coords[:, y])
     
-    if numpy.max(coords[:, x])*2 < npmic.shape[1]: 
+    if numpy.max(coords[:, x])*2 < mic.shape[1]: 
         _logger.warn("The maximum x-coordate is less than twice the size of the micrograph width - consider changing --bin-factor: %d"%numpy.max(coords[:, x]))
-    if numpy.max(coords[:, y])*2 < npmic.shape[0]: 
+    if numpy.max(coords[:, y])*2 < mic.shape[0]: 
         _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.max(coords[:, y]))
 
-def read_micrograph(filename, index=0, emdata=None, bin_factor=1.0, sigma=1.0, flip=False, disable_bin=False, invert=False, experimental=False, **extra):
+def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, experimental=False, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
         
     filename : str
                Filename for micrograph
-    emdata : EMData
-             Reuse allocated memory
     bin_factor : float
                 Downsampling factor
     sigma : float
@@ -308,26 +296,15 @@ def read_micrograph(filename, index=0, emdata=None, bin_factor=1.0, sigma=1.0, f
         index=None
     
     offset = init_param(bin_factor=bin_factor, **extra)[1]
-    mic = ndimage_file.read_image(filename, index, cache=emdata)
-    if flip:
-        emmic=eman2_utility.numpy2em(mic)
-        emmic.process_inplace("xform.flip",{"axis":"y"})
-        mic[:]=eman2_utility.em2numpy(emmic)
+    mic = ndimage_file.read_image(filename, index, **extra)
     mic = mic.astype(numpy.float32)
     if bin_factor > 1.0 and not disable_bin: 
-        mic = eman2_utility.decimate(mic, bin_factor)
+        mic = ndimage_interpolate.downsample(mic, bin_factor)
     if invert:
         _logger.debug("Invert micrograph")
-        if eman2_utility.is_em(mic):
-            npmic = eman2_utility.em2numpy(mic)
-            ndimage_utility.invert(npmic, npmic)
-        else: ndimage_utility.invert(mic, mic)
+        ndimage_utility.invert(mic, mic)
     if sigma > 0.0:
-        mic = eman2_utility.gaussian_high_pass(mic, sigma/(2.0*offset), True)
-    if not eman2_utility.is_em(mic) and not experimental:
-        mic = eman2_utility.numpy2em(mic)
-    if experimental:
-        assert(not eman2_utility.is_em(mic))
+        mic = ndimage_filter.gaussian_highpass(mic, sigma/(2.0*offset), True)
     return mic
             
 def generate_noise(filename, noise="", output="", noise_stack=True, experimental=False, **extra):
@@ -352,13 +329,11 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
                 Noise window
     '''
     
-    if noise != "": 
-        return eman2_utility.numpy2em(ndimage_file.read_image(noise))
+    if noise != "":  return ndimage_file.read_image(noise)
     noise_file = format_utility.add_prefix(output, "noise_")
     if os.path.exists(noise_file):
         _logger.warn("Found cached noise file: %s - delete if you want to regenerate"%noise_file)
-        img = ndimage_file.read_image(noise_file)
-        return eman2_utility.numpy2em(img)    
+        return ndimage_file.read_image(noise_file)  
     try:
         tot = mrc_file.count_images(filename)
     except: tot = ndimage_file.count_images(filename)
@@ -367,25 +342,19 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
     mic = read_micrograph(filename, **extra)
     rad, offset = init_param(**extra)[:2]
     width = offset*2
-    #template = eman2_utility.utilities.model_blank(width, width)
     
-    template = eman2_utility.utilities.model_circle(rad, width, width)
-    template.process_inplace("normalize.mask", {"mask": template, "no_sigma": True})
-
+    template = ndimage_utility.model_disk(rad, (width, width))
+    ndimage_utility.normalize_standard(template, template, False, template)
     # Define noise distribution
-    if not eman2_utility.is_em(mic) and not experimental:
-        mic = eman2_utility.numpy2em(mic)
     
-    if experimental:
-        etemplate = template
-        template = eman2_utility.em2numpy(etemplate)
-        mic2 = eman2_utility.em2numpy(mic) if eman2_utility.is_em(mic) else mic
-        cc_map = ndimage_utility.cross_correlate(mic2, template)
-        numpy.fabs(cc_map, cc_map)
-        cc_map -= float(numpy.max(cc_map))
-        cc_map *= -1
-        peak1 = ndimage_utility.find_peaks_fast(cc_map, offset)
-        peak1 = numpy.asarray(peak1).squeeze()
+    
+    cc_map = ndimage_utility.cross_correlate(mic, template)
+    numpy.fabs(cc_map, cc_map)
+    cc_map -= float(numpy.max(cc_map))
+    cc_map *= -1
+    peak1 = ndimage_utility.find_peaks_fast(cc_map, offset)
+    peak1 = numpy.asarray(peak1).squeeze()
+    '''
     else:
         cc_map = mic.calc_ccf(template)
         cc_map.process_inplace("xform.phaseorigin.tocenter")
@@ -396,17 +365,14 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
         cc_map *= -1
         peak1 = cc_map.peak_ccf(offset)
         peak1 = numpy.asarray(peak1).reshape((len(peak1)/3, 3))
+    '''
     index = numpy.argsort(peak1[:,0])[::-1]
     peak1 = peak1[index].copy().squeeze()
     
     best = (1e20, None)
-    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    npdata = eman2_utility.em2numpy(emdata)
-    npmic = eman2_utility.em2numpy(mic)
-    for i, win in enumerate(ndimage_utility.for_each_window(npmic, peak1, offset*2, 1.0)):
-        npdata[:, :] = win
-        win = enhance_window(emdata, None, None, **extra)
-        std = numpy.std(eman2_utility.em2numpy(win))
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, peak1, offset*2, 1.0)):
+        win = enhance_window(win, None, None, **extra)
+        std = win.std()
         if std < best[0]: best = (std, win)
         if noise_stack and i < 11: 
             ndimage_file.write_image(noise_file, win, i)
@@ -452,22 +418,22 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
     if window == 1.0: window = 1.4
     if window < (2*rad): offset = int(window*rad)
     width = offset*2
-    mask = eman2_utility.utilities.model_circle(rad, width, width)
+    mask = ndimage_utility.model_disk(rad, (width, width))
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
-def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, use_vst=False, experimental=False, **extra):
+def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, experimental=False, **extra):
     '''Enhance the window with a set of filtering and normalization routines
     
     :Parameters:
         
-    win : EMData
+    win : array
           Input raw window
-    noise_win : EMData
+    noise_win : array
                 Noise window
-    norm_mask : EMData
+    norm_mask : array
                 Disk mask with `radius` that keeps data outside the disk
-    mask : EMData
+    mask : array
            Disk mask with `radius` that keeps data inside the disk
     clamp_window : float
                    Number of standard deviations to replace extreme values using a Gaussian distribution
@@ -475,44 +441,29 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
                       Disable all enhancement
     disable_normalize : bool
                        Disable normalization
-    use_vst : bool
-              Apply the VST transform (if set True)
     extra : dict
             Unused extra keyword arguments
     
     :Returns:
         
-    win : EMData
+    win : array
           Enhanced window
     '''
     
     if not disable_enhance:
-        np = eman2_utility.em2numpy(win)
-        #assert(noise_win.get_attr("minimum")<noise_win.get_attr("maximum"))
         _logger.debug("Removing ramp from window")
         
-        eman2_utility.ramp(win)
-        if use_vst: ndimage_utility.vst(np, np)
+        ndimage_filter.ramp(win, win)
         if clamp_window > 0: 
             _logger.debug("Removing outlier pixels")
-            ndimage_utility.replace_outlier(np, clamp_window, out=np)
-        if win.get_attr("minimum") == win.get_attr("maximum"): return win
+            ndimage_utility.replace_outlier(win, clamp_window, out=win)
+        if win.max() == win.min(): return win
     
         if noise_win is not None: 
-            _logger.debug("Improving contrast with histogram fitting: (%f,%f,%f,%f) (%f,%f,%f,%f)"%(win.get_attr("mean"), win.get_attr("sigma"), win.get_attr("minimum"), win.get_attr("maximum"), noise_win.get_attr("mean"), noise_win.get_attr("sigma"), noise_win.get_attr("minimum"), noise_win.get_attr("maximum")))
-            if not experimental:
-                _logger.debug("using old")
-                win = eman2_utility.histfit(win, mask, noise_win)
-            else:
-                nref = eman2_utility.em2numpy(noise_win) if eman2_utility.is_em(noise_win) else noise_win
-                nmask = eman2_utility.em2numpy(mask) if eman2_utility.is_em(mask) else mask
-                ndimage_filter.histogram_match(np, nmask, nref, out=np)
+            _logger.debug("Improving contrast with histogram fitting")
+            ndimage_filter.histogram_match(win, mask, noise_win, out=win)
         if not disable_normalize and norm_mask is not None:
-            #if mask is None:
-            #    mask = eman2_utility.model_circle(radius, img.shape[0], img.shape[1])*-1+1
-            #img = ndimage_utility.normalize_standard(img, mask)
-            #win.process_inplace("normalize.mask", {"mask": norm_mask, "no_sigma": 0})
-            ndimage_utility.normalize_standard(np, eman2_utility.em2numpy(norm_mask), out=np)
+            ndimage_utility.normalize_standard(win, norm_mask, out=win)
         _logger.debug("Finished Enhancment")
     return win
 
@@ -601,7 +552,7 @@ def init_root(files, param):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    radius, offset, bin_factor, param['mask'] = init_param(**param)
+    radius, offset, bin_factor = init_param(**param)[:3]
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel radius: %d"%radius)
@@ -679,7 +630,7 @@ def initialize(files, param):
         else: param['noise']=None
         
     else: 
-        param['noise'] =  eman2_utility.numpy2em(ndimage_file.read_image(param['noise']))
+        param['noise'] =  ndimage_file.read_image(param['noise'])
     param.update(ndimage_file.cache_data())
     return files
 
@@ -708,7 +659,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
     group.add_option("", clamp_window=2.5,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
     group.add_option("", sigma=1.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
-    group.add_option("", use_vst=False,            help="Use variance stablizing transform")
     group.add_option("", invert=False,             help="Invert the contrast on the micrograph (important for raw CCD micrographs)")
     group.add_option("", noise="",                 help="Use specified noise file")
     group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
@@ -716,7 +666,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", experimental=False,       help="Use new experimental code for memory management")
     group.add_option("", frame_align="",           help="Translational alignment parameters for individual frames")
     group.add_option("", single=False,             help="Single window (first)")
-    group.add_option("", flip=False,                help="Flip micrograph")
     group.add_option("", reverse=False,             help="Reverse for reversied alignment")
     group.add_option("", frame_beg=0,              help="Range for the number of frames")
     group.add_option("", frame_end=-1,             help="Range for the number of frames")
