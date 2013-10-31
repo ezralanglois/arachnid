@@ -35,8 +35,8 @@ def image_transform_transinv(img, bispec_mode=0):
     if 1 == 1:
         img -= img.mean()
         img = ndimage_utility.fftamp(img)
-        img *= eman2_utility.model_circle(3, img.shape[0], img.shape[1])*-1+1
-        img *= eman2_utility.model_circle(15, img.shape[0], img.shape[1])
+        img *= ndimage_utility.model_disk(3, img.shape)*-1+1
+        img *= ndimage_utility.model_disk(15, img.shape)
         #img = numpy.log(img+1)
         #img -= ndimage_utility.rotavg(img)
         return img
@@ -44,6 +44,7 @@ def image_transform_transinv(img, bispec_mode=0):
         img = ndimage_utility.fourier_mellin(img)
         return img
     if 1 == 0:
+        if not eman2_utility.is_avaliable(): raise ValueError, "EMAN2 is not installed"
         tmp = eman2_utility.numpy2em(img)
         tmp = tmp.bispecRotTransInvDirect(0)
         img = eman2_utility.em2numpy(tmp).copy()
@@ -87,7 +88,7 @@ def image_transform_rotinv(img, radon):
     
     i, img = img
     #img = ndimage_utility.logpolar(img)[0]
-    #img = ndimage_utility.cross_correlate(img, img)*(eman2_utility.model_circle(10, img.shape[0], img.shape[1])+1*-1)
+    #img = ndimage_utility.cross_correlate(img, img)*(ndimage_utility.model_disk(10, img.shape)+1*-1)
     img, freq = ndimage_utility.bispectrum(img, img.shape[0]-1, 'uniform')
     img = numpy.arctan(img.imag/img.real)
     
@@ -203,7 +204,7 @@ if __name__ == '__main__':
             else:
                 spider.rt_sq_single(spi,iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
             img = ndimage_file.read_image(spi.replace_ext(tmp_img))
-            if al.theta > 179.99: img = eman2_utility.mirror(img)
+            if al.theta > 179.99: img = ndimage_utility.mirror(img)
             img = image_transform((0,img))
             exp[i, :]=img.ravel()
     
@@ -246,7 +247,7 @@ if __name__ == '__main__':
             else:
                 spider.rt_sq_single(spi,iimg, (al.psi, al.tx/extra['apix'], al.ty/extra['apix']), outputfile=tmp_img)
             img = ndimage_file.read_image(spi.replace_ext(tmp_img))
-            if al.theta > 179.99: img = eman2_utility.mirror(img)
+            if al.theta > 179.99: img = ndimage_utility.mirror(img)
             #ndimage_file.write_image(trans_exp_stack, img, i)
             img -= img.mean()
             img = image_transform((0,img))

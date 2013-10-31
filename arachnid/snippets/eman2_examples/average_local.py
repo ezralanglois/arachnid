@@ -43,6 +43,7 @@ if __name__ == "__main__":
     align = format.read_alignment(align_file)
     logging.info("Averaging %d particles"%len(align))
     align,header = format_utility.tuple2numpy(align)
+    if not eman2_utility.is_avaliable(): raise ValueError, "EMAN2 is not installed"
     reference = numpy.asarray(eman2_utility.utilities.even_angles(15, 0.0, 90.0, 0.0, 359.99, 'P', '', 'c1'))
     ang = numpy.zeros((len(align)+len(reference), 4))
     for i in xrange(len(reference)):
