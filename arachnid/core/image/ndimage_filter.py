@@ -86,9 +86,13 @@ def ramp(img, out=None):
           Ramped image
     '''
     
-    if out is None: out = numpy.empty_like(img, dtype=numpy.float64)
-    out[:]=img
-    _spider_filter.ramp(out.T)
+    if out is None: 
+        out = numpy.empty_like(img, dtype=numpy.float32)
+    elif out.dtype != numpy.float32: raise ValueError, "Output array must be float 32"
+    if numpy.byte_bounds(out) != numpy.byte_bounds(img):  out[:]=img
+    tout = out.T if not out.flags.f_contiguous else out
+    if _spider_filter.ramp(tout) != 0:
+        raise ValueError, "Ramp filter failed"
     return out
 
 def _modnx(s): return s+2-numpy.mod(s, 2)
