@@ -86,7 +86,7 @@ def cache_data():
             Keyword arguments
     '''
     
-    return dict(emdata=eman2_utility.EMAN2.EMData())
+    return dict(cache=eman2_utility.EMAN2.EMData())
 
 def is_avaliable():
     ''' Test if EMAN2 can be found
