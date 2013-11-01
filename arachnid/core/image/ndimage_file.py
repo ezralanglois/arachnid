@@ -112,7 +112,12 @@ def read_image(filename, index=None, **extra):
     if isinstance(filename, tuple): filename,index=filename
     filename = readlinkabs(filename)
     format = get_read_format_except(filename)
-    return format.read_image(filename, index, **extra)
+    cache_keys = format.cache_data().keys()
+    param = {}
+    for key in cache_keys:
+        if key not in extra: continue
+        param[key] = extra[key]
+    return format.read_image(filename, index, **param)
 
 def iter_images(filename, index=None):
     ''' Read a set of images from the given file

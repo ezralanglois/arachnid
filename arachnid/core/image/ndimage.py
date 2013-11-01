@@ -1,7 +1,5 @@
 ''' Definition of the ndimage objects
 
-I2PC/NCMI EMX standard
-
 .. Created on Aug 14, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -35,5 +33,4 @@ class ndimage(numpy.ndarray):
         
         return numpy.ndarray.__array_wrap__(self, out_arr, context)
 
-        
         
