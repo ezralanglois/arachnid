@@ -329,10 +329,6 @@ def get_read_format(filename):
     
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%(filename)
     
-    try:
-        if mrc.is_readable(filename):
-            return mrc
-    except: pass
     for f in _formats:
         if f.is_readable(filename): return f
     return None
@@ -379,7 +375,7 @@ def _load():
     ''' Import available formats
     '''
     
-    image_formats = [] #[mrc, spider]
+    image_formats = [mrc, spider]
     if eman_format.is_avaliable():
         default_format=eman_format
         image_formats.append(eman_format)
