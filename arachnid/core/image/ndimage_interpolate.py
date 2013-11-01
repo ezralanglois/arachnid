@@ -48,21 +48,29 @@ def downsample(img, out, kernel=None):
     '''
     '''
     
+    print out
     if numpy.dtype(img.dtype).kind != 'f': raise ValueError, "Input array must be floating point, not %s"%numpy.dtype(img.dtype).kind
     scale=None
+    bin_factor=None
     if not hasattr(out, 'ndim'):
         if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
         else:
             scale = 1.0/out 
+            bin_factor=out
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
         out = numpy.zeros(shape, dtype=img.dtype)
     else:
         if out.dtype != img.dtype: raise ValueError, "Requires output and input of the same dtype"
     if scale is None: scale = float(out.shape[0])/float(img.shape[0])
-    if kernel is None: kernel=sincblackman(1.0/scale, dtype=img.dtype)
+    if bin_factor is None: bin_factor = float(img.shape[0])/float(out.shape[0])
+    print scale, bin_factor
+    if kernel is None: kernel=sincblackman(bin_factor, dtype=img.dtype)
     if kernel.dtype != img.dtype: raise ValueError, "Requires kernel and input of the same dtype"
+    # todo automatic convert to fortran with .T
     _resample.downsample(img, out, kernel, scale)
     return out
+
+interpolate_sblack=downsample
     
 def interpolate(img, out, method='bilinear'):
     ''' Interpolate the size of the input image
@@ -92,8 +100,8 @@ def interpolate(img, out, method='bilinear'):
           Interpolated image
     '''
     
-    if method not in ('bilinear', 'ft', 'fs'):
-        raise ValueError, "method argument must be one of the following: bilinear,ft,fs"
+    if method not in ('bilinear', 'ft', 'fs', 'sblack'):
+        raise ValueError, "method argument must be one of the following: bilinear,ft,fs,sblack"
     return getattr(ndinter, 'interpolate_'+method)(img, out)
 
 def interpolate_bilinear(img, out):

@@ -19,8 +19,8 @@ void downsample(T* img, dsize_type nx, dsize_type ny, T* out, dsize_type ox, dsi
 	dsize_type kbmin = -msize/2;
 	dsize_type kbmax = -kbmin;
 	dsize_type kbc   = kbmax+1;
-	//T scale = T(ox)/nx;
 	kernel+=2;
+
 	for(dsize_type yd=0;yd<oy;yd++)
 	{
 		T ys = T(yd)/scale;
@@ -35,12 +35,10 @@ void downsample(T* img, dsize_type nx, dsize_type ny, T* out, dsize_type ox, dsi
 			{
 				for(dsize_type my = kbmin;my<=kbmax;my++)
 				{
-					//float t = kb.sBwin_tab(dely - inyold-m2);
 					T k = ys-y_orig-my;
 					T t = wrap_kernel(kernel, k, fltb);
 					for(dsize_type mx = kbmin;mx<=kbmax;mx++)
 					{
-						//float q = kb.sBwin_tab(delx - inxold-m1)*t;
 						T k = xs - x_orig-mx;
 						T q = wrap_kernel(kernel, k, fltb)*t;
 						val += img[ ((x_orig+mx+nx)%nx) + ((y_orig+my+ny)%ny)*nx ]*q;
@@ -50,7 +48,6 @@ void downsample(T* img, dsize_type nx, dsize_type ny, T* out, dsize_type ox, dsi
 			}
 			else
 			{
-
 				for(dsize_type my = kbmin;my<=kbmax;my++)
 				{
 					T k = ys-y_orig-my;

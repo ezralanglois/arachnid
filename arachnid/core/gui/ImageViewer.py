@@ -127,7 +127,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         return [ 
-               dict(downsample_type=('ft', 'bilinear', 'fs'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
+               dict(downsample_type=('ft', 'bilinear', 'fs', 'sblack'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
                dict(invert=False, help="Perform contrast inversion"),
                dict(coords="", help="Path to coordinate file", gui=dict(filetype='open')),
                dict(show_coords=False, help="Hide the loaded coordinates"),
