@@ -14,7 +14,7 @@ To run:
    :linenos:
 '''
 import sys
-sys.path.append('/Users/robertlanglois/workspace/arachnida/src/')
+#sys.path.append('/Users/robertlanglois/workspace/arachnida/src/')
 #sys.path.append('/home/robertl/tmp/arachnid-0.0.1/')
 from arachnid.core.metadata import spider_utility
 from arachnid.core.image import ndimage_file, ndimage_utility
@@ -25,11 +25,11 @@ if __name__ == '__main__':
 
     # Parameters
     
-    stack_files = glob.glob("/Users/robertlanglois/Desktop/win_0000686.dat")
+    stack_files = glob.glob(sys.argv[1])
     output_file = "tmp_00000.spi"
-    inplace=False
-    radius = 56
-    test=True
+    inplace=True
+    radius = int(float(sys.argv[2])/float(sys.argv[3]))
+    test=False
     
     logging.basicConfig(level_level=logging.INFO)
     
