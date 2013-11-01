@@ -473,6 +473,7 @@ def spider_id(filename, idlen=0, use_int=True):
         return int(filename)
     except: pass
     
+    orig = filename
     if filename.find('.') != -1:
         filename, ext = os.path.splitext(filename)
     n = spider_id_length(filename)
@@ -483,7 +484,7 @@ def spider_id(filename, idlen=0, use_int=True):
         if use_int: return val
         return filename
     except:
-        raise SpiderError, "Cannot parse filename: "+filename+" - "+str(len(filename))+" - "+str(idlen)
+        raise SpiderError, "Cannot parse filename: "+orig+" - "+str(len(filename))+" - "+str(idlen)
 
 def split_spider_id(id, idlen=0, use_int=True):
     '''Extract a concatenated Spider ID as a tuple of integers
