@@ -36,7 +36,13 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     
     id = spider_utility.spider_id(filename, id_len)
     output = spider_utility.spider_filename(output, id)
-    pow = generate_powerspectra(filename, **extra)
+    try:
+        pow = generate_powerspectra(filename, **extra)
+    except:
+        _logger.warn("Skipping %s - unable to generate power spectra"%filename)
+        _logger.exception("Unable to generate power spectra")
+        vals = [id, 0.0, 0.0, 0.0, 0.0]
+        return filename, vals
     
     if 1 == 0:
         ctf.smooth_2d(pow, extra['apix']/25.0)
@@ -71,7 +77,8 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     # initial estimate with outlier removal?
     beg = ctf.first_zero(roo, **extra)
     st = int(ctf.resolution(30.0, len(raw), **extra))
-    plotting.plot_line('line.png', [ctf.resolution(i, len(raw), **extra) for i in xrange(st, len(raw))], raw[st:], dpi=300)
+    if 1 == 0:
+        plotting.plot_line('line.png', [ctf.resolution(i, len(raw), **extra) for i in xrange(st, len(raw))], raw[st:], dpi=300)
     
     # Estimate by drop in error
     end = ctf.energy_cutoff(numpy.abs(roo[beg:]))+beg
@@ -135,10 +142,14 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
         hpow = hybrid_model_data(pow, model, beg)
     else:
         hpow = pow
-    img = color_powerspectra(hpow, roo, roo2, freq, "%d - %.2f - %.2f - %.2f - %.2f - %.2f"%tuple(vals+vextra), defocus, rng, raw=raw[:len(roo)], **extra)
+    if 1 == 0:
+        img = color_powerspectra(hpow, roo, roo2, freq, "%d - %.2f - %.2f - %.2f - %.2f - %.2f"%tuple(vals+vextra), defocus, rng, raw=raw[:len(roo)], **extra)
+    else:
+        img = color_powerspectra(hpow, roo, roo2, freq, "%d - %.2f - %.2f - %.2f - %.2f - %.2f"%tuple(vals+vextra), defocus, rng, **extra)
     pow_color = spider_utility.spider_filename(pow_color, id)
-    pow_color2 = format_utility.add_prefix(pow_color, 'avg_')
-    ndimage_file.write_image(pow_color2, ndimage_utility.rotavg(pow))
+    if 1 ==0:
+        pow_color2 = format_utility.add_prefix(pow_color, 'avg_')
+        ndimage_file.write_image(pow_color2, ndimage_utility.rotavg(pow))
     if hasattr(img, 'ndim'):
         ndimage_file.write_image(pow_color, img)
     else:
@@ -551,19 +562,19 @@ def initialize(files, param):
             param['defocus_val'] = format_utility.map_object_list(format.read(param['defocus_file'], numeric=True, header=param['defocus_header']))
         except:param['defocus_val']={}
         
-        pow_cache = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'pow_orig', 'pow_'), files[0])
+        pow_cache = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'pow_orig', 'pow_'), param['output'])
         if not os.path.exists(os.path.dirname(pow_cache)): os.makedirs(os.path.dirname(pow_cache))
         param['pow_cache'] = pow_cache
         
-        pow_color = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'pow_color', 'pow_'), files[0])
+        pow_color = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'pow_color', 'pow_'), param['output'])
         if not os.path.exists(os.path.dirname(pow_color)): os.makedirs(os.path.dirname(pow_color))
         param['pow_color'] = pow_color
         
-        ctf_output = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'ctf', 'ctf_'), files[0])
+        ctf_output = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'ctf', 'ctf_'), param['output'])
         if not os.path.exists(os.path.dirname(ctf_output)): os.makedirs(os.path.dirname(ctf_output))
         param['ctf_output'] = ctf_output
         
-        summary_output = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'pow_sum', 'pow'), files[0])
+        summary_output = spider_utility.spider_template(os.path.join(os.path.dirname(param['output']), 'pow_sum', 'pow'), param['output'])
         if not os.path.exists(os.path.dirname(summary_output)): os.makedirs(os.path.dirname(summary_output))
         param['summary_output'] = summary_output
         pow_cache = spider_utility.spider_filename(pow_cache, files[0])
