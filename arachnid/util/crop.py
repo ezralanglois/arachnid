@@ -296,14 +296,18 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
         index=None
     
     offset = init_param(bin_factor=bin_factor, **extra)[1]
+    _logger.debug("Read micrograph")
     mic = ndimage_file.read_image(filename, index, **extra)
+    _logger.debug("Convert to 32 bit")
     mic = mic.astype(numpy.float32)
     if bin_factor > 1.0 and not disable_bin: 
+        _logger.debug("Downsample by %f"%bin_factor)
         mic = ndimage_interpolate.downsample(mic, bin_factor)
     if invert:
         _logger.debug("Invert micrograph")
         ndimage_utility.invert(mic, mic)
     if sigma > 0.0:
+        _logger.debug("Filter by %f"%(sigma/(2.0*offset)))
         mic = ndimage_filter.gaussian_highpass(mic, sigma/(2.0*offset), True)
     return mic
             
@@ -343,10 +347,8 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
     rad, offset = init_param(**extra)[:2]
     width = offset*2
     
-    template = ndimage_utility.model_disk(rad, (width, width))
-    ndimage_utility.normalize_standard(template, template, False, template)
-    # Define noise distribution
-    
+    template = numpy.zeros((width,width))
+    template[1:width-1, 1:width-1]=1 #/(width-1)**2
     
     cc_map = ndimage_utility.cross_correlate(mic, template)
     numpy.fabs(cc_map, cc_map)
@@ -354,18 +356,6 @@ def generate_noise(filename, noise="", output="", noise_stack=True, experimental
     cc_map *= -1
     peak1 = ndimage_utility.find_peaks_fast(cc_map, offset)
     peak1 = numpy.asarray(peak1).squeeze()
-    '''
-    else:
-        cc_map = mic.calc_ccf(template)
-        cc_map.process_inplace("xform.phaseorigin.tocenter")
-        np = eman2_utility.em2numpy(cc_map)
-        numpy.fabs(np, np)
-        cc_map.update()
-        cc_map -= float(numpy.max(np))
-        cc_map *= -1
-        peak1 = cc_map.peak_ccf(offset)
-        peak1 = numpy.asarray(peak1).reshape((len(peak1)/3, 3))
-    '''
     index = numpy.argsort(peak1[:,0])[::-1]
     peak1 = peak1[index].copy().squeeze()
     
@@ -450,6 +440,7 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
           Enhanced window
     '''
     
+    win = win.astype(numpy.float32)
     if not disable_enhance:
         _logger.debug("Removing ramp from window")
         
@@ -552,7 +543,7 @@ def init_root(files, param):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    radius, offset, bin_factor = init_param(**param)[:3]
+    radius, offset, bin_factor, param['mask'] = init_param(**param)
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel radius: %d"%radius)
@@ -561,10 +552,11 @@ def initialize(files, param):
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
         if not param['disable_enhance']:
-            _logger.info("Ramp filter")
-            _logger.info("Dedust: %f"%param['clamp_window'])
-            _logger.info("Histogram matching")
-            if not param['disable_normalize']: _logger.info("Normalize (xmipp style)")
+            _logger.info("Enhancement to windows:")
+            _logger.info("- Ramp filter")
+            _logger.info("- Dedust: %f"%param['clamp_window'])
+            _logger.info("- Histogram matching")
+            if not param['disable_normalize']: _logger.info("- Normalize (xmipp style)")
         param['count'] = numpy.zeros(2, dtype=numpy.int)
         if len(files) > 0 and not isinstance(files[0], tuple):
             _logger.info("Extracting windows from micrograph stacks of movie frames")
