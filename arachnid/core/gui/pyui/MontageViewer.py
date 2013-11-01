@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Mon Sep 16 11:49:09 2013
+# Created: Fri Nov  1 14:11:01 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -110,18 +110,12 @@ class Ui_MainWindow(object):
         self.widget_2 = QtGui.QWidget(self.tab_2)
         self.widget_2.setObjectName("widget_2")
         self.formLayout_2 = QtGui.QFormLayout(self.widget_2)
+        self.formLayout_2.setFieldGrowthPolicy(QtGui.QFormLayout.FieldsStayAtSizeHint)
         self.formLayout_2.setContentsMargins(0, 0, 0, 4)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label_3 = QtGui.QLabel(self.widget_2)
         self.label_3.setObjectName("label_3")
         self.formLayout_2.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_3)
-        self.imageCountSpinBox = QtGui.QSpinBox(self.widget_2)
-        self.imageCountSpinBox.setFrame(True)
-        self.imageCountSpinBox.setMinimum(1)
-        self.imageCountSpinBox.setMaximum(9999999)
-        self.imageCountSpinBox.setProperty("value", 10)
-        self.imageCountSpinBox.setObjectName("imageCountSpinBox")
-        self.formLayout_2.setWidget(0, QtGui.QFormLayout.FieldRole, self.imageCountSpinBox)
         self.label_5 = QtGui.QLabel(self.widget_2)
         self.label_5.setObjectName("label_5")
         self.formLayout_2.setWidget(1, QtGui.QFormLayout.LabelRole, self.label_5)
@@ -145,6 +139,13 @@ class Ui_MainWindow(object):
         self.loadImagesPushButton.setIcon(icon1)
         self.loadImagesPushButton.setObjectName("loadImagesPushButton")
         self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.loadImagesPushButton)
+        self.imageCountSpinBox = QtGui.QSpinBox(self.widget_2)
+        self.imageCountSpinBox.setFrame(True)
+        self.imageCountSpinBox.setMinimum(1)
+        self.imageCountSpinBox.setMaximum(9999999)
+        self.imageCountSpinBox.setProperty("value", 1)
+        self.imageCountSpinBox.setObjectName("imageCountSpinBox")
+        self.formLayout_2.setWidget(0, QtGui.QFormLayout.FieldRole, self.imageCountSpinBox)
         self.verticalLayout_2.addWidget(self.widget_2)
         self.groupBox = QtGui.QGroupBox(self.tab_2)
         self.groupBox.setObjectName("groupBox")
@@ -282,10 +283,10 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "General", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setToolTip(QtGui.QApplication.translate("MainWindow", "Number of images to display at once", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Viewable", None, QtGui.QApplication.UnicodeUTF8))
-        self.imageCountSpinBox.setToolTip(QtGui.QApplication.translate("MainWindow", "Number of images to display at once", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("MainWindow", "Clamp", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Decimate", None, QtGui.QApplication.UnicodeUTF8))
         self.loadImagesPushButton.setText(QtGui.QApplication.translate("MainWindow", "Reload", None, QtGui.QApplication.UnicodeUTF8))
+        self.imageCountSpinBox.setToolTip(QtGui.QApplication.translate("MainWindow", "Number of images to display at once", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Advanced Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Loading", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
