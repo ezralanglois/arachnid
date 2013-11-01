@@ -18,6 +18,7 @@ import scipy.ndimage.filters
 import scipy.ndimage.morphology
 import scipy.sparse
 from filters import linear
+import ndimage_filter
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -831,18 +832,20 @@ def powerspec_sum(imgs, pad, avg=None, total=0.0):
     avg_powspec : array
                   Averaged power spectra
     '''
-    
     if pad is None or pad <= 0: pad = 1
     for img in imgs:
         pad_width = img.shape[0]*pad
         #if eman2_utility.EMAN2 is not None:
-        #    img = eman2_utility.ramp(img)
         img = img.copy()
+        ndimage_filter.ramp(img, img)
         img -= img.min()
         img /= img.max()
         img -= img.mean()
         img /= img.std()
-        fimg = numpy.fft.fftn(pad_image(img, (pad_width, pad_width), 'e'))
+        if img.ndim == 2:
+            fimg = numpy.fft.fft2(pad_image(img, (pad_width, pad_width), 'e'))
+        else:
+            fimg = numpy.fft.fftn(pad_image(img, (pad_width, pad_width), 'e'))
         fimg = fimg*fimg.conjugate()
         if avg is None: avg = fimg.copy()
         else: avg += fimg
