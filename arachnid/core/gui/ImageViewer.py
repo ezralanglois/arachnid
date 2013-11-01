@@ -581,7 +581,10 @@ def iter_images(files, index, template=None, average=False):
         for filename in files:
             qimg = QtGui.QImage()
             if template is not None: filename=spider_utility.spider_filename(template, filename)
-            if not qimg.load(filename): raise IOError, "Unable to read image - %s"%filename
+            if not qimg.load(filename): 
+                qimg=QtGui.QPixmap(":/mini/mini/cross.png").toImage()
+                _logger.warn("Unable to read image - %s"%filename)
+                #raise IOError, "Unable to read image - %s"%filename
             yield (filename,0), qimg
     else:
         # todo reorganize with
