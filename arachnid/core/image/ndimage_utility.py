@@ -73,6 +73,27 @@ def mirror_ud(img, out=None):
     out[xoff:, :] = numpy.flipud(img[xoff:, :])
     return out
 
+def fourier_space_shift(fimg, dx, dy):
+    '''
+    
+    .. note::
+        
+        Take from http://www.mathworks.com/matlabcentral/fileexchange/23440-2d-fourier-shift
+    
+    '''
+    
+    N,M = fimg.shape
+    x_shift = numpy.exp(-1j * 2 * numpy.pi * dx * numpy.hstack((numpy.arange(numpy.floor(N/2.0), dtype=numpy.float), numpy.arange(numpy.floor(-N/2.0), 0, dtype=numpy.float))) / N)
+    print N, x_shift.shape
+    y_shift = numpy.exp(-1j * 2 * numpy.pi * dy * numpy.hstack((numpy.arange(numpy.floor(M/2.0), dtype=numpy.float), numpy.arange(numpy.floor(-M/2.0), 0, dtype=numpy.float))) / M)
+    #if numpy.mod(N,2): x_shift[N/2+1] = x_shift[N/2+1].real
+    #if numpy.mod(M,2): y_shift[M/2+1] = y_shift[M/2+1].real    
+    if numpy.mod(N,2): x_shift[N/2] = x_shift[N/2].real
+    if numpy.mod(M,2): y_shift[M/2] = y_shift[M/2].real
+    shift = numpy.outer(x_shift, y_shift)
+    assert(shift.ndim==fimg.ndim)
+    return fimg*shift
+
 def fourier_shift(img, dx, dy, dz=0, pad=1):
     ''' Shift using sinc interpolation
     
@@ -101,16 +122,9 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
         shape = img.shape
         img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
     if img.ndim == 2:
-        if 1==0:
-            fimg = numpy.fft.fft(img, img.shape[0], 0)
-            fimg = numpy.fft.fft(fimg, img.shape[1], 1)
-            fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
-            fimg = numpy.fft.ifft(fimg, img.shape[1], 1)
-            img = numpy.fft.ifft(fimg, img.shape[0], 0).real
-        else:
-            fimg = scipy.fftpack.fft2(img)
-            fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
-            img = scipy.fftpack.ifftn(fimg).real
+        fimg = scipy.fftpack.fft2(img)
+        fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
+        img = scipy.fftpack.ifftn(fimg).real
     else:
         fimg = scipy.fftpack.fftn(img)
         if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
