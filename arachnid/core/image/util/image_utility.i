@@ -59,9 +59,9 @@ void radon(double *pPtr, double *iPtr, double *thetaPtr, double *xCosTable, doub
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* Dr, int nr)};
 %apply (itype* INPLACE_ARRAY1, int DIM1) {(itype* Dc, int nc)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* sdist, int ns)};
-%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* out, int nox, int noy)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* out, int nor, int noc)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* out1, int nox1)};
-%apply ( std::complex<dtype>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<dtype>* img, int nix, int niy)};
+%apply ( std::complex<dtype>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<dtype>* img, int cr, int cc)};
 %apply (std::complex<dtype>* INPLACE_ARRAY1, int DIM1) {(std::complex<dtype>* roo, int nrx)};
 %enddef
 

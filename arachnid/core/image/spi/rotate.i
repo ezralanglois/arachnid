@@ -51,10 +51,10 @@ extern"C" {
 /** Declare the numpy array data types 
  */
 %define DECLARE_DATA_TYPE2( dtype, itype )
-//T* img, T *ref, T *psi, T* dist, I nx, I ny, I nn
-%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* img, int nx, int ny)};
-%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* rimg, int rnx, int rny)};
-%apply (dtype* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(dtype* ref, int nn, int rnx, int rny)};
+//T* img, T *ref, T *psi, T* dist, I nr, I nc, I nn
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* img, int nr, int nc)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* rimg, int rnr, int rnc)};
+%apply (dtype* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(dtype* ref, int nn, int rnr, int rnc)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* psi, int pn)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* dist, int dn)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* avg, int an)};

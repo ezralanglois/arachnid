@@ -1,31 +1,31 @@
 //#include <complex>
 
 template<class T>
-inline void sine_psd(std::complex<T>* img, int nix, int niy, T* out, int nox, int noy, int klim, int npad)
+inline void sine_psd(std::complex<T>* img, int cr, int cc, T* out, int nox, int noc, int klim, int npad)
 {
-	int nf = nix/npad;
-	int np2 = nix;
+	int nf = cr/npad;
+	int np2 = cr;
 	T ck = 1.0/T(klim*klim);
-	for(int mx=0;mx<nf;++mx)
+	for(int mr=0;mr<nf;++mr)
 	{
-		int mx2 = mx*2;
-		for(int my=0;my<nf;++my)
+		int mr2 = mr*2;
+		for(int mc=0;mc<nf;++mc)
 		{
-			int my2 = my*2;
-			for(int kx=0;kx<klim;++kx)
+			int mc2 = mc*2;
+			for(int kr=0;kr<klim;++kr)
 			{
-				int jx1 = (mx2+np2-(kx+1))%np2;
-				int jx2 = (mx2+(kx+1))%np2;
-				for(int ky=0;ky<klim;++ky)
+				int jr1 = (mr2+np2-(kr+1))%np2;
+				int jr2 = (mr2+(kr+1))%np2;
+				for(int kc=0;kc<klim;++kc)
 				{
-					int jy1 = (my2+np2-(ky+1))%np2;
-					int jy2 = (my2+(ky+1))%np2;
-					std::complex<T> zz = img[jx1+jx2*nix]-img[jy1+jy2*nix];
-					T wk = (1.0 - ck*T(kx)*T(kx))* (1.0 - ck*T(ky)*T(ky));
-					out[mx+my*nix] += ( std::real(zz)*std::real(zz) + std::imag(zz)*std::imag(zz) )*wk;
+					int jc1 = (mc2+np2-(kc+1))%np2;
+					int jc2 = (mc2+(kc+1))%np2;
+					std::complex<T> zz = img[jc1+jr1*cc]-img[jc2+jr2*cc];
+					T wk = (1.0 - ck*T(kr)*T(kr))* (1.0 - ck*T(kc)*T(kc));
+					out[mr*cc+mc] += ( std::real(zz)*std::real(zz) + std::imag(zz)*std::imag(zz) )*wk;
 				}
 			}
-			out[mx+my*nix] *= (6.0*T(klim)/T(4*klim*klim+3*klim-1));
+			out[mr*cc+mc] *= (6.0*T(klim)/T(4*klim*klim+3*klim-1));
 		}
 	}
 }

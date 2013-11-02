@@ -1,9 +1,9 @@
 
 template<class T>
-void rotate_avg(float *ref, int nn, int rnx, int rny, T *psi, int pn, float* avg, int an)
+void rotate_avg(float *ref, int nn, int rnr, int rnc, T *psi, int pn, float* avg, int an)
 {
 	typedef float float_type;
-	int n = rnx*rny;
+	int n = rnr*rnc;
 	float_type* buf = new float_type[n];
 	float_type scale = 1.0, tx = 0.0, ty=0.0;
 	int ret=0;
@@ -12,7 +12,7 @@ void rotate_avg(float *ref, int nn, int rnx, int rny, T *psi, int pn, float* avg
 	for(int i=0;i<nn;++i)
 	{
 		float_type psi1=float_type(psi[i]);
-		rtsq_(ref+i*n, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(ref+i*n, buf, &rnr, &rnc, &rnr, &rnc, &psi1, &scale, &tx, &ty, &ret);
 		for(int j=0;j<n;++j) avg[j] += buf[j];
 	}
 	for(int j=0;j<n;++j) avg[j] /= float_type(nn);
@@ -21,12 +21,12 @@ void rotate_avg(float *ref, int nn, int rnx, int rny, T *psi, int pn, float* avg
 }
 
 template<class I, class T>
-T rotate_error_mask(float *ref, int nn, int rnx, int rny, T *psi, int pn, I* maskidx, int mn)
+T rotate_error_mask(float *ref, int nn, int rnr, int rnc, T *psi, int pn, I* maskidx, int mn)
 {
 	typedef float float_type;
 
-	int n = rnx*rny;
-	//fprintf(stderr, "here1: %d*%d=%d\n", rnx, rny, n);
+	int n = rnr*rnc;
+	//fprintf(stderr, "here1: %d*%d=%d\n", rnr, rnc, n);
 	float_type* avg = new float_type[n];
 	float_type* buf = new float_type[n];
 	float_type scale = 1.0, tx = 0.0, ty=0.0;
@@ -36,7 +36,7 @@ T rotate_error_mask(float *ref, int nn, int rnx, int rny, T *psi, int pn, I* mas
 	for(int i=0;i<nn;++i)
 	{
 		float_type psi1=float_type(psi[i]);
-		rtsq_(ref+i*n, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(ref+i*n, buf, &rnr, &rnc, &rnr, &rnc, &psi1, &scale, &tx, &ty, &ret);
 		for(int j=0;j<n;++j) avg[j] += buf[j];
 	}
 	//fprintf(stderr, "done1\n");
@@ -46,7 +46,7 @@ T rotate_error_mask(float *ref, int nn, int rnx, int rny, T *psi, int pn, I* mas
 	for(int i=0;i<nn;++i)
 	{
 		float_type psi1=float_type(psi[i]);
-		rtsq_(ref+i*n, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(ref+i*n, buf, &rnr, &rnc, &rnr, &rnc, &psi1, &scale, &tx, &ty, &ret);
 		for(int j=0;j<mn;++j)
 		{
 			I k=maskidx[j];
@@ -61,11 +61,11 @@ T rotate_error_mask(float *ref, int nn, int rnx, int rny, T *psi, int pn, I* mas
 }
 
 template<class T>
-T rotate_error(float *ref, int nn, int rnx, int rny, T *psi, int pn)
+T rotate_error(float *ref, int nn, int rnr, int rnc, T *psi, int pn)
 {
 	typedef float float_type;
 
-	int n = rnx*rny;
+	int n = rnr*rnc;
 	float_type* avg = new float_type[n];
 	float_type* buf = new float_type[n];
 	float_type scale = 1.0, tx = 0.0, ty=0.0;
@@ -75,7 +75,7 @@ T rotate_error(float *ref, int nn, int rnx, int rny, T *psi, int pn)
 	for(int i=0;i<nn;++i)
 	{
 		float_type psi1=float_type(psi[i]);
-		rtsq_(ref+i*n, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(ref+i*n, buf, &rnr, &rnc, &rnr, &rnc, &psi1, &scale, &tx, &ty, &ret);
 		for(int j=0;j<n;++j) avg[j] += buf[j];
 	}
 	for(int j=0;j<n;++j) avg[j] /= float_type(nn);
@@ -84,7 +84,7 @@ T rotate_error(float *ref, int nn, int rnx, int rny, T *psi, int pn)
 	for(int i=0;i<nn;++i)
 	{
 		float_type psi1=float_type(psi[i]);
-		rtsq_(ref+i*n, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(ref+i*n, buf, &rnr, &rnc, &rnr, &rnc, &psi1, &scale, &tx, &ty, &ret);
 		for(int j=0;j<n;++j)
 		{
 			T v = buf[j]-avg[j];
@@ -98,14 +98,14 @@ T rotate_error(float *ref, int nn, int rnx, int rny, T *psi, int pn)
 }
 
 template<class I, class T>
-void rotate_distance_mask(float *ref, int nn, int rnx, int rny, I* Dr, int rn, I* Dc, int cn, T *psi, int pn, T* dist, int dn, I* maskidx, int mn)
+void rotate_distance_mask(float *ref, int nn, int rnr, int rnc, I* Dr, int rn, I* Dc, int cn, T *psi, int pn, T* dist, int dn, I* maskidx, int mn)
 {
 	typedef float float_type;
 	/*
 	extern"C" {
 	void rtsq_(T*, T*, I*, I*, I*, I*, T*, T*, T*, T*);
 	}*/
-	int n = rnx*rny;
+	int n = rnr*rnc;
 #ifdef _OPENMP
 	float_type* tbuf = new float_type[omp_get_max_threads()*n];
 #else
@@ -126,7 +126,7 @@ void rotate_distance_mask(float *ref, int nn, int rnx, int rny, I* Dr, int rn, I
 		float_type psi1=float_type(psi[i]);
 		float_type* cref = ref+n*Dc[i];
 		float_type* rref = ref+n*Dr[i];
-		rtsq_(cref, buf, &rnx, &rny, &rnx, &rny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(cref, buf, &rnr, &rnc, &rnr, &rnc, &psi1, &scale, &tx, &ty, &ret);
 		T d=T(0.0);
 		for(int k=0, j;k<mn;++k)
 		{
@@ -140,14 +140,14 @@ void rotate_distance_mask(float *ref, int nn, int rnx, int rny, I* Dr, int rn, I
 }
 
 template<class I, class T>
-void rotate_distance_array_mask(float* img, int nx, int ny, float *ref, int nn, int rnx, int rny, T *psi, int pn, T* dist, int dn, I* maskidx, int mn)
+void rotate_distance_array_mask(float* img, int nr, int nc, float *ref, int nn, int rnr, int rnc, T *psi, int pn, T* dist, int dn, I* maskidx, int mn)
 {
 	typedef float float_type;
 	/*
 	extern"C" {
 	void rtsq_(T*, T*, I*, I*, I*, I*, T*, T*, T*, T*);
 	}*/
-	int n = nx*ny;
+	int n = nr*nc;
 #ifdef _OPENMP
 	float_type* tbuf = new float_type[omp_get_max_threads()*n];
 #else
@@ -167,7 +167,7 @@ void rotate_distance_array_mask(float* img, int nx, int ny, float *ref, int nn, 
 #endif
 		float_type psi1=float_type(psi[i]);
 		float_type* cref = ref+n*i;
-		rtsq_(cref, buf, &nx, &ny, &nx, &ny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(cref, buf, &nr, &nc, &nr, &nc, &psi1, &scale, &tx, &ty, &ret);
 		T d=T(0.0);
 		for(int k=0, j;k<mn;++k)
 		{
@@ -181,14 +181,14 @@ void rotate_distance_array_mask(float* img, int nx, int ny, float *ref, int nn, 
 }
 
 template<class T>
-void rotate_distance_array(float* img, int nx, int ny, float *ref, int nn, int rnx, int rny, T *psi, int pn, T* dist, int dn)
+void rotate_distance_array(float* img, int nr, int nc, float *ref, int nn, int rnr, int rnc, T *psi, int pn, T* dist, int dn)
 {
 	typedef float float_type;
 	/*
 	extern"C" {
 	void rtsq_(T*, T*, I*, I*, I*, I*, T*, T*, T*, T*);
 	}*/
-	int n = nx*ny;
+	int n = nr*nc;
 #ifdef _OPENMP
 	float_type* tbuf = new float_type[omp_get_max_threads()*n];
 #else
@@ -208,7 +208,7 @@ void rotate_distance_array(float* img, int nx, int ny, float *ref, int nn, int r
 #endif
 		float_type psi1=float_type(psi[i]);
 		float_type* cref = ref+n*i;
-		rtsq_(cref, buf, &nx, &ny, &nx, &ny, &psi1, &scale, &tx, &ty, &ret);
+		rtsq_(cref, buf, &nr, &nc, &nr, &nc, &psi1, &scale, &tx, &ty, &ret);
 		T d=T(0.0);
 		for(int j=0;j<n;++j)
 		{
@@ -222,9 +222,9 @@ void rotate_distance_array(float* img, int nx, int ny, float *ref, int nn, int r
 
 
 template<class T>
-void rotate_image(T* img, int nx, int ny, T *rimg, int rnx, int rny, T ang)
+void rotate_image(T* img, int nr, int nc, T *rimg, int rnr, int rnc, T ang)
 {
 	T scale = 1.0, tx = 0.0, ty=0.0;
 	int ret=0;
-	rtsq_(img, rimg, &nx, &ny, &nx, &ny, &ang, &scale, &tx, &ty, &ret);
+	rtsq_(img, rimg, &nr, &nc, &nr, &nc, &ang, &scale, &tx, &ty, &ret);
 }
