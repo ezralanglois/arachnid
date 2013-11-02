@@ -51,8 +51,8 @@ typedef long dsize_type;
 /** Declare the numpy array data types 
  */
 %define DECLARE_DATA_TYPE( dtype )
-%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* img, dsize_type nx, dsize_type ny)};
-%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* out, dsize_type ox, dsize_type oy)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* img, dsize_type irow, dsize_type icol)};
+%apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* out, dsize_type orow, dsize_type ocol)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* kernel, dsize_type ksize)};
 %enddef
 

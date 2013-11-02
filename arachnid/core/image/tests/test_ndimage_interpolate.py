@@ -43,7 +43,12 @@ def test_decimate_sinc_blackman():
     numpy.testing.assert_allclose(test1, test2)
 """
 
-def test_downsample_sinc_blackman():
+'''
+[ 0.74124664  0.95449519  0.63179755] ... [ 0.44166026  0.97067535  0.47446725]
+  0.741247,   0.954495,   0.631798,  ...    0.441660,   0.970675,   0.474467, 0.432106,
+'''
+
+def test_downsample_sinc_blackman_square():
     '''
     '''
     
@@ -54,6 +59,48 @@ def test_downsample_sinc_blackman():
     imgem = eman2_utility.numpy2em(img)
     img = eman2_utility.em2numpy(imgem)
     test2 = ndimage_interpolate.downsample(img, bin_factor, kernel)
+    numpy.testing.assert_allclose(test1, test2)
+    
+def test_downsample_sinc_blackman_rect1():
+    '''
+    '''
+    
+    img = numpy.random.rand(101,201).astype(numpy.float32)
+    bin_factor=2.0
+    kernel = ndimage_interpolate.sincblackman(bin_factor, dtype=numpy.float32)
+    test1 = eman2_utility.decimate(img, bin_factor)
+    imgem = eman2_utility.numpy2em(img)
+    img = eman2_utility.em2numpy(imgem)
+    test2 = ndimage_interpolate.downsample(img, bin_factor, kernel)
+    print 'Diff:', numpy.linalg.norm(test1-test2,2), numpy.sqrt(numpy.sum(test1**2)), numpy.sqrt(numpy.sum(test2**2))
+    numpy.testing.assert_allclose(test1, test2)
+    
+def test_downsample_sinc_blackman_rect2():
+    '''
+    '''
+    
+    img = numpy.random.rand(101,102).astype(numpy.float32)
+    bin_factor=2.0
+    kernel = ndimage_interpolate.sincblackman(bin_factor, dtype=numpy.float32)
+    test1 = eman2_utility.decimate(img, bin_factor)
+    imgem = eman2_utility.numpy2em(img)
+    img = eman2_utility.em2numpy(imgem)
+    test2 = ndimage_interpolate.downsample(img, bin_factor, kernel)
+    print 'Diff:', numpy.linalg.norm(test1-test2,2), numpy.sqrt(numpy.sum(test1**2)), numpy.sqrt(numpy.sum(test2**2))
+    numpy.testing.assert_allclose(test1, test2)
+    
+def test_downsample_sinc_blackman_rect3():
+    '''
+    '''
+    
+    img = numpy.random.rand(102,101).astype(numpy.float32)
+    bin_factor=2.0
+    kernel = ndimage_interpolate.sincblackman(bin_factor, dtype=numpy.float32)
+    test1 = eman2_utility.decimate(img, bin_factor)
+    imgem = eman2_utility.numpy2em(img)
+    img = eman2_utility.em2numpy(imgem)
+    test2 = ndimage_interpolate.downsample(img, bin_factor, kernel)
+    print 'Diff:', numpy.linalg.norm(test1-test2,2), numpy.sqrt(numpy.sum(test1**2)), numpy.sqrt(numpy.sum(test2**2))
     numpy.testing.assert_allclose(test1, test2)
 
 def spider_ip(img, **extra):

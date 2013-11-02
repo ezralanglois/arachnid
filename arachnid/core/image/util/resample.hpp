@@ -9,8 +9,8 @@ template<class T> inline T wrap_kernel(T* kernel, T k, T fltb)
 /**
  * Adopted from SPARX
  */
-template<class T>
-void downsample(T* img, dsize_type nx, dsize_type ny, T* out, dsize_type ox, dsize_type oy, T* kernel, dsize_type ksize, T scale)
+template<class T> // rows, cols
+void downsample(T* img, dsize_type irow, dsize_type icol, T* out, dsize_type orow, dsize_type ocol, T* kernel, dsize_type ksize, T scale)
 {
 
 	ksize-=3;
@@ -21,47 +21,50 @@ void downsample(T* img, dsize_type nx, dsize_type ny, T* out, dsize_type ox, dsi
 	dsize_type kbc   = kbmax+1;
 	kernel+=2;
 
-	for(dsize_type yd=0;yd<oy;yd++)
+	for(dsize_type dr = 0;dr<orow;dr++)
 	{
-		T ys = T(yd)/scale;
-		dsize_type y_orig = dsize_type(ys + 0.5);
-		for(dsize_type xd = 0;xd<ox;xd++)
+		T sr = T(dr)/scale;
+		dsize_type dr_orig = dsize_type(sr + 0.5);
+		dsize_type drow = dr*ocol;
+		for(dsize_type dc=0;dc<ocol;dc++)
 		{
 			T val = 0.0;
 			T w = 0.0;
-			T xs = T(xd)/scale;
-			dsize_type x_orig = dsize_type(xs + 0.5);
-			if( x_orig<=kbc || x_orig>=(nx-kbc-2) || y_orig <= kbc || y_orig>=(ny-kbc-2) )
+			T sc = T(dc)/scale;
+			dsize_type dc_orig = dsize_type(sc + 0.5);
+			if( dr_orig<=kbc || dr_orig>=(irow-kbc-2) || dc_orig <= kbc || dc_orig>=(icol-kbc-2) )
 			{
-				for(dsize_type my = kbmin;my<=kbmax;my++)
+				for(dsize_type mr = kbmin;mr<=kbmax;mr++)
 				{
-					T k = ys-y_orig-my;
+					T k = sr - dr_orig-mr;
 					T t = wrap_kernel(kernel, k, fltb);
-					for(dsize_type mx = kbmin;mx<=kbmax;mx++)
+					dsize_type row = ((dr_orig+mr+irow)%irow)*icol;
+					for(dsize_type mc = kbmin;mc<=kbmax;mc++)
 					{
-						T k = xs - x_orig-mx;
+						T k = sc-dc_orig-mc;
 						T q = wrap_kernel(kernel, k, fltb)*t;
-						val += img[ ((x_orig+mx+nx)%nx) + ((y_orig+my+ny)%ny)*nx ]*q;
+						val += img[ row  + ((dc_orig+mc+icol)%icol) ]*q;
 						w += q;
 					}
 				}
 			}
 			else
 			{
-				for(dsize_type my = kbmin;my<=kbmax;my++)
+				for(dsize_type mr = kbmin;mr<=kbmax;mr++)
 				{
-					T k = ys-y_orig-my;
+					T k = sr - dr_orig-mr;
 					T t = wrap_kernel(kernel, k, fltb);
-					for(dsize_type mx = kbmin;mx<=kbmax;mx++)
+					dsize_type row = (dr_orig+mr)*icol;
+					for(dsize_type mc = kbmin;mc<=kbmax;mc++)
 					{
-						T k = xs - x_orig-mx;
+						T k = sc-dc_orig-mc;
 						T q = wrap_kernel(kernel, k, fltb)*t;
-						val += img[ (x_orig+mx) + (y_orig+my)*nx ]*q;
+						val += img[ row + (dc_orig+mc) ]*q;
 						w += q;
 					}
 				}
 			}
-			out[xd+yd*ox] = val/(w+1e-9);
+			out[drow+dc] = val/(w);//+1e-9);
 		}
 	}
 }
