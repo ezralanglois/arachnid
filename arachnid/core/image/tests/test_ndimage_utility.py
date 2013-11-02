@@ -140,7 +140,7 @@ def test_powerspec_avg():
     '''
     '''
     
-    orig = numpy.random.rand(2,10,10)
+    orig = numpy.random.rand(2,10,10).astype(numpy.float32)
     avg = ndimage_utility.powerspec_avg(orig, 6)
     avg;
 
