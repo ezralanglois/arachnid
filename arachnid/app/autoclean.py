@@ -6,7 +6,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, manifold, ndimage_processor, ndimage_interpolate
 from ..core.metadata import spider_utility, format, format_utility, spider_params
 from ..core.parallel import mpi_utility, openmp
@@ -559,7 +559,7 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Clean a particle selection of any remaning bad windows
                         
                         http://

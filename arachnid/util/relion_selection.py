@@ -128,7 +128,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.util.matplotlib_nogui import pylab
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image import ndimage_file, ndimage_utility
 from ..core.parallel import parallel_utility
@@ -822,7 +822,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Generate a relion selection file from a set of stacks and a defocus file
         
                          http://

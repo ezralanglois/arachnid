@@ -23,7 +23,7 @@ CHIMERA: XYZ rotating frame
 '''
 
 from ..core.util.matplotlib_nogui import pylab, matplotlib
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import format, format_utility
 from ..core.orient import healpix, orient_utility
 
@@ -310,7 +310,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = ''' Plot angular coverage on a map projection
         
                          http://

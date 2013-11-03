@@ -9,7 +9,7 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.image import ndimage_file, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
 from ..core.orient import healpix, orient_utility
 from ..core.metadata import spider_utility, format, format_utility, spider_params, format_alignment
@@ -417,7 +417,7 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Classify particles with a reference
                         
                         http://

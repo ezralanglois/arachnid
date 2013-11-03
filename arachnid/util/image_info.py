@@ -58,7 +58,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Apr 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.image import ndimage_file
 import logging, os, numpy
 
@@ -137,7 +137,7 @@ def main():
     ''' Main entry point for the script
     '''
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = ''' Retrieve information from the header of an image
                          
                          Example:

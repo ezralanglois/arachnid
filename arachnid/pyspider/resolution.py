@@ -127,7 +127,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 12, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.util.matplotlib_nogui import pylab
 from ..core.image import ndimage_file
 from ..core.metadata import format, format_utility, spider_utility, spider_params
@@ -483,7 +483,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Calculate the resolution from volume pairs
                         
                         http://

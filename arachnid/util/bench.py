@@ -99,7 +99,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Sep 24, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import format_utility, format, spider_utility
 from ..core.parallel import mpi_utility
 import os, logging
@@ -366,7 +366,7 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Benchmarking particle selection
         
                         http://

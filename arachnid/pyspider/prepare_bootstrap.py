@@ -4,7 +4,7 @@
 .. Created on Feb 21, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import spider_utility, format_utility, format, spider_params
 from ..core.image.formats import mrc as mrc_file
 from ..core.image import ndimage_file
@@ -152,7 +152,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Prepare a stack of images and alignment file for bootstrapping
                         
                         $ %prog relion_star_file.star -p params.ter -o dala.ter

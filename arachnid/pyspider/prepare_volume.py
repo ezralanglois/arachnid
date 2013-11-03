@@ -219,7 +219,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import spider_params, spider_utility, format_utility
 from ..core.parallel import mpi_utility
 from ..core.spider import spider
@@ -376,7 +376,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Prepare a volume for refinement
                         
                         $ %prog raw_vol01.spi raw1_vol01.spi raw2_vol01.spi -p params.spi -o filt_vol_0001.spi

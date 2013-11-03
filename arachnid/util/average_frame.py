@@ -4,7 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import format, spider_utility
 from ..core.image import ndimage_file, ndimage_utility
 import logging
@@ -82,7 +82,7 @@ def setup_options(parser, pgroup=None, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Average movie frames from a direct director
         
                          http://

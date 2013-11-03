@@ -98,7 +98,7 @@ http://stackoverflow.com/questions/13101780/representing-a-simple-function-with-
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import spider_params, format, format_utility
 from ..core.parallel import mpi_utility
 from ..core.image import analysis
@@ -505,7 +505,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Refine the orientational assignment of a set of projections
                         
                         $ %prog image_stack_*.ter -p params.ter -r reference.ter -a align.ter -o align_0001.ter

@@ -3,7 +3,7 @@
 .. Created on Feb 14, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import format, spider_utility, spider_params #, format_utility, format, spider_params
 from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate, ndimage_filter
 import logging
@@ -85,7 +85,7 @@ def setup_main_options(parser, pgroup=None):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Prepare a set of micrographs for screening
         
                          http://

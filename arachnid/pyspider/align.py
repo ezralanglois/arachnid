@@ -177,7 +177,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import spider_params, format, format_utility
 from ..core.orient import orient_utility
 from ..core.parallel import mpi_utility, parallel_utility
@@ -707,7 +707,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Align a set of particle windows to a reference
                         
                         $ %prog image_stack_*.ter -p params.ter -r reference.ter -o align_0001.ter

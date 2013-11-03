@@ -386,8 +386,8 @@ def check_options(options, main_option=False):
 
 def main():
     #Main entry point for this script
-    from ..core.app.program import run_hybrid_program
-    run_hybrid_program(__name__,
+    from ..core.app import program
+    program.run_hybrid_program(__name__,
         description = '''Estimate CTF parameters from a micrograph or a stack of images
         
                         http://

@@ -3,7 +3,7 @@
 .. Created on Feb 14, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import format, spider_utility #, format_utility, format, spider_params
 from ..core.image import ndimage_file
 import logging,os,numpy
@@ -115,7 +115,7 @@ def setup_options(parser, pgroup=None, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Restack a set of images
         
                          http://
