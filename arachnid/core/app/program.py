@@ -358,7 +358,8 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
-    parser = settings.OptionParser(usage, version=root_module.__version__, description=description)
+    url = root_module.__doc_url__%main_module.__name__ if hasattr(root_module, '__doc_url__') else None
+    parser = settings.OptionParser(usage, version=root_module.__version__, description=description, url=url)
     try:
         mgroup = settings.OptionGroup(parser, "Primary", "Options that must be set to run the program", group_order=-20,  id=__name__) 
         group = settings.OptionGroup(parser, "Required", "Options that must be set to run the program", group_order=-20,  id=__name__) 

@@ -723,7 +723,7 @@ class OptionParser(optparse.OptionParser):
                     Add option for input files (globbing in configuration file)
     '''
     
-    def __init__(self, usage=None, option_list=None, option_class=Option, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, comment='#', separator=':', add_input_files="input_files"):
+    def __init__(self, usage=None, option_list=None, option_class=Option, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, url=None, comment='#', separator=':', add_input_files="input_files"):
         '''Construct an OptionParser
         '''
         
@@ -735,6 +735,7 @@ class OptionParser(optparse.OptionParser):
         self.add_input_files = add_input_files
         self.validators = {}
         self.skipped_flags = []
+        self.url=url
         
     def add_validator(self, key, validator, **extra):
         '''Add a validator and default keyword arguments required by the validator
@@ -1163,7 +1164,12 @@ class OptionParser(optparse.OptionParser):
         
         prog = self.prog if self.prog is not None else os.path.basename(sys.argv[0])
         fout.write(self.comment+"  Program:\t"+os.path.basename(prog)+"\n")
-        fout.write(self.comment+"  Version:\t"+str(self.get_version())+"\n\n")
+        # url
+        # 
+        fout.write(self.comment+"  Version:\t"+str(self.get_version())+"\n")
+        if self.url is not None: 
+            fout.write(self.comment+"  URL:\t"+self.url+"\n")
+        fout.write('\n')
         #fout.write(self.comment+"  "+self.get_usage()+"\n")
         if self.description is not None:
             fout.write(self.comment+"  "+self.get_description()+"\n\n")
