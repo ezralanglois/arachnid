@@ -2,11 +2,13 @@
 
 Supported formats:
     
-     - :py:mod:`EMAN2/SPARX <formats.eman_format>`
      - :py:mod:`MRC <formats.mrc>`
      - :py:mod:`SPIDER <formats.spider>`
-     
-.. todo:: mrc format gives nans with direct detector data, disabled until fixed
+     - :py:mod:`EMAN2/SPARX <formats.eman_format>` (Optional, used if available)
+
+.. note:: 
+    
+    Each read function supports soft links or shortcuts
 
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -66,7 +68,7 @@ def is_readable(filename):
     
     :Returns:
     
-    read : bool
+    out : bool
            True if the format is recognized
     '''
     
@@ -102,6 +104,8 @@ def read_image(filename, index=None, **extra):
                Input filename to read
     index : int, optional
             Index of image to get, if None, first image (Default: None)
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
         
@@ -127,7 +131,12 @@ def iter_images(filename, index=None):
     filename : str
                Input filename to read
     index : int or array, optional
-            Index of image to start or array of selected images, if None, start with the first image (Default: None)
+            Image index: 
+                - if int, then index of image to start 
+                - if array, then an array of selected images
+                - if list of strs, then iterate over each stack for each filename in list
+                - if list of tuples, then assumes each is a filename and an index
+                - if None, start with the first image (Default: None)
     
     :Returns:
         
@@ -277,7 +286,7 @@ def get_write_format(filename):
     
     :Returns:
     
-    write : format
+    out : format
             Write format for given file extension
     '''
     
@@ -299,7 +308,7 @@ def get_read_format_except(filename):
     
     :Returns:
     
-    write : format
+    out : format
             Read format for given file
     '''
     
@@ -323,7 +332,7 @@ def get_read_format(filename):
     
     :Returns:
     
-    write : format
+    out : format
             Read format for given file
     '''
     
@@ -376,12 +385,8 @@ def _load():
     '''
     
     image_formats = [mrc, spider]
-    if eman_format.is_avaliable():
-        default_format=eman_format
-        image_formats.append(eman_format)
-    else:
-        image_formats.extend([mrc, spider]) # TODO remove
-        default_format=spider
+    default_format=spider
+    if eman_format.is_avaliable(): image_formats.append(eman_format)
     return image_formats, default_format
 
 _formats, _default_write_format = _load()
