@@ -216,8 +216,6 @@ def write_update(output, **extra):
     
     if writeflag:
         write(output, **extra)
-    
-    
 
 def update_params(bin_factor, width, height, apix, maxfreq, window, pixel_diameter, dec_level, **extra):
     ''' Update the SPIDER params based on the current decimation factor

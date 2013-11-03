@@ -1,5 +1,7 @@
 typedef long dsize_type;
 
+// future swig example http://mdanalysis.googlecode.com/svn/trunk/src/KDTree/KDTree.i
+
 
 template<class T> inline T wrap_kernel(T* kernel, T k, T fltb)
 {
