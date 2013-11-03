@@ -1,7 +1,7 @@
-'''Extracting windows from a micrograph (Cropping)
+'''Crops windows from a micrograph
 
-This script (`ara-crop`) extracts particles from a micrograph based on coordinates (which may
-have come from AutoPicker).
+This script (`ara-crop`) crops particles from a micrograph based on coordinates from a particle picking
+algorithm such as AutoPicker (`ara-autopick`).
 
 It performs the following preprocessing on the micrograph:
 
@@ -15,6 +15,8 @@ In addition, it performs the following preprocessing on the windows:
     - Removing bad pixels from dust or errant electrons (Default clamp-window 5, if clamp-window = 0 then disable clamping)
     - Histogram matching to a noise window
     - Normalization to mean=0, variance=1 outside the particle radius (Default on, disable-normalize will disable this step)
+
+Unless specified, this script automatically finds a noise window (or set of noise windows) from the first micrograph.
 
 Tips
 ====
@@ -34,10 +36,6 @@ Running Cropping
 ================
 
 .. sourcecode :: sh
-    
-    # Source AutoPart - FrankLab only
-    
-    $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
     # Create a configuration file
     
@@ -70,9 +68,7 @@ Critical Options
 .. option:: -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
     
     List of input filenames containing micrographs
-    If you use the parameters `-i` or `--inputfiles` they must be comma separated 
-    (no spaces). If you do not use a flag, then separate by spaces. For a 
-    very large number of files (>5000) use `-i "filename*"`
+    |input_files|
 
 .. option:: -o <str>, --output <str>
     
@@ -81,24 +77,11 @@ Critical Options
 .. option:: -s <str>, --coordinate-file <str>
     
     Filename to a set of particle coordinates
-    
-.. option:: -r <int>, --pixel-radius <int>
-    
-    Size of your particle in pixels. If you decimate with `--bin-factor` give the undecimated value
-    
-.. option:: --window <float>
-    
-    Size of your window in pixels or multiplier (if less than the diameter). If you decimate with `--bin-factor` give the undecimated value
 
-
-Useful Options
-==============
+More Options
+============
 
 .. program:: ara-crop
-
-.. option:: -w <int>, --worker-count <int>
-    
-    Set the number of micrographs to process in parallel (keep in mind memory and processor restrictions)
     
 .. option:: --invert
     
@@ -127,6 +110,14 @@ Useful Options
 .. option:: --sigma <float>
     
     Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)
+    
+.. option:: -r <int>, --pixel-radius <int>
+    
+    Size of your particle in pixels. If you decimate with `--bin-factor` give the undecimated value
+    
+.. option:: --window <float>
+    
+    Size of your window in pixels or multiplier (if less than the diameter). If you decimate with `--bin-factor` give the undecimated value
 
 Other Options
 =============
@@ -194,7 +185,6 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
     radius, offset, bin_factor, tmp = init_param(**extra)
     norm_mask=tmp*-1+1
     
-    #if extra['experimental']: return filename, len(coords)
     if frame_beg > 0: frame_beg -= 1
     if frame_end < 0: frame_end = tot
     output=extra['output']
@@ -267,7 +257,7 @@ def test_coordinates(mic, coords, bin_factor):
     if numpy.max(coords[:, y])*2 < mic.shape[0]: 
         _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.max(coords[:, y]))
 
-def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, experimental=False, **extra):
+def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
@@ -311,7 +301,7 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
         mic = ndimage_filter.gaussian_highpass(mic, sigma/(2.0*offset), True)
     return mic
             
-def generate_noise(filename, noise="", output="", noise_stack=True, experimental=False, **extra):
+def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     ''' Automatically generate a stack of noise windows and by default choose the first
     
     :Parameters:
@@ -412,7 +402,7 @@ def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **e
     _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
     return rad, offset, bin_factor, mask
 
-def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, experimental=False, **extra):
+def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, **extra):
     '''Enhance the window with a set of filtering and normalization routines
     
     :Parameters:
@@ -655,10 +645,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", noise="",                 help="Use specified noise file")
     group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
     group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
-    group.add_option("", experimental=False,       help="Use new experimental code for memory management")
     group.add_option("", frame_align="",           help="Translational alignment parameters for individual frames")
     group.add_option("", single=False,             help="Single window (first)")
-    group.add_option("", reverse=False,             help="Reverse for reversied alignment")
+    group.add_option("", reverse=False,            help="Reverse for reversied alignment")
     group.add_option("", frame_beg=0,              help="Range for the number of frames")
     group.add_option("", frame_end=-1,             help="Range for the number of frames")
     pgroup.add_option_group(group)

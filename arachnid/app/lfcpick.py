@@ -4,8 +4,8 @@ This script (`ara-lfcpick`) was designed to locate potential particles on a micr
 should spend time tuning the number of particles returned to limit the number of noise windows found. Also, a manual
 selection is generally performed to remove contamination.
 
-Tips
-====
+Notes
+=====
 
  #. Filenames: Must follow the SPIDER format with a number before the extension, e.g. mic_00001.spi. Output files just require the number of digits: `--output sndc_0000.spi`
 
@@ -22,10 +22,6 @@ Examples
 ========
 
 .. sourcecode :: sh
-
-    # Source AutoPart - FrankLab only
-    
-    $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
     # Run with a disk as a template on a raw film micrograph
     
@@ -43,9 +39,7 @@ Critical Options
 .. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
     
     List of filenames for the input micrographs.
-    If you use the parameters `-i` or `--inputfiles` they must be comma separated 
-    (no spaces). If you do not use a flag, then separate by spaces. For a 
-    very large number of files (>5000) use `-i "filename*"`
+    |input_files|
 
 .. option:: -o <FILENAME>, --output <FILENAME>
     

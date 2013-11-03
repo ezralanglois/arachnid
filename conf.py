@@ -192,10 +192,10 @@ htmlhelp_basename = 'arachnid-doc'
 
 todo_include_todos = False
 
-rst_epilog = """
-.. |pys| replace:: pySPIDER
-.. |spi| replace:: pySPIDER
-"""
+
+# todo glob for all inc files
+rst_epilog = "".join(open('docs/include/option_details.inc').readlines())
+
 
 # -- Options for LaTeX output --------------------------------------------------
 
