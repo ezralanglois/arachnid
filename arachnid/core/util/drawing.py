@@ -32,8 +32,9 @@ def is_available():
     
     return ImageDraw is not None
 
-def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", ret_draw=False, **extra):
-    ''' Write out an image with the particles boxed
+def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", **extra):
+    ''' Draw boxes around particles on the micrograph using the given coordinates, window size
+    and down sampling factor.
     
     :Parameters:
     
@@ -49,6 +50,11 @@ def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", 
               Color of box outline
     extra : dict
             Unused key word arguments
+            
+    :Returns:
+    
+    out : PIL.Image
+          Returns the resulting RGB image
     '''
     
     if ImageDraw is None: return
@@ -56,18 +62,17 @@ def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", 
     offset = window/2
     if hasattr(mic, 'ndim'):
         mic = scipy.misc.toimage(mic).convert("RGB")
-        draw = ImageDraw.Draw(mic)
-    else:
-        draw = mic
+    draw = ImageDraw.Draw(mic)
     
     for box in coords:
         x = box.x / bin_factor
         y = box.y / bin_factor
         draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline=outline)
-    return mic if not ret_draw else draw
+    return mic
 
 def draw_particle_boxes_to_file(mic, coords, window, bin_factor=1.0, box_image="", **extra):
-    ''' Write out an image with the particles boxed
+    ''' Write out an image file to given filename with boxes drawn around particles on the micrograph 
+    using the given coordinates, window size and down sampling factor.
     
     :Parameters:
     
@@ -90,7 +95,8 @@ def draw_particle_boxes_to_file(mic, coords, window, bin_factor=1.0, box_image="
     mic.save(box_image)
 
 def draw_particle_boxes_to_array(mic, coords, window, bin_factor=1.0, **extra):
-    ''' Write out an image with the particles boxed
+    ''' Draw boxes around particles on the micrograph using the given coordinates, window size
+    and down sampling factor. Return image as an array.
     
     :Parameters:
     
@@ -104,6 +110,11 @@ def draw_particle_boxes_to_array(mic, coords, window, bin_factor=1.0, **extra):
                  Image downsampling factor
     extra : dict
             Unused key word arguments
+            
+    :Returns:
+    
+    out : array
+          Returns the resulting RGB image as an array (nxnx3)
     '''
     
     if ImageDraw is None: return
