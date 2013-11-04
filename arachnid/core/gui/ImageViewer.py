@@ -14,7 +14,7 @@ import property
 from ..metadata import spider_utility, format
 from ..image import ndimage_utility, ndimage_file, ndimage_interpolate, ndimage_filter
 from ..util import drawing
-import glob, os, numpy, scipy.misc #, itertools
+import glob, os, numpy #, itertools
 import logging
 
 _logger = logging.getLogger(__name__)

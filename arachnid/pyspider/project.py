@@ -169,7 +169,6 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import spider_params, spider_utility
-from ..core.app import program
 from ..app import autopick
 from ..util import crop, relion_selection #, mic_select
 import reference, defocus, align, refine, legion_to_spider, autorefine, create_align
