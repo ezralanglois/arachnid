@@ -1,6 +1,6 @@
-'''Crops windows from a micrograph
+'''Crops windowed particles from a micrograph
 
-This script (`ara-crop`) crops particles from a micrograph based on coordinates from a particle picking
+This script (`ara-crop`) crops windows containing particles from a micrograph based on coordinates from a particle picking
 algorithm such as AutoPicker (`ara-autopick`).
 
 It performs the following preprocessing on the micrograph:
@@ -18,8 +18,8 @@ In addition, it performs the following preprocessing on the windows:
 
 Unless specified, this script automatically finds a noise window (or set of noise windows) from the first micrograph.
 
-Tips
-====
+Notes
+=====
 
  #. Input filenames: To specifiy multiple files, either use a selection file `--selection-doc sel01.spi` with a single input file mic_00001.spi or use a single star mic_*.spi to
     replace the number.
@@ -32,18 +32,18 @@ Tips
     then use both `--bin-factor` and `--disable-bin` to change the coordinates but not the micrographs.
  
 
-Running Cropping
-================
+Running the Script
+==================
 
 .. sourcecode :: sh
     
     # Create a configuration file
     
-    $ ara-crop > crop.cfg
+    $ ara-crop --create-cfg crop.cfg
     
-    # Alternative: Create configuration file
+    # - or -
     
-    $ ara-crop -i Micrographs/mic_00001.spi -r 55 -s coords/sndc_0000.spi -o "" > crop.cfg
+    $ ara-crop -i Micrographs/mic_00001.spi -p params.spi -s coords/sndc_0000.spi -o win/win_0000.spi --create-cfg crop.cfg
     
     # Edit configuration file
     
@@ -65,31 +65,30 @@ Critical Options
 
 .. program:: ara-crop
 
-.. option:: -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
+.. option:: --micrograph-files <filename1,filename2>, -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
     
-    List of input filenames containing micrographs
-    |input_files|
+    List of input micrograph filenames
+    If you use the parameters `-i` or `--inputfiles` the filenames may be comma or 
+    space separated on the command line; they must be comma seperated in a configuration 
+    file. Note, these flags are optional for input files; the filenames must be separated 
+    by spaces. For a very large number of files (>5000) use `-i "filename*"`
 
-.. option:: -o <str>, --output <str>
+.. option:: --particle-stack <str>, -o <str>, --output <str>
     
-    Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)
+    Output filename template for window stack with correct number of digits (e.g. sndc_0000.spi)
 
 .. option:: -s <str>, --coordinate-file <str>
     
-    Filename to a set of particle coordinates
+    Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)
 
-More Options
-============
+.. option:: -p <FILENAME>, --param-file <FILENAME> 
+    
+    Filename for SPIDER parameter file describing a Cryo-EM experiment
+
+Enhancement Options
+===================
 
 .. program:: ara-crop
-    
-.. option:: --invert
-    
-    Invert the contrast of CCD micrographs
-    
-.. option:: --bin-factor <int>
-    
-    Decimate the micrograph
 
 .. option:: --disable-enhance
     
@@ -110,14 +109,40 @@ More Options
 .. option:: --sigma <float>
     
     Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)
+
+Movie-mode Options
+==================
     
-.. option:: -r <int>, --pixel-radius <int>
+.. option:: --frame-beg <int>
     
-    Size of your particle in pixels. If you decimate with `--bin-factor` give the undecimated value
+    Index of first frame
     
-.. option:: --window <float>
+.. option:: --frame-end <int>
     
-    Size of your window in pixels or multiplier (if less than the diameter). If you decimate with `--bin-factor` give the undecimated value
+    Index of last frame
+    
+.. option:: --frame-align <str>
+    
+    Translational alignment parameters for individual frames
+    
+More Options
+============
+    
+.. option:: --selection-doc <str>
+    
+    Selection file for a subset of micrographs or selection file template for subset of good particles
+    
+.. option:: --bin-factor <FLOAT>
+    
+    Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
+    
+.. option:: --invert
+    
+    Invert the contrast on the micrograph (usually for raw CCD micrographs)
+    
+.. option:: --noise <str>
+    
+    Use specified noise file rather then automatically generate one
 
 Other Options
 =============
@@ -134,15 +159,14 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.image import ndimage_utility, ndimage_file, ndimage_filter, ndimage_interpolate
-from ..core.metadata import spider_utility, format_utility, format, spider_params
-from ..core.image.formats import mrc as mrc_file
+from ..core.metadata import spider_utility, format_utility, format, spider_params, selection_utility
 from ..core.parallel import mpi_utility
 import numpy, os, logging, psutil
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra):
+def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
     '''Crop a set of particles from a micrograph file with the specified
     coordinate file and write particles to an image stack.
     
@@ -152,6 +176,10 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
                Input filename
     id_len : int
              Maximum length of ID
+    frame_beg : int
+                First frame to crop
+    frame_end : int
+                List frame to crop
     extra : dict
             Unused keyword arguments
                 
@@ -174,16 +202,13 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
         return filename, 0, os.getpid()
 
     if tot is None:
-        if mrc_file.is_readable(filename):
-            try:
-                tot = mrc_file.count_images(filename)
-            except: tot = ndimage_file.count_images(filename)
-        else: tot = ndimage_file.count_images(filename)
+        tot = ndimage_file.count_images(filename)
         
     
     noise=extra['noise']
-    radius, offset, bin_factor, tmp = init_param(**extra)
-    norm_mask=tmp*-1+1
+    window = extra['window']
+    bin_factor = extra['bin_factor']
+    
     
     if frame_beg > 0: frame_beg -= 1
     if frame_end < 0: frame_end = tot
@@ -206,64 +231,30 @@ def process(filename, id_len=0, single=False, frame_beg=0, frame_end=0, **extra)
         else:id=i
         #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
         mic = read_micrograph(filename, id, **extra)
-        bin_factor = extra['bin_factor']
         if tot > 1 and align is not None: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
             mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
             
         _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
-        for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, offset*2, bin_factor)):
-            win = enhance_window(win, noise, norm_mask, **extra)
+        for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, window, bin_factor)):
+            win = enhance_window(win, noise, **extra)
             if win.min() == win.max():
                 coord = coords[index]
                 x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
                 _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
             ndimage_file.write_image(output, win, index)
-            if single: break
         #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     return filename, len(coords), os.getpid()
 
-def test_coordinates(mic, coords, bin_factor):
-    ''' Test if the coordinates cover the micrograph properly
-    
-    :Parameters:
-    
-    mic : array
-            Array 2-D for micrograph
-    coords : list
-             List of namedtuple coordinates
-    bin_factor : float
-                 Decimation factor for the coordinates
-    '''
-    
-    coords, header = format_utility.tuple2numpy(coords)
-    try: x = header.index('x')
-    except: raise ValueError, "Coordinate file does not have a label for the x-column"
-    try: y = header.index('y')
-    except: raise ValueError, "Coordinate file does not have a label for the y-column"
-    if bin_factor > 0.0: 
-        coords[:, x] /= bin_factor
-        coords[:, y] /= bin_factor
-    if numpy.min(coords[:, x]) < 0: raise ValueError, "Invalid x-coordate: %d"%numpy.min(coords[:, x])
-    if numpy.min(coords[:, y]) < 0: raise ValueError, "Invalid y-coordate: %d"%numpy.min(coords[:, y])
-    
-    if numpy.max(coords[:, x]) > mic.shape[1]: 
-        raise ValueError, "The x-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.max(coords[:, x])
-    if numpy.max(coords[:, y]) > mic.shape[0]: 
-        raise ValueError, "The y-coordate has left the micrograph - consider changing --bin-factor: %d"%numpy.max(coords[:, y])
-    
-    if numpy.max(coords[:, x])*2 < mic.shape[1]: 
-        _logger.warn("The maximum x-coordate is less than twice the size of the micrograph width - consider changing --bin-factor: %d"%numpy.max(coords[:, x]))
-    if numpy.max(coords[:, y])*2 < mic.shape[0]: 
-        _logger.warn("The maximum y-coordate is less than twice the size of the micrograph height - consider changing --bin-factor: "%numpy.max(coords[:, y]))
-
-def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, **extra):
+def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, window=None, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
         
     filename : str
                Filename for micrograph
+    index : int
+            Index of micrograph in stack
     bin_factor : float
                 Downsampling factor
     sigma : float
@@ -272,12 +263,14 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
                   If True, do not downsample the micrograph
     invert : bool
              If True, invert the contrast of the micrograph (CCD Data)
+    window : int
+             Size of the window in pixels
     extra : dict
             Unused extra keyword arguments
     
     :Returns:
         
-    mic : EMData
+    mic : array
           Micrograph image
     '''
     
@@ -285,7 +278,6 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
         filename = filename[1][index]
         index=None
     
-    offset = init_param(bin_factor=bin_factor, **extra)[1]
     _logger.debug("Read micrograph")
     mic = ndimage_file.read_image(filename, index, **extra)
     _logger.debug("Convert to 32 bit")
@@ -297,11 +289,11 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
         _logger.debug("Invert micrograph")
         ndimage_utility.invert(mic, mic)
     if sigma > 0.0:
-        _logger.debug("Filter by %f"%(sigma/(2.0*offset)))
-        mic = ndimage_filter.gaussian_highpass(mic, sigma/(2.0*offset), True)
+        _logger.debug("Filter by %f"%(sigma/float(window)))
+        mic = ndimage_filter.gaussian_highpass(mic, sigma/float(window), True)
     return mic
             
-def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
+def generate_noise(filename, noise="", output="", noise_stack=True, window=None, pixel_diameter=None, **extra):
     ''' Automatically generate a stack of noise windows and by default choose the first
     
     :Parameters:
@@ -314,12 +306,16 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
              Output filename for window stacks
     noise_stack : bool
                   If True, write out full noise stack rather than single window
+    window : int
+             Size of the window in pixels
+    pixel_diameter : int
+                     Diameter of particle in pixels
     extra : dict
             Unused extra keyword arguments
     
     :Returns:
         
-    noise_win : EMData
+    noise_win : array
                 Noise window
     '''
     
@@ -328,29 +324,25 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     if os.path.exists(noise_file):
         _logger.warn("Found cached noise file: %s - delete if you want to regenerate"%noise_file)
         return ndimage_file.read_image(noise_file)  
-    try:
-        tot = mrc_file.count_images(filename)
-    except: tot = ndimage_file.count_images(filename)
+    tot = ndimage_file.count_images(filename)
     if tot > 1:
         return None
     mic = read_micrograph(filename, **extra)
-    rad, offset = init_param(**extra)[:2]
-    width = offset*2
     
-    template = numpy.zeros((width,width))
-    template[1:width-1, 1:width-1]=1 #/(width-1)**2
+    template = numpy.zeros((window,window))
+    template[1:window-1, 1:window-1]=1 #/(window-1)**2
     
     cc_map = ndimage_utility.cross_correlate(mic, template)
     numpy.fabs(cc_map, cc_map)
     cc_map -= float(numpy.max(cc_map))
     cc_map *= -1
-    peak1 = ndimage_utility.find_peaks_fast(cc_map, offset)
+    peak1 = ndimage_utility.find_peaks_fast(cc_map, window/2)
     peak1 = numpy.asarray(peak1).squeeze()
     index = numpy.argsort(peak1[:,0])[::-1]
     peak1 = peak1[index].copy().squeeze()
     
     best = (1e20, None)
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, peak1, offset*2, 1.0)):
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, peak1, window, 1.0)):
         win = enhance_window(win, None, None, **extra)
         std = win.std()
         if std < best[0]: best = (std, win)
@@ -360,47 +352,6 @@ def generate_noise(filename, noise="", output="", noise_stack=True, **extra):
     if not noise_stack:
         ndimage_file.write_image(noise_file, noise_win)
     return noise_win
-
-def init_param(pixel_radius, pixel_diameter=0.0, window=1.0, bin_factor=1.0, **extra):
-    ''' Ensure all parameters have the proper scale and create a mask
-    
-    :Parameters:
-        
-    pixel_radius : float
-                  Radius of the particle
-    pixel_diameter : int
-                     Diameter of the particle
-    window : float
-             Size of the window (if less than particle diameter, assumed to be multipler)
-    bin_factor : float
-                 Decimation factor
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-        
-    rad : float
-          Radius of particle scaled by bin_factor
-    offset : int
-             Half-width of the window
-    bin_factor : float
-                 Decimation factor
-    mask : EMData
-           Disk mask with `radius` that keeps data in the disk
-    '''
-    
-    if pixel_diameter > 0:
-        rad = int( float(pixel_diameter) / 2 )
-        offset = int( window / 2.0 )
-    else:
-        rad = int( pixel_radius / float(bin_factor) )
-        offset = int( window / (float(bin_factor)*2.0) )
-    if window == 1.0: window = 1.4
-    if window < (2*rad): offset = int(window*rad)
-    width = offset*2
-    mask = ndimage_utility.model_disk(rad, (width, width))
-    _logger.debug("Radius: %d | Window: %d"%(rad, offset*2))
-    return rad, offset, bin_factor, mask
 
 def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=0.0, disable_enhance=False, disable_normalize=False, **extra):
     '''Enhance the window with a set of filtering and normalization routines
@@ -482,24 +433,8 @@ def read_coordinates(coordinate_file, selection_doc="", **extra):
         else:
             _logger.warn("Cannot find coordinate file: %s"%coordinate_file)
         raise
-    if select is not None and 'id' in select[0]._fields:
-        tmp = blobs
-        blobs = []
-        if 'select' in select[0]._fields:
-            for s in select:
-                if s.select > 0:
-                    try:
-                        blobs.append(tmp[s.id-1])
-                    except:
-                        if _logger.isEnabledFor(logging.DEBUG):
-                            _logger.exception("%d > %d"%(s.id-1, len(tmp)))
-        else:
-            for s in select:
-                try:
-                    blobs.append(tmp[s.id-1])
-                except:
-                    if _logger.isEnabledFor(logging.DEBUG):
-                        _logger.exception("%d > %d"%(s.id-1, len(tmp)))
+    if select is not None: 
+        blobs = selection_utility.select_subset(blobs, select)
     return blobs
 
 
@@ -507,17 +442,10 @@ def init_root(files, param):
     # Initialize global parameters for the script
  
     if mpi_utility.is_root(**param):
-        try: tot = mrc_file.count_images(files[0])
-        except: tot = ndimage_file.count_images(files[0])
+        tot = ndimage_file.count_images(files[0])
         if param['frame_align'] != "" and tot == 1:
             files = spider_utility.single_images(files)
-            if param['reverse']:
-                for f in files:
-                    f[1].reverse()
-            if param['reverse']:
-                _logger.info("Processing example movie in reverse: %s"%str(files[0]))
-            else:
-                _logger.info("Processing example movie: %s"%str(files[0]))
+            _logger.info("Processing example movie: %s"%str(files[0]))
         
         if tot > 0:
             if param['frame_align'] != "":
@@ -533,12 +461,11 @@ def init_root(files, param):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    radius, offset, bin_factor, param['mask'] = init_param(**param)
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
-        _logger.info("Pixel radius: %d"%radius)
-        _logger.info("Window size: %d"%(offset*2))
-        if param['sigma'] > 0: _logger.info("High pass filter: %f"%(param['sigma'] / (offset*2)))
+        _logger.info("Pixel diameter: %d"%(param['pixel_diameter']))
+        _logger.info("Window size: %d"%(param['window']))
+        if param['sigma'] > 0: _logger.info("High pass filter: %f"%(param['sigma'] / float(param['window'])))
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
         if not param['disable_enhance']:
@@ -557,24 +484,33 @@ def initialize(files, param):
             select = format.read(param['selection_doc'], numeric=True)
             file_count = len(files)
             if len(select) > 0:
-                select = set([s.id for s in select])
+                files=selection_utility.select_file_subset(files, select)
+                finished=list(param['finished'])
+                del param['finished'][:]
+                param['finished'].extend( selection_utility.select_file_subset(finished, select) )
+                
+                '''
                 old_files = files
+                select = set([s.id for s in select])
                 files = []
                 for filename in old_files:
                     id = filename[0] if isinstance(filename, tuple) else spider_utility.spider_id(filename, param['id_len'])
                     if id in select: files.append(filename)
+                
+                
                 finished = param['finished']
                 param['finished'] = []
                 for filename in finished:
                     id = filename[0] if isinstance(filename, tuple) else spider_utility.spider_id(filename, param['id_len'])
                     if id in select:
                         param['finished'].append(filename)
+                '''
+                
             _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_doc, len(files), file_count))
         if isinstance(files[0], tuple):
             tot = len(files[0][1])
         else:
-            try:tot = mrc_file.count_images(files[0])
-            except: tot = ndimage_file.count_images(files[0])
+            tot = ndimage_file.count_images(files[0])
         for filename in param['finished']:
             if tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
@@ -598,7 +534,6 @@ def initialize(files, param):
                
     files = mpi_utility.broadcast(files, **param)
     
-    
     if len(files) == 0:
         param['noise']=None
     elif param['noise'] == "":
@@ -613,7 +548,11 @@ def initialize(files, param):
         
     else: 
         param['noise'] =  ndimage_file.read_image(param['noise'])
+    
+    
     param.update(ndimage_file.cache_data())
+    param['mask'] = ndimage_utility.model_disk(param['pixel_diameter']/2, (param['window'], param['window']))
+    param['norm_mask']=param['mask']*-1+1
     return files
 
 def reduce_all(val, count, id_len, **extra):
@@ -636,50 +575,55 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
     
     group = OptionGroup(parser, "Cropping", "Options to crop particles from micrographs", id=__name__) #, gui=dict(root=True, stacked="prepComboBox"))
-    group.add_option("", disable_enhance=False,    help="Disable window post-processing: ramp, contrast enhancement")
-    group.add_option("", disable_bin=False,        help="Disable micrograph decimation")
-    group.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
-    group.add_option("", clamp_window=2.5,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
-    group.add_option("", sigma=1.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
-    group.add_option("", invert=False,             help="Invert the contrast on the micrograph (important for raw CCD micrographs)")
-    group.add_option("", noise="",                 help="Use specified noise file")
-    group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
-    group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
-    group.add_option("", frame_align="",           help="Translational alignment parameters for individual frames")
-    group.add_option("", single=False,             help="Single window (first)")
-    group.add_option("", reverse=False,            help="Reverse for reversied alignment")
-    group.add_option("", frame_beg=0,              help="Range for the number of frames")
-    group.add_option("", frame_end=-1,             help="Range for the number of frames")
+    
+    group.add_option("", invert=False,             help="Invert the contrast on the micrograph (usually for raw CCD micrographs)")
+    group.add_option("", noise="",                 help="Use specified noise file rather then automatically generate one")
+    
+    egroup = OptionGroup(parser, "Enhancement", "Enhancement for the windows")
+    egroup.add_option("", disable_enhance=False,    help="Disable window post-processing: ramp, contrast enhancement")
+    egroup.add_option("", disable_bin=False,        help="Disable micrograph decimation")
+    egroup.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
+    egroup.add_option("", clamp_window=2.5,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
+    egroup.add_option("", sigma=1.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
+    group.add_option_group(egroup)
+    
+    mgroup = OptionGroup(parser, "Movies", "Crop frames from movie micrographs")
+    mgroup.add_option("", frame_align="",           help="Translational alignment parameters for individual frames")
+    mgroup.add_option("", frame_beg=0,              help="Index of first frame")
+    mgroup.add_option("", frame_end=-1,             help="Index of last frame")
+    group.add_option_group(mgroup)
+    
+    #group.add_option("-r", pixel_radius=0,         help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, `param-file`)")
+    #group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--micrograph-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", "--particle-stack",   output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
-        pgroup.add_option("-s", coordinate_file="",     help="File containing coordinates of objects", gui=dict(filetype="open"), required_file=True)
-        pgroup.add_option("-d", selection_doc="",       help="Selection file for a subset of good windows", gui=dict(filetype="open"), required_file=False)
+        pgroup.add_option("-s", coordinate_file="",     help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"), required_file=True)
+        pgroup.add_option("-d", selection_doc="",       help="Selection file for a subset of micrographs or selection file template for subset of good particles", gui=dict(filetype="open"), required_file=False)
         parser.change_default(log_level=3)
+        spider_params.setup_options(parser, pgroup, True)
 
 def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
-    if options.bin_factor == 0: raise OptionValueError, "Bin factor cannot be zero"
+    if options.bin_factor == 0.0: raise OptionValueError, "Bin factor cannot be zero (--bin-factor)"
 
 def main():
     #Main entry point for this script
     
     program.run_hybrid_program(__name__,
-        description = '''Crop a set of particles from a micrograph
-        
-                        http://
+        description = '''Crop windows containing particles from a micrograph
                          
-                        Example: Run from the command line on a single node:
+                        Example: Run from the command line on a single node
                         
-                        $ %prog micrograph.spi -o particle-stack.spi -r 110 -s particle-coords.spi -w 312
+                        $ %prog micrograph_01.spi -o particle-stack_01.spi -p params.spi -s sndc_01.spi
                       ''',
         supports_OMP=True,
     )
 
-def dependents(): return [spider_params]
+def dependents(): return []
 
 if __name__ == "__main__": main()
 

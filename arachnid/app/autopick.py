@@ -64,9 +64,9 @@ Critical Options
     
     Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)
 
-.. option:: -r <int>, --pixel-radius <int>
+.. option:: -p <FILENAME>, --param-file <FILENAME> 
     
-    Size of your particle in pixels. If you decimate with `--bin-factor` give the undecimated pixel size.
+    Filename for SPIDER parameter file describing a Cryo-EM experiment
 
 Useful Options
 ===============
@@ -83,9 +83,13 @@ These options
     
     Invert the contrast of CCD micrographs
     
-.. option:: --bin-factor <int>
+.. option:: -p <FILENAME>, --param-file <FILENAME> 
     
-    Decimate the micrograph to speed up computation time
+    Filename for SPIDER parameter file describing a Cryo-EM experiment
+
+.. option:: --bin-factor <FLOAT>
+    
+    Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
     
 .. option:: --restart-file <FILENAME>
 
@@ -152,30 +156,18 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Dec 21, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app import tracing
 from ..core.app import program
 from ..core.image import ndimage_utility, analysis, ndimage_filter
-from ..core.metadata import format_utility, format, spider_utility
+from ..core.metadata import format_utility, format, spider_utility, spider_params
 from ..core.parallel import mpi_utility
+from ..core.util import drawing
 import numpy, scipy, logging, scipy.misc, numpy.linalg
 import lfcpick, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-try: 
-    from PIL import ImageDraw 
-    ImageDraw;
-except: 
-    try:
-        import ImageDraw
-        ImageDraw;
-    except: 
-        tracing.log_import_error('Failed to load PIL - `--box-image` will not work', _logger)
-        ImageDraw = None
-
-
-def process(filename, id_len=0, confusion=[], **extra):
+def process(filename, id_len=0, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -214,47 +206,13 @@ def process(filename, id_len=0, confusion=[], **extra):
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
-def write_example(mic, coords, filename, box_image="", **extra):
-    ''' Write out an image with the particles boxed
-    
-    :Parameters:
-    
-    coords : list
-             List of particle coordinates
-    box_image : str
-                Output filename
-    '''
-    
-    if box_image == "" or ImageDraw is None: return
-    
-    radius, offset, bin_factor = lfcpick.init_param(**extra)[:3]
-    mic = ndimage_filter.filter_gaussian_highpass(mic, 0.25/radius, 2)
-    ndimage_utility.replace_outlier(mic, 4.0, 4.0, None, mic)
-    mic = scipy.misc.toimage(mic).convert("RGB")
-    draw = ImageDraw.Draw(mic)
-    
-    for box in coords:
-        x = box.x / bin_factor
-        y = box.y / bin_factor
-        draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#ff4040")
-    bench = lfcpick.benchmark.read_bench_coordinates(filename, **extra)
-    if bench is not None:
-        for box in bench:
-            x = box[0] / bin_factor
-            y = box[1] / bin_factor
-            draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#40ff40")
-        
-    mic.save(box_image)
-
-def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
+def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
     
     :Parameters:
         
-    img : EMData
+    img : array
           Micrograph image
-    overlap_mult : float
-                   Amount of allowed overlap
     disable_prune : bool
                     Disable the removal of bad particles
     extra : dict
@@ -263,20 +221,12 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
     :Returns:
         
     peaks : numpy.ndarray
-            List of peaks and coordinates
+            List of peaks: height and coordinates
     '''
     
     template = lfcpick.create_template(**extra)
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    _logger.debug("Filter micrograph")
-    img = ndimage_filter.gaussian_highpass(img, 0.25/radius, 2)
-    _logger.debug("Template-matching")
-    cc_map = ccf_center(img, template)
-    _logger.debug("Find peaks")
-    peaks = lfcpick.search_peaks(cc_map, radius, overlap_mult)
-    if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
+    peaks = template_match(img, template, **extra)
     peaks=cull_boundary(peaks, img.shape, **extra)
-    
     index = numpy.argsort(peaks[:,0])[::-1]
     if index.shape[0] > limit: index = index[:limit]
     index = index[::-1]
@@ -292,11 +242,59 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
         else:
             sel = classify_windows(img, peaks, **extra)
         peaks = peaks[sel].copy()
-    peaks[:, 1:3] *= bin_factor
+    peaks[:, 1:3] *= extra['bin_factor']
     return peaks[::-1]
 
-def cull_boundary(peaks, shape, boundary, bin_factor, **extra):
+def template_match(img, template, pixel_diameter, **extra):
+    ''' Find peaks using given template in the micrograph
+    
+    :Parameters:
+        
+    img : array
+          Micrograph
+    template : array
+               Template
+    pixel_diameter : int
+                     Diameter of particle in pixels
+    extra : dict
+            Unused key word arguments
+          
+    :Returns:
+    
+    peaks : array
+            List of peaks including peak size, x-coordinate, y-coordinate
     '''
+    
+    _logger.debug("Filter micrograph")
+    img = ndimage_filter.gaussian_highpass(img, 0.25/(pixel_diameter/2), 2)
+    _logger.debug("Template-matching")
+    cc_map = ndimage_utility.cross_correlate(img, template)
+    _logger.debug("Find peaks")
+    peaks = lfcpick.search_peaks(cc_map, **extra)
+    if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
+    return peaks
+
+def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
+    ''' Remove peaks where the window goes outside the boundary of the 
+    micrograph image.
+    
+    :Parameters:
+    
+    peaks : array
+            List of peaks including peak size, x-coordinate, y-coordinate
+    shape : tuple
+            Number of rows, columns in micrograph
+    boundary : list
+               Margin for particle selection top, bottom, left, right
+    bin_factor : float
+                 Image downsampling factor
+    extra : dict
+            Unused key word arguments
+          
+    :Returns:
+    
+    peaks : array
+            List of peaks within the boundary including peak size, x-coordinate, y-coordinate
     '''
     
     if len(boundary) == 0: return peaks
@@ -319,31 +317,12 @@ def cull_boundary(peaks, shape, boundary, bin_factor, **extra):
     _logger.debug("Kept: %d of %d"%(j, len(peaks)))
     return peaks[:j]
 
-def ccf_center(img, template):
-    ''' Noise-cancelling cross-correlation
-    
-    :Parameters:
-        
-    img : EMData
-          Micrograph
-    template : EMData
-          Template
-    
-    :Returns:
-        
-    cc_map : EMData
-             Cross-correlation map
-    '''
-    
-    cc_map = ndimage_utility.cross_correlate(img, template)
-    return cc_map
-
-def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, **extra):
+def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
         
-    mic : EMData
+    mic : array
           Micrograph
     scoords : list
               List of potential particle coordinates
@@ -359,6 +338,12 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
                Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
     iter_threshold : int
                      Number of times to repeat thresholding
+    real_space_nstd : float
+                      Number of standard deviations for real-space PCA rejection
+    window : int
+             Size of the window in pixels
+    pixel_diameter : int
+                     Diameter of particle in pixels
     extra : dict
             Unused key word arguments
     
@@ -369,20 +354,20 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     '''
     
     _logger.debug("Total particles: %d"%len(scoords))
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
+    radius = pixel_diameter/2
+    win_shape = (window, window)
+    dgmask = ndimage_utility.model_disk(radius/2, win_shape)
     masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
+    maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
     
-    mask[:] = ndimage_utility.model_disk(int(radius*1.2+1), (offset*2, offset*2)) * (ndimage_utility.model_disk(int(radius*0.9), (offset*2, offset*2))*-1+1)
+    mask = ndimage_utility.model_disk(int(radius*1.2+1), (window, window)) * (ndimage_utility.model_disk(int(radius*0.9), win_shape)*-1+1)
     datar=None
     
     imgs=[]
-    bin_factor=1.0
     _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
         #if data is None:
         #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
@@ -407,20 +392,14 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         else:
             data[i, :]=amp
     
-    if 1 == 0:
-        data -= data.mean(0)
-        #eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
-        feat = analysis.pca_fast(data, data, 2)[-1]
-        dsel = outlier_rejection(feat[:, :2], 0.9)
-    else:
-        _logger.debug("Performing PCA")
-        feat, idx = analysis.pca(data, data, 1)[:2]
-        if feat.ndim != 2:
-            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-        assert(idx > 0)
-        assert(feat.shape[0]>1)
-        _logger.debug("Eigen: %d"%idx)
-        dsel = analysis.one_class_classification_old(feat)
+    _logger.debug("Performing PCA")
+    feat, idx = analysis.pca(data, data, 1)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
+    dsel = analysis.one_class_classification_old(feat)
     
 
     feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
@@ -458,16 +437,16 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
         sel = numpy.logical_and(dsel, sel)    
     
-    if remove_aggregates: classify_aggregates(scoords, offset, sel)
+    if remove_aggregates: classify_aggregates(scoords, window/2, sel)
     #else: remove_overlap(scoords, radius, sel)
     return sel
 
-def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, **extra):
+def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, window=None, pixel_diameter=None, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
         
-    mic : EMData
+    mic : array
           Micrograph
     scoords : list
               List of potential particle coordinates
@@ -483,6 +462,10 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
                Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
     iter_threshold : int
                      Number of times to repeat thresholding
+    window : int
+             Size of the window in pixels
+    pixel_diameter : int
+                     Diameter of particle in pixels
     extra : dict
             Unused key word arguments
     
@@ -493,20 +476,20 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     '''
     
     _logger.debug("Total particles: %d"%len(scoords))
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
+    radius = pixel_diameter/2
+    win_shape = (window, window)
+    dgmask = ndimage_utility.model_disk(radius/2, win_shape)
     masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
+    maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
     
-    mask[:] = ndimage_utility.model_disk(int(radius*1.2+1), (offset*2, offset*2)) * (ndimage_utility.model_disk(int(radius*0.9), (offset*2, offset*2))*-1+1)
+    mask = ndimage_utility.model_disk(int(radius*1.2+1), win_shape) * (ndimage_utility.model_disk(int(radius*0.9), win_shape)*-1+1)
     datar=None
     
     imgs=[]
-    bin_factor=1.0
     _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
         win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
@@ -612,7 +595,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         #sel = numpy.logical_and(sel, tsel)
         
     
-    if remove_aggregates: classify_aggregates(scoords, offset, sel)
+    if remove_aggregates: classify_aggregates(scoords,  window/2, sel)
     else: remove_overlap(scoords, radius, sel)
     return sel
 
@@ -663,7 +646,7 @@ def classify_noise(scoords, dsel, sel=None):
     return tsel
 
 def classify_aggregates(scoords, offset, sel):
-    ''' Classify out the aggregate windows
+    ''' Rmove all aggregated windows
     
     :Parameters:
         
@@ -690,7 +673,17 @@ def classify_aggregates(scoords, offset, sel):
     return sel
 
 def remove_overlap(scoords, radius, sel):
-    '''
+    ''' Remove coordinates where the windows overlap by updating
+    the selection array (`sel`)
+    
+    :Parameters:
+     
+     scoords : array
+               Selected coordinates
+    radius : int
+             Radius of the particle in pixels 
+    sel : array
+          Output selection array that is modified in place
     '''
     
     coords = scoords[:, 1:3]
@@ -708,6 +701,42 @@ def remove_overlap(scoords, radius, sel):
                 sel[idx[i]]=0
         else:
             i+=1
+
+def write_example(mic, coords, filename, box_image="", bin_factor=1.0, pixel_diameter=None, window=None, **extra):
+    ''' Write out an image with the particles boxed
+    
+    :Parameters:
+    
+    mic : array
+          Micrograph image
+    coords : list
+             List of particle coordinates
+    filename : str
+               Current micrograph filename to load benchmark if available
+    box_image : str
+                Output filename
+    bin_factor : float
+                 Image downsampling factor
+    pixel_diameter : int
+                     Diameter of particle in pixels
+    window : int
+             Size of window in pixels
+    extra : dict
+            Unused key word arguments
+    '''
+    
+    if box_image == "" or not drawing.is_available(): return
+    
+    radius = pixel_diameter/2.0
+    mic = ndimage_filter.filter_gaussian_highpass(mic, 0.25/radius, 2)
+    ndimage_utility.replace_outlier(mic, 4.0, 4.0, None, mic)
+    
+    bench = lfcpick.benchmark.read_bench_coordinates(filename, **extra)
+    if bench is not None:
+        mic = drawing.draw_particle_boxes(mic, coords, window, bin_factor, ret_draw=True)
+        drawing.draw_particle_boxes_to_file(mic, bench, window, bin_factor, box_image, outline="#40ff40")
+    else:
+        drawing.draw_particle_boxes_to_file(mic, coords, window, bin_factor, box_image)
     
 
 def initialize(files, param):
@@ -758,6 +787,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", "--micrograph-files", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", "--coordinate-file",      output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", selection_doc="",       help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
+        spider_params.setup_options(parser, pgroup, True)
         # move next three options to benchmark
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
@@ -768,12 +798,11 @@ def setup_options(parser, pgroup=None, main_option=False):
         parser.change_default(log_level=3)
 
 def setup_main_options(parser, group):
-    ''' 
+    ''' Change the values to options specific to the script
     '''
     
     parser.change_default(bin_factor=4, window=1.35)
     
-
 def check_options(options, main_option=False):
     #Check if the option values are valid
     
@@ -787,9 +816,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     program.run_hybrid_program(__name__,
-        description = '''Find particles using template-matching with unsupervsied learning algorithm
-                        
-                        http://
+        description = '''Automated particle selection (AutoPicker)
                         
                         Example: Unprocessed film micrograph
                          
