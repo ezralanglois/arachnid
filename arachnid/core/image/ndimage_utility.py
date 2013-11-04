@@ -95,6 +95,45 @@ def fourier_space_shift(fimg, dx, dy):
     assert(shift.ndim==fimg.ndim)
     return fimg*shift
 
+def fourier_shift2(img, dx, dy, dz=0, pad=1):
+    ''' Shift using sinc interpolation
+    
+    :Parameters:
+    
+    img : array
+          2D or 3D array of pixels
+    dx : float
+         Shift in x-direction
+    dy : float
+         Shift in y-direction
+    dz : float
+         Shift in z-direction
+    pad : float
+          Amount of padding
+    
+    :Returns:
+    
+    out : array
+          2D or 3D array of pixel shift (according to input)
+    '''
+    
+    if img.ndim != 2 and img.ndim != 3: raise ValueError, "Only works with 2 or 3D images"
+    if dx == 0 and dy == 0 and dz == 0: return img
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
+    if img.ndim == 2:
+        fimg = scipy.fftpack.fft2(img)
+        fimg = fourier_space_shift(fimg, (dy, dx))
+        img = scipy.fftpack.ifftn(fimg).real
+    else:
+        fimg = scipy.fftpack.fftn(img)
+        if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
+        else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy), -1)
+        img = scipy.fftpack.ifftn(fimg).real
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
 def fourier_shift(img, dx, dy, dz=0, pad=1):
     ''' Shift using sinc interpolation
     
