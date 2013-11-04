@@ -4,7 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import format, spider_utility, spider_params #, format_utility, format, spider_params
+from ..core.metadata import format, spider_utility, spider_params, selection_utility #, format_utility, format, spider_params
 from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate, ndimage_filter
 import logging
 
@@ -55,7 +55,7 @@ def initialize(files, param):
     
     if param['select'] != "":
         select = format.read(param['select'], numeric=True)
-        files = spider_utility.select_subset(files, select, param.get('id_len', 0))
+        files = selection_utility.select_file_subset(files, select, param.get('id_len', 0))
     return files
 
 def setup_options(parser, pgroup=None, main_option=False):

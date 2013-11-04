@@ -5,7 +5,7 @@
 '''
 from ..core.app import program
 from ..core.util import plotting
-from ..core.metadata import spider_utility, format, format_utility, spider_params
+from ..core.metadata import spider_utility, format, format_utility, spider_params, selection_utility
 from ..core.image import ndimage_file, ndimage_utility, ctf, ndimage_interpolate #, analysis
 from ..core.parallel import mpi_utility
 import os, numpy, logging #, scipy
@@ -556,7 +556,7 @@ def initialize(files, param):
             _logger.info("Using CTF model appropriate for 0 CS")
         if param['select'] != "":
             select = format.read(param['select'], numeric=True)
-            files = spider_utility.select_subset(files, select)
+            files = selection_utility.select_file_subset(files, select)
         param['defocus_arr'] = numpy.zeros((len(files), 7))
         try:
             param['defocus_val'] = format_utility.map_object_list(format.read(param['defocus_file'], numeric=True, header=param['defocus_header']))
