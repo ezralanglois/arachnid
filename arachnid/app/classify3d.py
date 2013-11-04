@@ -186,7 +186,7 @@ def create_mask(files, pixel_diameter, resolution, apix, **extra):
     '''
     
     img = ndimage_file.read_image(files[0])
-    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img)
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     _logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor, resolution, apix))
     if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
