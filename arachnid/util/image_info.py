@@ -22,8 +22,11 @@ Critical Options
 
 .. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
     
-    List of filenames for the input images.
-    |input_files|
+    List of filenames for the input images
+    If you use the parameters `-i` or `--inputfiles` the filenames may be comma or 
+    space separated on the command line; they must be comma seperated in a configuration 
+    file. Note, these flags are optional for input files; the filenames must be separated 
+    by spaces. For a very large number of files (>5000) use `-i "filename*"`
 
 Useful Options
 ===============
@@ -82,7 +85,6 @@ def batch(files, output="", all=False, stat=False, force=False, **extra):
             Unused key word arguments
     '''
     
-    size = (None, None, None)
     for i, filename in enumerate(files):
         if force and ndimage_file.eman_format.is_avaliable() and ndimage_file.eman_format.is_readable(filename):
             header = ndimage_file.eman_format.read_header(filename)
