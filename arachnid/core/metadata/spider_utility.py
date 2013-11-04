@@ -65,7 +65,7 @@ def single_images(files):
         
     return groups.items()
     
-def select_subset(files, select, id_len=0):
+def select_file_subset(files, select, id_len=0):
     ''' Create a list of files based on the given selection
     
     :Parameters:
@@ -83,7 +83,7 @@ def select_subset(files, select, id_len=0):
           List of selected filenames
     '''
     
-    if len(select) == 0: return []
+    if len(select) == 0 or len(files)==0: return []
     if hasattr(select[0], 'select'):
         return [spider_filename(files[0], s.id) for s in select if s.select > 0]
     elif hasattr(select[0], 'id'):

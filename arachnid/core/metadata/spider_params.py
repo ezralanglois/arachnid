@@ -292,7 +292,7 @@ def update_options(options):
     if options.bin_factor == 0.0: raise OptionValueError, "Bin factor cannot be zero (--bin-factor)"
     if options.param_file != "":
         params = read(options.param_file, vars(options))
-        if hasattr(options, "pixel_radius") and options.pixel_radius == 0: 
+        if hasattr(options, "pixel_radius"): 
             options.pixel_radius = int(params["pixel_diameter"]/2.0)
         for key, val in params.iteritems():
             setattr(options, key, val)
