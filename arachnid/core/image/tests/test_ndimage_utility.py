@@ -151,7 +151,7 @@ def test_biggest_object():
         from morphology import binarize
     except: return
     rad, width = 13, 78
-    obj = ndimage_utility.model_disk(rad, width).astype(numpy.float)
+    obj = ndimage_utility.model_disk(rad, (width, width)).astype(numpy.float)
     mask = obj + numpy.random.rand(width,width)*0.2
     emmask = eman2_utility.numpy2em(mask)
     threshold = analysis.otsu(mask.ravel())
@@ -172,7 +172,7 @@ def test_tight_mask():
     ndilate=1
     kernel_size=3
     gauss_standard_dev=3
-    obj = ndimage_utility.model_disk(rad, width).astype(numpy.float)
+    obj = ndimage_utility.model_disk(rad, (width, width)).astype(numpy.float)
     mask = obj + numpy.random.rand(width,width)*0.2
     emmask = eman2_utility.numpy2em(mask)
     threshold = analysis.otsu(mask.ravel())
@@ -194,7 +194,7 @@ def test_model_disk():
     for rad in xrange(1, 13):
         etmp = eman2_utility.utilities.model_circle(rad, width, width)
         tmp = eman2_utility.em2numpy(etmp)
-        dsk = ndimage_utility.model_disk(rad, width)
+        dsk = ndimage_utility.model_disk(rad, (width, width))
         try:
             numpy.testing.assert_allclose(tmp, dsk)
         except:
@@ -207,7 +207,7 @@ def test_model_disk():
     for rad in xrange(1, 33):
         etmp = eman2_utility.utilities.model_circle(rad, width, width)
         tmp = eman2_utility.em2numpy(etmp)
-        dsk = ndimage_utility.model_disk(rad, width)
+        dsk = ndimage_utility.model_disk(rad, (width, width))
         try:
             numpy.testing.assert_allclose(tmp, dsk)
         except:
@@ -268,7 +268,7 @@ def test_find_peaks_fast():
     
     width,rad = 78, 13
     img = numpy.random.normal(8, 4, (width,width))
-    template = ndimage_utility.model_disk(rad, width).astype(numpy.float)
+    template = ndimage_utility.model_disk(rad, (width, width)).astype(numpy.float)
     emdata = eman2_utility.numpy2em(img)
     emtemp = eman2_utility.numpy2em(template)
     
@@ -287,7 +287,7 @@ def test_cross_correlate():
     
     width,rad = 78, 13
     img = numpy.random.normal(8, 4, (width,width))
-    template = ndimage_utility.model_disk(rad, width).astype(numpy.float)
+    template = ndimage_utility.model_disk(rad, (width, width)).astype(numpy.float)
     emdata = eman2_utility.numpy2em(img)
     emtemp = eman2_utility.numpy2em(template)
     
@@ -309,7 +309,7 @@ def test_local_variance():
     
     width = 32
     img = numpy.random.normal(8, 4, (width*2,width*2))
-    template = ndimage_utility.model_disk(int(width*0.45), width)
+    template = ndimage_utility.model_disk(int(width*0.45), (width, width))
     emdata = eman2_utility.numpy2em(img)
     emtemp = eman2_utility.numpy2em(template)
     
@@ -357,7 +357,7 @@ def test_compress_image():
     '''
     
     rad, width = 13, 78
-    mask = ndimage_utility.model_disk(rad, width)
+    mask = ndimage_utility.model_disk(rad, (width, width))
     img = numpy.ones((width, width))
     img = ndimage_utility.compress_image(img, mask)
     numpy.testing.assert_allclose(numpy.sum(mask), numpy.sum(img))

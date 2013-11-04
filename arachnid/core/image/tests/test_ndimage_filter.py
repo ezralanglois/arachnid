@@ -63,7 +63,7 @@ def test_histogram_match():
     '''
     
     rad, width, bins = 13, 78, 128
-    mask = ndimage_utility.model_disk(rad, width)
+    mask = ndimage_utility.model_disk(rad, (width, width))
     #img = numpy.random.gamma(8, 2, (width,width))
     img = numpy.random.normal(8, 4, (width,width))
     noise = numpy.random.normal(8, 2, (width,width))
