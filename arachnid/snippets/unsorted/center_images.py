@@ -46,7 +46,7 @@ if __name__ == '__main__':
     iter_single_images = itertools.imap(ndimage_utility.fourier_shift, iter_single_images, tx, ty)
     data = []
     for i, img in enumerate(iter_single_images):
-        data.append([psi[i], align[i, 1], align[i,2], align[i,17]])
+        data.append([numpy.rad2deg(psi[i]), align[i, 1], align[i,2], align[i,17]])
         ndimage_file.write_image(spider_utility.spider_filename(output_file, int(align[i, 4])), img)
     format.write(output_file, numpy.asarray(data), prefix='align_', header="psi,theta,phi,defocus".split(','))
 
