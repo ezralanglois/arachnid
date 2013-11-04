@@ -13,18 +13,9 @@ from util import qimage_utility
 import property
 from ..metadata import spider_utility, format
 from ..image import ndimage_utility, ndimage_file, ndimage_interpolate, ndimage_filter
+from ..util import drawing
 import glob, os, numpy, scipy.misc #, itertools
 import logging
-
-try: 
-    from PIL import ImageDraw 
-    ImageDraw;
-except: 
-    try:
-        import ImageDraw
-        ImageDraw;
-    except: 
-        ImageDraw = None
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -464,22 +455,14 @@ class MainWindow(QtGui.QMainWindow):
         ''' Draw particle boxes on each micrograph
         '''
         
-        if ImageDraw is None:
+        if not drawing.is_available():
             _logger.warn("No PIL loaded")
             return img
         if self.advanced_settings.coords == "" or not self.advanced_settings.show_coords: return img
         if isinstance(fileid, tuple): fileid=fileid[0]
         coords=format.read(self.advanced_settings.coords, spiderid=fileid, numeric=True)
-        
-        mic = scipy.misc.toimage(img).convert("RGB")
-        draw = ImageDraw.Draw(mic)
         bin_factor=self.advanced_settings.bin_window
-        offset = self.advanced_settings.window/2/bin_factor
-        for box in coords:
-            x = box.x / bin_factor
-            y = box.y / bin_factor
-            draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#ff4040")
-        return scipy.misc.fromimage(mic)
+        return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor)
     
     def openImageFiles(self, files):
         ''' Open a collection of image files, sort by content type
