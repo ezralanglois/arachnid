@@ -556,7 +556,7 @@ def initialize(files, param):
             _logger.info("Using CTF model appropriate for 0 CS")
         if param['select'] != "":
             select = format.read(param['select'], numeric=True)
-            files = selection_utility.select_file_subset(files, select)
+            files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
         param['defocus_arr'] = numpy.zeros((len(files), 7))
         try:
             param['defocus_val'] = format_utility.map_object_list(format.read(param['defocus_file'], numeric=True, header=param['defocus_header']))

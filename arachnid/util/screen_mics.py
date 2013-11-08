@@ -55,7 +55,7 @@ def initialize(files, param):
     
     if param['select'] != "":
         select = format.read(param['select'], numeric=True)
-        files = selection_utility.select_file_subset(files, select, param.get('id_len', 0))
+        files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
     return files
 
 def setup_options(parser, pgroup=None, main_option=False):
