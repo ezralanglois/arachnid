@@ -274,6 +274,7 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
           Micrograph image
     '''
     
+    assert(window is not None)
     if isinstance(filename, tuple):
         filename = filename[1][index]
         index=None
@@ -327,7 +328,7 @@ def generate_noise(filename, noise="", output="", noise_stack=True, window=None,
     tot = ndimage_file.count_images(filename)
     if tot > 1:
         return None
-    mic = read_micrograph(filename, **extra)
+    mic = read_micrograph(filename, window=window, **extra)
     
     template = numpy.zeros((window,window))
     template[1:window-1, 1:window-1]=1 #/(window-1)**2
@@ -440,7 +441,7 @@ def read_coordinates(coordinate_file, selection_doc="", **extra):
 
 def init_root(files, param):
     # Initialize global parameters for the script
- 
+    
     if mpi_utility.is_root(**param):
         tot = ndimage_file.count_images(files[0])
         if param['frame_align'] != "" and tot == 1:
@@ -461,6 +462,7 @@ def init_root(files, param):
 def initialize(files, param):
     # Initialize global parameters for the script
     
+    param.update(spider_params.read(param['param_file']))
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel diameter: %d"%(param['pixel_diameter']))

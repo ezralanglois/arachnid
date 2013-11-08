@@ -355,6 +355,7 @@ def create_template(template, disk_mult=1.0, bin_factor=1.0, disable_bin=False, 
 def initialize(files, param):
     # Initialize global parameters for the script
     
+    param.update(spider_params.read(param['param_file']))
     param.update(ndimage_file.cache_data())
     param["confusion"] = numpy.zeros((len(files), 4))
     param["ds_kernel"] = ndimage_interpolate.sincblackman(param['bin_factor'], dtype=numpy.float32)
@@ -372,7 +373,7 @@ def initialize(files, param):
     if 'selection_doc' in param and param['selection_doc'] != "":
         select = format.read(param['selection_doc'], numeric=True)
         oldcnt = len(files)
-        files = selection_utility.select_file_subset(files, select)
+        files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
         _logger.info("Selecting %d files from %d"%(len(files), oldcnt))
     return files
 
