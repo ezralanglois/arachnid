@@ -1987,8 +1987,10 @@ def gaussian_smooth(img, gk_size=3, gk_sigma=3.0, out=None):#, mode='reflect', c
     K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
     
     K  /= (K.mean()*numpy.prod(K.shape))
-    out[:] = scipy.signal.convolve2d(img, K, mode='same', boundary='wrap') #symm
-    #out[:]=scipy.ndimage.convolve(img, K, mode='mirror')#, mode=mode, cval=cval)#, mode='mirror')
+    if img.ndim == 2:
+        out[:] = scipy.signal.convolve2d(img, K, mode='same', boundary='wrap') #symm
+    else:
+        out[:]=scipy.ndimage.convolve(img, K, mode='mirror')#, mode=mode, cval=cval)#, mode='mirror')
     return out
 
 def dialate_mask(img, ndialate, out=None):
@@ -2147,7 +2149,7 @@ def biggest_object_select(img):
     biggest += 1
     return label == biggest
 
-def bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased'):
+def bispectrum(signal, maxlag=0.0081, window='uniform', scale='unbiased'):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
     
     :Parameters:
