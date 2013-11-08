@@ -638,11 +638,13 @@ def classify_noise(scoords, dsel, sel=None):
     if sel is None: sel = dsel
     bcnt = 0 
     tsel=None
-    while bcnt < 25:
+    i=0
+    while bcnt < 25 and i < 10:
         if tsel is not None: dsel = numpy.logical_and(numpy.logical_not(tsel), dsel)
         th = analysis.otsu(scoords[dsel, 0], numpy.sum(dsel)/16)
         tsel = scoords[:, 0] > th
         bcnt = numpy.sum(numpy.logical_and(dsel, numpy.logical_and(tsel, sel)))
+        i+=1
     return tsel
 
 def classify_aggregates(scoords, offset, sel):
