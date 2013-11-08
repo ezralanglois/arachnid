@@ -65,7 +65,7 @@ def single_images(files):
         
     return groups.items()
     
-def select_file_subset(files, select, id_len=0):
+def select_file_subset(files, select, id_len=0, fill=False):
     ''' Create a list of files based on the given selection
     
     :Parameters:
@@ -75,7 +75,9 @@ def select_file_subset(files, select, id_len=0):
     select : array
              Array of file ids
     id_len : int
-             Maximum length of SPIDER id
+             Maximum length of SPIDER ID
+    fill : bool
+           Fill missing filenames missing from files with those in the selection file
              
     :Returns:
     
@@ -84,12 +86,21 @@ def select_file_subset(files, select, id_len=0):
     '''
     
     if len(select) == 0 or len(files)==0: return []
-    if hasattr(select[0], 'select'):
-        return [spider_filename(files[0], s.id) for s in select if s.select > 0]
-    elif hasattr(select[0], 'id'):
-        return [spider_filename(files[0], s.id) for s in select]
+    if len(files) == 1 and not fill:
+        if hasattr(select[0], 'select'):
+            return [spider_filename(files[0], s.id) for s in select if s.select > 0]
+        elif hasattr(select[0], 'id'):
+            return [spider_filename(files[0], s.id) for s in select]
+        else:
+            return [spider_filename(files[0], s[0]) for s in select]
     else:
-        return [spider_filename(files[0], s[0]) for s in select]
+        if hasattr(select[0], 'select'):
+            selected = set([int(s.id) for s in select if s.select > 0])
+        elif hasattr(select[0], 'id'):
+            selected = set([int(s.id) for s in select])
+        else:
+            selected = set([int(s[0]) for s in select])
+        return [f for f in files if spider_id(f) in selected]
 
 def update_spider_files(map, id, *files):
     ''' Update the list of files in the dictionary to the current ID
