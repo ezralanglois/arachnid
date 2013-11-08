@@ -835,7 +835,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
     group.add_option("",   test_all=False,                  help="Test the normalization of all the images")
     group.add_option("",   tilt_pair="",                    help="Selection file that defines pairs of particles (e.g. tilt pairs micrograph1, id1, micrograph2, id2) - outputs a tilted/untilted star files")
-    group.add_option("",   min_defocus=10000,               help="Minimum allowed defocus")
+    group.add_option("",   min_defocus=5000,               help="Minimum allowed defocus")
     group.add_option("",   max_defocus=70000,               help="Maximum allowed defocus")
     group.add_option("",   random_subset=0,                 help="Split a relion selection file into specificed number of random subsets (0 disables)")
     group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
