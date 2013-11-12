@@ -137,6 +137,9 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
         roo2, beg1 = ctf.factor_correction(roo, old, len(roo))
         rng = (old, len(roo))
         #roo2 = ctf.background_correct(raw, **extra)[old:]
+    
+    model2d = ctf.ctf_model_spi_2d(defocus, pow.shape[0], **extra)
+    ndimage_file.write_image("ctf_model_2d.spi", model2d)
     if experimental:
         model = ctf.ctf_model_spi(defocus, freq, len(roo), **extra)**2
         hpow = hybrid_model_data(pow, model, beg)

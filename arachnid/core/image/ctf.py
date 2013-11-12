@@ -343,6 +343,16 @@ def spider_fft2(img):
     _spider_ctf.fft2_image(out.T, img.shape[0])
     return out
 
+def correct_model(img, ctfimg, fourier=False):
+    '''
+    '''
+    
+    img = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
+    img *= ctfimg
+    if fourier: return img
+    return scipy.fftpack.ifft2(scipy.fftpack.ifftshift(img))
+    
+
 def correct(img, ctfimg, fourier=False):
     ''' Corret the CTF of an image
     
@@ -1208,7 +1218,11 @@ def model_1D_to_2D(model, out=None):
     out[len(model), len(model):] = model
     return ndimage_utility.rotavg(out)
 
-
+def ctf_model_orig_2d(dz1, n, **extra):
+    '''
+    '''
+    
+    return ctf_model_orig(dz1, numpy.sqrt(ndimage_utility.radial_image((n,n))), n/2, **extra)
 
 def ctf_model_orig(dz1, sfreq, n, ampcont, cs, voltage, apix, **extra):
     ''' CTF model with non-generalized variables dependent on voltage
@@ -1485,6 +1499,14 @@ def ctf_model_full(dz1, sfreq, n, ampcont, cs, voltage, apix):
     
     return numpy.sin( sfreq4 - dz1*sfreq2*1e4 + w )
 
+
+
+def ctf_model_spi_2d(dz1, n, **extra):
+    '''
+    '''
+    
+    return ctf_model_spi(dz1, numpy.sqrt(ndimage_utility.radial_image((n,n))), n/2, **extra)
+
 def ctf_model_spi(dz1, sfreq, n, ampcont, cs, voltage, apix, **extra):
     ''' Precalculate arrays and values for the CTF model
     
@@ -1524,6 +1546,13 @@ def ctf_model_spi(dz1, sfreq, n, ampcont, cs, voltage, apix, **extra):
     sfreq *= dk
     qqt = 2.0*numpy.pi*(0.25*sfreq**4 - 0.5*dz1*sfreq**2)
     return (1.0-ampcont)*numpy.sin(qqt)-ampcont*numpy.cos(qqt)
+
+
+def ctf_model_2d(dz1, n, **extra):
+    '''
+    '''
+    
+    return ctf_model_spi(dz1, numpy.sqrt(ndimage_utility.radial_image((n, n))), n/2, **extra)
 
 def ctf_model(sfreq, defocus, n, **extra):
     ''' Build a CTF model curve from microscope parameters and given frequency range in pixels
