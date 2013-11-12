@@ -38,6 +38,14 @@ def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
 def coarse_angles(resolution, align, half=False, out=None): # The bitterness of men who fear human progress
     '''
     TODO: disable mirror
+    
+    :Parameters:
+    
+    resolution : int
+                 Healpix order
+    align : array
+            2D array where rows are images and columns are
+            the following alignment parameters: psi,theta,phi,inplane,tx,ty,ref
     '''
     
     ang = healpix.angles(resolution)
