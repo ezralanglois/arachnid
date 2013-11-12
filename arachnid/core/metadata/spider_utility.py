@@ -151,8 +151,10 @@ def relion_filename(filename, id):
     pid=""
     try:int(id)
     except:
-        if id.find('@') != -1:
-            pid,id = id.split('@')
+        if isinstance(id, tuple):
+            pid, id = id
+        elif id.find('@') != -1:
+            id, pid = id.split('@')
         if is_spider_filename(filename):
             return pid+"@"+spider_filename(filename, id)
     else: pid = str(id)
