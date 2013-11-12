@@ -435,6 +435,27 @@ def radial_image(shape, center=None):
     x, y = grid_image(shape, center)
     return x**2+y**2
 
+def snr_correction_factor(img, ref):
+    ''' Calculate an SNR correction factor between a high signal image and
+    a noise image. 
+    
+        min_a |x-ay|^2
+        
+    :Parameters:
+    
+    img : array
+          2D array of image data for noisy image
+    ref : array
+          2D array of image data for reference image
+    
+    :Returns:
+    
+    factor : float
+             Factor for reference image
+    '''
+    
+    return numpy.inner(ref.ravel(), img.ravel())/numpy.linalg.norm(ref, 2)
+
 #@numpy2em_d
 def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     ''' Create a disk of given radius with background zero and foreground 1
