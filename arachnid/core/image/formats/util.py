@@ -5,6 +5,10 @@
 '''
 import numpy, os, bz2
 from ..ndimage import ndimage
+import logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def fromfile(fin, dtype, count, sep=''):
     '''
@@ -38,7 +42,11 @@ def uopen(filename, mode):
         if os.path.splitext(filename)[1]=='.bz2':
             f = bz2.BZ2File(filename, mode)
         else:
-            f = open(filename, mode)
+            try:
+                f = open(filename, mode)
+            except:
+                _logger.error("Mode: %s"%str(mode))
+                raise
     return f
 
 def close(filename, fd):
