@@ -404,7 +404,11 @@ def write_image(filename, img, index=None, header=None):
     except: raise TypeError, "Unsupported type for SPIDER writing: %s"%str(img.dtype)
     
     mode = 'rb+' if index is not None and index > 0 else 'wb+'
-    f = util.uopen(filename, mode)
+    try:
+        f = util.uopen(filename, mode)
+    except:
+        _logger.error("Mode: %s - Index: %s"%(str(mode), str(index)))
+        raise
     try:
         if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
             h = numpy.zeros(1, header_dtype)
