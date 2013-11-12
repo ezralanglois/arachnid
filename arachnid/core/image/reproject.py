@@ -44,6 +44,8 @@ def project_polar(img, inner_radius=None, outer_radius=None, out=None):
     _spider_reproject.project_polar(img,out,inner_radius,outer_radius)
     return out
 
+def _tofortran(out): return out.T if not out.flags.f_contiguous else out
+
 def reproject_3q_mp(vol, rad, ang, out=None, thread_count=0):
     '''
     '''
@@ -62,7 +64,7 @@ def reproject_3q_single(vol, rad, ang, out=None, **extra):
     
     if out is None:
         out = numpy.zeros((len(ang), vol.shape[0],  vol.shape[1]), dtype=vol.dtype)
-    _spider_reproject.reproject_3q_omp(vol.T, out.T, ang.T, rad)
+    _spider_reproject.reproject_3q_omp(_tofortran(vol), _tofortran(out), _tofortran(ang), rad)
     return out
 
 def reproject_mp_mpi(project, vol, rad, ang, out=None, thread_count=0, **extra):
