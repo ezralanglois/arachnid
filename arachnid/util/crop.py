@@ -462,7 +462,7 @@ def init_root(files, param):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param.update(spider_params.read(param['param_file']))
+    spider_params.read(param['param_file'], param)
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel diameter: %d"%(param['pixel_diameter']))

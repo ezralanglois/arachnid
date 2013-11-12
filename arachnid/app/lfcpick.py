@@ -200,7 +200,7 @@ def search(img, use_spectrum=False, limit=0, bin_factor=1.0, mask=None, **extra)
         raise
     return peaks
 
-def search_peaks(cc_map, pixel_diameter, overlap_mult, peak_last=None, **extra):
+def search_peaks(cc_map, pixel_diameter, overlap_mult, peak_last=None, fwidth=None, **extra):
     ''' Search a cross-correlation map for peaks
     
     :Parameters:
@@ -213,6 +213,8 @@ def search_peaks(cc_map, pixel_diameter, overlap_mult, peak_last=None, **extra):
                    Amount of allowed overlap
     peak_last : array
                 Previous set of peaks to merge (if None, ignored)
+    fwidth : float
+             Experimental parameters
     extra : dict
             Unused key word arguments
     
@@ -223,12 +225,12 @@ def search_peaks(cc_map, pixel_diameter, overlap_mult, peak_last=None, **extra):
     '''
     
     radius = pixel_diameter/2
-    peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
+    peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult, fwidth)
     if peak_last is not None:
         cc_map[:, :] = 0
         cc_map[peaks[:, 1:]] = peaks[:, 0]
         cc_map[peak_last[:, 1:]] = peak_last[:, 0]
-        peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult)
+        peaks = ndimage_utility.find_peaks_fast(cc_map, radius*overlap_mult, fwidth)
     return peaks
 
 def scf_center(img, template, mask):
@@ -355,7 +357,7 @@ def create_template(template, disk_mult=1.0, bin_factor=1.0, disable_bin=False, 
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param.update(spider_params.read(param['param_file']))
+    spider_params.read(param['param_file'], param)
     param.update(ndimage_file.cache_data())
     param["confusion"] = numpy.zeros((len(files), 4))
     param["ds_kernel"] = ndimage_interpolate.sincblackman(param['bin_factor'], dtype=numpy.float32)
@@ -369,7 +371,6 @@ def initialize(files, param):
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
     
-    _logger.error("selection:\"%s\""%param['selection_doc'])
     if 'selection_doc' in param and param['selection_doc'] != "":
         select = format.read(param['selection_doc'], numeric=True)
         oldcnt = len(files)
@@ -417,6 +418,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   template="",         help="Optional predefined template", gui=dict(filetype="open"))
     group.add_option("",   disable_bin=False,   help="Disable micrograph decimation")
     group.add_option("",   invert=False,        help="Invert the contrast of CCD micrographs")
+    group.add_option("",   fwidth=-1.0,          help="Experimental option for peak selection")
     
     
     

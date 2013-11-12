@@ -245,15 +245,15 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     peaks[:, 1:3] *= extra['bin_factor']
     return peaks[::-1]
 
-def template_match(img, template, pixel_diameter, **extra):
+def template_match(img, template_image, pixel_diameter, **extra):
     ''' Find peaks using given template in the micrograph
     
     :Parameters:
         
     img : array
           Micrograph
-    template : array
-               Template
+    template_image : array
+                     Template image
     pixel_diameter : int
                      Diameter of particle in pixels
     extra : dict
@@ -266,11 +266,11 @@ def template_match(img, template, pixel_diameter, **extra):
     '''
     
     _logger.debug("Filter micrograph")
-    img = ndimage_filter.gaussian_highpass(img, 0.25/(pixel_diameter/2), 2)
+    img = ndimage_filter.gaussian_highpass(img, 0.25/(pixel_diameter/2.0), 2)
     _logger.debug("Template-matching")
-    cc_map = ndimage_utility.cross_correlate(img, template)
+    cc_map = ndimage_utility.cross_correlate(img, template_image)
     _logger.debug("Find peaks")
-    peaks = lfcpick.search_peaks(cc_map, **extra)
+    peaks = lfcpick.search_peaks(cc_map, pixel_diameter, **extra)
     if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
     return peaks
 
@@ -371,7 +371,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         #if data is None:
         #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        #win=ndimage_filter.ramp(win)
+        win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
@@ -809,8 +809,8 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
-    if options.pixel_radius == 0:
-        raise OptionValueError, "Pixel radius must be greater than zero"
+    #if options.pixel_radius == 0:
+    #    raise OptionValueError, "Pixel radius must be greater than zero"
     if len(options.boundary) > 0:
         try: options.boundary = [int(v) for v in options.boundary]
         except: raise OptionValueError, "Unable to convert boundary margin to list of integers"
