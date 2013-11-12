@@ -13,12 +13,16 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def read_alignment(filename, image_file, use_3d=False, **extra):
+def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
     ''' Read an alignment file and organize images
     
     Supports both SPIDER and relion
     
+    :Returns:
     
+    out : array
+          2d array where rows are images and columns are alignment
+          parameters: psi,theta,phi,inplane,tx,ty,defocus
     '''
     
     if not isinstance(image_file, str) and len(image_file) == 1: image_file=image_file[0]
@@ -27,7 +31,7 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
     if 'numeric' not in extra: extra['numeric']=True
     if format.get_format(filename, **extra) == format.star:
         align = format.read(filename, **extra)
-        param = numpy.zeros((len(align), 7))
+        param = numpy.zeros((len(align), align_cols))
         files = []
         if use_3d:
             _logger.info("Standard Relion alignment file - leave 3D")
@@ -54,7 +58,7 @@ def read_alignment(filename, image_file, use_3d=False, **extra):
             
     else:
         align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
-        param = numpy.zeros((len(align), 7))
+        param = numpy.zeros((len(align), align_cols))
         if align.shape[1] > 17: 
             param[:, 6] = align[:, 17]
         if use_3d:
