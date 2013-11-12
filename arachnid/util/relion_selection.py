@@ -151,6 +151,10 @@ More Options
     
     Split a relion selection file into specificed number of random subsets (0 disables)
 
+.. option:: --downsample <float>
+
+    Downsample the windows - create new selection file pointing to decimate stacks
+
 Other Options
 =============
 
@@ -164,7 +168,7 @@ This is not a complete list of options available to this script, for additional 
 
 from ..core.app import program
 from ..core.metadata import spider_utility, format_utility, format, spider_params, selection_utility
-from ..core.image import ndimage_file, ndimage_utility
+from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate
 from ..core.parallel import parallel_utility
 from ..core.orient import healpix
 import numpy, os, logging, operator, glob
@@ -769,6 +773,9 @@ def select_class_subset(vals, output, random_subset=0, **extra):
         else:
             groupmap = regroup(build_group(subset), **extra)
             update_parameters(subset, list(subset[0]._fields), groupmap, **extra)
+            
+            subset=downsample_images(subset, **extra)
+            
             format.write(output, subset)
     else:
         micselect={}
@@ -787,6 +794,53 @@ def select_class_subset(vals, output, random_subset=0, **extra):
                 format.write(output, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), format=format.spidersel)
             prefix='mic_'
         format.write(output, numpy.hstack((numpy.asarray(micselect.keys())[:, numpy.newaxis], numpy.ones(len(micselect.keys()))[:, numpy.newaxis])), header="id,select".split(','), format=format.spidersel, prefix=prefix)
+
+def downsample_images(vals, downsample=1.0, param_file="", **extra):
+    ''' Downsample images in Relion selection file and update
+    selection entries to point to new files.
+    
+    :Parameters:
+    
+    vals : list
+           List of entries from a selection file
+    downsample : float
+                 Down sampling factor
+    extra : dict
+            Unused key word arguments
+    
+    :Returns:
+    
+    out : list
+           Update list of entries from a selection file
+    '''
+    
+    if downsample == 1.0: return vals
+    extra['bin_factor']=downsample
+    spider_params.read(param_file, extra)
+    
+    mask = None
+    ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32)
+    filename = spider_utility.relion_file(vals[0].rlnImageName, True)
+    output = os.path.join(os.path.dirname(filename)+"_%.2f"%downsample, os.path.basename(filename))
+    oindex = {}
+    
+    _logger.info("Stack downsampling started")
+    for i in xrange(len(vals)):
+        v = vals[i]
+        if (i%1000) == 0:
+            _logger.info("Processed %d of %d"%(i+1, len(vals)))
+        filename, index = spider_utility.relion_file(v.rlnImageName)
+        img = ndimage_file.read_image(filename, index-1).astype(numpy.float32)
+        img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
+        if mask is None: mask = ndimage_utility.model_disk(extra['pixel_diameter']/2, img.shape)
+        ndimage_utility.normalize_standard(img, mask, out=img)
+        if filename not in oindex: oindex[filename]=0
+        oindex[filename] += 1
+        output = spider_utility.spider_filename(output, filename)
+        ndimage_file.write_image(output, img, oindex[filename]-1)
+        vals[i] = vals[i]._replace(rlnImageName=spider_utility.relion_filename(output, oindex[filename]))
+    _logger.info("Stack downsampling finished")
+    return vals
 
 '''
 def generate_settings(**extra):
@@ -841,6 +895,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
     group.add_option("",   frame_limit=0,                   help="Limit number of frames to use (0 means no limit)")
     group.add_option("",   view_resolution=0,               help="Select a subset to ensure roughly even view distribution (0, default, disables this feature)")
+    group.add_option("",   downsample=1.0,                  help="Downsample the windows - create new selection file pointing to decimate stacks")
     #group.add_option("",   relion2spider=False,             help="Convert a relion selection file to a set of SPIDER refinement file")
     
     pgroup.add_option_group(group)
@@ -857,6 +912,9 @@ def check_options(options, main_option=False):
     if not format.is_readable(options.input_files[0]) and ndimage_file.is_readable(options.input_files[0]):
         if options.defocus_file == "": raise OptionValueError, "No defocus file specified"
         if options.param_file == "": raise OptionValueError, "No parameter file specified"
+    
+    
+    if options.downsample != 1.0 and options.param_file == "": raise ValueError, "Requires SPIDER params file to normalize when using --downsample parameter other than 1.0, --param-file"
     #elif main_option:
     #    if len(options.input_files) != 1: raise OptionValueError, "Only a single input file is supported"
 
