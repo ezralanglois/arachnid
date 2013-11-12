@@ -399,7 +399,7 @@ def find_peaks_fast(cc, width, fwidth=None):
             Array of peaks (peak, x, y)
     '''
     
-    if fwidth is None: fwidth = width/2.0
+    if fwidth is None or fwidth < 0: fwidth = width/2.0
     if fwidth > 0.0: cc=scipy.ndimage.filters.gaussian_filter(cc, sigma=fwidth, mode='constant')
     neighborhood = numpy.ones((int(width),int(width)))
     cc_peaks = (scipy.ndimage.filters.maximum_filter(cc, footprint=neighborhood)==cc) - \
