@@ -9,7 +9,7 @@ This module provides a set of functions to handle selections.
 import spider_utility
 
 
-def select_file_subset(files, select, id_len=0):
+def select_file_subset(files, select, id_len=0, fill=False):
     ''' Create a list of files based on the given selection
     
     :Parameters:
@@ -20,6 +20,8 @@ def select_file_subset(files, select, id_len=0):
              Array of file ids
     id_len : int
              Maximum length of SPIDER id
+    fill : bool
+           Fill missing filenames missing from files with those in the selection file
              
     :Returns:
     
@@ -27,7 +29,7 @@ def select_file_subset(files, select, id_len=0):
           List of selected filenames
     '''
     
-    return spider_utility.select_file_subset(files, select, id_len)
+    return spider_utility.select_file_subset(files, select, id_len, fill)
 
 
 def select_subset(vals, select):
