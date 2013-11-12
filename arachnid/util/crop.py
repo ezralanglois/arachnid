@@ -197,9 +197,7 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
         fid = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file', 'frame_align')
     try: coords = read_coordinates(**extra)
-    except: 
-        _logger.exception("Ignore this")
-        return filename, 0, os.getpid()
+    except: return filename, 0, os.getpid()
 
     if tot is None:
         tot = ndimage_file.count_images(filename)
