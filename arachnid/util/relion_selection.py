@@ -99,7 +99,7 @@ Selection Options
     
     Maximum allowed defocus
     
-.. option:: --max-defocus <int>
+.. option:: --view-resolution <int>
     
     Select a subset to ensure roughly even view distribution (0, default, disables this feature)
 

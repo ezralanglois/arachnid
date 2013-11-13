@@ -97,12 +97,27 @@ def rotation_from_euler(psi, theta, phi, axis='rzyz'):
 
 
 def euler_to_vector(phi, theta):
-    '''
+    ''' Convert Euler angles to a vector
     
     .. note::
         
         http://xmipp.cnb.csic.es/~xmipp/trunk/xmipp/documentation/html/geometry_8cpp_source.html
+        
+    :Parameters:
     
+    phi : float
+          Phi angle in degrees (psi,theta,phi = ZYZ) 
+    theta : float
+            Theta angle in degrees (psi,theta,phi = ZYZ)
+    
+    :Returns:
+    
+    sc : float
+         Something
+    ss : float
+         Something
+    ct : float
+         Something
     '''
     
     theta = numpy.deg2rad(theta)

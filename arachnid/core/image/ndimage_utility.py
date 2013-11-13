@@ -75,12 +75,25 @@ def mirror_ud(img, out=None):
     return out
 
 def fourier_space_shift(fimg, dx, dy):
-    '''
+    ''' Shift an image in Fourier space
     
     .. note::
         
         Take from http://www.mathworks.com/matlabcentral/fileexchange/23440-2d-fourier-shift
     
+    :Parameters:
+    
+    img : array
+          2D complex array, Fourier transform of image
+    dx : float
+         Shift in x-direction
+    dy : float
+         Shift in y-direction
+    
+    :Returns:
+    
+    out : array
+          2D complex array, shifted Fourier transform of image
     '''
     
     N,M = fimg.shape
@@ -321,6 +334,10 @@ def rotavg(img, out=None):
 def mean_azimuthal(img, center=None, ret_n=False):
     ''' Calculate the sum of a 2D array along the azimuthal
     
+    .. note::
+    
+        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
+    
     :Parameters:
     
     img : array-like
@@ -332,10 +349,6 @@ def mean_azimuthal(img, center=None, ret_n=False):
     
     out : array
           Sum over the radial lines of the image
-    
-    .. note::
-    
-        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
     '''
     
     img = numpy.asanyarray(img)
@@ -353,6 +366,10 @@ def mean_azimuthal(img, center=None, ret_n=False):
 def std_azimuthal(img, center=None):
     ''' Calculate the sum of a 2D array along the azimuthal
     
+    .. note::
+    
+        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
+    
     :Parameters:
     
     img : array-like
@@ -364,10 +381,6 @@ def std_azimuthal(img, center=None):
     
     out : array
           Sum over the radial lines of the image
-    
-    .. note::
-    
-        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
     '''
     
     img = numpy.asanyarray(img)
@@ -439,8 +452,6 @@ def snr_correction_factor(img, ref):
     ''' Calculate an SNR correction factor between a high signal image and
     a noise image. 
     
-        min_a |x-ay|^2
-        
     :Parameters:
     
     img : array
@@ -636,6 +647,10 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
     `array`, and as no padding is done the arrays first dimensions are smaller
     then before. It is possible to extend only earlier dimensions by giving
     window a 0 sized dimension.
+    
+    .. note::
+    
+        Taken from: https://github.com/numpy/numpy/pull/31
 
     :Parameters:
     
@@ -707,10 +722,6 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
                [3, 5, 7],
                [4, 6, 8],
                [5, 7, 9]])
-    
-    .. note::
-    
-        Taken from: https://github.com/numpy/numpy/pull/31
     """
     array = numpy.asarray(array)
     orig_shape = numpy.asarray(array.shape)

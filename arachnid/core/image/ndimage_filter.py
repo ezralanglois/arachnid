@@ -346,11 +346,26 @@ def filter_raised_cosine_highpass(img, lcut, hcut, pad=2):
     return out
 
 def gaussian_lowpass_kernel(shape, low_cutoff, dtype):
-    '''
+    ''' Create a Gaussian high pass kernel of the given
+    shape.
+    
     .. note:: 
         
         Implementation follows from SPARX
-        
+    
+    :Parameters:
+    
+    shape : tuple
+            Tuple of ints describing the shape of the kernel
+    low_cutoff : float
+                 Cutoff frequency for low pass filter
+    dtype : dtype
+            Data type for kernel
+    
+    :Returns:
+    
+    kernel : array
+             Array of given shape and type defining a kernel
     '''
     
     omega = 0.5/low_cutoff/low_cutoff
@@ -392,11 +407,26 @@ def gaussian_lowpass(img, low_cutoff, pad=1):
     return img
 
 def gaussian_highpass_kernel(shape, high_cutoff, dtype):
-    '''
+    ''' Create a Gaussian high pass kernel of the given
+    shape.
+    
     .. note:: 
         
         Implementation follows from SPARX
-        
+    
+    :Parameters:
+    
+    shape : tuple
+            Tuple of ints describing the shape of the kernel
+    low_cutoff : float
+                 Cutoff frequency for low pass filter
+    dtype : dtype
+            Data type for kernel
+    
+    :Returns:
+    
+    kernel : array
+             Array of given shape and type defining a kernel
     '''
     
     omega = 0.5/high_cutoff/high_cutoff

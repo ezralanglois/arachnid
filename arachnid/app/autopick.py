@@ -79,10 +79,6 @@ These options
 .. option:: --invert
     
     Invert the contrast of CCD micrographs
-    
-.. option:: -p <FILENAME>, --param-file <FILENAME> 
-    
-    Filename for SPIDER parameter file describing a Cryo-EM experiment
 
 .. option:: --bin-factor <FLOAT>
     
@@ -671,12 +667,13 @@ def remove_overlap(scoords, radius, sel):
     
     :Parameters:
      
-     scoords : array
-               Selected coordinates
+    scoords : array
+              Selected coordinates
     radius : int
              Radius of the particle in pixels 
     sel : array
           Output selection array that is modified in place
+    
     '''
     
     coords = scoords[:, 1:3]
