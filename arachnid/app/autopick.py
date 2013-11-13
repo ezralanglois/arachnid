@@ -21,9 +21,6 @@ Tips
  #. Decimation - Use the `--bin-factor` parameter to reduce the size of the micrograph for more efficient processing. Your coordinates will be on the full micrograph.
  
  #. Aggregration - Use `--remove-aggregates` to remove aggregation. This will remove all overlapping windows based on the window size controlled by `--window-mult`
- 
- #. Restart - After a crash, you can restart where you left off by specifying restart file (a list of files already processed). One is automatically created in each run called
-    .restart.autopick and can be used as follows: `--restart-file .restart.autopick`
     
  #. Parallel Processing - Several micrographs can be run in parallel (assuming you have the memory and cores available). `-p 8` will run 8 micrographs in parallel. 
 
@@ -90,12 +87,6 @@ These options
 .. option:: --bin-factor <FLOAT>
     
     Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
-    
-.. option:: --restart-file <FILENAME>
-
-    If the script crashes, the restart file will allow it to pick up where it left off. If you did not specify one, 
-     then .restart.autopick is automatically created. Just specify that as the filename on the next run and it will restart. If no
-     restart file exists one is created with the name given (or .restart.autopick if none is given).
 
 .. option:: --template <FILENAME>
     

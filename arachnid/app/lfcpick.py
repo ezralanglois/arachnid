@@ -76,12 +76,6 @@ These options
 .. option:: --disable-bin <BOOL>
     
     Disable micrograph decimation
-    
-.. option:: --restart-file <FILENAME>
-
-    If the script crashes, the restart file will allow it to pick up where it left off. If you did not specify one, 
-     then .restart.autopick is automatically created. Just specify that as the filename on the next run and it will restart. If no
-     restart file exists one is created with the name given (or .restart.autopick if none is given).
 
 Tunable Options
 ===============
