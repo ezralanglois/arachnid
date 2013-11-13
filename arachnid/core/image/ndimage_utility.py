@@ -1546,10 +1546,9 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
     '''
     
     mdata = img[mask>0.5] if mask is not None else img
+    std = numpy.std(mdata) if var_one else 0.0
     out = numpy.subtract(img, numpy.mean(mdata), out)
-    if var_one:
-        std = numpy.std(mdata)
-        if std != 0.0: numpy.divide(out, std, out)
+    if std != 0.0: numpy.divide(out, std, out)
     return out
 
 @_em2numpy2em
