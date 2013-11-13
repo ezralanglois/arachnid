@@ -42,7 +42,7 @@ import arachnid
 extensions = ['sphinx.ext.ifconfig', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.todo', 'sphinx.ext.coverage']
 jsmath_path = 'jsMath/easy/load.js'
 
-coverage_ignore_functions=['setView', 'init_process', 'check_main_options', 'check_options', 'dependents', 'initialize', 'main', 'setup_main_options', 'setup_options', 'reduce_all', 'finalize', 'configuration', 'rglob', 'build_description']
+coverage_ignore_functions=['setView', 'init_process', 'check_options', 'dependents', 'initialize', 'main', 'change_option_defaults', 'setup_options', 'reduce_all', 'finalize', 'configuration', 'rglob', 'build_description']
 coverage_ignore_classes=['check_dep', 'VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
 
 # Add any paths that contain templates here, relative to this directory.
