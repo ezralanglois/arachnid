@@ -471,7 +471,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", disable_align=False, help="Disable micrograph alignment")
     pgroup.add_option_group(group)
     
-def setup_main_options(parser, group):
+def change_option_defaults(parser):
     # Setup options for the main program
     
     parser.change_default(bin_factor=1)

@@ -72,7 +72,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
     
-def setup_main_options(parser, pgroup=None):
+def change_option_defaults(parser):
     #
     parser.change_default(log_level=3, bin_factor=8.0)
     

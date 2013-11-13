@@ -787,7 +787,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option_group(group)
         parser.change_default(log_level=3)
 
-def setup_main_options(parser, group):
+def change_option_defaults(parser):
     ''' Change the values to options specific to the script
     '''
     

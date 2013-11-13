@@ -22,8 +22,8 @@ Parameters
     
     Show program's version number and exit
 
-Examples
----------
+Usage
+-----
 
 Command-line
 ++++++++++++
