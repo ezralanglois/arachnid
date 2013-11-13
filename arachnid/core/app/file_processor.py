@@ -1,10 +1,10 @@
-''' Framework for independent processing of files in serial, in parallel 
+''' Framework for independent processing of files or groups of objects in serial, in parallel 
 on a workstation or in parallel on a cluster using MPI.
 
 The file processor module provides basic functionality to any program 
-that processes a set of files independently. It can distribute processing
-to multiple cores using the multiprocessing package as well as to multiple
-nodes on a cluster using mpi2py.
+that processes a set of files or a set of object groups independently. It can 
+distribute processing to multiple cores using the multiprocessing package as 
+well as to multiple nodes on a cluster using mpi2py.
 
 Usage
 -----
@@ -73,8 +73,10 @@ Each function also has access to the following keyword arguments:
 Parameters
 ----------
 
-This module adds the following parameters to any script that
-utilizes the program architecture.
+The following parameters are added to a script using the file/group processing module in the 
+program architecture. 
+
+.. program:: shared
 
 .. option:: --id-len <int>
     
