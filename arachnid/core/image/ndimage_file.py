@@ -167,6 +167,7 @@ def iter_images(filename, index=None):
             return
         elif index.ndim == 2 and index.shape[1]>1:
             if index[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+            
             beg = 0
             tot = len(numpy.unique(index[:, 0].astype(numpy.int)))
             if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
@@ -178,6 +179,8 @@ def iter_images(filename, index=None):
                 try:
                     filename = readlinkabs(filename)
                     if index[sel, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+                    if numpy.any(index[sel, 1]) > count_images(filename):
+                        raise ValueError, "Index exceeds stack size: %s - %d > %d"%(filename, index[sel, 1].max(), count_images(filename))
                     for img in iter_images(filename, index[sel, 1]):
                         yield img
                 except:
