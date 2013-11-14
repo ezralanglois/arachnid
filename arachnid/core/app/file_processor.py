@@ -60,6 +60,11 @@ The target module may include any of the following functions:
 
    Initialize the input data before processing (first init to be called). During parallel processing this is invoked only
    by the root process.
+   
+   .. note::
+       
+       This runs before dependency checking, so this is the place to generate groups. The first element of the
+       group tuple must be an integer ID.
 
    :param files: List of input files to process
    :param extra: Dictionary of unused keyword arguments (Options from the command line or config file, plus additional options)
