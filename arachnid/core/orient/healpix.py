@@ -115,12 +115,12 @@ def angles(resolution, half=False, out=None):
     ang = numpy.zeros(2)
     if out is None:
         out = numpy.zeros((npix, 3))
-    for i in xrange(npix):
+    for i in xrange(out.shape[0]):
         _healpix.pix2ang_ring(nsample, i, ang)
         out[i, 1:]=numpy.rad2deg(ang)
     return out
     
-def angles_gen(resolution, deg=False, half=False, out=None):
+def angles_gen(resolution, deg=False, half=False):
     '''
     '''
     
