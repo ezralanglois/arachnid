@@ -253,7 +253,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
 
-def generate_settings_tree(main_module, description="", supports_MPI=False, supports_OMP=False, **extra):
+def generate_settings_tree(main_module, description="", supports_MPI=False, supports_OMP=False, usage=None, **extra):
     ''' Collect options, groups and values
     
     This function collects all options and option groups then updates their default 
@@ -277,6 +277,8 @@ def generate_settings_tree(main_module, description="", supports_MPI=False, supp
                    Set True if the script supports MPI
     supports_OMP : bool
                    If True, add OpenMP capability
+    usage : str
+            Usage string, optional
     extra : dict
             New default values for the options
                    
@@ -292,11 +294,11 @@ def generate_settings_tree(main_module, description="", supports_MPI=False, supp
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), usage, supports_MPI, supports_OMP)[0]
     parser.change_default(**extra)
     return parser.get_config_options(), parser.option_groups, parser.get_default_values()
         
-def write_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
+def write_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, usage=None, **extra):
     ''' Write a configuration file
     
     This function collects all options and option groups then updates their default 
@@ -322,6 +324,8 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
                    Set True if the script supports MPI
     supports_OMP : bool
                    If True, add OpenMP capability
+    usage : str
+            Usage string, optional
     extra : dict
             New default values for the options
                    
@@ -333,7 +337,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     
     #_logger.addHandler(logging.StreamHandler())
     main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), usage, supports_MPI, supports_OMP)[0]
     parser.change_default(**extra)
     name = main_module.__name__
     off = name.rfind('.')
@@ -344,7 +348,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     parser.write(output) #, options)
     return output
 
-def read_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
+def read_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, usage=None, **extra):
     ''' Read in option values from a configuration file
     
     This function collects all options and option groups, and then reads in their values from a configuration file
@@ -369,6 +373,10 @@ def read_config(main_module, description="", config_path=None, supports_MPI=Fals
                    Set True if the script supports MPI
     supports_OMP : bool
                    If True, add OpenMP capability
+    usage : str
+            Usage string, optional
+    extra : dict
+            Unused keyword arguments
                    
     :Returns:
     
@@ -377,7 +385,7 @@ def read_config(main_module, description="", config_path=None, supports_MPI=Fals
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), usage, supports_MPI, supports_OMP)[0]
     name = main_module.__name__
     off = name.rfind('.')
     if off != -1: name = name[off+1:]
@@ -569,7 +577,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     '''
     
     description="\n#  ".join([s.strip() for s in description.split("\n")])
-    parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, output_option)
+    parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP, output_option)
     
     try: options, args = parser.parse_args_with_config()    
     except settings.OptionValueError, inst:
