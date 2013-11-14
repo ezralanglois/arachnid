@@ -348,7 +348,7 @@ def correct_model(img, ctfimg, fourier=False):
     '''
     
     img = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
-    img *= ctfimg
+    if ctfimg is not None: img *= ctfimg
     if fourier: return img
     return scipy.fftpack.ifft2(scipy.fftpack.ifftshift(img))
     
