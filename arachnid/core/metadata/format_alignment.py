@@ -68,8 +68,9 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                 param[i, 6] = align[i].rlnDefocusU
         if supports_spider_id is not None:
             label = numpy.zeros((len(param), 2), dtype=numpy.int)
-            for f, id in files: label[i, :] = (spider_utility.spider_id(f), id)
-            if label[:, 1].min() > 0: label[:, 1]-=1
+            for i in xrange(len(files)): label[i, :] = (spider_utility.spider_id(files[i][0]), files[i][1])
+            if label[:, 1].min() > 0: 
+                label[:, 1]-=1
             files = (files[0][0], label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
     else:
