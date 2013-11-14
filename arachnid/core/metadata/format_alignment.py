@@ -13,7 +13,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
+def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False ,**extra):
     ''' Read an alignment file and organize images
     
     Supports both SPIDER and relion
@@ -29,6 +29,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
     id_len = extra['id_len'] if 'id_len' in extra else 0
     if 'format' in extra: del extra['format']
     if 'numeric' not in extra: extra['numeric']=True
+    supports_spider_id="" if not force_list else None
     if format.get_format(filename, **extra) == format.star:
         align = format.read(filename, **extra)
         param = numpy.zeros((len(align), align_cols))
@@ -37,6 +38,11 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
             _logger.info("Standard Relion alignment file - leave 3D")
             for i in xrange(len(align)):
                 files.append(spider_utility.relion_file(align[i].rlnImageName))
+                if supports_spider_id is not None and not spider_utility.is_spider_filename(files[-1][0]):
+                    if supports_spider_id == "":
+                        supports_spider_id = spider_utility.spider_filepath(files[-1][0])
+                    elif supports_spider_id != spider_utility.spider_filepath(files[-1][0]):
+                        supports_spider_id=None
                 param[i, 0] = align[i].rlnAnglePsi
                 param[i, 1] = align[i].rlnAngleTilt
                 param[i, 2] = align[i].rlnAngleRot
@@ -48,6 +54,11 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
             _logger.info("Standard Relion alignment file - convert to 2D")
             for i in xrange(len(align)):
                 files.append(spider_utility.relion_file(align[i].rlnImageName))
+                if supports_spider_id is not None and not spider_utility.is_spider_filename(files[-1][0]): 
+                    if supports_spider_id == "":
+                        supports_spider_id = spider_utility.spider_filepath(files[-1][0])
+                    elif supports_spider_id != spider_utility.spider_filepath(files[-1][0]):
+                        supports_spider_id=None
                 param[i, 1] = align[i].rlnAngleTilt
                 param[i, 2] = align[i].rlnAngleRot
                 rot, tx, ty = orient_utility.align_param_3D_to_2D_simple(align[i].rlnAnglePsi, align[i].rlnOriginX, align[i].rlnOriginY)
@@ -55,7 +66,11 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
                 param[i, 4] = tx
                 param[i, 5] = ty
                 param[i, 6] = align[i].rlnDefocusU
-            
+        if supports_spider_id is not None:
+            label = numpy.zeros((len(param), 2), dtype=numpy.int)
+            for f, id in files: label[i, :] = (spider_utility.spider_id(f), id)
+            label[:, 1]-=1
+            files = (files[0][0], label)
     else:
         align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
         param = numpy.zeros((len(align), align_cols))
@@ -86,20 +101,33 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, **extra):
                 _logger.info("Detected non-standard SPIDER alignment file with only angles")
             if numpy.any(align[:,0]!=0): 
                 param[:, 3]=-align[:,0]
-        if align.shape[1] <= 15:
-            files = []
-            if isinstance(image_file, str) and align[:, 4].max() > ndimage_file.count_images(image_file):
-                for i in xrange(len(align)):
-                    files.append( (image_file, int(i+1)) )
+        if force_list or not spider_utility.is_spider_filename(image_file):
+            if align.shape[1] <= 15:
+                files = []
+                if isinstance(image_file, str) and align[:, 4].max() > ndimage_file.count_images(image_file):
+                    for i in xrange(len(align)):
+                        files.append( (image_file, int(i+1)) )
+                else:
+                    idx = align[:, 4].astype(numpy.int)
+                    for i in xrange(len(align)):
+                        files.append( (image_file, idx[i]) )
             else:
-                idx = align[:, 4].astype(numpy.int)
-                for i in xrange(len(align)):
-                    files.append( (image_file, idx[i]) )
+                files=[]
+                label = align[:, 15:17].astype(numpy.int)
+                for mic, pid in label:
+                    files.append((spider_utility.spider_filename(image_file, int(mic), id_len), int(pid)))
         else:
-            files=[]
-            label = align[:, 15:17].astype(numpy.int)
-            for mic, pid in label:
-                files.append((spider_utility.spider_filename(image_file, int(mic), id_len), int(pid)))
+            label = numpy.zeros((len(param), 2), dtype=numpy.int)
+            if align.shape[1] <= 15:
+                label[:, 0] = spider_utility.spider_id(image_file)
+                if isinstance(image_file, str) and align[:, 4].max() > ndimage_file.count_images(image_file):
+                    label[:, 1] = range(1, len(align)+1)
+                else:
+                    label[:, 1] = align[:, 4]
+            else:
+                label[:, :] = align[:, 15:17].astype(numpy.int)
+            label[:, 1]-=1
+            files = (image_file, label)
     return files, param
 
 def read_spider_alignment(filename, header=None, **extra):

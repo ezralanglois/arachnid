@@ -146,6 +146,7 @@ def iter_images(filename, index=None):
     .. todo:: iter single images
     '''
     
+    if isinstance(filename, tuple): filename, index = filename
     if index is None and isinstance(filename, list):
         if isinstance(filename[0], tuple):
             for f, id in filename:

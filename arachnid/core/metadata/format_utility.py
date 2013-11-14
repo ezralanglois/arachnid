@@ -381,7 +381,10 @@ def create_namedtuple_list(values, name, header, label=None, good=None):
     retvals = []
     
     if label is not None:
-        n = label.shape[1] if label.ndim > 1 else 1
+        if hasattr(label, 'ndim'):
+            n = label.shape[1] if label.ndim > 1 else 1
+        else:
+            n = len(label[1]) if isinstance(label, list) or isinstance(label, tuple) else 1
         n += values.shape[1] if values.ndim > 1 else 1
         if good is not None: n += 1
         cat_label = len(Tuple._fields) != n
@@ -389,7 +392,7 @@ def create_namedtuple_list(values, name, header, label=None, good=None):
         for i in xrange(len(label)):
             vals = []
             if cat_label:
-                try: id = "/".join(["%d"%int(v) for v in label[i]])
+                try: id = "/".join([str(v) for v in label[i]])
                 except: id = label[i]
                 vals.append(id)
             else:

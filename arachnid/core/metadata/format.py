@@ -553,7 +553,7 @@ def write_dataset(output, feat, id=None, label=None, good=None, header=None, sor
                  Actual output filename used
     '''
     
-    if label is not None and sort:
+    if label is not None and hasattr(label, 'ndim') and sort:
         if label.shape[0] != feat.shape[0]: _logger.error("label does not match size of feat: %d != %d"%(label.shape[0], feat.shape[0]))
         assert(label.shape[0] == feat.shape[0])
         if label.ndim == 2 and label.shape[1] > 1:
@@ -575,9 +575,12 @@ def write_dataset(output, feat, id=None, label=None, good=None, header=None, sor
     mheader = header
     header = ""
     if label is not None:
-        if label.ndim == 1 or label.shape[1] < 1: header = "id,"
-        elif label.shape[1] < 3:                  header = "id,"
-        else:                                     raise ValueError, "Unexpected number of labels"
+        if hasattr(label, 'ndim'):
+            if label.ndim == 1 or label.shape[1] < 1: header = "id,"
+            elif label.shape[1] < 3:                  header = "id,"
+            else:                                     raise ValueError, "Unexpected number of labels"
+        else:
+            header = "id,"
     if good is not None: header += "select,"
     if mheader is None:
         if hasattr(feat, 'ndim'): cols = feat.shape[1] if feat.ndim > 1 else 1

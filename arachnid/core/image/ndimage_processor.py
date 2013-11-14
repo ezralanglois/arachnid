@@ -32,7 +32,8 @@ def create_matrix_from_file(images, image_processor, dtype=numpy.float, **extra)
     
     img1 = ndimage_file.read_image(images[0])
     img = image_processor(img1, 0, **extra).ravel()
-    mat = numpy.zeros((len(images), img.shape[0]), dtype=dtype)
+    total = len(images[1]) if isinstance(images, tuple) else len(images)
+    mat = numpy.zeros((total, img.shape[0]), dtype=dtype)
     for row, data in process_tasks.for_process_mp(ndimage_file.iter_images(images), image_processor, img1.shape, queue_limit=100, **extra):
         mat[row, :] = data.ravel()[:img.shape[0]]
     return mat
