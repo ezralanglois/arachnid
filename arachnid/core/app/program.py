@@ -1,10 +1,104 @@
-''' Handles functionality shared by every program in arachnid: option parsing, MPI setup, version control, etc.
+''' Defines the program architecture for every application
 
-A template program defines a generic structure shared among many scripts. In other
-words, it defines a common set of options.
+This module defines a generic architecture shared among many scripts as well as providing
+shared utilities such as option parsing, option checking, option updating, MPI setup, 
+multi-threading control, input filename updates, configuration file creation, logging setup,
+file processing and version control.
+
+Essentially a script can utilize one of two program architectures:
+
+    #. Batch processing
+    #. Group or file processing
+
+This is determined by whether the script defines a :py:func:`process` or :py:func:`batch`
+entry point.
+
+By convention, a program should define a main entry point for execution from outside the
+script as follows:
+
+.. sourcecode:: py
+
+    def main():
+        #Main entry point for this script
+        from arachnid.core.app import program 
+        program.run_hybrid_program(__name__, description = """Description of the script""")
+
+    if __name__ == "__main__": main()
+
+Basically, it should define a `main` function that can serve as an entry point for
+`setup.py`. And, in case the script is executed from the command line, it should contain
+the following:
+
+.. sourcecode:: py
+
+    if __name__ == "__main__": main()
+
+Usage
+-----
+
+The target module must define one of the following functions:
+
+.. py:function:: process(filename, **extra)
+
+   Process a single file. During parallel processing this is invoked by a worker process.
+   
+   See :py:mod:`arachnid.core.app.file_processor` for more information on the file or group processing 
+   architecture. 
+
+   :param filename: Input filename to process
+   :param extra: Unused keyword arguments (Options from the command line or config file, plus additional options)
+   :returns: At minimum filename, however a tuple of additional arguments can be returned for processing by :py:func:`reduce_all`
+   
+.. py:function:: batch(files, **extra)
+
+   Process all input files.
+
+   :param files: List of input filenames to process
+   :param extra: Unused keyword arguments (Options from the command line or config file, plus additional options)
+   
+The target module must define all the the following:
+
+.. py:function:: setup_options(parser, pgroup=None, main_option=False)
+
+   Setup program options for command-line and configuration file
+
+   :param parser: OptionParser
+   :param pgroup: Root OptionGroup
+   :param main_option: If true, add the options specific to running this script
+
+The target module may include any of the following functions:
+
+.. py:function:: change_option_defaults(parser)
+
+   Customize default options in other modules for this specific script.
+
+   :param parser: OptionParser
+
+.. py:function:: dependents()
+
+   Return a list of dependent modules and add their options. Dependents of a dependent will also be
+   recursively found and added.
+
+   :returns: List of dependent modules
+
+.. py:function:: update_options(options)
+
+   Utilize parsed options and add additional option values.
+
+   :param options: object containing options as fields
+
+.. py:function:: check_options(options, main_option=False)
+
+   Test the validity of each option value and throw OptionValueError if
+   an invalid value is found.
+
+   :param options: object containing options as fields
+   :param main_option: If true, add the options specific to running this script
 
 Parameters
 ----------
+
+The following parameters are added to a script using the program architecture. 
 
 .. program:: shared
 
@@ -42,6 +136,15 @@ Parameters
 
 .. todo:: if not exist set to empty home-prefix, local-scratch, local-temp and warn
 
+.. seealso:: 
+
+    Module :py:mod:`arachnid.core.app.file_processor`
+        File processing program architecture
+    Module :py:mod:`arachnid.core.app.settings`
+        Program options parsing for command line and configuration file
+    Module :py:mod:`arachnid.core.app.tracing`
+        Logging controls
+
 .. Created on Oct 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -50,22 +153,32 @@ import settings
 from ..parallel import mpi_utility, openmp
 from ..gui import settings_editor
 import logging, sys, os, traceback
-import arachnid as root_module
+import arachnid as root_module # TODO: This needs to be found in run_hybrid_program
 import file_processor
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
 def run_hybrid_program(name, description, usage=None, supports_MPI=True, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
-    ''' Run the main function or other entry points in the calling module
+    ''' Main entry point for the program architecture
+    
+    This function proceeds as follows:
+    
+        #. Determine module from name
+        #. Determine if module supports file/group 
+            or batch processing
+        #. Collect options, match to values and test validity
+           using :py:func:`parse_and_check_options`
+        #. Set number of threads for OpenMP (optional)
+        #. Invoke entry point to file/group or batch processor
     
     :Parameters:
         
-    name : string
+    name : str
            Name of calling module (usually __main__)
     description : string
                   Description of the program
-    usage : string
+    usage : str
             Current usage of the program
     supports_MPI : bool
                    If True, add MPI capability
@@ -141,7 +254,18 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         sys.exit(1)
 
 def generate_settings_tree(main_module, description="", supports_MPI=False, supports_OMP=False, **extra):
-    ''' Write a configuration file to an output file
+    ''' Collect options, groups and values
+    
+    This function collects all options and option groups then updates their default 
+    values, and then returns the options, groups and values.
+    
+    .. seealso::
+    
+        Function :py:func:`setup_parser`
+            Peforms option collection
+    
+        Function :py:func:`map_module_to_program`
+            Determines script name for module
     
     :Parameters:
     
@@ -153,50 +277,38 @@ def generate_settings_tree(main_module, description="", supports_MPI=False, supp
                    Set True if the script supports MPI
     supports_OMP : bool
                    If True, add OpenMP capability
+    extra : dict
+            New default values for the options
                    
     :Returns:
     
-    output : str
-             Output filename of the configuration file
+    options : list
+              List of options that do not belong to a group
+    option_groups : list
+                    List of option groups
+    values : object
+             Object where each field is named for an option 
+             and holds is corresponding value
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
     parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
     parser.change_default(**extra)
     return parser.get_config_options(), parser.option_groups, parser.get_default_values()
-
-def generate_settings(main_module, property, object, description="", supports_MPI=False, supports_OMP=False, **extra):
-    ''' Write a configuration file to an output file
-    
-    :Parameters:
-    
-    main_module : module
-                   Reference to main module
-    property : PyqtProperty
-               Subclass of  PyqtProperty
-    object : QObject
-             QObject class
-    description : str
-                  Header on configuration
-    supports_MPI : bool
-                   Set True if the script supports MPI
-    supports_OMP : bool
-                   If True, add OpenMP capability
-                   
-    :Returns:
-    
-    output : str
-             Output filename of the configuration file
-    '''
-    
-    main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
-    parser.change_default(**extra)
-    values = parser.get_default_values()
-    return parser.create_property_tree(values, property, object), values
         
 def write_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
-    ''' Write a configuration file to an output file
+    ''' Write a configuration file
+    
+    This function collects all options and option groups then updates their default 
+    values, and then write a configuration file
+    
+    .. seealso::
+    
+        Function :py:func:`setup_parser`
+            Peforms option collection
+    
+        Function :py:func:`map_module_to_program`
+            Determines script name for module
     
     :Parameters:
     
@@ -210,6 +322,8 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
                    Set True if the script supports MPI
     supports_OMP : bool
                    If True, add OpenMP capability
+    extra : dict
+            New default values for the options
                    
     :Returns:
     
@@ -230,8 +344,59 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     parser.write(output) #, options)
     return output
 
+def read_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
+    ''' Read in option values from a configuration file
+    
+    This function collects all options and option groups, and then reads in their values from a configuration file
+    
+    .. seealso::
+    
+        Function :py:func:`setup_parser`
+            Peforms option collection
+    
+        Function :py:func:`map_module_to_program`
+            Determines script name for module
+    
+    :Parameters:
+    
+    main_module : module
+                   Reference to main module
+    description : str
+                  Header on configuration
+    config_path : str, optional
+                  Path to write configuration file
+    supports_MPI : bool
+                   Set True if the script supports MPI
+    supports_OMP : bool
+                   If True, add OpenMP capability
+                   
+    :Returns:
+    
+    out : dict
+          Option/value pairs
+    '''
+    
+    main_template = file_processor if file_processor.supports(main_module) else None
+    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
+    name = main_module.__name__
+    off = name.rfind('.')
+    if off != -1: name = name[off+1:]
+    if config_path is not None:
+        output = os.path.join(config_path, name+".cfg")
+    else: output = name+".cfg"
+    if not os.path.exists(output): return {}
+    return vars(parser.parse_file(fin=output))
+
 def update_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
-    ''' Write a configuration file to an output file
+    ''' Test whether a configuration file needs to be updated with new values 
+    
+    This function collects all options and option groups, then reads in their values from a configuration 
+    file and then, tests whether a configuration file needs to be updated with new values.
+    
+    .. seealso::
+    
+        Function :py:func:`read_config`
+            Peforms option collection and read values from a config file
     
     :Parameters:
     
@@ -249,7 +414,8 @@ def update_config(main_module, description="", config_path=None, supports_MPI=Fa
     :Returns:
     
     output : str
-             Output filename of the configuration file
+             Output filename of the configuration file if it should
+             be updated otherwise empty string
     '''
     
     name = main_module.__name__
@@ -268,41 +434,6 @@ def update_config(main_module, description="", config_path=None, supports_MPI=Fa
             _logger.info("Updating %s config - option %s changed from '%s' to '%s'"%(name, key, str(val), str(extra[key])))
             return ""
     return output
-            
-
-def read_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
-    ''' Write a configuration file to an output file
-    
-    :Parameters:
-    
-    main_module : module
-                   Reference to main module
-    description : str
-                  Header on configuration
-    config_path : str, optional
-                  Path to write configuration file
-    supports_MPI : bool
-                   Set True if the script supports MPI
-    supports_OMP : bool
-                   If True, add OpenMP capability
-                   
-    :Returns:
-    
-    output : str
-             Output filename of the configuration file
-    '''
-    
-    #_logger.addHandler(logging.StreamHandler())
-    main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), None, supports_MPI, supports_OMP, False, None)[0]
-    name = main_module.__name__
-    off = name.rfind('.')
-    if off != -1: name = name[off+1:]
-    if config_path is not None:
-        output = os.path.join(config_path, name+".cfg")
-    else: output = name+".cfg"
-    if not os.path.exists(output): return {}
-    return vars(parser.parse_file(fin=output))
     
 def map_module_to_program(key=None):
     ''' Create a dictionary that maps each module name to 
@@ -315,8 +446,10 @@ def map_module_to_program(key=None):
     
     :Returns:
     
-    map : dict
-          Dictionary mapping each module name to its program
+    map : dict or value
+          If key is None then it returns a dictionary 
+          mapping each module name to its program, otherwise
+          the value for the corresponding key is returned.
     '''
     
     import arachnid.setup
@@ -328,8 +461,15 @@ def map_module_to_program(key=None):
     vals = dict(vals)
     return vals if key is None else vals[key]
         
-def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, use_version=False, output_option=None):
-    '''Parse and setup the parameters for the generic program
+def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, output_option=None):
+    ''' Collect all the options from the main module, its dependents, the main template and those shared by all programs
+    
+    This function also collects all the dependent modules and updates the default values of the options.
+    
+    .. seealso::
+    
+        Function :py:func:`setup_program_options`
+            Adds additional options to the OptionParser
     
     :Parameters:
         
@@ -337,9 +477,9 @@ def setup_parser(main_module, main_template, description="", usage=None, support
                   Main module
     main_template : module
                     Main module wrapper
-    description : string
+    description : str
                   Description of the program
-    usage : string
+    usage : str
             Current usage of the program
     supports_MPI : bool
                    If True, add MPI capability
@@ -372,14 +512,32 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     group = settings.OptionGroup(parser, "Dependent", "Options require by dependents of the program", group_order=0,  id=__name__)
     for module in dependents:
         module.setup_options(parser, group)
-    if hasattr(main_module, "setup_main_options"): main_module.setup_main_options(parser, group)
+    if hasattr(main_module, "change_option_defaults"): main_module.change_option_defaults(parser)
     if len(group.option_list) > 0 or len(group.option_groups) > 0: parser.add_option_group(group)
     if main_template == main_module: main_template = None
     setup_program_options(parser, main_template, supports_MPI, supports_OMP, output_option)
     return parser, dependents
 
 def parse_and_check_options(main_module, main_template, description, usage, supports_MPI=False, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
-    '''Parse and setup the parameters for the generic program
+    ''' Parse the collected options and check option validity
+    
+    The function also does the following:
+        
+        #. configures MPI (if necessary)
+        #. configures the logging utility
+        #. performs option version control
+        #. handles config file creation
+        #. displays autogui
+        
+    
+    .. seealso::
+    
+        Function :py:func:`setup_parser`
+            Collects options from the module and its dependents
+        Function :py:func:`on_error`
+            Logs errors and prints usage
+        Function :py:func:`update_file_param`
+            Updates all filenames with `home_prefix` and/or `local_temp` 
     
     :Parameters:
         
@@ -418,15 +576,7 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
         on_error(parser, inst, parser.get_default_values())
         raise settings.OptionValueError, "Failed when parsing options"
     
-    if 1 == 0: # test for bad options
-        unset = parser.collect_unset_options()
-        if len(unset) > 0:
-            for opt in unset:
-                print opt
-            sys.exit(1)
-        sys.exit(0)
-    
-    options.create_cfg = settings_editor.display(parser, options, **vars(options))
+    options.create_cfg = settings_editor.display(parser, options, **vars(options)) # Todo: move , wrong place to read in from cfg file
     
     # Disable automatic version update
     #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
@@ -457,9 +607,8 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             module.update_options(options)
         parser.validate(options)
         for module in dependents+additional:
-            if not hasattr(module, "check_options"): continue
+            if not hasattr(module, "check_options"): continue 
             module.check_options(options)
-        if hasattr(main_module, "check_main_options"): main_module.check_main_options(options)
         if hasattr(main_module, "check_options"): main_module.check_options(options, True)
     except settings.OptionValueError, inst:
         on_error(parser, inst, options)
@@ -489,7 +638,20 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
     return args, param
 
 def on_error(parser, inst, options):
-    '''
+    ''' Called when an OptionValueError has been thrown
+    
+    This function logs the current error and then prints
+    usage information.
+    
+    :Parameters:
+    
+    parser : OptionParser
+             OptionParser
+    inst : Exception
+           Exception object with message
+    options : object
+              Object where each field is named for an option 
+              and holds is corresponding value
     '''
     
     param = vars(options)
@@ -499,14 +661,18 @@ def on_error(parser, inst, options):
     print parser.get_usage(), "See %s for more information regarding this error"%tracing.default_logfile(**param)
     print
 
-def update_file_param(max_filename_len, warning, file_options, home_prefix=None, local_temp="", shared_scratch="", local_scratch="", **extra):
+def update_file_param(max_filename_len, warning, file_options, home_prefix=None, local_temp="", **extra):
     ''' Create a soft link to the home_prefix and change all filenames to
     reflect this short cut.
+    
+    .. note::
+    
+        This function is only necessary for pySPIDER - should probably be moved there.
     
     :Parameters:
     
     max_filename_len : int
-                       Maximum length allowed for filename
+                       Maximum length allowed for filename (0 disables test)
     warning : bool
               Print warning if cannot update
     file_options : list
@@ -515,10 +681,6 @@ def update_file_param(max_filename_len, warning, file_options, home_prefix=None,
                   File path to input files on master node
     local_temp : str
                   File path to temporary directory on each slave node
-    shared_scratch : str
-                     File path to shared directory accessible to each slave node (unused here)
-    local_scratch : str
-                    File path to local scratch directory on each slave node (unused here)
     extra : dict
             Unused keyword arguments
             
@@ -535,8 +697,8 @@ def update_file_param(max_filename_len, warning, file_options, home_prefix=None,
             # Test if file does not exist and is relative path, update
             # based on config file path, if exists
             if home_prefix is None: _logger.warn("--home-prefix not set - no file update")
-            if home_prefix is None: _logger.warn("--local-temp not set - no file update")
-            if home_prefix is None: _logger.warn("--local-temp does not exist - no file update")
+            if local_temp == "": _logger.warn("--local-temp not set - no file update")
+            if not os.path.exists(local_temp): _logger.warn("--local-temp does not exist - no file update")
         
         if home_prefix is not None and home_prefix != "":
             for opt in file_options:
@@ -618,7 +780,8 @@ def setup_program_options(parser, main_template, supports_MPI=False, supports_OM
     if main_template is not None: main_template.setup_options(parser, gen_group)
     gen_group.add_option_group(prg_group)
     parser.add_option_group(gen_group)
-    
+
+"""
 def reload_script(version):
     ''' Update sys.path and reload all the modules
     
@@ -665,6 +828,7 @@ def reload_script(version):
         assert(saved is not None)
         reload(__import__(saved))
         raise VersionChange
+"""
 
 class VersionChange(StandardError):
     ''' Thrown when the application has to make a version change.
@@ -714,6 +878,11 @@ def collect_dependents(dependents):
     
     dependents : list
                  List of dependents to search
+    
+    :Returns:
+    
+    out : list
+          List of dependents with no repeats
     '''
     
     deps = list(dependents)
