@@ -3,25 +3,6 @@
 Every program shares a standard option interface that provides a rich set
 of features to the user.
 
-Parameters
-----------
-
-.. option:: -i <list>, --input-files <list>
-    
-    Input files in addition to those placed on the command line
-
-.. option:: -c <filename>, --config-file <filename>
-    
-    Read a configuration file for options
-
-.. option:: --version
-    
-    Show program's version number and exit
-
-.. option:: -h, --help
-    
-    Show program's version number and exit
-
 Usage
 -----
 
@@ -35,9 +16,9 @@ options can be set.
 
 .. sourcecode:: sh
     
-    $ ara-autopick <input-files> --template <name> -o <file-path>
+    $ ara-program <input-files> --template <name> -o <file-path>
     
-    $ ara-autopick mic_001.spi --template reference.spi -o sndc_000.spi
+    $ ara-program mic_001.spi --template reference.spi -o sndc_000.spi
     
 There are two components to setting an option(`--metrics precision`):
 
@@ -52,52 +33,29 @@ The input files can be explicitly set as follows:
 
 .. sourcecode:: sh
     
-    $ ara-autopick <input-files>
-    $ ara-autopick --input-files <input-files>
-    $ ara-autopick -i <input-files>
+    $ ara-program <input-files>
+    $ ara-program --input-files <input-files>
+    $ ara-program -i <input-files>
 
 Available Options
 +++++++++++++++++
 
-The options available for a specific script can be found in a number of ways. First
-one can invoke the script with `-h` or `--help`. This option display is best for
-learning about command-line options.
+The options available for a specific script can be found using the 
+`-h` or `--help` options.
 
 .. sourcecode:: sh
     
-    $ ara-autopick -h | more
+    $ ara-program -h | more
     
-    Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
-    
-    This program estimates the performance of a machine learning or #  particle
-    selection algorithm. #
-    
-    Options:
-      --version             show program's version number and exit
-      -h, --help            show this help message and exit
-      -i INPUT_FILES, --input-files=INPUT_FILES
-                            Input files in addition to those placed on the command
-                            line
-      -o OUTPUT, --output=OUTPUT
-                            Path and name of the output file
-    --More--
-    
-Second, one can invoke the script with no arguments (or an incorrect argument). This 
-option is best for learning about configuration file options.
-
-.. sourcecode:: sh
-    
-    $ ara-autopick | more
-    settings:709:root:ERROR - No metrics specified
-    #  Program:    ara-autopick
-    #  Version:    1.1.1
-    
-    #  This program estimates the performance of a machine learning or
-    #  particle selection algorithm.
+    #  Program:    ara-program
+    #  Version:    0.1.3_76_g3b7c8d4
+    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
     #  
     
-    input-files:        #    Input files in addition to those placed on the command line
-    output:            #    Path and name of the output file
+    #  Options that must be set to run the program
+    input-files:              #        (-i)    List of filenames for the input micrographs
+    output:                   #        (-o)    Output filename for the program
+    alignment:                #        (-a)    Input file containing alignment parameters
     --More--
     
 Configuration Files
@@ -109,41 +67,42 @@ save the configuration file, you can redirect the output stream to a file as fol
 .. sourcecode:: sh
     
     $ mkdir cfg
-    $ ara-autopick > cfg/auto.cfg
+    $ ara-program -h > cfg/auto.cfg
     $ more cfg/auto.cfg
-    #  Program:    ara-autopick
-    #  Version:    1.1.1
-    
-    #  This program estimates the performance of a machine learning or
-    #  particle selection algorithm.
+    #  Program:    ara-program
+    #  Version:    0.1.3_76_g3b7c8d4
+    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
     #  
     
-    input-files:        #    Input files in addition to those placed on the command line
-    output:            #    Path and name of the output file
+    #  Options that must be set to run the program
+    input-files:              #        (-i)    List of filenames for the input micrographs
+    output:                   #        (-o)    Output filename for the program
+    alignment:                #        (-a)    Input file containing alignment parameters
     --More--
     
-Note that the directory creation above (`mkdir cfg`) is not necessary but as will be come apparent, it is
-recommended.
+.. note::
+
+    The `#` serves as a comment in the configuration file. Everything after the `#` is ignored. In 
+    addition, if the line starts with a space, then this entire line is also ignored.
 
 A configuration file can be used as follows: 
 
 .. sourcecode:: sh
 
-    $ ara-autopick -c cfg/auto.cfg # Explicitly set filename
-    $ ara-autopick -c auto         # Automatically find auto.cfg in cfg
+    $ ara-program -c cfg/auto.cfg # Explicitly set filename
+    $ ara-program -c auto         # Automatically find auto.cfg in cfg
 
 Default values in configuration files can be set using command line options:
 
 .. sourcecode:: sh
     
-    $ ara-autopick -o output.txt | more
-    settings:709:root:ERROR - No metrics specified
-    #  Program:    ara-autopick
-    #  Version:    1.1.1
-    
-    #  This program estimates the performance of a machine learning or
-    #  particle selection algorithm.
+    $ ara-program -o output.txt --create-cfg new.cfg
+    $ more new.cfg
+    #  Program:    ara-program
+    #  Version:    0.1.3_76_g3b7c8d4
+    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
     #  
+    
     
     input-files:                #    Input files in addition to those placed on the command line
     output:      output.txt     #    Path and name of the output file
@@ -153,7 +112,117 @@ Configuration files can also be copied (almost completely):
 
 .. sourcecode:: sh
     
-    $ ara-autopick -c old -i "" > cfg/new.cfg  # A parameter must be set to cause an error, e.g. -i ""
+    $ ara-program -c old --create-cfg cfg/new.cfg
+
+An advanced feature of the configuration file is the ability to embed a shell script before
+the first option. For example, consider the following:
+
+.. sourcecode:: sh
+    
+    #  Program:    ara-program
+    #  Version:    0.1.3_76_g3b7c8d4
+    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
+    #  
+    
+      nohup ara-program -c $PWD/$0 > `basename $0 cfg`log &
+      exit 0
+    
+    input-files:        #    Input files in addition to those placed on the command line
+    output:            #    Path and name of the output file
+
+This simple shell script, invokes the python script then exits before it reaches the options. Both
+lines are ignored by the python script because they are preceed by a space. Thus, the script can
+be run as follows:
+
+.. sourcecode:: sh
+
+    $ sh cfg/new.cfg
+
+While this example is trivial, you can construct more complicated shell scripts or commands.
+
+Module
+++++++
+
+Adding an option to the Improved OptionParser can be done simply as follows:
+
+.. sourcecode:: py
+
+    group.add_option("",   invert_contrast=False,        help="Invert the contrast of CCD micrographs")
+
+The first argument to `add_option` can be an empty string, a short parameter (`-i`) or a 
+long parameter (`--invert-image-contrast`).
+
+The second argument to `add_option` defines several values simutaneously
+    #. `dest`: The name of the destination in the values object
+    #. `default`: The default value of the option, e.g. False for this boolen option
+    #. `type`: The expected type of the input argument
+    #. `action`: For boolean types, it sets the action to `store_false` or `store_true` depending on the initial value
+    #. `long form argument`: The long form argument in the configuration file or on the command 
+        line, e.g. `invert_contrast` becomes `--invert-contrast`
+
+The third argument in this example defines a help message as in the standard OptionParser.
+
+.. note::
+    
+    The arguments expected by the original OptionParser can also be passed to add_option
+
+The `add_option` function supports several additional parameters including:
+
+    #. `dependent`: Mark option such that changing its value does not force a restart in processing all files
+    #. `required`: Mark option as required, i.e. if the option is not given a value, then it will throw an error
+    #. `required_file`: Marks are required and tests if filename is directory, then throws an error if so
+
+The `add_option` function can optionally take `gui` parameter that defines type specific information
+for building a GUI component of that option.
+
+Consider some examples:
+
+A list of input files would have the following example signature:
+
+.. sourcecode:: py
+    
+    group.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
+
+A non-required input file would have the following example signature:
+
+.. sourcecode:: py
+    
+    group.add_option("-d", selection_doc="",       help="Selection file for a subset of micrographs or selection file template for subset of good particles", gui=dict(filetype="open"), required_file=False)
+
+An output file would have the following example signature:
+
+.. sourcecode:: py
+    
+    group.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+
+An integer valued option would have the following example signature:
+
+.. sourcecode:: py
+
+    group.add_option("",   limit=2000,      help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
+    
+An real valued option would have the following example signature:
+
+.. sourcecode:: py
+
+    group.add_option("",   disk_mult=0.65,      help="Disk smooth kernel size factor", gui=dict(maximum=10.0, minimum=0.01, singleStep=0.1, decimals=2))
+
+Parameters
+----------
+
+.. program:: shared
+
+.. option:: -c <filename>, --config-file <filename>
+    
+    Read a configuration file for options
+
+.. option:: --version
+    
+    Show program's version number and exit
+
+.. option:: -h, --help
+    
+    Show program's version number and exit
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -170,7 +239,7 @@ _logger.setLevel(logging.INFO)
 _logger.addHandler(logging.StreamHandler())
 
 class Option(optparse.Option):
-    '''Smarter signature to the option class.
+    '''Improved signature to the option class.
         
     This class defines an Option that provides a cleaner signature, see the following examples:
     
@@ -226,19 +295,20 @@ class Option(optparse.Option):
         
             - gui: Parameters for rendering the option in the settings manager
             - archive: Flag to indicate whether filename shall be archived
-    
-    :Parameters:
-        
-    args : list
-           Positional arguments
-    kwargs : dict
-             Keyword arguments
     '''
     
     EXTRA_ATTRS = ('gui', 'archive', 'required', 'required_file', 'dependent') #, 'glob_more',
     
     def __init__(self, *args, **kwargs):
-        #Construct a smarter option
+        """ Create an Option object
+        
+        :Parameters:
+            
+        args : list
+               Positional arguments
+        kwargs : dict
+                 Keyword arguments
+        """
         
         self._required=False
         self._required_file=False
@@ -247,7 +317,7 @@ class Option(optparse.Option):
         flag, value = self.determine_flag(args, kwargs)
         if flag is not None:
             args, choices = self.setup_auto_flag(flag, value, args, kwargs)
-        if "gui" in kwargs:
+        if "gui" in kwargs: # TODO remove this
             self.gui_hint = kwargs["gui"]
             if 'operations' in self.gui_hint:
                 self.gui_hint['type'] = 'operations'
@@ -301,7 +371,8 @@ class Option(optparse.Option):
         values : object
                  Option value collection
         validators : dict
-                     Dictionary of validator objects
+                     Dictionary of validator objects, based 
+                     on the type of the option value
         '''
         
         if self.gui_hint is not None and 'type' in self.gui_hint and self.gui_hint['type'] in validators:
@@ -332,7 +403,7 @@ class Option(optparse.Option):
         
         :Parameters:
             
-        flag : string
+        flag : str
               The name of a flag
         value : object
                 The value of a flag
@@ -488,7 +559,7 @@ class Option(optparse.Option):
             
         option : Option
                  The option instance calling the callback
-        flag : string
+        flag : str
                The options flag as seen on the command line
         value : object
                 The command line value of the option, type corresponding to the option type
@@ -508,7 +579,7 @@ class Option(optparse.Option):
             
         option : Option
                  The option instance calling the callback
-        flag : string
+        flag : str
                The options flag as seen on the command line
         value : object
                 The command line value of the option, type corresponding to the option type
@@ -534,7 +605,7 @@ class Option(optparse.Option):
                 
         option : Option
                  The option instance calling the callback
-        flag : string
+        flag : str
                The options flag as seen on the command line
         value : object
                 The command line value of the option, type corresponding to the option type
@@ -564,7 +635,7 @@ class Option(optparse.Option):
             
         option : Option
                  The option instance calling the callback
-        flag : string
+        flag : str
                The options flag as seen on the command line
         value : object
                 The command line value of the option, type corresponding to the option type
@@ -602,23 +673,23 @@ class OptionGroup(optparse.OptionGroup):
         >>> group = OptionGroup(parser, "Benchmark Performance", "Options to control performance benchmarking",  id=__name__)
         >>> group.add_option("-m", metrics=[], help="List of metrics or metric groups to estimate")
         >>> parser.add_option_group(group)
-        
-    :Parameters:
-
-    parser : OptionParser
-             An instance of the option parser
-    title : string
-            A title of the group
-    description : string
-                 A help description of the group
-    dependent : bool
-                Set false if this option has no bearing on output file creation
-    kwargs : dict
-             A dictionary of keyword arguments
     '''
     
     def __init__(self, parser, title, description=None, group_order=0, dependent=True, **kwargs):
         '''Initialize an option group
+        
+        :Parameters:
+    
+        parser : OptionParser
+                 An instance of the option parser
+        title : str
+                A title of the group
+        description : str
+                     A help description of the group
+        dependent : bool
+                    Set false if this option has no bearing on output file creation
+        kwargs : dict
+                 A dictionary of keyword arguments
         '''
         
         optparse.OptionGroup.__init__(self, parser, title, description)
@@ -694,37 +765,39 @@ class OptionParser(optparse.OptionParser):
         >>> parser = OptionParser("program -c config", version="1.0", description="Example Options"))
         >>> parser.add_option("-m", metrics=[], help="List of metrics or metric groups to estimate")
         >>> (options, args) = parser.parse_args_with_config()
-    
-    :Parameters:
-        
-    usage : string
-            A usage string for your program
-    option_list : list
-                  A list of options to add
-    option_class : class
-                   An option class
-    version : string
-              A version of program
-    conflict_handler : string
-                       Name of conflict handler
-    description : string
-                  Description of program
-    formatter : string
-                Name of help file formatter
-    add_help_option : boolean
-                      Whether to add a help option
-    prog : string
-            The name of your program
-    comment : (new) string
-              A comment character for configuration file
-    separator : (new) string
-               A flag/value separator for configuration file
-    add_input_files : (new) string or None
-                    Add option for input files (globbing in configuration file)
     '''
     
     def __init__(self, usage=None, option_list=None, option_class=Option, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, url=None, comment='#', separator=':', add_input_files="input_files"):
         '''Construct an OptionParser
+    
+        :Parameters:
+            
+        usage : str
+                A usage string for your program
+        option_list : list
+                      A list of options to add
+        option_class : class
+                       An option class
+        version : str
+                  A version of program
+        conflict_handler : str
+                           Name of conflict handler
+        description : str
+                      Description of program
+        formatter : str
+                    Name of help file formatter
+        add_help_option : boolean
+                          Whether to add a help option
+        prog : str
+                The name of your program
+        url : str
+              URL for documentation of the program
+        comment : (new) string
+                  A comment character for configuration file
+        separator : (new) string
+                   A flag/value separator for configuration file
+        add_input_files : (new) string or None
+                        Add option for input files (globbing in configuration file)
         '''
         
         usage = "" if usage is None else usage+"\n\n"
@@ -771,6 +844,8 @@ class OptionParser(optparse.OptionParser):
     
     def version_control(self, options, output=None):
         ''' Create a version control configuration file and tracks every change.
+        
+        .. seealso:: VersionControl
         
         :Parameters:
         
@@ -828,7 +903,7 @@ class OptionParser(optparse.OptionParser):
             A list of command line arguments (override sys.argv[1:])
         values : object (dict)
             An object containing default values
-        fin : string or stream
+        fin : str or stream
             An input filename or input stream
         
         :Returns:
@@ -841,7 +916,13 @@ class OptionParser(optparse.OptionParser):
         return self.parse_args(args, values)
     
     def parse_args_with_config(self, args=sys.argv[1:], values=None):
-        ''' Parse arguments from the command line
+        ''' Parse arguments
+        
+        This function add `config_file` to the option list. Then parses
+        the command line options, followed by the config file and then
+        the command line a second time.
+        
+        .. seealso:: parse_all, parse_args
         
         :Parameters:
         
@@ -878,7 +959,9 @@ class OptionParser(optparse.OptionParser):
     def parse_args(self, args=sys.argv[1:], values=None):
         ''' Parse arguments from the command line
         
-        This function also performs option validation.
+        This function also performs option validation. In addition,
+        if the `add_input_files` flag is set, it then expands any
+        regular expressions using glob into a list of files.
         
         :Parameters:
         
@@ -929,7 +1012,7 @@ class OptionParser(optparse.OptionParser):
             A list of command line arguments (override sys.argv[1:])
         values : object (dict)
             An object containing default values
-        fin : string or stream
+        fin : str or stream
             An input filename or input stream
         
         :Returns:
@@ -1052,10 +1135,10 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : string or stream
-            An output filename or output stream
+        fout : str or stream
+               An output filename or output stream
         values : object (dict)
-            An object containing default values
+                 An object containing default values
         comments : bool
                    Set false to disable writing comments to the config file
         '''
@@ -1073,47 +1156,6 @@ class OptionParser(optparse.OptionParser):
         self._write_options(fout, self.option_list, values, flag_len, comments)
         self._write_group_options(fout, self.option_groups, values, flag_len, comments)
         if fout == sys.stdout: sys.stdout.flush()
-        '''
-        groups = sorted(self.option_groups, key=_attrgetter('group_order'))
-        for group in groups:
-            if comments: self._write_group_header(fout, group)
-            self._write_options(fout, group.option_list, values, flag_len, comments)
-        '''
-    
-    def archived(self):
-        '''Get a collection of archived filenames
-        
-        :Returns:
-        
-        val : list
-              List of archived settings
-        '''
-        
-        arfiles = []
-        arfiles.extend(self._archived(self.option_list))
-        for group in self.option_groups:
-            arfiles.extend(self._archived(group.option_list))
-        return arfiles
-    
-    def _archived(self, options):
-        ''' Collect a list of archived filenames
-        
-        :Parameters:
-    
-        options : list
-                  List of options
-        
-        :Returns:
-        
-        val : list
-              List of archived settings
-        '''
-        
-        arfiles = []
-        for option in options:
-            if option.archive:
-                arfiles.append(getattr(self.values, option.dest))
-        return arfiles
     
     def maximum_flag_length(self):
         '''Determine the maximum length of a configuration flag
@@ -1158,19 +1200,16 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : string or stream
+        fout : stream
                Output filename or output stream
         '''
         
         prog = self.prog if self.prog is not None else os.path.basename(sys.argv[0])
         fout.write(self.comment+"  Program:\t"+os.path.basename(prog)+"\n")
-        # url
-        # 
         fout.write(self.comment+"  Version:\t"+str(self.get_version())+"\n")
         if self.url is not None: 
             fout.write(self.comment+"  URL:\t"+self.url+"\n")
         fout.write('\n')
-        #fout.write(self.comment+"  "+self.get_usage()+"\n")
         if self.description is not None:
             fout.write(self.comment+"  "+self.get_description()+"\n\n")
         
@@ -1181,10 +1220,10 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : string or stream
-            An output filename or output stream
+        fout : stream
+               An output filename or output stream
         group : OptionGroup
-            An option group for the header
+                An option group for the header
         '''
         
         fout.write("\n\n"+self.comment+"  "+group.get_description()+"\n")
@@ -1196,8 +1235,8 @@ class OptionParser(optparse.OptionParser):
             
         fout : stream
                An output filename or output stream
-        options : list
-                  A list of options
+        groups : list
+                  A list of OptionGroups
         values : object (dict)
                  An instance of the value object
         flag_len : int
@@ -1229,8 +1268,8 @@ class OptionParser(optparse.OptionParser):
                  An instance of the value object
         flag_len : int
                    Length of the flag for comment white space
-        comments : bool
-                   Set False to disable all comments
+        use_comment : bool
+                      Set False to disable all comments
         '''
         
         for option in options:
@@ -1372,7 +1411,7 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        return_val : string
+        return_val : str
                      Name of the program
         '''
         
@@ -1383,94 +1422,38 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        return_val : string
+        return_val : str
                      Basename of prog with cfg extension
         '''
         
         return os.path.splitext(os.path.basename(self.program_name()))[0]+".cfg"
     
     def print_help(self, file=None):
-        '''
+        ''' Print a configuration file instead of a help message
+        
+        :Parameters:
+        
+        file : str
+               Unused variable
         '''
         
         self.write()
     
     def error(self, msg, values=None):
-        '''Log an error, write configuration file and exit program
+        '''Rethrows the error message as an OptionValueError
         
         :Parameters:
             
-        msg : string
+        msg : str
             An error message
         values : object
                  Object containing option name/value pairs
         '''
         
         raise OptionValueError, msg
-        logging.error(msg)
-        self.write(values=values)
-        raise OptionValueError, "Failed when testing options"
-    
-    def create_property_tree(self, param, factory, property_class=object, converter=lambda x:x, option_list=None, title=None, option_groups=[], tree=None, order=0):
-        ''' Create a property tree used to create a graphical user
-        interface
-        
-        :Parameters:
-        
-        param : object
-                Option value container
-        factory : function
-                  Function that builds the properties
-        property_class : class
-                         Base class of the dynamically created propery class
-        converter : function
-                    Converts one value type to another
-        option_list : list
-                      List of options to build the tree from
-        title : str
-                Name of the group
-        option_groups : list
-                        List of option groups
-        tree : OptionValueMap
-               Current property tree
-        order : int
-                Order to add a branch
-        
-        :Returns:
-        
-        tree : OptionValueMap
-               Mapping between options and properties
-        '''
-        
-        if option_list is not None:
-            if tree is None: tree = OptionValueMap(converter)
-            if title is None: title = "Critical"
-            try:
-                Branch = propertyobject(title.replace(' ', '_'), property_class, factory, option_list, order, param)
-            except:
-                _logger.error("title = %s"%str(title))
-                raise
-            title = title.replace('_', ' ')
-            title = title.capitalize()
-            setattr(Branch, 'DisplayName', title)
-            setattr(Branch, '_children', [])
-            branch = Branch(param)
-            order = 0 #len(option_list)
-            for group in option_groups:
-                self.create_property_tree(param, factory, property_class, converter, group.option_list, group.title, group.option_groups, branch._children, order)
-                #order += 1
-            tree.append(branch)
-        else:
-            tree = None
-            option_list = self.get_config_options()
-            if len(option_list)>0: tree = self.create_property_tree(param, factory, property_class, converter, option_list)
-            groups = sorted(self.option_groups, key=_attrgetter('group_order'))
-            for group in groups: 
-                if group.is_child(): continue
-                option_list = group.get_config_options()
-                if len(option_list) == 0 and len(group.option_groups) == 0: continue
-                tree = self.create_property_tree(param, factory, property_class, converter, option_list, group.title, group.option_groups, tree)
-        return tree
+        #logging.error(msg)
+        #self.write(values=values)
+        #raise OptionValueError, "Failed when testing options"
     
     def get_config_options(self):
         ''' Get options that will appear in the config file
@@ -1490,21 +1473,21 @@ class OptionParser(optparse.OptionParser):
 
 class OptionValueError(optparse.OptParseError):
     """Exception raised for errors in parsing values of options
-        
-    :Parameters:
-    
-    msg : string
-        An error message
     """
 
     def __init__(self, msg):
         '''Create an exception with a message as a parameter
+        
+        :Parameters:
+        
+        msg : str
+            An error message
         '''
         
         optparse.OptParseError.__init__(self, msg)
 
 class optdict(dict):
-    ''' A dictionary that produces the proper string representation for an option
+    ''' Dictionary producing the proper string representation for an option
     
     This class creates a comma separated string representation of the dictionary items where
     the key and value are separated by a colon.
@@ -1514,15 +1497,15 @@ class optdict(dict):
         >>> from core.app.settings import *
         >>> optdict({'key1': 1, 'key2':2})
         key2:2,key1:1
-        
-    :Parameters:
-
-    val : string or dictionary object
-        A string to convert to a dictionary or some other dictionary compatible object
     '''
     
     def __init__(self, val=None):
         ''' Creates an option compatible dictionary
+        
+        :Parameters:
+    
+        val : str or dictionary object
+              A string to convert to a dictionary or some other dictionary compatible object
         '''
         
         if isinstance(val, str):
@@ -1547,7 +1530,7 @@ class optdict(dict):
         
         :Returns:
         
-        return_val : string
+        return_val : str
                     A string representation of the dictionary
         '''
         
@@ -1561,7 +1544,7 @@ class optdict(dict):
         
         :Returns:
         
-        return_val : string
+        return_val : str
                     A string representation of the dictionary
         '''
         
@@ -1577,7 +1560,6 @@ class optlist(list):
         >>> from core.app.settings import *
         >>> optlist(['val_1', 'val_2', 'val_3'])
         val_1,val_2,val_3
-    
     '''
     
     def __str__(self):
@@ -1587,7 +1569,7 @@ class optlist(list):
         
         :Returns:
         
-        return_val : string
+        return_val : str
                     A string representation of the list
         '''
         
@@ -1606,7 +1588,7 @@ class optlist(list):
         
         :Returns:
         
-        return_val : string
+        return_val : str
                     A string representation of the list
         '''
         
@@ -1670,186 +1652,6 @@ class Validation:
         '''
         
         return Validation.empty_string(val, "Empty filename")
-
-def propertyobject(typename, parenttype, property, options, order, param):
-    '''Create an object with the specified properties
-    
-    :Parameters:
-        
-    typename : str
-               Name of the class
-    parenttype : object
-                 Parent object
-    property : function
-               Property function
-    options : list
-              List of options
-    order : int
-            Order the object was added
-    param : object
-            Option value container
-    
-    :Returns:
-    
-    result : object
-             Property object
-    '''
-    
-    typename = typename.replace('-', '_')
-    parenttype_name = parenttype.__name__
-    template = '''class %(typename)s(%(parenttype_name)s):
-    def __init__(self, param): 
-        %(parenttype_name)s.__init__(self)\n\n
-        self._param=param\n''' % locals()
-    if parenttype_name: pass
-    
-    template += "        self.order_index=%d\n"%order
-    for i, option in enumerate(options):
-        if option.is_not_config() or option.dest is None: continue
-        opttype = option.type
-        if isinstance(param, dict):
-            value = param.get(option.dest, option.default)
-        else:
-            value = getattr(param, option.dest, option.default)
-        if opttype == 'string': 
-            opttype = 'int' if option.choices is not None and isinstance(value, int) else 'QString'
-        if opttype is None: opttype = 'bool'
-        help = option.help.split('\n', 1)[0]
-        if isinstance(param, dict):
-            get_value = "self._param['%s']"%option.dest
-            set_value = "lambda self,value: self._param.update(%s=value)"%option.dest
-        else:
-            get_value = "self._param.%s"%option.dest
-            set_value = "lambda self,value: setattr(self._param, '%s', value)"%option.dest
-        if isinstance(value, optlist):
-            get_value = "lambda self: str(%s)"%get_value
-        else:
-            get_value = "lambda self: %s"%get_value
-        #template += "    %s = %s(%d, '%s', %s, %s, user=True, doc='%s', editorHints=%s)\n"%(option.dest, property.__name__, i, opttype, get_value, set_value, help, str(option.gui_hint))
-        help += str(option.gui_hint)
-        #help += "order=%d"%i
-        template += "    %s = %s('%s', %s, %s, user=True, doc=\"%s\")\n"%(option.dest, property.__name__, opttype, get_value, set_value, help)
-        
-    namespace = dict(itemgetter=_itemgetter, attrgetter=_attrgetter)
-    namespace[parenttype.__name__] = parenttype
-    namespace[property.__name__] = property
-    try:
-        exec template in namespace
-    except SyntaxError, e:
-        raise SyntaxError(e.message + ':\n' + template)
-    result = namespace[typename]
-    return result
-
-class OptionValueMap(list):
-    '''List of parameter trees - provides conversion to a dict
-    
-    :Parameters:
-        
-    converter : function
-                Convert option value
-    '''
-    
-    def __init__(self, converter):
-        "Initialize an Option value map"
-        
-        self.converter = converter
-    
-    def todict(self, valuemap=None):
-        '''Create a dictionary of parameter-value pairs
-        
-        :Returns:
-        
-        valuemap : dict
-                   Map of parameter/value pairs
-        '''
-        
-        if valuemap is None: valuemap = {}
-        self._collect_parameter_value_pairs(self, valuemap)
-        return valuemap
-    
-    def _collect_parameter_value_pairs(self, branches, valuemap):
-        "Recursively collect parameter value pairs"
-        
-        for branch in branches:
-            valuemap.update([(key[3:], self.converter(getattr(branch, key))) for key in dir(branch) if key.startswith('_m_')])
-            self._collect_parameter_value_pairs(branch._children, valuemap)
-
-class OptionTree(OptionParser):
-    '''Collect option values in a tree
-    
-    :Parameters:
-    
-    propertyFactory : function or class
-                      Function or class that builds a property (if None no properties are added)
-    parentClass : type
-                  Class type
-    '''
-    
-    def __init__(self, propertyFactory, parentClass=object, converter=lambda x:x):
-        "Initialize an option collector"
-        
-        OptionParser.__init__(self)
-        #optparse.OptionParser.__init__(self, Option, 'error', "")
-        self.value_roots = OptionValueMap(converter)
-        self.propertyFactory = propertyFactory
-        self.parentClass = parentClass
-        
-    def add_option_group(self, g, parent=None):
-        '''Add an option group to the collector
-        
-        :Parameters:
-            
-        g : OptionGroup
-            Group of options
-        parent : list
-                 Parent list of children
-        '''
-        if parent is None: parent = self.value_roots
-        
-        Branch = propertyobject(g.title.replace(' ', '_'), self.parentClass, self.propertyFactory, g.option_list)
-        setattr(Branch, 'DisplayName', g.title)
-        setattr(Branch, '_children', [])
-        branch = Branch()
-        for group in g.option_groups:
-            self.add_option_group(group, Branch._children)
-        parent.append(branch)
-    
-    def roots(self):
-        '''Get the value roots for the trees
-        
-        :Returns:
-    
-        val : list
-              List of roots
-        '''
-        
-        return self.value_roots
-
-def build_option_tree(setup_options, propertyFactory=None, parentClass=object, converter=lambda x:x):
-    '''Build a tree of option values with corresponding properties
-    
-    :Parameters:
-        
-    setup_options : function
-                    Function that add options to the OptionParser
-    propertyFactory : function or class
-                      Function or class that builds a property (if None no properties are added)
-    parentClass : type
-                  Class type
-    
-    :Returns:
-    
-    roots : list
-            List of property objects
-    '''
-    
-    tree = OptionTree(propertyFactory, parentClass, converter)
-    if isinstance(setup_options, list):
-        for _setup_options in setup_options:
-            _setup_options(tree)
-    else:
-        setup_options(tree)
-    return tree.roots()
     
 class VersionControl(object):
     ''' Helper class that writes specific data as a comment
@@ -1989,7 +1791,7 @@ def convert(val):
     
     :Parameters:
     
-    val : string
+    val : str
           Value for conversion
     
     :Returns:
@@ -2020,7 +1822,7 @@ def compress_filenames(files):
     :Returns:
     
     files : list
-            List of filenames - possibly single entry with wild card
+            List of compressed filenames - possibly single entry with wild card
     '''
     
     try: ""+files # Test if its already a compressed string
