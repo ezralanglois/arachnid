@@ -783,7 +783,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        group.add_option("",   box_image="",   help="Output filename for micrograph image with boxed particles - use `.png` as the extension")
+        group.add_option("",   box_image="",   help="Output filename for micrograph image with boxed particles - use `.png` as the extension", gui=dict(filetype="save"))
         pgroup.add_option_group(group)
         parser.change_default(log_level=3)
 
