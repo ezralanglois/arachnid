@@ -224,7 +224,11 @@ def read_spider_header(filename, index=None):
             count = max(int(h['istack']), 1)
             if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
             offset = index * (h_len+i_len)
-            f.seek(offset)
+            try:
+                f.seek(offset)
+            except:
+                _logger.error("Offset: %s"%str(offset))
+                raise
             h = numpy.fromfile(f, dtype=h.dtype, count=1)
     finally:
         util.close(filename, f)
@@ -280,7 +284,11 @@ def read_image(filename, index=None, header=None):
                 f.seek(h_len + index * (h_len+i_len))
                 h2 = read_spider_header(f)
                 raise ValueError, "file size != header: %d != %d - %d + %d * %d -- %d,%d == %d,%d"%(file_size(f), (h_len + count * i_len), h_len, count, i_len, int(h['istack']), int(h['imgnum']), int(h2['istack']), int(h2['imgnum'])  )
-        f.seek(offset)
+        try:
+            f.seek(offset)
+        except:
+            _logger.error("Offset: %s"%str(offset))
+            raise
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
         #assert(out.ravel().shape[0]==d_len)
         if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
@@ -326,7 +334,11 @@ def iter_images(filename, index=None, header=None):
         count = count_images(h)
         if numpy.any(index >= count):  raise IOError, "Index exceeds number of images in stack: %s < %d"%(str(index), count)
         #offset = h_len + 0 * (h_len+i_len)
-        f.seek(h_len)
+        try:
+            f.seek(h_len)
+        except:
+            _logger.error("Offset: %s"%str(h_len))
+            raise
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
         last=0
@@ -335,7 +347,11 @@ def iter_images(filename, index=None, header=None):
         for i in index:
             if i != (last+1): 
                 offset = h_len*2 + i * (h_len+i_len)
-                f.seek(int(offset))
+                try:
+                    f.seek(int(offset))
+                except:
+                    _logger.error("Offset: %s"%str(offset))
+                    raise
             else: f.seek(h_len, 1)
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
