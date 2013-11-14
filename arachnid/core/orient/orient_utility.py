@@ -60,7 +60,7 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
         #rot = (rang[0]+rang[2])
         #rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
         #rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
-        out[i, 1:align.shape[1]]=(align[i,1], align[i,2], rot, tx, ty)
+        out[i, 1:6]=(align[i,1], align[i,2], rot, tx, ty)
         if cols>6: out[i, 6] = ipix
     return out
 
