@@ -69,8 +69,9 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
         if supports_spider_id is not None:
             label = numpy.zeros((len(param), 2), dtype=numpy.int)
             for f, id in files: label[i, :] = (spider_utility.spider_id(f), id)
-            label[:, 1]-=1
+            if label[:, 1].min() > 0: label[:, 1]-=1
             files = (files[0][0], label)
+            if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
     else:
         align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
         param = numpy.zeros((len(align), align_cols))
@@ -121,13 +122,14 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             if align.shape[1] <= 15:
                 label[:, 0] = spider_utility.spider_id(image_file)
                 if isinstance(image_file, str) and align[:, 4].max() > ndimage_file.count_images(image_file):
-                    label[:, 1] = range(1, len(align)+1)
+                    label[:, 1] = numpy.arange(1, len(align)+1)
                 else:
                     label[:, 1] = align[:, 4]
             else:
                 label[:, :] = align[:, 15:17].astype(numpy.int)
-            label[:, 1]-=1
+            if label[:, 1].min() > 0: label[:, 1]-=1
             files = (image_file, label)
+            if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
     return files, param
 
 def read_spider_alignment(filename, header=None, **extra):

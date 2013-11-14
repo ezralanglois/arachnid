@@ -345,12 +345,14 @@ def iter_images(filename, index=None, header=None):
         if count > 1 and int(h['istack']) == 0: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
         
         for i in index:
+            if i < 0: raise ValueError, "Cannot have a negative index"
             if i != (last+1): 
                 offset = h_len*2 + i * (h_len+i_len)
                 try:
                     f.seek(int(offset))
                 except:
                     _logger.error("Offset: %s"%str(offset))
+                    _logger.error("i: %s"%str(i))
                     raise
             else: f.seek(h_len, 1)
             out = numpy.fromfile(f, dtype=dtype, count=d_len)

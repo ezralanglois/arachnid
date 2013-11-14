@@ -166,6 +166,7 @@ def iter_images(filename, index=None):
                 yield read_image(filename)
             return
         elif index.ndim == 2 and index.shape[1]>1:
+            if index[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
             beg = 0
             tot = len(numpy.unique(index[:, 0].astype(numpy.int)))
             if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
@@ -176,6 +177,7 @@ def iter_images(filename, index=None):
                 if beg != sel[0]: raise ValueError, "Array must be sorted by file ids: %d != %d -- %f, %f"%((beg), sel[0], index[beg, 0], beg)
                 try:
                     filename = readlinkabs(filename)
+                    if index[sel, 1].min() < 0: raise ValueError, "Cannot have a negative index"
                     for img in iter_images(filename, index[sel, 1]):
                         yield img
                 except:
