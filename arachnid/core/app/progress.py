@@ -1,4 +1,6 @@
-''' Esimtate the amount of time left in a task
+''' Estimate the amount of time left in a task
+
+@todo - weight task, total by job size
 
 .. Created on Jan 11, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -10,7 +12,8 @@ class progress(object):
     '''
     
     def __init__(self, total):
-        '''
+        '''Create a progress monitor with the expected
+        number of tasks
         '''
         
         self.history = numpy.zeros((total+1, 2))

@@ -228,7 +228,6 @@ Parameters
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import optparse, types, logging, sys, os, glob
-from operator import itemgetter as _itemgetter
 from operator import attrgetter as _attrgetter
 import functools 
 import datetime

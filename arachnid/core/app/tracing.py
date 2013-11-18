@@ -3,14 +3,19 @@
 Every script supports logging various states of progress and this can be controlled
 with a common interface.
 
+Usage
+-----
+
 Parameters
------------
+++++++++++
 
 The tracing script has the following inheritable parameters:
 
+.. program:: shared
+
 .. option:: -v <CHOICE>, --log-level <CHOICE>
     
-    Set logging level application wide: 'critical', 'error', 'warning', 'info', 'debug' or 0-4
+    Set logging level application wide: 'critical', 'error', 'warning', 'info', 'debug', 'debug_more' or 0-5
 
 .. option:: --log-file <FILENAME>
     
@@ -20,16 +25,17 @@ The tracing script has the following inheritable parameters:
     
     File containing the configuration of the application logging
 
-.. option:: --disable_stderr <BOOL>
+.. option:: --disable-stderr <BOOL>
     
     If true, output will only be written to the given log file
 
-Examples
---------
+Command-line
+++++++++++++
 
 .. sourcecode:: sh
     
-    $ ara-autopick -v4                   # Log everything including debug information
+    $ ara-autopick -v4                   # Log most including debug information
+    $ ara-autopick -v5                   # Log everything including debug information
     $ ara-autopick --log-level 0         # Do not log any messages
     $ ara-autopick --log-level info      # Log only information level or higher
     
@@ -76,14 +82,98 @@ The above logging configuration file can be specified on the command-line.
 .. sourcecode:: sh
     
     $ ara-autopick --log-config log.conf # Configure logging with a file
+    
+Crash Reports
++++++++++++++
+
+The logging module creates two loggers be default:
+
+    #. A crash report logger for all exceptions
+    #. A standard logger for user-based messages (default error stream)
+
+The crash report filename is constructed from the name of the script
+as follows: 
+
+    .<script_name>.crash_report.<0>
+
+where <script_name> is the name of the script
+and <0> is its current MPI rank or 0 for non-MPI programs.
+
+For example, consider a non-MPI script called `ara-info`, its
+crash report will be called
+
+.ara-info.crash_report.0
+
+Colors
+++++++
+
+.. role:: red
+
+.. raw:: html
+
+    <style> .red {color:red} </style>
+
+The logging module defines an API to color the logging messages. It
+first tests whether the terminal supports color. If so, then it
+adds color formatting. 
+
+Currently, only the levelname or :red:`ERROR` in error messages to the 
+terminal are colored in red.
+
+Module
+++++++
+
+Standard practice when using this module is to define a logger
+for each module as follows:
+
+.. sourcecode:: py
+
+    import logging
+    _logger = logging.getLogger(__name__)
+    _logger.setLevel(logging.DEBUG)
+
+Note that you do not need to import this module, only the standard
+logging library. 
+
+On the next line, we define a logger for this module
+called `_logger`. Passing `__name__` to `getLogger` creates
+a logger with a name based on the module.
+
+On the following line, we set the default log level. If you
+want debug logging to print in `-v4` then set the level to
+`logging.DEBUG`. However, if you want to suppress debug 
+logging until the user specifies `-v5` then set the level
+to `logging.INFO`.
+
+A message can bypass the standard logger and go directly to
+the crash report by setting the `tofile` to `True`. For
+example, consider the following:
+
+.. sourcecode:: py
+
+    logging.warn("Some message", extra=dict(tofile=True))
+
+Logging failed imports of optional modules should be done as
+follows:
+
+.. sourcecode:: py
+
+    try: 
+        from util import _module
+        _module;
+    except:
+        from arachnid.core.app import tracing
+        tracing.log_import_error('Failed to load _module.so module - certain functions will not be available', _logger)
+        _module = None
+
+This generates a list of failed imports of optional modules, which will be logged at the start of the crash report.
+
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
 import logging, logging.config, os, socket, time, sys, zipfile
-
-
 
 class Logger(logging.Logger):
     ''' Maintains a list of loggers for this package
@@ -104,18 +194,18 @@ class Logger(logging.Logger):
         logging.Logger.__init__(self, name, level)
         Logger._log_map.add(name)
 
-loaded = False
+_loaded = False
 
 
-log_level_val = ['critical', 'error', 'warning', 'info', 'debug', 'debug_more']
-log_level_map = {'critical':    logging.CRITICAL,
+_log_level_val = ['critical', 'error', 'warning', 'info', 'debug', 'debug_more']
+_log_level_map = {'critical':    logging.CRITICAL,
                  'error':       logging.ERROR,
                  'warning':     logging.WARNING,
                  'info':        logging.INFO,
                  'debug':       logging.DEBUG,
                  'debug_more':  logging.DEBUG-1,
                  }
-log_formats = { 'critical': "%(asctime)s %(message)s",
+_log_formats = { 'critical': "%(asctime)s %(message)s",
                 'error':    "%(asctime)s %(levelname)s %(message)s",
                 'warning':  "%(asctime)s %(levelname)s %(message)s",
                 'info':     "%(asctime)s %(levelname)s %(message)s",
@@ -125,8 +215,7 @@ log_formats = { 'critical': "%(asctime)s %(message)s",
 _log_import_errors = []
 
 def log_import_error(message, logger=None):
-    ''' Create a logger with a stream handler and log a warning in
-     non-debug mode and and exception in debug mode
+    ''' Add failed import to list
      
     :Parameter:
      
@@ -136,31 +225,21 @@ def log_import_error(message, logger=None):
              Specific logger to use
     '''
     
-    if 1 == 0:
-        if logger is None: logger = logging.getLogger()
-        num_handlers=len(logger.handlers)
-        if num_handlers == 0: logger.addHandler(logging.StreamHandler())
-        if logger.isEnabledFor(logging.DEBUG): logger.exception(message)
-        else: logger.warn(message)
-        if num_handlers == 0: logger.removeHandler(logger.handlers[0])
-    else:
-        _log_import_errors.append(message)
+    _log_import_errors.append(message)
     
 def setup_options(parser, pgroup=None):
     '''Add options to the given option parser
     
-    .. todo:: fix bug in OptionGroup - dependent update
-    
     :Parameters:
     
-    parser : optparse.OptionParser
-           Program option parser
-    pgroup : optparse.OptionGroup
-            Parent option group
+    parser : OptionParser
+             Program option parser
+    pgroup : OptionGroup
+             Parent option group
     '''
     from settings import OptionGroup
-    levels=tuple(log_level_val)
-    group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__, dependent=False)
+    levels=tuple(_log_level_val)
+    group = OptionGroup(parser, "Logging", "Options to control the state of the logging module", id=__name__)
     group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3, dependent=False)
     group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True, dependent=False)
     group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"), dependent=False)
@@ -171,12 +250,19 @@ def setup_options(parser, pgroup=None):
         parser.add_option_group(group)
         
 def default_logfile(rank=0, **extra):
-    '''
+    '''Generate a default crash report filename
+    
+    :Parameters:
+    
+    rank : int
+           Identifier for process
+    extra : dict
+            Unused keyword arguments
     '''
     
     return "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
 
-def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tmp="", disable_stderr=False, **extra):
+def configure_logging(rank=0, log_level=3, log_file="", log_config="", disable_stderr=False, **extra):
     '''Configure logging with use selected options
 
     .. sourcecode:: py
@@ -186,6 +272,8 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
     
     :Parameters:
 
+    rank : int
+           Identifier for process
     log_level : int
                 Level for logging application wide
     log_file : str
@@ -212,7 +300,6 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
                 base += "_"
             else: base, ext = "", ".log"
             log_file = base+socket.gethostname()+"_"+str(rank)+ext
-            #if remote_tmp != "": log_file = os.path.join(remote_tmp, log_file)
         handlers = []
         default_error_log = default_logfile(rank)
         
@@ -243,18 +330,18 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", remote_tm
             except: pass
             else: ch.addFilter(ExceptionFilter())
             handlers.append(ch)
-        try:    log_level_name = log_level_val[log_level]
+        try:    log_level_name = _log_level_val[log_level]
         except: log_level_name = log_level
-        level = log_level_map[log_level_name]
+        level = _log_level_map[log_level_name]
         logging.basicConfig(level=level)
         root = logging.getLogger()
         root.setLevel(level)
         while len(root.handlers) > 0: root.removeHandler(root.handlers[0])
         for ch in handlers:
             if not isinstance(ch, logging.FileHandler) and isinstance(ch, logging.StreamHandler) and supports_colors():
-                ch.setFormatter(ColoredFormatter(log_formats[log_level_name]))
+                ch.setFormatter(ColoredFormatter(_log_formats[log_level_name]))
             else: 
-                ch.setFormatter(logging.Formatter(log_formats[log_level_name]))
+                ch.setFormatter(logging.Formatter(_log_formats[log_level_name]))
             root.addHandler(ch)
             ch.setLevel(level)
         root.setLevel(level)
@@ -285,32 +372,11 @@ def configure_mp_logging(filename, level=logging.DEBUG, process_number=None, **e
     logging.getLogger().addHandler(ch)
     
 def print_import_warnings():
-    '''
+    ''' Log failed imports being tracked as warnings
     '''
     
     for errormsg in _log_import_errors:
         logging.warn(errormsg, extra=dict(tofile=True))
-    
-'''   
-def archive(parser, archives, archive_path, config_file, **extra):
-    
-    if archive_path != "":
-        progname = os.path.basename(sys.argv[0])
-        if progname.find('.') != -1: progname = os.path.splitext(progname)[0]
-        progname += datetime.now().strftime("%Y%m%d_%H%M%S")+".zip"
-        confname = ".tmp."+os.path.basename(config_file)
-        parser.write(confname)
-        zf = zipfile.ZipFile(os.path.join(archive_path, progname), mode='w')
-        try:
-            for filename in archives:
-                if filename == "": continue
-                _logger.debug("Archived %s"%filename)
-                zf.write(filename, arcname=os.path.basename(filename), compress_type=zipfile.ZIP_STORED)
-            zf.write(confname, arcname=os.path.basename(confname), compress_type=zipfile.ZIP_STORED)
-        finally:
-            zf.close()
-        os.unlink(confname)
-'''
 
 def backup(filename):
     ''' Save existing file in a zip archive of the same name but '.zip' extension. The file
@@ -323,8 +389,8 @@ def backup(filename):
     
     :Returns:
         
-        out : str
-              New unique name for the file to backup or None if no file existed to back up
+    out : str
+          New unique name for the file to backup or None if no file existed to back up
     '''
     
     arcname = None
@@ -334,8 +400,7 @@ def backup(filename):
         else: ext = '.zip'
         zf = zipfile.ZipFile(base+ext, mode='a')
         arcname = os.path.basename(backup_name(filename))
-        try:
-            zf.write(filename, arcname=arcname)#, compress_type=zipfile.ZIP_STORED)
+        try: zf.write(filename, arcname=arcname)#, compress_type=zipfile.ZIP_STORED)
         finally: zf.close()
     return arcname
 
@@ -350,8 +415,8 @@ def backup_name(filename):
     
     :Returns:
         
-        out : str
-              New unique name for the file to backup
+    out : str
+          New unique name for the file to backup
     '''
     
     base, ext = os.path.splitext(filename)
@@ -374,8 +439,14 @@ def check_options(options):
     pass
 
 def supports_colors():
+    ''' Test whether terminal supports colors
+    
+    :Returns:
+    
+    flag : bool
+           True if terminal supports colors
     '''
-    '''
+    
     try:
         import curses
         curses.setupterm()
@@ -383,8 +454,8 @@ def supports_colors():
         return curses.tigetnum('colors') > 2
     except: return False
 
-if not loaded:
-    loaded = True
+if not _loaded:
+    _loaded = True
     
     class NullHandler(logging.Handler):
         ''' Logging handler that does nothing
@@ -401,20 +472,47 @@ if not loaded:
     h = NullHandler()
     logging.getLogger("arachnid").addHandler(h)
  
-RESET_SEQ = "\033[0m"
-COLOR_SEQ = "\033[1;%dm"
-#BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-RED=1
-COLORS={'ERROR': RED}   
+_RESET_SEQ = "\033[0m"
+_COLOR_SEQ = "\033[1;%dm"
+#BLACK, _RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+_RED=1
+COLORS={'ERROR': _RED}   
 class ColoredFormatter(logging.Formatter):
+    ''' Highlight the levelname for errors in red
+    '''
 
-    def __init__(self, msg):
-        logging.Formatter.__init__(self, msg)
+    def __init__(self, fmt=None, datefmt=None):
+        ''' Initialize formatter object
+        
+        :Parameters:
+        
+        fmt : str
+              Message format string
+        datefmt : str
+                  Date format string
+        '''
+        
+        logging.Formatter.__init__(self, fmt, datefmt)
 
     def format(self, record):
+        ''' Format the log record
+        
+        Highligh the levelname for errors in red
+        
+        :Parameters:
+        
+        record : str
+                 Log record to format
+        
+        :Returns:
+        
+        text : str
+               Formatted text
+        '''
+        
         levelname = record.levelname
         if levelname in COLORS:
-            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ
+            levelname_color = _COLOR_SEQ % (30 + COLORS[levelname]) + levelname + _RESET_SEQ
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)
 
@@ -432,8 +530,9 @@ class ExceptionFilter(logging.Filter):
         
         :Returns:
             
-            val : bool
-                  True if record does not contain an exception
+        val : bool
+              True if record does not contain an exception or
+              if record does not have `tofile` attribute.
         '''
         
         #print "here: ", record.exc_info
