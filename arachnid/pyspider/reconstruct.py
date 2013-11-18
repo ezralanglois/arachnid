@@ -152,7 +152,7 @@ from ..core.app import program
 from ..core.metadata import spider_params, spider_utility, format, format_utility
 from ..core.parallel import mpi_utility
 from ..core.image import reconstruct as reconstruct_engine, ndimage_file
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import resolution, classify
 #import prepare_volume
 import logging, os, numpy, glob, itertools, functools
@@ -188,7 +188,7 @@ def batch(files, output, alignment, **extra):
         if 'format' in extra: 
             format1=extra['format']
             del extra['format']
-        align = format.read_array_mpi(spi.replace_ext(alignment_file), **extra)
+        align = spider_file.read_array_mpi(spi.replace_ext(alignment_file), **extra)
         if i == 0:
             curr_slice = mpi_utility.mpi_slice(len(align), **extra)
             extra.update(initalize(spi, files, align[curr_slice], **extra))

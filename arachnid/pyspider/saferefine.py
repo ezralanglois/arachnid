@@ -102,7 +102,7 @@ from ..core.app import program
 from ..core.metadata import spider_params, format, format_utility
 from ..core.parallel import mpi_utility
 from ..core.image import analysis
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import reconstruct, prepare_volume, align, refine
 import logging, numpy, os
 
@@ -134,7 +134,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     alignment, refine_index = refine.get_refinement_start(spi.replace_ext(alignment), refine_index, spi.replace_ext(output))
     #  1     2    3    4     5   6  7  8   9    10        11    12   13 14 15      16          17       18
     #"epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus"
-    alignvals = format.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
+    alignvals = spider_file.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
     assert(alignvals.shape[1]==18)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))

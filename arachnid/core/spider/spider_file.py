@@ -4,7 +4,37 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..image import ndimage_file
+from ..parallel import mpi_utility
+from ..metadata import format
 import os
+
+def read_array_mpi(filename, numeric=True, sort_column=None, **extra):
+    ''' Read a file and return as an ndarray (if MPI-enabled, only one process reads
+    and the broadcasts to the rest.
+    
+    :Parameters:
+    
+    filename : str
+               Input filename
+    numeric : bool
+              Convert each value to float or int (if possible)
+    sort_column : int
+                  Column to sort the array
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+    
+    vals : ndarray
+           Table array containing file values
+    '''
+    
+    vals = None
+    if mpi_utility.is_root(**extra):
+        vals = format.read(filename, ndarray=True, **extra)[0]
+        if sort_column is not None and sort_column < vals.shape[1]:
+            vals[:] = vals[numpy.argsort(vals[:, sort_column]).squeeze()]
+    return mpi_utility.broadcast(vals, **extra)
 
 
 def copy_to_spider(filename, tempfile, index=None):

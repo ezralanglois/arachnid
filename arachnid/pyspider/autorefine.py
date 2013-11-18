@@ -99,10 +99,10 @@ http://stackoverflow.com/questions/13101780/representing-a-simple-function-with-
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import spider_params, format, format_utility
+from ..core.metadata import spider_params, format_utility
 from ..core.parallel import mpi_utility
 from ..core.image import analysis
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import reconstruct, prepare_volume, align, refine
 import logging, numpy, os
 
@@ -144,7 +144,7 @@ def batch(files, alignment, refine_index=-1, output="", leave_out=0, **extra):
         else: selection = None
         selection = mpi_utility.broadcast(selection, **extra)
     else: selection = None
-    alignvals = format.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
+    alignvals = spider_file.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
     assert(alignvals.shape[1]==18)
     if refine_index == 0: alignvals[:, 14] = 1.0/len(alignvals)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
