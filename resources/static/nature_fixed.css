@@ -38,6 +38,11 @@ padding: 0px;
 border: 0;
 }
 
+/** Add space between float header and anchors **/
+div.section{
+border-top: 15px solid white;
+}
+
 
 div.body {
 margin:0; /* remove margins */
@@ -51,7 +56,7 @@ height:100%; /* fix height to 100% for IE */
 max-height:100%; /* fix height for other browsers */
 overflow:hidden; /*get rid of scroll bars in IE */
 padding:0px; /*remove padding */
-margin:0px; /* remove margins */
+margin: 0px; /* remove margins */
 border:0; /* remove borders */
 //z-index:1;
 width: 100%;
