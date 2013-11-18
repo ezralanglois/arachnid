@@ -35,106 +35,6 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-class read_iterator(object):
-    '''Start format parsing iterator
-    
-    .. sourcecode:: py
-        
-        >>> import os
-        >>> os.system("more data.star")
-        data_images
-        loop_
-        _rlnImageName
-        _rlnDefocusU
-        _rlnDefocusV
-        _rlnDefocusAngle
-        _rlnVoltage
-        _rlnAmplitudeContrast
-        _rlnSphericalAberration
-        000001@/lmb/home/scheres/data/VP7/all_images.mrcs 13538 13985 109.45 300 0.15 2
-        000002@/lmb/home/scheres/data/VP7/all_images.mrcs 13293 13796 109.45 300 0.15 2
-        000003@/lmb/home/scheres/data/VP7/all_images.mcrs 13626 14085 109.45 300 0.15 2
-        
-        >>> header = []
-        >>> fin = open("data.star", 'r')
-        >>> factory, lastline = read_header(fin, header)
-        >>> header
-        ["_rlnImageName","_rlnDefocusU","_rlnDefocusV","_rlnDefocusAngle","_rlnVoltage","_rlnAmplitudeContrast","_rlnSphericalAberration"]
-        >>> reader = read_iterator(fin, len(header), lastline)
-        >>> map(factory, reader)
-        [ BasicTuple("000001@/lmb/home/scheres/data/VP7/all_images.mrcs", 13538, 13985, 109.45, 300, 0.15, 2), BasicTuple("000002@/lmb/home/scheres/data/VP7/all_images.mrcs", 13293, 13796, 109.45, 300, 0.15, 2) ]
-    
-    :Parameters:
-        
-    fin : file stream
-          Input file stream
-    hlen : integer
-           Length of the header
-    lastline : string
-               Last line read during header parsing, requires Star parsing now
-    numeric : boolean
-              If true then convert string values to numeric
-    columns : list
-              List of columns to read otherwise None (all columns)
-    extra : dict
-            Unused keyword arguments
-    '''
-    
-    __slots__=("fin", "hlen", "lastline", "numeric", "columns")
-    
-    def __init__(self, fin, hlen, lastline="", numeric=False, columns=None, **extra):
-        "Create a read iterator"
-        
-        self.fin = fin
-        self.hlen = hlen
-        self.lastline = lastline
-        self.numeric = numeric
-        self.columns = columns
-    
-    def __iter__(self):
-        '''Get iterator for class
-        
-        This class defines its own iterator.
-        
-        :Returns:
-        
-        val : iterator
-              Self
-        '''
-        
-        return self
-    
-    def next(self):
-        '''Go to the next non-comment line
-        
-        This method skips to next non-comment line, parses the line into a list of values
-        and returns those values. It raises StopIteration when it is finished.
-        
-        :Returns:
-        
-        val : list
-              List of values parsed from current line of the file
-        '''
-        
-        if self.lastline == "":
-            while True:
-                line = self.fin.readline()
-                if line == "": 
-                    self.fin.close()
-                    raise StopIteration
-                line = line.strip()
-                if line == "" or line[0] == ';' or line[0] == '#': continue
-                break
-        else:
-            line = self.lastline
-            self.lastline = ""
-        vals = line.split()
-        if self.hlen != len(vals): raise format_utility.ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
-        
-        if self.columns is not None: vals = vals[self.columns]
-        if self.numeric: return [format_utility.convert(v) for v in vals]
-        return vals
-
 def read_header(filename, header=[], factory=namedtuple_factory, **extra):
     '''Parses the header on the first line of the Star file
     
@@ -232,25 +132,33 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         fin.close()
     raise format_utility.ParseFormatError, "Cannot parse header of Star document file - end of document"
 
-def reader(filename, header=[], lastline="", **extra):
+def reader(filename, header=[], lastline="", numeric=False, columns=None, **extra):
     '''Creates a Star read iterator
     
     .. sourcecode:: py
         
         >>> import os
         >>> os.system("more data.star")
-        id,select,peak
-        1/1,1,0.00025182
-        1/2,1,0.00023578
+        data_images
+        loop_
+        _rlnImageName
+        _rlnDefocusU
+        _rlnDefocusV
+        _rlnDefocusAngle
+        _rlnVoltage
+        _rlnAmplitudeContrast
+        _rlnSphericalAberration
+        000001@/lmb/home/scheres/data/VP7/all_images.mrcs 13538 13985 109.45 300 0.15 2
+        000002@/lmb/home/scheres/data/VP7/all_images.mrcs 13293 13796 109.45 300 0.15 2
         
         >>> header = []
         >>> fin = open("data.star", 'r')
         >>> factory, lastline = read_header(fin, header)
         >>> header
-        ["id", "select", "peak"]
-        >>> r = reader(fin, header, lastline)
-        >>> map(factory, r)
-        [ BasicTuple("1/1", 1, 0.00025182), BasicTuple("1/2", 1, 0.00023578) ]
+        ["_rlnImageName","_rlnDefocusU","_rlnDefocusV","_rlnDefocusAngle","_rlnVoltage","_rlnAmplitudeContrast","_rlnSphericalAberration"]
+        >>> map(factory, reader(fin, header, lastline, numeric=True))
+        [ BasicTuple(rlnImageName="000001@/lmb/home/scheres/data/VP7/all_images.mrcs", rlnDefocusU=13538, rlnDefocusV=13985, rlnDefocusAngle=109.45, rlnVoltage=300, rlnAmplitudeContrast=0.15, rlnSphericalAberration=2), 
+          BasicTuple(rlnImageName="000002@/lmb/home/scheres/data/VP7/all_images.mrcs", rlnDefocusU=13293, rlnDefocusV=13796, rlnDefocusAngle=109.45, rlnVoltage=300, rlnAmplitudeContrast=0.15, rlnSphericalAberration=2) ]
     
     :Parameters:
     
@@ -260,6 +168,10 @@ def reader(filename, header=[], lastline="", **extra):
              List of strings overriding parsed header
     lastline : string
               Last line read by header parser, first line to parse
+    numeric : boolean
+              If true then convert string values to numeric
+    columns : list
+              List of columns to read otherwise None (all columns)
     extra : dict
             Unused keyword arguments
     
@@ -270,7 +182,45 @@ def reader(filename, header=[], lastline="", **extra):
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
-    return read_iterator(fin, len(header), lastline, **extra)
+    try:
+        if lastline != "":
+            yield parse_line(lastline, numeric, columns, len(header))
+        for line in fin:
+            line = line.strip()
+            if line == "" or line[0] == ';' or line[0] == '#': continue
+            yield parse_line(line, numeric, columns, len(header))
+    finally:
+        fin.close()
+        
+def parse_line(line, numeric=False, columns=None, hlen=None):
+    ''' Parse a line of values in the CSV format
+    
+        >>> parse_line("000001@/lmb/home/scheres/data/VP7/all_images.mrcs 13538 13985 109.45 300 0.15 2", True)
+        ["000001@/lmb/home/scheres/data/VP7/all_images.mrcs", 13538, 13985, 109.45, 300, 0.15, 2]
+    
+    :Parameters:
+    
+    line : str
+           String to parse
+    numeric : boolean
+              If true then convert string values to numeric
+    columns : list
+              List of columns to read otherwise None (all columns)
+    hlen : int
+           Number of elements in the header, optional
+    
+    :Returns:
+    
+    val : list
+          List of values parsed from input line
+    '''
+    
+    vals = line.split()
+    if hlen is not None and hlen != len(vals): 
+        raise format_utility.ParseFormatError, "Header length does not match values: "+str(hlen)+" != "+str(len(vals))+" --> "+str(vals)
+    if columns is not None: vals = vals[columns]
+    if numeric: return [format_utility.convert(v) for v in vals]
+    return vals
 
 ############################################################################################################
 # Write format                                                                                             #

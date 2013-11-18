@@ -20,8 +20,8 @@ It supports the following attributes:
 .. Created on Apr 9, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from spiderdoc import read_iterator, read_header, reader, logging, namedtuple_factory, write_header as write_spider_header
-if read_iterator or read_header or reader: pass # Hack for pyflakes
+from spiderdoc import parse_line, read_header, reader, logging, namedtuple_factory, write_header as write_spider_header
+if parse_line or read_header or reader: pass # Hack for pyflakes
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)

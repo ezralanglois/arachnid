@@ -37,100 +37,6 @@ _experiment_size_class = namedtuple("ExperimentSize", "examples,bags,classes,lab
 _experiment_type_class = namedtuple("ExperimentType", "algorithm,validation,dataset,elapsed,runs,type,threshold")
 _prediction_header = ["id", "select", "confidence", "threshold"]
 
-class read_iterator(object):
-    '''Malibu prediction format parsing iterator
-    
-    .. sourcecode:: py
-        
-        >>> import os
-        >>> os.system("more data.pred")
-        #ET    wwillowboost | Testset | trnrf303.csv | 12 | 1 | B | 0
-        #CL    0,1
-        #ES    2,0,2,1
-        #SP    prepwinser_15930:0001    0    -7.09427    0
-        #SP    prepwinser_15930:0002    0    -8.4979    0
-        
-        >>> header = []
-        >>> fin = open("data.pred", 'r')
-        >>> factory, lastline = read_header(fin, header)
-        >>> header
-        ["id", "select", "confidence", "threshold"]
-        >>> reader = read_iterator(fin, len(header), lastline)
-        >>> map(factory, reader)
-        [ BasicTuple("15930/1", 0, -7.09427, 0), BasicTuple("15930/2", 0, -8.4979, 0) ]
-    
-    :Parameters:
-    
-    fin : file stream
-          Input file stream
-    hlen : integer
-           Length of the header
-    lastline : string
-               Last line read during header parsing, requires CSV parsing now
-    numeric : boolean
-              If true then convert string values to numeric
-    columns : list
-              List of columns to read otherwise None (all columns)
-    extra : dict
-            Unused keyword arguments
-    '''
-    
-    __slots__=("fin", "hlen", "lastline", "numeric", "columns")
-    
-    def __init__(self, fin, hlen, lastline="", numeric=False, columns=None, **extra):
-        "Create a read iterator"
-        
-        self.fin = fin
-        self.hlen = hlen
-        self.lastline=lastline
-        self.numeric=numeric
-        self.columns = columns
-    
-    def __iter__(self):
-        '''Get iterator for class
-        
-        This class defines its own iterator.
-        
-        :Returns:
-        
-        val : iterator
-              Self
-        '''
-        
-        return self
-    
-    def next(self):
-        '''Go to the next non-comment line
-        
-        This method skips to next non-comment line, parses the line into a list of values
-        and returns those values. It raises StopIteration when it is finished.
-        
-        :Returns:
-        
-        val : list
-              List of values parsed from current line of the file
-        '''
-        
-        if self.lastline == "":
-            while True:
-                line = self.fin.readline()
-                if line == "": 
-                    self.fin.close()
-                    raise StopIteration
-                line = line.strip()
-                if line == "" or line[0:3] != '#SP' or line == "#SP\t//": 
-                    continue
-                break
-        else:
-            line = self.lastline
-            self.lastline = ""
-        vals = line.split('\t')[1:]
-        _logger.debug("line:"+str(self.hlen)+" == "+str(len(vals)))
-        if self.hlen != len(vals): raise format_utility.ParseFormatError, "Header length does not match values: "+str(self.hlen)+" != "+str(len(vals))+" --> "+str(vals)
-        if self.columns is not None: vals = vals[self.columns]
-        if self.numeric: return [format_utility.convert(v) for v in vals]
-        return vals
-
 def read_header(filename, header=[], factory=namedtuple_factory, description={}, **extra):
     '''Parses the multi-line header of a malibu prediction file
     
@@ -219,7 +125,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
         fin.close()
     raise format_utility.ParseFormatError, "Cannot parse header of prediction file - end of document"
 
-def reader(filename, header=[], lastline="", **extra):
+def reader(filename, header=[], lastline="", numeric=False, columns=None, **extra):
     '''Creates a malibu prediction read iterator
     
     .. sourcecode:: py
@@ -237,9 +143,8 @@ def reader(filename, header=[], lastline="", **extra):
         >>> factory, lastline = read_header(fin, header)
         >>> header
         ["id", "select", "confidence", "threshold"]
-        >>> reader = read_iterator(fin, len(header), lastline)
-        >>> map(factory, reader)
-        [ BasicTuple("15930/1", 0, -7.09427, 0), BasicTuple("15930/2", 0, -8.4979, 0) ]
+        >>> map(factory, reader(fin, header, lastline, numeric=True))
+        [ BasicTuple(id="15930/1", select=0, confidence=-7.09427, threshold=0), BasicTuple(id="15930/2", select=0, confidence=-8.4979, threshold=0) ]
     
     :Parameters:
     
@@ -249,6 +154,10 @@ def reader(filename, header=[], lastline="", **extra):
              List of strings overriding parsed header
     lastline : string
               Last line read by header parser, first line to parse
+    numeric : boolean
+              If true then convert string values to numeric
+    columns : list
+              List of columns to read otherwise None (all columns)
     extra : dict
             Unused keyword arguments
     
@@ -259,7 +168,46 @@ def reader(filename, header=[], lastline="", **extra):
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
-    return read_iterator(fin, len(header), lastline, **extra)
+    try:
+        if lastline != "":
+            yield parse_line(lastline, numeric, columns, len(header))
+        for line in fin:
+            line = line.strip()
+            if line == "" or line[0:3] != '#SP' or line == "#SP\t//": 
+                continue
+            yield parse_line(line, numeric, columns, len(header))
+    finally:
+        fin.close()
+
+def parse_line(line, numeric=False, columns=None, hlen=None):
+    ''' Parse a line of values in the malibu prediction format
+    
+        >>> parse_line("#SP    prepwinser_15930:0001    0    -7.09427    0", True)
+        ["15930/1", 0, -7.09427, 0]
+    
+    :Parameters:
+    
+    line : str
+           String to parse
+    numeric : boolean
+              If true then convert string values to numeric
+    columns : list
+              List of columns to read otherwise None (all columns)
+    hlen : int
+           Number of elements in the header, optional
+    
+    :Returns:
+    
+    val : list
+          List of values parsed from input line
+    '''
+    
+    vals = line.split('\t')[1:]
+    if hlen is not None and hlen != len(vals): 
+        raise format_utility.ParseFormatError, "Header length does not match values: "+str(hlen)+" != "+str(len(vals))+" --> "+str(vals)
+    if columns is not None: vals = vals[columns]
+    if numeric: return [format_utility.convert(v) for v in vals]
+    return vals
 
 ############################################################################################################
 # Write format                                                                                             #
