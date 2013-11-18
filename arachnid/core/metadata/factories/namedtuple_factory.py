@@ -1,6 +1,13 @@
 ''' Generate a table using namedtuple and lists
 
-This module creates a named tuple from a list of values.
+This module creates a namedtuple from a list of values. It 
+dynamically creates a namedtuple class from a list of 
+field names. 
+
+A namedtuple is a tuple where the values can be accessed 
+either the standard way, integer indicies or using field names.
+
+.. todo:: create record_array version - difficulty is that the type must be known
 
 .. Created on Oct 10, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -33,7 +40,8 @@ def create(header, classname="BasicTuple", **extra):
     :Returns:
     
     val : functor
-          namedtuple functor
+          namedtuple functor that creates namedtuple objects from
+          the generated class.
     '''
 
     return namedtuple(classname, ",".join(header))._make
