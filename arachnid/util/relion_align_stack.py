@@ -25,6 +25,10 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
             Unused keyword arguments
     '''
     
+    _logger.info("CS: %f"%extra['cs'])
+    _logger.info("Amplitude Contrast: %f"%extra['ampcont'])
+    _logger.info("Voltage: %f"%extra['voltage'])
+    _logger.info("Pixel size: %f"%extra['apix'])
     relion_data = format.read(files[0], numeric=True)
     _logger.info("Processing: %s with %d projections with bin factor %f"%(files[0], len(relion_data), bin_factor))
     values = numpy.zeros((len(relion_data), 18))
@@ -36,6 +40,8 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
     angle_map={}
     ref_index=0
     for index, projection in enumerate(relion_data):
+        if index == 0:
+            _logger.info("Defocus: %f (for first projection)"%projection.rlnDefocusU)
         stack_file, stack_id = spider_utility.relion_file(projection.rlnImageName)
         if not align_only:
             img = ndimage_file.read_image(stack_file, stack_id-1)
@@ -49,6 +55,9 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
                 if index < 10:
                     _logger.info("%f,%f,%f -> %f,%f,%f | %f,%f == %f,%f"%(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor, psi, dx, dy, projection.rlnAngleTilt, projection.rlnAngleRot, theta, phi))
                 
+                if use_ctf:
+                    ctfimg = ctf.phase_flip_transfer_function(img.shape, projection.rlnDefocusU, **extra)
+                    img = ctf.correct(img, ctfimg)
                 if img is not None:
                     img = rotate.rotate_image(img, psi, dx, dy)
             else:
