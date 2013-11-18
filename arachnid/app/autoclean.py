@@ -142,15 +142,13 @@ import scipy.stats
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(input_vals, input_files, output, **extra):#, neig=1, nstd=1.5
+def process(input_vals, output, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
     
     input_vals : list 
                  Tuple(view id, image labels and alignment parameters)
-    input_files : list
-                  List of input file stacks
     output : str
              Filename for output file
     extra : dict
@@ -165,14 +163,13 @@ def process(input_vals, input_files, output, **extra):#, neig=1, nstd=1.5
     _logger.info("Processing view %d"%int(input_vals[0]))
     
     label, align = rotational_sample(*input_vals[1:], **extra)
-    mask = create_mask(input_files, **extra)
+    filename = label[0] if isinstance(label, tuple) else label[0][0]
+    mask = create_mask(filename, **extra)
     
     openmp.set_thread_count(1) # todo: move to process queue
     data = ndimage_processor.create_matrix_from_file(label, image_transform, align=align, mask=mask, dtype=numpy.float32, **extra)
-    _logger.info("Data: %s -- %s -- %s"%(str(data.shape), str(align.shape), str(label.shape)))
     openmp.set_thread_count(extra['thread_count'])
     assert(data.shape[0] == align.shape[0])
-    assert(data.shape[0] == label.shape[0])
     tst = data-data.mean(0)
 
     feat = embed_sample(tst, **extra)
@@ -180,7 +177,11 @@ def process(input_vals, input_files, output, **extra):#, neig=1, nstd=1.5
     rsel=None
     if feat is not None:
         sel, rsel, dist = one_class_classification(feat, **extra)
-        format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (5,6,7,1)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror')
+        if isinstance(label, tuple):
+            filename, label = label
+            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror')
+        else:
+            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,rot,psi,tx,ty,mirror', default_format=format.csv)
         _logger.info("Finished embedding view: %d"%(int(input_vals[0])))
     else:
         _logger.info("Skipping view (too few projections): %d"%int(input_vals[0]))
@@ -282,22 +283,31 @@ def rotational_sample(label, align, nsamples, angle_range, **extra):
     
     if nsamples < 2:
         return label, align
-    label2 = numpy.zeros((label.shape[0]*nsamples, label.shape[1]))
-    align2 = numpy.zeros((align.shape[0]*nsamples, align.shape[1]))
-    for i in xrange(len(label)):
-        label2[i*nsamples:(i+1)*nsamples] = label[i]
-        align2[i*nsamples:(i+1)*nsamples] = align[i]
-        align2[i*nsamples:(i+1)*nsamples, 0]=scipy.linspace(-angle_range/2.0, angle_range/2.0, nsamples,True)
+    if isinstance(label, tuple):
+        filename, label = label
+        label2 = numpy.zeros((label.shape[0]*nsamples, label.shape[1]))
+        align2 = numpy.zeros((align.shape[0]*nsamples, align.shape[1]))
+        for i in xrange(len(label)):
+            label2[i*nsamples:(i+1)*nsamples] = label[i]
+            align2[i*nsamples:(i+1)*nsamples] = align[i]
+            align2[i*nsamples:(i+1)*nsamples, 0]=scipy.linspace(-angle_range/2.0, angle_range/2.0, nsamples,True)
+    else:
+        label2 = []
+        align2 = numpy.zeros((align.shape[0]*nsamples, align.shape[1]))
+        for i in xrange(len(label)):
+            label2.extend([label[i] for j in nsamples])
+            align2[i*nsamples:(i+1)*nsamples] = align[i]
+            align2[i*nsamples:(i+1)*nsamples, 0]=scipy.linspace(-angle_range/2.0, angle_range/2.0, nsamples,True)
     return label2, align2
 
-def create_mask(files, pixel_diameter, apix, **extra):
+def create_mask(filename, pixel_diameter, apix, **extra):
     ''' Create a disk mask from the input file size, diameter in pixels and target
     pixel size.
     
     :Parameters:
     
-    files : list
-            List of input files 
+    filename : str
+               Input image file
     pixel_diameter : int
                      Diameter of mask in pixels
     apix : float
@@ -311,12 +321,10 @@ def create_mask(files, pixel_diameter, apix, **extra):
            2D array of disk mask
     '''
     
-    img = ndimage_file.read_image(files[0])
-    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
+    img = ndimage_file.read_image(filename)
     bin_factor = decimation_level(apix, pixel_diameter=pixel_diameter, **extra)
-    #bin_factor = max(1, min(8, resolution / (apix*4))) if resolution > (4*apix) else 1
-    #_logger.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor,  resolution, apix))
-    if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
+    shape = numpy.asarray(img.shape, dtype=numpy.float)/bin_factor
+    mask = ndimage_utility.model_disk(int(pixel_diameter/2.0/bin_factor), tuple(shape.astype(numpy.int)))
     return mask
 
 def resolution_from_order(apix, pixel_diameter, order, resolution, **extra):
@@ -473,13 +481,25 @@ def group_by_reference(label, align, ref):
     
     group=[]
     refs = numpy.unique(ref)
-    _logger.info("Processing %d projections from %d stacks grouped into %d views"%(len(label), len(numpy.unique(label[:, 0])), len(refs)))
-    for r in refs:
-        sel = r == ref
-        group.append((r, [label[i] for i in numpy.argwhere(sel).squeeze()], align[sel]))
+    if isinstance(label, tuple):
+        filename, label = label
+        _logger.info("Processing %d projections from %d stacks grouped into %d views"%(len(label), len(numpy.unique(label[:, 0])), len(refs)))
+        for r in refs:
+            sel = r == ref
+            group.append((r, (filename, label[sel]), align[sel]))
+    else:
+        stack_count = {}
+        for i in xrange(len(label)):
+            if label[i][0] not in stack_count: 
+                stack_count[label[i][0]]=1 
+        stack_count = len(stack_count)
+        _logger.info("Processing %d projections from %d stacks grouped into %d views - no spi"%(len(label), stack_count, len(refs)))
+        for r in refs:
+            sel = r == ref
+            group.append((r, [label[i] for i in numpy.argwhere(sel).squeeze()], align[sel]))
     return group
 
-def read_alignment(files, alignment="", order=0, random_view=0, **extra):
+def read_alignment(files, alignment="", disable_mirror=False, order=0, random_view=0, **extra):
     ''' Read alignment parameters
     
     :Parameters:
@@ -488,6 +508,8 @@ def read_alignment(files, alignment="", order=0, random_view=0, **extra):
             List of input files containing particle stacks
     alignment : str
                 Input filename containing alignment parameters
+    disable_mirror : bool
+                     Flag to disable mirroring
     order : int
             Healpix resolution
     random_view : int
@@ -507,7 +529,7 @@ def read_alignment(files, alignment="", order=0, random_view=0, **extra):
 
     files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8)
     align[:, 7]=align[:, 6]
-    if order > 0: orient_utility.coarse_angles(order, align)
+    if order > 0: orient_utility.coarse_angles(order, align, half=not disable_mirror, out=align)
     if random_view>0:
         ref = numpy.random.randint(0, random_view, len(align))
     else:
@@ -517,45 +539,68 @@ def read_alignment(files, alignment="", order=0, random_view=0, **extra):
 def init_root(files, param):
     # Initialize global parameters for the script
     
+    spider_params.read(param['param_file'], param)
     if param['order'] < 0:
         param['order'] = order_from_resolution(**param)
     
-    if mpi_utility.is_root(**param):
-        if param['scale_spi']: _logger.info("Scaling translations by pixel size (pySPIDER input)")
-        if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
-        if not param['disable_rtsq']: _logger.info("Rotate and translate data stack")
-        _logger.info("Rejection precision: %f"%param['prob_reject'])
-        _logger.info("Number of Eigenvalues: %f"%param['neig'])
-        if param['order'] > 0: _logger.info("Angular order %f sampling %f degrees "%(param['order'], healpix.nside2pixarea(param['order'], True)))
-        #_logger.info("nsamples: %f"%param['nsamples'])
+    if param['scale_spi']: _logger.info("Scaling translations by pixel size (pySPIDER input)")
+    if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
+    if not param['disable_rtsq']: _logger.info("Rotate and translate data stack")
+    _logger.info("Rejection precision: %f"%param['prob_reject'])
+    _logger.info("Number of Eigenvalues: %f"%param['neig'])
+    if param['order'] > 0: _logger.info("Angular order %f sampling %f degrees "%(param['order'], healpix.nside2pixarea(param['order'], True)))
+    #_logger.info("nsamples: %f"%param['nsamples'])
         
-    group = None
-    if mpi_utility.is_root(**param): 
-        param['sel_by_mic']={}
-        _logger.info("Reading alignment file and grouping projections")
-        group = group_by_reference(*read_alignment(files, **param))
-        if param['single_view'] > 0:
-            _logger.info("Using single view: %d"%param['single_view'])
-            tmp=group
-            group = [tmp[param['single_view']-1]]
-        else:
-            count = numpy.zeros((len(group)))
-            for i in xrange(count.shape[0]):
+    param['sel_by_mic']={}
+    _logger.info("Reading alignment file and grouping projections")
+    group = group_by_reference(*read_alignment(files, **param))
+    _logger.info("Created %d groups"%len(group))
+    if param['single_view'] > 0:
+        _logger.info("Using single view: %d"%param['single_view'])
+        tmp=group
+        group = [tmp[param['single_view']-1]]
+    else:
+        count = numpy.zeros((len(group)))
+        for i in xrange(count.shape[0]):
+            if isinstance(group[i][1], tuple):
+                count[i] = len(group[i][1][1])
+            else:
                 count[i] = len(group[i][1])
-            index = numpy.argsort(count)
-            newgroup=[]
-            for i in index[::-1]:
-                if count[i] > 20:
-                    newgroup.append(group[i])
-            group=newgroup
-    group = mpi_utility.broadcast(group, **param)
-    _logger.info("Processing %d groups"%len(group))
+        index = numpy.argsort(count)
+        newgroup=[]
+        for i in index[::-1]:
+            if count[i] > 20:
+                newgroup.append(group[i])
+        group=newgroup
+    _logger.info("Processing %d groups - after removing views with less than 20 particles"%len(group))
     return group
+
+def update_selection_dict(sel_by_mic, label, sel):
+    ''' Maps selections from view to stack in a dictionary
+    
+    :Parameters:
+    
+    sel_by_mic : dict
+                 Dictionary to update
+    label : tuple or list 
+            If tuple (filename, label), otherwise list of tuples [(filename, index)]
+    sel : array
+          Boolean array defining selections
+    '''
+    
+    if isinstance(label, tuple):
+        filename, label = label
+        for i in numpy.argwhere(sel):
+            sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))
+    else:
+        for i in numpy.argwhere(sel):
+            sel_by_mic.setdefault(label[i][0], []).append(int(label[i][1])+1)
 
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    spider_params.read(param['param_file'], param)
+    if not mpi_utility.is_root(**param): 
+        spider_params.read(param['param_file'], param)
 
 def reduce_all(val, sel_by_mic, id_len=0, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -563,11 +608,10 @@ def reduce_all(val, sel_by_mic, id_len=0, **extra):
     _logger.info("Reducing to root selections")
     input, sel = val
     label = input[1]
-    for i in numpy.argwhere(sel):
-        sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))    
-    
+    update_selection_dict(sel_by_mic, label, sel) 
     tot=numpy.sum(sel)
-    return "%d - Selected: %d -- Removed %d"%(input[0], tot, label.shape[0]-tot)
+    total = len(label[1]) if isinstance(label, tuple) else len(label)
+    return "%d - Selected: %d -- Removed %d"%(input[0], tot, total-tot)
 
 def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, input_files, **extra):
     # Finalize global parameters for the script
@@ -587,8 +631,7 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         for j in xrange(len(feat)):
             data[j] = data[j]._replace(select=sel[j])
         format.write(output, data, spiderid=int(filename[0]))
-        for i in numpy.argwhere(rsel):
-            sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))
+        update_selection_dict(sel_by_mic, label, rsel)
     tot=0
     for id, sel in sel_by_mic.iteritems():
         n=len(sel)
@@ -616,6 +659,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", order=0,                   help="Reorganize views based on their healpix order (overrides the resolution parameter)")
     group.add_option("", prob_reject=0.97,          help="Probablity that a rejected particle is bad", dependent=False)
     group.add_option("", random_view=0,             help="Set number of views to assign randomly, 0 means skip this")
+    group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
@@ -636,7 +680,7 @@ def main():
                         
                         Example:
                          
-                        $ ara-autoclean input-stack.spi -o view_001.dat -p params.spi -a alignment.spi -w 4
+                        $ %prog input-stack.spi -o view_001.dat -p params.spi -a alignment.spi -w 4
                         
                         nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
                         exit 0
