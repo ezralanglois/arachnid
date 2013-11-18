@@ -174,7 +174,11 @@ def process(filename, id_len=0, **extra):
             Coordinates found
     '''
     
-    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good', 'box_image')  
+    try:
+        spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good', 'box_image')  
+    except:
+        _logger.info("Skipping: %s - invalid SPIDER ID"%filename)
+        return filename, []
     _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
@@ -358,7 +362,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         #if data is None:
         #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        win=ndimage_filter.ramp(win)
+        #win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
@@ -406,9 +410,9 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
         else:
             dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
     '''
-    dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
+    #dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
     
-    #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
         sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
         _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
