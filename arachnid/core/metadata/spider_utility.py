@@ -16,9 +16,21 @@ __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
 def images2label(images):
     ''' Convert an image list to an ID label array
+    
+    :Parameters:
+    
+    images : list
+             List of tuples (filename, index)
+    
+    :Returns:
+    
+    label : array
+            2D array where each row is an image, columns: fileid,particle_id
     '''
     
-    label = numpy.zeros((len(images), 2))
+    if isinstance(images, tuple) and len(images) == 2: return images[1]
+    
+    label = numpy.zeros((len(images), 2), dtype=numpy.int)
     for i in xrange(len(images)):
         label[i, :] = (spider_id(images[i][0]), images[i][1])
     return label
