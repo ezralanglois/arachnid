@@ -561,7 +561,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, **extra):
+def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -581,6 +581,8 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
              Column containing the class attribute
     view_resolution : int
                       Cull views at this resolution (0 disables)
+    view_limit : int
+                 Maximum number of projections per view (if 0, then use median)
     extra : dict
             Unused key word arguments
             
@@ -641,20 +643,27 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
     else: subset = vals
     
     if view_resolution > 0:
-        n=healpix.res2npix(view_resolution)
+        n=healpix.res2npix(view_resolution, True, True)
         _logger.info("Culling %d views with resolution %d"%(n, view_resolution))
         ang = numpy.asarray([(v.rlnAngleTilt, v.rlnAngleRot) for v in subset])
-        view = healpix.ang2pix(view_resolution, numpy.deg2rad(ang))
+        view = healpix.ang2pix(view_resolution, numpy.deg2rad(ang), half=True)
+        assert(len(numpy.unique(view)) <= n)
         vhist = numpy.histogram(view, n)[0]
-        maximum_views = numpy.median(vhist)
+        maximum_views = numpy.median(vhist) if view_limit < 1 else view_limit
         _logger.info("Maximum of %d projections allowed per view"%(maximum_views))
         assert(vhist[1] == numpy.sum(view==1))
         assert(vhist[20] == numpy.sum(view==20))
         assert(vhist[30] == numpy.sum(view==30))
         vals = subset
         subset = []
-        idx = numpy.arange(len(vals), dtype=numpy.int)
-        numpy.random.shuffle(idx)
+        pvals = None
+        if hasattr(vals[0], 'rlnMaxValueProbDistribution'):
+            _logger.info("Choosing views with highest P-value")
+            pvals = numpy.asarray([v.rlnMaxValueProbDistribution for v in vals])
+            idx = numpy.argsort(pvals)[::-1]
+        else:
+            idx = numpy.arange(len(vals), dtype=numpy.int)
+            numpy.random.shuffle(idx)
         count = numpy.zeros(n)
         for i in idx:
             if count[view[i]] < maximum_views:
@@ -883,7 +892,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
-    group.add_option("-m", minimum_group=20,                help="Minimum number of particles per defocus group (regroups using the micrograph name)", gui=dict(minimum=0, singleStep=1))
+    group.add_option("-m", minimum_group=50,                help="Minimum number of particles per defocus group (regroups using the micrograph name)", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
     group.add_option("",   scale=1.0,                       help="Used to scale the translations in a relion file")
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
@@ -895,6 +904,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
     group.add_option("",   frame_limit=0,                   help="Limit number of frames to use (0 means no limit)")
     group.add_option("",   view_resolution=0,               help="Select a subset to ensure roughly even view distribution (0, default, disables this feature)")
+    group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")
     group.add_option("",   downsample=1.0,                  help="Downsample the windows - create new selection file pointing to decimate stacks")
     #group.add_option("",   relion2spider=False,             help="Convert a relion selection file to a set of SPIDER refinement file")
     
