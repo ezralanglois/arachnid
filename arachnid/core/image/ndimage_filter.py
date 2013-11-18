@@ -511,7 +511,7 @@ def pad_image(img, shape, fill=0.0, out=None):
             out[cx:cx+img.shape[0], 0:cy] = img[:, 0:cx]
             out[cx:cx+img.shape[0], cy+img.shape[1]:] = img[:, 0:cx]
         elif fill == 'e':
-            out[:, :] = (img[0, :].sum()+img[:, 0].sum()+img[len(img)-1, :].sum()+img[:, len(img)-1].sum()) / (img.shape[0]*2+img.shape[1]*2 - 4)
+            out[:, :] = (img[0, :].sum()+img[:, 0].sum()+img[img.shape[0]-1, :].sum()+img[:, img.shape[1]-1].sum()) / (img.shape[0]*2+img.shape[1]*2 - 4)
         elif fill == 'r': out[:, :] = numpy.random.normal(img.mean(), img.std(), shape)
         elif fill != 0: out[:, :] = fill
     out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
