@@ -97,7 +97,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             _logger.info("Standard SPIDER alignment file - leave 2D")
             param[:, 1:3] = align[:, 1:3]
             if param.shape[1] > 7:
-                param[:, 3:] = align[:, 5:8]
+                param[:, 3:6] = align[:, 5:8]
                 
             else:
                 _logger.info("Detected non-standard SPIDER alignment file with only angles")
