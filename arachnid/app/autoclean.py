@@ -438,10 +438,10 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
     
     if not disable_rtsq: 
         if scale_spi:
-            img = rotate.rotate_image(img, align[i, 5], align[i, 6]/apix, align[i, 7]/apix)
+            img = rotate.rotate_image(img, align[i, 3], align[i, 4]/apix, align[i, 5]/apix)
         else:
-            img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
-    elif align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
+            img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
+    elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(apix, resolution=resolution, **extra)
