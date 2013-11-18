@@ -6,6 +6,7 @@ console_scripts = [
  'lfcpick = arachnid.app.lfcpick:main',
  'defocus = arachnid.app.defocus:main',
  'autoclean = arachnid.app.autoclean:main',
+ 'diffclean = arachnid.app.diffclean:main',
  'ctf-select = arachnid.app.ctf_select:main',
  'autoctf = arachnid.app.autoctf:main',
  'classify3d = arachnid.app.classify3d:main',
