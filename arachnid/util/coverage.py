@@ -189,6 +189,7 @@ def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
     
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
     total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
+    _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
     count = numpy.histogram(pix, total)[0]
     pix = numpy.arange(total, dtype=numpy.int)
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
