@@ -183,7 +183,7 @@ def ensure_container(values, header=None, **extra):
     if hasattr(values, 'shape'):
         if header is None: raise ValueError, "numpy.ndarray requires that you specify a header"
         #values = create_namedtuple_list(values, "DefaultFormat", header)
-        values = create_named_list(values, "DefaultFormat", header)
+        values = create_named_list(values, header, "DefaultFormat")
     else:
         values = format_utility.flatten(values)
         if len(values) > 0 and not hasattr(values[0], '_fields'):
@@ -216,7 +216,8 @@ def create_named_list(values, header, name="SomeList"):
           List of namedtuples
     '''
     
-    if isinstance(header, list): header = ",".join(header)
+    try:""+header
+    except: header=",".join(header)
     Tuple = namedtuple(name, header)
     retvals = []
     index = 0
