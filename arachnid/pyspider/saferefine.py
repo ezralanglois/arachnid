@@ -99,7 +99,7 @@ http://stackoverflow.com/questions/13101780/representing-a-simple-function-with-
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import spider_params, format, format_utility
+from ..core.metadata import spider_params, format_utility
 from ..core.parallel import mpi_utility
 from ..core.image import analysis
 from ..core.spider import spider, spider_file

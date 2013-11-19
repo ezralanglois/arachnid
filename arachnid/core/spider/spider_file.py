@@ -6,7 +6,7 @@
 from ..image import ndimage_file
 from ..parallel import mpi_utility
 from ..metadata import format
-import os
+import os, numpy
 
 def read_array_mpi(filename, numeric=True, sort_column=None, **extra):
     ''' Read a file and return as an ndarray (if MPI-enabled, only one process reads
