@@ -15,7 +15,7 @@ To run:
 '''
 import sys,os
 
-from arachnid.core.metadata import format, spider_utility
+from arachnid.core.metadata import format, spider_utility, relion_utility
 from arachnid.core.image import ndimage_file, ndimage_utility
 
 if __name__ == '__main__':
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     angs=[]
     ctfs=[]
     for i, entry in enumerate(data):
-        filename, pid = spider_utility.relion_file(entry.rlnImageName)
+        filename, pid = relion_utility.relion_file(entry.rlnImageName)
         img = ndimage_file.read_image(filename, pid-1)
         img = ndimage_utility.fourier_shift(img, entry.rlnOriginX, entry.rlnOriginY)
         ndimage_file.write_image(spider_utility.spider_filename(output, i+1), img)

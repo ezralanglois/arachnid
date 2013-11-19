@@ -21,7 +21,7 @@ import sys
 #sys.path.append('~/workspace/arachnida/src')
 sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 from arachnid.core.util.matplotlib_nogui import pylab
-from arachnid.core.metadata import format, spider_utility, format_utility
+from arachnid.core.metadata import format, format_utility, relion_utility
 import numpy, os
 import logging
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     #for i, s in enumerate(select1):
     for i in idx:
         s=select1[i]
-        mic = spider_utility.relion_id(s.rlnImageName)[0]
+        mic = relion_utility.relion_id(s.rlnImageName)[0]
         try:
             leg = spimap[mic].araLeginonFilename
         except:
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     icedepth2=[]
     skip2=0
     for i, s in enumerate(select2):
-        mic = spider_utility.relion_id(s.rlnImageName)[0]
+        mic = relion_utility.relion_id(s.rlnImageName)[0]
         try:
             leg = spimap[mic].araLeginonFilename
         except:
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         skip1=0
         select1 = format.read(select1_file, numeric=True)
         for s in select1:
-            mic = spider_utility.relion_id(s.rlnImageName)[0]
+            mic = relion_utility.relion_id(s.rlnImageName)[0]
             try:
                 leg = spimap[mic].araLeginonFilename
             except:
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         skip2=0
         select2 = format.read(select2_file, numeric=True)
         for s in select2:  
-            mic = spider_utility.relion_id(s.rlnImageName)[0]
+            mic = relion_utility.relion_id(s.rlnImageName)[0]
             try:
                 leg = spimap[mic].araLeginonFilename
             except:
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         skip1=0
         select1 = format.read(select1_file, numeric=True)        
         for s in select1:
-            mic = spider_utility.relion_id(s.rlnImageName)[0]
+            mic = relion_utility.relion_id(s.rlnImageName)[0]
             try:
                 leg = os.path.splitext(os.path.basename(leg = spimap[mic]))[0]
             except:
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         skip2=0
         select2 = format.read(select2_file, numeric=True)        
         for s in select2:
-            mic = spider_utility.relion_id(s.rlnImageName)[0]
+            mic = relion_utility.relion_id(s.rlnImageName)[0]
             try:
                 leg = os.path.splitext(os.path.basename(leg = spimap[mic]))[0]
             except:
@@ -185,7 +185,7 @@ if __name__ == '__main__':
         spimap = format_utility.map_object_list(idmap, 'araSpiderID')
         select1 = format.read(select1_file, numeric=True)
         for s in select1:
-            mic = spider_utility.relion_id(s.rlnImageName)[0]
+            mic = relion_utility.relion_id(s.rlnImageName)[0]
             try:
                 spimap[mic]
             except:

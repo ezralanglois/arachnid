@@ -17,7 +17,7 @@ To run:
    :lines: 20-
    :linenos:
 '''
-from arachnid.core.metadata import spider_params, format, spider_utility
+from arachnid.core.metadata import spider_params, format, relion_utility
 from arachnid.core.parallel import mpi_utility
 from arachnid.core.orient import orient_utility
 from arachnid.core.spider import spider, spider_file
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     temp_spider_file = mpi_utility.safe_tempfile("temp_spider_file")
     outid=1
     for projection in star:
-        filename, id = spider_utility.relion_file(projection.rlnImageName)
+        filename, id = relion_utility.relion_file(projection.rlnImageName)
         if hasattr(projection, 'rlnDefocusV'):
             defocus = (projection.rlnDefocusU + projection.rlnDefocusV) / 2.0
         else: defocus = projection.rlnDefocusU

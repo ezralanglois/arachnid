@@ -5,7 +5,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import spider_utility, format_utility, format, spider_params
+from ..core.metadata import spider_utility, format_utility, format, spider_params, relion_utility
 from ..core.image.formats import mrc as mrc_file
 from ..core.image import ndimage_file
 from ..core.spider import spider
@@ -77,9 +77,8 @@ def batch(files, output, param_file, image_file, **extra):
         flag = os.path.exists(spi.replace_ext(tmp_stack))
         for index, projection in enumerate(relion_data):
             if not flag:
-                filename = spider_utility.relion_file(projection.rlnImageName)
+                filename = relion_utility.relion_file(projection.rlnImageName)
                 _logger.info("Flipping: %s"%projection.rlnImageName)
-                filename = spider_utility.relion_file(projection.rlnImageName)
                 if is_mrc_flag is None: is_mrc_flag = is_mrc(filename)
                 if defocus != float(projection.rlnDefocusU):
                     defocus = float(projection.rlnDefocusU)

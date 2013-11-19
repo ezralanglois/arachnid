@@ -14,7 +14,7 @@ To run:
    :lines: 17-
    :linenos:
 '''
-from arachnid.core.metadata import format, spider_utility
+from arachnid.core.metadata import format, relion_utility
 
 if 1 == 0:
     import logging
@@ -47,6 +47,6 @@ if __name__ == '__main__':
             tx = align[i].rlnOriginX
             ty = align[i].rlnOriginY
             fid = align[i].rlnImageName
-            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult, rlnImageName=spider_utility.relion_filename(stack_file, align[i].rlnImageName))
+            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult, rlnImageName=relion_utility.relion_filename(stack_file, align[i].rlnImageName))
     
     format.write(output_file, align)

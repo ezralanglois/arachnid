@@ -26,7 +26,7 @@ import sys, os
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.util import bench
-from arachnid.core.metadata import format, spider_utility,format_utility
+from arachnid.core.metadata import format, spider_utility,format_utility, relion_utility
 bench;
 import numpy #, logging
 from arachnid.core.util.matplotlib_nogui import pylab
@@ -85,7 +85,7 @@ if __name__ == '__main__':
         good = format.read(good)
         goodmap = {}
         for g in good:
-            stack_file, stack_id = spider_utility.relion_file(g.rlnImageName)
+            stack_file, stack_id = relion_utility.relion_file(g.rlnImageName)
             stack_file=spider_utility.spider_id(stack_file)
             if stack_file not in goodmap: goodmap[stack_file]=set()
             goodmap[stack_file].add(stack_id)

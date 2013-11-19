@@ -8,7 +8,7 @@ import sys
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format
 from arachnid.core.metadata import format_utility
-from arachnid.core.metadata import spider_utility
+from arachnid.core.metadata import spider_utility, relion_utility
 from arachnid.core.image import ndimage_file,ndimage_utility
 from arachnid.core.image import reconstruct
 from arachnid.core.image import ctf
@@ -21,7 +21,7 @@ def iter_images(data, frames, rng, idx):
     '''
     
     for i in idx:
-        fid, pid = spider_utility.relion_file(data[i].rlnImageName)
+        fid, pid = relion_utility.relion_file(data[i].rlnImageName)
         filename = spider_utility.spider_filename(frames, fid)
         if hasattr(rng, '__iter__'):
             avg = None
@@ -74,13 +74,13 @@ if __name__ == '__main__':
     odd = numpy.arange(1, len(data), 2, dtype=numpy.int)
     idmap={}
     for i in xrange(len(data)):
-        filename, id = spider_utility.relion_id(data[i].rlnImageName, 0, False)
+        filename, id = relion_utility.relion_id(data[i].rlnImageName, 0, False)
         if filename not in idmap: idmap[filename]=0
         idmap[filename] += 1
         if i < 20:
-            print data[i].rlnImageName, ' -> ', spider_utility.relion_filename(filename, idmap[filename])
-        data[i] = data[i]._replace(rlnImageName=spider_utility.relion_filename(filename, idmap[filename]))
-    ndata, header = format_utility.tuple2numpy(data, convert=spider_utility.relion_id)
+            print data[i].rlnImageName, ' -> ', relion_utility.relion_filename(filename, idmap[filename])
+        data[i] = data[i]._replace(rlnImageName=relion_utility.relion_filename(filename, idmap[filename]))
+    ndata, header = format_utility.tuple2numpy(data, convert=relion_utility.relion_id)
     order="rlnAnglePsi,rlnAngleTilt,rlnAngleRot,rlnOriginX,rlnOriginY,rlnDefocusU,rlnSphericalAberration,rlnAmplitudeContrast,rlnVoltage".split(',')
     ndata = ndata[:, ([header.index(v) for v in order])]
     # Back project

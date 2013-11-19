@@ -3,7 +3,7 @@
 This module provides a set a utility functions to handle RELION star files.
 
 .. Created on Aug 30, 2013
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import spider_utility
 import os
@@ -66,7 +66,9 @@ def relion_filename(filename, id):
     pid=""
     try:int(id)
     except:
-        if id.find('@') != -1:
+        if isinstance(id, tuple):
+            pid, id = id
+        elif id.find('@') != -1:
             pid,id = id.split('@')
         if spider_utility.is_spider_filename(filename):
             return pid+"@"+spider_utility.spider_filename(filename, id)

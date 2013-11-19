@@ -14,39 +14,22 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
-def images2label(images):
-    ''' Convert an image list to an ID label array
-    
-    :Parameters:
-    
-    images : list
-             List of tuples (filename, index)
-    
-    :Returns:
-    
-    label : array
-            2D array where each row is an image, columns: fileid,particle_id
-    '''
-    
-    if isinstance(images, tuple) and len(images) == 2: return images[1]
-    
-    label = numpy.zeros((len(images), 2), dtype=numpy.int)
-    for i in xrange(len(images)):
-        label[i, :] = (spider_id(images[i][0]), images[i][1])
-    return label
-
 def single_images(files):
     ''' Organize a set of files into groups of single images
+    
+    >>> files=['40S_002_001','40S_002_002','40S_003_001','40S_003_002']
+    >>> single_images(files)
+    [(2, ['40S_002_001','40S_002_002']),(3, ['40S_003_001','40S_003_002'])]
     
     :Parameters:
     
     files : list
-            List of filenames of form: 40S_001_001.spi
+            List of filenames of form: '40S_003_001.spi'
     
     :Returns:
     
     groups : list
-             List of tuples {1: ['40S_001_001.spi' ...]}
+             List of tuples (3, ['40S_003_001.spi' ...])
     '''
     
     groups = defaultdict(list)
@@ -77,8 +60,21 @@ def single_images(files):
         
     return groups.items()
     
-def select_file_subset(files, select, id_len=0, fill=False):
-    ''' Create a list of files based on the given selection
+def select_file_subset(files, select, id_len=0, fill_mode=0):
+    ''' Create a list of files based on the given list of selection values
+    
+    This function has three modes of operation:
+        #. If a single input file is given and `fill` is 0, then
+        a list of selected filenames is built from the input file
+        template and the list of selection IDs.
+        
+        #. If multiple input files are given or `fill` is 1, then
+        use the selection IDs to select a subset from the given list
+        of files.
+        
+        #. If `fill` is 2, then a list of selected filenames is 
+        built from the input file template and the list 
+        of selection IDs in spite of the number of input files.
     
     :Parameters:
     
@@ -88,8 +84,10 @@ def select_file_subset(files, select, id_len=0, fill=False):
              Array of file ids
     id_len : int
              Maximum length of SPIDER ID
-    fill : bool
-           Fill missing filenames missing from files with those in the selection file
+    fill_mode : int, choice
+                0: Add files from selection if # files is 1, otherwise select subset (default)
+                1: Do not add files from selection
+                2: Force add files from selection
              
     :Returns:
     
@@ -98,7 +96,7 @@ def select_file_subset(files, select, id_len=0, fill=False):
     '''
     
     if len(select) == 0 or len(files)==0: return []
-    if len(files) == 1 and not fill:
+    if (len(files) == 1 and fill_mode < 1) or (fill_mode > 1 and len(files) > 0):
         if hasattr(select[0], 'select'):
             return [spider_filename(files[0], s.id) for s in select if s.select > 0]
         elif hasattr(select[0], 'id'):
@@ -139,39 +137,6 @@ def update_spider_files(map, id, *files):
                 logging.error("key=%s"%key)
                 raise
 
-def relion_filename(filename, id):
-    '''Extract the filename and stack index
-    
-    This function extracts the spider ID as an integer.
-        
-    .. sourcecode:: py
-    
-        >>> relion_id("0001@basename00010.ext")
-        (basename00010.ext, 1)
-
-    :Parameters:
-    
-    filename : str
-               A file name
-    
-    :Returns:
-        
-    return_val : tuple 
-                 Micrograph ID, particle ID or Micrograph ID only
-    '''
-    
-    pid=""
-    try:int(id)
-    except:
-        if isinstance(id, tuple):
-            pid, id = id
-        elif id.find('@') != -1:
-            id, pid = id.split('@')
-        if is_spider_filename(filename):
-            return pid+"@"+spider_filename(filename, id)
-    else: pid = str(id)
-    return pid+"@"+filename
-
 def frame_filename(filename, id):
     ''' Create a frame file name from a template and an ID
     
@@ -190,67 +155,6 @@ def frame_filename(filename, id):
     end = base.find('_', pos)
     if end == -1: raise ValueError, "Not a valid frame filename"
     return os.path.join(os.path.dirname(filename), base[:pos]+str(id)+base[end:])
-
-def relion_file(filename, file_only=False):
-    '''Extract the filename and stack index
-    
-    This function extracts the spider ID as an integer.
-        
-    .. sourcecode:: py
-    
-        >>> relion_id("0001@basename00010.ext")
-        (basename00010.ext, 1)
-
-    :Parameters:
-    
-    filename : str
-               A file name
-    
-    :Returns:
-        
-    return_val : tuple 
-                  Micrograph ID, particle ID or Micrograph ID only
-    '''
-    
-    if filename.find('@') != -1:
-        pid,mid = filename.split('@')
-        if file_only: return mid
-        pid = int(pid)
-        return (mid, pid)
-    return filename
-
-def relion_id(filename, idlen=0, use_int=True):
-    '''Extract the Spider ID as an integer
-    
-    This function extracts the spider ID as an integer.
-        
-    .. sourcecode:: py
-    
-        >>> relion_id("0001@basename00010.ext")
-        (1, 10)
-
-    :Parameters:
-
-    filename : str
-               A file name
-    idlen : int 
-            Maximum length of ID (default 0)
-    use_int : bool
-             Convert to integer, (default True)
-    
-    :Returns:
-    
-    return_val : Tuple 
-                 Micrograph ID, particle ID or Micrograph ID only
-    '''
-    
-    if filename.find('@') != -1:
-        pid,mid = filename.split('@')
-        if use_int: pid = int(pid)
-        try:
-            return (spider_id(mid, idlen, use_int), pid)
-        except: return (None, pid)
-    return (spider_id(filename, idlen, use_int), None)
 
 def spider_header_vals(line):
     '''Parse the spider header into a set of words

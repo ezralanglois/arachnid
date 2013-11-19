@@ -4,7 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.metadata import format, spider_utility, spider_params
+from ..core.metadata import format, spider_utility, spider_params, relion_utility
 from ..core.image import ndimage_file, rotate, ctf
 from ..core.orient import orient_utility, healpix
 import logging, numpy
@@ -42,7 +42,7 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
     for index, projection in enumerate(relion_data):
         if index == 0:
             _logger.info("Defocus: %f (for first projection)"%projection.rlnDefocusU)
-        stack_file, stack_id = spider_utility.relion_file(projection.rlnImageName)
+        stack_file, stack_id = relion_utility.relion_file(projection.rlnImageName)
         if not align_only:
             img = ndimage_file.read_image(stack_file, stack_id-1)
         if has_ang:

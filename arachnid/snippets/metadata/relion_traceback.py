@@ -14,7 +14,7 @@ To run:
    :lines: 17-
    :linenos:
 '''
-from arachnid.core.metadata import format, spider_utility
+from arachnid.core.metadata import format, relion_utility
 
 if __name__ == '__main__':
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     
     mapped = []
     for i in xrange(len(after)):
-        id = spider_utility.relion_id(after[i].rlnImageName)[1]
+        id = relion_utility.relion_id(after[i].rlnImageName)[1]
         tx = after[i].rlnOriginX
         ty = after[i].rlnOriginY
         mapped.append( after[i]._replace(rlnImageName=before[id-1].rlnImageName, rlnOriginX=tx*mult, rlnOriginY=ty*mult) )

@@ -167,7 +167,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.app import program
-from ..core.metadata import spider_utility, format_utility, format, spider_params, selection_utility
+from ..core.metadata import spider_utility, relion_utility, format_utility, format, spider_params, selection_utility
 from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate
 from ..core.parallel import parallel_utility
 from ..core.orient import healpix
@@ -549,13 +549,13 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
             if isinstance(stack_files, list):
                 newfile = None
                 for f in stack_files:
-                    f = spider_utility.relion_filename(f, vals[name_col])
+                    f = relion_utility.relion_filename(f, vals[name_col])
                     if not os.path.exists(f): continue
                     newfile=f
                     break
                 vals[name_col] = newfile
             else:
-                vals[name_col] = spider_utility.relion_filename(stack_file, vals[name_col])
+                vals[name_col] = relion_utility.relion_filename(stack_file, vals[name_col])
         if hasattr(Tuple, '_make'): data[i] = Tuple._make(vals)
         else: data[i] = tuple(vals)
     
@@ -611,7 +611,7 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
         last=None
         subset=[]
         for v in vals:
-            mic,pid1 = spider_utility.relion_id(v.rlnImageName)
+            mic,pid1 = relion_utility.relion_id(v.rlnImageName)
             if mic != last:
                 try:
                     select_vals = set([s.id for s in format.read(good, spiderid=mic, numeric=True)])
@@ -720,11 +720,11 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, **extra):
     consecutive=None
     last=-1
     for v in vals:
-        mic,pid1 = spider_utility.relion_id(v.rlnImageName)
+        mic,pid1 = relion_utility.relion_id(v.rlnImageName)
         if mic != last:
             frames = glob.glob(spider_utility.spider_filename(frame_stack_file, mic))
             if consecutive is None:
-                avg_count = ndimage_file.count_images(spider_utility.relion_file(v.rlnImageName, True))
+                avg_count = ndimage_file.count_images(relion_utility.relion_file(v.rlnImageName, True))
                 frm_count = ndimage_file.count_images(frames[0])
                 consecutive = avg_count != frm_count
                 if consecutive:
@@ -767,7 +767,7 @@ def select_class_subset(vals, output, random_subset=0, **extra):
         defocus_dict = read_defocus(**extra)
         if len(defocus_dict) > 0:
             for i in xrange(len(subset)):
-                mic,par = spider_utility.relion_id(subset[i].rlnImageName)
+                mic,par = relion_utility.relion_id(subset[i].rlnImageName)
                 subset[i] = subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
         if random_subset > 1: 
             _logger.info("Writing %d random subsets of the selection file"%random_subset)
@@ -789,7 +789,7 @@ def select_class_subset(vals, output, random_subset=0, **extra):
     else:
         micselect={}
         for v in subset:
-            mic,par = spider_utility.relion_id(v.rlnImageName)
+            mic,par = relion_utility.relion_id(v.rlnImageName)
             if par is None:
                 
                 if mic not in micselect: micselect[mic]=[]
@@ -829,7 +829,7 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
     
     mask = None
     ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32)
-    filename = spider_utility.relion_file(vals[0].rlnImageName, True)
+    filename = relion_utility.relion_file(vals[0].rlnImageName, True)
     output = os.path.join(os.path.dirname(filename)+"_%.2f"%downsample, os.path.basename(filename))
     oindex = {}
     
@@ -838,7 +838,7 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
         v = vals[i]
         if (i%1000) == 0:
             _logger.info("Processed %d of %d"%(i+1, len(vals)))
-        filename, index = spider_utility.relion_file(v.rlnImageName)
+        filename, index = relion_utility.relion_file(v.rlnImageName)
         img = ndimage_file.read_image(filename, index-1).astype(numpy.float32)
         img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
         if mask is None: mask = ndimage_utility.model_disk(extra['pixel_diameter']/2, img.shape)
@@ -847,7 +847,7 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
         oindex[filename] += 1
         output = spider_utility.spider_filename(output, filename)
         ndimage_file.write_image(output, img, oindex[filename]-1)
-        vals[i] = vals[i]._replace(rlnImageName=spider_utility.relion_filename(output, oindex[filename]))
+        vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_filename(output, oindex[filename]))
     _logger.info("Stack downsampling finished")
     return vals
 
@@ -875,7 +875,7 @@ def create_refinement(vals, output, **extra):
     align = numpy.zeros((len(vals), 18))
     align[:, 4] = numpy.arange(1, len(vals)+1)
     for i in xrange(len(vals)):
-        mic,par = spider_utility.relion_id(vals[i].rlnImageName)
+        mic,par = relion_utility.relion_id(vals[i].rlnImageName)
         align[i, 15] = mic
         align[i, 16] = par
         align[i, 17] = vals[i].rlnDefocusU

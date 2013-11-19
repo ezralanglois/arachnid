@@ -24,7 +24,7 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.util.matplotlib_nogui import pylab
-from arachnid.core.metadata import format, spider_utility
+from arachnid.core.metadata import format, relion_utility
 import os, numpy
 
 if __name__ == '__main__':
@@ -46,10 +46,10 @@ if __name__ == '__main__':
     
     id1 = numpy.zeros(len(select1), dtype=numpy.int)
     for i, v in enumerate(select1):
-        id1[i] = spider_utility.relion_id(v.rlnImageName)[0]
+        id1[i] = relion_utility.relion_id(v.rlnImageName)[0]
     id2 = numpy.zeros(len(select2), dtype=numpy.int)
     for i, v in enumerate(select2):
-        id2[i] = spider_utility.relion_id(v.rlnImageName)[0]
+        id2[i] = relion_utility.relion_id(v.rlnImageName)[0]
     mics = numpy.unique( numpy.concatenate((id1, id2)) )
     count = numpy.zeros((len(mics), 2), dtype=numpy.int)
     for i, m in enumerate(mics):

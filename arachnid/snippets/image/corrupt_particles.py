@@ -25,7 +25,7 @@ To run:
    :lines: 28-
    :linenos:
 '''
-from arachnid.core.metadata import format, spider_utility
+from arachnid.core.metadata import format, relion_utility
 from arachnid.core.image.formats import mrc
 from arachnid.core.image import ndimage_file
 import numpy, logging
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         logging.info("Reading image: %d"%(i+1))
         #if (i%batch) == 0:
         #    logging.info("Copying image stack - %f%% done"%((i/len(isel)*100)))
-        filename, offset = spider_utility.relion_file(s.rlnImageName)
+        filename, offset = relion_utility.relion_file(s.rlnImageName)
         if mrc_stack:
             np = mrc.read_image(filename, offset-1)
         else:
