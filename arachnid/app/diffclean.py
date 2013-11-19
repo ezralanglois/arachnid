@@ -353,7 +353,80 @@ def decimation_level(apix, window, **extra):
     d = window/float(d)
     return min(max(d, 1), 8)
 
-def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=False, align=None, disable_rtsq=False, scale_spi=False, **extra):
+def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=True, align=None, disable_rtsq=False, scale_spi=False, **extra):
+    ''' Transform the image
+    
+    :Parameters:
+    
+    img : array
+          2D image matrix
+    i : int
+        Offset into alignment parameters 
+    ref_vol : array
+              3D reference volume reconstructed from the data
+    mask : array
+           2D array of disk mask
+    resolution : float
+                 Target resolution of image 
+    apix : float
+           Pixel spacing 
+    var_one : bool
+              Normalize image to variance 1 
+    align : array
+            2D array of alignment parameters
+    disable_rtsq : bool
+                   Disable rotate/translate image
+    scale_spi : bool
+                Scale translations before rotate/translate
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    out : array
+          1D representation of the image
+    '''
+    
+    if not disable_rtsq: #psi,theta,phi,inplane,tx,ty,defocus
+        if scale_spi:
+            img = ndimage_utility.fourier_shift(img, align[i, 4]/apix, align[i, 5]/apix).copy()
+        else:
+            img = ndimage_utility.fourier_shift(img, align[i, 4], align[i, 5]).copy()
+    elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
+    if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
+    ndimage_utility.vst(img, img)
+    bin_factor = decimation_level(apix, resolution=resolution, **extra)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
+    if mask.shape[0] != img.shape[0]:
+        _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
+    assert(mask.shape[0]==img.shape[0])
+    ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
+    
+    #ctfimg = ctf.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
+    ctfimg = ctf.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
+    dist = numpy.zeros(len(angs), dtype=img.dtype)
+    frame = align[i, :3].copy()
+    frame[0]=0
+    frame = -frame[::-1]
+    
+    for j in xrange(len(angs)):
+        ang1 = angs[j].copy()
+        ang1[0]=0
+        euler = rotate.rotate_euler(frame, ang1)
+        avg = reproject.reproject_3q_single(ref_vol, img.shape[0]/2, euler.reshape((1, 3)))[0]
+        euler = rotate.rotate_euler(align[i, :3].copy(), euler)
+        avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
+        ndimage_utility.normalize_standard(avg, mask, False, out=avg)
+        #avg *= (img*avg).sum()/(avg**2).sum()
+        if 1 == 0:
+            avg -= img
+            numpy.square(avg, avg)
+            dist[j] = numpy.sqrt(avg.sum())
+        else:
+            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, align, ctfimg, **extra))
+    return dist
+
+def image_transform_2D_not_working(img, i, ref_vol, angs, mask, resolution, apix, var_one=False, align=None, disable_rtsq=False, scale_spi=False, **extra):
     ''' Transform the image
     
     :Parameters:
@@ -389,10 +462,10 @@ def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=False
     
     if not disable_rtsq: 
         if scale_spi:
-            img = rotate.rotate_image(img, align[i, 5], align[i, 6]/apix, align[i, 7]/apix)
+            img = rotate.rotate_image(img, align[i, 3], align[i, 4]/apix, align[i, 5]/apix)
         else:
-            img = rotate.rotate_image(img, align[i, 5], align[i, 6], align[i, 7])
-    elif align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
+            img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
+    elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(apix, resolution=resolution, **extra)
@@ -402,13 +475,14 @@ def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=False
     assert(mask.shape[0]==img.shape[0])
     ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
     
-    ctfimg = ctf.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
-    #ctfimg = ctf.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
+    #ctfimg = ctf.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
+    ctfimg = ctf.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
     dist = numpy.zeros(len(angs), dtype=img.dtype)
     frame = align[i, :3].copy()
     frame[0]=0
     frame2=frame.copy()
-    frame = -frame[::-1]#-[phi],-[the],-[psi]
+    frame = -frame[::-1]
+    
     for j in xrange(len(angs)):
         ang1 = angs[j].copy()
         ang1[0]=0
@@ -430,11 +504,12 @@ def ctf_correct_distance(img, ref, align, ctfimg, **extra):
     '''
     '''
     
-    #zimg = numpy.ones(img.shape, dtype=ctfimg.dtype)
-    #img = ctf.correct(img, zimg, True)
-    #ref = ctf.correct(ref, ctfimg, True)
-    img = ctf.correct_model(img, None, True)
-    ref = ctf.correct_model(ref, ctfimg, True)
+    zimg = ctfimg.copy()
+    zimg[:] = 1+1j
+    img = ctf.correct(img.copy(), zimg, True)
+    ref = ctf.correct(ref, ctfimg, True)
+    #img = ctf.correct_model(img, None, True)
+    #ref = ctf.correct_model(ref, ctfimg, True)
     tmp=numpy.subtract(img, ref, ref)
     numpy.abs(tmp, tmp)
     numpy.square(tmp,tmp)
@@ -507,7 +582,7 @@ def read_alignment(files, alignment="", order=0, random_view=0, disable_mirror=F
           1D array of view groups
     '''
 
-    files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8)
+    files, align = format_alignment.read_alignment(alignment, files[0], use_3d=True, align_cols=8)
     align[:, 7]=align[:, 6]
     if order > 0: orient_utility.coarse_angles(order, align, half=not disable_mirror, out=align)
     if random_view>0:

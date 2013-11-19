@@ -33,7 +33,7 @@ def batch(files, output, **extra):
     
     if 1 == 1:
         label, align, data = create_sparse_dataset(files, **extra)
-        label = spider_utility.images2label(label)
+        if isinstance(label, tuple) and len(label) == 2: label=images[1]
     else:
         label, align, data = create_dataset(files, **extra)
     
@@ -121,11 +121,13 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
     '''
     
     images, align = read_alignment(files, **extra)
+    print align[0]
+    print align[1]
     _logger.info("Read alignment file with %d projections"%len(images))
         
     _logger.info("Generating quaternions")
     ang = align[:, :3].copy()
-    #ang[:, 0]=0
+    ang[:, 0]=-ang[:, 2]
     quat=orient_utility.spider_to_quaternion(ang)
     _logger.info("Building nearest neighbor graph: %d"%neighbors)
     qneigh = manifold.knn_geodesic_cache(quat, neighbors, batch, cache_file=cache_file)
@@ -163,7 +165,6 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             openmp.set_thread_count(1)
             #rot = orient_utility.optimal_inplace_rotation_mp(quat, qneigh.row, qneigh.col, extra['thread_count'])
             #rot = orient_utility.optimal_inplace_rotation_mp(align[:, :3], qneigh.row, qneigh.col, extra['thread_count'])
-            openmp.set_thread_count(extra['thread_count'])
             #rot = orient_utility.optimal_inplace_rotation2(align[:, :3], qneigh.row, qneigh.col)
             _logger.info("Recalculating distances: %s"%str(samp.dtype))
             
@@ -173,6 +174,7 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
             #rot[:] = -rot
             #rot[:]=0
             optimal_inplace_rotation_mp(samp1, qneigh.row, qneigh.col, align[:, :3], qneigh.data, mask, align[:, 6], extra, extra['thread_count'])
+            openmp.set_thread_count(extra['thread_count'])
             #rotate.calc_rotated_distance_mask(samp1, qneigh.row, qneigh.col, rot, qneigh.data, mask)
         else:
             _logger.info("Calculating restricted")
@@ -213,21 +215,44 @@ def redistance_worker(beg, end, samp, row, col, align, mask, defocus, ctf_param,
     rdefocus_last=None
     cdefocus_last=None
     tmp = None
-    nmask = mask*-1+1
+    mask =  mask.astype(numpy.float32)
+    nmask = mask #*-1+1
     for i in xrange(beg, end):
-        rot = orient_utility.rotate_into_frame(align[row[i]], align[col[i]])
-        rimg = samp[row[i]]
+        euler_r = align[row[i], :3].copy()
+        euler_c = align[col[i], :3].copy()
+        if 1==0:
+            euler_r[0]=0
+            rot = orient_utility.rotate_into_frame(euler_r, euler_c)
+            rimg = rotate.rotate_image(samp[row[i]], -align[row[i], 0])
+        else:
+            euler = rotate.rotate_euler(euler_r, euler_c)
+            rot = -(euler[0]+euler[2])
+            rimg = samp[row[i]]
         cimg = rotate.rotate_image(samp[col[i]], rot)
-        rimg=ndimage_utility.normalize_standard(rimg, nmask, True)*mask
-        cimg=ndimage_utility.normalize_standard(cimg, nmask, True)*mask
-        if defocus[row[i]] != rdefocus_last:
-            rctfimg = ctf.phase_flip_transfer_function(mask.shape, defocus[row[i]], **ctf_param)
-            rdefocus_last=defocus[row[i]]
-        rimg = ctf.correct(rimg, rctfimg, True)
-        if defocus[col[i]] != cdefocus_last:
-            cctfimg=ctf.phase_flip_transfer_function(mask.shape, defocus[col[i]], **ctf_param)
-            cdefocus_last=defocus[col[i]]
-        cimg = ctf.correct(cimg, cctfimg, True)
+        rimg=ndimage_utility.normalize_standard(rimg, nmask, False) #*mask
+        cimg=ndimage_utility.normalize_standard(cimg, nmask, False) #*mask
+        
+        if 1 == 0:
+            if defocus[row[i]] != rdefocus_last:
+                rctfimg = ctf.transfer_function(mask.shape, defocus[row[i]], **ctf_param)
+                rdefocus_last=defocus[row[i]]
+            if defocus[col[i]] != cdefocus_last:
+                cctfimg=ctf.transfer_function(mask.shape, defocus[col[i]], **ctf_param)
+                cdefocus_last=defocus[col[i]]
+            
+            rimg = ctf.correct(rimg, cctfimg, True)
+            cimg = ctf.correct(cimg, rctfimg, True)
+        else:
+            if defocus[row[i]] != rdefocus_last:
+                rctfimg = ctf.ctf_model_spi_2d(defocus[row[i]], mask.shape[0], **ctf_param)
+                rdefocus_last=defocus[row[i]]
+            if defocus[col[i]] != cdefocus_last:
+                cctfimg=ctf.ctf_model_spi_2d(defocus[col[i]], mask.shape[0], **ctf_param)
+                cdefocus_last=defocus[col[i]]
+            
+            rimg = ctf.correct_model(rimg, cctfimg, True)
+            cimg = ctf.correct_model(cimg, rctfimg, True)
+            
         tmp=numpy.subtract(rimg, cimg, tmp)
         numpy.abs(tmp, tmp)
         numpy.square(tmp,tmp)
@@ -344,7 +369,7 @@ def image_transform(img, i, mask, var_one=True, align=None, bispec=False, **extr
     
     #if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     #if align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0])
-    ndimage_utility.vst(img, img)
+    #ndimage_utility.vst(img, img)
     '''
     bin_factor = decimation_level(**extra)
     if bin_factor > 1: 
