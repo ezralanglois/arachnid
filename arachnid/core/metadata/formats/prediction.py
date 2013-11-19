@@ -26,7 +26,6 @@ It supports the following attributes:
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from .. import format_utility
-from ..factories import namedtuple_factory
 from collections import namedtuple
 import logging
 
@@ -37,7 +36,7 @@ _experiment_size_class = namedtuple("ExperimentSize", "examples,bags,classes,lab
 _experiment_type_class = namedtuple("ExperimentType", "algorithm,validation,dataset,elapsed,runs,type,threshold")
 _prediction_header = ["id", "select", "confidence", "threshold"]
 
-def read_header(filename, header=[], factory=namedtuple_factory, description={}, **extra):
+def read_header(filename, header=[], description={}, **extra):
     '''Parses the multi-line header of a malibu prediction file
     
     The description dictionary will contain the following keys:
@@ -60,18 +59,16 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
         
         >>> header = []
         >>> fin = open("data.pred", 'r')
-        >>> factory, lastline = read_header(fin, header)
+        >>> factory, first_vals = read_header(fin, header)
         >>> header
         ["id", "select", "confidence", "threshold"] ]
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Input filename or stream
     header : list
              List of strings overriding parsed header
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
     description : dict
                   Description from the header of the prediction file
     extra : dict
@@ -79,8 +76,10 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
     
     :Returns:
     
-    val : container
-          Container with the given header values
+    header : list
+             List of fields describing each column
+    vals : list
+           List of values from the first data line
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
@@ -115,7 +114,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
                         raise
                 continue
             header.extend(_prediction_header)
-            return factory.create(_prediction_header, description=description, **extra), header, ""
+            return header, []
     except:
         if _logger.isEnabledFor(logging.DEBUG):
             _logger.exception("Error reading prediction header")
@@ -125,7 +124,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, description={},
         fin.close()
     raise format_utility.ParseFormatError, "Cannot parse header of prediction file - end of document"
 
-def reader(filename, header=[], lastline="", numeric=False, columns=None, **extra):
+def reader(filename, header=[], numeric=False, columns=None, **extra):
     '''Creates a malibu prediction read iterator
     
     .. sourcecode:: py
@@ -140,20 +139,18 @@ def reader(filename, header=[], lastline="", numeric=False, columns=None, **extr
         
         >>> header = []
         >>> fin = open("data.pred", 'r')
-        >>> factory, lastline = read_header(fin, header)
+        >>> factory, first_vals = read_header(fin, header)
         >>> header
         ["id", "select", "confidence", "threshold"]
-        >>> map(factory, reader(fin, header, lastline, numeric=True))
+        >>> [first_vals]+map(factory, reader(fin, header, numeric=True))
         [ BasicTuple(id="15930/1", select=0, confidence=-7.09427, threshold=0), BasicTuple(id="15930/2", select=0, confidence=-8.4979, threshold=0) ]
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Input filename or input stream
     header : list
              List of strings overriding parsed header
-    lastline : string
-              Last line read by header parser, first line to parse
     numeric : boolean
               If true then convert string values to numeric
     columns : list
@@ -169,8 +166,6 @@ def reader(filename, header=[], lastline="", numeric=False, columns=None, **extr
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
     try:
-        if lastline != "":
-            yield parse_line(lastline, numeric, columns, len(header))
         for line in fin:
             line = line.strip()
             if line == "" or line[0:3] != '#SP' or line == "#SP\t//": 
@@ -255,7 +250,7 @@ def create_default_header(count, class_names=[], experiment_size=[], experiment_
         if len(experiment_size) < 3: experiment_size.append(str(class_count))
         if len(experiment_size) < 4: experiment_size.append("1")
 
-def write_header(fout, values, factory=namedtuple_factory, class_names=[], experiment_size=[], experiment_type=[], **extra):
+def write_header(fout, values, mode, header, class_names=[], experiment_size=[], experiment_type=[], **extra):
     '''Write a malibu prediction header
     
     .. sourcecode:: py
@@ -276,8 +271,10 @@ def write_header(fout, values, factory=namedtuple_factory, class_names=[], exper
            Output stream
     values : container
              Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
+    mode : str
+           Write mode - if 'a', do not write header
+    header : list
+             List of strings describing columns in data
     class_names : list
                   List of string class names
     experiment_size : list
@@ -286,14 +283,20 @@ def write_header(fout, values, factory=namedtuple_factory, class_names=[], exper
                       List of string values describing the experiment type
     extra : dict
             Unused keyword arguments
-    '''
+            
+    :Returns:
     
-    create_default_header(len(values), class_names, experiment_size, experiment_type, **extra)
-    fout.write("#ET\t"+" | ".join(experiment_type)+"\n")
-    fout.write("#CL\t"+",".join(class_names)+"\n")
-    fout.write("#ES\t"+",".join(experiment_size)+"\n")
+    header : list
+             None - use index, not header to write out values
+    '''
+    if mode != 'a':
+        create_default_header(len(values), class_names, experiment_size, experiment_type, **extra)
+        fout.write("#ET\t"+" | ".join(experiment_type)+"\n")
+        fout.write("#CL\t"+",".join(class_names)+"\n")
+        fout.write("#ES\t"+",".join(experiment_size)+"\n")
+    return None
 
-def write_values(fout, values, factory=namedtuple_factory, header=_prediction_header, **extra):
+def write_values(fout, values, **extra):
     '''Write malibu prediction values
     
     
@@ -314,56 +317,13 @@ def write_values(fout, values, factory=namedtuple_factory, header=_prediction_he
            Output stream
     values : container
              Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
-    header : list
-             List of string describing the header
     extra : dict
             Unused keyword arguments
     '''
     
-    _logger.debug("header-1: %s"%str(header))
-    header = factory.get_header(values, header=_prediction_header, offset=True, **extra)
-    _logger.debug("header-2: %s"%str(header))
     for v in values:
-        vals = factory.get_values(v, header, **extra)
-        fout.write("#SP\t"+"\t".join(vals)+"\n")
+        fout.write("#SP\t"+"\t".join(v)+"\n")
     fout.write('#XX\n\n')
-
-def write(filename, values, factory=namedtuple_factory, **extra):
-    '''Write a malibu prediction file
-    
-    .. sourcecode:: py
-        
-        >>> BasicTuple = namedtuple("BasicTuple", "id,select,confidence,threshold")
-        >>> values = [ BasicTuple("15930/1", 0, -7.09427, 0), BasicTuple("15930/2", 0, -8.4979, 0) ]
-        >>> write("data.pred", values)
-        
-        >>> import os
-        >>> os.system("more data.pred")
-        #ET    AutoPart | Holdout | Unknown | 0 | 1 | B | 0
-        #CL    0,1
-        #ES    2,0,2,1
-        #SP    prepwinser_15930:0001    0    -7.09427    0
-        #SP    prepwinser_15930:0002    0    -8.4979    0
-    
-    :Parameters:
-    
-    filename : string or stream
-               Output filename or stream
-    values : container
-             Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
-    extra : dict
-            Unused keyword arguments
-    '''
-    
-    fout = open(filename, 'w') if isinstance(filename, str) else filename
-    write_header(fout, values, factory, **extra)
-    write_values(fout, values, factory, **extra)
-    if isinstance(filename, str): fout.close()
-
 
 ############################################################################################################
 # Extension and Filters                                                                                    #
@@ -374,7 +334,7 @@ def extension():
     
     :Returns:
     
-    val : string
+    val : str
           File extension - pred
     '''
     
@@ -385,7 +345,7 @@ def filter():
     
     :Returns:
     
-    val : string
+    val : str
           File filter - Prediction (\*.pred)
     '''
     

@@ -308,45 +308,6 @@ def has_extension(filename):
 
 def extension(): return None
 
-def create_named_list(values, header, name="SomeList"):
-    ''' Create a list of namedtuples from a collection of values
-    
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> values = [ [1,0], [2,1], [3,1] ]
-        >>> create_named_list(values, "Selection", "id,select")
-        [ Selection(id=1, select=0), Selection(id=2, select=1) Selection(id=3, select=1) ]
-    
-    :Parameters:
-    
-    val : collection
-          Iterable 2D collection of values
-    header : str
-             Header of namedtuple
-    name : str
-            Name of namedtuple class
-    
-    :Returns:
-
-    val : list
-          List of namedtuples
-    '''
-    
-    if isinstance(header, list): header = ",".join(header)
-    Tuple = namedtuple(name, header)
-    retvals = []
-    index = 0
-    for row in values:
-        try:
-            retvals.append(Tuple._make(row))
-        except:
-            _logger.error("Row(%d): %d"%(index, len(row)))
-            _logger.error("Row: %s"%(str(row)))
-            _logger.error("Header: %s"%(str(header)))
-            raise
-        index += 1
-    return retvals
 
 def create_namedtuple_list(values, name, header, label=None, good=None):
     ''' Create a list of namedtuples from a collection of values

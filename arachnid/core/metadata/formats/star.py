@@ -29,13 +29,12 @@ It supports the following attributes:
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from .. import format_utility
-from ..factories import namedtuple_factory
 import logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def read_header(filename, header=[], factory=namedtuple_factory, **extra):
+def read_header(filename, header=[], **extra):
     '''Parses the header on the first line of the Star file
     
     .. sourcecode:: py
@@ -57,13 +56,13 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         
         >>> header = []
         >>> fin = open("data.star", 'r')
-        >>> factory, lastline = read_header(fin, header)
+        >>> factory, first_vals = read_header(fin, header)
         >>> header
         ["_rlnImageName","_rlnDefocusU","_rlnDefocusV","_rlnDefocusAngle","_rlnVoltage","_rlnAmplitudeContrast","_rlnSphericalAberration"]
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Input filename or stream
     header : list
              List of strings overriding parsed header
@@ -79,7 +78,6 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
-    #lastline = ""
     try:
         while True: # Remove header comments
             line = fin.readline()
@@ -107,24 +105,28 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
                 line = fin.readline()
                 if line == "": raise format_utility.ParseFormatError, "Unexpected end of file"
                 line = line.strip()
-            tot = len(line.strip().split())
+            
+            first_vals = parse_line(line, extra.get('numeric'))
+            tot = len(first_vals)
         else:
             while line[0] == ';' or line[0] == '#':
                 line = fin.readline()
                 if line == "": raise format_utility.ParseFormatError, "Unexpected end of file"
                 line = line.strip()
-            tot = len(line.strip().split())
+            first_vals = parse_line(line, extra.get('numeric'))
+            tot = len(first_vals)
             tmpheader.extend(["column"+str(i+1) for i in xrange(tot)])
-            logging.debug("create-header: "+str(header))
+            _logger.debug("create-header: "+str(header))
         
         if isinstance(header, dict):
             if len(header) == 0: raise ValueError, "Dictionary header cannot have zero elements"
             for key, val in header.iteritems():
                 tmpheader[val] = key
         elif len(header) == 0: header.extend(tmpheader)
-        if tot != len(header): raise format_utility.ParseFormatError, "Header does not match the file: %s"%header
+        if tot != len(header): 
+            raise format_utility.ParseFormatError, "Header does not match the file: %d != %d -> %s -> %s -> %s"%(tot, len(header), line, str(first_vals), header)
         if isinstance(filename, str): fin.close()
-        return factory.create(header, **extra), header, line
+        return header, first_vals
     except:
         fin.close()
         raise
@@ -132,7 +134,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         fin.close()
     raise format_utility.ParseFormatError, "Cannot parse header of Star document file - end of document"
 
-def reader(filename, header=[], lastline="", numeric=False, columns=None, **extra):
+def reader(filename, header=[], numeric=False, columns=None, **extra):
     '''Creates a Star read iterator
     
     .. sourcecode:: py
@@ -153,21 +155,19 @@ def reader(filename, header=[], lastline="", numeric=False, columns=None, **extr
         
         >>> header = []
         >>> fin = open("data.star", 'r')
-        >>> factory, lastline = read_header(fin, header)
+        >>> factory, first_vals = read_header(fin, header)
         >>> header
         ["_rlnImageName","_rlnDefocusU","_rlnDefocusV","_rlnDefocusAngle","_rlnVoltage","_rlnAmplitudeContrast","_rlnSphericalAberration"]
-        >>> map(factory, reader(fin, header, lastline, numeric=True))
+        >>> [first_vals]+map(factory, reader(fin, header, numeric=True))
         [ BasicTuple(rlnImageName="000001@/lmb/home/scheres/data/VP7/all_images.mrcs", rlnDefocusU=13538, rlnDefocusV=13985, rlnDefocusAngle=109.45, rlnVoltage=300, rlnAmplitudeContrast=0.15, rlnSphericalAberration=2), 
           BasicTuple(rlnImageName="000002@/lmb/home/scheres/data/VP7/all_images.mrcs", rlnDefocusU=13293, rlnDefocusV=13796, rlnDefocusAngle=109.45, rlnVoltage=300, rlnAmplitudeContrast=0.15, rlnSphericalAberration=2) ]
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Input filename or input stream
     header : list
              List of strings overriding parsed header
-    lastline : string
-              Last line read by header parser, first line to parse
     numeric : boolean
               If true then convert string values to numeric
     columns : list
@@ -183,8 +183,6 @@ def reader(filename, header=[], lastline="", numeric=False, columns=None, **extr
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
     try:
-        if lastline != "":
-            yield parse_line(lastline, numeric, columns, len(header))
         for line in fin:
             line = line.strip()
             if line == "" or line[0] == ';' or line[0] == '#': continue
@@ -225,39 +223,9 @@ def parse_line(line, numeric=False, columns=None, hlen=None):
 ############################################################################################################
 # Write format                                                                                             #
 ############################################################################################################
-def write(filename, values, factory=namedtuple_factory, **extra):
-    '''Write a metadata (Star) file
+
     
-    .. sourcecode:: py
-        
-        >>> BasicTuple = namedtuple("BasicTuple", "_rlnImageName,_rlnClassNumber,_rlnDefocusU")
-        >>> values = [ BasicTuple("1/1", 1, 0.00025182), BasicTuple("1/2", 1, 0.00023578) ]
-        >>> write("data.star", values)
-        
-        >>> import os
-        >>> os.system("more data.star")
-        id,select,peak
-        1/1,1,0.00025182
-        1/2,1,0.00023578
-    
-    :Parameters:
-    
-    filename : string or stream
-               Output filename or stream
-    values : container
-             Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
-    extra : dict
-            Unused keyword arguments
-    '''
-    
-    fout = open(filename, 'w') if isinstance(filename, str) else filename
-    write_header(fout, values, factory, **extra)
-    write_values(fout, values, factory, **extra)
-    if isinstance(filename, str): fout.close()
-    
-def write_header(filename, values, factory=namedtuple_factory, tag="", blockcode="images", **extra):
+def write_header(filename, values, mode, header, tag="", blockcode="images", **extra):
     '''Write a comma separated value (Star) header
     
     .. sourcecode:: py
@@ -280,60 +248,75 @@ def write_header(filename, values, factory=namedtuple_factory, tag="", blockcode
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Output filename or stream
     values : container
              Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
+    mode : str
+           Write mode - if 'a', do not write header
+    header : list
+             List of strings describing columns in data
     tag : str
           Tag for each header value, e.g. tag=rln
     blockcode : str
                 Label for the data block
     extra : dict
             Unused keyword arguments
+            
+    :Returns:
+    
+    header : list
+             List of strings describing columns in data
     '''
+    if mode != 'a':
+        fout = open(filename, 'w') if isinstance(filename, str) else filename
+        fout.write('data_'+blockcode+'\n')
+        fout.write('loop_\n')
+        for h in header:
+            fout.write("_"+tag+h+'\n')
+        if isinstance(filename, str): fout.close()
+    return header
     
-    fout = open(filename, 'w') if isinstance(filename, str) else filename
-    fout.write('data_'+blockcode+'\n')
-    fout.write('loop_\n')
-    header = factory.get_header(values, **extra)
-    for h in header:
-        fout.write("_"+tag+h+'\n')
-    if isinstance(filename, str): fout.close()
-    
-def write_values(filename, values, factory=namedtuple_factory, header=None, star_separtor=' ', **extra):
+def write_values(filename, values, star_separtor=' ', **extra):
     '''Write comma separated value (Star) values
     
     .. sourcecode:: py
         
         >>> BasicTuple = namedtuple("BasicTuple", "id,select,peak")
-        >>> values = [ BasicTuple("1/1", 1, 0.00025182), BasicTuple("1/2", 1, 0.00023578) ]
+        >>> values = [ BasicTuple(rlnImageName="000001@/lmb/home/scheres/data/VP7/all_images.mrcs", rlnDefocusU=13538, rlnDefocusV=13985, rlnDefocusAngle=109.45, rlnVoltage=300, rlnAmplitudeContrast=0.15, rlnSphericalAberration=2), 
+          BasicTuple(rlnImageName="000002@/lmb/home/scheres/data/VP7/all_images.mrcs", rlnDefocusU=13293, rlnDefocusV=13796, rlnDefocusAngle=109.45, rlnVoltage=300, rlnAmplitudeContrast=0.15, rlnSphericalAberration=2) ]
         >>> write_values("data.star", values)
         
         >>> import os
         >>> os.system("more data.star")
-        1/1,1,0.00025182
-        1/2,1,0.00023578
+        000001@/lmb/home/scheres/data/VP7/all_images.mrcs 13538 13985 109.45 300 0.15 2
+        000002@/lmb/home/scheres/data/VP7/all_images.mrcs 13293 13796 109.45 300 0.15 2
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Output filename or stream
     values : container
              Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
     extra : dict
             Unused keyword arguments
     '''
     
     fout = open(filename, 'w') if isinstance(filename, str) else filename
-    header = factory.get_header(values, offset=True, header=header, **extra)
     for v in values:
-        vals = factory.get_values(v, header, float_format="%11g", **extra)
-        fout.write(star_separtor.join(vals)+"\n")
+        fout.write(star_separtor.join(v)+"\n")
     if isinstance(filename, str): fout.close()
+    
+def float_format():
+    ''' Format for a floating point number
+    
+    :Returns:
+    
+    return_val : str
+                 %11g
+    '''
+    
+    return "%11g"
         
 ############################################################################################################
 # Extension and Filters                                                                                    #
@@ -344,7 +327,7 @@ def extension():
     
     :Returns:
     
-    val : string
+    val : str
           File extension - star
     '''
     
@@ -355,7 +338,7 @@ def filter():
     
     :Returns:
     
-    val : string
+    val : str
           File filter - Star (\*.star)
     '''
     

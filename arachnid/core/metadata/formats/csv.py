@@ -20,13 +20,12 @@ It supports the following attributes:
 '''
 
 from .. import format_utility
-from ..factories import namedtuple_factory
 import logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def read_header(filename, header=[], factory=namedtuple_factory, **extra):
+def read_header(filename, header=[], **extra):
     '''Parses the header on the first line of the CSV file
     
     .. sourcecode:: py
@@ -39,29 +38,30 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         
         >>> header = []
         >>> fin = open("data.csv", 'r')
-        >>> factory, lastline = read_header(fin, header)
+        >>> header, first_vals = read_header(fin, header)
         >>> header
         ["id","select","peak"]
+        >>> first_vals
+        ['1/1','1','0.00025182']
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Input filename or stream
     header : list
              List of strings overriding parsed header
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
     extra : dict
             Unused keyword arguments
     
     :Returns:
     
-    val : container
-          Container with the given header values
+    header : list
+             List of fields describing each column
+    first_vals : list
+                 List of values from the first data line
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
-    #lastline = ""
     try:
         while True:
             line = fin.readline()
@@ -77,10 +77,12 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
                 header[val] = key
         elif len(header) == 0: header.extend(line.split(','))
         line = fin.readline().strip()
+        first_vals = parse_line(line, extra.get('numeric'))
         if line[0] == ';': raise format_utility.ParseFormatError, "Cannot parse Spider file"
-        if not isinstance(header, dict) and len(header) != len(line.split(',')): raise format_utility.ParseFormatError, "Cannot parse header of CSV document - header mismatch - "+str(len(header))+" != "+str(len(line.split(',')))+" - "+str(header)+" :: "+line
+        if not isinstance(header, dict) and len(header) != len(first_vals): 
+            raise format_utility.ParseFormatError, "Cannot parse header of CSV document - header mismatch - "+str(len(header))+" != "+str(len(first_vals))+" - "+str(header)+" :: "+line
         if isinstance(filename, str): fin.close()
-        return factory.create(header, **extra), header, line
+        return header, first_vals
     except:
         fin.close()
         raise
@@ -88,7 +90,7 @@ def read_header(filename, header=[], factory=namedtuple_factory, **extra):
         fin.close()
     raise format_utility.ParseFormatError, "Cannot parse header of CSV document file - end of document"
 
-def reader(filename, header=[], lastline="", numeric=False, columns=None, **extra):
+def reader(filename, header=[], numeric=False, columns=None, **extra):
     '''Creates a CSV read iterator
     
     .. sourcecode:: py
@@ -101,20 +103,19 @@ def reader(filename, header=[], lastline="", numeric=False, columns=None, **extr
         
         >>> header = []
         >>> fin = open("data.csv", 'r')
-        >>> factory, lastline = read_header(fin, header)
+        >>> header, first_vals = read_header(fin, header)
         >>> header
         ["id", "select", "peak"]
-        >>> map(factory, reader(fin, header, lastline, numeric=True))
+        >>> factory = namedtuple_factory
+        >>> [first_vals]+map(factory, reader(fin, header, numeric=True))
         [ BasicTuple(id="1/1", select=1, peak=0.00025182), BasicTuple(id="1/2", select=1, peak=0.00023578) ]
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Input filename or input stream
     header : list
              List of strings overriding parsed header
-    lastline : string
-              Last line read by header parser, first line to parse
     numeric : boolean
               If true then convert string values to numeric
     columns : list
@@ -130,8 +131,6 @@ def reader(filename, header=[], lastline="", numeric=False, columns=None, **extr
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
     try:
-        if lastline != "":
-            yield parse_line(lastline, numeric, columns, len(header))
         for line in fin:
             line = line.strip()
             if line == "": continue
@@ -173,46 +172,14 @@ def parse_line(line, numeric=False, columns=None, hlen=None):
 # Write format                                                                                             #
 ############################################################################################################
 
-def write(filename, values, factory=namedtuple_factory, **extra):
-    '''Write a comma separated value (CSV) file
-    
-    .. sourcecode:: py
-        
-        >>> BasicTuple = namedtuple("BasicTuple", "id,select,peak")
-        >>> values = [ BasicTuple("1/1", 1, 0.00025182), BasicTuple("1/2", 1, 0.00023578) ]
-        >>> write("data.csv", values)
-        
-        >>> import os
-        >>> os.system("more data.csv")
-        id,select,peak
-        1/1,1,0.00025182
-        1/2,1,0.00023578
-    
-    :Parameters:
-    
-    filename : string or stream
-               Output filename or stream
-    values : container
-             Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
-    extra : dict
-            Unused keyword arguments
-    '''
-    
-    fout = open(filename, 'w') if isinstance(filename, str) else filename
-    write_header(fout, values, factory, **extra)
-    write_values(fout, values, factory, **extra)
-    if isinstance(filename, str): fout.close()
-
-def write_header(filename, values, factory=namedtuple_factory, **extra):
+def write_header(filename, values, mode, header, csv_separtor=',', **extra):
     '''Write a comma separated value (CSV) header
     
     .. sourcecode:: py
         
         >>> BasicTuple = namedtuple("BasicTuple", "id,select,peak")
-        >>> values = [ BasicTuple("1/1", 1, 0.00025182), BasicTuple("1/2", 1, 0.00023578) ]
-        >>> write_header("data.csv", values)
+        >>> header=BasicTuple._fields
+        >>> write_header("data.csv", header)
         
         >>> import os
         >>> os.system("more data.csv")
@@ -220,21 +187,27 @@ def write_header(filename, values, factory=namedtuple_factory, **extra):
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Output filename or stream
     values : container
              Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
+    mode : str
+           Write mode - if 'a', do not write header
+    header : list
+             List of strings describing columns in data
+    csv_separtor : str
+                   Seperator for header values
     extra : dict
             Unused keyword arguments
     '''
     
-    fout = open(filename, 'w') if isinstance(filename, str) else filename
-    fout.write(",".join(factory.get_header(values, **extra))+"\n")
-    if isinstance(filename, str): fout.close()
+    if mode != 'a':
+        fout = open(filename, 'w') if isinstance(filename, str) else filename
+        fout.write(csv_separtor.join(header)+"\n")
+        if isinstance(filename, str): fout.close()
+    return header
 
-def write_values(filename, values, factory=namedtuple_factory, header=None, csv_separtor=',', **extra):
+def write_values(filename, values, csv_separtor=',', **extra):
     '''Write comma separated value (CSV) values
     
     .. sourcecode:: py
@@ -250,21 +223,19 @@ def write_values(filename, values, factory=namedtuple_factory, header=None, csv_
     
     :Parameters:
     
-    filename : string or stream
+    filename : str or stream
                Output filename or stream
     values : container
              Value container such as a list or an ndarray
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
+    csv_separtor : str
+                   Seperator for data values
     extra : dict
             Unused keyword arguments
     '''
     
     fout = open(filename, 'w') if isinstance(filename, str) else filename
-    header = factory.get_header(values, offset=True, header=header, **extra)
     for v in values:
-        vals = factory.get_values(v, header, **extra)
-        fout.write(csv_separtor.join(vals)+"\n")
+        fout.write(csv_separtor.join(v)+"\n")
     if isinstance(filename, str): fout.close()
         
 ############################################################################################################
@@ -276,7 +247,7 @@ def extension():
     
     :Returns:
     
-    val : string
+    val : str
           File extension - csv
     '''
     
@@ -287,7 +258,7 @@ def filter():
     
     :Returns:
     
-    val : string
+    val : str
           File filter - CSV (\*.csv)
     '''
     
