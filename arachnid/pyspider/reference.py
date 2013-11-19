@@ -175,7 +175,7 @@ def center_volume(filename, spi, output):
     
     if filename == output: filename = spi.cp(filename)
     coords = spi.cg_ph(filename)
-    return spi.sh_f(filename, coords[3:], outputfile=output)
+    return spi.sh_f(filename, -coords[3:], outputfile=output)
 
 def resize_volume(filename, spi, curr_apix, apix, window, outputfile=None, **extra):
     ''' Interpolate the volume and change the box size to match the params file
