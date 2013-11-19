@@ -35,27 +35,28 @@ When writing out a document, the format will be chosen based on the extension.
 .. Created on Jun 8, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from formats import csv, prediction, project, spiderdoc, spidersel, star, frealign, mrccoord
+from formats import csv, prediction, spiderdoc, spidersel, star #, frealign, mrccoord
 from format_utility import ParseFormatError, WriteFormatError
-from spider_utility import spider_filename, split_spider_id
-from ..parallel import mpi_utility
+from factories import namedtuple_factory
+from spider_utility import spider_filename
 import format_utility
 import os, numpy, logging
 
-__formats = [star, spiderdoc, spidersel, frealign, mrccoord, project, csv, prediction]
+#__formats = [star, spiderdoc, spidersel, frealign, mrccoord, csv, prediction]
+__formats = [star, spiderdoc, spidersel, csv, prediction]
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 def filters(formats=None):
     '''Get a list file filters from a list of supported formats
     
-    This filters are in a format compatible with PyQT4 FileDialogs.
+    These filters are in a format compatible with Qt4 FileDialogs.
     
     .. sourcecode:: py
     
         >>> from arachnid.core.metadata.format import *
         >>> filters()
-        "Project (*.prj);;CSV (*.csv);;Prediction (*.pred);;Spider Doc File (*.dat);;Spider Selection Doc (*.sdat)"
+        CSV (*.csv);;Prediction (*.pred);;Spider Doc File (*.dat);;Spider Selection Doc (*.sdat)"
     
     .. note ::
     
@@ -70,8 +71,8 @@ def filters(formats=None):
     
     :Returns:
     
-    val : string
-          Formated list of format filters
+    return_val : str
+               Formated list of format filters
     '''
     
     if formats is None: # Ensure project is the first format when loading in a file chooser dialog
@@ -85,21 +86,21 @@ def extension(filter, formats=None):
     .. sourcecode:: py
     
         >>> from arachnid.core.metadata.format import *
-        >>> extension("Project (*.prj)")
-        "prj"
+        >>> extension("CSV (*.csv)")
+        "csv"
         >>> extension("Prediction (*.pred)")
         "pred"
     
     :Parameters:
     
-    filter : string
+    filter : str
              File filter to test
     formats : list
               List of formats, default All
     
     :Returns:
     
-    val : string
+    val : str
           Extension associated with given filter
     '''
     
@@ -163,8 +164,10 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     
     :Parameters:
     
-    filename : string
+    filename : str
              Filename template used to create new filename
+    mode : str
+           Mode to open file
     header : list
              List of string values
     spiderid : id-like object
@@ -181,8 +184,12 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     
     :Returns:
     
-    val : string
-          New filename without header and with new ID
+    filename : str
+             New filename stripped of header and with new ID
+    fin : stream
+          File stream (in or out depending on mode)
+    header : list
+             List of strings describing the header (Only returned if mode is 'r')
     '''
     
     _logger.debug("open_file: "+str(filename)+" - mode: %s"%(mode))
@@ -220,7 +227,7 @@ def get_format_by_ext(filename, format=None, formats=None, default_format=spider
     
     :Parameters:
     
-    filename : string
+    filename : str
               Path of a file
     format : module
               Specific document format
@@ -228,6 +235,8 @@ def get_format_by_ext(filename, format=None, formats=None, default_format=spider
               List of formats, default All
     default_format : module
                     Default format to use if none can be determined
+    extra : dict
+            Unused extra keyword arguments
     
     :Returns:
     
@@ -274,13 +283,13 @@ def get_format(filename, format=None, formats=None, mode='r', getformat=True, he
     
     :Parameters:
     
-    filename : string
+    filename : str
               Path of a file
     format : module
               Metadata document format
     formats : list
               List of formats, default All
-    mode : string
+    mode : str
            File stream read mode
     getformat : bool
              If True return format otherwise return cached header
@@ -291,10 +300,14 @@ def get_format(filename, format=None, formats=None, mode='r', getformat=True, he
     
     :Returns:
     
-    val1 : module
-          Format module (If getformat is true)
-    val2 : tuple
-          Otherwise, tuple of values including: (input stream, header, factory, last line)
+    format : module
+             Format module (If getformat is true, this alone)
+    fin : stream
+          Input stream (Only returned if getformat is false)
+    header : list
+             List of strings describing the header (Only returned if getformat is false)
+    first_vals : list
+                 List of values parsed from first data line (Only returned if getformat is false)
     '''
     
     _logger.debug("get_format: "+str(filename))
@@ -319,42 +332,13 @@ def get_format(filename, format=None, formats=None, mode='r', getformat=True, he
             continue
         return format if getformat else (fin, format) + vals
     raise ParseFormatError, "Cannot find format for "+filename
-
-def read_array_mpi(filename, numeric=True, sort_column=None, **extra):
-    ''' Read a file and return as an ndarray (if MPI-enabled, only one process reads
-    and the broadcasts to the rest.
-    
-    :Parameters:
-    
-    filename : str
-               Input filename
-    numeric : bool
-              Convert each value to float or int (if possible)
-    sort_column : int
-                  Column to sort the array
-    extra : dict
-            Unused extra keyword arguments
-    
-    :Returns:
-    
-    vals : ndarray
-           Table array containing file values
-    '''
-    
-    vals = None
-    if mpi_utility.is_root(**extra):
-        vals = read(filename, numeric=numeric, **extra)
-        vals = format_utility.tuple2numpy(vals)[0]
-        if sort_column is not None and sort_column < vals.shape[1]:
-            vals[:] = vals[numpy.argsort(vals[:, sort_column]).squeeze()]
-    return mpi_utility.broadcast(vals, **extra)
  
 def is_readable(filename, **extra):
     ''' Test if file is readable by a metadata parser
     
     :Parameters:
     
-    filename : string
+    filename : str
               Path of a file
     extra : dict
             Unused extra keyword arguments
@@ -370,7 +354,7 @@ def is_readable(filename, **extra):
     except: return False
     return True
     
-def read(filename, columns=None, header=None, ndarray=False, map_ids=None, **extra):
+def read(filename, columns=None, header=None, ndarray=False, map_ids=None, factory=namedtuple_factory, **extra):
     '''Read a document from the specified file
     
     This function calls open_file to create the filename, then calls get_formats to
@@ -407,25 +391,32 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, **ext
     
     :Parameters:
     
-    filename : string
+    filename : str
               Path of a file
     columns : list, optional
               List of columns to use
     header : str, optional
              Header to use for read-in list
+    ndarray : bool
+              If True, return tuple (array, header) where header is a list of strings
+              describing each column
+    map_ids : bool
+              If True, return a dictionary mapping id to full list of values
+    factory : Factory
+              Class or module that creates the container for the values returned by the parser
     extra : dict
             Unused extra keyword arguments
     
     :Returns:
     
-    val1 : list
+    val1 : list or tuple (array,list) or dict
            List of namedtuples or other container created by the factory
     '''
     
     if ndarray:extra['numeric']=True
     
     _logger.debug("read: "+str(filename))
-    fin, format, factory, header, lastline = get_format(filename, getformat=False, header=header, **extra)
+    fin, format, header, first_vals = get_format(filename, getformat=False, header=header, **extra)
     # TODO: columns not finished
     if columns is not None:
         cols = []
@@ -437,19 +428,20 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, **ext
                     cols.append(header.index(c))
                 except:
                     raise ValueError, "Cannot find column "+str(c)+" in header: "+",".join(header)
-    
+    factory = factory.create(header, first_vals, **extra)
     try:
-        vals = map(factory, format.reader(fin, header, lastline, **extra))
+        vals = [factory(first_vals)] if len(first_vals) > 0 else []
+        vals.extend(map(factory, format.reader(fin, header, **extra)))
     except:
         _logger.debug("header: %s"%str(header))
-        _logger.debug("lastline: %s"%str(lastline))
+        _logger.debug("first_vals: %s"%str(first_vals))
         _logger.debug("format: %s"%str(format))
         raise
     if ndarray: return format_utility.tuple2numpy(vals)
     elif map_ids: return format_utility.map_object_list(vals, map_ids)
     return vals
 
-def write(filename, values, mode='w', **extra):
+def write(filename, values, mode='w', factory=namedtuple_factory, **extra):
     ''' Write a document to some format either specified or determined from extension
     
     .. sourcecode:: py
@@ -490,16 +482,19 @@ def write(filename, values, mode='w', **extra):
     
     filename : str
               Input filename containing data
-    values : list
+    values : list or array
              List of objects to be written
-    mode : string
+    mode : str
            Open file mode, default write over existing
+    factory : Factory
+              Class or module that creates takes a row of values
+              and converts them to a string
     extra : dict
             Unused extra keyword arguments
     
     :Returns:
     
-    val : string
+    val : str
            Path to file created by this function
     '''
     
@@ -507,22 +502,19 @@ def write(filename, values, mode='w', **extra):
     
     format = get_format_by_ext(filename, **extra)
     filename, fout = open_file(filename, mode=mode, **extra)
-    if hasattr(values, 'shape'):
-        if 'header' not in extra: raise ValueError, "numpy.ndarray requires that you specify a header"
-        values = format_utility.create_namedtuple_list(values, "DefaultFormat", extra['header'])
-    else:
-        values = format_utility.flatten(values)
-        if len(values) > 0 and not hasattr(values[0], '_fields'):
-            if 'header' not in extra: raise ValueError, "Cannot find header: %s"%str(values[0].__class__)
-            values = format_utility.create_named_list(values, extra['header'], "DefaultFormat")
-            
-    if mode == 'a': format.write_values(fout, values, **extra)
-    else: format.write(fout, values, **extra)
+    values = factory.ensure_container(values, **extra)
+    extra['header'] = factory.get_header(values, **extra)
+    extra['header'] = format.write_header(fout, values, mode, **extra)
+    if hasattr(format, 'float_format'): extra['float_format']=format.float_format()
+    if hasattr(format, 'valid_entry'): extra['valid_entry']=format.valid_entry
+    format.write_values(fout, factory.format_iter(values, **extra), **extra)
     fout.close()
     return filename
 
 def write_dataset(output, feat, id=None, label=None, good=None, header=None, sort=False, id_len=0, prefix=None, **extra):
     '''Write a set of non-tuple arrays representing a dataset to a file
+    
+    .. deprecated:: 0.1.3
     
     :Parameters:
         
@@ -602,55 +594,10 @@ def write_dataset(output, feat, id=None, label=None, good=None, header=None, sor
     if 'default_format' not in extra: extra['default_format'] = csv
     return write(output, vals, spiderid=id, id_len=id_len, prefix=prefix, **extra)
 
-def read_identifiers(filename, columns=None, **extra):
-    '''Read only the identifier column from the file
-    
-    This function attempts to parse concatenated identifiers and returns
-    them in a list of specially named tuples.
-    
-    .. sourcecode:: py
-         
-        >>> from arachnid.core.metadata.format import *
-        >>> import os
-        >>> os.system("more data.spi")
-        ; ID      X           Y
-           1 2  572.00      228.00    
-           2 2  738.00      144.00    
-           3 2  810.00      298.00
-        
-        >>> read_identifiers("data.spi=id,x,y")
-        [1, 2, 3]
-        
-        >>> os.system("more data.csv")
-        id,x,y
-        1,572.00,228.00    
-        2,738.00,144.00    
-        3,810.00,298.00
-        
-        >>> read_identifiers("data.csv")
-        [1, 2, 3]
-    
-    :Parameters:
-    
-    filename : string
-              Path of a file
-    columns : list
-             List of objects to be written
-    extra : dict
-            Unused extra keyword arguments
-    
-    :Returns:
-    
-    val : list
-          List of identifier tuples or integer ids
-    '''
-    
-    columns=("id",)
-    values = read(filename, columns=columns, **extra)
-    return split_spider_id(values)
-
 def read_alignment(filename, header=None, **extra):
     ''' Read alignment data from a file
+    
+    .. deprecated:: 0.1.3
     
     :Parameters:
     
