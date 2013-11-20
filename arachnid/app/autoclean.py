@@ -350,7 +350,7 @@ def resolution_from_order(apix, pixel_diameter, order, resolution, **extra):
                  Estimated resolution
     '''
     
-    if order == 0: return resolution
+    if order == 0 or 1 == 1: return resolution
     res = numpy.tan(healpix.nside2pixarea(order))*pixel_diameter*apix
     if res > resolution: resolution=res
     return resolution
@@ -542,7 +542,8 @@ def init_root(files, param):
     spider_params.read(param['param_file'], param)
     if param['order'] < 0:
         param['order'] = order_from_resolution(**param)
-    
+    assert('apix' in param)
+    assert('window' in param)
     if param['scale_spi']: _logger.info("Scaling translations by pixel size (pySPIDER input)")
     if param['resolution'] > 0.0: _logger.info("Filter and decimate to resolution %f by a factor of %f"%(resolution_from_order(**param), decimation_level(**param)))
     if not param['disable_rtsq']: _logger.info("Rotate and translate data stack")
