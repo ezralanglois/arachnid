@@ -208,7 +208,10 @@ def embed_sample(samp, neig, expected, **extra):
            2D array where each row is a compressed image and each column a factor
     '''
     
-    eigv, feat=analysis.dhr_pca(samp, samp, neig, expected, True)
+    if expected == 0.0:
+        eigv, feat = analysis.pca_fast(samp, samp, neig)[1:]
+    else:
+        eigv, feat=analysis.dhr_pca(samp, samp, neig, expected, True)
     _logger.info("Eigen: %s"%(",".join([str(v) for v in eigv[:10]])))
     tc=eigv.cumsum()
     _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
