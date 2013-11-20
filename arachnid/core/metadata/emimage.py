@@ -1,6 +1,9 @@
-'''
+''' Define meta data associated with specific images
+
+This module is a work in progress.
+
 .. Created on Jul 21, 2013
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 class ctf_emx(object):
     ''' Contrast transfer function (CTF) describing the estimated blur of the image data 
@@ -59,10 +62,6 @@ class ctf_emx(object):
         Type: str
         Description: Micrograph identifier
         '''
-
-
-
-
 
 class ndimage_emx(object):
     '''
