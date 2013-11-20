@@ -78,8 +78,8 @@ if __name__ == '__main__':
         if filename not in idmap: idmap[filename]=0
         idmap[filename] += 1
         if i < 20:
-            print data[i].rlnImageName, ' -> ', relion_utility.relion_filename(filename, idmap[filename])
-        data[i] = data[i]._replace(rlnImageName=relion_utility.relion_filename(filename, idmap[filename]))
+            print data[i].rlnImageName, ' -> ', relion_utility.relion_identifier(filename, idmap[filename])
+        data[i] = data[i]._replace(rlnImageName=relion_utility.relion_identifier(filename, idmap[filename]))
     ndata, header = format_utility.tuple2numpy(data, convert=relion_utility.relion_id)
     order="rlnAnglePsi,rlnAngleTilt,rlnAngleRot,rlnOriginX,rlnOriginY,rlnDefocusU,rlnSphericalAberration,rlnAmplitudeContrast,rlnVoltage".split(',')
     ndata = ndata[:, ([header.index(v) for v in order])]

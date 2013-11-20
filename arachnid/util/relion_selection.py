@@ -549,13 +549,13 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
             if isinstance(stack_files, list):
                 newfile = None
                 for f in stack_files:
-                    f = relion_utility.relion_filename(f, vals[name_col])
+                    f = relion_utility.relion_identifier(f, vals[name_col])
                     if not os.path.exists(f): continue
                     newfile=f
                     break
                 vals[name_col] = newfile
             else:
-                vals[name_col] = relion_utility.relion_filename(stack_file, vals[name_col])
+                vals[name_col] = relion_utility.relion_identifier(stack_file, vals[name_col])
         if hasattr(Tuple, '_make'): data[i] = Tuple._make(vals)
         else: data[i] = tuple(vals)
     
@@ -847,7 +847,7 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
         oindex[filename] += 1
         output = spider_utility.spider_filename(output, filename)
         ndimage_file.write_image(output, img, oindex[filename]-1)
-        vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_filename(output, oindex[filename]))
+        vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
     _logger.info("Stack downsampling finished")
     return vals
 

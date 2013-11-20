@@ -248,7 +248,7 @@ class MainWindow(ImageViewerWindow):
                 if not spider_utility.is_spider_filename(self.files):
                     _logger.info("File names do not conform to SPIDER, writing as star file")
                     filename = os.path.splitext(filename)[0]+'.star'
-                    vals = [(relion_utility.relion_filename(self.files[v[0]], v[1]+1),1) for v in file_index if v[2] > 0]
+                    vals = [(relion_utility.relion_identifier(self.files[v[0]], v[1]+1),1) for v in file_index if v[2] > 0]
                     format.write(filename, vals, header='id,select'.split(','))
                 else:
                     micselect={}

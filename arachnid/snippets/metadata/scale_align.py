@@ -47,6 +47,6 @@ if __name__ == '__main__':
             tx = align[i].rlnOriginX
             ty = align[i].rlnOriginY
             fid = align[i].rlnImageName
-            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult, rlnImageName=relion_utility.relion_filename(stack_file, align[i].rlnImageName))
+            align[i] = align[i]._replace(rlnOriginX=tx*mult, rlnOriginY=ty*mult, rlnImageName=relion_utility.relion_identifier(stack_file, align[i].rlnImageName))
     
     format.write(output_file, align)
