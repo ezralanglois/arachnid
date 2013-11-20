@@ -63,7 +63,7 @@ def write_header(fout, values, mode, header, **extra):
              List of strings describing columns in data
     '''
     
-    write_spider_header(fout, ["id", "select"], mode, **extra)
+    write_spider_header(fout, values, mode, ["id", "select"], **extra)
     
 def valid_entry(row): 
     ''' Test if a row in the file is valid
