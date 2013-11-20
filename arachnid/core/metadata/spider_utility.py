@@ -1,6 +1,7 @@
-''' Set of utilities to deal with SPIDER files
+''' Set of utilities to deal with the SPIDER file naming convention
 
-This module provides a set a utility functions to handle spider files.
+This module provides a set a utility functions to handle the SPIDER file naming
+convension.
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -17,6 +18,7 @@ __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 def single_images(files):
     ''' Organize a set of files into groups of single images
     
+    >>> from arachnid.core.metadata.spider_utility import *
     >>> files=['40S_002_001','40S_002_002','40S_003_001','40S_003_002']
     >>> single_images(files)
     [(2, ['40S_002_001','40S_002_002']),(3, ['40S_003_001','40S_003_002'])]
@@ -140,13 +142,26 @@ def update_spider_files(map, id, *files):
 def frame_filename(filename, id):
     ''' Create a frame file name from a template and an ID
     
+    The filename must have the following naming convention:
+    filename_<frame id>_<micrograph id>.ext and replaces
+    <frame id> with `id`.
+    
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> frame_filename('frame_001_0010.mrc', 2)
+    'frame_002_0010.mrc'
+    
     :Parameters:
     
     filename : str
-               A file name
+               A filename that follows the following convention:
+               filename_<frame id>_<micrograph id>.ext
+    id : int
+         New ID
     
     :Returns:
     
+    out : str
+          A new filename with the <frame id> updated
     '''
     
     base = os.path.basename(filename)
@@ -160,12 +175,10 @@ def spider_header_vals(line):
     '''Parse the spider header into a set of words
     
     This function uses regular expressions to parse a Spider header.
-        
-    .. sourcecode:: py
     
-        >>> from core.metadata.spider_utility import *
-        >>> spider_header_vals(";          X           Y       PARTICLE NO.   PEAK HT")
-        ['X', 'Y', 'PARTICLE NO', 'PEAK HT']
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_header_vals(";          X           Y       PARTICLE NO.   PEAK HT")
+    ['X', 'Y', 'PARTICLE NO', 'PEAK HT']
     
     :Parameters:
 
@@ -192,11 +205,10 @@ def spider_header_vars(line):
     '''Parse the spider header into a set of variable compliant names
     
     This function parses a Spider header into a list of variable compliant names.
-        
-    .. sourcecode:: py
     
-        >>> spider_header_vars(";          X           Y       PARTICLE NO.   PEAK HT")
-        ['x', 'y', 'particle_no', 'peak_ht']
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_header_vars(";          X           Y       PARTICLE NO.   PEAK HT")
+    ['x', 'y', 'particle_no', 'peak_ht']
     
     :Parameters:
 
@@ -220,11 +232,10 @@ def spider_id_length(base):
     '''Count the number of integers at the end of a string name
     
     This function counts the the number of integers in a base filename.
-        
-    .. sourcecode:: py
     
-        >>> spider_id_length("path/basename00001")
-        5
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_id_length("path/basename00001")
+    5
     
     :Parameters:
 
@@ -249,13 +260,12 @@ def is_spider_filename(filename):
     '''Test if the filename conforms to a Spider filename
     
     This function tests if a filename conforms to a Spider filename, e.g. basename00001.ext.
-        
-    .. sourcecode:: py
     
-        >>> is_spider_filename("path/basename00001.ext")
-        True
-        >>> is_spider_filename("path/basename.ext")
-        False
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> is_spider_filename("path/basename00001.ext")
+    True
+    >>> is_spider_filename("path/basename.ext")
+    False
     
     :Parameters:
 
@@ -285,11 +295,10 @@ def spider_basename(filename, idlen=0):
     '''Extract the basename of a spider file (no ID)
     
     This function extracts the basename of a spider file, without the ID.
-        
-    .. sourcecode:: py
     
-        >>> spider_basename("path/basename00001.ext")
-        "basename"
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_basename("path/basename00001.ext")
+    "basename"
 
     :Parameters:
     
@@ -315,11 +324,10 @@ def spider_searchpath(filename, wildcard='*', idlen=0):
     '''Replace SPIDER ID with wild card
     
     This function extracts the basename and extension of a spider file, without the ID.
-        
-    .. sourcecode:: py
     
-        >>> spider_filepath("path/basename00001.ext")
-        "path/basename*.ext"
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_filepath("path/basename00001.ext")
+    "path/basename*.ext"
 
     :Parameters:
 
@@ -347,11 +355,10 @@ def spider_filepath(filename, idlen=0):
     '''Extract the basename of a spider file (no ID) with extension
     
     This function extracts the basename and extension of a spider file, without the ID.
-        
-    .. sourcecode:: py
     
-        >>> spider_filepath("path/basename00001.ext")
-        "path/basename.ext"
+    >>> from arachnid.core.metadata.spider_utility import *  
+    >>> spider_filepath("path/basename00001.ext")
+    "path/basename.ext"
 
     :Parameters:
 
@@ -377,11 +384,10 @@ def spider_id(filename, idlen=0, use_int=True):
     '''Extract the Spider ID as an integer
     
     This function extracts the spider ID as an integer.
-        
-    .. sourcecode:: py
     
-        >>> spider_id("basename00010.ext")
-        10
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_id("basename00010.ext")
+    10
 
     :Parameters:
 
@@ -419,11 +425,10 @@ def split_spider_id(id, idlen=0, use_int=True):
     '''Extract a concatenated Spider ID as a tuple of integers
     
     This function extracts a tuple of integers from concatenated spider ID
-        
-    .. sourcecode:: py
     
-        >>> split_spider_id("basename00001.ext/10")
-        SpiderIdentifer(fid=1, id=10)
+    >>> from arachnid.core.metadata.spider_utility import * 
+    >>> split_spider_id("basename00001.ext/10")
+    SpiderIdentifer(fid=1, id=10)
 
     :Parameters:
 
@@ -456,11 +461,33 @@ def tuple2id(tvals, filename=None, id_len=0):
     ''' Convert the id field in an array of named tuples to
     a 2 or 1-D numpy array.
     
+    Typical use:
+    
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> tvals=[ BasicTuple(id="1/1", select=1, peak=0.00025182), BasicTuple(id="1/2", select=1, peak=0.00023578) ]
+    >>> tuple2id(tvals)
+    array([[ 1.,  1.],
+           [ 1.,  2.]])
+
+    If the list elements do not have a fileid, but you wish to include one,
+    then include the optional filename argument:
+    
+    >>> tvals=[ BasicTuple(id=1, select=1, peak=0.00025182), BasicTuple(id=2, select=1, peak=0.00023578) ]
+    >>> tuple2id(tvals, 'mic_0000.spi')
+    array([[ 1.,  1.],
+           [ 1.,  2.]])
+           
+    Otherwise, if the list elements do not have a fileid, then a 1D array is returned
+    
+    >>> tvals=[ BasicTuple(id=1, select=1, peak=0.00025182), BasicTuple(id=2, select=1, peak=0.00023578) ]
+    >>> tuple2id(tvals)
+    array([ 1.,  2.])
+    
     :Parameters:
         
     tvals : list
             List of namedtuples
-    filename : str
+    filename : str,optional
                Name of the micrograph file
     id_len : int
              Maximum length of the filename id
@@ -487,7 +514,11 @@ def tuple2id(tvals, filename=None, id_len=0):
     return vals
 
 def spider_template(filename, template, idlen=0):
-    ''' Generate a new spider filename with the same id length and extension
+    ''' Generate a new SPIDER filename with the same id length and extension
+    
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_template('pow_orig/orig_', 'pow/pow_0000.spi')
+    'pow_orig/orig_0000.spi'
     
     :Parameters:
     
@@ -504,15 +535,17 @@ def spider_template(filename, template, idlen=0):
                New SPIDER template
     '''
     
-    if filename.find('.') != -1:
-        filename = os.path.splitext(filename)[0]
+    if filename.find('.') != -1: filename = os.path.splitext(filename)[0]
     ext = os.path.splitext(template)[1]
     if idlen == 0: idlen = spider_id_length(os.path.splitext(template)[0])
-    filename+="0".zfill(idlen)
-    return filename + ext
+    return add_spider_id(filename+ext, idlen)
 
 def add_spider_id(filename, idlen):
-    ''' Add an empty spider ID (all zeros) to the end of a filename
+    ''' Add an empty SPIDER ID (all zeros) to the end of a filename
+    
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> add_spider_id('pow/orig_.spi', 4)
+    'pow_orig/orig_0000.spi'
     
     :Parameters:
     
@@ -527,7 +560,7 @@ def add_spider_id(filename, idlen):
                New SPIDER template
     '''
     
-    filename, ext = os.path.splitext(filename)
+    filename,ext = os.path.splitext(filename)
     filename+="0".zfill(idlen)
     return filename + ext
     
@@ -536,11 +569,10 @@ def spider_filename(filename, id, idlen=0):
     '''Create a Spider filename with given filepath and ID
     
     This function creates a spider filename with given filepath and ID.
-        
-    .. sourcecode:: py
     
-        >>> spider_filename("basename00000.ext", 1)
-        "basename00001.ext"
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> spider_filename("basename00000.ext", 1)
+    "basename00001.ext"
 
     :Parameters:
 
@@ -612,13 +644,12 @@ def file_map(filename, selection, id_len=0, ensure_exist=False):
 
 def extract_id(filename, id_len=0):
     '''Extract a minimal identifier from the processed filename
-        
-    .. sourcecode:: py
     
-        >>> extract_id("basename00010.ext")
-        10
-        >>> extract_id("basename.ext")
-        'basename'
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> extract_id("basename00010.ext")
+    10
+    >>> extract_id("basename.ext")
+    'basename'
     
     :Parameters:
     
