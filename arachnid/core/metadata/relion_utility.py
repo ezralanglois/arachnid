@@ -6,7 +6,6 @@ This module provides a set a utility functions to handle RELION star files.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import spider_utility
-import os
 
 def replace_relion_identifier(data, newfilename=None, reindex=False):
     ''' Replace the image file name, reindex the stack indices or both
@@ -38,7 +37,7 @@ def replace_relion_identifier(data, newfilename=None, reindex=False):
             if filename not in idmap: idmap[filename]=0
             idmap[filename] += 1
             id = idmap[filename]
-        newdata.append(d._replace(rlnImageName=relion_filename(filename, id)))
+        newdata.append(d._replace(rlnImageName=relion_identifier(filename, id)))
     return newdata
     
 
