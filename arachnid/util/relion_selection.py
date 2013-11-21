@@ -608,6 +608,7 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
     
     if good != "":
+        _logger.info("Selecting good particles from: %s"%str(good))
         last=None
         subset=[]
         for v in vals:
@@ -615,13 +616,18 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
             if mic != last:
                 try:
                     select_vals = set([s.id for s in format.read(good, spiderid=mic, numeric=True)])
-                except:select_vals=set()
+                except:
+                    if _logger.isEnabledFor(logging.DEBUG):
+                        _logger.exception("Error reading selection file")
+                    select_vals=set()
                 last=mic
             if pid1 in select_vals:
                 subset.append(v)
+        _logger.info("Selected %d of %d"%(len(subset), len(vals)))
         if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good
     else: subset=vals
     
+    _logger.debug("Subset size1: %d"%len(subset))
     if select != "" and not isinstance(select, list):
         vals = subset
         subset=[]
@@ -640,7 +646,6 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
             except: id = spider_utility.spider_id(id)
             if id in select: subset.append(v)
         if len(subset) == 0: raise ValueError, "No classes selected"
-    else: subset = vals
     
     if view_resolution > 0:
         n=healpix.res2npix(view_resolution, True, True)
