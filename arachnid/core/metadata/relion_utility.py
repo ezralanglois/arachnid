@@ -7,6 +7,29 @@ This module provides a set a utility functions to handle RELION star files.
 '''
 import spider_utility
 
+def list_micrograph_names(vals, column="rlnImageName"):
+    ''' Get a list of micrograph names
+    
+    :Parameters:
+    
+    vals : list
+           List of records from a relion
+           selection file
+    column : str
+             Column to extract micrograph
+             name. Default: rlnImageName
+    
+    :Returns:
+    
+    mics : list
+           List of micrograph names
+    '''
+    
+    mics = set()
+    for v in vals:
+        mics.add( relion_file(getattr(v, column), True) )
+    return list(mics)
+
 def replace_relion_identifier(data, newfilename=None, reindex=False):
     ''' Replace the image file name, reindex the stack indices or both
     

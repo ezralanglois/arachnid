@@ -5,10 +5,6 @@ This module defines a set of functions to test for Python types:
     - String
     - Float holding an integer
     - String holding an integer
-    
-TODO:
-    
-    - Remove is_int and replace name of is_float_int with is_int (is_int seems to be redundant)
 
 .. Created on Sep 29, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -21,13 +17,11 @@ def is_string(obj):
         - if this succeeds, then it is considered a string
         - otherwise, it is not a string
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.type_utility import *
-        >>> is_string('yes')
-        True
-        >>> is_string(1)
-        False
+    >>> from core.metadata.type_utility import *
+    >>> is_string('yes')
+    True
+    >>> is_string(1)
+    False
     
     :Parameters:
 
@@ -53,14 +47,12 @@ def is_float_int(f):
     This function casts the float to an integer and subtracts it from the float
         - if the result is zero, then return True
         - otherwise, return False
-    
-    .. sourcecode:: py
-    
-        >>> from core.metadata.type_utility import *
-        >>> is_float_int(1.0)
-        True
-        >>> is_float_int(1.1)
-        False
+
+    >>> from core.metadata.type_utility import *
+    >>> is_float_int(1.0)
+    True
+    >>> is_float_int(1.1)
+    False
     
     :Parameters:
 
@@ -89,13 +81,11 @@ def is_int(s):
         - if this succeeds, then the string holds an integer
         - otherwise, it is not an integer
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.type_utility import *
-        >>> is_int('1.0')
-        True
-        >>> is_int('1.1')
-        False
+    >>> from core.metadata.type_utility import *
+    >>> is_int('1.0')
+    True
+    >>> is_int('1.1')
+    False
     
     :Parameters:
 

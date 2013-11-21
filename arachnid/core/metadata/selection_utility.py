@@ -8,9 +8,13 @@ This module provides a set of functions to handle selections.
 
 import spider_utility
 
-
 def select_file_subset(files, select, id_len=0, fill=False):
     ''' Create a list of files based on the given selection
+    
+    This function serves as an interface for the different
+    file naming conventions.
+    
+    .. seealso:: spider_utility.select_file_subset
     
     :Parameters:
     
@@ -34,6 +38,16 @@ def select_file_subset(files, select, id_len=0, fill=False):
 
 def select_subset(vals, select):
     ''' Create a list of objects based on the given selection
+    
+    >>> from arachnid.core.metadata.selection_utility import *
+    >>> select_subset([(1,2), (2,3), (3,4) (5,2), (6,3)], [1,2])
+    [(1,2), (2,3)]
+    
+    >>> select_subset([(1,2), (2,3), (3,4) (5,2), (6,3)], [Select(id=1),Select(id=2)])
+    [(1,2), (2,3)]
+    
+    >>> select_subset([(1,2), (2,3), (3,4) (5,2), (6,3)], [Select(id=1,select=1),Select(id=2,select=1),Select(id=2,select=0)])
+    [(1,2), (2,3)]
     
     :Parameters:
     
