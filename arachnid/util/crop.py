@@ -221,7 +221,8 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
             _logger.warn("Skipping number of translations is less than frames %d, %d"%(frame_beg, frame_end))
             return filename, 0, os.getpid()
     else: align=None
-
+    
+    if tot > 1: _logger.info("Cropping windows from %d frame to %d frame"%(frame_beg,frame_end))
     for i in xrange(frame_beg,frame_end):
         frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
         if align is not None:
@@ -229,9 +230,10 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
         else:id=i
         #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
         mic = read_micrograph(filename, id, **extra)
-        if tot > 1 and align is not None: 
+        if tot > 1: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
-            mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
+            if align is not None:
+                mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
             
         _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
         for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, window, bin_factor)):
@@ -244,7 +246,7 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
         #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     return filename, len(coords), os.getpid()
 
-def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, window=None, **extra):
+def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, window=None, gain=None, **extra):
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
@@ -263,6 +265,8 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
              If True, invert the contrast of the micrograph (CCD Data)
     window : int
              Size of the window in pixels
+    gain : array
+           Gain correction/normalization image
     extra : dict
             Unused extra keyword arguments
     
@@ -281,6 +285,7 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
     mic = ndimage_file.read_image(filename, index, **extra)
     _logger.debug("Convert to 32 bit")
     mic = mic.astype(numpy.float32)
+    if gain is not None: mic *= gain
     if bin_factor > 1.0 and not disable_bin: 
         _logger.debug("Downsample by %f"%bin_factor)
         mic = ndimage_interpolate.downsample(mic, bin_factor)
@@ -383,19 +388,19 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
     win = win.astype(numpy.float32)
     if not disable_enhance:
         _logger.debug("Removing ramp from window")
-        
         ndimage_filter.ramp(win, win)
-        if clamp_window > 0: 
-            _logger.debug("Removing outlier pixels")
-            ndimage_utility.replace_outlier(win, clamp_window, out=win)
-        if win.max() == win.min(): return win
-    
-        if noise_win is not None: 
-            _logger.debug("Improving contrast with histogram fitting")
-            ndimage_filter.histogram_match(win, mask, noise_win, out=win)
-        if not disable_normalize and norm_mask is not None:
-            ndimage_utility.normalize_standard(win, norm_mask, out=win)
-        _logger.debug("Finished Enhancment")
+        
+    if clamp_window > 0: 
+        _logger.debug("Removing outlier pixels")
+        ndimage_utility.replace_outlier(win, clamp_window, out=win)
+    if win.max() == win.min(): return win
+
+    if noise_win is not None and not disable_enhance: 
+        _logger.debug("Improving contrast with histogram fitting")
+        ndimage_filter.histogram_match(win, mask, noise_win, out=win)
+    if not disable_normalize and norm_mask is not None:
+        ndimage_utility.normalize_standard(win, norm_mask, out=win)
+    _logger.debug("Finished Enhancment")
     return win
 
 def read_coordinates(coordinate_file, selection_doc="", **extra):
@@ -440,11 +445,13 @@ def read_coordinates(coordinate_file, selection_doc="", **extra):
 def init_root(files, param):
     # Initialize global parameters for the script
     
+    if len(files) == 0 and len(param['finished']) == 0: return []
+    filename = files[0] if len(files) > 0 else param['finished'][0]
     if mpi_utility.is_root(**param):
-        tot = ndimage_file.count_images(files[0])
+        tot = ndimage_file.count_images(filename)
         if param['frame_align'] != "" and tot == 1:
             files = spider_utility.single_images(files)
-            _logger.info("Processing example movie: %s"%str(files[0]))
+            _logger.info("Processing example movie: %s"%str(filename))
         
         if tot > 0:
             if param['frame_align'] != "":
@@ -460,11 +467,16 @@ def init_root(files, param):
 def initialize(files, param):
     # Initialize global parameters for the script
     
+    if len(files) == 0 and len(param['finished']) == 0: return []
+    filename = files[0] if len(files) > 0 else param['finished'][0]
+    
     spider_params.read(param['param_file'], param)
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel diameter: %d"%(param['pixel_diameter']))
         _logger.info("Window size: %d"%(param['window']))
+        if param['gain_file'] != "":
+            _logger.info("Gain correct with %s"%param['gain_file'])
         if param['sigma'] > 0: _logger.info("High pass filter: %f"%(param['sigma'] / float(param['window'])))
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
@@ -475,7 +487,7 @@ def initialize(files, param):
             _logger.info("- Histogram matching")
             if not param['disable_normalize']: _logger.info("- Normalize (xmipp style)")
         param['count'] = numpy.zeros(2, dtype=numpy.int)
-        if len(files) > 0 and not isinstance(files[0], tuple):
+        if len(files) > 0 and not isinstance(filename, tuple):
             _logger.info("Extracting windows from micrograph stacks of movie frames")
     
     if mpi_utility.is_root(**param):
@@ -507,10 +519,11 @@ def initialize(files, param):
                 '''
                 
             _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_doc, len(files), file_count))
-        if isinstance(files[0], tuple):
-            tot = len(files[0][1])
+        
+        if isinstance(filename, tuple):
+            tot = len(filename[1])
         else:
-            tot = ndimage_file.count_images(files[0])
+            tot = ndimage_file.count_images(filename)
         for filename in param['finished']:
             if tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
@@ -537,17 +550,19 @@ def initialize(files, param):
     if len(files) == 0:
         param['noise']=None
     elif param['noise'] == "":
-        if not isinstance(files[0], tuple):
+        if not isinstance(filename, tuple):
             
             if mpi_utility.is_root(**param):
-                param['noise'] = generate_noise(files[0], **param)
+                param['noise'] = generate_noise(filename, **param)
             mpi_utility.barrier(**param)
             if mpi_utility.is_client_strict(**param):
-                param['noise'] = generate_noise(files[0], **param)
+                param['noise'] = generate_noise(filename, **param)
         else: param['noise']=None
         
     else: 
         param['noise'] =  ndimage_file.read_image(param['noise'])
+    if param['gain_file'] != "":
+        param['gain'] =  ndimage_file.read_image(param['gain_file'])
     
     
     param.update(ndimage_file.cache_data())
@@ -577,7 +592,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Cropping", "Options to crop particles from micrographs", id=__name__) #, gui=dict(root=True, stacked="prepComboBox"))
     
     group.add_option("", invert=False,             help="Invert the contrast on the micrograph (usually for raw CCD micrographs)")
-    group.add_option("", noise="",                 help="Use specified noise file rather then automatically generate one")
+    group.add_option("", noise="",                 help="Use specified noise file rather then automatically generate one", gui=dict(filetype="open"))
+    group.add_option("", gain_file="",             help="Perform gain correction with given norm image", gui=dict(filetype="open"))
     
     egroup = OptionGroup(parser, "Enhancement", "Enhancement for the windows")
     egroup.add_option("", disable_enhance=False,    help="Disable window post-processing: ramp, contrast enhancement")
