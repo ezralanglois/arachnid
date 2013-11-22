@@ -1733,6 +1733,8 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
 def crop_window(img, x, y, offset, out=None):
     ''' Extract a square window from an image
     
+    .. todo:: requires testing for wrap around!
+    
     :Parameters:
     
     img : numpy.ndarray
@@ -1785,9 +1787,15 @@ def crop_window(img, x, y, offset, out=None):
         _logger.error("Error in window2 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
     try:
+        # ValueError: could not broadcast input array from shape (3,74) into shape (2,74)
+        # 2013-11-22 09:00:00,812 ERROR Error in window3 344,418 - 856,927 | 0,0 - 0,3
+        #yb=856
+        #ye=927
+        #dyb=0
+        #dye=3
         if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye:yb, xb:xe]
     except:
-        _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d - width: %d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye, width))
         raise
     try:
         if dyb > 0: out[:dyb, dxb:width-dxe] = img[ye:ye+dyb, xb:xe]
