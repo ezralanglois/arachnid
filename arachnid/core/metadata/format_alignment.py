@@ -5,9 +5,9 @@
 '''
 
 import format, spider_utility, relion_utility
-import numpy
 from ..orient import orient_utility
 from ..image import ndimage_file
+import numpy
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -16,7 +16,23 @@ _logger.setLevel(logging.INFO)
 def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False ,**extra):
     ''' Read an alignment file and organize images
     
-    Supports both SPIDER and relion
+    Supports both SPIDER and Relion alignment files
+    
+    :Parameters:
+    
+    filename : str
+               Filename for alignment file
+    image_file : str
+                 Filename for image template - not required for relion
+    use_3d : bool
+             If True, then translations are RT, otherwise they are TR
+    align_cols : int
+                 Number of columns in alignment array (must be greater than 7)
+    force_list : bool
+                 Return filename index tuple list rather than converting
+                 to SPIDER ID label array
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
     
@@ -25,6 +41,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
           parameters: psi,theta,phi,inplane,tx,ty,defocus
     '''
     
+    if align_cols < 7: raise ValueError, "align_cols must be greater than 7"
     if not isinstance(image_file, str) and len(image_file) == 1: image_file=image_file[0]
     id_len = extra['id_len'] if 'id_len' in extra else 0
     if 'format' in extra: del extra['format']

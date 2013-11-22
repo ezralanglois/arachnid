@@ -19,10 +19,12 @@
     relion_utility
     type_utility
     selection_utility
+    spider_params
+    format_utility
+    namedtuple_utility
+    format_alignment
 
-.. format_alignment
-.. format_utility
-.. spider_params
+.. filename_utility
 .. emimage
 
 
