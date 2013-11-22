@@ -1,6 +1,6 @@
-''' Parse a SPIDER Parameter file and add the keys to a dictionary
+''' Read, write and update SPIDER Parameters
 
-A spider parameter file contains information regarding a Cyro-EM data
+A SPIDER parameter file contains information regarding a Cyro-EM data
 collection including CTF and other features.
 
 Parameters
@@ -130,7 +130,6 @@ def read(filename, extra=None):
 
     filename : str
               File path to parameter file
-
     extra : dict
             Spider parameter dictionary
     
@@ -199,7 +198,15 @@ def read(filename, extra=None):
     return param
 
 def write_update(output, **extra):
-    '''
+    ''' Only write an updated Params file if
+    there are new values to update.
+    
+    :Parameters:
+    
+    output : str
+             Name of params file
+    extra : dict
+            Spider parameter dictionary
     '''
     
     try:
@@ -263,10 +270,12 @@ def setup_options(parser, pgroup=None, required=False):
     
     :Parameters:
 
-    parser : optparse.OptionParser
+    parser : OptionParser
              Program option parser
-    pgroup : optparse.OptionGroup
+    pgroup : OptionGroup
             Parent option group
+    required : bool
+               If true, then set the param_file as required
     '''
     
     from ..app.settings import OptionGroup
