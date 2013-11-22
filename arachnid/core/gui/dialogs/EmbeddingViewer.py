@@ -215,8 +215,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         self.coordinates_file = filename
-        data = format.read(self.coordinates_file, numeric=True)
-        data, header = format_utility.tuple2numpy(data)
+        data, header = format.read(self.coordinates_file, ndarray=True)
         _logger.info("Read in matrix of shape: %s"%str(data.shape))
         
         ids = numpy.ones(len(header), dtype=numpy.bool)

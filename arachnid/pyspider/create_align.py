@@ -243,8 +243,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
         '''
     elif len(files) > 1:
         _logger.info("Assuming micrograph selection file: --select-file %s"%select_file)
-        select = format.read(select_file, header=select_header, numeric=True)
-        select, header = format_utility.tuple2numpy(select)
+        select, header = format.read(select_file, header=select_header, ndarray=True)
         try: id = header.index('id')
         except: raise ValueError, "Cannot find column labelled as `id` in `--select-file` %s, please use `--select-header` to label this column"%select_file
         else: select = set(select[:, id])
@@ -257,8 +256,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
         _logger.info("Selected %d micrographs"%(len(numpy.unique(label[:, 1]))))
     else:
         _logger.info("Assuming full stack selection file: --select-file %s"%select_file)
-        select = format.read(select_file, header=select_header, numeric=True)
-        select, header = format_utility.tuple2numpy(select)
+        select, header = format.read(select_file, header=select_header, ndarray=True)
         try: select = select[:, header.index('id')]-1
         except: raise ValueError, "Cannot find column labelled as `id` in `--select-file` %s, please use `--select-header` to label this column"%select_file
         label = label[select].squeeze()
@@ -294,8 +292,7 @@ def create_stack_label(files, stack_select, stack_header, **extra):
         label[beg:end, 2] = numpy.arange(1, cnt+1)
         beg = end
     if len(files) == 1 and stack_select != "":
-        sel = format.read(stack_select, header=stack_header, numeric=True)
-        sel, header = format_utility.tuple2numpy(sel)
+        sel, header = format.read(stack_select, header=stack_header, ndarray=True)
         try:
             label[:, 0] = sel[:, header.index('id')]
         except:

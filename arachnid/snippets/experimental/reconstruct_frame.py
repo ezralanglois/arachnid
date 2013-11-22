@@ -7,7 +7,7 @@ import sys
 
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format
-from arachnid.core.metadata import format_utility
+from arachnid.core.metadata import format_utility, namedtuple_utility
 from arachnid.core.metadata import spider_utility, relion_utility
 from arachnid.core.image import ndimage_file,ndimage_utility
 from arachnid.core.image import reconstruct
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         if i < 20:
             print data[i].rlnImageName, ' -> ', relion_utility.relion_identifier(filename, idmap[filename])
         data[i] = data[i]._replace(rlnImageName=relion_utility.relion_identifier(filename, idmap[filename]))
-    ndata, header = format_utility.tuple2numpy(data, convert=relion_utility.relion_id)
+    ndata, header = namedtuple_utility.tuple2numpy(data, convert=relion_utility.relion_id)
     order="rlnAnglePsi,rlnAngleTilt,rlnAngleRot,rlnOriginX,rlnOriginY,rlnDefocusU,rlnSphericalAberration,rlnAmplitudeContrast,rlnVoltage".split(',')
     ndata = ndata[:, ([header.index(v) for v in order])]
     # Back project

@@ -33,9 +33,8 @@ if __name__ == "__main__":
     
     # Read an alignment file
     
-    align = format.read_alignment(align_file)
+    align,header = format.read_alignment(align_file, ndarray=True)
     logging.error("Reconstructing %d particles"%len(align))
-    align,header = format_utility.tuple2numpy(align)
     assert(header[0]=='id')
     index = align[:, 0].astype(numpy.int)
     align[:, 1] = numpy.rad2deg(align[:, 1])

@@ -132,19 +132,21 @@ def process(filename, output, id_len=0, subset=None, **extra):
     
     id = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, id, 'good_coords', 'good_output', 'good')
-    coords = format.read(filename, numeric=True)
+    coords,header = format.read(filename, ndarray=True)
     if subset is not None:
         coords = coords[subset[id]]
-    confusion = benchmark(coords, filename, **extra)
+    confusion = benchmark(coords, header, filename, **extra)
     return filename, confusion
 
-def benchmark(coords, fid, good_output="", **extra):
+def benchmark(coords, header, fid, good_output="", **extra):
     ''' Benchmark the specified set of coordinates against a gold standard
     
     :Parameters:
     
     coords : array
              List of x,y coordinate centers for particles
+    header : list
+             List of names for each column in array
     fid : str
           Current SPIDER id
     good_output : str
@@ -158,7 +160,7 @@ def benchmark(coords, fid, good_output="", **extra):
            Confusion matrix counts: (TP, FP, TN, FN)
     '''
     
-    coords, header = format_utility.tuple2numpy(coords)
+    #coords, header = namedtuple_utility.tuple2numpy(coords)
     bench = read_bench_coordinates(fid, **extra)
     if bench is not None:
         selected = bench
@@ -168,7 +170,7 @@ def benchmark(coords, fid, good_output="", **extra):
         else:
             return (0, 0, 0, 0)
     else:
-        selected = format_utility.tuple2numpy(format.read(extra['good'], numeric=True))[0].astype(numpy.int)-1
+        selected = format.read(extra['good'], ndarray=True)[0].astype(numpy.int)-1
         overlap = coords[selected].copy().squeeze()
     if good_output != "":
         format.write(good_output, overlap, header=header)
@@ -199,12 +201,12 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
     good_coords2=format_utility.parse_header(good_coords)[0]
     good_coords2=spider_utility.spider_filename(good_coords2, fid)
     if os.path.exists(good_coords2):
-        coords, header = format_utility.tuple2numpy(format.read(good_coords, numeric=True, spiderid=fid))
+        coords, header = format.read(good_coords, ndarray=True, spiderid=fid)
     else:
         return []
     if good != "":
         try:
-            selected = format_utility.tuple2numpy(format.read(good, numeric=True, spiderid=fid))[0].astype(numpy.int)
+            selected = format.read(good, ndarray=True, spiderid=fid)[0].astype(numpy.int)
         except:
             return []
         else:

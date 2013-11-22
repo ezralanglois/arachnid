@@ -28,7 +28,7 @@ if __name__ == '__main__':
     
     
     # Read an alignment file
-    align, header = format_utility.tuple2numpy(format.read_alignment(align_file))
+    align, header = format.read_alignment(align_file, ndarray=True)
     view = align[:, 3].astype(numpy.int)
     views = numpy.unique(view)
     ids = []

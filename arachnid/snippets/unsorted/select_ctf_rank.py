@@ -28,7 +28,7 @@ if __name__ == '__main__':
     output_file=""
     stack_file=""
     
-    selection, header = format_utility.tuple2numpy(format.read(selection_file, numeric=True))
+    selection, header = format.read(selection_file, ndarray=True)
     rank = header.index('rank')
     id = header.index('id')
     def_col = header.index('defocus')

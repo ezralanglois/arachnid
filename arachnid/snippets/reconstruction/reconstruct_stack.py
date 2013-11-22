@@ -48,9 +48,8 @@ if __name__ == "__main__":
     print "Loaded param file"
     extra.update(thread_count=thread_count)
     
-    align = format.read_alignment(align_file)
+    align,header = format.read_alignment(align_file, ndarray=True)
     logging.error("Reconstructing %d particles"%len(align))
-    align,header = format_utility.tuple2numpy(align)
     selection = align[:, 15:17]
     align[:, 6:8] /= extra['apix']
     iter_single_images = ndimage_file.iter_images(image_file, selection)

@@ -30,7 +30,7 @@ if __name__ == '__main__':
     write_stack = int(sys.argv[5]) if len(sys.argv) > 5 else 0
     header = "id,defocus,astig_mag,astig_ang,cutoff".split(',')
     
-    defocus, header = format_utility.tuple2numpy(format.read(defocus_file, numeric=True, header=header))
+    defocus, header = format.read(defocus_file, ndarray=True, header=header)
     print "Original Number of groups", defocus.shape[0]
     defocus_col = header.index('defocus')
     id_col = header.index('id')

@@ -27,8 +27,7 @@ if __name__ == '__main__':
     output_file = ""
     
     # Read an alignment file
-    align = format.read_alignment(align_file)
-    align,header = format_utility.tuple2numpy(align)
+    align,header = format.read_alignment(align_file, ndarray=True)
     
     align[:, 16]-=1
     iter_single_images = ndimage_file.iter_images(image_file, align[:, 15:17])

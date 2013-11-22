@@ -19,7 +19,7 @@ To run:
    :lines: 22-
    :linenos:
 '''
-from arachnid.core.metadata import format, format_utility, spider_utility
+from arachnid.core.metadata import format, format_utility, spider_utility, namedtuple_utility
 from arachnid.core.image import ndimage_file, ndimage_utility
 from arachnid.core.util import plotting
 #from arachnid.core.util import numpy_ext
@@ -83,16 +83,16 @@ if __name__ == '__main__':
     markersize=3
     
     data = format.read(input_file, numeric=True)
-    selection = format.read(select_file, numeric=True) if select_file else None
+    selection = format.read(select_file, ndarray=True) if select_file else None
     if selection is not None:
-        selection, header = format_utility.tuple2numpy(selection)
+        selection, header = selection
         selection = selection[:, header.index('select')]
     
     try:
         label = spider_utility.tuple2id(data, input_file, id_len)
     except: label=None
     
-    data, header = format_utility.tuple2numpy(data)
+    data, header = namedtuple_utility.tuple2numpy(data)
     data = data.squeeze()
     c0 = header.index('c0')
     c1 = header.index('c1')

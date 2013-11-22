@@ -203,8 +203,8 @@ def enhance_volume(filename, spi, sp, outputfile, scatter_doc="", enh_mask=False
     spvol = spi.sq(pvol)
     rot_avg = spi.ro(spvol)
     spi.li_d(rot_avg, 'R', 1, outputfile=tmp_roo, use_2d=False)
-    powspec = format_utility.tuple2numpy(format.read(spi.replace_ext(tmp_roo)))[0]
-    scatter = format_utility.tuple2numpy(format.read(spi.replace_ext(scatter_doc)))[0]
+    powspec = format.read(spi.replace_ext(tmp_roo), ndarray=True)[0]
+    scatter = format.read(spi.replace_ext(scatter_doc), ndarray=True)[0]
     scatter = scatter[:, 1:]
     powspec = powspec[:, 1:]
     outvals = numpy.zeros((filter_limit, 4))

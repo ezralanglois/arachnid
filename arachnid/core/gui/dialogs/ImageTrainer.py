@@ -80,7 +80,7 @@ class MainWindow(MontageWindow):
             self.imagepred = self.imagelabel.copy()
             param['thread_count'] = 8
             if a != "":
-                self.alignment = format_utility.tuple2numpy(format.read_alignment(a))[0]
+                self.alignment = format.read_alignment(a, ndarray=True)[0]
             self.imagepred[:, 2] = autopart.classify([self.imagefile], self.imagelabel[:, :2], self.alignment, train_set, train_y, resolution=40, **param)
             self.ui.displayPredictionAction.setEnabled(True)
             numpy.savetxt(self.predfile, self.imagepred, delimiter=',', newline='\n')

@@ -38,8 +38,7 @@ if __name__ == '__main__':
     
     # Read a resolution file
     
-    res = format.read(resolution_file, numeric=True)
-    res,header = format_utility.tuple2numpy(res)
+    res,header = format.read(resolution_file, ndarray=True)
     print "header from input resolution file: ", header
     sfreq = header.index(freq_col)
     fsc = header.index(fsc_col)

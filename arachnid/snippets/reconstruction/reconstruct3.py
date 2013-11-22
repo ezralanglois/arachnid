@@ -46,9 +46,8 @@ if __name__ == "__main__":
     print "Loaded param file"
     extra.update(thread_count=thread_count)
     
-    align = format.read_alignment(align_file)
+    align,header = format.read_alignment(align_file, ndarray=True)
     logging.error("Reconstructing %d particles"%len(align))
-    align,header = format_utility.tuple2numpy(align)
     if align.shape[1] > 17:
         selection = align[:, 15:17]
         selection[:, 1]-=1

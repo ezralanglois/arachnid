@@ -28,7 +28,7 @@ if __name__ == '__main__':
     
     
     # Read an alignment file
-    data, header = format_utility.tuple2numpy(format.read(input_file, numeric=True))
+    data, header = format.read(input_file, ndarray=True)
     if 'select' not in set(header):
         data2 = numpy.hstack((data, numpy.zeros((data.shape[0], 1))))
         data2[:good_range, data.shape[1]] = 1

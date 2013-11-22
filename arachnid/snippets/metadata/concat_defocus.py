@@ -27,7 +27,7 @@ if __name__ == '__main__':
     select_file = sys.argv[3]
     
     
-    select, header = format_utility.tuple2numpy(format.read(select_file, numeric=True))
+    select, header = format.read(select_file, ndarray=True)
     total = select[:, 2].sum()
     id2defocus = numpy.zeros(total)
     beg=0

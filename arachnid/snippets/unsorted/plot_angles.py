@@ -74,8 +74,7 @@ if __name__ == '__main__':
     use_3d=False
     area_mult = 1.0
     
-    align = format.read(alignment_file, numeric=True)
-    align,header = format_utility.tuple2numpy(align)
+    align,header = format.read(alignment_file, ndarray=True)
     
     if use_3d:
         ax = mplot3d.Axes3D(pyplot.figure(0))

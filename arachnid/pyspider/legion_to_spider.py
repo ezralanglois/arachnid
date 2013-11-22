@@ -90,8 +90,8 @@ def recover_ids(files, output, reference, recover, **extra):
             elif val.defocus not in skip_defocus:
                 ref_defocus[val.defocus]=val.id
     else:
-        #cur_defocus, cur_header = format_utility.tuple2numpy(format.read(recover, numeric=True))
-        ref_defocus, ref_header = format_utility.tuple2numpy(format.read(reference, numeric=True))
+        #cur_defocus, cur_header = format.read(recover, ndarray=True)
+        ref_defocus, ref_header = format.read(reference, ndarray=True)
         #astig_ang
         id_idx = ref_header.index('id')
         if 1 == 1:

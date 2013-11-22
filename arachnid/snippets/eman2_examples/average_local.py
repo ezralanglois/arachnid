@@ -40,9 +40,8 @@ if __name__ == "__main__":
     #Note: this code assuming you are average_localing a dala stack or a translated stack
     
     # Read an alignment file
-    align = format.read_alignment(align_file)
+    align,header = format.read_alignment(align_file, ndarray=True)
     logging.info("Averaging %d particles"%len(align))
-    align,header = format_utility.tuple2numpy(align)
     if not eman2_utility.is_avaliable(): raise ValueError, "EMAN2 is not installed"
     reference = numpy.asarray(eman2_utility.utilities.even_angles(15, 0.0, 90.0, 0.0, 359.99, 'P', '', 'c1'))
     ang = numpy.zeros((len(align)+len(reference), 4))

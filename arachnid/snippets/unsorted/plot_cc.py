@@ -32,8 +32,7 @@ if __name__ == '__main__':
     output_path=""
     output_files=[]
     
-    align = format.read_alignment(alignment_file)
-    align, header = format_utility.tuple2numpy(align)
+    align, header = format.read_alignment(alignment_file, ndarray=True)
     cc_rot = header.index('cc_rot')
     
     output_files.append(os.path.join(output_path, "ccrot_histogram.png"))

@@ -40,9 +40,8 @@ if __name__ == "__main__":
     
     # Read an alignment file
     
-    align = format.read_alignment(align_file)
-    logging.error("Reconstructing %d particles"%len(align))
-    align1,header = format_utility.tuple2numpy(align)
+    align1,header = format.read_alignment(align_file, ndarray=True)
+    logging.error("Reconstructing %d particles"%len(align1))
     order = format.read(select_file, ndarray=True)[0][:, col]
     sindex = numpy.argsort(order)
     tot = len(sindex)/bin_size

@@ -37,8 +37,7 @@ if __name__ == "__main__":
     
     tracing.configure_logging(log_level=4)
     _logger.info("Reading alignment file")
-    align = format.read_alignment(align_file)
-    align,header = format_utility.tuple2numpy(align)
+    align,header = format.read_alignment(align_file, ndarray=True)
     image_size = ndimage_file.read_image(image_file).shape[0]
     
 

@@ -74,7 +74,8 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             files = (files[0][0], label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
     else:
-        align = format_utility.tuple2numpy(read_spider_alignment(filename, **extra))[0]
+        if 'ndarray' not in extra or not extra['ndarray']: extra['ndarray']=True
+        align = read_spider_alignment(filename, **extra)[0]
         param = numpy.zeros((len(align), align_cols))
         if align.shape[1] > 17: 
             param[:, 6] = align[:, 17]

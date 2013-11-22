@@ -40,8 +40,7 @@ if __name__ == '__main__':
             ndimage_file.write_image(output_file, img, offset)
             offset +=1
         
-        coords = format.read(coord_file, numeric=True)
-        coords, header = format_utility.tuple2numpy(coords)
+        coords, header = format.read(coord_file, ndarray=True)
         coords = coords[:, (header.index('x'), header.index('y'))]
         coords = coords[::-1]
         coords = coords[:(total-offset)]

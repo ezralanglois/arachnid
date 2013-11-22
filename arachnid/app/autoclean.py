@@ -132,7 +132,7 @@ This is not a complete list of options available to this script, for additional 
 
 from ..core.app import program
 from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
-from ..core.metadata import format, format_utility, spider_params, format_alignment
+from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
 import logging, numpy, scipy, scipy.cluster.vq, scipy.spatial.distance
@@ -622,7 +622,7 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
     for filename in finished:
         label = filename[1]
         data = format.read(output, numeric=True, spiderid=int(filename[0]))
-        feat, header = format_utility.tuple2numpy(data)
+        feat, header = namedtuple_utility.py.tuple2numpy(data)
         off = header.index('mirror')+1
         if nsamples is None:
             nsamples = len(numpy.unique(feat[:, 4]))

@@ -7,7 +7,7 @@ import sys
 
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format
-from arachnid.core.metadata import format_utility
+from arachnid.core.metadata import format_utility, namedtuple_utility
 from arachnid.core.metadata import relion_utility
 from arachnid.core.image import ndimage_file
 from arachnid.core.image import reconstruct
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     data = format.read(data_file, numeric=True)
     even = numpy.arange(0, len(data), 2, dtype=numpy.int)
     odd = numpy.arange(1, len(data), 2, dtype=numpy.int)
-    ndata, header = format_utility.tuple2numpy(data, convert=relion_utility.relion_id)
+    ndata, header = namedtuple_utility.tuple2numpy(data, convert=relion_utility.relion_id)
     order="rlnAnglePsi,rlnAngleTilt,rlnAngleRot,rlnOriginX,rlnOriginY,rlnDefocusU,rlnSphericalAberration,rlnAmplitudeContrast,rlnVoltage".split(',')
     ndata = ndata[:, ([header.index(v) for v in order])]
     img = ndimage_file.read_image(relion_utility.relion_file(data[0].rlnImageName)[0])

@@ -52,7 +52,7 @@ def batch(files, output, param_file, image_file, **extra):
                 ctfimage = spi.mu(ftimage, ctf, outputfile=ctfimage)
                 spi.ft(ctfimage, outputfile=(tmp_stack, index+1))
         
-        align = format_utility.tuple2numpy(format.read_alignment(files[0]))[0]
+        align = format.read_alignment(files[0], ndarray=True)[0]
         align[:, 6:8] /= extra['apix']
         align[:, 12:14] /= extra['apix']
         alignment = format.write(output, align, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,mic,slice,defocus".split(','), prefix="align_")

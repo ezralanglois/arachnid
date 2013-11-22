@@ -39,9 +39,8 @@ if __name__ == "__main__":
     type='bp3f' # bp3f or nn4
     
     # Read an alignment file
-    align = format.read_alignment(align_file)
+    align,header = format.read_alignment(align_file, ndarray=True)
     logging.error("Reconstructing %d particles"%len(align))
-    align,header = format_utility.tuple2numpy(align)
     selection = numpy.arange(len(align), dtype=numpy.int)
     if select_file != "":
         selindex = [v[-1] for v in format.read(select_file, numeric=True)]

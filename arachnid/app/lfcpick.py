@@ -375,9 +375,9 @@ def reduce_all(val, confusion, file_index, **extra):
     filename, coords = val
     info=""
     if len(coords) > 0 and (extra['good'] != "" or extra['good_coords'] != ""):
-        coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
+        #coords = format_utility.create_namedtuple_list(coords, "Coord", "id,peak,x,y", numpy.arange(1, coords.shape[0]+1, dtype=numpy.int))
         try:
-            vals = benchmark.benchmark(coords, filename, **extra)
+            vals = benchmark.benchmark(numpy.hstack((numpy.arange(1, coords.shape[0]+1)[:, numpy.newaxis], coords)), "id,peak,x,y".split(','), filename, **extra)
         except:pass
         else:
             confusion[file_index, 0] = vals[0]+vals[1]

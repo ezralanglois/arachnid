@@ -39,7 +39,7 @@ from formats import csv, prediction, spiderdoc, spidersel, star #, frealign, mrc
 from format_utility import ParseFormatError, WriteFormatError
 from factories import namedtuple_factory
 from spider_utility import spider_filename
-import format_utility
+import format_utility, namedtuple_utility
 import os, numpy, logging
 
 #__formats = [star, spiderdoc, spidersel, frealign, mrccoord, csv, prediction]
@@ -437,7 +437,7 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
         _logger.debug("first_vals: %s"%str(first_vals))
         _logger.debug("format: %s"%str(format))
         raise
-    if ndarray: return format_utility.tuple2numpy(vals)
+    if ndarray: return namedtuple_utility.tuple2numpy(vals)
     elif map_ids: return format_utility.map_object_list(vals, map_ids)
     return vals
 

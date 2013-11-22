@@ -28,8 +28,7 @@ if __name__ == '__main__':
     image_file = "dala_025.int"
     output_file = "avg_001.int"
     
-    align = format.read_alignment(align_file)
-    align, header = format_utility.tuple2numpy(align)
+    align, header = format.read_alignment(align_file, ndarray=True)
     refidx = header.index('ref_num')
     label = numpy.zeros((len(align), 2), dtype=numpy.int)
     label[:, 0] = spider_utility.spider_id(image_file)

@@ -35,8 +35,7 @@ def read_alignment(files, alignment="", **extra):
     
     if len(files) == 1:
         spiderid = files[0] if not os.path.exists(alignment) else None
-        align = format.read_alignment(alignment, spiderid=spiderid)
-        align, header = format_utility.tuple2numpy(align)
+        align, header = format.read_alignment(alignment, spiderid=spiderid, ndarray=True)
         refidx = header.index('ref_num')
         label = numpy.zeros((len(align), 2), dtype=numpy.int)
         label[:, 0] = spider_utility.spider_id(files[0])
@@ -48,8 +47,7 @@ def read_alignment(files, alignment="", **extra):
         refidx = None
         if os.path.exists(alignment):
             logging.debug("Alignment exists")
-            align = format.read_alignment(alignment)
-            align, header = format_utility.tuple2numpy(align)
+            align, header = format.read_alignment(alignment, ndarray=True)
             refidx = header.index('ref_num')
             if len(align)>0 and 'stack_id' in set(header):
                 align = numpy.asarray(align)
@@ -61,8 +59,7 @@ def read_alignment(files, alignment="", **extra):
             alignvals = []
             total = 0 
             for f in files:
-                aligncur = format.read_alignment(alignment, spiderid=f)
-                aligncur, header = format_utility.tuple2numpy(aligncur)
+                aligncur, header  = format.read_alignment(alignment, spiderid=f, ndarray=True)
                 if refidx is None: refidx = header.index('ref_num')
                 alignvals.append((f, aligncur))
                 total += len(aligncur)
