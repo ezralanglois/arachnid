@@ -1,4 +1,4 @@
-''' Various utilities when dealing with files, ndarrays or lists of namedtuples
+''' Various utilities when dealing with files, ndarrays
 
 This module defines a set of utility functions to be used by individual 
 formats as well as exceptions.
@@ -41,6 +41,10 @@ class FormatUtilityError(StandardError):
 def combine(vals):
     ''' Combine values from different files (only include common columns)
     
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> combine([NTuple(id=1, select=2, order=0), NTuple(id=5, select=0)])
+    [CombinedArray(id=1, select=2), CombinedArray(id=5, select=0)]
+    
     :Parameters:
     
     vals : list
@@ -66,141 +70,15 @@ def combine(vals):
         for v in curr:
             retvals.append(Tuple._make([getattr(v, h) for h in header]))
     return retvals
-    
 
-try:
-    import numpy
 
-    def tuple2numpy(blobs, out=None, convert=None):
-        ''' Convert a list of namedtuples to a numpy array
-        
-        :Parameters:
-        
-        blobs : list
-                List of namedtuples
-        out : array, optional
-              Array of the correct size
-        
-        :Returns:
-        
-        out : array
-              Array containing all the values of the input
-        header : list
-                 List of headers for each column of the array
-        '''
-        
-        if len(blobs) == 0: return []
-        header = list(blobs[0]._fields)
-        idx=None
-        if has_file_id(blobs):
-            header.insert(0, "fileid")
-            if out is None: out = numpy.zeros((len(blobs), len(blobs[0])+1))
-            if hasattr(blobs[0], 'id'):
-                for i in xrange(len(blobs)):
-                    out[i, 0] = file_id(blobs[i].id)
-                    out[i, 1:] = numpy.asarray(blobs[i]._replace(id=object_id(blobs[i].id)))
-            elif hasattr(blobs[0], 'rlnImageName'):
-                for i in xrange(len(blobs)):
-                    if convert is not None:
-                        fid, pid = convert(blobs[i].rlnImageName)
-                        tmp = numpy.asarray(blobs[i]._replace(rlnImageName=pid))
-                    else:
-                        fid, tmp = file_id(blobs[i].rlnImageName), numpy.asarray(blobs[i]._replace(id=object_id(blobs[i].rlnImageName)))
-                    out[i, 0] = fid
-                    if idx is None:
-                        try:
-                            out[i, 1:] = tmp
-                        except:
-                            tmp = blobs[i]._replace(rlnImageName=pid)
-                            idx = []
-                            for i in xrange(len(tmp)):
-                                try: float(tmp[i])
-                                except: pass
-                                else: idx.append(i)
-                    if idx is not None:
-                        tmp = blobs[i]._replace(rlnImageName=pid)
-                        out[i, 1:1+len(idx)] = numpy.asarray([float(tmp[j]) for j in idx])
-                        
-            else: raise ValueError, "Cannot find ID column"
-        else:
-            if out is None: out = numpy.zeros((len(blobs), len(blobs[0])))
-            for i in xrange(len(blobs)):
-                out[i, :] = numpy.asarray(blobs[i])
-        if idx is not None:
-            headerold=list(header)
-            header=[]
-            for i in idx:
-                header.append(headerold[i])
-        return out, header
-    
-    def create_selection_doc(n, start=1, micrograph_id=None):
-        ''' Create a selection document from a range and optional micrograph id
-        
-        :Parameters:
-        
-        n : int
-            Length of the range
-        start : int
-                Starting value for the range
-        micrograph_id : int, optional
-                        Micrograph id
-                        
-        :Returns:
-        
-        vals : array
-               List of namedtuples
-        '''
-        
-        values = numpy.ones((n, 2))
-        pid = 0
-        header="id,select"
-        if micrograph_id is not None:
-            pid = 1
-            values[:, 0] = micrograph_id
-            header = "micrograph,particle"
-        values[:, pid] = range(start, start+n)
-        if start == 0:  values[:, pid] += 1
-        return create_namedtuple_list(values, "Selection", header=header)
-    
-    def create_selection_map(offset, n, micrograph_id):
-        ''' Create a selection document from a range
-        
-        :Parameters:
-        
-        offset : int
-                 Offset for global range of ids
-        n : int or array
-            List of ids or length (1...n+1)
-        micrograph_id : int
-                        Micrograph id
-                        
-        :Returns:
-        
-        vals : array
-               List of namedtuples
-        '''
-        
-        if isinstance(n, list):
-            ids = numpy.asarray(n)
-            n = len(n)
-        else:
-            ids = numpy.arange(1, 1+n, dtype=numpy.int)
-        values = numpy.ones((n, 3), dtype=numpy.int)
-        values[:, 0] = numpy.arange(offset+1, offset+1+n, dtype=numpy.int)
-        values[:, 1] = ids
-        values[:, 2] = micrograph_id
-        header = "id,old_id,micrograph"
-        return create_namedtuple_list(values, "Selection", header=header)
-except: pass
 
 def new_filename(filename, prefix=None, suffix=None, ext=None, subdir=None):
     '''Add a prefix, suffix and/or extension to the given filename
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> print add_prefix('output.txt', 'new')
-            'new_output.txt'
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> print add_prefix('output.txt', 'new')
+        'new_output.txt'
     
     :Parameters:
     
@@ -232,11 +110,9 @@ def new_filename(filename, prefix=None, suffix=None, ext=None, subdir=None):
 def add_prefix(filename, prefix):
     '''Add a prefix to the given filename
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> print add_prefix('output.txt', 'new')
-            'new_output.txt'
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> print add_prefix('output.txt', 'new')
+        'new_output.txt'
     
     :Parameters:
     
@@ -260,11 +136,9 @@ def add_prefix(filename, prefix):
 def add_suffix(filename, suffix):
     '''Add a suffix to the given filename
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> print add_prefix('output.txt', 'new')
-            'new_output.txt'
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> print add_prefix('output.txt', 'new')
+        'new_output.txt'
     
     :Parameters:
     
@@ -284,40 +158,13 @@ def add_suffix(filename, suffix):
         return base+suffix+ext
     return filename
 
-def has_extension(filename):
-    '''Test if filename has correct extension for format
-    
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> print has_extension('output.txt')
-            False
-    
-    :Parameters:
-    
-    filename : str
-              Filename to test
-                  
-    :Returns:
-    
-    val : bool
-          True if extension matchs format extension
-    '''
-    
-    return os.path.splitext(filename)[1][1:] == extension()
-
-def extension(): return None
-
-
 def create_namedtuple_list(values, name, header, label=None, good=None):
     ''' Create a list of namedtuples from a collection of values
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> values = [ [1,0], [2,1], [3,1] ]
-        >>> create_namedtuple_list(values, "Selection", "id,select")
-        [ Selection(id=1, select=0), Selection(id=2, select=1) Selection(id=3, select=1) ]
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> values = [ [1,0], [2,1], [3,1] ]
+    >>> create_namedtuple_list(values, "Selection", "id,select")
+    [ Selection(id=1, select=0), Selection(id=2, select=1) Selection(id=3, select=1) ]
     
     :Parameters:
     
@@ -372,13 +219,11 @@ def create_namedtuple_list(values, name, header, label=None, good=None):
 def convert(val):
     '''Try to convert string value to numeric
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> convert("2.0")
-        2
-        >>> convert("2.1")
-        2.1
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> convert("2.0")
+    2
+    >>> convert("2.1")
+    2.1
     
     :Parameters:
     
@@ -413,16 +258,14 @@ def parse_header(filename, header=None):
     
     Example usage of the parse header function: 
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> filename1='/path/to/file/filename=header1,header2,header3'
-        >>> parse_header(filename1)
-        ('/path/to/file/filename', ['header1', 'header2', 'header3'])
-        >>> filename2='/path/to/file/filename'
-        >>> default_header=["field1", "field2", "field3"]
-        >>> parse_header(filename2, default_header)
-        ('/path/to/file/filename', ['field1', 'field2', 'field3'])
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> filename1='/path/to/file/filename=header1,header2,header3'
+    >>> parse_header(filename1)
+    ('/path/to/file/filename', ['header1', 'header2', 'header3'])
+    >>> filename2='/path/to/file/filename'
+    >>> default_header=["field1", "field2", "field3"]
+    >>> parse_header(filename2, default_header)
+    ('/path/to/file/filename', ['field1', 'field2', 'field3'])
     
     :Parameters:
     
@@ -454,11 +297,9 @@ def parse_header(filename, header=None):
 def create_id(objid, fileid):
     '''Create a new id from an object id and a file id
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> create_id('1', '2')
-        "2/1"
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> create_id('1', '2')
+    "2/1"
     
     :Parameters:
     
@@ -479,11 +320,9 @@ def create_id(objid, fileid):
 def split_id(id, numeric=False):
     '''Split the ID string into two individual IDs
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> split_id("2/1")
-        ['2', '1']
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> split_id("2/1")
+    ['2', '1']
     
     :Parameters:
     
@@ -505,13 +344,11 @@ def split_id(id, numeric=False):
 def file_id(id):
     '''Extract the file id from a full string id
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> file_id("2/1")
-        2
-        >>> file_id("1")
-        1
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> file_id("2/1")
+    2
+    >>> file_id("1")
+    1
     
     :Parameters:
     
@@ -536,13 +373,11 @@ def file_id(id):
 def object_id(id):
     '''Extract the object id from a full string id
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> object_id("2/1")
-        1
-        >>> object_id("1")
-        1
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> object_id("2/1")
+    1
+    >>> object_id("1")
+    1
     
     :Parameters:
     
@@ -567,18 +402,16 @@ def object_id(id):
 def has_file_id(val):
     '''Test if ID, value or collection has a file ID
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> has_file_id("2/1")
-        True
-        >>> has_file_id("1")
-        False
-        >>> has_file_id(["2/1"])
-        True
-        >>> TestTuple = namedtuple("TestTuple", "id,select")
-        >>> has_file_id(TestTuple("1", 0))
-        False
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> has_file_id("2/1")
+    True
+    >>> has_file_id("1")
+    False
+    >>> has_file_id(["2/1"])
+    True
+    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> has_file_id(TestTuple("1", 0))
+    False
     
     :Parameters:
     
@@ -607,16 +440,14 @@ def has_file_id(val):
 def get_header(value, key=None):
     '''Get the header of a named tuple or collection of named tuples
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple = namedtuple("TestTuple", "id,select")
-        >>> get_header(TestTuple("1", 0))
-        ('id', 'select')
-        >>> get_header([TestTuple("1", 0)])
-        ('id', 'select')
-        >>> get_header(TestTuple("1", 0), "id")
-        0
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> get_header(TestTuple("1", 0))
+    ('id', 'select')
+    >>> get_header([TestTuple("1", 0)])
+    ('id', 'select')
+    >>> get_header(TestTuple("1", 0), "id")
+    0
     
     :Parameters:
 
@@ -646,6 +477,10 @@ def get_header(value, key=None):
 def has_field(val, key):
     ''' Test if the namedtuple or collection of namedtuples has the specific field
     
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> has_field([Select(id=1)], 'id')
+    True
+    
     :Parameters:
     
     val : namedtuple
@@ -666,13 +501,11 @@ def has_field(val, key):
 def map_object_list(vals, key="id"):
     '''Map the list of named tuples to a dictionary
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple = namedtuple("TestTuple", "id,select")
-        >>> testlist = [TestTuple(1,1), TestTuple(20,1)]
-        >>> map_object_list(testlist)
-        {1: TestTuple(id=1, select=1), 20: TestTuple(id=20, select=1)}
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> testlist = [TestTuple(1,1), TestTuple(20,1)]
+    >>> map_object_list(testlist)
+    {1: TestTuple(id=1, select=1), 20: TestTuple(id=20, select=1)}
     
     :Parameters:
 
@@ -701,13 +534,11 @@ def map_object_list(vals, key="id"):
 def map_file_list(vals, replace=False, key="id"):
     '''Map the list of named tuples to a dictionary
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple = namedtuple("TestTuple", "id,select")
-        >>> testlist = [TestTuple("1/1",1), TestTuple("20/1",1)]
-        >>> map_file_list(testlist)
-        defaultdict(<type 'list'>, {1: [TestTuple(id='1/1', select=1)], 20: [TestTuple(id='20/1', select=1)]})
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> testlist = [TestTuple("1/1",1), TestTuple("20/1",1)]
+    >>> map_file_list(testlist)
+    defaultdict(<type 'list'>, {1: [TestTuple(id='1/1', select=1)], 20: [TestTuple(id='20/1', select=1)]})
     
     :Parameters:
 
@@ -737,13 +568,11 @@ def map_file_list(vals, replace=False, key="id"):
 def map_list(vals, key="id", replace=True):
     '''Map the list of named tuples to a dictionary
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple = namedtuple("TestTuple", "id,select")
-        >>> testlist = [TestTuple("1/1",1), TestTuple("1/2",0), TestTuple("20/1",1)]
-        >>> map_list(testlist)
-        defaultdict(<type 'list'>, {1: {1: TestTuple(id='1/1', select=1), 2: TestTuple(id='1/2', select=0)}, 20: {1: TestTuple(id='20/1', select=1)}})
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> testlist = [TestTuple("1/1",1), TestTuple("1/2",0), TestTuple("20/1",1)]
+    >>> map_list(testlist)
+    defaultdict(<type 'list'>, {1: {1: TestTuple(id='1/1', select=1), 2: TestTuple(id='1/2', select=0)}, 20: {1: TestTuple(id='20/1', select=1)}})
     
     :Parameters:
 
@@ -776,15 +605,13 @@ def map_list(vals, key="id", replace=True):
 def concat_tuple(t1, t2, NamedTuple):
     '''Concatenate two namedtuples
     
-    .. sourcecode:: py
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
+    >>> TestTuple2 = namedtuple("TestTuple2", "id,peak")
+    >>> CatTuple = namedtuple("CatTuple", "id,select,peak")
     
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
-        >>> TestTuple2 = namedtuple("TestTuple2", "id,peak")
-        >>> CatTuple = namedtuple("CatTuple", "id,select,peak")
-        
-        >>> concat_tuple(TestTuple1(1, 1), TestTuple2(1,0.9), CatTuple)
-        CatTuple(id=1, select=1, peak=0.90)
+    >>> concat_tuple(TestTuple1(1, 1), TestTuple2(1,0.9), CatTuple)
+    CatTuple(id=1, select=1, peak=0.90)
     
     :Parameters:
 
@@ -814,15 +641,13 @@ def concat_tuple(t1, t2, NamedTuple):
 def stack(tlist1, tlist2, classname="StackTuple"):
     '''Stack two lists of tuples into a single tuple
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
-        >>> TestTuple2 = namedtuple("TestTuple2", "id,peak")
-        >>> testlist1 = [TestTuple1(2,0)]
-        >>> testlist2 = [TestTuple1(2,0.5)]
-        >>> stack(testlist1, testlist2)
-        [StackTuple(id=2, select=0.5)]
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
+    >>> TestTuple2 = namedtuple("TestTuple2", "id,peak")
+    >>> testlist1 = [TestTuple1(2,0)]
+    >>> testlist2 = [TestTuple1(2,0.5)]
+    >>> stack(testlist1, testlist2)
+    [StackTuple(id=2, select=0.5)]
     
     :Parameters:
 
@@ -854,12 +679,10 @@ def stack(tlist1, tlist2, classname="StackTuple"):
 def column_offsets(vals, column):
     '''Get the column offsets of a header (or list of headers) from the specified named tuple (or list of named tuples).
     
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
-        >>> column_offsets([TestTuple1(2,0)], "select")
-        1
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
+    >>> column_offsets([TestTuple1(2,0)], "select")
+    1
     
     :Parameters:
 
@@ -882,17 +705,15 @@ def column_offsets(vals, column):
 
 def flatten(values):
     ''' Flatten a collection of collection of namedtuples
-    
-    .. sourcecode:: py
-    
-        >>> from core.metadata.format_utility import *
-        >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
-        >>> flatten([TestTuple1(2,0)])
-        [TestTuple1(id=2, select=0)]
-        >>> flatten([[TestTuple1(2,0)],[TestTuple1(3,0)]])
-        [TestTuple1(id=2, select=0), TestTuple1(id=3, select=0)]
-        >>> flatten({1: [TestTuple1(2,0)], 2: [TestTuple1(3,0)]})
-        [TestTuple1(id=2, select=0), TestTuple1(id=3, select=0)]
+
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
+    >>> flatten([TestTuple1(2,0)])
+    [TestTuple1(id=2, select=0)]
+    >>> flatten([[TestTuple1(2,0)],[TestTuple1(3,0)]])
+    [TestTuple1(id=2, select=0), TestTuple1(id=3, select=0)]
+    >>> flatten({1: [TestTuple1(2,0)], 2: [TestTuple1(3,0)]})
+    [TestTuple1(id=2, select=0), TestTuple1(id=3, select=0)]
     
     :Parameters:
 
@@ -919,6 +740,10 @@ def flatten(values):
 
 def order(values, index, keep_old=False):
     ''' Order values in a list using the ordered indices
+    
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> order([TestTuple1(id=2, select=0), TestTuple1(id=3, select=1)], (1,0))
+    [TestTuple1(id=1, select=1), TestTuple1(id=2, select=0)]
     
     :Parameters:
     
@@ -952,6 +777,10 @@ def order(values, index, keep_old=False):
 def add_file_id(values, fid):
     ''' Add a micrograph id to the id-field of each value in a list, in place
     
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> add_file_id([TestTuple1(id=2, select=0), TestTuple1(id=3, select=1)], 10)
+    [TestTuple1(id='10/2', select=0), TestTuple1(id='10/3', select=1)]
+    
     :Parameters:
     
     values : list
@@ -974,6 +803,10 @@ def add_file_id(values, fid):
 def renumber(values):
     '''Renumber the ids in a list of values
     
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> renumber([TestTuple1(id=2, order=1), TestTuple1(id=4, order=2), TestTuple1(id=1, order=3)])
+    [TestTuple1(id=1, order=3), TestTuple1(id=2, order=1), TestTuple1(id=3, order=2)]
+    
     :Parameters:
 
     values : list
@@ -994,6 +827,12 @@ def renumber(values):
 
 def fileid(fileset):
     ''' Extract a single filename from the set
+    
+    >>> from arachnid.core.metadata.format_utility import *
+    >>> fileid([TestTuple1(id='10/2', select=0), TestTuple1(id='10/3', select=1)], 10)
+    '10'
+    
+    .. deprecated:: 0.1.3
     
     :Parameters:
     
