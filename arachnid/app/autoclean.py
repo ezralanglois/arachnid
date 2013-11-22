@@ -623,10 +623,12 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         label = filename[1]
         data = format.read(output, numeric=True, spiderid=int(filename[0]))
         feat, header = format_utility.tuple2numpy(data)
+        off = header.index('mirror')+1
         if nsamples is None:
             nsamples = len(numpy.unique(feat[:, 4]))
             _logger.info("Number of samples per view: %d"%nsamples)
-        feat = feat[:, 6:]
+        feat = feat[:, off:]
+        #sel, rsel, dist = one_class_classification(feat, **extra)
         sel, rsel = one_class_classification(feat, neig=neig, nsamples=nsamples, **extra)[:2]
         _logger.info("Read %d samples and selected %d from finished view: %d"%(feat.shape[0], numpy.sum(rsel), int(filename[0])))
         for j in xrange(len(feat)):
