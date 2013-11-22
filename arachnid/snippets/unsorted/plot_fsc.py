@@ -19,7 +19,7 @@ To run:
    :lines: 22-
    :linenos:
 '''
-from arachnid.core.metadata import format, format_utility
+from arachnid.core.metadata import format
 from arachnid.core.util import fitting
 import pylab, os
 

@@ -52,7 +52,7 @@ To run:
    :lines: 55-
    :linenos:
 '''
-from arachnid.core.metadata import format, format_utility
+from arachnid.core.metadata import format
 from arachnid.core.orient import healpix
 import numpy, scipy
 #import matplotlib

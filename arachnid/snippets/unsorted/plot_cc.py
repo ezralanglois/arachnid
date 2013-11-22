@@ -19,7 +19,7 @@ To run:
    :lines: 22-
    :linenos:
 '''
-from arachnid.core.metadata import format, format_utility
+from arachnid.core.metadata import format
 from arachnid.core.image import analysis
 from arachnid.core.orient import healpix
 import numpy

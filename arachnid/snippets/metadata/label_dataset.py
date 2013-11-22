@@ -15,7 +15,7 @@ To run:
 '''
 import sys, os
 sys.path.append(os.path.expanduser('~/workspace/arachnida/src'))
-from arachnid.core.metadata import format, format_utility
+from arachnid.core.metadata import format
 import numpy
 
 if __name__ == '__main__':

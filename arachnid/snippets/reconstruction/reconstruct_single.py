@@ -17,8 +17,8 @@ import sys
 #sys.path.append('/home/robertl/tmp/arachnid-0.0.1/')
 
 from arachnid.core.app import tracing
-from arachnid.core.metadata import format, format_utility #, spider_utility
-from arachnid.core.image import ndimage_file #, eman2_utility
+from arachnid.core.metadata import format
+from arachnid.core.image import ndimage_file
 from arachnid.core.image import reconstruct
 import numpy,logging
 

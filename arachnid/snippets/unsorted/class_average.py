@@ -16,7 +16,7 @@ To run:
 import sys
 sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1/')
 
-from arachnid.core.metadata import format, format_utility, spider_utility
+from arachnid.core.metadata import format, spider_utility
 from arachnid.core.image import ndimage_file
 import numpy
 

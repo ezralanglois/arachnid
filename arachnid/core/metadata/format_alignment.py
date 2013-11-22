@@ -4,7 +4,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-import format, spider_utility, format_utility, relion_utility
+import format, spider_utility, relion_utility
 import numpy
 from ..orient import orient_utility
 from ..image import ndimage_file

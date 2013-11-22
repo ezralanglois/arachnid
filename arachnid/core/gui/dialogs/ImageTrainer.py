@@ -6,7 +6,7 @@
 from MontageViewer import MainWindow as MontageWindow
 from ..util.qt4_loader import QtCore, QtGui, qtSlot
 from arachnid.app import autopart
-from arachnid.core.metadata import spider_params, format, format_utility
+from arachnid.core.metadata import spider_params, format
 import logging, numpy, os
 
 _logger = logging.getLogger(__name__)

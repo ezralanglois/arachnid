@@ -21,7 +21,7 @@ from matplotlib.figure import Figure
 import matplotlib.cm as cm, matplotlib.lines
 from matplotlib._png import read_png
 
-from .. import format, format_utility, analysis, ndimage_file, ndimage_utility, spider_utility, rotate
+from .. import format, analysis, ndimage_file, ndimage_utility, spider_utility, rotate
 import numpy, os, logging, itertools
 
 _logger = logging.getLogger(__name__)

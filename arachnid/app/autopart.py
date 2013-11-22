@@ -6,7 +6,7 @@
 
 from ..core.app import program
 from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility, ndimage_processor #, analysis
-from ..core.metadata import spider_utility, format, format_utility, spider_params
+from ..core.metadata import spider_utility, format, spider_params
 import logging, numpy, os, sys #, itertools, sys, scipy
 from ..core.learn.deep import SdA
 

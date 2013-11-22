@@ -13,7 +13,7 @@ To run:
    :lines: 28-
    :linenos:
 '''
-from arachnid.core.metadata import format, spider_utility, format_utility
+from arachnid.core.metadata import format, spider_utility
 from arachnid.core.image import ndimage_file, ndimage_utility, ndimage_processor, ndimage_interpolate, rotate
 import numpy, logging, scipy.io, os
 
