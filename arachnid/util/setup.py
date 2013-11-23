@@ -14,4 +14,5 @@ console_scripts = [
  'relion-stack = arachnid.util.relion_align_stack:main',
  'coverage = arachnid.util.coverage:main',
  'spi2relion = arachnid.util.spi2relion:main',
+ 'enumfiles = arachnid.util.enumerate_filenames',
 ]

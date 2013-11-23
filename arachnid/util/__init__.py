@@ -12,4 +12,5 @@
     bench
     spider_prep
     mic_select
+    enumerate_filenames
 '''
