@@ -4,28 +4,23 @@ A number of different document formats are supported including:
 
     - Comma Separated Value Format
     
-       .. automodule:: arachnid.core.metadata.formats.csv
-           :noindex:
+        :py:mod:`arachnid.core.metadata.formats.csv`
        
     - Malibu Prediction Format
     
-       .. automodule:: arachnid.core.metadata.formats.prediction
-           :noindex:
+        :py:mod:`arachnid.core.metadata.formats.prediction`
         
     - Spider Document Format
     
-        .. automodule:: arachnid.core.metadata.formats.spiderdoc
-           :noindex:
+        :py:mod:`arachnid.core.metadata.formats.spiderdoc`
         
     - Spider Selection Format
         
-        .. automodule:: arachnid.core.metadata.formats.spidersel
-           :noindex:
+        :py:mod:`arachnid.core.metadata.formats.spidersel`
         
     - STAR Format
         
-        .. automodule:: arachnid.core.metadata.formats.star
-           :noindex:
+        :py:mod:`arachnid.core.metadata.formats.star`
 
 The format of a document will be automatically determined when the
 document is read.
@@ -36,10 +31,9 @@ When writing out a document, the format will be chosen based on the extension.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from formats import csv, prediction, spiderdoc, spidersel, star #, frealign, mrccoord
-from format_utility import ParseFormatError, WriteFormatError
+#from format_utility import ParseFormatError, WriteFormatError
 from factories import namedtuple_factory
-from spider_utility import spider_filename
-import format_utility, namedtuple_utility
+import format_utility, namedtuple_utility,spider_utility
 import os, numpy, logging
 
 #__formats = [star, spiderdoc, spidersel, frealign, mrccoord, csv, prediction]
@@ -52,11 +46,9 @@ def filters(formats=None):
     
     These filters are in a format compatible with Qt4 FileDialogs.
     
-    .. sourcecode:: py
-    
-        >>> from arachnid.core.metadata.format import *
-        >>> filters()
-        CSV (*.csv);;Prediction (*.pred);;Spider Doc File (*.dat);;Spider Selection Doc (*.sdat)"
+    >>> from arachnid.core.metadata.format import *
+    >>> filters()
+    CSV (*.csv);;Prediction (*.pred);;Spider Doc File (*.dat);;Spider Selection Doc (*.sdat)"
     
     .. note ::
     
@@ -83,13 +75,11 @@ def filters(formats=None):
 def extension(filter, formats=None):
     '''Get the extension associated with the given file filter
     
-    .. sourcecode:: py
-    
-        >>> from arachnid.core.metadata.format import *
-        >>> extension("CSV (*.csv)")
-        "csv"
-        >>> extension("Prediction (*.pred)")
-        "pred"
+    >>> from arachnid.core.metadata.format import *
+    >>> extension("CSV (*.csv)")
+    "csv"
+    >>> extension("Prediction (*.pred)")
+    "pred"
     
     :Parameters:
     
@@ -136,31 +126,29 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     This functions removes the header (if there is one) at the end of the string
     and if specified, creates a new filename using the given template and new ID.
     
-    .. sourcecode:: py
-         
-        >>> from arachnid.core.metadata.format import *
-        >>> from collections import namedtuple
-        >>> BasicTuple = namedtuple("BasicTuple", "id,x,y")
-        >>> values = [ BasicTuple("1", 572.00, 228.00 ), BasicTuple("2", 738.00, 144.00 ), BasicTuple("3", 810.00, 298.00) ]
-        >>> filename, fout = open_file("doc001.spi", mode='w')
-        >>> spiderdoc.write(fout, values)
-        >>> fout.close()
-        >>> import os
-        >>> os.system("more doc001.spi")
-        ;            id          x          y
-        1  31         572         228
-        2  32         738         144
-        3  33         810         298
+    >>> from arachnid.core.metadata.format import *
+    >>> from collections import namedtuple
+    >>> BasicTuple = namedtuple("BasicTuple", "id,x,y")
+    >>> values = [ BasicTuple("1", 572.00, 228.00 ), BasicTuple("2", 738.00, 144.00 ), BasicTuple("3", 810.00, 298.00) ]
+    >>> filename, fout = open_file("doc001.spi", mode='w')
+    >>> spiderdoc.write(fout, values)
+    >>> fout.close()
+    >>> import os
+    >>> os.system("more doc001.spi")
+    ;            id          x          y
+    1  31         572         228
+    2  32         738         144
+    3  33         810         298
 
-        >>> filename, fin, header = open_file("doc001.spi=id;x;y")
-        >>> filename
-        "doc001.spi"
-        >>> header
-        ['id', 'x', 'y']
-        >>> spiderdoc.read_header(fin, header)
-        (<bound method type._make of <class 'core.metadata.factories.namedtuple_factory.BasicTuple'>>, '1  31         572         228')
-        >>> header
-        ['id', 'x', 'y']
+    >>> filename, fin, header = open_file("doc001.spi=id;x;y")
+    >>> filename
+    "doc001.spi"
+    >>> header
+    ['id', 'x', 'y']
+    >>> spiderdoc.read_header(fin, header)
+    (<bound method type._make of <class 'core.metadata.factories.namedtuple_factory.BasicTuple'>>, '1  31         572         228')
+    >>> header
+    ['id', 'x', 'y']
     
     :Parameters:
     
@@ -197,7 +185,7 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     filename, header = format_utility.parse_header(filename, header)
     _logger.debug("Using header: %s"%str(header))
     if spiderid is not None: 
-        filename = spider_filename(filename, spiderid, id_len)
+        filename = spider_utility.spider_filename(filename, spiderid, id_len)
     filename = format_utility.add_prefix(filename, prefix)
     if replace_ext and isinstance(spiderid, str):
         ext = os.path.splitext(spiderid)[1]
@@ -216,14 +204,12 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
 def get_format_by_ext(filename, format=None, formats=None, default_format=spiderdoc, **extra):
     '''Find appropriate format for a filename using the file extension
     
-    .. sourcecode:: py
-                 
-        >>> from arachnid.core.metadata.format import *
-        >>> format = get_format_by_ext("data.dat")
-        >>> format.extension()
-        'dat'
-        >>> format.__name__
-        'core.metadata.formats.spiderdoc'
+    >>> from arachnid.core.metadata.format import *
+    >>> format = get_format_by_ext("data.dat")
+    >>> format.extension()
+    'dat'
+    >>> format.__name__
+    'core.metadata.formats.spiderdoc'
     
     :Parameters:
     
@@ -254,7 +240,7 @@ def get_format_by_ext(filename, format=None, formats=None, default_format=spider
                 format = f
                 break
         if format is None: 
-            if default_format is None: raise WriteFormatError, "Cannot find format for "+ext
+            if default_format is None: raise format_utility.WriteFormatError, "Cannot find format for "+ext
             else: format = default_format
     return format
 
@@ -264,22 +250,20 @@ def get_format(filename, format=None, formats=None, mode='r', getformat=True, he
     This function calls open_file to create the filename, then attempts to parse the header
     with the given formats. If one succeeds, then the format module or the cached header
     and input stream are returned.
+
+    >>> from arachnid.core.metadata.format import *
+    >>> import os
+    >>> os.system("more doc001.spi")
+    ; ID      X           Y
+       1 2  572.00      228.00    
+       2 2  738.00      144.00    
+       3 2  810.00      298.00
     
-    .. sourcecode:: py
-        
-        >>> from arachnid.core.metadata.format import *
-        >>> import os
-        >>> os.system("more doc001.spi")
-        ; ID      X           Y
-           1 2  572.00      228.00    
-           2 2  738.00      144.00    
-           3 2  810.00      298.00
-        
-        >>> format = get_format("doc001.spi=id,x,y")
-        >>> format.extension()
-        'dat'
-        >>> format.__name__
-        'core.metadata.formats.spiderdoc'
+    >>> format = get_format("doc001.spi=id,x,y")
+    >>> format.extension()
+    'dat'
+    >>> format.__name__
+    'core.metadata.formats.spiderdoc'
     
     :Parameters:
     
@@ -331,7 +315,7 @@ def get_format(filename, format=None, formats=None, mode='r', getformat=True, he
             fin = open(filename, mode)
             continue
         return format if getformat else (fin, format) + vals
-    raise ParseFormatError, "Cannot find format for "+filename
+    raise format_utility.ParseFormatError, "Cannot find format for "+filename
  
 def is_readable(filename, **extra):
     ''' Test if file is readable by a metadata parser
@@ -361,33 +345,31 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
     find the appropriate format. It then creates a list of tuples, using the given
     format to parse the file.
     
-    .. sourcecode:: py
-         
-        >>> from arachnid.core.metadata.format import *
-        >>> import os
-        >>> os.system("more doc001.spi")
-        ; ID      X           Y
-           1 2  572.00      228.00    
-           2 2  738.00      144.00    
-           3 2  810.00      298.00
-        
-        >>> values = read("doc001.spi=id,x,y")
-        >>> values
-        [BasicTuple(id='1', x='572', y='228'), BasicTuple(id='2', x='738', y='144'), BasicTuple(id='3', x='810', y='298')]
-        >>> values[0]._fields
-        ('id', 'x', 'y')
-        
-        >>> os.system("more data.csv")
-        id,x,y
-        1,572,228
-        2,738,144
-        3,810,298
-        
-        >>> values = read("data.csv")
-        >>> values
-        [BasicTuple(id='1', x='572', y='228'), BasicTuple(id='2', x='738', y='144'), BasicTuple(id='3', x='810', y='298')]
-        >>> values._fields
-        ('id', 'x', 'y')
+    >>> from arachnid.core.metadata.format import *
+    >>> import os
+    >>> os.system("more doc001.spi")
+    ; ID      X           Y
+       1 2  572.00      228.00    
+       2 2  738.00      144.00    
+       3 2  810.00      298.00
+    
+    >>> values = read("doc001.spi=id,x,y")
+    >>> values
+    [BasicTuple(id='1', x='572', y='228'), BasicTuple(id='2', x='738', y='144'), BasicTuple(id='3', x='810', y='298')]
+    >>> values[0]._fields
+    ('id', 'x', 'y')
+    
+    >>> os.system("more data.csv")
+    id,x,y
+    1,572,228
+    2,738,144
+    3,810,298
+    
+    >>> values = read("data.csv")
+    >>> values
+    [BasicTuple(id='1', x='572', y='228'), BasicTuple(id='2', x='738', y='144'), BasicTuple(id='3', x='810', y='298')]
+    >>> values._fields
+    ('id', 'x', 'y')
     
     :Parameters:
     
@@ -443,40 +425,38 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
 
 def write(filename, values, mode='w', factory=namedtuple_factory, **extra):
     ''' Write a document to some format either specified or determined from extension
-    
-    .. sourcecode:: py
-         
-        >>> from arachnid.core.metadata.format import *
-        >>> from collections import namedtuple
-        >>> BasicTuple = namedtuple("BasicTuple", "id,x,y")
-        >>> values = [ BasicTuple("1", 572.00, 228.00 ), BasicTuple("2", 738.00, 144.00 ), BasicTuple("3", 810.00, 298.00) ]
-        >>> write("data.dat", values)
-        'data.dat'
-        >>> import os
-        >>> os.system("more data.dat")
-        ;            id          x          y
-        1  31         572         228
-        2  32         738         144
-        3  33         810         298
 
-        >>> write("data.csv", values)
-        >>> os.system("more data.csv")
-        id,x,y
-        1,572,228
-        2,738,144
-        3,810,298
-        >>> write("data.ter", values, default_format=csv)
-        >>> os.system("more data.ter")
-        id,x,y
-        1,572,228
-        2,738,144
-        3,810,298
-        >>> write("data.spi", values, format=csv)
-        >>> os.system("more data.spi")
-        id,x,y
-        1,572,228
-        2,738,144
-        3,810,298
+    >>> from arachnid.core.metadata.format import *
+    >>> from collections import namedtuple
+    >>> BasicTuple = namedtuple("BasicTuple", "id,x,y")
+    >>> values = [ BasicTuple("1", 572.00, 228.00 ), BasicTuple("2", 738.00, 144.00 ), BasicTuple("3", 810.00, 298.00) ]
+    >>> write("data.dat", values)
+    'data.dat'
+    >>> import os
+    >>> os.system("more data.dat")
+    ;            id          x          y
+    1  31         572         228
+    2  32         738         144
+    3  33         810         298
+
+    >>> write("data.csv", values)
+    >>> os.system("more data.csv")
+    id,x,y
+    1,572,228
+    2,738,144
+    3,810,298
+    >>> write("data.ter", values, default_format=csv)
+    >>> os.system("more data.ter")
+    id,x,y
+    1,572,228
+    2,738,144
+    3,810,298
+    >>> write("data.spi", values, format=csv)
+    >>> os.system("more data.spi")
+    id,x,y
+    1,572,228
+    2,738,144
+    3,810,298
     
     :Parameters:
     
