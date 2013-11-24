@@ -375,7 +375,7 @@ def write_config(main_module, config_path=None, ret_file_deps=False, **extra):
     parser.write(output) #, options)
     
     if ret_file_deps:
-        return output, parser.collect_dependent_file_options(type='open'), parser.collect_dependent_file_options(type='save')
+        return output, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
     return output
 
 def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
@@ -420,10 +420,12 @@ def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
     if config_path is not None:
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
-    if not os.path.exists(output): return {}
+    param = {}
+    
+    if os.path.exists(output): param = vars(parser.parse_file(fin=output))
     if ret_file_deps:
-        return vars(parser.parse_file(fin=output)), parser.collect_dependent_file_options(type='open'), parser.collect_dependent_file_options(type='save')
-    return vars(parser.parse_file(fin=output))
+        return param, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
+    return param
 
 def update_config(main_module, config_path=None, ret_file_deps=False, **extra):
     ''' Test whether a configuration file needs to be updated with new values 
