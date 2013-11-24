@@ -218,11 +218,15 @@ def is_enum_filename(files):
     for f in files:
         try:
             id = spider_utility.spider_id(f)
-        except: return True
+        except: 
+            _logger.debug("No id: "+str(f))
+            return False
         else:
-            if id in found: return True
+            if id in found: 
+                _logger.debug("Found id: "+str(id)+" in "+str(found))
+                return False
             found.add(id)
-    return False
+    return True
 
 def supports(files, **extra):
     ''' Test if this module is required in the project workflow

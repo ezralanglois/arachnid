@@ -1210,7 +1210,10 @@ class OptionParser(optparse.OptionParser):
             fout.write(self.comment+"  URL:\t"+self.url+"\n")
         fout.write('\n')
         if self.description is not None:
-            fout.write(self.comment+"  "+self.get_description()+"\n\n")
+            if len(self.description) > 0 and self.description[0]==self.comment:
+                fout.write(self.get_description()+"\n\n")
+            else:
+                fout.write(self.comment+"  "+self.get_description()+"\n\n")
         
     def _write_group_header(self, fout, group):
         ''' Write the group header
@@ -1274,7 +1277,7 @@ class OptionParser(optparse.OptionParser):
         for option in options:
             if len(option._long_opts) == 0 or option.is_not_config(): continue
             name = option._long_opts[-1]
-            code = ",".join(option._short_opts+option._long_opts[1:]) if len(option._short_opts) > 0 else ""
+            code = ",".join(option._short_opts+option._long_opts[::-1][1:]) if len(option._short_opts) > 0 else ""
             if option.dest is None: continue
             value = getattr(values, option.dest, None)
             if value is None: continue
