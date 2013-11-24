@@ -52,8 +52,6 @@ Critical Options
 Useful Options
 ===============
 
-These options 
-
 .. program:: ara-lfcpick
 
 .. option:: --template <FILENAME>
