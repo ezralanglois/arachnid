@@ -583,6 +583,24 @@ def finalize(files, count, **extra):
     # Finalize global parameters for the script
     _logger.info("Extracted %d windows"%count[0])
     _logger.info("Completed")
+    
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
@@ -613,7 +631,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     #group.add_option("",   window=1.0,             help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, `param-file`)")
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--micrograph-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-i", "--micrograph-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="open"))
         pgroup.add_option("-o", "--particle-stack",   output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", coordinate_file="",     help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"), required_file=True)
         pgroup.add_option("-d", selection_doc="",       help="Selection file for a subset of micrographs or selection file template for subset of good particles", gui=dict(filetype="open"), required_file=False)
@@ -626,18 +644,30 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     if options.bin_factor == 0.0: raise OptionValueError, "Bin factor cannot be zero (--bin-factor)"
 
-def main():
-    #Main entry point for this script
+def flags():
+    ''' Get flags the define the supported features
     
-    program.run_hybrid_program(__name__,
-        description = '''Crop windows containing particles from a micrograph
+    :Returns:
+    
+    flags : dict
+            Supported features
+    '''
+    
+    return dict(description = '''Crop windows containing particles from a micrograph
                          
                         Example: Run from the command line on a single node
                         
                         $ %prog micrograph_01.spi -o particle-stack_01.spi -p params.spi -s sndc_01.spi
                       ''',
-        supports_OMP=True,
-    )
+                supports_MPI=True, 
+                supports_OMP=True,
+                use_version=True,
+                max_filename_len=78)
+
+def main():
+    #Main entry point for this script
+    
+    program.run_hybrid_program(__name__)
 
 def dependents(): return []
 

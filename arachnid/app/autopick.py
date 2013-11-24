@@ -758,6 +758,24 @@ def finalize(files, **extra):
     
     return lfcpick.finalize(files, **extra)
 
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
+
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
@@ -778,7 +796,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--micrograph-files", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-i", "--micrograph-files", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="open"))
         pgroup.add_option("-o", "--coordinate-file",      output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", selection_doc="",       help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
         spider_params.setup_options(parser, pgroup, True)
@@ -786,7 +804,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
+        group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="save"))
         group.add_option("",   box_image="",   help="Output filename for micrograph image with boxed particles - use `.png` as the extension", gui=dict(filetype="save"))
         pgroup.add_option_group(group)
         parser.change_default(log_level=3)
@@ -807,10 +825,16 @@ def check_options(options, main_option=False):
         try: options.boundary = [int(v) for v in options.boundary]
         except: raise OptionValueError, "Unable to convert boundary margin to list of integers"
 
-def main():
-    #Main entry point for this script
-    program.run_hybrid_program(__name__,
-        description = '''Automated particle selection (AutoPicker)
+def flags():
+    ''' Get flags the define the supported features
+    
+    :Returns:
+    
+    flags : dict
+            Supported features
+    '''
+    
+    return dict(description = '''Automated particle selection (AutoPicker)
                         
                         Example: Unprocessed film micrograph
                          
@@ -819,14 +843,14 @@ def main():
                         Example: Unprocessed CCD micrograph
                          
                         $ ara-autopick input-stack.spi -o coords.dat -r 110 --invert
-                        
-                        
-                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
-                        exit 0
                       ''',
-        use_version = True,
-        supports_OMP=True,
-    )
+                supports_MPI=True, 
+                supports_OMP=True,
+                use_version=True)
+
+def main():
+    #Main entry point for this script
+    program.run_hybrid_program(__name__)
 
 def dependents(): return [lfcpick]
 if __name__ == "__main__": main()

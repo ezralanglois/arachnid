@@ -256,7 +256,7 @@ def check_options(options, main_option=False):
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
         
-    pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="file-list"))
+    pgroup.add_option("-i", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-o", output="",              help="Output filename for micrograph links", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-m", mapping_file="",        help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
     pgroup.add_option("",   ignore_duplicate=False, help="Ignore when duplicates in other pathes are found")

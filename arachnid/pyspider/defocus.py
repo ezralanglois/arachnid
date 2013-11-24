@@ -640,13 +640,31 @@ def plot_histogram(output, vals, x_label, th=None, dpi=72):
     '''
     
     fig.savefig(format_utility.new_filename(output, x_label.lower().replace(' ', '_')+"_", ext="png"), dpi=dpi)
+    
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc, OptionGroup
     
-    pgroup.add_option("-i", input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="file-list"))
-    pgroup.add_option("-o", output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+    pgroup.add_option("-i", '--micrograph-files', input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="open"))
+    pgroup.add_option("-o", '--ctf-file',         output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
     
     group = OptionGroup(parser, "Additional", "Options to customize defocus estimation", group_order=0,  id=__name__)
@@ -682,28 +700,30 @@ def check_options(options, main_option=False):
         if spider_file.is_spider_image(options.input_files[0]) and options.data_ext == "":
             raise OptionValueError, "You must set --data-ext when the input file is not in SPIDER format"
 
-def main():
-    #Main entry point for this script
+def flags():
+    ''' Get flags the define the supported features
     
-    program.run_hybrid_program(__name__,
-        description = '''Estimate the defocus of a set of micrographs or particle stacks
-                        
-                        http://guam/vispider/vispider/manual.html#module-vispider.batch.defocus
+    :Returns:
+    
+    flags : dict
+            Supported features
+    '''
+    
+    return dict(description = '''Estimate the defocus of a set of micrographs or particle stacks
                         
                         Note: If this script crashes or hangs, try increasing the padding and or window size.
                         
-                        $ spi-defocus mic_*.ter -p params.ter -o defocus.ter
-                        
-                        Uncomment (but leave a space before) the following lines to run current configuration file on
-                        
-                        source /guam.raid.cluster.software/arachnid/arachnid.rc
-                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
-                        exit 0
+                        $ %prog mic_*.ter -p params.ter -o defocus.ter
                       ''',
-        supports_MPI=True,
-        use_version = True,
-        max_filename_len = 78,
-    )
+                supports_MPI=True, 
+                supports_OMP=False,
+                use_version=True,
+                max_filename_len=78)
+
+def main():
+    #Main entry point for this script
+    
+    program.run_hybrid_program(__name__)
 if __name__ == "__main__": main()
 
 
