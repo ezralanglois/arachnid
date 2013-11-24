@@ -63,6 +63,19 @@ The workflow runs the following scripts in order:
 Single master config file - link input/output
 Individual files - configure each program
 
+Usage
+-----
+
+A workflow module should contain the following function:
+
+.. py:function:: supports(files, **extra)
+
+   Test if this module is required in the project workflow
+
+   :param files: List of filenames to test
+   :param extra: Unused keyword arguments
+   :returns: True if this module should be added to the workflow
+
 .. Created on Oct 20, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -87,12 +100,24 @@ def batch(files, **extra):
     print workflow
     scripts = write_config(workflow, **extra)
     
+    # 2. How to determine type of input?
+    
     # Use found to determine starting point:
     #    1. enumfiles
     #    2. align_frames
     #    3. defocus
     scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0])
     print [s[1] for s in scripts]
+
+def write_workflow():
+    '''
+    run
+    screen
+    vicer
+    selrelion
+    '''
+    
+    pass
 
 def build_dependency_tree(scripts, root, found=[]):
     ''' Build a dependency tree to order all the scripts based on
@@ -116,7 +141,6 @@ def build_dependency_tree(scripts, root, found=[]):
     '''
     
     branch=[]
-    subset=[]
     outdeps = set(root[3]+found)
     found=[]
     for script in scripts:
@@ -124,22 +148,15 @@ def build_dependency_tree(scripts, root, found=[]):
         if len(intersect)==len(script[2]):
             branch.append(script)
         else:
-            subset.append(script)
             found.extend(intersect)
-    if len(subset) > 0:
+    for b in branch:
+        del scripts[scripts.index(b)]
+    if len(scripts) > 0:
         for script in branch:
-            branch.extend(build_dependency_tree(subset, script, found))
+            current=list(found)
+            if len(scripts) == 0: break
+            branch.extend(build_dependency_tree(scripts, script, current))
     return branch
-
-def write_workflow():
-    '''
-    run
-    screen
-    vicer
-    selrelion
-    '''
-    
-    pass
     
 def write_config(workflow, **extra):
     ''' Write configurations files for each script in the
@@ -259,24 +276,6 @@ def check_options(options, main_option=False):
         raise OptionValueError, "No spherical aberration in mm specified (--cs), either specifiy it or an existing SPIDER params file"
     if options.particle_diameter == 0.0:
         raise OptionValueError, "No longest diameter of the particle in angstroms specified (--particle-diameter), either specifiy it or an existing SPIDER params file"
-
-def supports2(files, **extra):
-    ''' Test if this module is required in the project workflow
-    
-    :Parameters:
-    
-    files : list
-            List of filenames to test
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-    
-    flag : bool
-           True if this module should be added to the workflow
-    '''
-    
-    return True
 
 def flags():
     ''' Get flags the define the supported features
