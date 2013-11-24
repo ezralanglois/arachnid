@@ -1303,7 +1303,7 @@ class OptionParser(optparse.OptionParser):
                 _logger.error("Cannot write out option: "+name)
                 raise
     
-    def collect_options(self, test, options=None):
+    def collect_options(self, test, options=None, key='dest'):
         ''' Collect all the options that point to file names
         
         :Parameters:
@@ -1312,6 +1312,8 @@ class OptionParser(optparse.OptionParser):
                Function used to select option
         options : list
                   List of options to test
+        key : str
+              Name of option field to return
         
         :Returns:
         
@@ -1321,17 +1323,21 @@ class OptionParser(optparse.OptionParser):
         
         optionlist = []
         if options is None:
-            optionlist.extend(self.collect_options(test, self.option_list))
+            optionlist.extend(self.collect_options(test, self.option_list, key))
             for group in self.option_groups:
-                optionlist.extend(self.collect_options(test, group))
+                optionlist.extend(self.collect_options(test, group, key))
         elif isinstance(options, OptionGroup):
-            optionlist.extend(self.collect_options(test, options.option_list))
+            optionlist.extend(self.collect_options(test, options.option_list, key))
             for group in options.option_groups:
-                optionlist.extend(self.collect_options(test, group))
+                optionlist.extend(self.collect_options(test, group, key))
         else:
             for opt in options:
-                if test(opt) and opt.dest is not None:
-                    optionlist.append(opt.dest)
+                if test(opt) and hasattr(opt, key):
+                    val = getattr(opt, key)
+                    if val is not None:
+                        try:""+val
+                        except: val = val[0]
+                        optionlist.append(val)
         return optionlist
     
     def collect_unset_options(self):
@@ -1360,13 +1366,17 @@ class OptionParser(optparse.OptionParser):
             return opt._dependent and opt.dest != self.add_input_files
         return self.collect_options(is_dependent)
         
-    def collect_dependent_file_options(self, type=None):
+    def collect_dependent_file_options(self, type=None, required=False, key='dest'):
         ''' Collect all the options that point to file names
         
         :Parameters:
         
         type : str
                Type of the file to collect: open or save
+        required : bool
+                   File must be required
+        key : str
+              Name of option field to return
         
         :Returns:
         
@@ -1375,16 +1385,18 @@ class OptionParser(optparse.OptionParser):
         '''
         
         def is_dependent(opt):
-            return opt._dependent and opt.dest != self.add_input_files
+            return opt._dependent # and opt.dest != self.add_input_files
         if type is None:
             def is_file(opt):
+                if required and not opt._required: return False
                 return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint and is_dependent(opt)
             is_file_test = is_file
         else:
             def is_file_type(opt):
+                if required and not opt._required: return False
                 return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type and is_dependent(opt)
             is_file_test = is_file_type
-        return list(set(self.collect_options(is_file_test)))
+        return list(set(self.collect_options(is_file_test, key=key)))
         
     def collect_file_options(self, type=None):
         ''' Collect all the options that point to file names
