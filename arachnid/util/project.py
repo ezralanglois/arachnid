@@ -70,7 +70,6 @@ from ..core.app import program
 from ..core.image import ndimage_file
 import logging, os
 
-
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
@@ -85,17 +84,92 @@ def batch(files, **extra):
     
     workflow = build_workflow(files, **extra)
     _logger.info("Work flow includes %d steps"%len(workflow))
+    print workflow
     scripts = write_config(workflow, **extra)
     
-def write_config(workflow, **extra):
-    '''
+    # Use found to determine starting point:
+    #    1. enumfiles
+    #    2. align_frames
+    #    3. defocus
+    scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0])
+    print [s[1] for s in scripts]
+
+def build_dependency_tree(scripts, root, found=[]):
+    ''' Build a dependency tree to order all the scripts based on
+    the name of input/output filenames.
+    
+    :Parameters:
+    
+    scripts : list
+              List of tuples containing: module, script name, 
+              input file deps, output file deps.
+    root : tuple
+           Root script whose output defines the next layers input. This
+           tuple contains module,script-name,indeps,outdeps
+    found : list
+            List of previously found dependencies
+    
+    :Returns:
+    
+    scripts : list
+              Ordered name of scripts
     '''
     
-    script={}
+    branch=[]
+    subset=[]
+    outdeps = set(root[3]+found)
+    found=[]
+    for script in scripts:
+        intersect=outdeps&set(script[2])
+        if len(intersect)==len(script[2]):
+            branch.append(script)
+        else:
+            subset.append(script)
+            found.extend(intersect)
+    if len(subset) > 0:
+        for script in branch:
+            branch.extend(build_dependency_tree(subset, script, found))
+    return branch
+
+def write_workflow():
+    '''
+    run
+    screen
+    vicer
+    selrelion
+    '''
+    
+    pass
+    
+def write_config(workflow, **extra):
+    ''' Write configurations files for each script in the
+    workflow.
+    
+    :Parameters:
+    
+    workflow : list
+               List of modules
+    extra : dict
+            Keyword arguments
+    
+    :Returns:
+    
+    scripts : list
+              List of tuples containing: module, script name, 
+              input file deps, output file deps.
+    '''
+    
+    config_path=extra['config_path']
+    if not os.path.exists(config_path):
+        try: os.makedirs(config_path)
+        except: pass
+    
+    scripts=[]
     for mod in workflow:
-        script[mod.__name__]=program.update_config(mod, **extra)
-        if script[mod.__name__] == "":
-            script[mod.__name__] = program.write_config(mod, **extra)
+        config = program.update_config(mod, ret_file_deps=True, **extra)
+        if config == "":
+            config = program.write_config(mod, ret_file_deps=True, **extra)
+        scripts.append((mod, )+config)
     return scripts
 
 def build_workflow(files, **extra):
@@ -120,10 +194,11 @@ def build_workflow(files, **extra):
                List of programs
     '''
     
+    import project
     import pkgutil
     from .. import app, pyspider, util
     
-    workflow = []
+    workflow = [project]
     for pkg in [app, pyspider, util]:
         modules = [name for _, name, ispkg in pkgutil.iter_modules([os.path.dirname(cpkg.__file__) for cpkg in [pkg]] ) if not ispkg]
         for name in modules:
@@ -135,21 +210,11 @@ def build_workflow(files, **extra):
                     workflow.append(mod)
     return workflow
 
-def write_workflow():
-    '''
-    run
-    screen
-    vicer
-    selrelion
-    '''
-    
-    pass
-
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup
         
-    pgroup.add_option("-i", input_files=[],     help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="file-list"))
+    pgroup.add_option("-i", input_files=[],     help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("-g", gain_reference="",  help="Gain reference image for movie mode - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("", is_film=False,        help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
@@ -160,13 +225,13 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
     shrgroup.add_option("", config_path="cfg", help="", gui=dict(filetype="open")) # dir-open
+    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat", help="", gui=dict(filetype="save")) # create soft link or set of softlinks?
+    shrgroup.add_option("", param_file="data/local/ctf/params.dat", help="", gui=dict(filetype="save"))
     shrgroup.add_option("", movie_files="", help="", gui=dict(filetype="file-list")) # create soft link or set of softlinks?
-    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat", help="", gui=dict(filetype="file-list")) # create soft link or set of softlinks?
     shrgroup.add_option("", coordinate_file="data/local/coords/sndc_000000.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", particle_file="data/cluster/win/win_000000.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", reference_file="data/cluster/reference.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", param_file="data/local/ctf/params.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", align_file="data/cluster/data/data.star", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", good_file="data/local/vicer/good/good_000000.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", view_file="data/local/vicer/view/view_000000.dat", help="", gui=dict(filetype="open"))
@@ -195,7 +260,7 @@ def check_options(options, main_option=False):
     if options.particle_diameter == 0.0:
         raise OptionValueError, "No longest diameter of the particle in angstroms specified (--particle-diameter), either specifiy it or an existing SPIDER params file"
 
-def supports(files, **extra):
+def supports2(files, **extra):
     ''' Test if this module is required in the project workflow
     
     :Parameters:
@@ -222,13 +287,9 @@ def flags():
             Supported features
     '''
     
-    return dict(description = '''Generate all the scripts and directories for a pySPIDER project 
+    return dict(description = '''Generate all the scripts and directories for an Arachnid workflow
                                  
-                                 $ %prog micrograph_files* -o project-name -r raw-reference -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
-                              -
-                              - %prog -c $PWD/$0 $@
-                              - exit $?
-                              -
+                                 $ %prog micrograph_files* -r raw-reference --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
                               ''',
                 supports_MPI=False, 
                 supports_OMP=False,
