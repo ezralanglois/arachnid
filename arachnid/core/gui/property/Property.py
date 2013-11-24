@@ -1097,6 +1097,8 @@ class FilenameProperty(Property):
         self.filter = self.hints["filter"] if 'filter' in self.hints else ""
         self.path = self.hints["path"]if 'path' in self.hints else ""
         self.filetype = self.hints["filetype"]
+        if isinstance(property.property(name), list) and self.filetype=='open':
+            self.filetype = 'file-list'
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
