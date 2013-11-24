@@ -249,6 +249,38 @@ def run_hybrid_program(name, **extra):
         _logger.error("***Unexpected error occurred: "+traceback.format_exception_only(exc_type, exc_value)[0]+see_also)
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
+        
+def collect_file_dependents(main_module, **extra):
+    ''' Collect all filename options into input and output dependents
+    
+    This function collects all filename options and divides them
+    into two groups: input and output.
+    
+    .. seealso::
+    
+        Function :py:func:`setup_parser`
+            Peforms option collection
+    
+    :Parameters:
+    
+    main_module : module
+                   Reference to main module
+    extra : dict
+            New default values for the options
+                   
+    :Returns:
+    
+    input_files : list
+                 List of options that do not belong to a group
+    output_files : list
+                    List of option groups
+    '''
+    
+    main_template = file_processor if file_processor.supports(main_module) else None
+    if hasattr(main_module, 'flags'): extra.update(main_module.flags())
+    parser = setup_parser(main_module, main_template, **extra)[0]
+    parser.change_default(**extra)
+    return parser.collect_dependent_file_options(type='open'), parser.collect_dependent_file_options(type='save')
 
 def generate_settings_tree(main_module, **extra):
     ''' Collect options, groups and values
@@ -285,12 +317,12 @@ def generate_settings_tree(main_module, **extra):
     main_template = file_processor if file_processor.supports(main_module) else None
     if hasattr(main_module, 'flags'): extra.update(main_module.flags())
     if 'description' in extra:
-        extra['description'] = extra['description']%dict(prog=map_module_to_program(main_module.__name__))
+        extra['description'] = extra['description'].replace('%prog', '%(prog)s')%dict(prog=map_module_to_program(main_module.__name__))
     parser = setup_parser(main_module, main_template, **extra)[0]
     parser.change_default(**extra)
     return parser.get_config_options(), parser.option_groups, parser.get_default_values()
         
-def write_config(main_module, config_path=None, **extra):
+def write_config(main_module, config_path=None, ret_file_deps=False, **extra):
     ''' Write a configuration file
     
     This function collects all options and option groups then updates their default 
@@ -310,6 +342,8 @@ def write_config(main_module, config_path=None, **extra):
                    Reference to main module
     config_path : str, optional
                   Path to write configuration file
+    ret_file_deps : bool
+                    Return input/output dependents
     extra : dict
             New default values for the options
                    
@@ -339,9 +373,12 @@ def write_config(main_module, config_path=None, **extra):
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     parser.write(output) #, options)
+    
+    if ret_file_deps:
+        return output, parser.collect_dependent_file_options(type='open'), parser.collect_dependent_file_options(type='save')
     return output
 
-def read_config(main_module, config_path=None, **extra):
+def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
     ''' Read in option values from a configuration file
     
     This function collects all options and option groups, and then reads in their values from a configuration file
@@ -360,6 +397,8 @@ def read_config(main_module, config_path=None, **extra):
                    Reference to main module
     config_path : str, optional
                   Path to write configuration file
+    ret_file_deps : bool
+                    Return input/output dependents
     extra : dict
             Unused keyword arguments
                    
@@ -382,9 +421,11 @@ def read_config(main_module, config_path=None, **extra):
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     if not os.path.exists(output): return {}
+    if ret_file_deps:
+        return vars(parser.parse_file(fin=output)), parser.collect_dependent_file_options(type='open'), parser.collect_dependent_file_options(type='save')
     return vars(parser.parse_file(fin=output))
 
-def update_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, **extra):
+def update_config(main_module, config_path=None, ret_file_deps=False, **extra):
     ''' Test whether a configuration file needs to be updated with new values 
     
     This function collects all options and option groups, then reads in their values from a configuration 
@@ -399,15 +440,13 @@ def update_config(main_module, description="", config_path=None, supports_MPI=Fa
     
     main_module : module
                    Reference to main module
-    description : str
-                  Header on configuration
     config_path : str, optional
                   Path to write configuration file
-    supports_MPI : bool
-                   Set True if the script supports MPI
-    supports_OMP : bool
-                   If True, add OpenMP capability
-                   
+    ret_file_deps : bool
+                    Return input/output dependents
+    extra : dict
+            Unused keyword arguments
+    
     :Returns:
     
     output : str
@@ -421,7 +460,8 @@ def update_config(main_module, description="", config_path=None, supports_MPI=Fa
     if config_path is not None:
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
-    param = read_config(main_module, **extra)
+    param = read_config(main_module, ret_file_deps=ret_file_deps, **extra)
+    if ret_file_deps: param, indeps, outdeps = param
     if len(param)==0: return ""
     for key,val in param.iteritems():
         if key not in extra:
@@ -430,6 +470,8 @@ def update_config(main_module, description="", config_path=None, supports_MPI=Fa
         if str(val) != str(extra[key]):
             _logger.info("Updating %s config - option %s changed from '%s' to '%s'"%(name, key, str(val), str(extra[key])))
             return ""
+    if ret_file_deps:
+        return output, indeps, outdeps
     return output
     
 def map_module_to_program(key=None):
@@ -567,7 +609,7 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
             Dictionary of parameters and their corresponding values
     '''
     
-    description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '-' else '# '+s.strip() for s in description.split("\n")]
+    description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '.' else '# '+s.strip() for s in description.split("\n")]
     description="\n".join([s for s in description])
     parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP)
     
