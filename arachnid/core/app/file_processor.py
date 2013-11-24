@@ -302,14 +302,14 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
             
             deps = [f] if not isinstance(f, int) else []
             for input in infile_deps:
-                if input == "": continue
+                if input == "" or isinstance(extra[input], list): continue
                 if spider_utility.is_spider_filename(extra[input]) and spider_utility.is_spider_filename(f):
                     deps.append(spider_utility.spider_filename(extra[input], f, id_len))
                 else: 
                     deps.append(extra[input])
         else:
             deps = [f] if not isinstance(f, int) else []
-            deps.extend([spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])])
+            deps.extend([spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and not isinstance(extra[input], list) and spider_utility.is_spider_filename(extra[input])])
         if data_ext is not None:
             for i in xrange(len(deps)):
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
