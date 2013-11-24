@@ -98,7 +98,7 @@ def batch(files, output, mapping_file="", ignore_duplicate=False, **extra):
         mapped = map_enum_files(files, output_map_file, ignore_duplicate)
     else:
         mapped = remap_enum_files(files, mapping_file)
-    output = base+os.path.splitext(files[0])[1]
+    output = os.path.split(output)[0]+os.path.splitext(files[0])[1]
     if output_map_file != mapping_file:
         format.write(output_map_file, mapped, header="filename,id".split(','))
     generate_enum_links(mapped, output)
