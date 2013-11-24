@@ -95,6 +95,12 @@ The target module may include any of the following functions:
    :param options: object containing options as fields
    :param main_option: If true, add the options specific to running this script
 
+.. py:function:: flags()
+
+   Return a dictionary of support properties
+
+   :returns: Dictionary of supported properties
+
 Parameters
 ----------
 
@@ -159,7 +165,7 @@ import file_processor
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def run_hybrid_program(name, description, usage=None, supports_MPI=True, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
+def run_hybrid_program(name, **extra):
     ''' Main entry point for the program architecture
     
     This function proceeds as follows:
@@ -176,29 +182,20 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         
     name : str
            Name of calling module (usually __main__)
-    description : string
-                  Description of the program
-    usage : str
-            Current usage of the program
-    supports_MPI : bool
-                   If True, add MPI capability
-    supports_OMP : bool
-                   If True, add OpenMP capability
-    use_version : bool
-                  If True, add version control capability
-    max_filename_len : int
-                       Maximum length allowd for filename
-    output_option : str, optional
-                    If specified, then add `-o, --output` option with given help string
+    extra : dict
+            Pass on keyword arguments
     '''
     
     #_logger.addHandler(logging.StreamHandler())
     main_module = determine_main(name)
     main_template = file_processor if file_processor.supports(main_module) else None
-    if not use_version and main_template == file_processor: use_version=True
+    if hasattr(main_module, 'flags'): extra.update(main_module.flags())
+    use_version = extra.get('use_version', False)
+    if not use_version and main_template == file_processor: extra['use_version']=True
+    supports_OMP = extra.get('supports_OMP', False)
     _logger.debug("Checking options ...")
     try:
-        args, param = parse_and_check_options(main_module, main_template, description, usage, supports_MPI, supports_OMP, use_version, max_filename_len, output_option)
+        args, param = parse_and_check_options(main_module, main_template, **extra)
     except SystemExit:
         return
     except VersionChange:
@@ -253,7 +250,7 @@ def run_hybrid_program(name, description, usage=None, supports_MPI=True, support
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
 
-def generate_settings_tree(main_module, description="", supports_MPI=False, supports_OMP=False, usage=None, **extra):
+def generate_settings_tree(main_module, **extra):
     ''' Collect options, groups and values
     
     This function collects all options and option groups then updates their default 
@@ -271,14 +268,6 @@ def generate_settings_tree(main_module, description="", supports_MPI=False, supp
     
     main_module : module
                    Reference to main module
-    description : str
-                  Header on configuration
-    supports_MPI : bool
-                   Set True if the script supports MPI
-    supports_OMP : bool
-                   If True, add OpenMP capability
-    usage : str
-            Usage string, optional
     extra : dict
             New default values for the options
                    
@@ -294,11 +283,14 @@ def generate_settings_tree(main_module, description="", supports_MPI=False, supp
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), usage, supports_MPI, supports_OMP)[0]
+    if hasattr(main_module, 'flags'): extra.update(main_module.flags())
+    if 'description' in extra:
+        extra['description'] = extra['description']%dict(prog=map_module_to_program(main_module.__name__))
+    parser = setup_parser(main_module, main_template, **extra)[0]
     parser.change_default(**extra)
     return parser.get_config_options(), parser.option_groups, parser.get_default_values()
         
-def write_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, usage=None, **extra):
+def write_config(main_module, config_path=None, **extra):
     ''' Write a configuration file
     
     This function collects all options and option groups then updates their default 
@@ -316,16 +308,8 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     
     main_module : module
                    Reference to main module
-    description : str
-                  Header on configuration
     config_path : str, optional
                   Path to write configuration file
-    supports_MPI : bool
-                   Set True if the script supports MPI
-    supports_OMP : bool
-                   If True, add OpenMP capability
-    usage : str
-            Usage string, optional
     extra : dict
             New default values for the options
                    
@@ -335,9 +319,18 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
              Output filename of the configuration file
     '''
     
+    
+    
     #_logger.addHandler(logging.StreamHandler())
     main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), usage, supports_MPI, supports_OMP)[0]
+    if hasattr(main_module, 'flags'): extra.update(main_module.flags())
+    if 'description' in extra:
+        description = extra['description']
+        description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '-' else '# '+s.strip() for s in description.split("\n")]
+        description="\n".join([s for s in description])
+        description = description.replace('%prog', '%(prog)s')
+        extra['description'] = description%dict(prog=map_module_to_program(main_module.__name__))
+    parser = setup_parser(main_module, main_template, **extra)[0]
     parser.change_default(**extra)
     name = main_module.__name__
     off = name.rfind('.')
@@ -348,7 +341,7 @@ def write_config(main_module, description="", config_path=None, supports_MPI=Fal
     parser.write(output) #, options)
     return output
 
-def read_config(main_module, description="", config_path=None, supports_MPI=False, supports_OMP=False, usage=None, **extra):
+def read_config(main_module, config_path=None, **extra):
     ''' Read in option values from a configuration file
     
     This function collects all options and option groups, and then reads in their values from a configuration file
@@ -365,16 +358,8 @@ def read_config(main_module, description="", config_path=None, supports_MPI=Fals
     
     main_module : module
                    Reference to main module
-    description : str
-                  Header on configuration
     config_path : str, optional
                   Path to write configuration file
-    supports_MPI : bool
-                   Set True if the script supports MPI
-    supports_OMP : bool
-                   If True, add OpenMP capability
-    usage : str
-            Usage string, optional
     extra : dict
             Unused keyword arguments
                    
@@ -385,7 +370,11 @@ def read_config(main_module, description="", config_path=None, supports_MPI=Fals
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
-    parser = setup_parser(main_module, main_template, description%dict(prog=map_module_to_program(main_module.__name__)), usage, supports_MPI, supports_OMP)[0]
+    if hasattr(main_module, 'flags'): extra.update(main_module.flags())
+    if 'description' in extra:
+        description = extra['description'].replace('%prog', '%(prog)s')
+        extra['description'] = description%dict(prog=map_module_to_program(main_module.__name__))
+    parser = setup_parser(main_module, main_template, **extra)[0]
     name = main_module.__name__
     off = name.rfind('.')
     if off != -1: name = name[off+1:]
@@ -432,7 +421,7 @@ def update_config(main_module, description="", config_path=None, supports_MPI=Fa
     if config_path is not None:
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
-    param = read_config(main_module, description, config_path, supports_MPI, supports_OMP, **extra)
+    param = read_config(main_module, **extra)
     if len(param)==0: return ""
     for key,val in param.iteritems():
         if key not in extra:
@@ -464,12 +453,16 @@ def map_module_to_program(key=None):
     vals = list(arachnid.setup.console_scripts)
     for i in xrange(len(vals)):
         program, module = vals[i].split('=', 1)
-        module, main = module.split(':', 1)
+        try:
+            module, main = module.split(':', 1)
+        except:
+            _logger.error("Module name: %s"%module)
+            raise
         vals[i] = (module.strip(), program.strip())
     vals = dict(vals)
     return vals if key is None else vals[key]
         
-def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, output_option=None):
+def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, **extra):
     ''' Collect all the options from the main module, its dependents, the main template and those shared by all programs
     
     This function also collects all the dependent modules and updates the default values of the options.
@@ -493,8 +486,8 @@ def setup_parser(main_module, main_template, description="", usage=None, support
                    If True, add MPI capability
     supports_OMP : bool
                    If True, add OpenMP capability
-    output_option : str, optional
-                    If specified, then add `-o, --output` option with given help string
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
     
@@ -503,7 +496,7 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     dependents : list
                  List of dependent modules
     '''
-    
+        
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
     url = root_module.__doc_url__%main_module.__name__ if hasattr(root_module, '__doc_url__') else None
@@ -523,10 +516,10 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     if hasattr(main_module, "change_option_defaults"): main_module.change_option_defaults(parser)
     if len(group.option_list) > 0 or len(group.option_groups) > 0: parser.add_option_group(group)
     if main_template == main_module: main_template = None
-    setup_program_options(parser, main_template, supports_MPI, supports_OMP, output_option)
+    setup_program_options(parser, main_template, supports_MPI, supports_OMP)
     return parser, dependents
 
-def parse_and_check_options(main_module, main_template, description, usage, supports_MPI=False, supports_OMP=False, use_version=False, max_filename_len=0, output_option=None):
+def parse_and_check_options(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, use_version=False, max_filename_len=0):
     ''' Parse the collected options and check option validity
     
     The function also does the following:
@@ -565,8 +558,6 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
                   If True, add version control capability
     max_filename_len : int
                        Maximum length allowd for filename
-    output_option : str, optional
-                    If specified, then add `-o, --output` option with given help string
     
     :Returns:
     
@@ -576,8 +567,9 @@ def parse_and_check_options(main_module, main_template, description, usage, supp
             Dictionary of parameters and their corresponding values
     '''
     
-    description="\n#  ".join([s.strip() for s in description.split("\n")])
-    parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP, output_option)
+    description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '-' else '# '+s.strip() for s in description.split("\n")]
+    description="\n".join([s for s in description])
+    parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP)
     
     try: options, args = parser.parse_args_with_config()    
     except settings.OptionValueError, inst:
@@ -764,15 +756,13 @@ def update_file_param(max_filename_len, warning, file_options, home_prefix=None,
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param
 
-def setup_program_options(parser, main_template, supports_MPI=False, supports_OMP=False, output_option=None):
+def setup_program_options(parser, main_template, supports_MPI=False, supports_OMP=False):
     # Collection of options necessary to use functions in this script
     
     parser.add_option("",   create_cfg="",          help="Create a configuration file (if the value is 1, true, y, t, then write to standard output)", gui=dict(nogui=True))
     gen_group = settings.OptionGroup(parser, "General", "Options to general program features",  id=__name__)
     prg_group = settings.OptionGroup(parser, "Program", "Options to program features",  id=__name__)
     prg_group.add_option("",   prog_version=root_module.__version__, help="Select version of the program (set `latest` to use the lastest version`)")
-    if output_option is not None:
-        parser.add_option("-o", output="", help=output_option, gui=dict(filetype="save"), required_file=True)
     if supports_MPI and mpi_utility.supports_MPI():
         group = settings.OptionGroup(parser, "MPI", "Options to control MPI",  id=__name__, dependent=False)
         group.add_option("",   use_MPI=False,          help="Set this flag True when using mpirun or mpiexec")
