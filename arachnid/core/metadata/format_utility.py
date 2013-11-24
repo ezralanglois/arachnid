@@ -8,8 +8,8 @@ formats as well as exceptions.
 '''
 from type_utility import is_float_int
 from collections import defaultdict, namedtuple
-from operator import itemgetter
-from functools import partial 
+import operator
+import functools
 import os, logging
 
 _logger = logging.getLogger(__name__)
@@ -529,7 +529,7 @@ def map_object_list(vals, key="id"):
     else:
         def pair2(idx, t): return object_id(t[idx]), t
         pair=pair2
-    return dict(map(partial(pair, idx), vals))
+    return dict(map(functools.partial(pair, idx), vals))
 
 def map_file_list(vals, replace=False, key="id"):
     '''Map the list of named tuples to a dictionary
@@ -674,7 +674,7 @@ def stack(tlist1, tlist2, classname="StackTuple"):
             raise
         return concat_tuple(t, t2, NamedTuple)
     if isinstance(tlist1, dict): tlist1 = tlist1.values()
-    return map(partial(stack_tuple), tlist1)
+    return map(functools.partial(stack_tuple), tlist1)
     
 def column_offsets(vals, column):
     '''Get the column offsets of a header (or list of headers) from the specified named tuple (or list of named tuples).
@@ -820,7 +820,7 @@ def renumber(values):
     
     output = flatten(values)
     idx = get_header(output, 'id')
-    output.sort(key=itemgetter(idx))
+    output.sort(key=operator.itemgetter(idx))
     for i in xrange(len(output)):
         output[i] = output[i]._replace(id=i+1)
     return output
