@@ -361,10 +361,13 @@ def initialize(files, param):
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
     
     if 'selection_file' in param and param['selection_file'] != "":
-        select = format.read(param['selection_file'], numeric=True)
-        oldcnt = len(files)
-        files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
-        _logger.info("Selecting %d files from %d"%(len(files), oldcnt))
+        if os.path.exists(param['selection_file']):
+            select = format.read(param['selection_file'], numeric=True)
+            oldcnt = len(files)
+            files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
+            _logger.info("Selecting %d files from %d"%(len(files), oldcnt))
+        else:
+            _logger.warn("No selection file found at %s - skipping"%param['selection_file'])
     return files
 
 def reduce_all(val, confusion, file_index, **extra):
