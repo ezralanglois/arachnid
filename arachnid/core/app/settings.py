@@ -1841,9 +1841,10 @@ def compress_filenames(files):
             List of compressed filenames - possibly single entry with wild card
     '''
     
-    try: ""+files # Test if its already a compressed string
-    except: pass
-    else: return files
+    if not isinstance(files, optlist):
+        try: ""+files # Test if its already a compressed string
+        except: pass
+        else: return files
     
     if len(files) <= 1: return files
     
@@ -1851,11 +1852,13 @@ def compress_filenames(files):
     for i in xrange(len(files)):
         if not os.path.isabs(files[i]):
             files[i] = os.path.abspath(files[i])
-        if i > 1:
-            tmp = os.path.commonprefix(files[:i])
-            if tmp != "": prefixes[os.path.dirname(tmp)]=tmp
+        print i, files[i], os.path.commonprefix(files[:i+1])
+        tmp = os.path.commonprefix(files[:i+1])
+        if tmp != "": prefixes[os.path.dirname(tmp)]=tmp
     prefixes = [v+'*' for v in prefixes.values()]
     test=[]
     for f in prefixes:
+        print f, '->', glob.glob(f)
         test.extend(glob.glob(f)) 
+    print len(test), len(files)
     return optlist(prefixes) if len(test) == len(files) else files # Ensure its not a subset
