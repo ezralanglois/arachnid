@@ -110,7 +110,6 @@ def batch(files, param_file, **extra):
         write_config([scripts[0][0]], **extra)
 
     scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0], [input])
-    print [s[1] for s in scripts]
     write_workflow(scripts)
     spider_params.write_update(param_file, **extra)
     
@@ -296,7 +295,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat",                          help="Location of estimated CTF parameters per micrograph", gui=dict(filetype="open"))
     shrgroup.add_option("", reference_file="data/cluster/reference.dat",                help="Location of generated reference", gui=dict(filetype="open"))
     shrgroup.add_option("", align_file="data/cluster/data/data.star",                   help="Location of relion selection file", gui=dict(filetype="open"))
-    shrgroup.add_option("", good_file="data/local/vicer/good/good_000000.dat",          help="Location of cleaned up particle selection files", gui=dict(filetype="open"))
+    shrgroup.add_option("", good_file="",                                               help="Location of cleaned up particle selection files", gui=dict(filetype="open"))
+    #data/local/vicer/good/good_000000.dat
     shrgroup.add_option("", view_file="data/local/vicer/view/view_000000.dat",          help="Location of images embedded in low-dimensional factor space", gui=dict(filetype="open"))
     shrgroup.add_option("", selection_file="data/local/screen/select.dat",              help="Location of micrograph selection", gui=dict(filetype="open"))
     shrgroup.add_option("", frame_shift_file="data/local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
