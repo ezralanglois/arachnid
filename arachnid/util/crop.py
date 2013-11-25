@@ -474,6 +474,7 @@ def initialize(files, param):
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Pixel diameter: %d"%(param['pixel_diameter']))
+        _logger.info("Mask diameter: %d"%(int(param['pixel_diameter']*param['mask_mult'])))
         _logger.info("Window size: %d"%(param['window']))
         if param['gain_file'] != "":
             _logger.info("Gain correct with %s"%param['gain_file'])
@@ -566,7 +567,7 @@ def initialize(files, param):
     
     
     param.update(ndimage_file.cache_data())
-    param['mask'] = ndimage_utility.model_disk(param['pixel_diameter']/2, (param['window'], param['window']))
+    param['mask'] = ndimage_utility.model_disk(int(param['pixel_diameter']/2*param['mask_mult']), (param['window'], param['window']))
     param['norm_mask']=param['mask']*-1+1
     return files
 
@@ -619,6 +620,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     egroup.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
     egroup.add_option("", clamp_window=2.5,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
     egroup.add_option("", sigma=1.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
+    egroup.add_option("", mask_mult=1.0,            help="Mask multiplier for Relion")
     group.add_option_group(egroup)
     
     mgroup = OptionGroup(parser, "Movies", "Crop frames from movie micrographs")
