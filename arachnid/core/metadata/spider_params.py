@@ -38,7 +38,7 @@ Examples
 .. Created on Nov 14, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import logging, math, numpy
+import logging, math, numpy, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -208,6 +208,10 @@ def write_update(output, **extra):
     extra : dict
             Spider parameter dictionary
     '''
+    
+    if not os.path.exists(os.path.dirname(output)):
+        try:os.makedirs(os.path.dirname(output))
+        except: pass
     
     try:
         param = read(output)
