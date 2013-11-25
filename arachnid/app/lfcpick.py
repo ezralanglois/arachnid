@@ -360,8 +360,8 @@ def initialize(files, param):
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
     
-    if 'selection_doc' in param and param['selection_doc'] != "":
-        select = format.read(param['selection_doc'], numeric=True)
+    if 'selection_file' in param and param['selection_file'] != "":
+        select = format.read(param['selection_file'], numeric=True)
         oldcnt = len(files)
         files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
         _logger.info("Selecting %d files from %d"%(len(files), oldcnt))

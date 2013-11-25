@@ -893,7 +893,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
-    group.add_option("-s", select="",                       help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("-s", selection_file="",               help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
@@ -916,7 +916,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", input_files=[], help="List of filenames for the input images stacks or ReLion selection file", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks or ReLion selection file", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the relion selection file (Only required if input is a stack)", gui=dict(filetype="save"), required_file=False)
         parser.change_default(log_level=3)
 
