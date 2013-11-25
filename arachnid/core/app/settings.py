@@ -296,7 +296,7 @@ class Option(optparse.Option):
             - archive: Flag to indicate whether filename shall be archived
     '''
     
-    EXTRA_ATTRS = ('gui', 'archive', 'required', 'required_file', 'dependent') #, 'glob_more',
+    EXTRA_ATTRS = ('gui', 'archive', 'required', 'required_file', 'dependent', '_default_regular_expression') #, 'glob_more',
     
     def __init__(self, *args, **kwargs):
         """ Create an Option object
@@ -312,10 +312,14 @@ class Option(optparse.Option):
         self._required=False
         self._required_file=False
         self._dependent = True
+        self._default_regular_expression = None
         choices = None
         flag, value = self.determine_flag(args, kwargs)
         if flag is not None:
             args, choices = self.setup_auto_flag(flag, value, args, kwargs)
+        if 'regexp' in kwargs:
+            self._default_regular_expression = kwargs["regexp"]
+            del kwargs["regexp"]
         if "gui" in kwargs: # TODO remove this
             self.gui_hint = kwargs["gui"]
             if 'operations' in self.gui_hint:
@@ -505,6 +509,7 @@ class Option(optparse.Option):
             types.BooleanType   : {"action":   lambda v: "store_false" if v else "store_true", "type": None, "default": lambda v: v},
             types.TupleType     : {"callback": Option.choice_type, "default": lambda v: v[0], "type": lambda v: v[0].__class__.__name__},
             "index_true"        : {"callback": Option.choice_index, "default": 0, "type": lambda v: v[0].__class__.__name__},
+            'open-file-list'    : {"callback": Option.glob_files, "default": lambda v: optlist(v), "type": "string"},
         }
         
         choices = None
@@ -513,6 +518,8 @@ class Option(optparse.Option):
             if isinstance(value[0], str) and "default" in kwargs and isinstance(kwargs["default"], int):
                 key = "index_true"
             choices = value
+        if key == types.ListType and 'dest' in kwargs and kwargs['dest'].find('file') != -1:
+            key = 'open-file-list'
         return TYPE_REGISTRY[key] if key in TYPE_REGISTRY else {"default": lambda v: v}, choices
         
     def determine_flag(self, args, kwargs):
@@ -595,6 +602,34 @@ class Option(optparse.Option):
             elif vals[i] != "": vals[i] = convert(vals[i])
         vals = optlist(vals)
         setattr(parser.values, option.dest, vals)
+        
+    @staticmethod
+    def glob_files(option, flag, value, parser):
+        '''Convert dictionary to string
+        
+        :Parameters:
+                
+        option : Option
+                 The option instance calling the callback
+        flag : str
+               The options flag as seen on the command line
+        value : object
+                The command line value of the option, type corresponding to the option type
+        parser : OptionParser
+                 The current option parser instance
+        '''
+        
+        input_files = value.strip().split(',')
+        glob_files = []
+        for f in input_files:
+            if not os.path.exists(f):
+                files = glob.glob(f)
+                if len(files) == 0 and option._default_regular_expression is not None:
+                    files = glob.glob(option._default_regular_expression(f))
+                if len(files) > 0: glob_files.extend(files)
+            else: 
+                glob_files.append(f)
+        setattr(parser.values, option.dest, optlist(glob_files))
     
     @staticmethod
     def choice_index(option, flag, value, parser):
@@ -965,6 +1000,8 @@ class OptionParser(optparse.OptionParser):
         if the `add_input_files` flag is set, it then expands any
         regular expressions using glob into a list of files.
         
+        ..todo:: remove glob from the following!
+        
         :Parameters:
         
         args : list
@@ -985,14 +1022,19 @@ class OptionParser(optparse.OptionParser):
         if hasattr(options, self.add_input_files):
             input_files = getattr(options, self.add_input_files)
             setattr(options, self.add_input_files+"_orig", input_files)
+            
             _logger.debug("Checking input files - has input "+str(input_files))
             for f in input_files:
                 try: args.index(f)
                 except: 
+                    '''..todo:: remove glob from the following!'''
                     if not os.path.exists(f):
                         files = glob.glob(f)
                         if len(files) == 0 and hasattr(values, "local_root"):
                             f = os.path.join(values.local_root, f)
+                            if not os.path.exists(f): files = glob.glob(f)
+                        if len(files) == 0 and hasattr(values, "home_prefix"):
+                            f = os.path.join(values.home_prefix, f)
                             if not os.path.exists(f): files = glob.glob(f)
                         if len(files) > 0: args.extend(files)
                         else: 
