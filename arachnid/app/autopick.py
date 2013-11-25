@@ -126,6 +126,10 @@ selection.
 
     Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
 
+.. option:: --selection-file <str>
+    
+    Selection file for a subset of micrographs
+
 Other Options
 =============
 
@@ -799,7 +803,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", "--micrograph-files", input_files=[],     help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
         pgroup.add_option("-o", "--coordinate-file",      output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("",   ctf_file="-",                             help="Input defocus file - currently ignored", required=True, gui=dict(filetype="open"))
-        pgroup.add_option("-s", selection_doc="",       help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
+        pgroup.add_option("-s", selection_file="",                        help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
         spider_params.setup_options(parser, pgroup, True)
         # move next three options to benchmark
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)

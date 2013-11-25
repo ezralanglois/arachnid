@@ -128,7 +128,7 @@ Movie-mode Options
 More Options
 ============
     
-.. option:: --selection-doc <str>
+.. option:: --selection-file <str>
     
     Selection file for a subset of micrographs or selection file template for subset of good particles
     
@@ -195,7 +195,7 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
     else:
         tot = None
         fid = spider_utility.spider_id(filename, id_len)
-    spider_utility.update_spider_files(extra, fid, 'selection_doc', 'output', 'coordinate_file', 'frame_align')
+    spider_utility.update_spider_files(extra, fid, 'selection_file', 'output', 'coordinate_file', 'frame_align')
     try: coords = read_coordinates(**extra)
     except: return filename, 0, os.getpid()
 
@@ -403,14 +403,14 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
     _logger.debug("Finished Enhancment")
     return win
 
-def read_coordinates(coordinate_file, selection_doc="", **extra):
-    ''' Read a coordinate file (use `selection_doc` to select a subset if specified)
+def read_coordinates(coordinate_file, selection_file="", **extra):
+    ''' Read a coordinate file (use `selection_file` to select a subset if specified)
     
     :Parameters:
         
     coordinate_file : str
                       Filename for input coordinate file
-    selection_doc : str
+    selection_file : str
                     Filename for input selection file
     extra : dict
             Unused extra keyword arguments
@@ -422,12 +422,12 @@ def read_coordinates(coordinate_file, selection_doc="", **extra):
     '''
     
     try:
-        select = format.read(selection_doc, numeric=True) if selection_doc != "" and spider_utility.is_spider_filename(selection_doc) else None
+        select = format.read(selection_file, numeric=True) if selection_file != "" and spider_utility.is_spider_filename(selection_file) else None
     except:
         if _logger.isEnabledFor(logging.DEBUG):
-            _logger.exception("Skipping: %s"%selection_doc)
+            _logger.exception("Skipping: %s"%selection_file)
         else:
-            _logger.warn("Cannot find selection file: %s"%selection_doc)
+            _logger.warn("Cannot find selection file: %s"%selection_file)
         raise
     try:
         blobs = format.read(coordinate_file, numeric=True)
@@ -496,9 +496,9 @@ def initialize(files, param):
             _logger.info("Extracting windows from micrograph stacks of movie frames")
     
     if mpi_utility.is_root(**param):
-        selection_doc = format_utility.parse_header(param['selection_doc'])[0]
-        if not spider_utility.is_spider_filename(selection_doc) and os.path.exists(selection_doc):
-            select = format.read(param['selection_doc'], numeric=True)
+        selection_file = format_utility.parse_header(param['selection_file'])[0]
+        if not spider_utility.is_spider_filename(selection_file) and os.path.exists(selection_file):
+            select = format.read(param['selection_file'], numeric=True)
             file_count = len(files)
             if len(select) > 0:
                 files=selection_utility.select_file_subset(files, select)
@@ -523,7 +523,7 @@ def initialize(files, param):
                         param['finished'].append(filename)
                 '''
                 
-            _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_doc, len(files), file_count))
+            _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_file, len(files), file_count))
         
         if isinstance(filename, tuple):
             tot = len(filename[1])
@@ -639,8 +639,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     if main_option:
         pgroup.add_option("-i", "--micrograph-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
         pgroup.add_option("-o", "--particle-stack",   output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
-        pgroup.add_option("-s", coordinate_file="",     help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"), required_file=True)
-        pgroup.add_option("-d", selection_doc="",       help="Selection file for a subset of micrographs or selection file template for subset of good particles", gui=dict(filetype="open"), required_file=False)
+        pgroup.add_option("-l", coordinate_file="",                           help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"), required_file=True)
+        pgroup.add_option("-s", selection_file="",                            help="Selection file for a subset of micrographs or selection file template for subset of good particles", gui=dict(filetype="open"), required_file=False)
         parser.change_default(log_level=3)
         spider_params.setup_options(parser, pgroup, True)
 

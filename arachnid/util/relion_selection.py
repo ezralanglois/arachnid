@@ -36,19 +36,19 @@ Running Script
     
     # Example usage - Generate a ReLion selection file from a set of stacks with manual selection
     
-    $ ara-selrelion win/win_*.spi --defocus-file def_avg.spi --param-file params.spi -o relion_selection.star --good good_00000.spi
+    $ ara-selrelion win/win_*.spi --defocus-file def_avg.spi --param-file params.spi -o relion_selection.star --good-file good_00000.spi
     
     # Example usage - Generate a ReLion selection file from a set of stacks with manual selection where selection was produced by spider and does not have a header
     
-    $ ara-selrelion win/win_*.spi --defocus-file def_avg.spi --param-file params.spi -o relion_selection.star --good good_00000.spi=id,select
+    $ ara-selrelion win/win_*.spi --defocus-file def_avg.spi --param-file params.spi -o relion_selection.star --good-file good_00000.spi=id,select
     
     # Example usage - Generate a ReLion selection file from a SPIDER selection file and a Relion selection file
     
-    $ ara-selrelion relion_selection_full.star --select good_classavg01.spi -o relion_selection_subset.star
+    $ ara-selrelion relion_selection_full.star --selection-file good_classavg01.spi -o relion_selection_subset.star
     
     # Example usage - Generate SPIDER selection files by micrograph from a Relion and SPIDER selection file
     
-    $ ara-selrelion relion_selection_full.star --select good_classavg01.spi -o good_000001.spi
+    $ ara-selrelion relion_selection_full.star --selection-file good_classavg01.spi -o good_000001.spi
 
 
 Critical Options
@@ -64,30 +64,30 @@ Critical Options
     file. Note, these flags are optional for input files; the filenames must be separated 
     by spaces. For a very large number of files (>5000) use `-i "filename*"`
 
-.. option:: -o <str>, --output <str>
+.. option:: -o <FILENAME>, --output <FILENAME>
     
     Output filename for the relion selection file (Only required if input is a stack)
 
-.. option:: -p <str>, --param-file  <str>
+.. option:: -p <FILENAME>, --param-file  <FILENAME>
     
     SPIDER parameters file (Only required when the input is a stack)
     
-.. option:: -d <str>, --defocus-file <str>
+.. option:: -d <FILENAME>, --defocus-file <FILENAME>
     
     SPIDER defocus file (Only required when the input is a stack)
     
 Selection Options
 =================
     
-.. option:: -s <str>, --select <str>
+.. option:: -s <FILENAME>, --selection-file <FILENAME>
     
-    SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`
+    SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`
     
-.. option:: -g <str>, --good <str>
+.. option:: -g <FILENAME>, --good-file <FILENAME>
     
-    SPIDER particle selection file template - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`
+    SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`
     
-.. option:: --tilt-pair <str>
+.. option:: --tilt-pair <FILENAME>
     
     Selection file that defines pairs of particles (e.g. tilt pairs micrograph1, id1, micrograph2, id2) - outputs a tilted/untilted star files
     
@@ -106,11 +106,11 @@ Selection Options
 Movie-mode Options
 ==================
 
-.. option:: --frame-stack-file <str>
+.. option:: --frame-stack-file <FILENAME>
     
     Frame stack filename used to build new relion star file for movie mode refinement
 
-.. option:: --frame-limit <str>
+.. option:: --frame-limit <int>
     
     Limit number of frames to use (0 means no limit)
     
@@ -225,7 +225,7 @@ def batch(files, relion2spider=False, frame_stack_file="", **extra):
                 select_class_subset(vals, **extra)
     _logger.info("Completed")
 
-def generate_relion_selection_file(files, img, output, param_file, select="", good="", test_all=False, **extra):
+def generate_relion_selection_file(files, img, output, param_file, selection_file="", good_file="", test_all=False, **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
@@ -238,10 +238,10 @@ def generate_relion_selection_file(files, img, output, param_file, select="", go
              Filename for output selection file
     param_file : str
                  Filename for input SPIDER Params file
-    select : str
+    selection_file : str
              Filename for input optional selection file (for micrographs)
-    good : str
-           Selection file for good windows int he stack
+    good_file : str
+                Selection file for good windows int he stack
     test_all : bool
                Test all images to ensure proper normalization
     extra : dict
@@ -269,8 +269,8 @@ def generate_relion_selection_file(files, img, output, param_file, select="", go
              if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f"%(avg, std)
     
     defocus_dict = read_defocus(**extra)
-    if select != "": 
-        select = format.read(select, numeric=True)
+    if selection_file != "": 
+        select = format.read(selection_file, numeric=True)
         files = selection_utility.select_file_subset(files, select)
         old = defocus_dict
         defocus_dict = {}
@@ -289,11 +289,11 @@ def generate_relion_selection_file(files, img, output, param_file, select="", go
         group = []
         for filename in files:
             mic = spider_utility.spider_id(filename)
-            if good != "":
-                if not os.path.exists(spider_utility.spider_filename(good, mic)): continue
-                select_vals = format.read(good, spiderid=mic, numeric=True)
+            if good_file != "":
+                if not os.path.exists(spider_utility.spider_filename(good_file, mic)): continue
+                select_vals = format.read(good_file, spiderid=mic, numeric=True)
                 if len(select_vals) > 0 and not hasattr(select_vals[0], 'id'):
-                    raise ValueError, "Error with selection file (`--good`) missing `id` in header, return with `--good filename=id` or `--good filename=id,select` indicating which column has the id and select"
+                    raise ValueError, "Error with selection file (`--good-file`) missing `id` in header, return with `--good-file filename=id` or `--good-file filename=id,select` indicating which column has the id and select"
                 if len(select_vals) > 0 and 'select' in select_vals[0]._fields:
                     select_vals = [s.id for s in select_vals if s.select > 0] if len(select_vals) > 0 and hasattr(select_vals[0], 'select') else [s.id for s in select_vals]
             else:
@@ -561,7 +561,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
+def select_good(vals, selection_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -569,10 +569,10 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
     
     vals : list
            Entries from relion selection file
-    select : str
-             Filename for good class selection file
-    good : str
-           Selection file for good particles organized by micrograph 
+    selection_file : str
+                     Filename for good class selection file
+    good_file : str
+                Selection file for good particles organized by micrograph 
     min_defocus : float
                   Minimum allowed defocus 
     max_defocus : float
@@ -607,15 +607,15 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
     _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
     
-    if good != "":
-        _logger.info("Selecting good particles from: %s"%str(good))
+    if good_file != "":
+        _logger.info("Selecting good particles from: %s"%str(good_file))
         last=None
         subset=[]
         for v in vals:
             mic,pid1 = relion_utility.relion_id(v.rlnImageName)
             if mic != last:
                 try:
-                    select_vals = set([s.id for s in format.read(good, spiderid=mic, numeric=True)])
+                    select_vals = set([s.id for s in format.read(good_file, spiderid=mic, numeric=True)])
                 except:
                     if _logger.isEnabledFor(logging.DEBUG):
                         _logger.exception("Error reading selection file")
@@ -624,11 +624,12 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
             if pid1 in select_vals:
                 subset.append(v)
         _logger.info("Selected %d of %d"%(len(subset), len(vals)))
-        if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good
+        if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good_file
     else: subset=vals
     
     _logger.debug("Subset size1: %d"%len(subset))
-    if select != "" and not isinstance(select, list):
+    if selection_file != "" and not isinstance(selection_file, list):
+        select = selection_file
         vals = subset
         subset=[]
         try: select=int(select)
@@ -636,7 +637,7 @@ def select_good(vals, select, good, min_defocus, max_defocus, column="rlnClassNu
             if select.find(",") != -1:
                 select = set([int(v) for v in select.split(',')])
             else:
-                select = format.read(select, numeric=True)
+                select = format.read(selection_file, numeric=True)
                 select = set([s.id for s in select if s.select > 0])
         else: select=set([select])
         _logger.info("Selecting classes: %s"%str(select))
@@ -892,8 +893,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
-    group.add_option("-s", select="",                       help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`", gui=dict(filetype="open"))
-    group.add_option("-g", good="",                         help="SPIDER particle selection file template - if select file does not have proper header, then use `--select filename=id` or `--select filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("-s", select="",                       help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")

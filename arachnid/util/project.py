@@ -106,8 +106,8 @@ def batch(files, param_file, **extra):
     if input == '--unenum-files':
         input2 = find_root(scripts, ('movie_files', 'micrograph_files'))[0]
         extra['linked_files'] = extra[input2[2:].replace('-', '_')]
-        scrpt[3] = (input2)+scrpt[3]
-        write_config([scripts[0]], **extra)
+        scrpt[3] = [input2, ]+scrpt[3]
+        write_config([scripts[0][0]], **extra)
 
     scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0], [input])
     print [s[1] for s in scripts]
@@ -217,14 +217,14 @@ def write_config(workflow, **extra):
         try: os.makedirs(config_path)
         except: pass
     
-    print program.settings.compress_filenames(extra['input_files'])
     extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
     scripts=[]
     for mod in workflow:
         config = program.update_config(mod, ret_file_deps=True, **extra)
         if config == "":
             config = program.write_config(mod, ret_file_deps=True, **extra)
-        scripts.append((mod, )+config)
+        scripts.append([mod, ]+list(config))
+        extra['input_files'] = []
     return scripts
 
 def build_workflow(files, **extra):
@@ -277,28 +277,29 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0.0, singleStep=1.0), required=True)
     pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
+    pgroup.add_option("", window=0,             help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
+    pgroup.add_option("", mask_diameter=0,      help="Set the mask diameter: 0 means use 1.15*particle_diamater", gui=dict(minimum=0))
     
     addgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
-    addgroup.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
-    
+    addgroup.add_option("-w", worker_count=1,    help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
+    addgroup.add_option("-t", thread_count=1, help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
     pgroup.add_option_group(addgroup)
     
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
-    shrgroup.add_option("", config_path="cfg", help="", gui=dict(filetype="open")) # dir-open
-    shrgroup.add_option("", linked_files="", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat", help="", gui=dict(filetype="open")) # create soft link or set of softlinks?
-    shrgroup.add_option("", param_file="data/local/ctf/params.dat", help="", gui=dict(filetype="save"))
-    shrgroup.add_option("", movie_files="data/local/frames/mic_00000.dat", help="", gui=dict(filetype="file-list")) # create soft link or set of softlinks?
-    shrgroup.add_option("", coordinate_file="data/local/coords/sndc_000000.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", particle_file="data/cluster/win/win_000000.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", reference_file="data/cluster/reference.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", align_file="data/cluster/data/data.star", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", good_file="data/local/vicer/good/good_000000.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", view_file="data/local/vicer/view/view_000000.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", select_file="data/local/screen/select.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", frame_shift_file="data/local/movie/shift/shift_000000.dat", help="", gui=dict(filetype="open"))
-    shrgroup.add_option("", gain_file="data/local/gain/gain.dat", help="", gui=dict(filetype="open")) # required if input is frames, 
+    shrgroup.add_option("", config_path="cfg",                                          help="Location for configuration scripts", gui=dict(filetype="open"))
+    shrgroup.add_option("", linked_files="",                                            help="Location for renamed links - name automatically set based on input", gui=dict(filetype="open"))
+    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat",           help="Location for micrograph files", gui=dict(filetype="open"))
+    shrgroup.add_option("", param_file="data/local/ctf/params.dat",                     help="Location for SPIDER params file", gui=dict(filetype="save"))
+    shrgroup.add_option("", movie_files="data/local/frames/mic_00000.dat",              help="Location for micrograph frame stacks", gui=dict(filetype="open"))
+    shrgroup.add_option("", coordinate_file="data/local/coords/sndc_000000.dat",        help="Location for particle coordinates on micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", particle_file="data/cluster/win/win_000000.dat",            help="Location for windowed particle stacks", gui=dict(filetype="open"))
+    shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat",                          help="Location of estimated CTF parameters per micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", reference_file="data/cluster/reference.dat",                help="Location of generated reference", gui=dict(filetype="open"))
+    shrgroup.add_option("", align_file="data/cluster/data/data.star",                   help="Location of relion selection file", gui=dict(filetype="open"))
+    shrgroup.add_option("", good_file="data/local/vicer/good/good_000000.dat",          help="Location of cleaned up particle selection files", gui=dict(filetype="open"))
+    shrgroup.add_option("", view_file="data/local/vicer/view/view_000000.dat",          help="Location of images embedded in low-dimensional factor space", gui=dict(filetype="open"))
+    shrgroup.add_option("", selection_file="data/local/screen/select.dat",              help="Location of micrograph selection", gui=dict(filetype="open"))
+    shrgroup.add_option("", frame_shift_file="data/local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
     pgroup.add_option_group(shrgroup)
     # create suffix system? internal database?
     
