@@ -141,17 +141,19 @@ class MainWindow(QtGui.QMainWindow):
                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True)),
                ]
         
-    def setAlternateImage(self, filename):
+    def setAlternateImage(self, filename, emptyonly=False):
         '''
         '''
         
-        self.advanced_settings.alternate_image=filename
+        if not emptyonly or self.advanced_settings.alternate_image == "":
+            self.advanced_settings.alternate_image=filename
         
-    def setCoordinateFile(self, filename):
+    def setCoordinateFile(self, filename, emptyonly=False):
         '''
         '''
         
-        self.advanced_settings.coords=filename
+        if not emptyonly or self.advanced_settings.alternate_image == "":
+            self.advanced_settings.coords=filename
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 

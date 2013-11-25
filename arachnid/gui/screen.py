@@ -31,6 +31,14 @@ def main():
     dialog = Screener() 
     dialog.show()
     if dialog.is_empty():
+        files = sys.argv[1:] if len(sys.argv) > 1 else []
+        pow_files = glob.glob('local/pow/pow*.*')
+        if len(pow_files) > 0:
+            val = QtGui.QMessageBox.question(dialog, 'Load project files?', 'Found power spectra for screening in current project directory. Would you like to load them?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if val == QtGui.QMessageBox.Yes: files = pow_files
+        dialog.openImageFiles(sys.argv[1:])
+        """
+        val = QtGui.QMessageBox.question(dialog, 'Load project files?', 'Found %s for screening in current project directory. Would you like to load them?'%msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         if len(sys.argv) > 1:
             dialog.openImageFiles(sys.argv[1:])
         else:
@@ -49,8 +57,13 @@ def main():
                     dialog.openImageFiles(pow_files)
                     if len(mic_files) > 0:dialog.setAlternateImage(mic_files[0])
                     if len(coord_files) > 0:dialog.setCoordinateFile(coord_files[0])
+        """
     else:
         if len(sys.argv) > 1: _logger.info("Ignoring command line arguments - project already loaded")
+    mic_files = glob.glob('local/mic/mic*.*')
+    coord_files = glob.glob('local/coords/sndc*.*')
+    if len(mic_files) > 0:dialog.setAlternateImage(mic_files[0], True)
+    if len(coord_files) > 0:dialog.setCoordinateFile(coord_files[0], True)
     
     sys.exit(app.exec_())
 
