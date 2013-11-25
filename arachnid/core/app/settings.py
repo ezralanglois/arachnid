@@ -1853,13 +1853,10 @@ def compress_filenames(files):
     for i in xrange(len(files)):
         if not os.path.isabs(files[i]):
             files[i] = os.path.abspath(files[i])
-        print i, files[i], os.path.commonprefix(files[:i+1])
         tmp = os.path.commonprefix(files[:i+1])
         if tmp != "": prefixes[os.path.dirname(tmp)]=tmp
     prefixes = [v+'*' for v in prefixes.values()]
     test=[]
     for f in prefixes:
-        print f, '->', glob.glob(f)
         test.extend(glob.glob(f)) 
-    print len(test), len(files)
     return optlist(prefixes) if len(test) == len(files) else files # Ensure its not a subset
