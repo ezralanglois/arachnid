@@ -1902,3 +1902,25 @@ def compress_filenames(files):
     for f in prefixes:
         test.extend(glob.glob(f)) 
     return optlist(prefixes) if len(test) == len(files) else files # Ensure its not a subset
+
+def parse_config_simple(config_file, **extra):
+    ''' Define a set of command line arguments as keywords to this function
+    
+    :Parameters:
+    
+    config_file : str
+                 Configuration file to parse
+    extra : dict
+            Flag, default value pairs
+    
+    :Returns:
+    
+    param : dict
+            Keyword, value pairs
+    '''
+    
+    parser = OptionParser()
+    for option, value in extra.iteritems():
+        parser.add_option("", **{option: value})
+    return vars(parser.parse_file([], None, config_file))
+
