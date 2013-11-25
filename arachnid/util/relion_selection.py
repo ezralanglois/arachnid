@@ -937,8 +937,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks or ReLion selection file", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",      help="Output filename for the relion selection file (Only required if input is a stack)", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks or ReLion selection file", required_file=True, gui=dict(filetype="open"))
+        pgroup.add_option("-o", "--align-file", output="",      help="Output filename for the relion selection file (Only required if input is a stack)", gui=dict(filetype="save"), required_file=False)
         parser.change_default(log_level=3)
 
 def check_options(options, main_option=False):
