@@ -81,12 +81,13 @@ A workflow module should contain the following function:
 '''
 from ..core.app import program
 from ..core.image import ndimage_file
+from ..core.metadata import spider_params
 import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, **extra):
+def batch(files, param_file, **extra):
     '''
     1. Write out config files
     2. Write launch scripts
@@ -97,27 +98,62 @@ def batch(files, **extra):
     
     workflow = build_workflow(files, **extra)
     _logger.info("Work flow includes %d steps"%len(workflow))
-    print workflow
     scripts = write_config(workflow, **extra)
     
-    # 2. How to determine type of input?
+    input, scrpt = find_root(scripts, ('unenum_files', 'movie_files', 'micrograph_files'))
     
-    # Use found to determine starting point:
-    #    1. enumfiles
-    #    2. align_frames
-    #    3. defocus
-    scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0])
-    print [s[1] for s in scripts]
+    # Hack
+    if input == '--unenum-files':
+        input2 = find_root(scripts, ('movie_files', 'micrograph_files'))[0]
+        extra['linked_files'] = extra[input2[2:].replace('-', '_')]
+        scrpt[3] = (input2)+scrpt[3]
+        write_config([scripts[0]], **extra)
 
-def write_workflow():
-    '''
-    run
-    screen
-    vicer
-    selrelion
+    scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0], [input])
+    print [s[1] for s in scripts]
+    write_workflow(scripts)
+    spider_params.write_update(param_file, **extra)
+    
+def find_root(scripts, root_inputs):
+    ''' Find the input for the root script
+    
+    :Parameters:
+    
+    scripts : list
+              List of tuples containing: module, script name, 
+              input file deps, output file deps.
+    root_inputs : tuple
+                  Possible roots in order of precendence
+    
+    :Returns:
+    
+    root_input : str
+                 Root input
     '''
     
-    pass
+    for root_input in root_inputs:
+        root_input = '--'+root_input.replace('_', '-')
+        for scrpt in scripts:
+            if root_input in scrpt[2]: return root_input, scrpt
+    raise ValueError, "No root found!"
+
+def write_workflow(scripts):
+    ''' Write out scripts necessary to run the workflow
+    
+    :Parameters:
+    
+    scripts : list
+              List of scripts to run
+    '''
+    
+    fout = open('run.sh', 'w')
+    try:
+        fout.write("#!/bin/bash\n")
+        for script in scripts:
+            fout.write('sh %s\n'%script[1])
+            fout.write('if [ "$?" != "0" ] ; then\nexit $?\nfi\n')
+    finally:
+        fout.close()
 
 def build_dependency_tree(scripts, root, found=[]):
     ''' Build a dependency tree to order all the scripts based on
@@ -181,6 +217,8 @@ def write_config(workflow, **extra):
         try: os.makedirs(config_path)
         except: pass
     
+    print program.settings.compress_filenames(extra['input_files'])
+    extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
     scripts=[]
     for mod in workflow:
         config = program.update_config(mod, ret_file_deps=True, **extra)
@@ -240,11 +278,17 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
     
+    addgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
+    addgroup.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
+    
+    pgroup.add_option_group(addgroup)
+    
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
     shrgroup.add_option("", config_path="cfg", help="", gui=dict(filetype="open")) # dir-open
-    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat", help="", gui=dict(filetype="save")) # create soft link or set of softlinks?
+    shrgroup.add_option("", linked_files="", help="", gui=dict(filetype="open"))
+    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat", help="", gui=dict(filetype="open")) # create soft link or set of softlinks?
     shrgroup.add_option("", param_file="data/local/ctf/params.dat", help="", gui=dict(filetype="save"))
-    shrgroup.add_option("", movie_files="", help="", gui=dict(filetype="file-list")) # create soft link or set of softlinks?
+    shrgroup.add_option("", movie_files="data/local/frames/mic_00000.dat", help="", gui=dict(filetype="file-list")) # create soft link or set of softlinks?
     shrgroup.add_option("", coordinate_file="data/local/coords/sndc_000000.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", particle_file="data/cluster/win/win_000000.dat", help="", gui=dict(filetype="open"))
     shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat", help="", gui=dict(filetype="open"))
@@ -265,6 +309,7 @@ def check_options(options, main_option=False):
     #spider_params.check_options(options) # interactive
     #if len(options.ext) != 3: raise OptionValueError, "SPIDER extension must be three characters"
     
+    #Move check to movie mode
     if options.gain_reference == "" and len(options.input_files) > 0 and ndimage_file.count_images(options.input_files[0]) > 1:
         _logger.warn("No gain reference specified for movie mode alignment!")
         
