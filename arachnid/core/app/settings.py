@@ -912,7 +912,8 @@ class OptionParser(optparse.OptionParser):
         return_val : tuple 
                      A tuple of options and arguments without flags
         '''
-        
+        if os.path.exists('cfg/project.cfg'):
+            values = self.parse_file(args, values, 'cfg/project.cfg')
         values = self.parse_file(args, values, fin)
         return self.parse_args(args, values)
     
