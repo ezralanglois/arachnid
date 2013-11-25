@@ -134,11 +134,11 @@ class MainWindow(QtGui.QMainWindow):
                dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
                dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
                dict(show_label=False, help="Show the labels below each image"),
-               dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
-               dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True)),
-               dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True)),
-               dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True)),
-               dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True)),
+               dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True, value=self.ui.imageZoomDoubleSpinBox)),
+               dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True, value=self.ui.contrastSlider)),
+               dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True, value=self.ui.imageCountSpinBox)),
+               dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True, value=self.ui.decimateSpinBox)),
+               dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True, value=self.ui.clampDoubleSpinBox)),
                ]
         
     def setAlternateImage(self, filename, emptyonly=False):
@@ -509,10 +509,36 @@ class MainWindow(QtGui.QMainWindow):
         if self.inifile == "": return None
         return QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
     
+    def saveReadOnly(self):
+        '''
+        '''
+        
+        current_state = self.advancedSettings()
+        for state in current_state:
+            if 'gui' in state and 'readonly' in state['gui'] and state['gui']['readonly']:
+                keys = [key for key in state.keys() if key not in ('gui', 'help')]
+                if len(keys) != 1: raise ValueError, "Cannot find unique key: %s"%str(keys)
+                name = keys[0]
+                setattr(self.advanced_settings, name, state[name])
+    
+    def loadReadOnly(self):
+        '''
+        '''
+        
+        current_state = self.advancedSettings()
+        for state in current_state:
+            if 'gui' in state and 'readonly' in state['gui'] and state['gui']['readonly'] and 'value' in state['gui']:
+                keys = [key for key in state.keys() if key not in ('gui', 'help')]
+                if len(keys) != 1: raise ValueError, "Cannot find unique key: %s"%str(keys)
+                widget = state['gui']['value']
+                name = keys[0]
+                widget.setValue(getattr(self.advanced_settings, name))
+        
     def saveSettings(self):
         ''' Save the settings of widgets
         '''
         
+        self.saveReadOnly()
         settings = self.getSettings()
         if settings is None: return
         settings.setValue('main_window/geometry', self.saveGeometry())
@@ -532,6 +558,7 @@ class MainWindow(QtGui.QMainWindow):
         settings.beginGroup('Advanced')
         self.ui.advancedSettingsTreeView.model().restoreState(settings) #@todo - does not work!
         settings.endGroup()
+        self.loadReadOnly()
         
         
 def read_image(filename, index=None):

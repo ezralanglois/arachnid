@@ -147,9 +147,7 @@ class MainWindow(ImageViewerWindow):
         ''' Called when an image is added to the view
         '''
         
-        print 'here', item.data(QtCore.Qt.UserRole), self.file_index[item.data(QtCore.Qt.UserRole), 2]
         if self.file_index[item.data(QtCore.Qt.UserRole), 2] > 0:
-            print 'select', item.data(QtCore.Qt.UserRole), self.file_index[item.data(QtCore.Qt.UserRole), 2]
             self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
     
     def notify_added_files(self, newfiles):
@@ -179,6 +177,8 @@ class MainWindow(ImageViewerWindow):
             return numpy.sum(self.file_index[:, 2]>0)
         elif self.advanced_settings.show_images == 'Unselected':
             return numpy.sum(self.file_index[:, 2]==0)
+        elif self.advanced_settings.show_images == 'Deleted':
+            return numpy.sum(self.file_index[:, 2]<0)
         return ImageViewerWindow.imageTotal(self)
     
     # Slots for GUI
@@ -203,7 +203,9 @@ class MainWindow(ImageViewerWindow):
         progressDialog.show()
         if isinstance(filename, tuple): filename = filename[0]
         file_index = self.file_index.copy()
-        if invert: file_index[:, 2] = numpy.logical_not(file_index[:, 2]>0)
+        if invert: 
+            sel = file_index[:, 2] > -1
+            file_index[sel, 2] = numpy.logical_not(file_index[sel, 2]>0)
         
         if filename != "":
             if self.advanced_settings.relion != "" and os.path.splitext(filename)[1]=='.star':
@@ -285,7 +287,9 @@ class MainWindow(ImageViewerWindow):
                      List of deselected items in the list
         '''
         
-        print 'total:', self.file_index.shape
+        
+        #modifiers = QtGui.QApplication.keyboardModifiers()
+        #if modifiers == QtCore.Qt.AltModifier:
         for index in selected.indexes():
             idx = index.data(QtCore.Qt.UserRole)
             if hasattr(idx, '__iter__'): idx = idx[0]
