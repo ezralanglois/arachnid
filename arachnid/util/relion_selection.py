@@ -270,12 +270,15 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     
     defocus_dict = read_defocus(**extra)
     if selection_file != "": 
-        select = format.read(selection_file, numeric=True)
-        files = selection_utility.select_file_subset(files, select)
-        old = defocus_dict
-        defocus_dict = {}
-        for s in select:
-            if s.id in old: defocus_dict[s.id]=old[s.id]
+        if os.path.exists(selection_file):
+            select = format.read(selection_file, numeric=True)
+            files = selection_utility.select_file_subset(files, select)
+            old = defocus_dict
+            defocus_dict = {}
+            for s in select:
+                if s.id in old: defocus_dict[s.id]=old[s.id]
+        else:
+            _logger.warn("No selection file found at %s - skipping"%selection_file)
     spider_params.read(param_file, extra)
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
     idlen = len(str(ndimage_file.count_images(files)))
@@ -887,6 +890,24 @@ def create_refinement(vals, output, **extra):
         align[i, 17] = vals[i].rlnDefocusU
     format.write(output, align, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), format=format.spiderdoc) 
 """
+
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
