@@ -25,6 +25,9 @@ from arachnid.core.orient import healpix, orient_utility
 import numpy, sys, logging
 #import scipy.ndimage.interpolation
 
+from arachnid.core.image import reproject
+from arachnid.core.metadata import format_utility
+
 if __name__ == "__main__":
     
     image_file = sys.argv[1]
@@ -55,6 +58,10 @@ if __name__ == "__main__":
     gmax, gmin = manifold.eps_range(neigh, nn)
     logging.info("Angular distance range for %d neighbors: %f - %f"%(nn, numpy.rad2deg(gmin), numpy.rad2deg(gmax)))
     
+    ref_vol=None
+    if 1 == 1:
+        ref_vol = ndimage_file.read_image('output/vol_view_001.csv')
+    
     avg = None
     neighcol = neigh.col.reshape((quat.shape[0], nn+1))
     for i in xrange(len(angs)):
@@ -81,7 +88,11 @@ if __name__ == "__main__":
             '''
             if avg is None: avg = img.copy()
             else: avg += img
+        
         ndimage_file.write_image(output, avg, i)
+        if ref_vol is not None:
+            avg = reproject.reproject_3q_single(ref_vol, img.shape[0]/2, frame.reshape((1, 3)))[0]
+            ndimage_file.write_image(format_utility.add_prefix(output, 'ref'), avg, i)
 
 
 
