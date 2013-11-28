@@ -32,6 +32,28 @@ def is_available():
     
     return ImageDraw is not None
 
+def mark(img):
+    ''' Draw an X through an image
+    
+    :Parameters:
+    
+    img : array
+          Image
+    
+    :Returns:
+    
+    out : array
+          Returns the resulting RGB image as an array (nxnx3)
+    '''
+    
+    if ImageDraw is None: return None
+    if hasattr(img, 'ndim'):
+        img = scipy.misc.toimage(img).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    draw.line((0, 0)+img.size, fill=128, width=5)
+    draw.line((0, img.size[1], img.size[0], 0), fill=128, width=5)
+    return scipy.misc.fromimage(img)
+
 def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", **extra):
     ''' Draw boxes around particles on the micrograph using the given coordinates, window size
     and down sampling factor.
