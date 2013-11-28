@@ -618,7 +618,7 @@ def euclidean_distance2(X, Y):
     :Parameters:
     
     X : array
-        Matrix 1 (mxa)
+        Matrix 1 (mxa) 
     Y : array
         Matrix 2 (nxa)
     
@@ -628,7 +628,9 @@ def euclidean_distance2(X, Y):
             Array holding the distance between both matrices (mxn)
     '''
     
-    gemm = scipy.linalg.fblas.dgemm
+    if hasattr(scipy.linalg, 'fblas'):
+        gemm = scipy.linalg.fblas.dgemm #
+    else: raise ValueError, "No fblas"
     x2 = (X**2).sum(axis=1)
     y2 = (Y**2).sum(axis=1)
     dist2 = gemm(-2.0, X, Y, trans_b=True, beta=0).T
