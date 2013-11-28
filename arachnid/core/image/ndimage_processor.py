@@ -31,7 +31,8 @@ def create_matrix_from_file(images, image_processor, dtype=numpy.float, **extra)
           2D matrix where each row is an image
     '''
     
-    img1 = ndimage_file.read_image(images[0])
+    img1 = ndimage_file.read_image(images[0][0]) if isinstance(images[0], tuple) else ndimage_file.read_image(images[0])
+    
     img = image_processor(img1, 0, **extra).ravel()
     total = len(images[1]) if isinstance(images, tuple) else len(images)
     mat = numpy.zeros((total, img.shape[0]), dtype=dtype)
