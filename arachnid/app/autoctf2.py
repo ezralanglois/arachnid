@@ -6,7 +6,8 @@
 from ..core.app import program
 from ..core.util import plotting
 from ..core.metadata import spider_utility, format, format_utility, spider_params, selection_utility
-from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate, ctf, analysis
+from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate, analysis
+from ..core.image.ctf import estimate as estimate_ctf, estimate2d as estimate_ctf2d
 from ..core.parallel import mpi_utility
 import os, numpy, logging, sys
 
@@ -40,17 +41,17 @@ def process(filename, output, id_len=0, use_emx=False, fastdef=False, **extra):
     if fastdef:
         pow = generate_powerspectra(filename, shift=True, **extra)
         ndimage_file.write_image("test.spi", pow)
-        vals = ctf.estimate_defocus_fast(pow.copy(), **extra)
+        vals = estimate_ctf.estimate_defocus_fast(pow.copy(), **extra)
         pow = pow.T.copy()
         opow = pow.copy()
     else:
         pow = generate_powerspectra(filename, shift=False, **extra)
-        vals=ctf.search_model_2d(pow, **extra)
+        vals=estimate_ctf2d.search_model_2d(pow, **extra)
         sys.stdout.flush()
         pow=numpy.fft.fftshift(pow).copy()
         opow = pow.copy()
         pow = pow.T.copy()
-    ctf.ctf_2d(pow, *vals, **extra)
+    estimate_ctf2d.ctf_2d(pow, *vals, **extra)
     pow[:pow.shape[0]/2, :] = ndimage_utility.histeq(pow[:pow.shape[0]/2, :])
     pow[pow.shape[0]/2:, :] = ndimage_utility.histeq(pow[pow.shape[0]/2:, :])
     ndimage_file.write_image(output, pow.T.copy())

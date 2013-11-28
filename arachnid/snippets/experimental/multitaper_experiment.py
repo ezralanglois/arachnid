@@ -17,7 +17,8 @@ To run:
 import sys,numpy
 
 from arachnid.core.metadata import spider_params #, spider_utility
-from arachnid.core.image import ndimage_file, ndimage_utility, ctf
+from arachnid.core.image import ndimage_file, ndimage_utility
+from arachnid.core.image.ctf import estimate1d
 from arachnid.core.util import plotting
 import scipy.signal
 scipy.signal;
@@ -75,17 +76,17 @@ if __name__ == '__main__':
             #pow = ndimage_utility.spiral_transform(pow)
             
             #n = pow.shape[0]/2
-            #val = 0.5/(ctf.resolution(6, n, **extra)-ctf.resolution(30, n, **extra))
+            #val = 0.5/(estimate1d.resolution(6, n, **extra)-estimate1d.resolution(30, n, **extra))
             #pow = ndimage_filter.filter_gaussian_highpass(pow, val)
             print 'Perdiogram', nwin
             raw = ndimage_utility.mean_azimuthal(pow)[:pow.shape[0]/2]
             raw[1:] = raw[:len(raw)-1]
             raw[:2]=0
             print 'raw', len(raw)
-            st = int(ctf.resolution(rmin, len(raw), **extra))
-            e = int(ctf.resolution(rmax2, len(raw), **extra)) if rmax2 > 0 else len(raw)
+            st = int(estimate1d.resolution(rmin, len(raw), **extra))
+            e = int(estimate1d.resolution(rmax2, len(raw), **extra)) if rmax2 > 0 else len(raw)
             peak_idx = scipy.signal.find_peaks_cwt(raw[st:e], numpy.arange(1,10), min_snr=2)
-            plotting.plot_line('perdiogram_%d_rng.png'%window_size, [ctf.resolution(i, len(raw), **extra) for i in xrange(st, e)], raw[st:e], dpi=300, marker_idx=peak_idx)
+            plotting.plot_line('perdiogram_%d_rng.png'%window_size, [estimate1d.resolution(i, len(raw), **extra) for i in xrange(st, e)], raw[st:e], dpi=300, marker_idx=peak_idx)
     
     if 1==1:
         # Multitaper
@@ -102,11 +103,11 @@ if __name__ == '__main__':
             raw = ndimage_utility.mean_azimuthal(pow)[:pow.shape[0]/2]
             raw[1:] = raw[:len(raw)-1]
             raw[:2]=0
-            st = int(ctf.resolution(rmin, len(raw), **extra))
-            e = int(ctf.resolution(rmax2, len(raw), **extra)) if rmax2 > 0 else len(raw)
+            st = int(estimate1d.resolution(rmin, len(raw), **extra))
+            e = int(estimate1d.resolution(rmax2, len(raw), **extra)) if rmax2 > 0 else len(raw)
             #peak_idx = scipy.signal.find_peaks_cwt(raw[st:e], numpy.arange(1,10), min_snr=1)
             
-            plotting.plot_line('multitaper_%d_rng.png'%rmax, [ctf.resolution(i, len(raw), **extra) for i in xrange(st, e)], raw[st:e]/raw[st:e].max(), dpi=300, marker_idx=peak_idx)
+            plotting.plot_line('multitaper_%d_rng.png'%rmax, [estimate1d.resolution(i, len(raw), **extra) for i in xrange(st, e)], raw[st:e]/raw[st:e].max(), dpi=300, marker_idx=peak_idx)
     
     
     

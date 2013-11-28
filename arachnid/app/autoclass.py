@@ -10,9 +10,10 @@ http://deeplearning.stanford.edu/wiki/index.php/Implementing_PCA/Whitening
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor, ctf #, ndimage_filter #, analysis
+from ..core.image import ndimage_file, ndimage_utility, reproject, rotate, ndimage_interpolate, manifold, ndimage_processor #, ndimage_filter #, analysis
+from ..core.image.ctf import correct as ctf_correct
 from ..core.orient import healpix, orient_utility
-from ..core.metadata import spider_utility, format, format_utility, spider_params, format_alignment
+from ..core.metadata import format, format_utility, spider_params, format_alignment #, spider_utility
 #from ..core.parallel import mpi_utility
 from ..core.parallel import openmp,process_queue
 import logging, numpy, os, scipy, scipy.cluster.vq, scipy.spatial.distance
@@ -33,7 +34,7 @@ def batch(files, output, **extra):
     
     if 1 == 1:
         label, align, data = create_sparse_dataset(files, **extra)
-        if isinstance(label, tuple) and len(label) == 2: label=images[1]
+        if isinstance(label, tuple) and len(label) == 2: label=label[1]
     else:
         label, align, data = create_dataset(files, **extra)
     
@@ -127,7 +128,8 @@ def create_sparse_dataset(files, cache_file="", neighbors=2000, batch=10000, eps
         
     _logger.info("Generating quaternions")
     ang = align[:, :3].copy()
-    ang[:, 0]=-ang[:, 2]
+    #ang[:, 0]=-ang[:, 2]
+    ang[:, 0]=0
     quat=orient_utility.spider_to_quaternion(ang)
     _logger.info("Building nearest neighbor graph: %d"%neighbors)
     qneigh = manifold.knn_geodesic_cache(quat, neighbors, batch, cache_file=cache_file)
@@ -232,26 +234,26 @@ def redistance_worker(beg, end, samp, row, col, align, mask, defocus, ctf_param,
         rimg=ndimage_utility.normalize_standard(rimg, nmask, False) #*mask
         cimg=ndimage_utility.normalize_standard(cimg, nmask, False) #*mask
         
-        if 1 == 0:
+        if 1 == 1:
             if defocus[row[i]] != rdefocus_last:
-                rctfimg = ctf.transfer_function(mask.shape, defocus[row[i]], **ctf_param)
+                rctfimg = ctf_correct.transfer_function(mask.shape, defocus[row[i]], **ctf_param)
                 rdefocus_last=defocus[row[i]]
             if defocus[col[i]] != cdefocus_last:
-                cctfimg=ctf.transfer_function(mask.shape, defocus[col[i]], **ctf_param)
+                cctfimg=ctf_correct.transfer_function(mask.shape, defocus[col[i]], **ctf_param)
                 cdefocus_last=defocus[col[i]]
             
-            rimg = ctf.correct(rimg, cctfimg, True)
-            cimg = ctf.correct(cimg, rctfimg, True)
+            rimg = ctf_correct.correct(rimg, cctfimg, True)
+            cimg = ctf_correct.correct(cimg, rctfimg, True)
         else:
             if defocus[row[i]] != rdefocus_last:
-                rctfimg = ctf.ctf_model_spi_2d(defocus[row[i]], mask.shape[0], **ctf_param)
+                rctfimg = ctf_correct.ctf_model_spi_2d(defocus[row[i]], mask.shape[0], **ctf_param)
                 rdefocus_last=defocus[row[i]]
             if defocus[col[i]] != cdefocus_last:
-                cctfimg=ctf.ctf_model_spi_2d(defocus[col[i]], mask.shape[0], **ctf_param)
+                cctfimg=ctf_correct.ctf_model_spi_2d(defocus[col[i]], mask.shape[0], **ctf_param)
                 cdefocus_last=defocus[col[i]]
             
-            rimg = ctf.correct_model(rimg, cctfimg, True)
-            cimg = ctf.correct_model(cimg, rctfimg, True)
+            rimg = ctf_correct.correct_model(rimg, cctfimg, True)
+            cimg = ctf_correct.correct_model(cimg, rctfimg, True)
             
         tmp=numpy.subtract(rimg, cimg, tmp)
         numpy.abs(tmp, tmp)
@@ -329,25 +331,6 @@ def read_alignment(files, alignment="", is_dala=False, **extra):
     '''
     
     return format_alignment.read_alignment(alignment, files[0], use_3d=True)
-    '''
-    if len(files) == 1:
-        spiderid = files[0] if not os.path.exists(alignment) else None
-        align = format.read_alignment(alignment, spiderid=spiderid)
-        align, header = format_utility.tuple2numpy(align)
-        refidx = header.index('ref_num')
-        ididx = header.index('id')
-        label = numpy.zeros((len(align), 2), dtype=numpy.int)
-        label[:, 0] = spider_utility.spider_id(files[0])
-        label[:, 1] = align[:, ididx].astype(numpy.int)-1
-        if numpy.max(label[:, 1]) >= ndimage_file.count_images(files[0]):
-            label[:, 1] = numpy.arange(0, len(align))
-    else:
-        raise ValueError, "Multi file alignment read not supported"
-    if is_dala:
-        align[:, 0]=-align[:, 5]
-    ref = align[:, refidx].astype(numpy.int)
-    return label, align, ref
-    '''
     
 def create_mask(files, pixel_diameter, **extra):
     '''

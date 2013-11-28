@@ -11,10 +11,9 @@ from arachnid.core.metadata import format_utility, namedtuple_utility
 from arachnid.core.metadata import spider_utility, relion_utility
 from arachnid.core.image import ndimage_file,ndimage_utility
 from arachnid.core.image import reconstruct
-from arachnid.core.image import ctf
+from arachnid.core.image.ctf import correct as ctf_correct
 from arachnid.core.image import ndimage_filter
 import numpy
-ctf;
 
 def iter_images(data, frames, rng, idx):
     '''
@@ -47,8 +46,8 @@ def process_image(img, data, apix, mask, norm_mask, **extra):
     #img = ndimage_filter.histfit(img, mask, noise_win)
     ndimage_utility.normalize_standard(img, norm_mask, out=img)
     img = ndimage_utility.fourier_shift(img, data[3], data[4])
-    ctfimg = ctf.phase_flip_transfer_function(img.shape, data[5], data[6], data[7], voltage=data[8], apix=apix)
-    img = ctf.correct(img, ctfimg)
+    ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, data[5], data[6], data[7], voltage=data[8], apix=apix)
+    img = ctf_correct.correct(img, ctfimg)
     return img
 
 if __name__ == '__main__':

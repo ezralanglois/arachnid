@@ -16,7 +16,8 @@ To run:
 import sys
 from arachnid.core.app import tracing
 from arachnid.core.metadata import format, format_utility, spider_params
-from arachnid.core.image import ndimage_file, ctf, rotate
+from arachnid.core.image import ndimage_file, rotate
+from arachnid.core.image.ctf import correct as ctf_correct
 from arachnid.core.image import reconstruct
 import logging, numpy
 
@@ -25,8 +26,8 @@ def process_image(img, data, **extra):
     '''
     
     img = rotate.rotate_image(img, data[5], data[6], data[7])
-    ctfimg = ctf.phase_flip_transfer_function(img.shape, data[17], **extra)
-    img = ctf.correct(img, ctfimg)
+    ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, data[17], **extra)
+    img = ctf_correct.correct(img, ctfimg)
     return img
 
 if __name__ == "__main__":

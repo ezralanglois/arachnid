@@ -5,7 +5,8 @@
 '''
 from ..core.app import program
 from ..core.metadata import format, spider_utility, spider_params, relion_utility
-from ..core.image import ndimage_file, rotate, ctf
+from ..core.image import ndimage_file, rotate
+from ..core.image.ctf import correct as ctf_correct
 from ..core.orient import orient_utility, healpix
 import logging, numpy
 
@@ -56,8 +57,8 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
                     _logger.info("%f,%f,%f -> %f,%f,%f | %f,%f == %f,%f"%(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor, psi, dx, dy, projection.rlnAngleTilt, projection.rlnAngleRot, theta, phi))
                 
                 if use_ctf:
-                    ctfimg = ctf.phase_flip_transfer_function(img.shape, projection.rlnDefocusU, **extra)
-                    img = ctf.correct(img, ctfimg)
+                    ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, projection.rlnDefocusU, **extra)
+                    img = ctf_correct.correct(img, ctfimg)
                 if img is not None:
                     img = rotate.rotate_image(img, psi, dx, dy)
             else:
@@ -85,8 +86,8 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
                     pix=angle_map[theta][phi]
                 
                 if use_ctf:
-                    ctfimg = ctf.phase_flip_transfer_function(img.shape, projection.rlnDefocusU, **extra)
-                    img = ctf.correct(img, ctfimg)
+                    ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, projection.rlnDefocusU, **extra)
+                    img = ctf_correct.correct(img, ctfimg)
                 if use_rtsq:
                     if img is not None:
                         img = rotate.rotate_image(img, psi, dx, dy)
