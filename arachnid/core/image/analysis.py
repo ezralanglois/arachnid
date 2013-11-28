@@ -311,7 +311,8 @@ def pca_fast(trn, tst=None, frac=0.0, centered=False):
         V *= d
         assert(numpy.alltrue(numpy.isfinite(V)))
     d = numpy.where(d < 0, 0, d)
-    d /= d.sum()
+    tot = d.sum()
+    if tot != 0.0: d /= tot
     idx = d.argsort()[::-1]
     d = d[idx]
     V = V[:, idx]
