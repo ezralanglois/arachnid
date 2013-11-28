@@ -263,10 +263,10 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     if test_all:
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         for img in ndimage_file.iter_images(files):
-             avg = numpy.mean(img*mask)
-             std = numpy.std(img*mask)
-             if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f"%(avg, std)
-             if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f"%(avg, std)
+            avg = numpy.mean(img*mask) 
+            std = numpy.std(img*mask)
+            if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f"%(avg, std)
+            if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f"%(avg, std)
     
     defocus_dict = read_defocus(**extra)
     if selection_file != "": 
@@ -756,7 +756,7 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, **extra):
     header.append('rlnParticleName')
     format.write(output, frame_vals, header=header)
 
-def select_class_subset(vals, output, random_subset=0, **extra):
+def select_class_subset(vals, output, random_subset=0, restart=False, **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -766,7 +766,9 @@ def select_class_subset(vals, output, random_subset=0, **extra):
     output : str
              Filename for output selection file
     random_subset : int
-                    Generate the specified number of random subsets
+                    Generate the specified number of random subsets\
+    restart : bool
+              If True, then output only minimum header
     extra : dict
             Unused key word arguments
     '''
@@ -794,7 +796,10 @@ def select_class_subset(vals, output, random_subset=0, **extra):
             
             subset=downsample_images(subset, **extra)
             
-            format.write(output, subset)
+            if restart:
+                format.write(output, subset, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(','))
+            else:
+                format.write(output, subset)
     else:
         micselect={}
         for v in subset:
@@ -925,7 +930,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
     group.add_option("",   test_all=False,                  help="Test the normalization of all the images")
     group.add_option("",   tilt_pair="",                    help="Selection file that defines pairs of particles (e.g. tilt pairs micrograph1, id1, micrograph2, id2) - outputs a tilted/untilted star files")
-    group.add_option("",   min_defocus=5000,               help="Minimum allowed defocus")
+    group.add_option("",   min_defocus=5000,                help="Minimum allowed defocus")
     group.add_option("",   max_defocus=70000,               help="Maximum allowed defocus")
     group.add_option("",   random_subset=0,                 help="Split a relion selection file into specificed number of random subsets (0 disables)")
     group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
@@ -933,6 +938,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   view_resolution=0,               help="Select a subset to ensure roughly even view distribution (0, default, disables this feature)")
     group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")
     group.add_option("",   downsample=1.0,                  help="Downsample the windows - create new selection file pointing to decimate stacks")
+    group.add_option("",   restart=False,                   help="Outputs minimum Relion file to restart refinement from the beginning")
     #group.add_option("",   relion2spider=False,             help="Convert a relion selection file to a set of SPIDER refinement file")
     
     pgroup.add_option_group(group)
