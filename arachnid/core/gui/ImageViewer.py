@@ -118,6 +118,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         return [ 
+               dict(mark_image=False, help="Cross out selected images"),
                dict(downsample_type=('ft', 'bilinear', 'fs', 'sblack'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
                dict(invert=False, help="Perform contrast inversion"),
                dict(coords="", help="Path to coordinate file", gui=dict(filetype='open')),
@@ -328,9 +329,13 @@ class MainWindow(QtGui.QMainWindow):
         if self.advanced_settings.alternate_image != "" and self.advanced_settings.load_alternate:
             template = self.advanced_settings.alternate_image
         
+        if not drawing.is_available():
+            _logger.info("No PIL loaded")
+            self.advanced_settings.mark_image=False
         
         added_items=[]
         for i, (imgname, img) in enumerate(iter_images(self.files, index, template)):
+            selimg = None
             progressDialog.setValue(i+1)
             if hasattr(img, 'ndim'):
                 if self.advanced_settings.center_mask > 0 and img.shape not in masks:
@@ -346,6 +351,8 @@ class MainWindow(QtGui.QMainWindow):
                     img *= masks[img.shape]
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 img = self.box_particles(img, imgname)
+                if self.advanced_settings.mark_image:
+                    selimg = qimage_utility.numpy_to_qimage(drawing.mark(img))
                 qimg = qimage_utility.numpy_to_qimage(img)
                 if self.base_level is not None:
                     qimg.setColorTable(self.color_level)
@@ -362,8 +369,10 @@ class MainWindow(QtGui.QMainWindow):
             self.loaded_images.append(qimg)
             pix = QtGui.QPixmap.fromImage(qimg)
             icon = QtGui.QIcon()
-            icon.addPixmap(pix,QtGui.QIcon.Normal);
-            icon.addPixmap(pix,QtGui.QIcon.Selected);
+            icon.addPixmap(pix,QtGui.QIcon.Normal)
+            if selimg is not None:
+                pix = QtGui.QPixmap.fromImage(selimg)
+            icon.addPixmap(pix,QtGui.QIcon.Selected)
             if self.advanced_settings.show_label:
                 item = QtGui.QStandardItem(icon, "%s/%d"%(os.path.basename(imgname[0]), imgname[1]+1))
             else:
@@ -390,7 +399,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.pageSpinBox.setMaximum(batch_count)
         self.ui.actionForward.setEnabled(self.ui.pageSpinBox.value() < batch_count)
         self.ui.actionBackward.setEnabled(self.ui.pageSpinBox.value() > 0)
-    
+        
     # Abstract methods
     
     def imageSubset(self, index, count):

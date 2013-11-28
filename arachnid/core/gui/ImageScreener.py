@@ -20,7 +20,7 @@ import os, numpy, logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-class MainWindow(ImageViewerWindow):
+class MainWindow(ImageViewerWindow): 
     ''' Main window display for the plotting tool
     '''
     
