@@ -174,7 +174,7 @@ def benchmark(coords, header, fid, good_output="", **extra):
         overlap = coords[selected].copy().squeeze()
     if good_output != "":
         format.write(good_output, overlap, header=header)
-           #    TP            FP                        TN         FN
+    #           TP            FP                        TN         FN
     return ( len(overlap), len(coords)-len(overlap),    0,  len(selected)-len(overlap) )
     
 def read_bench_coordinates(fid, good_coords="", good="", **extra):
