@@ -131,18 +131,19 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate, preprocess_utility, reproject, reconstruct, ctf
+from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate, preprocess_utility, reproject, reconstruct, manifold
+from ..core.image.ctf import correct as ctf_correct
 from ..core.metadata import format, format_utility, spider_params, format_alignment
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
-import logging, numpy, scipy, scipy.cluster.vq, scipy.spatial.distance
+import logging, numpy
 from sklearn.covariance import MinCovDet, EmpiricalCovariance
-import scipy.stats,os
+import scipy.stats, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(input_vals, output, **extra):#, neig=1, nstd=1.5
+def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -151,6 +152,8 @@ def process(input_vals, output, **extra):#, neig=1, nstd=1.5
                  Tuple(view id, image labels and alignment parameters)
     output : str
              Filename for output file
+    cache_file : str
+                 Location to cache distance matrix
     extra : dict
             Unused key word arguments
                 
@@ -167,9 +170,51 @@ def process(input_vals, output, **extra):#, neig=1, nstd=1.5
     mask = create_mask(filename, **extra)
     
     openmp.set_thread_count(1) # todo: move to process queue
-    data = ndimage_processor.create_matrix_from_file(label, image_transform, align=align, mask=mask, dtype=numpy.float32, **extra)
+    data = ndimage_processor.read_matrix_from_cache(cache_file)
+    if data is None:
+        data = ndimage_processor.create_matrix_from_file(label, image_transform, align=align, mask=mask, dtype=numpy.float32, **extra)
+        ndimage_processor.write_matrix_to_cache(cache_file, data)
+    
+    #data -= data.min()
+    #data /= data.max()
     openmp.set_thread_count(extra['thread_count'])
     assert(data.shape[0] == align.shape[0])
+    if scale < 0.0:
+        sigma = numpy.linspace(float(scale_range[0]), float(scale_range[1]), int(scale_range[2]))
+        kernel_cum = numpy.zeros((2, sigma.shape[0]))
+        tmp = data.copy()
+        _logger.info("Start:%f"%(numpy.sum(data)))
+        totmax = 2
+        totmin = 2
+        while (totmax+totmin) > 2:
+            kernel_cum[0, :]=-10**sigma
+            for i in xrange(kernel_cum.shape[1]):
+                tmp[:] = data[:]*kernel_cum[0,i]
+                #numpy.multiply(data, scale, tmp)
+                numpy.exp(tmp, tmp)
+                kernel_cum[1, i] = numpy.sum(tmp)
+            for i in xrange(len(sigma)):
+                _logger.info("%f,%f  (%f)"%(sigma[i], kernel_cum[1, i], kernel_cum[0, i]))
+            totmax = (kernel_cum[1, :].max()==kernel_cum[1, :]).sum()
+            totmin = (kernel_cum[1, :].min()==kernel_cum[1, :]).sum()
+            if kernel_cum[1, 0] == kernel_cum[1, :].max():
+                _logger.info("New range1: %d - %d"%(int(totmax-1), int(kernel_cum.shape[1]-totmin)))
+                minval = sigma[totmax-1]
+                maxval = sigma[kernel_cum.shape[1]-totmin]
+            else:
+                _logger.info("New range2: %d - %d"%(int(totmin-1), int(kernel_cum.shape[1]-totmax)))
+                minval = sigma[totmax-1]
+                maxval = sigma[kernel_cum.shape[1]-totmax]
+            _logger.info("New range: %f - %f"%(float(minval), float(maxval)))
+            sigma = numpy.linspace(float(minval), float(maxval), int(scale_range[2]))
+    if scale != 0.0:
+        assert(numpy.alltrue(numpy.isfinite(data)))
+        if scale > 0.0: scale = -scale
+        data = numpy.multiply(data, scale, data)
+        assert(numpy.alltrue(numpy.isfinite(data)))
+        data = numpy.exp(data, data)
+        assert(numpy.alltrue(numpy.isfinite(data)))
+        #data /= data.sum(axis=1)[:, numpy.newaxis]
     tst = data-data.mean(0)
 
     feat = embed_sample(tst, **extra)
@@ -356,7 +401,7 @@ def decimation_level(apix, window, **extra):
     d = window/float(d)
     return min(max(d, 1), 8)
 
-def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=True, align=None, disable_rtsq=False, scale_spi=False, **extra):
+def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=False, scale_spi=False, ref_vol=None, angs=None, references=None, neighbors=None, **extra):
     ''' Transform the image
     
     :Parameters:
@@ -365,12 +410,8 @@ def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=True,
           2D image matrix
     i : int
         Offset into alignment parameters 
-    ref_vol : array
-              3D reference volume reconstructed from the data
     mask : array
            2D array of disk mask
-    resolution : float
-                 Target resolution of image 
     apix : float
            Pixel spacing 
     var_one : bool
@@ -381,6 +422,10 @@ def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=True,
                    Disable rotate/translate image
     scale_spi : bool
                 Scale translations before rotate/translate
+    ref_vol : array
+              3D reference volume reconstructed from the data
+    angs : array
+           Sampling angles
     extra : dict
             Unused keyword arguments
     
@@ -398,94 +443,29 @@ def image_transform(img, i, ref_vol, angs, mask, resolution, apix, var_one=True,
     elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
-    bin_factor = decimation_level(apix, resolution=resolution, **extra)
+    bin_factor = decimation_level(apix, **extra)
     if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
     if mask.shape[0] != img.shape[0]:
         _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
     assert(mask.shape[0]==img.shape[0])
     ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
     
-    #ctfimg = ctf.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
-    ctfimg = ctf.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
-    dist = numpy.zeros(len(angs), dtype=img.dtype)
+    #ctfimg = ctf_correct.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
+    ctfimg = ctf_correct.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
     frame = align[i, :3].copy()
-    frame[0]=0
-    frame = -frame[::-1]
-    
-    for j in xrange(len(angs)):
-        ang1 = angs[j].copy()
-        ang1[0]=0
-        euler = rotate.rotate_euler(frame, ang1)
-        avg = reproject.reproject_3q_single(ref_vol, img.shape[0]/2, euler.reshape((1, 3)))[0]
-        euler = rotate.rotate_euler(align[i, :3].copy(), euler)
-        avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
-        ndimage_utility.normalize_standard(avg, mask, False, out=avg)
-        #avg *= (img*avg).sum()/(avg**2).sum()
-        if 1 == 0:
-            avg -= img
-            numpy.square(avg, avg)
-            dist[j] = numpy.sqrt(avg.sum())
-        else:
-            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, align, ctfimg, **extra))
-    return dist
+    if ref_vol is not None:
+        return distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs)
+    else:
+        return distance_from_reference(img, frame, ctfimg, mask, references, align, neighbors[i])
 
-def image_transform_2D_not_working(img, i, ref_vol, angs, mask, resolution, apix, var_one=False, align=None, disable_rtsq=False, scale_spi=False, **extra):
-    ''' Transform the image
-    
-    :Parameters:
-    
-    img : array
-          2D image matrix
-    i : int
-        Offset into alignment parameters 
-    ref_vol : array
-              3D reference volume reconstructed from the data
-    mask : array
-           2D array of disk mask
-    resolution : float
-                 Target resolution of image 
-    apix : float
-           Pixel spacing 
-    var_one : bool
-              Normalize image to variance 1 
-    align : array
-            2D array of alignment parameters
-    disable_rtsq : bool
-                   Disable rotate/translate image
-    scale_spi : bool
-                Scale translations before rotate/translate
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-    
-    out : array
-          1D representation of the image
+def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
+    '''
     '''
     
-    if not disable_rtsq: 
-        if scale_spi:
-            img = rotate.rotate_image(img, align[i, 3], align[i, 4]/apix, align[i, 5]/apix)
-        else:
-            img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
-    elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
-    if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
-    ndimage_utility.vst(img, img)
-    bin_factor = decimation_level(apix, resolution=resolution, **extra)
-    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
-    if mask.shape[0] != img.shape[0]:
-        _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
-    assert(mask.shape[0]==img.shape[0])
-    ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
-    
-    #ctfimg = ctf.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
-    ctfimg = ctf.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
-    dist = numpy.zeros(len(angs), dtype=img.dtype)
-    frame = align[i, :3].copy()
-    frame[0]=0
     frame2=frame.copy()
+    frame[0]=0
     frame = -frame[::-1]
-    
+    dist = numpy.zeros(len(angs), dtype=img.dtype)
     for j in xrange(len(angs)):
         ang1 = angs[j].copy()
         ang1[0]=0
@@ -494,25 +474,38 @@ def image_transform_2D_not_working(img, i, ref_vol, angs, mask, resolution, apix
         euler = rotate.rotate_euler(frame2, euler)
         avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
         ndimage_utility.normalize_standard(avg, mask, False, out=avg)
-        avg *= (img*avg).sum()/(avg**2).sum()
+        #avg *= (img*avg).sum()/(avg**2).sum()
         if 1 == 0:
             avg -= img
             numpy.square(avg, avg)
             dist[j] = numpy.sqrt(avg.sum())
         else:
-            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, align, ctfimg, **extra))
+            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
     return dist
 
-def ctf_correct_distance(img, ref, align, ctfimg, **extra):
+def distance_from_neighbor(img, frame, ctfimg, mask, references, align, neighbors):
+    '''
+    '''
+    
+    dist = numpy.zeros(len(neighbors[1:]), dtype=img.dtype)
+    for j, neigh in enumerate(neighbors[1:]):
+        euler = rotate.rotate_euler(frame, align[neigh, :3].copy())
+        avg = rotate.rotate_image(references[neigh], -(euler[0]+euler[2]))
+        ndimage_utility.normalize_standard(avg, mask, False, out=avg)
+        avg *= (img*avg).sum()/(avg**2).sum()
+        dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
+    return dist
+
+def ctf_correct_distance(img, ref, ctfimg):
     '''
     '''
     
     zimg = ctfimg.copy()
     zimg[:] = 1+1j
-    img = ctf.correct(img.copy(), zimg, True)
-    ref = ctf.correct(ref, ctfimg, True)
-    #img = ctf.correct_model(img, None, True)
-    #ref = ctf.correct_model(ref, ctfimg, True)
+    img = ctf_correct.correct(img.copy(), zimg, True)
+    ref = ctf_correct.correct(ref, ctfimg, True)
+    #img = ctf_correct.correct_model(img, None, True)
+    #ref = ctf_correct.correct_model(ref, ctfimg, True)
     tmp=numpy.subtract(img, ref, ref)
     numpy.abs(tmp, tmp)
     numpy.square(tmp,tmp)
@@ -588,7 +581,9 @@ def read_alignment(files, alignment="", order=0, random_view=0, disable_mirror=F
     files, align = format_alignment.read_alignment(alignment, files[0], use_3d=True, align_cols=8)
     align[:, 7]=align[:, 6]
     if order > 0: orient_utility.coarse_angles(order, align, half=not disable_mirror, out=align)
-    if random_view>0:
+    if random_view == 1:
+        ref = numpy.zeros(len(align), dtype=numpy.int)
+    elif random_view>0:
         ref = numpy.random.randint(0, random_view, len(align))
     else:
         ref = align[:, 6].astype(numpy.int)
@@ -633,12 +628,57 @@ def init_root(files, param):
             if count[i] > 20:
                 newgroup.append(group[i])
         group=newgroup
-    _logger.info("Reconstructing volume")
-    param['ref_vol'] = reconstruct_volume(label, align, **param)
-    _logger.info("Reconstructing volume - finished")
-    param['angs'] = healpix.angles(param['ang_order'], True, out=numpy.zeros((param['ang_limit'],3)))
+    
+    # 1. Calculate nn
+    # 2. Calculate local average - sample variance
+    if param['local_neighbors'] > 0:
+        param['references'], param['neighbors'] = generate_local_neighbor_references(label, align, **param)
+        openmp.set_thread_count(param['thread_count'])
+    else:
+        _logger.info("Reconstructing volume")
+        param['ref_vol'] = reconstruct_volume(label, align, **param)
+        _logger.info("Reconstructing volume - finished")
+        param['angs'] = healpix.angles(param['ang_order'], True, out=numpy.zeros((param['ang_limit'],3)))
     _logger.info("Processing %d groups - after removing views with less than 20 particles"%len(group))
     return group
+
+def generate_local_neighbor_references(label, align, local_neighbors, output, cache_file, **extra):
+    '''
+    '''
+    
+    extra['thread_count'] = max(extra.get('worker_count', 0), extra.get('thread_count', 0))
+    extra['worker_count'] = extra['thread_count']
+    ang = align[:, :3].copy()
+    ang[:, 0]=0
+    quat=orient_utility.spider_to_quaternion(ang, True)
+    _logger.info("Finding nearest neighbors")
+    openmp.set_thread_count(extra['thread_count'])
+    neigh = manifold.knn_geodesic_cache(quat, local_neighbors, cache_file=format_utility.add_prefix(cache_file, 'nn_'))
+    _logger.info("Finding nearest neighbors - finished")
+    openmp.set_thread_count(1)
+    _logger.info("Read data")
+    samp = ndimage_processor.image_array_from_file(label, preprocess_utility.phaseflip, align=align, dtype=numpy.float32, **extra)
+    _logger.info("Read data - finished")
+    _logger.info("Average nearest neighbors")
+    neigh = neigh.col.reshape((samp.shape[0], local_neighbors+1))
+    samp = local_neighbor_average(samp, neigh) # Wrong, needs to rotate!
+    ndimage_file.write_stack(format_utility.add_prefix(cache_file, 'avg_'), samp[numpy.random.randint(0, len(samp), 10)])
+    _logger.info("Average nearest neighbors - finished")
+    return samp, neigh
+
+def local_neighbor_average(samp, neigh, align):
+    '''
+    '''
+    
+    avgsamp = numpy.empty_like(samp)
+    avgsamp[:]=samp[:]
+    for i in xrange(samp.shape[0]):
+        frame = align[neigh[i, 0], :3].copy()
+        for j in neigh[i, 1:]:
+            euler = rotate.rotate_euler(frame, align[j, :3].copy())
+            img = rotate.rotate_image(samp[j], -(euler[0]+euler[2]))
+            avgsamp[i]+=img
+    return avgsamp
 
 def reconstruct_volume(label, align, worker_count, output, **extra):
     ''' Reconstruct a volume from the label and alignment parameters
@@ -718,14 +758,14 @@ def finalize(files, output, sel_by_mic, finished, thread_count, neig, input_file
             
     for filename in finished:
         label = filename[1]
-        data = format.read(output, numeric=True, spiderid=int(filename[0]))
-        feat, header = format_utility.tuple2numpy(data)
-        feat = feat[:, 6:]
+        data, header = format.read(output, ndarray=True, spiderid=int(filename[0]))
+        feat = data[:, 6:]
         sel, rsel = one_class_classification(feat, neig=neig, **extra)[:2]
         _logger.info("Read %d samples and selected %d from finished view: %d"%(feat.shape[0], numpy.sum(rsel), int(filename[0])))
+        sindex = header.index('select')
         for j in xrange(len(feat)):
-            data[j] = data[j]._replace(select=sel[j])
-        format.write(output, data, spiderid=int(filename[0]))
+            data[j, sindex] = sel[j]
+        format.write(output, data, spiderid=int(filename[0]), header=header)
         update_selection_dict(sel_by_mic, label, rsel)
     tot=0
     for id, sel in sel_by_mic.iteritems():
@@ -748,11 +788,16 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", expected=0.8,              help="Expected fraction of good data", dependent=False)
     group.add_option("", scale_spi=False,           help="Scale the SPIDER translation (if refinement was done by pySPIDER")
     group.add_option("", single_view=0,             help="Test the algorithm on a specific view")
+    group.add_option("", random_view=0,             help="Assign each projection to a random view group (if 1, assign to single group)")
     group.add_option("", order=0,                   help="Reorganize views based on their healpix order (overrides the resolution parameter)")
     group.add_option("", prob_reject=0.97,          help="Probablity that a rejected particle is bad", dependent=False)
     group.add_option("", ang_order=8,               help="Angular increment healpix order")
     group.add_option("", ang_limit=100,             help="Number of projections")
     group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
+    group.add_option("", cache_file="",             help="Cache the raw distances to a file for reuse")
+    group.add_option("", scale=0.0,                 help="Scale the distance matrix using the RBF kernel")
+    group.add_option("", scale_range=[-8.0,8.0,100],help="Range to search for scale")
+    group.add_option("", local_neighbors=0,         help="Generate references from local neighborhood averaging")
     
     pgroup.add_option_group(group)
     if main_option:
