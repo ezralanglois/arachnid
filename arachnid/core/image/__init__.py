@@ -10,6 +10,7 @@
     formats
     tests
     util
+    ctf
 
 .. autosummary::
     :nosignatures:
@@ -39,5 +40,10 @@
 ===============================
 
 .. automodule:: arachnid.core.image.util
+
+:mod:`arachnid.core.image.util`
+===============================
+
+.. automodule:: arachnid.core.image.ctf
 
 '''
