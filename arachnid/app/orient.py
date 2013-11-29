@@ -11,6 +11,7 @@ from ..core.metadata import spider_utility, format, spider_params, format_utilit
 from ..core.orient import orient_utility, healpix
 from ..core.parallel import process_queue
 import logging, numpy, scipy.io, os, scipy.sparse, scipy.spatial
+import scipy.optimize
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 

@@ -226,27 +226,6 @@ if 1 == 0:
         orig = numpy.random.rand(50,50)
         rot = ndimage_utility.rotavg(orig)
         rot;
-
-    def test_histogram_match():
-        ''' ..todo:: add further testing here
-        '''
-        
-        rad, width, bins = 13, 78, 128
-        mask = ndimage_utility.model_disk(rad, width)
-        #img = numpy.random.gamma(8, 2, (width,width))
-        img = numpy.random.normal(8, 4, (width,width))
-        noise = numpy.random.normal(8, 2, (width,width))
-        old=img.copy()
-        out = ndimage_utility.histogram_match(img, mask, noise)
-        
-        
-        try: numpy.testing.assert_allclose(img, out)
-        except: pass
-        else: raise ValueError, "Image did not change"
-        
-        win = eman2_utility.histfit(eman2_utility.numpy2em(old), eman2_utility.numpy2em(mask), eman2_utility.numpy2em(noise), True)
-        win;
-        #numpy.testing.assert_allclose(out, eman2_utility.em2numpy(win))
     
 def test_find_peaks_fast():
     '''
@@ -355,7 +334,7 @@ def test_filter_gaussian_lowpass_eman():
     img = numpy.random.normal(8, 4, (width,width)).astype(numpy.float32)
     
     f1 = ndimage_utility.filter_gaussian_lp(img, sigma, 2)
-    if 1 == 0:
+    if 1 == 0: 
         f2 = eman2_utility.EMAN2.Processor.EMFourierFilter(eman2_utility.numpy2em(img), {"filter_type" : eman2_utility.EMAN2.Processor.fourier_filter_types.GAUSS_LOW_PASS,    
                                                                                          "cutoff_abs": sigma, "dopad" : 0})
         numpy.testing.assert_allclose(eman2_utility.em2numpy(f2), f1)

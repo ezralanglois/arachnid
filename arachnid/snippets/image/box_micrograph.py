@@ -28,7 +28,7 @@ from arachnid.core.metadata import format, spider_utility
 from arachnid.core.image import ndimage_file, ndimage_interpolate, ndimage_utility #, ndimage_filter
 
 try: 
-    from PIL import ImageDraw 
+    from PIL import ImageDraw #@UnresolvedImport
     ImageDraw;
 except: import ImageDraw
 import scipy.misc, glob, os, logging

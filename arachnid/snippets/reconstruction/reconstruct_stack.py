@@ -43,7 +43,6 @@ if __name__ == "__main__":
     bin_factor = float(sys.argv[5]) if len(sys.argv) > 5 else 1.0        # raw_vol.spi
     thread_count = 32
     
-    type='bp3f' # bp3f or nn4
     extra = spider_params.read(param_file)
     extra.update(spider_params.update_params(bin_factor, **extra))
     print "Loaded param file"
@@ -55,9 +54,6 @@ if __name__ == "__main__":
     align[:, 6:8] /= extra['apix']
     iter_single_images = ndimage_file.iter_images(image_file, selection)
     image_size = ndimage_file.read_image(image_file).shape[0]
-    if type=='bp3f':
-        vol = reconstruct.reconstruct_bp3f_mp(iter_single_images, image_size, align, process_image=process_image, **extra)
-    else:
-        vol = reconstruct.reconstruct_nn4f_mp(iter_single_images, image_size, align, process_image=process_image, **extra)
+    vol = reconstruct.reconstruct_bp3f_mp(iter_single_images, image_size, align, process_image=process_image, **extra)
     if vol is not None: 
         ndimage_file.write_image(output, vol)

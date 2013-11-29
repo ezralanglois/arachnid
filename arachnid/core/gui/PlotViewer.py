@@ -25,7 +25,7 @@ except:
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
-import matplotlib.cm as cm #, matplotlib.lines
+import matplotlib.pyplot as cm
 import property
 #
 
@@ -566,7 +566,7 @@ class MainWindow(QtGui.QMainWindow):
         off = self.selectedImage
         align = data[(off, ), self.rtsq_cols].reshape((1, len(self.rtsq_cols))) if len(self.rtsq_cols) > 2 else None
         tmp = data[(off, ), self.label_cols].reshape((1, len(self.label_cols)))
-        for i, img in enumerate(iter_images(self.stack_file, tmp, align, **vars(self.advanced_settings))):
+        for img in iter_images(self.stack_file, tmp, align, **vars(self.advanced_settings)):
             im = OffsetImage(img, zoom=zoom, cmap=cm.Greys_r) if img.ndim == 2 else OffsetImage(img, zoom=zoom)
             ab = AnnotationBbox(im, data[off, (x,y)], xycoords='data', xybox=(radius, 0.), boxcoords="offset points", frameon=False)
             self.axes.add_artist(ab)

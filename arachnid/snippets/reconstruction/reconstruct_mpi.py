@@ -36,7 +36,6 @@ if __name__ == "__main__":
     node_tmp_file=sys.argv[4]  # /tmp_data/username/phase_flip_dala_part.spi
     select_file=sys.argv[5]
     thread_count = 8
-    type='bp3f' # bp3f or nn4
     
     # Read an alignment file
     align,header = format.read_alignment(align_file, ndarray=True)
@@ -84,9 +83,6 @@ if __name__ == "__main__":
             align = align[selected[curr_slice]]
         else:
             align = align[curr_slice]
-        if type=='bp3f':
-            vol = reconstruct.reconstruct_bp3f_mp(iter_single_images, image_size, align, thread_count=thread_count, **param)
-        else:
-            vol = reconstruct.reconstruct_nn4f_mp(iter_single_images, image_size, align, thread_count=thread_count, **param)
+        vol = reconstruct.reconstruct_bp3f_mp(iter_single_images, image_size, align, thread_count=thread_count, **param)
         if vol is not None: 
             ndimage_file.write_image(output, vol)

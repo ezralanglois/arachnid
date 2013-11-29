@@ -132,7 +132,7 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     else:
         #roo2 = roo[beg:]
         if experimental:
-            bg = ctf_measure.estimate_background(raw, defocus, freq, len(roo), **extra)[0]
+            bg = estimate_ctf1d.estimate_background(raw, defocus, freq, len(roo), **extra)[0]
             _logger.info("found background: %d"%bg)
             roo = estimate_ctf1d.subtract_background(raw, bg)
         roo2, beg1 = ctf_measure.factor_correction(roo, old, len(roo))
@@ -182,7 +182,11 @@ def astigmatism(pow, beg, end):
     pow = pow.copy()
     
     from arachnid.core.image import ndimage_filter
-    from skimage.filter import tv_denoise
+    try:
+        from skimage.filte import rdenoise_tv_chambolle as tv_denoise  #@UnresolvedImport
+        tv_denoise;
+    except:
+        from skimage.filter import tv_denoise  #@UnresolvedImport
     import skimage.transform
     import scipy.ndimage
     pow -= pow.min()
@@ -191,7 +195,7 @@ def astigmatism(pow, beg, end):
     pow = ndimage_utility.replace_outlier(pow, 2.5)
     pow = ndimage_filter.filter_gaussian_highpass(pow, 0.5/(beg+2))
     pow = tv_denoise(pow, weight=0.5, eps=2.e-4, n_iter_max=200)
-    #zero = (model.max()-model.min())/3 
+    #zero = ( ]model.max()-model.min())/3 
     #minima=estimate_ctf1d.find_extrema(model, model<zero, numpy.argmin)
     #minval = numpy.min(numpy.diff(minima))
     #out = ndimage_filter.filter_gaussian_lowpass(out, 0.5/(minval-2)))
@@ -295,7 +299,7 @@ def write_ctf(raw, freq, roo, bg_window, ctf_output, apix, **extra):
     ''' Write a CTF file for CTFMatch
     '''
     
-    roo1 = estimate_ctf1d.factor_correction(roo, 0, len(roo))[0]
+    roo1 = ctf_measure.factor_correction(roo, 0, len(roo))[0]
     bg = estimate_ctf1d.background(raw, bg_window)
     km1 = 1.0 / (2.0*apix)
     dk = km1/len(roo)

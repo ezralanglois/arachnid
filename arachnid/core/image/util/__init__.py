@@ -10,11 +10,6 @@ try:
 except: pass
 
 try: 
-    import _spider_util
-    _spider_util;
-except: pass
-
-try: 
     import _image_utility
     _image_utility;
 except: pass

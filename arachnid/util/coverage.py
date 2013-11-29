@@ -28,7 +28,8 @@ from ..core.metadata import format, format_utility
 from ..core.orient import healpix, orient_utility
 
 from mpl_toolkits import basemap
-import matplotlib.cm as cm
+import matplotlib.pyplot as cm
+import matplotlib.cm
 import matplotlib.lines
 import matplotlib.font_manager
 
@@ -133,7 +134,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
         im = m.scatter(x[sel], y[sel], numpy.max(s), marker="x", c=cm.gray(0.5))#, edgecolors='none')
     
     if not use_scale:
-        im = cm.ScalarMappable(cmap=cmap, norm=matplotlib.colors.Normalize())
+        im = matplotlib.cm.ScalarMappable(cmap=cmap, norm=matplotlib.colors.Normalize())
         im.set_array(hist)
         m.colorbar(im, "right", size="3%", pad='1%')
     else:
@@ -268,7 +269,7 @@ def check_options(options, main_option=False):
         try:float(options.lat_zero)
         except: raise OptionValueError, "--lat-zero must be a floating point number"
     
-    maps=[m for m in cm.datad if not m.endswith("_r")]
+    maps=[m for m in matplotlib.cm.datad if not m.endswith("_r")]
     if options.color_map not in set(maps):
         raise OptionValueError, "%s is not a supported color map for --color-map, supported colormaps are\n%s"%(options.color_map, "\n".join(maps))
     if options.projection not in set(basemap._projnames.keys()): 

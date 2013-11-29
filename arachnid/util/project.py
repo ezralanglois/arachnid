@@ -82,7 +82,8 @@ A workflow module should contain the following function:
 from ..core.app import program
 from ..core.image import ndimage_file
 from ..core.metadata import spider_params
-import logging, os
+import logging, os, sys
+_project = sys.modules[__name__]
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -248,11 +249,10 @@ def build_workflow(files, **extra):
                List of programs
     '''
     
-    import project
     import pkgutil
     from .. import app, pyspider, util
     
-    workflow = [project]
+    workflow = [_project]
     for pkg in [app, pyspider, util]:
         modules = [name for _, name, ispkg in pkgutil.iter_modules([os.path.dirname(cpkg.__file__) for cpkg in [pkg]] ) if not ispkg]
         for name in modules:

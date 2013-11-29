@@ -8,7 +8,7 @@ Original Algorithm is presented in Halko, Martinsson, & Tropp, arXiv:0909.4061
 '''
 
 import numpy, scipy
-from arachnid.core import process_tasks
+from arachnid.core.parallel import process_tasks
 
 def matrix_multiply_AbA(A, b):
     ''' Mulitply sample matrix A by 

@@ -7,6 +7,7 @@
 from arachnid.core.app import tracing
 from .. import ndimage_interpolate
 import numpy, scipy
+import scipy.optimize
 
 
 import logging

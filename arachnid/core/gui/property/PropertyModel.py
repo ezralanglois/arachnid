@@ -285,7 +285,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         for dynProp in dynamicProperties:
             v = propertyObject.property(dynProp)
             p = None
-            if v.type() == QtCore.QVariant.UserType and len(self.userCallbacks) > 0:
+            if len(self.userCallbacks) > 0:
                 for callback in self.userCallbacks:
                     p = callback(property.name(), propertyObject, parent)
                     if p is not None: break

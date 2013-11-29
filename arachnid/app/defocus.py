@@ -171,7 +171,7 @@ def average_powerspec(powerspec, window_len=3):
     '''
     
     if powerspec.ndim == 1 or powerspec.shape[1] == 1: return powerspec
-    avgpowerspec = ndimage_utility.sum_ring(powerspec)
+    avgpowerspec = ndimage_utility.rotavg(powerspec)
     
     if 1 == 0:
         b = ndimage_utility.rolling_window(avgpowerspec, window_len)

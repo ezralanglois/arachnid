@@ -136,7 +136,7 @@ def change_gamma(value, gamma):
     ''' Change pixel gamma by some factor
     '''
     
-    return min(max(int( numpy.pow( value/255.0, 100.0/gamma ) * 255 ), 0), 255)
+    return min(max(int( numpy.power( value/255.0, 100.0/gamma ) * 255 ), 0), 255)
 
 def adjust_level(func, colorTable, level):
     ''' Adjust the color level of an image

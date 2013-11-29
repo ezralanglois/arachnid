@@ -5,6 +5,7 @@
 
 import numpy.testing, scipy
 from .. import manifold
+import scipy.sparse
 
 def test_knn():
     '''

@@ -58,7 +58,7 @@ import numpy, scipy
 #import matplotlib
 #matplotlib.use('Qt4Agg')
 
-import matplotlib.cm as cm
+import matplotlib.pyplot as cm
 from mpl_toolkits import mplot3d
 from mpl_toolkits import basemap
 from matplotlib import pyplot

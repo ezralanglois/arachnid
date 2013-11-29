@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try: 
-    from PIL import ImageDraw 
+    from PIL import ImageDraw  #@UnresolvedImport
     ImageDraw;
 except: 
     try:

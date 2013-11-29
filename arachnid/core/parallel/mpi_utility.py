@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 try:
     MPI=None
-    from mpi4py import MPI
+    from mpi4py import MPI #@UnresolvedImport
 except:
     from ..app import tracing
     tracing.log_import_error('mpi4py failed to load', _logger)

@@ -12,7 +12,7 @@ except:
     print "Cannot import offset, upgrade matplotlib"
 from ..image import analysis
 from ..metadata import format_utility
-import matplotlib.cm as cm
+import matplotlib.pyplot as cm
 import matplotlib._pylab_helpers
 import numpy, logging
 
@@ -58,7 +58,7 @@ def plot_scatter(output, x, x_label, y, y_label, color=None, dpi=72):
     fig = pylab.figure(dpi=dpi)
     ax = fig.add_subplot(111)
     if color is not None:
-        sc = ax.scatter(x, y, cmap=pylab.cm.cool, c=color)
+        sc = ax.scatter(x, y, cmap=cm.cool, c=color)
         v1 = min(numpy.min(x),numpy.min(y))
         v2 = max(numpy.max(x),numpy.max(y))
         ax.plot(numpy.asarray([v1, v2]), numpy.asarray([v1, v2]))

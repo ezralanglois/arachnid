@@ -11,7 +11,9 @@ SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html
 '''
 from ..app import tracing
 import logging, numpy
-import ndimage_interpolate as ndinter
+import sys
+
+_ndinter = sys.modules[__name__]
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -102,7 +104,7 @@ def interpolate(img, out, method='bilinear'):
     
     if method not in ('bilinear', 'ft', 'fs', 'sblack'):
         raise ValueError, "method argument must be one of the following: bilinear,ft,fs,sblack"
-    return getattr(ndinter, 'interpolate_'+method)(img, out)
+    return getattr(_ndinter, 'interpolate_'+method)(img, out)
 
 def interpolate_bilinear(img, out):
     ''' Interpolate the size of the input image using bilinear scheme

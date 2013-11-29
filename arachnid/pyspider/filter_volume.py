@@ -210,7 +210,11 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
     '''
     
     if int(filter_type) == 4:
-        from skimage.filter import tv_denoise
+        try:
+            from skimage.filte import rdenoise_tv_chambolle as tv_denoise  #@UnresolvedImport
+            tv_denoise;
+        except:
+            from skimage.filter import tv_denoise  #@UnresolvedImport
         from ..core.image import ndimage_file
         _logger.info("Total variation filter")
         img = ndimage_file.read_image(spi.replace_ext(filename))

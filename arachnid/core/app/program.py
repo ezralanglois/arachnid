@@ -157,7 +157,7 @@ The following parameters are added to a script using the program architecture.
 import tracing
 import settings
 from ..parallel import mpi_utility, openmp
-from ..gui import settings_editor
+#from ..gui import settings_editor
 import logging, sys, os, traceback
 import arachnid as root_module # TODO: This needs to be found in run_hybrid_program
 import file_processor
@@ -620,7 +620,7 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
         on_error(parser, inst, parser.get_default_values())
         raise settings.OptionValueError, "Failed when parsing options"
     
-    options.create_cfg = settings_editor.display(parser, options, **vars(options)) # Todo: move , wrong place to read in from cfg file
+    #options.create_cfg = settings_editor.display(parser, options, **vars(options)) # Todo: move , wrong place to read in from cfg file
     
     # Disable automatic version update
     #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
@@ -643,7 +643,7 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
             parser.write(options.create_cfg, options)
             if not hasattr(options, 'noexit'): sys.exit(0)
     
-    additional = [tracing, settings_editor]
+    additional = [tracing]#, settings_editor]
     if main_template is not None and main_template != main_module: additional.append(main_template)
     try:
         for module in dependents+additional:
@@ -818,7 +818,7 @@ def setup_program_options(parser, main_template, supports_MPI=False, supports_OM
     if supports_OMP:# and openmp.get_max_threads() > 1:
         prg_group.add_option("-t",   thread_count=1, help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
     tracing.setup_options(parser, gen_group)
-    settings_editor.setup_options(parser, gen_group)
+    #settings_editor.setup_options(parser, gen_group)
     if main_template is not None: main_template.setup_options(parser, gen_group)
     gen_group.add_option_group(prg_group)
     parser.add_option_group(gen_group)

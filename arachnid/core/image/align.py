@@ -18,7 +18,7 @@ except:
     _logger.addHandler(logging.StreamHandler())
     _logger.exception("Module failed to load")
     try:
-        import _spider_align
+        import _spider_align #@UnresolvedImport
     except:
         _logger.exception("Module failed to load")
     tracing.log_import_error('Failed to load _spider_align.so module', _logger)

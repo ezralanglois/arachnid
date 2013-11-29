@@ -284,7 +284,7 @@ def demodulate(pow, lam, size, rmin, rmax):#0.74688*4
     phase = unwrapping(wphase, ormod, lam, size)
     
     if DEBUG:
-        import ndimage_file
+        from .. import ndimage_file
         ndimage_file.write_image('pow.spi', pow)
         ndimage_file.write_image('pow_norm.spi', img_norm)
         ndimage_file.write_image('wphase.spi', wphase)

@@ -27,7 +27,7 @@ from arachnid.core.metadata import format_utility, spider_utility
 from arachnid.core.image import ndimage_file, ndimage_utility, manifold
 from arachnid.core.image import ndimage_filter, ndimage_interpolate
 try: 
-    from PIL import ImageDraw 
+    from PIL import ImageDraw  #@UnresolvedImport
     ImageDraw;
 except: import ImageDraw
 import scipy.misc, glob, logging, scipy.spatial.distance, numpy
