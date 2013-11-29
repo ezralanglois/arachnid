@@ -78,7 +78,7 @@ Run the decimate command with the given parameters
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import spider_session
-from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename
+from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename, SpiderParameterError
 from spider_session import SpiderCrashed
 import collections
 import logging, os, numpy
@@ -123,7 +123,7 @@ class Session(spider_session.Session):
         if v[0] < 18 or (v[0] == 18 and v[1] < 18):
             _logger.warn("This version of SPIDER has alignment problems that may limit your resolution")
 
-    def ac(session, inputfile, outputfile=None, **extra):
+    def ac(self, inputfile, outputfile=None, **extra):
         '''Computes the auto-correlation function of a picture by using the Fourier transform 
         relationship. The dimension of the picture need not be a power of two (see 'FT' for any restrictions). 
         Works for 2D and 3D.
@@ -135,7 +135,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -150,9 +150,9 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
-        return spider_session.spider_command_fifo(session, 'ac', inputfile, outputfile, "Applying auto-correlation to an image")
+        return spider_session.spider_command_fifo(self, 'ac', inputfile, outputfile, "Applying auto-correlation to an image")
     
-    def ac_n(session, inputfile, outputfile=None, **extra):
+    def ac_n(self, inputfile, outputfile=None, **extra):
         '''Computes the normalized auto-correlation function of a picture 
         by using the Fourier transform relationship. The dimension of the 
         picture need not be a power of two (see "FT" for any restrictions). 
@@ -162,7 +162,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -177,9 +177,9 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
-        return spider_session.spider_command_fifo(session, 'ac n', inputfile, outputfile, "Applying the normalized auto-correlation to an image")
+        return spider_session.spider_command_fifo(self, 'ac n', inputfile, outputfile, "Applying the normalized auto-correlation to an image")
     
-    def ad(session, inputfile, *otherfiles, **extra):
+    def ad(self, inputfile, *otherfiles, **extra):
         '''Squares an image/volume, point-by-point.
         
         `Original Spider (AD) <http://www.wadsworth.org/spider_doc/spider/docs/man/ad.html>`_
@@ -187,11 +187,11 @@ class Session(spider_session.Session):
         .. note:: 
         
             With this command you must use outputfile="name of outputfile", 
-            e.g. session.ad(inputfile, anotherfile1, anotherfile2, outputfile=outputfile)
+            e.g. self.ad(inputfile, anotherfile1, anotherfile2, outputfile=outputfile)
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -206,9 +206,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_multi_input(session, 'ad', "Add a set of files", inputfile, *otherfiles, **extra)
+        return spider_session.spider_command_multi_input(self, 'ad', "Add a set of files", inputfile, *otherfiles, **extra)
     
-    def ap_ref(session, inputfile, inputselect, reference, selectref, ring_file="", angle_range=0.0, 
+    def ap_ref(self, inputfile, inputselect, reference, selectref, ring_file="", angle_range=0.0, 
                angle_threshold=1.0, trans_range=16, first_ring=5, ring_last=0, ring_step=1, test_mirror=True, refangles=None, 
                inputangles=None, interpolation=None, outputfile=None, **extra):
         '''Compares a set of experimental images with a set of reference images. For each 
@@ -226,7 +226,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image projection stack
@@ -270,12 +270,12 @@ class Session(spider_session.Session):
         '''
         
         if interpolation is not None:
-            v = session.get_version()
+            v = self.get_version()
             if v[0] < 20: interpolation = None
         
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
-        else: session.de(outputfile)
+        else: self.de(outputfile)
         if not isinstance(ring_file, str) or ring_file == "":
             if isinstance(ring_file, int): ring_file = os.path.join(os.path.dirname(inputfile), "scratch_rings_%d"%ring_file)
             elif ring_file=="": ring_file = os.path.join(os.path.dirname(inputfile), "scratch_rings")
@@ -284,18 +284,18 @@ class Session(spider_session.Session):
         elif 1 == 1:
             test_mirror = 'Y' if test_mirror else 'N'
             
-            if supports_internal_rtsq(session) and inputangles is not None:
+            if supports_internal_rtsq(self) and inputangles is not None:
                 test_mirror+=",Y"
             #else:
             #    test_mirror+=",N"
         else:
-            if supports_internal_rtsq(session) and inputangles is not None:
+            if supports_internal_rtsq(self) and inputangles is not None:
                 test_mirror = spider_tuple(test_mirror, 1)
             else: test_mirror = spider_tuple(test_mirror)
-        inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
-        selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
-        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS ON')
-        session.invoke('ap ref', spider_stack(reference, ref_count), 
+        inputselect, input_count = spider_session.ensure_stack_select(self, inputfile, inputselect)[:2]
+        selectref, ref_count = spider_session.ensure_stack_select(self, reference, selectref)[:2]
+        if interpolation is not None and interpolation.upper() == "FS": self.md('FBS ON')
+        self.invoke('ap ref', spider_stack(reference, ref_count), 
                            spider_select(selectref), spider_tuple(trans_range), #, trans_step), 
                            spider_tuple(first_ring, ring_last, ring_step), #, ray_step), 
                            spider_doc(refangles), spider_image(ring_file), spider_stack(inputfile, input_count), 
@@ -303,10 +303,10 @@ class Session(spider_session.Session):
                            spider_tuple(angle_range, angle_threshold),
                            test_mirror,
                            spider_doc(outputfile))
-        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS OFF')
+        if interpolation is not None and interpolation.upper() == "FS": self.md('FBS OFF')
         return outputfile
     
-    def ap_sh(session, inputfile, inputselect, reference, selectref, angle_range=0.0, 
+    def ap_sh(self, inputfile, inputselect, reference, selectref, angle_range=0.0, 
               angle_threshold=1.0, trans_range=24, trans_step=1, first_ring=1, ring_last=0, ring_step=1, 
               ray_step=1, test_mirror=True, refangles=None, inputangles=None, interpolation=None, outputfile=None, **extra):
         '''Compares a series of experimental images with a series of reference images. For each experimental 
@@ -322,7 +322,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image projection stack
@@ -368,28 +368,28 @@ class Session(spider_session.Session):
         '''
         
         if interpolation is not None:
-            v = session.get_version()
+            v = self.get_version()
             if v[0] < 20: interpolation = None
         
         _logger.debug("Performing multi-reference alignment")
         if outputfile is None:  raise ValueError, "Incore documents not supported by AP SH"
-        session.de(outputfile)
-        inputselect, input_count = spider_session.ensure_stack_select(session, inputfile, inputselect)[:2]
-        selectref, ref_count = spider_session.ensure_stack_select(session, reference, selectref)[:2]
+        self.de(outputfile)
+        inputselect, input_count = spider_session.ensure_stack_select(self, inputfile, inputselect)[:2]
+        selectref, ref_count = spider_session.ensure_stack_select(self, reference, selectref)[:2]
         if 1 == 0:
             test_mirror = '(1)' if test_mirror else '(0)'
         elif 1 == 1:
             test_mirror = 'Y' if test_mirror else 'N'
-            if supports_internal_rtsq(session) and inputangles is not None:
+            if supports_internal_rtsq(self) and inputangles is not None:
                 test_mirror+=",Y"
             #else:
             #    test_mirror+=",N"
         else:
-            if supports_internal_rtsq(session) and inputangles is not None:
+            if supports_internal_rtsq(self) and inputangles is not None:
                 test_mirror = spider_tuple(test_mirror, 1)
             else: test_mirror = spider_tuple(test_mirror)
-        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS ON')
-        session.invoke('ap sh', spider_stack(reference, ref_count), 
+        if interpolation is not None and interpolation.upper() == "FS": self.md('FBS ON')
+        self.invoke('ap sh', spider_stack(reference, ref_count), 
                        spider_select(selectref), spider_tuple(trans_range, trans_step), 
                        spider_tuple(first_ring, ring_last, ring_step, ray_step), 
                        spider_doc(refangles), spider_stack(inputfile, input_count), 
@@ -397,17 +397,17 @@ class Session(spider_session.Session):
                        spider_tuple(angle_range, angle_threshold),
                        test_mirror,
                        spider_doc(outputfile))
-        if interpolation is not None and interpolation.upper() == "FS": session.md('FBS OFF')
+        if interpolation is not None and interpolation.upper() == "FS": self.md('FBS OFF')
         return outputfile
 
-    def ar(session, inputfile, operation, outputfile=None, **extra):
+    def ar(self, inputfile, operation, outputfile=None, **extra):
         '''Performs arithmetic operations point for point on the input image to create an output image.
         
         `Original Spider (AR) <http://www.wadsworth.org/spider_doc/spider/docs/man/ar.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -425,18 +425,18 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Perform math operation on an image")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
-        session.invoke('ar', spider_image(inputfile), spider_image(outputfile), operation)
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
+        self.invoke('ar', spider_image(inputfile), spider_image(outputfile), operation)
         return outputfile
     
-    def bl(session, image_size, background=2.0, outputfile=None, **extra):
+    def bl(self, image_size, background=2.0, outputfile=None, **extra):
         ''' Creates an image/volume with a specified background
                 
         `Original Spider (BL) <http://www.wadsworth.org/spider_doc/spider/docs/man/bl.html>`_
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         image_size : (float,float)
                      Size of the image
@@ -454,11 +454,11 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Creating blank image of size %s in file %s: "%(str(image_size), str(outputfile)))
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
-        session.invoke('bl', spider_image(outputfile), spider_coord_tuple(image_size), 'N', spider_tuple(background))
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
+        self.invoke('bl', spider_image(outputfile), spider_coord_tuple(image_size), 'N', spider_tuple(background))
         return outputfile
     
-    def bp_32f(session, inputfile, angle_file, input_select=None, sym_file="", outputfile=None, **extra):
+    def bp_32f(self, inputfile, angle_file, input_select=None, sym_file="", outputfile=None, **extra):
         '''Calculates two sample reconstructions from randomly selected subsets containing 
         half of the total projections and a a total-3D reconstruction from all the projections 
         using back-projection interpolated in Fourier space. This operation is the same as 'BP 3F' 
@@ -469,7 +469,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input file template, stack template or stack
@@ -497,12 +497,12 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Back project")
-        outputfile = spider_session.ensure_output_recon3(session, outputfile)
-        input_select, max_count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
-        session.invoke('bp 32f', spider_stack(inputfile, max_count), spider_select(input_select), spider_doc(angle_file), spider_doc(sym_file), spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]))
+        outputfile = spider_session.ensure_output_recon3(self, outputfile)
+        input_select, max_count = spider_session.ensure_stack_select(self, inputfile, input_select)[:2]
+        self.invoke('bp 32f', spider_stack(inputfile, max_count), spider_select(input_select), spider_doc(angle_file), spider_doc(sym_file), spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]))
         return outputfile
     
-    def bp_cg(session, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, reg_mode=1, lambda_weight=2000.0, input_select=None, sym_file="", outputfile=None, pixel_diameter=None, **extra):
+    def bp_cg(self, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, reg_mode=1, lambda_weight=2000.0, input_select=None, sym_file="", outputfile=None, pixel_diameter=None, **extra):
         '''Calculates two sample reconstructions from randomly selected subsets 
         containing half of the total projections and a a total-3D reconstruction 
         from all the projections using conjugate gradients with regularization.
@@ -511,7 +511,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input file template, stack template or stack
@@ -549,14 +549,14 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("SIRT")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
         if cg_radius == 0: cg_radius = int(pixel_diameter/2.0) + 1
-        input_select, max_count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
-        session.invoke('bp cg', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(cg_radius), spider_doc(angle_file), 'N', 
+        input_select, max_count = spider_session.ensure_stack_select(self, inputfile, input_select)[:2]
+        self.invoke('bp cg', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(cg_radius), spider_doc(angle_file), 'N', 
                        spider_image(outputfile), spider_tuple(error_limit, chi2_limit), spider_tuple(iter_limit, reg_mode), spider_tuple(lambda_weight)) #, spider_tuple('F')
         return outputfile
     
-    def bp_cg_3(session, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, reg_mode=1, 
+    def bp_cg_3(self, inputfile, angle_file, cg_radius=0, error_limit=1e-5, chi2_limit=0.0, iter_limit=20, reg_mode=1, 
                 lambda_weight=2000.0, input_select=None, sym_file="", outputfile=None, pixel_diameter=None, **extra):
         '''Calculates two sample reconstructions from randomly selected subsets 
         containing half of the total projections and a a total-3D reconstruction 
@@ -568,7 +568,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input file template, stack template or stack
@@ -606,15 +606,15 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("SIRT")
-        outputfile = spider_session.ensure_output_recon3(session, outputfile)
+        outputfile = spider_session.ensure_output_recon3(self, outputfile)
         if cg_radius == 0: cg_radius = int(pixel_diameter/2.0) + 1
-        input_select, max_count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
-        session.invoke('bp cg 3', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(cg_radius), 
+        input_select, max_count = spider_session.ensure_stack_select(self, inputfile, input_select)[:2]
+        self.invoke('bp cg 3', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(cg_radius), 
                        spider_doc(angle_file), 'N', spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]), 
                        spider_tuple(error_limit, chi2_limit), spider_tuple(iter_limit, reg_mode), spider_tuple(lambda_weight))
         return outputfile
     
-    def ce_fit(session, inputfile, reference, mask, outputfile=None, **extra):
+    def ce_fit(self, inputfile, reference, mask, outputfile=None, **extra):
         '''Finds the linear transformation (applied to pixels) which 
          fits the histogram of the image file to the histogram of the reference file.
                 
@@ -622,7 +622,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -642,11 +642,11 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Enhance contrast of the image")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
-        session.invoke('ce fit', spider_image(reference), spider_image(inputfile), spider_image(mask), spider_image(outputfile))
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
+        self.invoke('ce fit', spider_image(reference), spider_image(inputfile), spider_image(mask), spider_image(outputfile))
         return outputfile
     
-    def cg_ph(session, inputfile, **extra):
+    def cg_ph(self, inputfile, **extra):
         ''' Compute center of gravity of image/volume using phase approximation.
                 
         `Original Spider (CG PH) <http://www.wadsworth.org/spider_doc/spider/docs/man/cgph.html>`_
@@ -655,7 +655,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -679,10 +679,10 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Determining the center of gravity (phase apporximation) for input image")
-        session.invoke('cg ph x21,x22,x23,x24,x25,x26', spider_image(inputfile))
-        return (session['x21'], session['x22'], session['x23'], session['x24'], session['x25'], session['x26'])
+        self.invoke('cg ph x21,x22,x23,x24,x25,x26', spider_image(inputfile))
+        return (self['x21'], self['x22'], self['x23'], self['x24'], self['x25'], self['x26'])
     
-    def cp(session, inputfile, outputfile=None, **extra):
+    def cp(self, inputfile, outputfile=None, **extra):
         '''Make a copy of a SPIDER image file
         
         `Original Spider (CP) <http://www.wadsworth.org/spider_doc/spider/docs/man/cp.html>`_
@@ -691,7 +691,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -708,25 +708,25 @@ class Session(spider_session.Session):
         
         
         _logger.debug("Copy a SPIDER image file")
-        inputfile = session.replace_ext(inputfile)
-        istack, = session.fi_h(inputfile, ('ISTACK', ))
+        inputfile = self.replace_ext(inputfile)
+        istack, = self.fi_h(inputfile, ('ISTACK', ))
         if not isinstance(inputfile, tuple) and istack > 0:
-            stack_count,  = session.fi_h(spider_stack(inputfile), ('MAXIM', ))
-            if outputfile is None: outputfile = session.ms(stack_count, spider_stack( (inputfile, 1) ))
-            session.invoke('cp', spider_stack(inputfile, stack_count), spider_select(int(stack_count)), spider_stack(outputfile, stack_count), spider_select(int(stack_count)))
+            stack_count,  = self.fi_h(spider_stack(inputfile), ('MAXIM', ))
+            if outputfile is None: outputfile = self.ms(stack_count, spider_stack( (inputfile, 1) ))
+            self.invoke('cp', spider_stack(inputfile, stack_count), spider_select(int(stack_count)), spider_stack(outputfile, stack_count), spider_select(int(stack_count)))
         else:
-            if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
-            session.invoke('cp', spider_image(inputfile), spider_image(outputfile))
+            if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
+            self.invoke('cp', spider_image(inputfile), spider_image(outputfile))
         return outputfile
 
-    def cp_from_mrc(session, inputfile, outputfile=None, **extra):
+    def cp_from_mrc(self, inputfile, outputfile=None, **extra):
         '''Make a copy of a SPIDER image file in MRC format
         
         `Original Spider (CP FROM MRC) <http://www.wadsworth.org/spider_doc/spider/docs/man/cpfrommrc.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -741,16 +741,16 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'cp from mrc', inputfile, outputfile, "Copy a SPIDER image file from MRC")
+        return spider_session.spider_command_fifo(self, 'cp from mrc', inputfile, outputfile, "Copy a SPIDER image file from MRC")
     
-    def cp_to_mrc(session, inputfile, outputfile=None, **extra):
+    def cp_to_mrc(self, inputfile, outputfile=None, **extra):
         '''Make a copy of a SPIDER image file in MRC format
         
         `Original Spider (CP TO MRC) <http://www.wadsworth.org/spider_doc/spider/docs/man/cptomrc.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -765,9 +765,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'cp to mrc8', inputfile, outputfile, "Copy a SPIDER image file to MRC", spider_tuple(-9999))
+        return spider_session.spider_command_fifo(self, 'cp to mrc8', inputfile, outputfile, "Copy a SPIDER image file to MRC", spider_tuple(-9999))
     
-    def cp_to_tiff(session, inputfile, outputfile=None, **extra):
+    def cp_to_tiff(self, inputfile, outputfile=None, **extra):
         '''Copies a SPIDER file to a Tiff format file.
                 
         `Original Spider (CP TO TIFF) <http://www.wadsworth.org/spider_doc/spider/docs/man/cptotiff.html>`_
@@ -776,7 +776,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -791,14 +791,14 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'cp to tiff', inputfile, outputfile, "Copy a SPIDER image file")
+        return spider_session.spider_command_fifo(self, 'cp to tiff', inputfile, outputfile, "Copy a SPIDER image file")
     
-    def dc_s(session, inputfile, bin_fac, outputfile=None, **extra):
+    def dc_s(self, inputfile, bin_fac, outputfile=None, **extra):
         ''' Shrink a micrograph using the Spider decimation algorithm
                 
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -816,12 +816,12 @@ class Session(spider_session.Session):
         '''
         
         if isinstance(bin_fac, int):
-            z_size,  = session.fi_h(inputfile, ('NSLICE'))
+            z_size,  = self.fi_h(inputfile, ('NSLICE'))
             if z_size > 1: bin_fac = (bin_fac, bin_fac, bin_fac)
             else: bin_fac = (bin_fac, bin_fac)
-        return spider_session.spider_command_fifo(session, 'dc s', inputfile, outputfile, "Decimating micrograph", spider_tuple(*bin_fac))
+        return spider_session.spider_command_fifo(self, 'dc s', inputfile, outputfile, "Decimating micrograph", spider_tuple(*bin_fac))
     
-    def de(session, inputfile, **extra):
+    def de(self, inputfile, **extra):
         '''Delete a file
         
         alias: delete_file
@@ -834,7 +834,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     File path to input image or volume
@@ -845,9 +845,9 @@ class Session(spider_session.Session):
         if is_incore_filename(inputfile) and hasattr(inputfile, 'hook'): 
             inputfile.hook = None
         _logger.debug("Delete file: %s"%str(inputfile))
-        session.invoke('de', spider_image(inputfile))
+        self.invoke('de', spider_image(inputfile))
     
-    def du(session, inputfile, du_nstd, du_type=3, **extra):
+    def du(self, inputfile, du_nstd, du_type=3, **extra):
         '''Eliminates all data in a picture that is more than a given multiple 
         of the standard deviation away from the mode of the histogram. The 
         eliminated data are set to the boundaries of the range.
@@ -856,7 +856,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -874,18 +874,18 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Get value of pixel in an image")
-        if du_type not in (1, 2, 3): raise spider_session.SpiderParameterError, "du_type must be 1, 2 or 3"
-        session.invoke('du', spider_image(inputfile), spider_tuple(du_nstd), spider_tuple(du_type))
+        if du_type not in (1, 2, 3): raise SpiderParameterError, "du_type must be 1, 2 or 3"
+        self.invoke('du', spider_image(inputfile), spider_tuple(du_nstd), spider_tuple(du_type))
         return inputfile
     
-    def fd(session, inputfile, scatterfile, outputfile=None, **extra):
+    def fd(self, inputfile, scatterfile, outputfile=None, **extra):
         '''Applies Fourier filter to 2D or 3D to real or Fourier image. Coefficients of the filter are read from a document file.
         
         `Original Spider (FD) <http://www.wadsworth.org/spider_doc/spider/docs/man/fd.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -902,9 +902,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'fd', inputfile, outputfile, "Filtering image using a filter built from a file", spider_image(scatterfile))
+        return spider_session.spider_command_fifo(self, 'fd', inputfile, outputfile, "Filtering image using a filter built from a file", spider_image(scatterfile))
     
-    def fi_h(session, inputfile, header, **extra):
+    def fi_h(self, inputfile, header, **extra):
         '''Retrieve particular values from the file header by 
         name and optionally place variable values in specified register variables.
         
@@ -918,7 +918,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -936,19 +936,19 @@ class Session(spider_session.Session):
         _logger.debug("Querying information from file header")
         if isinstance(header, str): header = header.split(',')
         hreg = ["[x%d]"%(i+1) for i in xrange(len(header))]
-        session.invoke('fi h %s'%(",".join(hreg)), spider_image(inputfile), ",".join(header))
-        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "fi h failed to inquire header from the given file"
-        return collections.namedtuple("fih", ",".join(header))._make([session[r] for r in hreg])
+        self.invoke('fi h %s'%(",".join(hreg)), spider_image(inputfile), ",".join(header))
+        if int(self[9]) > 0: raise spider_session.SpiderCommandError, "fi h failed to inquire header from the given file"
+        return collections.namedtuple("fih", ",".join(header))._make([self[r] for r in hreg])
     
     LP, HP, GAUS_LP, GAUS_HP, FERMI_LP, FERMI_HP, BUTER_LP, BUTER_HP, RCOS_LP, RCOS_HP = range(1, 11)
-    def fq(session, inputfile, filter_type=7, filter_radius=0.12, pass_band=0.1, stop_band=0.2, temperature=0.3, outputfile=None, **extra):
+    def fq(self, inputfile, filter_type=7, filter_radius=0.12, pass_band=0.1, stop_band=0.2, temperature=0.3, outputfile=None, **extra):
         ''' Applies Fourier filters to 2-D or 3-D images. Images need not have power-of-two dimensions. Padding with the average is applied during filtration.
                 
         `Original Spider (FQ) <http://www.wadsworth.org/spider_doc/spider/docs/man/fq.html>`_
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -985,7 +985,7 @@ class Session(spider_session.Session):
         '''
         
         filter_type = int(filter_type)
-        if session.version_val[0] < 21:
+        if self.version_val[0] < 21:
             if filter_type < 1 or filter_type > 8: raise ValueError, "Filter type must be an integer between 1-8"
         else:
             if filter_type < 1 or filter_type > 10: raise ValueError, "Filter type must be an integer between 1-10"
@@ -993,9 +993,9 @@ class Session(spider_session.Session):
         if filter_type < 7: args.append( spider_tuple(filter_radius) )
         if filter_type in (5, 6): args.append( spider_tuple(temperature) )
         if filter_type in (7, 8): args.append( spider_tuple(pass_band, stop_band) )
-        return spider_session.spider_command_fifo(session, 'fq', inputfile, outputfile, "Applying the Filter to the image or volume", spider_tuple(filter_type), *args)
+        return spider_session.spider_command_fifo(self, 'fq', inputfile, outputfile, "Applying the Filter to the image or volume", spider_tuple(filter_type), *args)
     
-    def fs(session, inputfile, **extra):
+    def fs(self, inputfile, **extra):
         ''' To compute and list statistical parameters 
         (i.e. minimum, maximum, average, and standard deviation) 
         of an image/volume.
@@ -1004,7 +1004,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -1024,10 +1024,10 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Calculate statistics of an image")
-        session.invoke('fs x11,x12,x13,x14', spider_image(inputfile))
-        return session['x11'], session['x12'], session['x13'], session['x14']
+        self.invoke('fs x11,x12,x13,x14', spider_image(inputfile))
+        return self['x11'], self['x12'], self['x13'], self['x14']
     
-    def ft(session, inputfile, outputfile=None, **extra):
+    def ft(self, inputfile, outputfile=None, **extra):
         ''' Computes forward Fourier transform of a 2D or 3D image, or inverse Fourier 
         transform of a complex Fourier-formatted file
                 
@@ -1035,7 +1035,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -1050,16 +1050,16 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
-        return spider_session.spider_command_fifo(session, 'ft', inputfile, outputfile, "Applying the fourier transform to an image")
+        return spider_session.spider_command_fifo(self, 'ft', inputfile, outputfile, "Applying the fourier transform to an image")
     
-    def gp(session, inputfile, location, **extra):
+    def gp(self, inputfile, location, **extra):
         '''Gets pixel value from specified location in image/volume.
                 
         `Original Spider (GP) <http://www.wadsworth.org/spider_doc/spider/docs/man/gp.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -1075,10 +1075,10 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Get value of pixel in an image")
-        session.invoke('gp x11', spider_image(inputfile), spider_tuple(*location))
-        return session['x11']
+        self.invoke('gp x11', spider_image(inputfile), spider_tuple(*location))
+        return self['x11']
     
-    def ip(session, inputfile, size, outputfile=None, **extra):
+    def ip(self, inputfile, size, outputfile=None, **extra):
         '''Takes input image/volume of any dimension and creates interpolated image/volume 
         of any dimension. Uses bilinear interpolation for images and trilinear interpolation on volumes.
         
@@ -1086,7 +1086,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -1103,16 +1103,16 @@ class Session(spider_session.Session):
                      Filename for output file
         '''
         
-        return spider_session.spider_command_fifo(session, 'ip', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
+        return spider_session.spider_command_fifo(self, 'ip', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
     
-    def ip_fs(session, inputfile, size, outputfile=None, **extra):
+    def ip_fs(self, inputfile, size, outputfile=None, **extra):
         ''' Resize image/volume with bicubic spline || interpolation
         
         `Original Spider (IP FS) <http://www.wadsworth.org/spider_doc/spider/docs/man/iqfi.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -1129,9 +1129,9 @@ class Session(spider_session.Session):
                      Filename for output file
         '''
 
-        return spider_session.spider_command_fifo(session, 'ip fs', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
+        return spider_session.spider_command_fifo(self, 'ip fs', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
     
-    def ip_ft(session, inputfile, size, outputfile=None, **extra):
+    def ip_ft(self, inputfile, size, outputfile=None, **extra):
         '''Takes input image/volume of any dimension and creates interpolated image/volume 
         of any dimension. Creates enlarged image/volume using zero padding in Fourier Space.
         
@@ -1139,7 +1139,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -1156,16 +1156,16 @@ class Session(spider_session.Session):
                      Filename for output file
         '''
         
-        return spider_session.spider_command_fifo(session, 'ip ft', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
+        return spider_session.spider_command_fifo(self, 'ip ft', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
     
-    def iq_fi(session, inputfile, **extra):
+    def iq_fi(self, inputfile, **extra):
         '''To inquire whether a file exists or not
                 
         `Original Spider (IQ FI) <http://www.wadsworth.org/spider_doc/spider/docs/man/iqfi.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -1179,17 +1179,17 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Querying if file exists")
-        session.invoke('iq fi [x1]', spider_image(inputfile))
-        return int(session['x1'])
+        self.invoke('iq fi [x1]', spider_image(inputfile))
+        return int(self['x1'])
     
-    def iq_sync(session, inputfile, check_delay=60, total_delay=600, **extra):
+    def iq_sync(self, inputfile, check_delay=60, total_delay=600, **extra):
         '''To wait until a file exists. A primitive method of synchronizing different SPIDER runs.
         
         `Original Spider (IQ SYNC) <http://www.wadsworth.org/spider_doc/spider/docs/man/iqsync.html>`_
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -1207,17 +1207,17 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Wait for a file to exist")
-        session.invoke('iq sync [x1]', spider_image(inputfile), spider_tuple(check_delay, total_delay))
-        return int(session['x1'])
+        self.invoke('iq sync [x1]', spider_image(inputfile), spider_tuple(check_delay, total_delay))
+        return int(self['x1'])
     
-    def li_d(session, inputfile, info_type='W', row=56, column=34, header_pos=(1,2,3), use_2d=True, use_phase=False, outputfile=None, **extra):
+    def li_d(self, inputfile, info_type='W', row=56, column=34, header_pos=(1,2,3), use_2d=True, use_phase=False, outputfile=None, **extra):
         '''Lists specified elements of a given file in document file.
                 
         `Original Spider (LI D) <http://www.wadsworth.org/spider_doc/spider/docs/man/lid.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -1247,7 +1247,7 @@ class Session(spider_session.Session):
         _logger.debug("List values of an image to a document file")
         if outputfile is None: raise ValueError, "Incore documents curenttly not supported by LI D"
         if info_type not in ('H', 'P', 'R', 'C', 'I', 'W'): 
-            raise spider_session.SpiderParameterError, "Info type must be .HEADER, PIXEL, ROW, COLUMN, IMAGE, OR WINDOW (H/P/R/C/I/W)"
+            raise SpiderParameterError, "Info type must be .HEADER, PIXEL, ROW, COLUMN, IMAGE, OR WINDOW (H/P/R/C/I/W)"
         additional = []
         if   info_type == 'H': additional.append( spider_tuple(*header_pos) )
         elif info_type == 'P': additional.append( spider_tuple(column, row) )
@@ -1256,12 +1256,12 @@ class Session(spider_session.Session):
         elif info_type == 'I': additional.append( spider_tuple(row) )
         elif info_type == 'W': additional.extend( [spider_select(column), spider_select(row)] )
         if use_2d:
-            z_size,  = session.fi_h(inputfile, ('NSLICE'))
+            z_size,  = self.fi_h(inputfile, ('NSLICE'))
             if z_size > 1: use_2d = False
-        session.invoke('li d', spider_image(inputfile), spider_doc(outputfile), info_type, *additional)
+        self.invoke('li d', spider_image(inputfile), spider_doc(outputfile), info_type, *additional)
         return outputfile
     
-    def ma(session, inputfile, radius, center, mask_type='D', background_type='P', width=3.5, half_width=0.0, background=3.0, outputfile=None, **extra):
+    def ma(self, inputfile, radius, center, mask_type='D', background_type='P', width=3.5, half_width=0.0, background=3.0, outputfile=None, **extra):
         '''Masks a specified picture with circular masks of specified radii. Pixels 
         in the area inside the inner circle and the area outside the outer circle 
         are set to a specified background.
@@ -1272,7 +1272,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -1301,8 +1301,8 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        if mask_type not in ('D', 'C', 'G', 'T'): raise spider_session.SpiderParameterError, "mask type must be D/C/G/T"
-        if background_type not in ('A', 'P', 'C', 'E'): raise spider_session.SpiderParameterError, "mask type must be A/P/C/E"
+        if mask_type not in ('D', 'C', 'G', 'T'): raise SpiderParameterError, "mask type must be D/C/G/T"
+        if background_type not in ('A', 'P', 'C', 'E'): raise SpiderParameterError, "mask type must be A/P/C/E"
         if not isinstance(radius, tuple): radius = (radius, 0)
         elif len(radius) == 1: radius = ( int(radius[0]), 0)
         additional = [ spider_tuple(int(center[0]), int(center[1])) ]
@@ -1311,16 +1311,16 @@ class Session(spider_session.Session):
         if mask_type == 'C': additional.append(spider_tuple(width))
         elif mask_type == 'G': additional.append(spider_tuple(half_width))
         if background_type == 'E': additional.append(spider_tuple(background))
-        return spider_session.spider_command_fifo(session, 'ma', inputfile, outputfile, "Mask an image", spider_tuple(*radius), mask_type, background_type, *additional)
+        return spider_session.spider_command_fifo(self, 'ma', inputfile, outputfile, "Mask an image", spider_tuple(*radius), mask_type, background_type, *additional)
     
-    def md(session, mode, value=None, **extra):
+    def md(self, mode, value=None, **extra):
         ''' Switches between different operating modes of SPIDER or sets certain options.
         
         `Original Spider (MD) <http://www.wadsworth.org/spider_doc/spider/docs/man/md.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         mode : str
                Specific mode to change
@@ -1334,9 +1334,9 @@ class Session(spider_session.Session):
         if value is not None:
             if mode == 'SET MP': additional.append(spider_tuple(value))
             else: raise ValueError, "Only SET MP supported"
-        session.invoke('md', mode, *additional)
+        self.invoke('md', mode, *additional)
     
-    def mo(session, image_size, model="T", background_constant=12.0, circle_radius=12, gaus_center=(12.0, 12.0), gaus_std=4.2, gaus_mean=1.0, rand_gauss=False, outputfile=None, **extra):
+    def mo(self, image_size, model="T", background_constant=12.0, circle_radius=12, gaus_center=(12.0, 12.0), gaus_std=4.2, gaus_mean=1.0, rand_gauss=False, outputfile=None, **extra):
         ''' Creates a model image. The following options are available: 
         (B)LANK -- BLANK IMAGE 
         (C)IRCLE -- FILLED CIRCLE 
@@ -1352,7 +1352,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         image_size : (int,int)
                      Size of the image
@@ -1382,7 +1382,7 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Creating model image of size %s in file %s: "%(str(image_size), str(outputfile)))
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
         model = model.upper()
         if model not in ('B', 'C', 'G', 'R', 'T', 'W'): raise ValueError, "Only B/C/G/R/S/T/W supported for model"
         additional = []
@@ -1395,10 +1395,10 @@ class Session(spider_session.Session):
         elif model == 'R':
             if rand_gauss: additional.extend([spider_tuple('Y'), spider_tuple(gaus_mean, gaus_std)])
             else: additional.append(spider_tuple('N'))
-        session.invoke('mo', spider_image(outputfile), spider_tuple(*image_size), spider_tuple(model), *additional)
+        self.invoke('mo', spider_image(outputfile), spider_tuple(*image_size), spider_tuple(model), *additional)
         return outputfile
     
-    def mr(session, inputfile, axis='Y', outputfile=None, **extra):
+    def mr(self, inputfile, axis='Y', outputfile=None, **extra):
         '''Creates mirror-symmetry related output image from input image, 
         with the mirror axis lying at row number NROW/2+1, or NSAM/2+1, 
         or NSLICE/2+1. Works for 2D and 3D files.
@@ -1415,7 +1415,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -1432,9 +1432,9 @@ class Session(spider_session.Session):
                      Name of the outputfile
         '''
         
-        return spider_session.spider_command_fifo(session, 'mr', inputfile, outputfile, "Creates mirror-symmetry", axis)
+        return spider_session.spider_command_fifo(self, 'mr', inputfile, outputfile, "Creates mirror-symmetry", axis)
     
-    def ms(session, num_images, image_width=None, height=0, depth=1, outputfile=None, window=None, **extra):
+    def ms(self, num_images, image_width=None, height=0, depth=1, outputfile=None, window=None, **extra):
         '''Creates an empty inline stack
                 
         `Original Spider (MS) <http://www.wadsworth.org/spider_doc/spider/docs/man/ms.html>`_
@@ -1449,7 +1449,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         num_images : int
                      Number of images in the stack
@@ -1473,19 +1473,19 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Create an inline stack - True")
-        if not isinstance(num_images, int): raise spider_session.SpiderParameterError, "Number of images currently required to be an integer"
-        if outputfile is None: outputfile = session.temp_incore_image(True, hook=session.de, is_stack=True)#(True)
+        if not isinstance(num_images, int): raise SpiderParameterError, "Number of images currently required to be an integer"
+        if outputfile is None: outputfile = self.temp_incore_image(True, hook=self.de, is_stack=True)#(True)
         if image_width is None: image_width = window
         if isinstance(image_width, str) or isinstance(image_width, tuple): 
-            vals = session.fi_h(image_width, ('NSAM', 'NROW'))
+            vals = self.fi_h(image_width, ('NSAM', 'NROW'))
             image_width, height = int(vals.NSAM), int(vals.NROW)
             if height == 0 or image_width == 0: raise spider_session.SpiderCommandError, "Failed to query image dimensions"
         if isinstance(outputfile, tuple): outputfile = outputfile[0]
         if height == 0: height = image_width
-        session.invoke('ms', spider_stack(outputfile), spider_tuple(image_width, height, depth), spider_tuple(num_images))
+        self.invoke('ms', spider_stack(outputfile), spider_tuple(image_width, height, depth), spider_tuple(num_images))
         return outputfile
     
-    def mu(session, inputfile, *otherfiles, **extra):
+    def mu(self, inputfile, *otherfiles, **extra):
         ''' Multiply a set of images
                 
         `Original Spider (MU) <http://www.wadsworth.org/spider_doc/spider/docs/man/mu.html>`_
@@ -1493,11 +1493,11 @@ class Session(spider_session.Session):
         .. note:: 
         
             With this command you must use outputfile="name of outputfile", 
-            e.g. session.mu(inputfile, anotherfile1, anotherfile2, outputfile=outputfile)
+            e.g. self.mu(inputfile, anotherfile1, anotherfile2, outputfile=outputfile)
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -1512,16 +1512,16 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
-        return spider_session.spider_command_multi_input(session, 'mu', "Multiply images", inputfile, *otherfiles, **extra)
+        return spider_session.spider_command_multi_input(self, 'mu', "Multiply images", inputfile, *otherfiles, **extra)
     
-    def neg_a(session, inputfile, outputfile=None, **extra):
+    def neg_a(self, inputfile, outputfile=None, **extra):
         ''' Multiply a set of images
                 
         `Original Spider (NEG A) <http://www.wadsworth.org/spider_doc/spider/docs/man/neg_a.html>`_
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -1536,10 +1536,10 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
-        return spider_session.spider_command_fifo(session, 'neg a', inputfile, outputfile, "Invert contrast")
+        return spider_session.spider_command_fifo(self, 'neg a', inputfile, outputfile, "Invert contrast")
     
     OR_SH_TUPLE = collections.namedtuple("orsh", "psi,x,y,mirror,cc")
-    def or_sh(session, inputfile, reference, trans_range=6, trans_step=2, ring_first=2, ring_last=15, test_mirror=True, window=None, **extra):
+    def or_sh(self, inputfile, reference, trans_range=6, trans_step=2, ring_first=2, ring_last=15, test_mirror=True, window=None, **extra):
         '''Determines rotational and translational orientation between two images after resampling into 
         polar coordinates with optional additional check of mirror transformation. This is the same 
         as: 'AP SH' except it only processes a single pair of images. 
@@ -1554,7 +1554,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of experimental input image
@@ -1595,12 +1595,12 @@ class Session(spider_session.Session):
             ring_last = window/2 - trans_range - 3
             _logger.debug("Overriding %d to %d for image dimension from PARAMS"%(ring_last, old_ring_last))
         test_mirror = 'Y' if test_mirror else 'N'
-        session.invoke('or sh [psi],[dx],[dy],[mirror],[cc]', spider_image(reference), spider_tuple(trans_range, trans_step), 
+        self.invoke('or sh [psi],[dx],[dy],[mirror],[cc]', spider_image(reference), spider_tuple(trans_range, trans_step), 
                            spider_tuple(ring_first, ring_last), spider_image(inputfile), test_mirror)
-        if numpy.isnan(session['[psi]']):  raise ValueError, "No or sh performed"
-        return session.OR_SH_TUPLE(session['psi'], session['dx'], session['dy'], session['mirror'], session['cc'])
+        if numpy.isnan(self['[psi]']):  raise ValueError, "No or sh performed"
+        return self.OR_SH_TUPLE(self['psi'], self['dx'], self['dy'], self['mirror'], self['cc'])
     
-    def pd(session, inputfile, window_size, center_coord=None, background='Y', background_value=0.0, outputfile=None, **extra):
+    def pd(self, inputfile, window_size, center_coord=None, background='Y', background_value=0.0, outputfile=None, **extra):
         ''' To pad an image/volume to make a larger image/volume. Places the input image at specified 
         position and pads the input with a specified background value.
         
@@ -1608,7 +1608,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -1631,7 +1631,7 @@ class Session(spider_session.Session):
                      Filename of output image
         '''
         
-        z_size, x_size, y_size, = session.fi_h(inputfile, ('NSLICE', 'NSAM', 'NROW'))
+        z_size, x_size, y_size, = self.fi_h(inputfile, ('NSLICE', 'NSAM', 'NROW'))
         if z_size > 1:
             if not hasattr(window_size, '__len__'): window_size = (int(window_size), int(window_size), int(window_size))
             elif len(window_size) == 1: window_size = (int(window_size[0]), int(window_size[0]), int(window_size[0]))
@@ -1657,9 +1657,9 @@ class Session(spider_session.Session):
         
         additional=[]
         if background == 'N': additional.append( spider_tuple(background_value) )
-        return spider_session.spider_command_fifo(session, 'pd', inputfile, outputfile, "Pad images", spider_tuple(*window_size), background, spider_tuple(*center_coord), *additional)
+        return spider_session.spider_command_fifo(self, 'pd', inputfile, outputfile, "Pad images", spider_tuple(*window_size), background, spider_tuple(*center_coord), *additional)
     
-    def pj_3q(session, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, max_ref_proj=None, interpolation=None, outputfile=None, **extra):
+    def pj_3q(self, inputfile, angle_doc, angle_list, pj_radius=-1, pixel_diameter=None, max_ref_proj=None, interpolation=None, outputfile=None, **extra):
         '''Computes projection(s) of a 3D volume according to the three Eulerian angles.
         
         alias: project_3d
@@ -1675,7 +1675,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for 3D volume
@@ -1702,30 +1702,30 @@ class Session(spider_session.Session):
                     Tuple containing the output file and number of angles
         '''
         if interpolation is not None:
-            v = session.get_version()
+            v = self.get_version()
             if v[0] < 20: interpolation = None
         
         #assert(max_ref_proj is not None)
         _logger.debug("Create 2D projections of a 3D object")
-        angle_list, max_count, total_size = spider_session.ensure_stack_select(session, None, angle_list)
+        angle_list, max_count, total_size = spider_session.ensure_stack_select(self, None, angle_list)
         if max_ref_proj is None: max_ref_proj = total_size
-        if outputfile is None: outputfile = session.ms(max_ref_proj, spider_image(inputfile))
-        elif is_incore_filename(outputfile): # and int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]):
-            session.de(outputfile)
-            outputfile = session.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
-            assert( int(session.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(session.fi_h(spider_stack(inputfile), 'NSAM')[0]) )
-        elif not is_incore_filename(outputfile): session.de(outputfile)
+        if outputfile is None: outputfile = self.ms(max_ref_proj, spider_image(inputfile))
+        elif is_incore_filename(outputfile): # and int(self.fi_h(spider_stack(inputfile), 'NSAM')[0]) != int(self.fi_h(spider_stack(outputfile), 'NSAM')[0]):
+            self.de(outputfile)
+            outputfile = self.ms(max_ref_proj, spider_image(inputfile), outputfile=outputfile)
+            assert( int(self.fi_h(spider_stack(outputfile), 'NSAM')[0]) == int(self.fi_h(spider_stack(inputfile), 'NSAM')[0]) )
+        elif not is_incore_filename(outputfile): self.de(outputfile)
         
         if pj_radius is None or pj_radius < 1:
-            if pixel_diameter is None: raise spider_session.SpiderParameterError, "Either radius or pixel_diameter must be set"
+            if pixel_diameter is None: raise SpiderParameterError, "Either radius or pixel_diameter must be set"
             pj_radius = 0.69 * pixel_diameter
         if interpolation is not None and interpolation.upper() == "FS":
-            session.invoke('pj 3f', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+            self.invoke('pj 3f', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         else:
-            session.invoke('pj 3q', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
+            self.invoke('pj 3q', spider_image(inputfile), spider_tuple(int(pj_radius)), spider_select(angle_list), spider_doc(angle_doc), spider_stack(outputfile, max_count))
         return outputfile
     
-    def pw(session, inputfile, outputfile=None, **extra):
+    def pw(self, inputfile, outputfile=None, **extra):
         '''Generates full, unscrambled Fourier moduli from complex 
         Fourier transform for 2-D or 3-D pictures. The input image 
         can be real if it fits into the memory. Operation supports 
@@ -1737,7 +1737,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename (Fourier Transform)
@@ -1752,9 +1752,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'pw', inputfile, outputfile, "Estimate power spectrum of an image")
+        return spider_session.spider_command_fifo(self, 'pw', inputfile, outputfile, "Estimate power spectrum of an image")
     
-    def ra(session, inputfile, outputfile=None, **extra):
+    def ra(self, inputfile, outputfile=None, **extra):
         '''Fits a least-squares plane to the picture, and subtracts the plane from the 
            picture. A wedge-shaped overall density profile can thus be removed from the picture.
                 
@@ -1762,7 +1762,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input file template, stack template or stack
@@ -1777,9 +1777,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'ra', inputfile, outputfile, "Estimate and remove ramp from image")
+        return spider_session.spider_command_fifo(self, 'ra', inputfile, outputfile, "Estimate and remove ramp from image")
     
-    def rb_32f(session, inputfile, angle_file, input_select=None, sym_file="", outputfile=None, **extra):
+    def rb_32f(self, inputfile, angle_file, input_select=None, sym_file="", outputfile=None, **extra):
         '''Changes the scale, rotates, and shifts image circularly. Then calculates two 
         randomly selected sample recontruction and a total-3D reconstruction using 
         interpolation in Fourier space.Rotates counter-clockwise around the center (NSAM/2 + 1, NROW/2 + 1). 
@@ -1791,7 +1791,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input file template, stack template or stack
@@ -1817,12 +1817,12 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Back project")
-        outputfile = spider_session.ensure_output_recon3(session, outputfile)
-        input_select, max_count = spider_session.ensure_stack_select(session, inputfile, input_select)[:2]
-        session.invoke('rb 32f', spider_stack(inputfile, max_count), spider_select(input_select), spider_doc(angle_file), spider_doc(sym_file), spider_doc(None), spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]))
+        outputfile = spider_session.ensure_output_recon3(self, outputfile)
+        input_select, max_count = spider_session.ensure_stack_select(self, inputfile, input_select)[:2]
+        self.invoke('rb 32f', spider_stack(inputfile, max_count), spider_select(input_select), spider_doc(angle_file), spider_doc(sym_file), spider_doc(None), spider_image(outputfile[0]), spider_image(outputfile[1]), spider_image(outputfile[2]))
         return outputfile
     
-    def rf_3(session, inputfile1, inputfile2, ring_width=0.5, lower_scale=0.2, upper_scale=2.0, missing_ang='C', max_tilt=90.0, noise_factor=3.0, outputfile=None, **extra):
+    def rf_3(self, inputfile1, inputfile2, ring_width=0.5, lower_scale=0.2, upper_scale=2.0, missing_ang='C', max_tilt=90.0, noise_factor=3.0, outputfile=None, **extra):
         '''Calculate the differential 3-D phase residual and the Fourier Shell Correlation between 
         two volumes. The Differential Phase Residual over a shell with thickness given by shell width 
         and the Fourier Shell Correlation between shells of specified widths are computed and stored 
@@ -1835,7 +1835,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile1 : str
                      Input file containing first half volume
@@ -1867,12 +1867,12 @@ class Session(spider_session.Session):
         
         _logger.debug("Create an inline stack")
         if outputfile is None: 
-            width, = session.fi_h(inputfile1, ('NSAM'))
-            outputfile = session.sd_ic_new((5, width+1))
-        session.invoke('rf 3 [x1],[x2]', spider_image(inputfile1), spider_image(inputfile2), spider_tuple(ring_width), spider_tuple(lower_scale, upper_scale), missing_ang, spider_tuple(max_tilt), spider_tuple(noise_factor), spider_doc(outputfile))
-        return outputfile, float(session['x1']), float(session['x2'])
+            width, = self.fi_h(inputfile1, ('NSAM'))
+            outputfile = self.sd_ic_new((5, width+1))
+        self.invoke('rf 3 [x1],[x2]', spider_image(inputfile1), spider_image(inputfile2), spider_tuple(ring_width), spider_tuple(lower_scale, upper_scale), missing_ang, spider_tuple(max_tilt), spider_tuple(noise_factor), spider_doc(outputfile))
+        return outputfile, float(self['x1']), float(self['x2'])
     
-    def ro(session, inputfile, outputfile=None, **extra):
+    def ro(self, inputfile, outputfile=None, **extra):
         '''Computes the radial distribution function of a two or three dimensional density distribution stored 
         in a square array. Center assumed to be located at (NSAM/2+1, NROW/2+1).
                 
@@ -1880,7 +1880,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -1895,9 +1895,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'ro', inputfile, outputfile, "Take a rotational average of an image")
+        return spider_session.spider_command_fifo(self, 'ro', inputfile, outputfile, "Take a rotational average of an image")
     
-    def rtd_sq(session, inputfile, alignment, select=None, alignment_cols=(6,0,7,8), outputsel=None, outputfile=None, **extra):
+    def rtd_sq(self, inputfile, alignment, select=None, alignment_cols=(6,0,7,8), outputsel=None, outputfile=None, **extra):
         '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
         around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
         terms "clockwise" and "counter-clockwise" refer to the mirrored x-y system used for 
@@ -1913,7 +1913,7 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-            session : Session
+            self : Session
                       Current spider session
             inputfile : str
                         Filename of input image projection stack
@@ -1939,21 +1939,21 @@ class Session(spider_session.Session):
         _logger.debug("Performing rotation and translation")
         if outputfile is None:
             if (isinstance(inputfile, tuple) or is_incore_filename(inputfile) or inputfile.find('@') == -1) and select is None:
-                outputfile = session.temp_incore_image(hook=session.de)
+                outputfile = self.temp_incore_image(hook=self.de)
             else:
                 if select is not None:
                     if len(select) == 3: nrows = select[2]
-                    else: nrows = session.ud_n(select[0])[2]
+                    else: nrows = self.ud_n(select[0])[2]
                 else:
-                    nrows = session.ud_n(alignment)[2]
+                    nrows = self.ud_n(alignment)[2]
                 _logger.debug("Using ms to create in core file")
-                outputfile = session.ms(nrows, spider_stack( (inputfile, 1) ))
+                outputfile = self.ms(nrows, spider_stack( (inputfile, 1) ))
         
-        stack_total, = session.fi_h(spider_stack(inputfile), ('MAXIM'))
-        session.invoke('rtd sq', spider_stack(inputfile, stack_total), spider_select(select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, stack_total), spider_select(outputsel))
+        stack_total, = self.fi_h(spider_stack(inputfile), ('MAXIM'))
+        self.invoke('rtd sq', spider_stack(inputfile, stack_total), spider_select(select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, stack_total), spider_select(outputsel))
         return outputfile
     
-    def rt_sq(session, inputfile, alignment, input_select=None, alignment_cols=(6,0,7,8), interpolation=None, outputfile=None, **extra):
+    def rt_sq(self, inputfile, alignment, input_select=None, alignment_cols=(6,0,7,8), interpolation=None, outputfile=None, **extra):
         '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
         around the center (NSAM/2 + 1, NROW/2 + 1). (Negative angles = clockwise. Note that the 
         terms "clockwise" and "counter-clockwise" refer to the mirrored x-y system used for 
@@ -1968,7 +1968,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image projection stack
@@ -1992,26 +1992,26 @@ class Session(spider_session.Session):
         '''
         
         if interpolation is not None:
-            v = session.get_version()
+            v = self.get_version()
             if v[0] < 20: interpolation = None
         
-        input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
+        input_select, max_count, count = spider_session.ensure_stack_select(self, inputfile, input_select)
         assert(count > 1)
-        if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
+        if outputfile is None: outputfile = self.ms(count, spider_stack( (inputfile, 1) ))
         if interpolation is not None and interpolation.upper() == "FS":
-            session.invoke('rt sf', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
+            self.invoke('rt sf', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
         else:
-            session.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
+            self.invoke('rt sq', spider_stack(inputfile, max_count), spider_select(input_select), spider_tuple(*alignment_cols), spider_doc(alignment), spider_stack(outputfile, max_count))
         return outputfile
         
-    def sd_e(session, outputfile, **extra):
+    def sd_e(self, outputfile, **extra):
         '''Close an output document file
                 
         `Original Spider (SD E) <http://www.wadsworth.org/spider_doc/spider/docs/man/sde.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         outputfile : str
                      Filename for incore stack (Default: None)
@@ -2024,17 +2024,17 @@ class Session(spider_session.Session):
                      SPIDER reference to in core document file
         '''
         
-        session.invoke('sd e', spider_doc(outputfile))
+        self.invoke('sd e', spider_doc(outputfile))
         return outputfile
     
-    def sd_ic(session, key, values, outputfile, hreg=None, **extra):
+    def sd_ic(self, key, values, outputfile, hreg=None, **extra):
         '''Create an incore doc file (a matrix in SPIDER)
                 
         `Original Spider (SD IC NEW) <http://www.wadsworth.org/spider_doc/spider/docs/man/sdicnew.html>`_
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         key : int
               Row of the array
@@ -2057,21 +2057,21 @@ class Session(spider_session.Session):
             if not hasattr(values, '__iter__'): hreg = ["[x1]"]
             else: hreg = ["[x%d]"%(i+1) for i in xrange(len(values))]
         if not hasattr(values, '__iter__'): 
-            session[hreg[0]] = values
+            self[hreg[0]] = values
         else: 
             for i in xrange(len(hreg)): 
-                session[hreg[i]] = values[i]
-        session.invoke('sd ic %d,%s'%(key, ",".join(hreg)), spider_doc(outputfile))
+                self[hreg[i]] = values[i]
+        self.invoke('sd ic %d,%s'%(key, ",".join(hreg)), spider_doc(outputfile))
         return outputfile
     
-    def sd_ic_new(session, shape, outputfile=None, **extra):
+    def sd_ic_new(self, shape, outputfile=None, **extra):
         '''Create an incore doc file (a matrix in SPIDER)
                 
         `Original Spider (SD IC NEW) <http://www.wadsworth.org/spider_doc/spider/docs/man/sdicnew.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         shape : tuple
                 Number of columns and rows of the matrix
@@ -2086,18 +2086,18 @@ class Session(spider_session.Session):
                      SPIDER reference to in core document file
         '''
         
-        if outputfile is None:  outputfile = session.temp_incore_doc(hook=session.ud_ice)
-        session.invoke('sd ic new', spider_doc(outputfile), spider_tuple(*shape))
+        if outputfile is None:  outputfile = self.temp_incore_doc(hook=self.ud_ice)
+        self.invoke('sd ic new', spider_doc(outputfile), spider_tuple(*shape))
         return outputfile
     
-    def sh_f(session, inputfile, coords, input_select=None, alignment_cols=(7, 8), outputfile=None, **extra):
+    def sh_f(self, inputfile, coords, input_select=None, alignment_cols=(7, 8), outputfile=None, **extra):
         ''' Shifts a picture or a volume by a specified vector using Fourier interpolation.
         
         `Original Spider (SH F) <http://www.wadsworth.org/spider_doc/spider/docs/man/shf.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename of input image
@@ -2115,21 +2115,21 @@ class Session(spider_session.Session):
         '''
         
         if isinstance(coords, str):
-            input_select, max_count, count = spider_session.ensure_stack_select(session, inputfile, input_select)
-            if outputfile is None: outputfile = session.ms(count, spider_stack( (inputfile, 1) ))
-            session.invoke('sh f', spider_stack(inputfile, max_count), spider_select(input_select), spider_stack(outputfile, max_count), spider_doc(coords), spider_tuple(*alignment_cols))
+            input_select, max_count, count = spider_session.ensure_stack_select(self, inputfile, input_select)
+            if outputfile is None: outputfile = self.ms(count, spider_stack( (inputfile, 1) ))
+            self.invoke('sh f', spider_stack(inputfile, max_count), spider_select(input_select), spider_stack(outputfile, max_count), spider_doc(coords), spider_tuple(*alignment_cols))
             return outputfile
         
-        return spider_session.spider_command_fifo(session, 'sh f', inputfile, outputfile, "Shifting a volume", spider_tuple(*coords))
+        return spider_session.spider_command_fifo(self, 'sh f', inputfile, outputfile, "Shifting a volume", spider_tuple(*coords))
     
-    def sq(session, inputfile, outputfile=None, **extra):
+    def sq(self, inputfile, outputfile=None, **extra):
         '''Square an image
         
         `Original Spider (SQ) <http://www.wadsworth.org/spider_doc/spider/docs/man/sq.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -2144,9 +2144,9 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'sq', inputfile, outputfile, "Square an image")
+        return spider_session.spider_command_fifo(self, 'sq', inputfile, outputfile, "Square an image")
     
-    def tf_c3(session, defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None, outputfile=None, **extra):
+    def tf_c3(self, defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None, outputfile=None, **extra):
         '''To compute the phase contrast transfer function for bright-field 
         electron microscopy. For literature, see Notes. 'TF C3' produces 
         the transfer function in complex 3D form. It can then be applied, by 
@@ -2172,7 +2172,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         defocus : float
                   Amount of defocus, in Angstroems
@@ -2200,12 +2200,12 @@ class Session(spider_session.Session):
         '''
 
         _logger.debug("Create a contrast transfer function for a complex 3D object")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
         param = spider_session.generate_ctf_param(defocus, cs, window, source, defocus_spread, ampcont, envelope_half_width, **extra)
-        session.invoke('tf c3', spider_image(outputfile), *param)
+        self.invoke('tf c3', spider_image(outputfile), *param)
         return outputfile
     
-    def tf_cor(session, inputfile, ctffile, outputfile=None, **extra):
+    def tf_cor(self, inputfile, ctffile, outputfile=None, **extra):
         '''2D & 3D CTF correction of a series of images/volumes by Wiener 
         filtering. Accumulates a CTF corrected sum over all input images/volumes. 
         Then applies FFT back transform to the accumulated sum. Similar to 
@@ -2220,7 +2220,7 @@ class Session(spider_session.Session):
             
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     File path to input image or volume
@@ -2238,11 +2238,11 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("CTF correct 2D or 3D object with back transform")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
-        session.invoke('tf cor', spider_image(inputfile), spider_image(ctffile), spider_image(outputfile))
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
+        self.invoke('tf cor', spider_image(inputfile), spider_image(ctffile), spider_image(outputfile))
         return outputfile
     
-    def tf_c(session, defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None, outputfile=None, **extra):
+    def tf_c(self, defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None, outputfile=None, **extra):
         '''To compute the phase contrast transfer function for bright-field electron 
         microscopy. The 'TF C' operation produces the transfer function in complex 
         form so that it can be applied (by using 'MU') to the Fourier transform of a model 
@@ -2268,7 +2268,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         defocus : float
                   Amount of defocus, in Angstroems
@@ -2296,12 +2296,12 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Create a contrast transfer function for phase flipping with padding")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
         param = spider_session.generate_ctf_param(defocus, cs, (window, window), source, defocus_spread, ampcont, envelope_half_width, **extra)
-        session.invoke('tf c', spider_image(outputfile), *param)
+        self.invoke('tf c', spider_image(outputfile), *param)
         return outputfile
     
-    def tf_ct(session, defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None, outputfile=None, **extra):
+    def tf_ct(self, defocus, cs, window=None, source=None, defocus_spread=None, ampcont=None, envelope_half_width=None, outputfile=None, **extra):
         '''To compute the phase contrast transfer function for bright-field electron microscopy. The 
         'TF CT' option produces a binary or two-valued (-1,1) transfer function in complex form. 
         This function can be applied (by using 'MU') to the Fourier transform of an object for 
@@ -2327,7 +2327,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         defocus : float
                   Amount of defocus, in Angstroems
@@ -2355,12 +2355,12 @@ class Session(spider_session.Session):
         '''
         
         _logger.debug("Create a contrast transfer function for phase flipping with padding")
-        if outputfile is None: outputfile = session.temp_incore_image(hook=session.de)
+        if outputfile is None: outputfile = self.temp_incore_image(hook=self.de)
         param = spider_session.generate_ctf_param(defocus, cs, window, source, defocus_spread, ampcont, envelope_half_width, **extra)
-        session.invoke('tf ct', spider_image(outputfile), *param)
+        self.invoke('tf ct', spider_image(outputfile), *param)
         return outputfile
 
-    def tf_ed(session, inputfile, apix, cs, ampcont, lam, voltage=None, elambda=None, outputfile=None, **extra):
+    def tf_ed(self, inputfile, apix, cs, ampcont, lam, voltage=None, elambda=None, outputfile=None, **extra):
         '''Estimates the defocus, astigmatism, and cutoff frequency of high frequencies based on 
            2-D power spectrum. Outputs to doc. file and to operation line registers.
                 
@@ -2374,7 +2374,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -2413,19 +2413,19 @@ class Session(spider_session.Session):
         
         _logger.debug("Estimate the transfer function:  defocus, astigmatism, and cutoff frequency of high frequencies: %f"%apix)
         if outputfile is None: 
-            width, = session.fi_h(inputfile, ('NSAM'))
-            outputfile = session.sd_ic_new((4, width / 2))
-        session.invoke('tf ed x21,x22,x23,x24,x25', spider_image(inputfile), spider_tuple(apix, cs), spider_tuple(lam), spider_tuple(ampcont), spider_doc(outputfile))
-        return (session['x21'], session['x22'], session['x23'], session['x24'], session['x25'], outputfile)
+            width, = self.fi_h(inputfile, ('NSAM'))
+            outputfile = self.sd_ic_new((4, width / 2))
+        self.invoke('tf ed x21,x22,x23,x24,x25', spider_image(inputfile), spider_tuple(apix, cs), spider_tuple(lam), spider_tuple(ampcont), spider_doc(outputfile))
+        return (self['x21'], self['x22'], self['x23'], self['x24'], self['x25'], outputfile)
         
-    def ud(session, inputfile, key, nreg=1, out=None, **extra):
+    def ud(self, inputfile, key, nreg=1, out=None, **extra):
         '''Read a set of values from a document file
                 
         `Original Spider (UD) <http://www.wadsworth.org/spider_doc/spider/docs/man/ud.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -2446,19 +2446,19 @@ class Session(spider_session.Session):
         
         if out is None: out = numpy.zeros((nreg))
         regs = ["[x%d]"%(i+1) for i in xrange(nreg)]
-        session.invoke(('ud %d,'%key)+",".join(regs), spider_doc(inputfile))
-        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "ud failed to get value from document file"
-        for i in xrange(nreg): out[i] = session[regs[i]]
+        self.invoke(('ud %d,'%key)+",".join(regs), spider_doc(inputfile))
+        if int(self[9]) > 0: raise spider_session.SpiderCommandError, "ud failed to get value from document file"
+        for i in xrange(nreg): out[i] = self[regs[i]]
         return out
 
-    def ud_e(session, inputfile, **extra):
+    def ud_e(self, inputfile, **extra):
         '''Terminate access to the current document file and allow futher 'UD' operations to access a different document file.
                 
         `Original Spider (UD E) <http://www.wadsworth.org/spider_doc/spider/docs/man/ude.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -2466,16 +2466,16 @@ class Session(spider_session.Session):
                 Unused key word arguments
         '''
         
-        session.invoke('ud e')
+        self.invoke('ud e')
     
-    def ud_ic(session, inputfile, key, nreg=1, out=None, **extra):
+    def ud_ic(self, inputfile, key, nreg=1, out=None, **extra):
         '''Read a set of values from a document file (load file in core)
                 
         `Original Spider (UD IC) <http://www.wadsworth.org/spider_doc/spider/docs/man/udic.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -2496,19 +2496,19 @@ class Session(spider_session.Session):
         
         if out is None: out = numpy.zeros((nreg))
         regs = ["[x%d]"%(i+1) for i in xrange(nreg)]
-        session.invoke('ud ic %d,%s'%(key,",".join(regs)), spider_doc(inputfile))
-        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "ud ic failed to get value from document file"
-        for i in xrange(nreg): out[i] = session[regs[i]]
+        self.invoke('ud ic %d,%s'%(key,",".join(regs)), spider_doc(inputfile))
+        if int(self[9]) > 0: raise spider_session.SpiderCommandError, "ud ic failed to get value from document file"
+        for i in xrange(nreg): out[i] = self[regs[i]]
         return out 
 
-    def ud_ice(session, inputfile, **extra):
+    def ud_ice(self, inputfile, **extra):
         '''Terminate access to the current document file and allow futher 'UD IC' operations to access a different document file.
                 
         `Original Spider (UD ICE) <http://www.wadsworth.org/spider_doc/spider/docs/man/udice.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -2519,16 +2519,16 @@ class Session(spider_session.Session):
         _logger.debug("Delete incore file %s"%str(inputfile))
         if is_incore_filename(inputfile):
             if hasattr(inputfile, 'hook'): inputfile.hook = None
-        session.invoke('ud ice', spider_doc(inputfile))
+        self.invoke('ud ice', spider_doc(inputfile))
  
-    def ud_n(session, inputfile, **extra):
+    def ud_n(self, inputfile, **extra):
         '''Find highest key, number of columns, and number of keys used in a document file.
         
         `Original Spider (UD N) <http://www.wadsworth.org/spider_doc/spider/docs/man/udn.html>`_
         
         :Parameters:
             
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Filename for query file
@@ -2547,10 +2547,10 @@ class Session(spider_session.Session):
         
         if isinstance(inputfile, int): return inputfile, 0, inputfile+1
         if isinstance(inputfile, tuple): return inputfile[1], 0, inputfile[1]-inputfile[0]+1
-        session.invoke('ud n [x1],[x2],[x3]', spider_doc(inputfile))
-        return int(session['x1']), int(session['x2']), int(session['x3'])
+        self.invoke('ud n [x1],[x2],[x3]', spider_doc(inputfile))
+        return int(self['x1']), int(self['x2']), int(self['x3'])
             
-    def vo_ea(session, theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0, phi_end=359.999, outputfile=None, **extra):
+    def vo_ea(self, theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0, phi_end=359.999, outputfile=None, **extra):
         '''Create angular document file containing three Eulerian angles defining 
         quasi-evenly spaced projection directions. This document file can be used to 
         create reference projections from a volume (using operation: 'PJ 3Q') for 
@@ -2565,7 +2565,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         theta_delta : int
                       Angular step for the theta angles
@@ -2593,16 +2593,16 @@ class Session(spider_session.Session):
         _logger.debug("Generating evenly space angles")
         if outputfile is None: 
             assert(False)
-            outputfile = session.sd_ic_new( (3, session.vo_ea_n(theta_delta, theta_start, theta_end, phi_start, phi_end)) )
+            outputfile = self.sd_ic_new( (3, self.vo_ea_n(theta_delta, theta_start, theta_end, phi_start, phi_end)) )
         else:
-            try: session.de(outputfile)
+            try: self.de(outputfile)
             except: pass
-        session.invoke('vo ea x11', spider_tuple(theta_delta), spider_tuple(theta_start, theta_end), spider_tuple(phi_start, phi_end), spider_doc(outputfile))
-        if int(session['x11']) < 1: raise spider_session.SpiderCommandError, "No angles produced"
-        if int(session[9]) > 0: raise spider_session.SpiderCommandError, "vo ea failed to produce an output file"
-        return (outputfile, int(session['x11']))
+        self.invoke('vo ea x11', spider_tuple(theta_delta), spider_tuple(theta_start, theta_end), spider_tuple(phi_start, phi_end), spider_doc(outputfile))
+        if int(self['x11']) < 1: raise spider_session.SpiderCommandError, "No angles produced"
+        if int(self[9]) > 0: raise spider_session.SpiderCommandError, "vo ea failed to produce an output file"
+        return (outputfile, int(self['x11']))
     
-    def vo_ras(session, inputfile, angle_num, rotation, psi_value=(1,0), outputfile=None, **extra):
+    def vo_ras(self, inputfile, angle_num, rotation, psi_value=(1,0), outputfile=None, **extra):
         '''Rotate projection directions according to three rotation angles 
         supplied. The original projection directions are provided in the 
         input angular document file. The modified projection directions 
@@ -2617,7 +2617,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Name of the input angle file
@@ -2640,21 +2640,21 @@ class Session(spider_session.Session):
         
         _logger.debug("Generating rotated angles")
         if outputfile is None: 
-            outputfile = session.sd_ic_new( (3, angle_num) )
+            outputfile = self.sd_ic_new( (3, angle_num) )
         else:
-            try: session.de(outputfile)
+            try: self.de(outputfile)
             except: pass
-        session.invoke('vo ras', spider_doc(inputfile), spider_tuple(angle_num), spider_tuple(*psi_value), spider_doc(outputfile))
+        self.invoke('vo ras', spider_doc(inputfile), spider_tuple(angle_num), spider_tuple(*psi_value), spider_doc(outputfile))
         return outputfile
     
-    def wi(session, inputfile, dimensions, coords=None, outputfile=None, **extra):
+    def wi(self, inputfile, dimensions, coords=None, outputfile=None, **extra):
         '''Cut out a window from a specified image/volume file.
                 
         `Original Spider (WI) <http://www.wadsworth.org/spider_doc/spider/docs/man/wi.html>`_
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input file template, stack template or stack
@@ -2673,8 +2673,8 @@ class Session(spider_session.Session):
                      Output filename
         '''
                 
-        #stack_count, z_size, x_size, y_size, = session.fi_h(spider_stack(inputfile), ('MAXIM', 'NSLICE', 'NSAM', 'NROW'))
-        z_size, x_size, y_size, = session.fi_h(inputfile, ('NSLICE', 'NSAM', 'NROW'))
+        #stack_count, z_size, x_size, y_size, = self.fi_h(spider_stack(inputfile), ('MAXIM', 'NSLICE', 'NSAM', 'NROW'))
+        z_size, x_size, y_size, = self.fi_h(inputfile, ('NSLICE', 'NSAM', 'NROW'))
         #if stack_count > 1: raise ValueError, "Does not support stacks"
         
         if z_size > 1:
@@ -2701,9 +2701,9 @@ class Session(spider_session.Session):
                 if isinstance(coords, int): coords = (coords, coords, 1)
                 elif len(coords) == 1: coords = (coords[0], coords[0], 1)
                 elif len(coords) == 2: coords = (coords[0], coords[1], 1)
-        return spider_session.spider_command_fifo(session, 'wi', inputfile, outputfile, "Window out subimage", spider_coord_tuple(dimensions), spider_coord_tuple(coords))
+        return spider_session.spider_command_fifo(self, 'wi', inputfile, outputfile, "Window out subimage", spider_coord_tuple(dimensions), spider_coord_tuple(coords))
     
-    def wu(session, inputfile, outputfile=None, **extra):
+    def wu(self, inputfile, outputfile=None, **extra):
         '''Takes the square root of a image.
         
         alias: square_root
@@ -2712,7 +2712,7 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        session : Session
+        self : Session
                   Current spider session
         inputfile : str
                     Input filename
@@ -2727,7 +2727,7 @@ class Session(spider_session.Session):
                      Output filename
         '''
         
-        return spider_session.spider_command_fifo(session, 'wu', inputfile, outputfile, "Take square root of an image")
+        return spider_session.spider_command_fifo(self, 'wu', inputfile, outputfile, "Take square root of an image")
     
 def rt_sq_single(session, inputfile, alignment, interpolation=None, outputfile=None, **extra):
     '''Changes the scale, rotates, and shifts image circularly. Rotates counter-clockwise 
