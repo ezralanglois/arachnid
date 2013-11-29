@@ -28,7 +28,8 @@ def iter_images(win_file, index, projections):
     count = ndimage_file.count_images(win_file)
     for img in ndimage_file.iter_images(win_file, index[index < count]):
         yield img
-    for i in index[index >= count]:
+    index = index[index >= count]
+    for i in index:
         yield projections[i]
 
 if __name__ == '__main__':

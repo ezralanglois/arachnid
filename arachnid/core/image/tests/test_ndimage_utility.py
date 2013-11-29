@@ -270,7 +270,7 @@ def test_cross_correlate():
 def test_local_variance():
     '''
     '''
-    import scipy.signal
+    #import scipy.signal
     
     width = 32
     img = numpy.random.normal(8, 4, (width*2,width*2))

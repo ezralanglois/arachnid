@@ -283,7 +283,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         self.beginInsertRows(parentIndex, rows, rows + dynamicProperties.count() - 1 )
         
         for dynProp in dynamicProperties:
-            v = propertyObject.property(dynProp)
+            #v = propertyObject.property(dynProp)
             p = None
             if len(self.userCallbacks) > 0:
                 for callback in self.userCallbacks:
