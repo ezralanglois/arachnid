@@ -122,7 +122,6 @@ if __name__ == '__main__':
         
         # Properly scale angles
         x, y = m(align[:, 1], 90.0-align[:, 0])
-        
         # Plot angular histogram
         im = m.scatter(x, y, s=s, marker="o", cmap=cm.cool, c=hist.astype(numpy.dtype), alpha=0.5)#, norm=matplotlib.colors.Normalize(vmin=0, vmax=1) )
         m.drawparallels(numpy.arange(-90.,120.,30.))

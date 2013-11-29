@@ -9,7 +9,10 @@
 '''
 
 #from ..app import tracing
-import numpy, scipy.special, scipy.linalg
+import numpy
+import scipy.special
+import scipy.linalg
+import scipy.spatial
 from ..parallel import process_queue
 from ..util import numpy_ext
 import logging, functools

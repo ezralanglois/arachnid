@@ -83,7 +83,7 @@ if __name__ == '__main__':
         sys.stdout.flush()
 
         output_file=spider_utility.spider_filename(output_file, filename)
-        mic = ndimage_file._default_write_format.read_image(filename)
+        mic = ndimage_file.spider.read_image(filename)
         mic = ndimage_filter.gaussian_highpass(mic, 0.25/radius, 2)
         
         

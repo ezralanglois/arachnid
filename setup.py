@@ -190,7 +190,7 @@ try:
     import setuptools
     setuptools;
 except: 
-    import ez_setup
+    import ez_setup #@UnresolvedImport
     ez_setup.use_setuptools()
     import setuptools
 from numpy.distutils.core import setup
@@ -198,7 +198,7 @@ from distutils.core import Command
 from distutils import command
 from distutils import log
 import os, fnmatch, sys, re,subprocess
-import arachnid, arachnid.setup
+import arachnid.setup
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
 
@@ -258,7 +258,7 @@ def rglob(pattern, root=os.curdir):
     '''
     
     filenames = []
-    for path, dirs, files in os.walk(os.path.abspath(root)):
+    for path, _, files in os.walk(os.path.abspath(root)):
         for filename in fnmatch.filter(files, pattern):
             filenames.append( os.path.join(path, filename) )
     return filenames

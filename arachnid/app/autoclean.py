@@ -622,7 +622,7 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
     for filename in finished:
         label = filename[1]
         data = format.read(output, numeric=True, spiderid=int(filename[0]))
-        feat, header = namedtuple_utility.py.tuple2numpy(data)
+        feat, header = namedtuple_utility.tuple2numpy(data)
         off = header.index('mirror')+1
         if nsamples is None:
             nsamples = len(numpy.unique(feat[:, 4]))

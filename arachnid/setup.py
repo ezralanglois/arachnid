@@ -64,18 +64,19 @@ def fcompiler_options():
 def compiler_options():
     '''
     '''
-    import setup, numpy
+    import numpy
     from distutils.version import LooseVersion
+    global _compiler_options
     
-    if setup._compiler_options is None:
+    if _compiler_options is None:
         foptions = fcompiler_options()
         coptions = ccompiler_options()
-        setup._compiler_options = foptions + coptions
+        _compiler_options = foptions + coptions
         if LooseVersion(numpy.__version__) < LooseVersion('1.6.2'):
             import sys
             sys.argv.extend(['config_fc', '--f77flags="%s"'%" ".join(foptions[0]), '--f90flags="%s"'%" ".join(foptions[0])])
         
-    return setup._compiler_options
+    return _compiler_options
     
 
 def hasfunction(cc, funcname, add_opts=False, includes=[]):

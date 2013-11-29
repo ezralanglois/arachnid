@@ -3,8 +3,10 @@
 .. Created on Oct 24, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import logging, numpy, scipy
+import logging, numpy
 import scipy.linalg, scipy.io
+#import scipy.sparse
+import scipy.sparse.csgraph
 import scipy.sparse.linalg
 from ..metadata import format_utility
 from ..parallel import process_queue #, openmp
@@ -507,6 +509,7 @@ def max_dist(samp, batch=10000):
                     raise
                 dist2=tmp
             elif hasattr(scipy.linalg, 'fblas'):
+                import scipy.linalg.fblas
                 dist2 = scipy.linalg.fblas.dgemm(-2.0, s1.T, s2.T, trans_a=True, beta=0, c=tmp.T, overwrite_c=1).T
             else:
                 dist2 = numpy.dot(s1, s2.T)
@@ -629,7 +632,8 @@ def euclidean_distance2(X, Y):
     '''
     
     if hasattr(scipy.linalg, 'fblas'):
-        gemm = scipy.linalg.fblas.dgemm #
+        import scipy.linalg.fblas  #@UnresolvedImport
+        gemm = scipy.linalg.fblas.dgemm 
     else: raise ValueError, "No fblas"
     x2 = (X**2).sum(axis=1)
     y2 = (Y**2).sum(axis=1)
@@ -689,7 +693,7 @@ def diffusion_maps_dist(dist2, dimension, sigma=None):
         _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
     _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr) # problem here
     assert(numpy.alltrue(numpy.isfinite(dist2.data)))
-    D = scipy.power(dist2.sum(axis=0)+1e-12, -0.5)
+    D = numpy.power(dist2.sum(axis=0)+1e-12, -0.5)
     assert(numpy.alltrue(numpy.isfinite(D)))
     #D[numpy.logical_not(numpy.isfinite(D))] = 1.0
     norm = scipy.sparse.dia_matrix((D, (0,)), shape=dist2.shape)
@@ -739,7 +743,7 @@ def largest_connected(dist2):
     
     tmp = dist2.tocsr() if not scipy.sparse.isspmatrix_csr(dist2) else dist2
     #tmp = (tmp + tmp.T)/2
-    if hasattr(scipy.sparse.csgraph, 'connected_components') and 1 == 0:
+    if hasattr(scipy.sparse.csgraph, 'connected_components') and 1 == 0: #@UnresolvedImport
         n, comp = scipy.sparse.csgraph.connected_components(tmp)
     else:
         n, comp = scipy.sparse.csgraph.cs_graph_components(tmp)

@@ -100,7 +100,7 @@ def create_mask(files, pixel_diameter, resolution, apix, **extra):
     mask = ndimage_utility.model_disk(int(pixel_diameter/2.0), img.shape)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
     logging.info("Decimation factor %f for resolution %f and pixel size %f"%(bin_factor, resolution, apix))
-    if bin_factor > 1: mask = ndimage_interpolate.decimate(mask, bin_factor)
+    if bin_factor > 1: mask = ndimage_interpolate.downsample(mask, bin_factor)
     return mask
 
 def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, **extra):
@@ -111,7 +111,7 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, **
     if align[i, 0] != 0: img = rotate.rotate_image(img, align[i, 0], 0, 0)
     ndimage_utility.vst(img, img)
     bin_factor = max(1, min(8, resolution / (apix*2))) if resolution > (2*apix) else 1
-    if bin_factor > 1: img = ndimage_interpolate.decimate(img, bin_factor)
+    if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
     ndimage_utility.normalize_standard(img, mask, var_one, img)
     if 1 == 0:
         img, freq = ndimage_utility.bispectrum(img, 0.5, 'gaussian', 1.0)

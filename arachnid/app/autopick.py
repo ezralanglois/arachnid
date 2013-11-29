@@ -152,8 +152,12 @@ from ..core.image import ndimage_utility, analysis, ndimage_filter
 from ..core.metadata import format_utility, format, spider_utility, spider_params
 from ..core.parallel import mpi_utility
 from ..core.util import drawing
-import numpy, scipy, logging, scipy.misc, numpy.linalg
-import lfcpick, os
+import numpy # pylint: disable=W0611
+import numpy.linalg
+import scipy.spatial
+import scipy.stats
+import lfcpick
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -196,7 +200,7 @@ def process(filename, id_len=0, **extra):
         _logger.info("Skipping: %s - no particles found"%filename)
         return filename, []
         
-    coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, len(peaks)+1, dtype=numpy.int)) if peaks.shape[0] > 0 else []
+    coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y",numpy.arange(1, len(peaks)+1, dtype=numpy.int)) if peaks.shape[0] > 0 else []
     write_example(mic, coords, filename, **extra)
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
@@ -599,7 +603,6 @@ def outlier_rejection(feat, prob):
     '''
     
     from sklearn.covariance import EmpiricalCovariance #MinCovDet
-    import scipy.stats #, scipy.spatial.distance
     
     #real_cov
     #linalg.inv(real_cov)

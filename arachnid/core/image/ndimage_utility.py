@@ -12,13 +12,18 @@ from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
 #import eman2_utility
 import analysis
-import numpy, scipy, math, logging, scipy.ndimage, numpy.fft
+import numpy, scipy, scipy.ndimage
+import numpy.fft
 import scipy.fftpack, scipy.signal
+import scipy.linalg
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
 import scipy.sparse
+import scipy.special
 from filters import linear
 import ndimage_filter
+import logging
+import math
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

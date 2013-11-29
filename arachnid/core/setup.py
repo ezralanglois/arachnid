@@ -11,7 +11,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('orient')
     config.add_subpackage('parallel')
     try: numpy_include = numpy.get_include()
-    except: numpy_include = numpy.get_numpy_include()
+    except: numpy_include = numpy.get_numpy_include() #@UnresolvedImport
     config.add_include_dirs(numpy_include)
     return config
 

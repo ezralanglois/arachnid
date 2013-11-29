@@ -682,13 +682,8 @@ def err_msg():
           Returns a ProcessException, which stores the original exception
     '''
     
-    trace = sys.exc_info()[2]
-    try:
-        exc_value=str(sys.exc_value)
-    except:
-        exc_value=''
-    
-    return ProcessException(str(traceback.format_tb(trace)),str(sys.exc_type),exc_value)
+    exc_type, exc_value, trace = sys.exc_info()[:3]
+    return ProcessException(str(traceback.format_tb(trace)),str(exc_type),exc_value)
 
 class ProcessException(Exception):
     '''Defines an exception wrapper returned by processes

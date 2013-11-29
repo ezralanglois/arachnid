@@ -7,6 +7,7 @@ from .. import eman2_utility
 from .. import ndimage_utility
 from .. import analysis
 import numpy.testing
+import scipy.fftpack
 try: 
     import pylab
     pylab;
@@ -225,21 +226,6 @@ if 1 == 0:
         orig = numpy.random.rand(50,50)
         rot = ndimage_utility.rotavg(orig)
         rot;
-    
-    def test_ramp():
-        '''
-        '''
-        
-        orig = numpy.random.rand(50,50)
-        wedge = numpy.ones((50,50))
-        for i in xrange(wedge.shape[1]):
-            wedge[:, i] += (i+1)
-        img = orig + wedge
-        out = ndimage_utility.ramp(img.copy())
-        try: numpy.testing.assert_allclose(img, out)
-        except: pass
-        else: raise ValueError, "Image did not change"
-        #numpy.testing.assert_allclose(orig, out)
 
     def test_histogram_match():
         ''' ..todo:: add further testing here

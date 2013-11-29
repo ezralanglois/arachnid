@@ -4,6 +4,7 @@
 '''
 import numpy
 import scipy.optimize
+import scipy.fftpack
 from .. import ndimage_utility
 
 

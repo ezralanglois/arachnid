@@ -24,15 +24,6 @@ sys;
 from arachnid.core.metadata import format, format_utility, spider_utility
 import glob
 
-if 1 == 0:
-    import logging
-    format._logger.setLevel(logging.DEBUG)
-    format.frealign._logger.setLevel(logging.DEBUG)
-    logging.getLogger().setLevel(logging.DEBUG)
-    logging.getLogger().addHandler(logging.StreamHandler())
-    format._logger.addHandler(logging.StreamHandler())
-    format.frealign._logger.addHandler(logging.StreamHandler())
-
 if __name__ == '__main__':
 
     # Parameters
