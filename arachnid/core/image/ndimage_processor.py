@@ -40,6 +40,35 @@ def create_matrix_from_file(images, image_processor, dtype=numpy.float, **extra)
         mat[row, :] = data.ravel()[:img.shape[0]]
     return mat
 
+def image_array_from_file(images, image_processor, dtype=numpy.float, **extra):
+    '''Create a matrix where each row is an image
+    
+    :Parameters:
+    
+    filename : str
+               Name of the file
+    label : array
+            Array of selected indicies
+    image_processor : function
+                      Extract features from the image 
+    extra : dict
+            Unused keyword arguments
+            
+    :Returns:
+    
+    mat : array
+          3D matrix where each row is an image
+    '''
+    
+    img1 = ndimage_file.read_image(images[0][0]) if isinstance(images[0], tuple) else ndimage_file.read_image(images[0])
+    
+    img = image_processor(img1, 0, **extra)
+    total = len(images[1]) if isinstance(images, tuple) else len(images)
+    mat = numpy.zeros((total, img.shape[0], img.shape[1]), dtype=dtype)
+    for row, data in process_tasks.for_process_mp(ndimage_file.iter_images(images), image_processor, img1.shape, queue_limit=100, **extra):
+        mat[row, :] = data
+    return mat
+
 _cache_header = numpy.dtype([('magic', 'S10'), ('dtype', 'S3'), ('byte_num', numpy.int16), ('ndim', numpy.int32), ])
 
 def read_matrix_from_cache(cache_file):
