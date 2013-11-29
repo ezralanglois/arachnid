@@ -3,7 +3,7 @@
 .. Created on Dec 11, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..dialogs.WorkflowDialog import Dialog as WorkflowDialog
+#from ..dialogs.WorkflowDialog import Dialog as WorkflowDialog
 from ..util.qt4_loader import QtGui,QtCore, qtSignal
 import os, logging
 
