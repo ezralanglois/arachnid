@@ -6,8 +6,9 @@
 from ..core.app import program
 from ..core.util import plotting
 from ..core.metadata import spider_utility, format, format_utility, spider_params, selection_utility
-from ..core.image import ndimage_file, ndimage_utility, ctf, ndimage_interpolate #, analysis
+from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate #, analysis
 from ..core.parallel import mpi_utility
+from ..core.image.ctf import measure as ctf_measure, estimate1d as estimate_ctf1d, estimate2d
 import os, numpy, logging #, scipy
 
 _logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
         return filename, vals
     
     if 1 == 0:
-        ctf.smooth_2d(pow, extra['apix']/25.0)
+        estimate2d.smooth_2d(pow, extra['apix']/25.0)
         assert(numpy.alltrue(numpy.isfinite(pow)))
     
     
@@ -55,14 +56,14 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     
     #raw = ndimage_utility.mean_azimuthal(pow)[1:pow.shape[0]/2+1]
     if 1 == 1:
-        roo = ctf.subtract_background(raw, bg_window)
+        roo = estimate_ctf1d.subtract_background(raw, bg_window)
     else: roo = raw
     #raw = raw[:len(roo)]
     extra['ctf_output']=spider_utility.spider_filename(extra['ctf_output'], id)
     
     if 1 == 0:
         
-        mask_radius=int(ctf.resolution(extra['mask_radius'], len(roo), **extra)) if extra['mask_radius']>0 else 10
+        mask_radius=int(estimate_ctf1d.resolution(extra['mask_radius'], len(roo), **extra)) if extra['mask_radius']>0 else 10
         pol = ndimage_utility.polar(pow, rng=(mask_radius, pow.shape[0]/2-1)).copy()
         ndimage_file.write_image('test_polar.spi', pol)
         rad=32
@@ -75,24 +76,24 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
         ndimage_file.write_image('test_polar_mov_avg.spi', polavg)
     
     # initial estimate with outlier removal?
-    beg = ctf.first_zero(roo, **extra)
-    st = int(ctf.resolution(30.0, len(raw), **extra))
+    beg = estimate_ctf1d.first_zero(roo, **extra)
+    st = int(estimate_ctf1d.resolution(30.0, len(raw), **extra))
     if 1 == 0:
-        plotting.plot_line('line.png', [ctf.resolution(i, len(raw), **extra) for i in xrange(st, len(raw))], raw[st:], dpi=300)
+        plotting.plot_line('line.png', [estimate_ctf1d.resolution(i, len(raw), **extra) for i in xrange(st, len(raw))], raw[st:], dpi=300)
     
     # Estimate by drop in error
-    end = ctf.energy_cutoff(numpy.abs(roo[beg:]))+beg
+    end = estimate_ctf1d.energy_cutoff(numpy.abs(roo[beg:]))+beg
     if end == 0: end = len(roo)
-    end2 = int(ctf.resolution(extra['rmax'], len(roo), **extra))
+    end2 = int(estimate_ctf1d.resolution(extra['rmax'], len(roo), **extra))
     if end > end2: end = end2
     
-    res = ctf.resolution(end, len(roo), **extra)
+    res = estimate_ctf1d.resolution(end, len(roo), **extra)
     assert(numpy.alltrue(numpy.isfinite(pow)))
-    cir = 0.0#ctf.estimate_circularity(pow, beg, end)
+    cir = 0.0#estimate_ctf1d.estimate_circularity(pow, beg, end)
     freq = numpy.arange(len(roo), dtype=numpy.float)
     #sp-project /home/ryans/data/data_sept10/counted/*.spi --voltage 300 --apix 1.5844 --cs 2.26
     try:
-        roo1, beg1 = ctf.factor_correction(roo, beg, end) if 1 == 1 else roo[beg:end]
+        roo1, beg1 = ctf_measure.factor_correction(roo, beg, end) if 1 == 1 else roo[beg:end]
     except:
         _logger.error("Unable to correct 1D for %d"%id)
         return filename, [id, 0, 0, 0, 0]
@@ -100,16 +101,16 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     old=beg
     beg = beg1+beg
     # correct for noice and bfactor
-    #defocus, err = ctf.estimate_defocus_spi(roo[beg:end], freq[beg:end], len(roo), **extra)[:2]
+    #defocus, err = estimate_ctf1d.estimate_defocus_spi(roo[beg:end], freq[beg:end], len(roo), **extra)[:2]
     if extra['cs'] == 0.0:
-        defocus, err = ctf.estimate_defocus_orig(roo1, freq[beg:end], len(roo), **extra)[:2]
+        defocus, err = estimate_ctf1d.estimate_defocus_orig(roo1, freq[beg:end], len(roo), **extra)[:2]
     else:
-        defocus, err = ctf.estimate_defocus_spi(roo1, freq[beg:end], len(roo), **extra)[:2]
+        defocus, err = estimate_ctf1d.estimate_defocus_spi(roo1, freq[beg:end], len(roo), **extra)[:2]
     
     if 1 == 0:
         #astigmatism(pow, beg, end)
-        model = ctf.ctf_model_spi(defocus, freq, len(roo), **extra)**2
-        avg = ctf.model_1D_to_2D(model)
+        model = estimate_ctf1d.ctf_model_spi(defocus, freq, len(roo), **extra)**2
+        avg = estimate_ctf1d.model_1D_to_2D(model)
         ndimage_file.write_image('test_2d_model.spi', avg)
         pol = ndimage_utility.polar(avg, rng=(mask_radius, pow.shape[0]/2-1)).copy()
         ndimage_file.write_image('test_2d_model_polar.spi', pol)
@@ -131,17 +132,17 @@ def process(filename, output, pow_color, bg_window, id_len=0, trunc_1D=False, ex
     else:
         #roo2 = roo[beg:]
         if experimental:
-            bg = ctf.estimate_background(raw, defocus, freq, len(roo), **extra)[0]
+            bg = ctf_measure.estimate_background(raw, defocus, freq, len(roo), **extra)[0]
             _logger.info("found background: %d"%bg)
-            roo = ctf.subtract_background(raw, bg)
-        roo2, beg1 = ctf.factor_correction(roo, old, len(roo))
+            roo = estimate_ctf1d.subtract_background(raw, bg)
+        roo2, beg1 = ctf_measure.factor_correction(roo, old, len(roo))
         rng = (old, len(roo))
-        #roo2 = ctf.background_correct(raw, **extra)[old:]
+        #roo2 = estimate_ctf1d.background_correct(raw, **extra)[old:]
     
-    model2d = ctf.ctf_model_spi_2d(defocus, pow.shape[0], **extra)
+    model2d = estimate_ctf1d.ctf_model_spi_2d(defocus, pow.shape[0], **extra)
     ndimage_file.write_image("ctf_model_2d.spi", model2d)
     if experimental:
-        model = ctf.ctf_model_spi(defocus, freq, len(roo), **extra)**2
+        model = estimate_ctf1d.ctf_model_spi(defocus, freq, len(roo), **extra)**2
         hpow = hybrid_model_data(pow, model, beg)
     else:
         hpow = pow
@@ -191,7 +192,7 @@ def astigmatism(pow, beg, end):
     pow = ndimage_filter.filter_gaussian_highpass(pow, 0.5/(beg+2))
     pow = tv_denoise(pow, weight=0.5, eps=2.e-4, n_iter_max=200)
     #zero = (model.max()-model.min())/3 
-    #minima=ctf.find_extrema(model, model<zero, numpy.argmin)
+    #minima=estimate_ctf1d.find_extrema(model, model<zero, numpy.argmin)
     #minval = numpy.min(numpy.diff(minima))
     #out = ndimage_filter.filter_gaussian_lowpass(out, 0.5/(minval-2)))
     pow *= ndimage_utility.model_disk(end, pow.shape)
@@ -246,7 +247,7 @@ def hybrid_model_data(pow, model, beg, out=None):
     #from skimage.filter import tv_denoise #0.1
     #out = tv_denoise(out, weight=0.5, eps=2.e-4, n_iter_max=200)
     #zero = (model.max()-model.min())/3 
-    #minima=ctf.find_extrema(model, model<zero, numpy.argmin)
+    #minima=estimate_ctf1d.find_extrema(model, model<zero, numpy.argmin)
     #minval = numpy.min(numpy.diff(minima))
     #out = ndimage_filter.filter_gaussian_lowpass(out, 0.5/(minval-2)))
     
@@ -254,10 +255,10 @@ def hybrid_model_data(pow, model, beg, out=None):
     #roo[1:] = roo[:len(roo)-1]
     #roo[:2]=0
     
-    #mask = ctf.model_1D_to_2D(model)
+    #mask = estimate_ctf1d.model_1D_to_2D(model)
     #mask1=mask>numpy.histogram(mask, bins=512)[1][1]
     
-    model = ctf.model_1D_to_2D(model)
+    model = estimate_ctf1d.model_1D_to_2D(model)
     out = ndimage_utility.histeq(out)
     model = ndimage_utility.histeq(model)
 
@@ -294,8 +295,8 @@ def write_ctf(raw, freq, roo, bg_window, ctf_output, apix, **extra):
     ''' Write a CTF file for CTFMatch
     '''
     
-    roo1 = ctf.factor_correction(roo, 0, len(roo))[0]
-    bg = ctf.background(raw, bg_window)
+    roo1 = estimate_ctf1d.factor_correction(roo, 0, len(roo))[0]
+    bg = estimate_ctf1d.background(raw, bg_window)
     km1 = 1.0 / (2.0*apix)
     dk = km1/len(roo)
     freq = freq*dk
@@ -311,7 +312,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, p
     
     if plotting.is_plotting_disabled(): return pow
     if mask_radius > 0:
-        mask_radius=int(ctf.resolution(mask_radius, len(roo), **extra))
+        mask_radius=int(estimate_ctf1d.resolution(mask_radius, len(roo), **extra))
         pow *= ndimage_utility.model_disk(mask_radius, pow.shape)*-1+1
     pow = ndimage_utility.replace_outlier(pow, 3, 3, replace='mean')
     fig, ax=plotting.draw_image(pow, label=label, **extra)
@@ -319,9 +320,9 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, p
     
     
     if extra['cs'] == 0.0:
-        model = ctf.ctf_model_orig(defocus, freq, len(roo), **extra)**2
+        model = estimate_ctf1d.ctf_model_orig(defocus, freq, len(roo), **extra)**2
     else:
-        model = ctf.ctf_model_spi(defocus, freq, len(roo), **extra)**2
+        model = estimate_ctf1d.ctf_model_spi(defocus, freq, len(roo), **extra)**2
     
     if True:
         linestyle = '-'
@@ -352,7 +353,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, p
     newax.plot(freq[:rng[1]-rng[0]]+len(roo), model[:rng[1]-rng[0]], c=linecolor, linestyle=linestyle)
     newax.plot(freq[:len(roo1)]+len(roo), roo1, c='w')
     err = numpy.abs(roo1-model[:rng[1]-rng[0]])
-    err = ctf.subtract_background(err, 27)
+    err = estimate_ctf1d.subtract_background(err, 27)
     newax.plot(freq[:rng[1]-rng[0]]+len(roo), err+1.1, c='y')
     if peaks is not None:
         newax.plot(freq[peaks]+len(roo), tmp[peaks], c='g', linestyle='None', marker='+')
@@ -365,7 +366,7 @@ def color_powerspectra(pow, roo, roo1, freq, label, defocus, rng, mask_radius, p
         cut = numpy.max(scipy.signal.find_peaks_cwt(-1*diffraw[:cut], numpy.arange(1,10), min_snr=2))
         newax.plot(freq[cut]+len(roo), tmp[cut], c='b', linestyle='None', marker='*')
     
-    res = numpy.asarray([ctf.resolution(f, len(roo), **extra) for f in freq[:len(roo1)]])
+    res = numpy.asarray([estimate_ctf1d.resolution(f, len(roo), **extra) for f in freq[:len(roo1)]])
     
     
     apix = extra['apix']
