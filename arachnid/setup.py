@@ -1,7 +1,6 @@
 import app.setup
 import util.setup
 import pyspider.setup
-import core.gui.setup
 import gui.setup
 
 gui_scripts = []
@@ -9,7 +8,6 @@ console_scripts = []
 console_scripts.extend(["ara-"+script for script in app.setup.console_scripts])
 console_scripts.extend(["ara-"+script for script in util.setup.console_scripts])
 console_scripts.extend(["sp-"+script for script in pyspider.setup.console_scripts])
-gui_scripts.extend(["ara-"+script for script in core.gui.setup.gui_scripts])
 gui_scripts.extend(["ara-"+script for script in gui.setup.gui_scripts])
 
 _compiler_options=None
@@ -25,7 +23,8 @@ def ccompiler_options():
     #ccompiler = new_compiler()
     # Todo test for PGI compiler
         
-    openmp_enabled, needs_gomp = detect_openmp()
+    #openmp_enabled, needs_gomp = detect_openmp()
+    openmp_enabled = detect_openmp()[0]
     #'-march=k8', '-mfpmath=sse', '-m64', '-ffast-math', '-pipe'
     #'-O3', '-march=athlon-xp', '-mfpmath=sse', '-msse', '-funroll-loops', '-pipe'
     compiler_args = ['-O2', '-funroll-loops', '-msse2', '-mfpmath=sse']#, '-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
@@ -68,7 +67,7 @@ def compiler_options():
     import setup, numpy
     from distutils.version import LooseVersion
     
-    if _compiler_options is None:
+    if setup._compiler_options is None:
         foptions = fcompiler_options()
         coptions = ccompiler_options()
         setup._compiler_options = foptions + coptions
