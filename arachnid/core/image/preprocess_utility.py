@@ -7,6 +7,14 @@
 import rotate, ndimage_utility, ndimage_interpolate
 from ctf import correct as ctf_correct
 
+def phaseflip(img, i, param, **extra):
+    '''
+    '''
+    
+    ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, param[i, -1], **extra)
+    img = ctf_correct.correct(img, ctfimg)
+    return img
+
 def phaseflip_align2d(img, param, **extra):
     ''' CTF-correct and align images in 2D
     
