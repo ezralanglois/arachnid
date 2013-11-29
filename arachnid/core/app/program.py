@@ -794,8 +794,8 @@ def update_file_param(max_filename_len, warning, file_options, home_prefix=None,
                 param[opt] = os.path.join(shortcut, extra[opt])
             else: continue
             #if not os.path.exists(param[opt]): 
-               # _logger.warn("Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp))
-                #raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
+            # _logger.warn("Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp))
+            #raise IOError, "Cannot find file: %s -- %s -- %s"%(param[opt], shortcut, local_temp)
             if max_filename_len > 0 and len(param[opt]) > max_filename_len:
                 raise ValueError, "Filename exceeds %d characters for %s: %d -> %s"%(opt, max_filename_len, len(extra[opt]), extra[opt])
     return param
