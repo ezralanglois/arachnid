@@ -315,7 +315,7 @@ def test_local_variance():
     
     if 1 == 0:
         #out = numpy.square(img)
-        out = ndimage_utility.cross_correlate_full(img, template)
+        out = ndimage_utility.cross_correlate(img, template)
         #out = scipy.signal.convolve(template, img, mode='full')
         print numpy.argmax(out), numpy.max(out)
         out = scipy.fftpack.fftshift(out)
