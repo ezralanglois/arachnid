@@ -22,6 +22,7 @@ from arachnid.core.image import ndimage_file
 from arachnid.core.image import manifold
 from arachnid.core.image import rotate
 from arachnid.core.orient import healpix, orient_utility
+from arachnid.core.parallel import openmp
 import numpy, sys, logging
 #import scipy.ndimage.interpolation
 
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     quat[len(angs):, :]=orient_utility.spider_to_quaternion(align[:, :3], True)
     
     logging.info("Estimating nearest neighbors")
+    openmp.set_thread_count(thread_count)
     neigh = manifold.knn_geodesic_cache(quat, nn, cache_file=cache_file)
     gmax, gmin = manifold.eps_range(neigh, nn)
     logging.info("Angular distance range for %d neighbors: %f - %f"%(nn, numpy.rad2deg(gmin), numpy.rad2deg(gmax)))
