@@ -44,9 +44,9 @@ if __name__ == '__main__':
     
     if resolution > 0:
         ax = pylab.figure(1)
-        print healpix.npix2nside(resolution)
+        print healpix.res2npix(resolution)
         view = healpix.ang2pix(resolution, numpy.deg2rad(align[:, 1:3]))
-        for i in xrange(healpix.npix2nside(resolution)):
+        for i in xrange(healpix.res2npix(resolution)):
             sel = view == i
             ax.hist(align[sel, cc_rot], bins=numpy.sqrt(align.shape[0]))
     
