@@ -88,7 +88,7 @@ class DialogWidget(QtGui.QWidget):
         '''
         
         pass
-
+"""
 class WorkflowWidget(DialogWidget):
     ''' Create a button and display a workflow dialog on press
         
@@ -150,7 +150,7 @@ class WorkflowWidget(DialogWidget):
         '''
         
         return self.workflow_ops
-
+"""
 class FontDialogWidget(DialogWidget):
     ''' Create a button and display font dialog on press
         
