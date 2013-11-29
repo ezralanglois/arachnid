@@ -234,17 +234,18 @@ def redistance_worker(beg, end, samp, row, col, align, mask, defocus, ctf_param,
         rimg=ndimage_utility.normalize_standard(rimg, nmask, False) #*mask
         cimg=ndimage_utility.normalize_standard(cimg, nmask, False) #*mask
         
-        if 1 == 1:
-            if defocus[row[i]] != rdefocus_last:
-                rctfimg = ctf_correct.transfer_function(mask.shape, defocus[row[i]], **ctf_param)
-                rdefocus_last=defocus[row[i]]
-            if defocus[col[i]] != cdefocus_last:
-                cctfimg=ctf_correct.transfer_function(mask.shape, defocus[col[i]], **ctf_param)
-                cdefocus_last=defocus[col[i]]
-            
-            rimg = ctf_correct.correct(rimg, cctfimg, True)
-            cimg = ctf_correct.correct(cimg, rctfimg, True)
-        else:
+        #if 1 == 1:
+        if defocus[row[i]] != rdefocus_last:
+            rctfimg = ctf_correct.transfer_function(mask.shape, defocus[row[i]], **ctf_param)
+            rdefocus_last=defocus[row[i]]
+        if defocus[col[i]] != cdefocus_last:
+            cctfimg=ctf_correct.transfer_function(mask.shape, defocus[col[i]], **ctf_param)
+            cdefocus_last=defocus[col[i]]
+        
+        rimg = ctf_correct.correct(rimg, cctfimg, True)
+        cimg = ctf_correct.correct(cimg, rctfimg, True)
+        #else:
+        '''
             if defocus[row[i]] != rdefocus_last:
                 rctfimg = ctf_correct.ctf_model_spi_2d(defocus[row[i]], mask.shape[0], **ctf_param)
                 rdefocus_last=defocus[row[i]]
@@ -254,7 +255,7 @@ def redistance_worker(beg, end, samp, row, col, align, mask, defocus, ctf_param,
             
             rimg = ctf_correct.correct_model(rimg, cctfimg, True)
             cimg = ctf_correct.correct_model(cimg, rctfimg, True)
-            
+        '''
         tmp=numpy.subtract(rimg, cimg, tmp)
         numpy.abs(tmp, tmp)
         numpy.square(tmp,tmp)

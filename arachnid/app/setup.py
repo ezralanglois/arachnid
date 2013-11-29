@@ -9,7 +9,6 @@ console_scripts = [
  'diffclean = arachnid.app.diffclean:main',
  'ctf-select = arachnid.app.ctf_select:main',
  'autoctf = arachnid.app.autoctf:main',
- 'classify3d = arachnid.app.classify3d:main',
  'alignmic = arachnid.app.alignmic:main',
  'samplevar = arachnid.app.sample_variance:main',
  'autoclass = arachnid.app.autoclass:main',

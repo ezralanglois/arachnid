@@ -181,17 +181,17 @@ def resample(data, sample_num, sample_size, thread_count=0, operator=functools.p
     '''
     
     if length is None: 
-        total, length = process_queue.recreate_global_dense_matrix(data).shape
-    else: total = len(process_queue.recreate_global_dense_matrix(data))
-    sample, shmem_sample = process_queue.create_global_dense_matrix( ( sample_num, length )  )
+        total, length = data.shape
+    else: total = len(data)
+    sample = numpy.zeros(( sample_num, length ))
     
     replace = sample_size == 0
     if sample_size == 0 : sample_size = total
     elif sample_size < 1.0: sample_size = int(sample_size*total)
-    process_queue.map_array(_resample_worker, thread_count, shmem_sample, operator, data, sample_size, replace)
+    process_queue.map_array(_resample_worker, thread_count, sample, operator, data, sample_size, replace)
     return sample
 
-def _resample_worker(beg, end, shmem_sample, operator, shmem_data, sample_size, replace, weight=None):
+def _resample_worker(beg, end, sample, operator, data, sample_size, replace, weight=None):
     ''' Resample the dataset and store in a subset
     
     :Parameters:
@@ -200,11 +200,11 @@ def _resample_worker(beg, end, shmem_sample, operator, shmem_data, sample_size, 
           Start of the sample range
     end : int
           End of the sample range
-    shmem_sample : array
+    sample : array
                    Array storing the samples 
     operator : function
                Generates a sample from a resampled distribution
-    shmem_data : array
+    data : array
                  Array containing the data to resample
     sample_size : int
                   Size of the subset
@@ -214,8 +214,6 @@ def _resample_worker(beg, end, shmem_sample, operator, shmem_data, sample_size, 
              Weight on each sample
     '''
     
-    data = process_queue.recreate_global_dense_matrix(shmem_data)
-    sample = process_queue.recreate_global_dense_matrix(shmem_sample)
     index = numpy.arange(data.shape[0], dtype=numpy.int)
     for i in xrange(beg, end):
         selected = numpy_ext.choice(index.copy(), size=sample_size, replace=replace, p=weight)

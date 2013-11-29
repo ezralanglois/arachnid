@@ -9,7 +9,6 @@ import scipy.linalg, scipy.io
 import scipy.sparse.csgraph
 import scipy.sparse.linalg
 from ..metadata import format_utility
-from ..parallel import process_queue #, openmp
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -342,7 +341,7 @@ def eps_range(neigh, neighbors=None):
     
     return eps_max, eps_min
 
-def knn_geodesic_cache(samp, k, batch=10000, shared=False, cache_file=None):
+def knn_geodesic_cache(samp, k, batch=1000, cache_file=None):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format or load from a pre-calculated file.
     
@@ -374,23 +373,11 @@ def knn_geodesic_cache(samp, k, batch=10000, shared=False, cache_file=None):
                 dtype_col = mat['dtype_col'][0]
                 if dtype_coo[0] == '[': dtype_coo = dtype_coo[2:len(dtype_coo)-2]
                 if dtype_col[0] == '[': dtype_col = dtype_col[2:len(dtype_col)-2]
-                if shared:
-                    n = mat['total']
-                    data, shm_data = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_coo), shared)
-                    col, shm_col = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_col), shared)
-                    row, shm_row = process_queue.create_global_dense_matrix((n, ), numpy.dtype(dtype_col), shared)
-                    data[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
-                    row[:] = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
-                    col[:] = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_col))
-                    smat = scipy.sparse.coo_matrix( (data.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) ) 
-                    smat.shmem = (shm_data, shm_row, shm_col, tuple(mat['coo']))
-                    return smat
-                else:
-                    coo = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
-                    row = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
-                    col = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_col))
-                    return scipy.sparse.coo_matrix( (coo.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) )    
-    mat = knn_geodesic(samp, k, batch, shared)
+                coo = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype_coo))
+                row = numpy.fromfile(cache_row, dtype=numpy.dtype(dtype_col))
+                col = numpy.fromfile(cache_col, dtype=numpy.dtype(dtype_col))
+                return scipy.sparse.coo_matrix( (coo.squeeze(), (row.squeeze(), col.squeeze())), shape=tuple(mat['coo'])) #(mat['coo'][0], mat['coo'][1]) )    
+    mat = knn_geodesic(samp, k, batch)
     if cache_file is not None:
         scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=mat.col.dtype), total=mat.data.shape[0], dtype_coo=mat.data.dtype.name, dtype_col=mat.col.dtype.name), oned_as='column', format='5')
         mat.data.tofile(cache_dat)
@@ -409,7 +396,7 @@ def knn_restricted(dist2, samp, mask=None):
     else:
         _manifold.knn_restricted_dist(dist2.data, dist2.col, dist2.row, samp)
 
-def knn_geodesic(samp, k, batch=10000, shared=False):
+def knn_geodesic(samp, k, batch=10000):
     ''' Calculate k-nearest neighbors and store in a sparse matrix
     in the COO format.
     
@@ -436,10 +423,12 @@ def knn_geodesic(samp, k, batch=10000, shared=False):
     k+=1
     n = samp.shape[0]*k
     dtype = samp.dtype
-    nbatch = max(1, int(samp.shape[0]/float(batch)))
-    batch = int(samp.shape[0]/float(nbatch))
     data = numpy.empty(n, dtype=dtype)
     col = numpy.empty(n, dtype=numpy.longlong)
+    
+    if callable(batch): batch = batch(dtype)
+    nbatch = max(1, int(samp.shape[0]/float(batch)))
+    batch = int(samp.shape[0]/float(nbatch))
     dense = numpy.empty((batch,batch), dtype=dtype)
     
     #gemm = scipy.linalg.fblas.dgemm
@@ -489,6 +478,7 @@ def max_dist(samp, batch=10000):
     '''
     
     dtype = samp.dtype
+    if callable(batch): batch = batch(dtype)
     nbatch = max(1, int(samp.shape[0]/float(batch)))
     batch = int(samp.shape[0]/float(nbatch))
     dense = numpy.empty((batch,batch), dtype=dtype)
@@ -557,10 +547,12 @@ def knn(samp, k, batch=10000, kernel_cum=None):
     k = int(k)
     k+=1 # include self as a neighbor
     n = samp.shape[0]*k
-    nbatch = max(1, int(samp.shape[0]/float(batch)))
-    batch = int(samp.shape[0]/float(nbatch))
+    
     data = numpy.empty(n, dtype=dtype)
     col = numpy.empty(n, dtype=numpy.longlong)
+    if callable(batch): batch = batch(dtype)
+    nbatch = max(1, int(samp.shape[0]/float(batch)))
+    batch = int(samp.shape[0]/float(nbatch))
     dense = numpy.empty((batch,batch), dtype=samp.dtype)
     alpha = -2.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
     beta = 0.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
