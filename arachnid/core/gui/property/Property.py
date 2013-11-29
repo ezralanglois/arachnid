@@ -7,7 +7,7 @@ Original Author: Volker Wiendl with Enhancements by Roman alias banal
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ButtonDelegate import FontDialogWidget, FileDialogWidget, WorkflowWidget #, CheckboxWidget
+from ButtonDelegate import FontDialogWidget, FileDialogWidget #, WorkflowWidget #, CheckboxWidget
 from ..util.qt4_loader import QtGui,QtCore, qtSlot
 import re, logging
 
@@ -1221,6 +1221,9 @@ class FilenameProperty(Property):
         
         return Property.value(self, role)
 
+
+
+"""
 class WorkflowProperty(Property):
     '''Connect a font property to a Workflow dialog
         
@@ -1369,6 +1372,7 @@ class WorkflowProperty(Property):
         '''
         
         return Property.value(self, role)
+"""
 
 class StringProperty(Property):
     '''Connect a String property to a QLineEdit

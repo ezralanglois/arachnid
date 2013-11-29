@@ -7,13 +7,10 @@
     :toctree: api_generated/
     :template: api_module.rst
     
-    pyqtProperty
     ButtonDelegate
     Property
     PropertyDelegate
     PropertyModel
-
-.. todo:: why does PyqtProperty get missed?
 
 '''
 

@@ -480,12 +480,12 @@ def reshape_data(out, h, index, count):
     '''
     
     if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:
-         if h['mapc'][0] == 2 and h['mapr'][0]==1:
-             out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
-             for i in xrange(out.shape[2]):
-                 out[:, :, i] = out[:, :, i].squeeze().T
-         else:
-             out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
+        if h['mapc'][0] == 2 and h['mapr'][0]==1:
+            out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
+            for i in xrange(out.shape[2]):
+                out[:, :, i] = out[:, :, i].squeeze().T
+        else:
+            out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
     elif int(h['ny']) > 1:
         if h['mapc'][0] == 2 and h['mapr'][0]==1:
             out = out.reshape( (int(h['ny'][0]), int(h['nx'][0])) ) #.transpose() # Test this!

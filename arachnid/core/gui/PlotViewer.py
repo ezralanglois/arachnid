@@ -670,11 +670,11 @@ class MainWindow(QtGui.QMainWindow):
             
             text = " ".join([str(v) for v in data[idx, self.label_cols]])
             if  self.annotation is None:
-                 self.annotation = self.axes.annotate(text, xy=(x,y),  xycoords='data',
+                self.annotation = self.axes.annotate(text, xy=(x,y),  xycoords='data',
                             xytext=(-15, 15), textcoords='offset points',
                             arrowprops=dict(arrowstyle="->")
                             )
-                 self.annotation.draggable()
+                self.annotation.draggable()
             else:
                 self.annotation.xy = x,y
                 self.annotation.set_text(text)

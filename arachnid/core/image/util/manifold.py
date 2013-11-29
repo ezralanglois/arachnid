@@ -52,7 +52,7 @@ del types
 x_gemm = _manifold.x_gemm
 
 def knn_offset(*args):
-  """
+    """
     This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
 
     	:Parameters:
@@ -65,10 +65,10 @@ def knn_offset(*args):
     			Value to mulitply by result
     	
     """
-  return _manifold.knn_offset(*args)
+    return _manifold.knn_offset(*args)
 
 def gaussian_kernel(*args):
-  """
+    """
     This SWIG wrapper function calculates a gaussian kernel with parameter sigma.
 
     	:Parameters:
@@ -81,7 +81,7 @@ def gaussian_kernel(*args):
     			Value to mulitply by result
     	
     """
-  return _manifold.gaussian_kernel(*args)
+    return _manifold.gaussian_kernel(*args)
 
 def gaussian_kernel_range(*args):
   """

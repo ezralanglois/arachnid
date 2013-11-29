@@ -50,8 +50,8 @@ if __name__ == '__main__':
                 idx = numpy.argsort(dimg1.ravel())
                 dimg1.ravel()[idx[:off[i]]]=0
             else:
-                 dimg1[::-1,::-1][:off[i],:off[i]]=0
-                 #dimg1.ravel()[::-1][:off[i]]=0
+                dimg1[::-1,::-1][:off[i],:off[i]]=0
+                #dimg1.ravel()[::-1][:off[i]]=0
             fimg=scipy.fftpack.idct(scipy.fftpack.idct(dimg1.T).T)
         else:
             fimg = numpy.zeros(dimg.shape)

@@ -746,7 +746,7 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
         _asteps[-len(asteps):] = asteps
 
         if numpy.any(asteps < 1):
-             raise ValueError("All elements of `asteps` must be larger then 1.")
+            raise ValueError("All elements of `asteps` must be larger then 1.")
     asteps = _asteps
 
     _wsteps = numpy.ones_like(window)
@@ -755,7 +755,7 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
         if wsteps.shape != window.shape:
             raise ValueError("`wsteps` must have the same shape as `window`.")
         if numpy.any(wsteps < 0):
-             raise ValueError("All elements of `wsteps` must be larger then 0.")
+            raise ValueError("All elements of `wsteps` must be larger then 0.")
 
         _wsteps[:] = wsteps
         _wsteps[window == 0] = 1 # make sure that steps are 1 for non-existing dims.
@@ -2374,7 +2374,7 @@ def major_axis_angle(ellipse):
     '''
     
     _logger.error("%s"%(str(ellipse)))
-    a, b, c, d, e, f = ellipse
+    a, b, c, _, _, _ = ellipse
     
     _logger.error("%s"%(str(a)))
     
@@ -2387,37 +2387,37 @@ def major_axis_angle(ellipse):
     raise ValueError, "Invalid ellipse parameters: %f, %f"%(a, c)
 
 def fit_ellipse(x, y):
-  '''fit an ellipse to the points.
-
-  INPUT: 
-    xy -- N x 2 -- points in 2D
+    '''fit an ellipse to the points.
     
-  OUTPUT:
-    A,B,C,D,E,F -- real numbers such that:
-      A * x**2 + B * x * y + C * y**2 + D * x + E * y + F =~= 0
-
-  This is an implementation of:
-
-  "Direct Least Square Fitting of Ellipses"
-  by Andrew Fitzgibbon, Maurizio Pilu, and Robert B. Fisher
-  IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE, 
-  VOL. 21, NO. 5, MAY 1999
-
-  Shai Revzen, U Penn, 2010  
-  '''
-  
-  D = numpy.c_[ x*x, x*y, y*y, x, y, numpy.ones_like(x) ]
-  S = numpy.dot(D.T,D)
-  C = numpy.zeros((6,6),D.dtype)
-  C[0,2]=-2
-  C[1,1]=1
-  C[2,0]=-2
-  geval,gevec = scipy.linalg.eig( S, C )
-  idx = numpy.nonzero( geval<0 & ~ numpy.isinf(geval) )
-  _logger.info("idx: %s"%str(idx))
-  _logger.info("geval: %s"%str(geval))
-  _logger.info("gevec: %s"%str(gevec))
-  return tuple(gevec[:,idx].real)
+    INPUT: 
+      xy -- N x 2 -- points in 2D
+      
+    OUTPUT:
+      A,B,C,D,E,F -- real numbers such that:
+        A * x**2 + B * x * y + C * y**2 + D * x + E * y + F =~= 0
+    
+    This is an implementation of:
+    
+    "Direct Least Square Fitting of Ellipses"
+    by Andrew Fitzgibbon, Maurizio Pilu, and Robert B. Fisher
+    IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE, 
+    VOL. 21, NO. 5, MAY 1999
+    
+    Shai Revzen, U Penn, 2010  
+    '''
+    
+    D = numpy.c_[ x*x, x*y, y*y, x, y, numpy.ones_like(x) ]
+    S = numpy.dot(D.T,D)
+    C = numpy.zeros((6,6),D.dtype)
+    C[0,2]=-2
+    C[1,1]=1
+    C[2,0]=-2
+    geval,gevec = scipy.linalg.eig( S, C )
+    idx = numpy.nonzero( geval<0 & ~ numpy.isinf(geval) )
+    _logger.info("idx: %s"%str(idx))
+    _logger.info("geval: %s"%str(geval))
+    _logger.info("gevec: %s"%str(gevec))
+    return tuple(gevec[:,idx].real)
 
 def fourier_shell_correlation(img1, img2, center=None, pad=1, out=None):
     ''' Estimate the resolution using the Fourier Shell/Ring correlation. 
