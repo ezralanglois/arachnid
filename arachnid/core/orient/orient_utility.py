@@ -24,7 +24,7 @@ def rotate_into_frame(frame, curr):
     '''
     
     rang = rotate.rotate_euler(frame, curr)
-    return -(rang[0]+rang[2])
+    return (rang[0]+rang[2])
     
 def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
     '''
@@ -60,7 +60,7 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
         #rot = (rang[0]+rang[2])
         #rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
         #rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
-        out[i, 1:6]=(align[i,1], align[i,2], rot, tx, ty)
+        out[i, 1:6]=( theta, phi, rot, tx, ty)
         if cols>6: out[i, 6] = ipix
     return out
 
@@ -309,7 +309,7 @@ def ensure_euler(rot, out=None, axes='rzyz'):
     else: raise ValueError, "Not supported"
     return out
 
-def spider_to_quaternion(euler, out=None):
+def spider_to_quaternion(euler, use_2d=False, out=None):
     ''' Convert SPIDER rotations to quaternions
     
     :Parameters:
@@ -327,13 +327,27 @@ def spider_to_quaternion(euler, out=None):
     
     if len(euler) == 3 and (not hasattr(euler[0], '__len__') or len(euler[0])==1):
         euler1 = numpy.deg2rad(euler[:3])
+        if use_2d: euler[0]=-euler[2]
         return transforms.quaternion_from_euler(euler1[0], euler1[1], euler1[2], 'rzyz')
     
     if out is None: out = numpy.zeros((len(euler), 4))
     for i in xrange(out.shape[0]):
         euler1 = numpy.deg2rad(euler[i, :3])
+        if use_2d: euler1[0]=-euler1[2]
         out[i, :] = transforms.quaternion_from_euler(euler1[0], euler1[1], euler1[2], 'rzyz')
     return out
+
+def euler_rotate_into_frame(frame, target):
+    '''
+    '''
+    
+    frame = numpy.deg2rad(frame)
+    target = numpy.deg2rad(target)
+    q2 = transforms.quaternion_from_euler(target[0], target[1], target[2], 'rzyz')
+    q1 = transforms.quaternion_from_euler(frame[0], frame[1], frame[2], 'rzyz')
+    q3 = transforms.quaternion_multiply(q1, transforms.quaternion_conjugate(q2))
+    return numpy.rad2deg(transforms.euler_from_quaternion(q3, 'rzyz'))
+    
 
 def euler_geodesic_distance(euler1, euler2):
     ''' Calculate the geodesic distance between two unit quaternions
