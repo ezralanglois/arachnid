@@ -642,7 +642,20 @@ def init_root(files, param):
     _logger.info("Processing %d groups - after removing views with less than 20 particles"%len(group))
     return group
 
-def generate_local_neighbor_references(label, align, local_neighbors, output, cache_file, **extra):
+def get_batch(batch):
+    '''
+    '''
+    try: import psutil
+    except: 
+        _logger.exception("Failed to import psutil")
+        return min(batch, 10000)
+    
+    def batch_size(dtype):
+        _logger.info("Batch: %f (free) -> %d"%(psutil.phymem_usage()['free'], int(psutil.phymem_usage()['free']/dtype.itemsize)))
+        return psutil.phymem_usage()['free']/dtype.itemsize
+    return batch_size
+    
+def generate_local_neighbor_references(label, align, local_neighbors, output, cache_file, batch=0, **extra):
     '''
     '''
     
@@ -653,11 +666,12 @@ def generate_local_neighbor_references(label, align, local_neighbors, output, ca
     quat=orient_utility.spider_to_quaternion(ang, True)
     _logger.info("Finding nearest neighbors")
     openmp.set_thread_count(extra['thread_count'])
-    neigh = manifold.knn_geodesic_cache(quat, local_neighbors, cache_file=format_utility.add_prefix(cache_file, 'nn_'))
+    batch = get_batch(batch)
+    neigh = manifold.knn_geodesic_cache(quat, local_neighbors, cache_file=format_utility.add_prefix(cache_file, 'nn_'), batch=batch)
     _logger.info("Finding nearest neighbors - finished")
     openmp.set_thread_count(1)
     _logger.info("Read data")
-    samp = ndimage_processor.image_array_from_file(label, preprocess_utility.phaseflip, align=align, dtype=numpy.float32, **extra)
+    samp = ndimage_processor.image_array_from_file(label, preprocess_utility.phaseflip, param=align, dtype=numpy.float32, **extra)
     _logger.info("Read data - finished")
     _logger.info("Average nearest neighbors")
     neigh = neigh.col.reshape((samp.shape[0], local_neighbors+1))
@@ -728,7 +742,7 @@ def update_selection_dict(sel_by_mic, label, sel):
     '''
     
     if isinstance(label, tuple):
-        filename, label = label
+        label = label[1]
         for i in numpy.argwhere(sel):
             sel_by_mic.setdefault(int(label[i, 0]), []).append(int(label[i, 1]+1))
     else:
@@ -798,6 +812,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", scale=0.0,                 help="Scale the distance matrix using the RBF kernel")
     group.add_option("", scale_range=[-8.0,8.0,100],help="Range to search for scale")
     group.add_option("", local_neighbors=0,         help="Generate references from local neighborhood averaging")
+    group.add_option("", batch=0,                   help="Size of image batch to process in parallel")
+    
     
     pgroup.add_option_group(group)
     if main_option:
