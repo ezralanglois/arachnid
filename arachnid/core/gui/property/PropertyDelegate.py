@@ -116,7 +116,8 @@ class PropertyDelegate(QtGui.QItemDelegate):
         self.finishedMapper.blockSignals(True)
         data = index.model().data(index, QtCore.Qt.EditRole)
         success = index.internalPointer().setEditorData(editor, data)
-        if not success: QtGui.QItemDelegate.setEditorData(self, editor, index)
+        if not success: 
+            QtGui.QItemDelegate.setEditorData(self, editor, index)
         self.finishedMapper.blockSignals(False)
     
     def setModelData(self, editor, model, index):

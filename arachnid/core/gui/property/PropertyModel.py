@@ -8,7 +8,7 @@
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..util.qt4_loader import QtGui,QtCore, qtProperty
+from ..util.qt4_loader import QtGui, QtCore, qtProperty, qtSignal
 from Property import Property
 import logging, types
 
@@ -24,6 +24,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
              Parent of the Property Model
     '''
     
+    propertyValidity = qtSignal(object, object, bool)
+    
     def __init__(self, parent=None):
         "Initialize the Property Model"
         
@@ -38,7 +40,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
                                   QtGui.QColor.fromRgb(217, 149, 148),
                                   QtGui.QColor.fromRgb(84, 141, 212),
                                   QtGui.QColor.fromRgb(148, 138, 84)]
-    
+        
     def addOptionList(self, option_list):
         ''' Add options from list/dict format
         '''
@@ -76,14 +78,21 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 if p is not None: break
             if p is None: print option.dest
             assert(p is not None)
+            if p.required: p.propertyValidity.connect(self.firePropertyValidity)
         
         for group in option_groups:
-            if group.is_child():
+            if group.is_child() and len(group.get_config_options()) > 0:
                 current = Property(group.title, rindex, parent=parent)
                 self.addOptions(group.get_config_options(), group.option_groups, option_values, current)
         
         # groups
         self.endInsertRows()
+    
+    def firePropertyValidity(self, prop, valid):
+        '''
+        '''
+        
+        self.propertyValidity.emit(self, prop, valid)
     
     def _addItems(self, properties, parentItem, rindex=0):
         '''Recursively add external properties to the model
@@ -417,6 +426,9 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         if role == QtCore.Qt.ForegroundRole and index.column() == 0 and 'required' in item.hints and item.hints['required']:
             return QtGui.QColor(QtCore.Qt.blue)
+        if role == QtCore.Qt.BackgroundRole and index.column() == 1 and 'required' in item.hints and item.hints['required']:
+            if not item.isValid():
+                return QtGui.QColor('#F0E68C')
         
         if (role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.StatusTipRole) and item.doc is not None:
             return item.doc
@@ -567,4 +579,16 @@ class PropertyModel(QtCore.QAbstractItemModel):
         parentItem = self.rootItem
         if parent.isValid(): parentItem = parent.internalPointer()
         parentItem.restoreState(settings)
+    
+    def totalInvalid(self):
+        ''' Count the total number of children under this node.
+        
+        :Returns:
+        
+        total : int
+                Total number of invalid, but required children
+        '''
+        
+        return self.rootItem.totalInvalid()
+    
 

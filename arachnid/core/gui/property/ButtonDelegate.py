@@ -264,6 +264,9 @@ class FileDialogWidget(DialogWidget):
             self.showDialog()
         else:
             self.filename = str(self.field.text())
+            self.field.blockSignals(True)
+            self.field.setText("")
+            self.field.blockSignals(False)
             self.editFinished.emit()
     
     def setCurrentFilename(self, filename):

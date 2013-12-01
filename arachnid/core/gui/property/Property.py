@@ -8,8 +8,8 @@ Original Author: Volker Wiendl with Enhancements by Roman alias banal
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ButtonDelegate import FontDialogWidget, FileDialogWidget #, WorkflowWidget #, CheckboxWidget
-from ..util.qt4_loader import QtGui,QtCore, qtSlot
-import re, logging
+from ..util.qt4_loader import QtGui, QtCore, qtSlot, qtSignal 
+import re, logging, glob, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -35,6 +35,8 @@ class Property(QtCore.QObject):
     
     PROPERTIES = []
     
+    propertyValidity = qtSignal(object, bool)
+    
     def __init__(self, name, group=0, property=None, hints={}, doc={}, parent=None):
         "Initialize a Property"
         
@@ -44,6 +46,7 @@ class Property(QtCore.QObject):
         self.group = group
         self.doc = doc
         self.hints = hints
+        self.required = 'required' in hints and hints['required']
         
         if 'label' in self.hints:
             self.displayName = self.hints['label']
@@ -54,6 +57,17 @@ class Property(QtCore.QObject):
             else:
                 vals = name.replace('_', ' ').split()
             self.displayName = " ".join([v.capitalize() for v in vals]) if len(vals) > 0 else name.capitalize()
+    
+    def isValid(self):
+        ''' Test if the property holds a valid value
+        
+        :Returns:
+        
+        val : bool
+              True by default for most properties
+        '''
+        
+        return True
     
     def createEditor(self, parent, option):
         '''Returns the widget used to edit the item for editing. The parent 
@@ -103,6 +117,7 @@ class Property(QtCore.QObject):
               False
         '''
         
+        if self.required: self.propertyValidity.emit(self, True)
         return False
     
     def editorData(self, editor):
@@ -281,6 +296,22 @@ class Property(QtCore.QObject):
         for c in self.children():
             total += c.totalChildren()
         return total+1
+    
+    def totalInvalid(self):
+        ''' Count the total number of children under this node.
+        
+        :Returns:
+        
+        total : int
+                Total number of invalid, but required children
+        '''
+        
+        total = 0
+        for c in self.children():
+            total += c.totalInvalid()
+        if self.required and not self.isValid(): 
+            total += 1
+        return total
     
     def maximumNameWidth(self, fontMetric, indent, depth=1):
         '''Get the maximum width of the property name using the given Font Metrics
@@ -1100,6 +1131,20 @@ class FilenameProperty(Property):
         if isinstance(property.property(name), list) and self.filetype=='open':
             self.filetype = 'file-list'
     
+    def isValid(self):
+        ''' Test if the property holds a valid value
+        
+        :Returns:
+        
+        val : bool
+              True by default for most properties
+        '''
+        
+        if not self.required: return True
+        if self.filetype == 'file-list':
+            return len(self.value()) > 0
+        return self.value() != ""
+    
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a ChoiceProperty
@@ -1168,7 +1213,19 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("FilenameProperty type %s"%(data.__class__))
-        if isinstance(data, basestring): 
+        if isinstance(data, basestring):
+            if self.filetype == 'file-list':
+                for f in data.split(','):
+                    if len(glob.glob(f)) == 0: return False
+            elif self.filetype == 'open':
+                if data.find(',') != -1: return False
+                if len(glob.glob(data)) == 0: return False
+                if glob.glob(data)[0] != data: return False
+            else:# self.filetype == 'save':
+                if data.find(',') != -1: return False
+                if os.path.dirname(data) != "" and len(glob.glob(os.path.dirname(data))) == 0: return False
+                if os.path.dirname(data) != "" and glob.glob(os.path.dirname(data))[0] != os.path.dirname(data): return False
+            if self.required: self.propertyValidity.emit(self, True)
             editor.setCurrentFilename(data)
             return True
         else:
@@ -1399,6 +1456,18 @@ class StringProperty(Property):
         "Initialize a String Property"
         
         Property.__init__(self, name, group, property, hints, doc, parent)
+    
+    def isValid(self):
+        ''' Test if the property holds a valid value
+        
+        :Returns:
+        
+        val : bool
+              True by default for most properties
+        '''
+        
+        if not self.required: return True
+        return self.value() != ""
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
