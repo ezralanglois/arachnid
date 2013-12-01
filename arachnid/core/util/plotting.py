@@ -12,7 +12,7 @@ except:
     print "Cannot import offset, upgrade matplotlib"
 from ..image import analysis
 from ..metadata import format_utility
-import matplotlib.pyplot as cm
+import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 import numpy, logging
 
@@ -58,7 +58,7 @@ def plot_scatter(output, x, x_label, y, y_label, color=None, dpi=72):
     fig = pylab.figure(dpi=dpi)
     ax = fig.add_subplot(111)
     if color is not None:
-        sc = ax.scatter(x, y, cmap=cm.cool, c=color)
+        sc = ax.scatter(x, y, cmap=cm.cool, c=color)#@UndefinedVariable
         v1 = min(numpy.min(x),numpy.min(y))
         v2 = max(numpy.max(x),numpy.max(y))
         ax.plot(numpy.asarray([v1, v2]), numpy.asarray([v1, v2]))
@@ -93,7 +93,7 @@ def trim():
     
     pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
     
-def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_filename=None, **extra):
+def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_filename=None, **extra): #@UndefinedVariable
     '''
     '''
     
@@ -169,7 +169,7 @@ def plot_embedding(x, y, selected=None, group=None, dpi=80, **extra):
         beg, inc = 0.0, 1.0/len(refs)
         for r in refs:
             sel = r == group
-            color = cm.spectral(beg)
+            color = cm.spectral(beg)#@UndefinedVariable
             ax.plot(x[sel], y[sel], 'o', ls='.', markersize=3, c=color, **extra)
             beg += inc
     else:

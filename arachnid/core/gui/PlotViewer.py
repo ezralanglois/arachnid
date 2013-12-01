@@ -25,7 +25,7 @@ except:
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
-import matplotlib.pyplot as cm
+import matplotlib.cm as cm
 import property
 #
 
@@ -498,7 +498,7 @@ class MainWindow(QtGui.QMainWindow):
             if color.max() != color.min():
                 color -= color.min()
                 color /= color.max()
-                cmap = cm.jet
+                cmap = cm.jet#@UndefinedVariable
             else: color='r'
         
         if cmap is not None and use_markers:

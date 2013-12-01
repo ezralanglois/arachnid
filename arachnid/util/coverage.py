@@ -28,7 +28,7 @@ from ..core.metadata import format, format_utility
 from ..core.orient import healpix, orient_utility
 
 from mpl_toolkits import basemap
-import matplotlib.pyplot as cm
+import matplotlib.cm as cm
 import matplotlib.cm
 import matplotlib.lines
 import matplotlib.font_manager
@@ -131,7 +131,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
                                     )
     
     if numpy.sum(sel) > 0 and not hide_zero_marker:
-        im = m.scatter(x[sel], y[sel], numpy.max(s), marker="x", c=cm.gray(0.5))#, edgecolors='none')
+        im = m.scatter(x[sel], y[sel], numpy.max(s), marker="x", c=cm.gray(0.5))#@UndefinedVariable
     
     if not use_scale:
         im = matplotlib.cm.ScalarMappable(cmap=cmap, norm=matplotlib.colors.Normalize())
@@ -151,7 +151,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
         if numpy.sum(sel) > 0 and not hide_zero_marker:
             i=idx[len(idx)-1]
             labels.append("%s"%hist[i])
-            lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.max(s)/5, linestyle='none'))
+            lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.max(s)/5, linestyle='none')) #@UndefinedVariable
         pylab.legend(tuple(lines),tuple(labels), numpoints=1, frameon=False, loc='center left', bbox_to_anchor=(1, 0.5), prop = fontP)
     #l.get_lines()[0]._legmarker.set_ms(numpy.max(s)) 
 

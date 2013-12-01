@@ -58,7 +58,7 @@ import numpy, scipy
 #import matplotlib
 #matplotlib.use('Qt4Agg')
 
-import matplotlib.pyplot as cm
+import matplotlib.cm as cm
 from mpl_toolkits import mplot3d
 from mpl_toolkits import basemap
 from matplotlib import pyplot
@@ -123,7 +123,7 @@ if __name__ == '__main__':
         # Properly scale angles
         x, y = m(align[:, 1], 90.0-align[:, 0])
         # Plot angular histogram
-        im = m.scatter(x, y, s=s, marker="o", cmap=cm.cool, c=hist.astype(numpy.dtype), alpha=0.5)#, norm=matplotlib.colors.Normalize(vmin=0, vmax=1) )
+        im = m.scatter(x, y, s=s, marker="o", cmap=cm.cool, c=hist.astype(numpy.dtype), alpha=0.5) #@UndefinedVariable #, norm=matplotlib.colors.Normalize(vmin=0, vmax=1) )
         m.drawparallels(numpy.arange(-90.,120.,30.))
         m.drawmeridians(numpy.arange(0.,420.,60.))
         
