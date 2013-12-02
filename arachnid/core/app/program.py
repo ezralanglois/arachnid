@@ -624,6 +624,7 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
         raise settings.OptionValueError, "Failed when parsing options"
     
     options=autogui.display_mp(name, parser, options, **vars(options))
+    if options is None: sys.exit(0)
     args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
     # Disable automatic version update
     #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
