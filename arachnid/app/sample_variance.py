@@ -285,7 +285,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   fast=False,          help="Do not precompute the mean volume")
     group.add_option("",   cache_file="",       help="Directory to store volume cache")
     #group.add_option("-t", thread_count=1,    help="Number of parallel reconstructions")
-    #group.add_option("-w", worker_count=0,      help="Set number of  workers to process volumes in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
+    #group.add_option("-w", worker_count=0,      help="Set number of  workers to process volumes in parallel",  gui=dict(minimum=0), dependent=False)
     #group.add_option("",   keep_volumes=False,  help="Keep all volumes in a large stack")
     pgroup.add_option_group(group)
     

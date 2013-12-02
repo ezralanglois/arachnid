@@ -332,8 +332,8 @@ def setup_options(parser, pgroup=None):
     # Options added to OptionParser by core.app.program
     from settings import OptionGroup
     group = OptionGroup(parser, "Processor", "Options to control the state of the file processor",  id=__name__)
-    group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(maximum=sys.maxint, minimum=0))
-    group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
+    group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(minimum=0))
+    group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
     group.add_option("",   force=False,       help="Force the program to run from the start", dependent=False)
     group.add_option("",   restart_test=False,help="Test if the program will restart", dependent=False)
     pgroup.add_option_group(group)
