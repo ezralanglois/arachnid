@@ -117,7 +117,6 @@ class Property(QtCore.QObject):
               False
         '''
         
-        if self.required: self.propertyValidity.emit(self, True)
         return False
     
     def editorData(self, editor):
@@ -187,6 +186,7 @@ class Property(QtCore.QObject):
         '''
         
         if self.property_obj is not None:
+            if self.required: self.propertyValidity.emit(self, True)
             return self.property_obj.setProperty(self.objectName(), value)
     
     def isReadOnly(self):
@@ -1128,7 +1128,10 @@ class FilenameProperty(Property):
         self.filter = self.hints["filter"] if 'filter' in self.hints else ""
         self.path = self.hints["path"]if 'path' in self.hints else ""
         self.filetype = self.hints["filetype"]
+        self.classtype = property.property(name).__class__
+        #print 'here1', name, self.classtype
         if isinstance(property.property(name), list) and self.filetype=='open':
+            #print 'here2', name, self.classtype
             self.filetype = 'file-list'
     
     def isValid(self):
@@ -1192,7 +1195,7 @@ class FilenameProperty(Property):
         '''
         
         editor = FileDialogWidget(self.filetype, self.filter, self.path, parent)
-        self.connect(editor, QtCore.SIGNAL("fileChanged(const QString&)"), self, QtCore.SLOT("setValue(const QString&)"))
+        editor.fileChanged.connect(self.setValue)
         return editor
     
     def setEditorData(self, editor, data):
@@ -1213,23 +1216,25 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("FilenameProperty type %s"%(data.__class__))
-        if isinstance(data, basestring):
-            if self.filetype == 'file-list':
-                for f in data.split(','):
-                    if len(glob.glob(f)) == 0: return False
-            elif self.filetype == 'open':
-                if data.find(',') != -1: return False
-                if len(glob.glob(data)) == 0: return False
-                if glob.glob(data)[0] != data: return False
-            else:# self.filetype == 'save':
-                if data.find(',') != -1: return False
-                if os.path.dirname(data) != "" and len(glob.glob(os.path.dirname(data))) == 0: return False
-                if os.path.dirname(data) != "" and glob.glob(os.path.dirname(data))[0] != os.path.dirname(data): return False
-            if self.required: self.propertyValidity.emit(self, True)
-            editor.setCurrentFilename(data)
-            return True
-        else:
-            return False
+        editor.setCurrentFilename(data)
+    
+    def testValid(self, data):
+        '''
+        '''
+        
+        if self.filetype == 'file-list':
+            for f in data.split(','):
+                print f, len(glob.glob(f))
+                if len(glob.glob(f)) == 0: return False
+        elif self.filetype == 'open':
+            if data.find(',') != -1: return False
+            if len(glob.glob(data)) == 0: return False
+            if glob.glob(data)[0] != data: return False
+        else:# self.filetype == 'save':
+            if data.find(',') != -1: return False
+            if os.path.dirname(data) != "" and len(glob.glob(os.path.dirname(data))) == 0: return False
+            if os.path.dirname(data) != "" and glob.glob(os.path.dirname(data))[0] != os.path.dirname(data): return False
+        return True
     
     def editorData(self, editor):
         ''' Get the data from a finished editor.
@@ -1259,8 +1264,13 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("setValue Qstring")
-        if value is not None:    
-            Property.setValue(self, str(value))
+        if value is not None: 
+            if value and not self.testValid(value): return False
+            if value:
+                if self.required: self.propertyValidity.emit(self, True)
+            else:
+                if self.required: self.propertyValidity.emit(self, False)
+            Property.setValue(self, value)
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
@@ -1276,7 +1286,7 @@ class FilenameProperty(Property):
                 Stored value
         '''
         
-        return Property.value(self, role)
+        return str(Property.value(self, role))
 
 
 
@@ -1508,6 +1518,11 @@ class StringProperty(Property):
         '''
         
         if value is not None:
+            if self.required: 
+                if value:
+                    self.propertyValidity.emit(self, True)
+                else:
+                    self.propertyValidity.emit(self, False)
             Property.setValue(self, str(value))
     
 def is_int(f):

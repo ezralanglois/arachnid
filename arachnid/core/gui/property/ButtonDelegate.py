@@ -216,7 +216,7 @@ class FileDialogWidget(DialogWidget):
              Parent of the checkbox widget
     '''
     
-    fileChanged = qtSignal(str)
+    fileChanged = qtSignal(object)
     
     def __init__(self, type, filter="", path="", parent=None):
         "Initialize a font dialog"
@@ -227,7 +227,8 @@ class FileDialogWidget(DialogWidget):
         self.path = path
         self.filetype = type
         self.field.setText(self.filename)
-        self.connect(self.field, QtCore.SIGNAL('editingFinished()'), self.updateFilename)
+        self.field_text = None
+        self.field.editingFinished.connect(self.updateFilename)
     
     def showDialog(self):
         ''' Display a file dialog
@@ -237,7 +238,10 @@ class FileDialogWidget(DialogWidget):
         if self.filetype == 'file-list':
             filenames = QtGui.QFileDialog.getOpenFileNames(None, 'Open files', self.path, self.filter)
             if isinstance(filenames, tuple): filenames = filenames[0]
-            filename = ",".join([str(f) for f in filenames])
+            if hasattr(self.filename, 'make'):
+                filename = self.filename.make(filenames)
+            else:
+                filename = self.filename.__class__(filename)
         elif self.filetype == 'open':
             filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', self.path, self.filter)
             if isinstance(filename, tuple): filename = filename[0]
@@ -253,7 +257,9 @@ class FileDialogWidget(DialogWidget):
         ''' Update the filename from the line edit
         '''
         
-        filename = str(self.field.text())
+        filename = self.field.text()
+        if filename == self.field_text: return
+        
         if self.filetype == 'file-list' and filename.find(',') != -1:
             filename = filename.split(",")[0]
         if not os.path.isdir(filename):
@@ -262,11 +268,14 @@ class FileDialogWidget(DialogWidget):
         if self.filetype == 'open' and not os.path.exists(filename) and filename != "":
             self.field.setText("")
             self.showDialog()
-        else:
-            self.filename = str(self.field.text())
-            self.field.blockSignals(True)
-            self.field.setText("")
-            self.field.blockSignals(False)
+        elif self.field.text() != "":
+            filename = self.field.text()
+            if hasattr(self.filename, 'make'):
+                filename = self.filename.make(filename)
+            else:
+                filename = self.filename.__class__(filename)
+            self.filename = filename
+            self.fileChanged.emit(self.filename)
             self.editFinished.emit()
     
     def setCurrentFilename(self, filename):
@@ -278,11 +287,13 @@ class FileDialogWidget(DialogWidget):
                    Filename to display
         '''
         
-        self.filename = str(filename)
-        if not os.path.isdir(self.filename):
-            self.path = os.path.dirname(str(self.filename))
-        else: self.path = self.filename
-        self.field.setText(filename)
+        self.filename = filename
+        single_file = filename[0] if isinstance(filename, list) else filename
+        if not os.path.isdir(single_file):
+            self.path = os.path.dirname(single_file)
+        else: self.path = single_file
+        self.field.setText(single_file)
+        self.field_text = single_file
     
     def selectedFilename(self):
         ''' Get the current filename

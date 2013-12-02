@@ -157,8 +157,8 @@ The following parameters are added to a script using the program architecture.
 import tracing
 import settings
 from ..parallel import mpi_utility, openmp
-#from ..gui import settings_editor
-import logging, sys, os, traceback
+from ..gui import AutoGUI as autogui
+import logging, sys, os, traceback,psutil
 import arachnid as root_module # TODO: This needs to be found in run_hybrid_program
 import file_processor
 
@@ -208,6 +208,8 @@ def run_hybrid_program(name, **extra):
         raise
     _logger.info("Program: %s"%(main_module.__name__), extra=dict(tofile=True))
     _logger.info("Version: %s"%(str(root_module.__version__)), extra=dict(tofile=True))
+    _logger.info("PID: %d"%os.getpid())
+    _logger.info("Created: %d"%psutil.Process(os.getpid()).create_time)
     
         
     _logger.debug("Checking options ... finished.")
@@ -547,12 +549,10 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     parser = settings.OptionParser(usage, version=root_module.__version__, description=description, url=url)
     try:
         mgroup = settings.OptionGroup(parser, "Primary", "Options that must be set to run the program", group_order=-20,  id=__name__) 
-        group = settings.OptionGroup(parser, "Required", "Options that must be set to run the program", group_order=-20,  id=__name__) 
-        main_module.setup_options(parser, group, True)
+        main_module.setup_options(parser, mgroup, True)
     except:
         _logger.error("Module name: %s"%str(main_module))
         raise
-    mgroup.add_option_group(group)
     parser.add_option_group(mgroup)
     group = settings.OptionGroup(parser, "Dependent", "Options require by dependents of the program", group_order=0,  id=__name__)
     for module in dependents:
@@ -611,6 +611,9 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
             Dictionary of parameters and their corresponding values
     '''
     
+    name = main_module.__name__
+    if len(description.split("\n")) > 0:
+        name = description.split("\n")[0].strip()
     description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '.' else '# '+s.strip() for s in description.split("\n")]
     description="\n".join([s for s in description])
     parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP)
@@ -620,8 +623,8 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
         on_error(parser, inst, parser.get_default_values())
         raise settings.OptionValueError, "Failed when parsing options"
     
-    #options.create_cfg = settings_editor.display(parser, options, **vars(options)) # Todo: move , wrong place to read in from cfg file
-    
+    options=autogui.display_mp(name, parser, options, **vars(options))
+    args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
     # Disable automatic version update
     #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
     #
@@ -643,7 +646,7 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
             parser.write(options.create_cfg, options)
             if not hasattr(options, 'noexit'): sys.exit(0)
     
-    additional = [tracing]#, settings_editor]
+    additional = [tracing]
     if main_template is not None and main_template != main_module: additional.append(main_template)
     try:
         for module in dependents+additional:
@@ -818,7 +821,7 @@ def setup_program_options(parser, main_template, supports_MPI=False, supports_OM
     if supports_OMP:# and openmp.get_max_threads() > 1:
         prg_group.add_option("-t",   thread_count=1, help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
     tracing.setup_options(parser, gen_group)
-    #settings_editor.setup_options(parser, gen_group)
+    autogui.setup_options(parser, gen_group)
     if main_template is not None: main_template.setup_options(parser, gen_group)
     gen_group.add_option_group(prg_group)
     parser.add_option_group(gen_group)
