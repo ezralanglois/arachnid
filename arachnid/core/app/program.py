@@ -161,6 +161,7 @@ from ..gui import AutoGUI as autogui
 import logging, sys, os, traceback,psutil
 import arachnid as root_module # TODO: This needs to be found in run_hybrid_program
 import file_processor
+import multiprocessing
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -227,6 +228,8 @@ def run_hybrid_program(name, **extra):
         if param['thread_count'] > 0:
             openmp.set_thread_count(param['thread_count'])
             _logger.info("Multi-threading with OpenMP - set thread count to %d"%openmp.get_max_threads())
+            if param['thread_count'] > multiprocessing.cpu_count():
+                _logger.warn("Number of threads exceeds number of cores: %d > %d"%(param['thread_count'], multiprocessing.cpu_count()))
         elif 'worker_count' in param and param['worker_count'] > 1:
             openmp.set_thread_count(1)
     else:
@@ -623,7 +626,10 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
         on_error(parser, inst, parser.get_default_values())
         raise settings.OptionValueError, "Failed when parsing options"
     
-    options=autogui.display_mp(name, parser, options, **vars(options))
+    if sys.platform == 'darwin': # Hack for my system?
+        options=autogui.display(name, parser, options, **vars(options))
+    else:
+        options=autogui.display_mp(name, parser, options, **vars(options))
     if options is None: sys.exit(0)
     args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
     # Disable automatic version update
