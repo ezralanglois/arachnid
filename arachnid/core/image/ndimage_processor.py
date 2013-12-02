@@ -4,6 +4,7 @@
 '''
 import logging
 from ..parallel import process_tasks
+from ..parallel import openmp
 import ndimage_file
 import numpy
 import os
@@ -31,6 +32,7 @@ def create_matrix_from_file(images, image_processor, dtype=numpy.float, **extra)
           2D matrix where each row is an image
     '''
     
+    openmp.set_thread_count(1)
     img1 = ndimage_file.read_image(images[0][0]) if isinstance(images[0], tuple) else ndimage_file.read_image(images[0])
     
     img = image_processor(img1, 0, **extra).ravel()
@@ -38,6 +40,7 @@ def create_matrix_from_file(images, image_processor, dtype=numpy.float, **extra)
     mat = numpy.zeros((total, img.shape[0]), dtype=dtype)
     for row, data in process_tasks.for_process_mp(ndimage_file.iter_images(images), image_processor, img1.shape, queue_limit=100, **extra):
         mat[row, :] = data.ravel()[:img.shape[0]]
+    openmp.set_thread_count(extra.get('thread_count', 1))
     return mat
 
 def image_array_from_file(images, image_processor, dtype=numpy.float, **extra):
