@@ -15,6 +15,7 @@ class Widget(QtGui.QWidget):
     '''
     
     runProgram = qtSignal()
+    monitorProgram = qtSignal()
     fireProgress = qtSignal(int)
     fireMaximum = qtSignal(int)
     
@@ -34,8 +35,6 @@ class Widget(QtGui.QWidget):
         self.ui.pushButton.clicked.connect(self.runProgram)
         self.ui.jobUpdateTimer.timeout.connect(self.on_jobUpdateTimer_timeout)
         
-        self.fireProgress.connect(self.ui.jobProgressBar.setValue)
-        self.fireMaximum.connect(self.ui.jobProgressBar.setMaximum)
         self.ui.jobProgressBar.setMinimum(0)
         
         #self.text_cursor = QtGui.QTextCursor(self.ui.logTextEdit.document())
@@ -61,6 +60,7 @@ class Widget(QtGui.QWidget):
                     self.current_pid = None
                     self.created = None
                     self.fin = None
+                    self.monitorProgram.emit()
                     self.ui.pushButton.setChecked(QtCore.Qt.Checked)
                 else:
                     self.current_pid = None
@@ -81,7 +81,7 @@ class Widget(QtGui.QWidget):
             self.ui.jobUpdateTimer.start()
         else:
             self.ui.jobUpdateTimer.stop()
-            self.ui.jobProgressBar.setMaximum(0)
+            self.ui.jobProgressBar.setMaximum(1)
             if self.fin is not None:
                 self.fin.close()
                 self.fin = None
@@ -171,13 +171,10 @@ class Widget(QtGui.QWidget):
                 idx = line.find(' -')
                 if idx != -1: line = line[:idx]
                 progress, maximum = tuple([int(v) for v in line.split(',')])
-                print 'progress:', progress, maximum, self.ui.jobProgressBar.maximum()
                 if self.ui.jobProgressBar.maximum() != (maximum+1):
-                    print 'progress2:', progress, maximum, self.ui.jobProgressBar.maximum()
-                    self.fireMaximum.emit(maximum+1)
-                    self.fireProgress.emit(1)
-                self.fireProgress.emit(progress)
-                QtGui.QApplication.processEvents()
+                    self.ui.jobProgressBar.setMaximum(maximum+1)
+                self.ui.jobProgressBar.setValue(progress+1)
+                #QtGui.QApplication.processEvents()
                 return
     
     def readLogFile(self):

@@ -46,6 +46,7 @@ class Dialog(QtGui.QDialog):
         self.ui.runTabLayout = QtGui.QHBoxLayout(self.ui.runTab)
         self.ui.runTabLayout.addWidget(self.ui.monitorWidget)
         self.ui.monitorWidget.runProgram.connect(self.runProgram)
+        self.ui.monitorWidget.monitorProgram.connect(self.monitorProgram)
         
         self.values = None
         self.qout = None
@@ -75,6 +76,14 @@ class Dialog(QtGui.QDialog):
         '''
     
         self.ui.tabWidget.setTabEnabled(1, valid)
+    
+    def monitorProgram(self):
+        '''
+        '''
+        
+        if self.qout is not None:
+            self.qout.put(None)
+            self.qout=None
     
     def runProgram(self):
         '''
@@ -136,11 +145,11 @@ def display(name, parser, values, display_gui=False, qout=None, **extra):
         sys.exit(1)
     dialog = Dialog()
     dialog.setWindowTitle(name)
+    if qout is not None: dialog.setQueue(qout)
     if values.log_file == "":
         values.log_file = os.path.basename(sys.argv[0])+".log"
     dialog.setLogFile(values.log_file)
     dialog.addSettings(parser.get_config_options(), parser.option_groups, values)
-    if qout is not None: dialog.setQueue(qout)
     dialog.show()
     app.exec_()
     if qout is not None: qout.put(None)
