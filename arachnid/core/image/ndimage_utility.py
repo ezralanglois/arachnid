@@ -1697,7 +1697,7 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     vmin = numpy.min(img)
     vmax = numpy.max(img)
     if vmin == vmax: 
-        print "*****", vmin, '==', vmax
+        #print "*****", vmin, '==', vmax
         return out
 
     
