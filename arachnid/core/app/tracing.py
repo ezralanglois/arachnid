@@ -243,7 +243,7 @@ def setup_options(parser, pgroup=None):
     group.add_option("-v", log_level=levels,    help="Set logging level application wide", default=3, dependent=False)
     group.add_option("",   log_file="",         help="Set file to log messages", gui=dict(filetype="save"), archive=True, dependent=False)
     group.add_option("",   log_config="",       help="File containing the configuration of the application logging", gui=dict(filetype="open"), dependent=False)
-    group.add_option("",   disable_stderr=False, help="If true, output will only be written to the given log file", dependent=False)
+    group.add_option("",   enable_stderr=False, help="Enable logging to stderr along with --log-file", dependent=False)
     if pgroup is not None:
         pgroup.add_option_group(group)
     else:
@@ -262,7 +262,7 @@ def default_logfile(rank=0, **extra):
     
     return "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
 
-def configure_logging(rank=0, log_level=3, log_file="", log_config="", disable_stderr=False, **extra):
+def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_stderr=False, **extra):
     '''Configure logging with use selected options
 
     .. sourcecode:: py
@@ -280,8 +280,8 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", disable_s
                File path for logging messages
     log_config : str
                  File path for logging configuration
-    disable_stderr : bool
-                     Do not redirect to stderr
+    enable_stderr : bool
+                    Do redirect to stderr
     extra : dict
             Unused keyword arguments
     '''
@@ -305,10 +305,6 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", disable_s
         
         try: 
             if log_file != "":
-                if not disable_stderr: 
-                    h = logging.StreamHandler()
-                    h.addFilter(ExceptionFilter())
-                    handlers.append(h)
                 logging.debug("Writing to log file: %s"%(log_file))
                 backupname = backup(log_file)
                 if backupname: logging.debug("Backing up log file to %s"%(backupname))
@@ -316,6 +312,10 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", disable_s
                 h.addFilter(ExceptionFilter())
                 handlers.append(logging.FileHandler(default_error_log, mode='w'))
                 handlers.append(h)
+                if enable_stderr: 
+                    h = logging.StreamHandler()
+                    h.addFilter(ExceptionFilter())
+                    handlers.append(h)
             else:
                 h = logging.StreamHandler()
                 h.addFilter(ExceptionFilter())
