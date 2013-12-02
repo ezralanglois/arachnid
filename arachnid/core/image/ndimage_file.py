@@ -123,6 +123,30 @@ def read_image(filename, index=None, **extra):
         param[key] = extra[key]
     return format.read_image(filename, index, **param)
 
+def read_stack(filename):
+    ''' Read an entire stack into a multi-dimensional array
+    
+    :Parameters:
+    
+    filename : str
+               Input filename to read
+    
+    :Returns:
+        
+    out : array
+          Array nxm1xm2xm3 where n is the 
+          number of images and m1-m3 are
+          the dimensions of an individual
+          image
+    '''
+    
+    img = read_image(filename)
+    count = count_images(filename)
+    stack = numpy.zeros((count, )+img.shape)
+    for i, img in enumerate(iter_images(filename)):
+        stack[i, :] = img
+    return stack
+
 def iter_images(filename, index=None):
     ''' Read a set of images from the given file
     
