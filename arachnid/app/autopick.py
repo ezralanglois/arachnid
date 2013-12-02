@@ -316,7 +316,7 @@ def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
     _logger.debug("Kept: %d of %d"%(j, len(peaks)))
     return peaks[:j]
 
-def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, **extra):
+def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
@@ -343,6 +343,8 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
              Size of the window in pixels
     pixel_diameter : int
                      Diameter of particle in pixels
+    threshold_minimum : int
+                        Minimum number of consider success
     extra : dict
             Unused key word arguments
     
@@ -427,10 +429,10 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     else: sel = dsel
     if not disable_threshold:
         for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel)
+            tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
             dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
             sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel)
+        tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
         _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
@@ -440,7 +442,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     #else: remove_overlap(scoords, radius, sel)
     return sel
 
-def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, window=None, pixel_diameter=None, **extra):
+def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
     :Parameters:
@@ -465,6 +467,8 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
              Size of the window in pixels
     pixel_diameter : int
                      Diameter of particle in pixels
+    threshold_minimum : int
+                        Minimum number of consider success
     extra : dict
             Unused key word arguments
     
@@ -558,10 +562,10 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     else: sel = dsel
     if not disable_threshold:
         for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel)
+            tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
             dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
             sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel)
+        tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
         _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
@@ -614,7 +618,7 @@ def outlier_rejection(feat, prob):
     cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
     return dist < cut
     
-def classify_noise(scoords, dsel, sel=None):
+def classify_noise(scoords, dsel, sel=None, threshold_minimum=25):
     ''' Classify out the noise windows
     
     :Parameters:
@@ -625,6 +629,8 @@ def classify_noise(scoords, dsel, sel=None):
            Good values selected by PCA
     sel : numpy.ndarray
            Total good values selected by PCA and DoG
+    threshold_minimum : int
+                        Minimum number of consider success
     
     :Returns:
         
@@ -637,7 +643,7 @@ def classify_noise(scoords, dsel, sel=None):
     bcnt = 0 
     tsel=None
     i=0
-    while bcnt < 25 and i < 10:
+    while bcnt < threshold_minimum and i < 10:
         if tsel is not None: dsel = numpy.logical_and(numpy.logical_not(tsel), dsel)
         th = analysis.otsu(scoords[dsel, 0], numpy.sum(dsel)/16)
         tsel = scoords[:, 0] > th
@@ -800,6 +806,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   experimental2=False,         help="Use the latest experimental features, 2nd generation!")
     group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
+    group.add_option("",   threshold_minimum=25,        help="Minimum number of particles for threshold selection")
     
     pgroup.add_option_group(group)
     if main_option:
