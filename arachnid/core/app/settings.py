@@ -453,7 +453,7 @@ class Option(optparse.Option):
             if key in kwargs: continue
             try: v = func(value) if type(func) == types.FunctionType else func
             except: v = func
-            if v is not None or key=='type': kwargs[key] = v
+            if v is not None or key=='type':  kwargs[key] = v
         
         # Setup the action with the default action store
         if "action" not in kwargs: kwargs["action"] = "store" if "callback" not in kwargs else "callback"
@@ -509,7 +509,7 @@ class Option(optparse.Option):
             types.BooleanType   : {"action":   lambda v: "store_false" if v else "store_true", "type": None, "default": lambda v: v},
             types.TupleType     : {"callback": Option.choice_type, "default": lambda v: v[0], "type": lambda v: v[0].__class__.__name__},
             "index_true"        : {"callback": Option.choice_index, "default": 0, "type": lambda v: v[0].__class__.__name__},
-            'open-file-list'    : {"callback": Option.glob_files, "default": lambda v: optlist(v), "type": "string"},
+            'open-file-list'    : {"callback": Option.glob_files, "default": lambda v: optfilelist(v), "type": "string"},
         }
         
         choices = None
@@ -619,17 +619,7 @@ class Option(optparse.Option):
                  The current option parser instance
         '''
         
-        input_files = value.strip().split(',')
-        glob_files = []
-        for f in input_files:
-            if not os.path.exists(f):
-                files = glob.glob(f)
-                if len(files) == 0 and option._default_regular_expression is not None:
-                    files = glob.glob(option._default_regular_expression(f))
-                if len(files) > 0: glob_files.extend(files)
-            else: 
-                glob_files.append(f)
-        setattr(parser.values, option.dest, optlist(glob_files))
+        setattr(parser.values, option.dest, optfilelist(value, option._default_regular_expression))
     
     @staticmethod
     def choice_index(option, flag, value, parser):
@@ -1042,9 +1032,9 @@ class OptionParser(optparse.OptionParser):
                             #args.append(f)
                     else: 
                         args.append(f)
-            options.input_files = optlist(args)
+            options.input_files = optfilelist(args)
             _logger.debug("Checking input files - has input "+str(getattr(options, self.add_input_files)))
-        options._parser = self
+        #options._parser = self
         return (options, args)
     
     def parse_file(self, args=sys.argv[1:], values=None, fin=None):
@@ -1121,7 +1111,9 @@ class OptionParser(optparse.OptionParser):
         '''
         
         for key, val in kwargs.iteritems():
-            if isinstance(val, list): kwargs[key] = optlist(val)
+            if isinstance(val, list):
+                # test if open
+                kwargs[key] = optlist(val)
         self.defaults.update(kwargs)
     
     def validate(self, values):
@@ -1608,6 +1600,7 @@ class optdict(dict):
         '''
         
         return str(self)
+    
 
 class optlist(list):
     '''A list that produces the proper string representation for an option
@@ -1620,6 +1613,74 @@ class optlist(list):
         >>> optlist(['val_1', 'val_2', 'val_3'])
         val_1,val_2,val_3
     '''
+    
+    def __str__(self):
+        '''String representation of the list
+        
+        This method creates a comma separated string representation of the list items.
+        
+        :Returns:
+        
+        return_val : str
+                    A string representation of the list
+        '''
+        
+        keys = []
+        for vals in self: 
+            if isinstance(vals, tuple):
+                keys.append(":".join([str(k) for k in vals]))
+            else:
+                keys.append(str(vals))
+        return ",".join(keys)
+    
+    def __repr__(self):
+        '''String representation of the list
+        
+        This method creates a comma separated string representation of the list items.
+        
+        :Returns:
+        
+        return_val : str
+                    A string representation of the list
+        '''
+        
+        return str(self)
+    
+class optfilelist(optlist):
+    '''A list that produces the proper string representation for an option
+    
+    This class creates a comma separated string representation of the list items.
+    
+    .. sourcecode:: python
+            
+        >>> from core.app.settings import *
+        >>> optlist(['val_1', 'val_2', 'val_3'])
+        val_1,val_2,val_3
+    '''
+    
+    def __init__(self, val=None, _default_regular_expression=None):
+        '''
+        '''
+        
+        self._default_regular_expression=None
+        if val is not None:
+            optlist.__init__(self,uncompress_filenames(val))
+        else:
+            optlist.__init__(self)
+    
+    def make(self, val):
+        '''
+        '''
+        
+        return optfilelist(val, self._default_regular_expression)
+
+    def __getstate__(self):
+        '''
+        '''
+        
+        d = dict(self.__dict__)
+        del d['_default_regular_expression']
+        return d
     
     def __str__(self):
         '''String representation of the list
@@ -1810,7 +1871,7 @@ def parameter_type(name, doc):
            If found, a string type of the parameter, otherwise None
     '''
     
-    for i, d in enumerate(doc):
+    for d in doc:
         idx = d.find(name+" : ")
         if idx  != -1:
             return d[idx+len(name)+len(" : "):].strip()
@@ -1868,6 +1929,41 @@ def convert(val):
                 val = int(val)
         except: pass
     return val
+
+def uncompress_filenames(input_files, default_regexp=None):
+    ''' Convert a string of comma separated filenames into
+    a list. Evaluate all regular expressions.
+    
+    :Parameters:
+    
+    input_files : list
+            List of compressed filenames (or single string)
+    default_regexp : callable, optional
+                     Convert filename to regular expression
+    
+    :Returns:
+    
+    input_files : list
+                  List of uncompressed filenames - possibly much longer than
+                  original list
+    '''
+    
+    try: ""+input_files
+    except: pass
+    else: input_files = [input_files]
+        
+    glob_files = []
+    for input_file in input_files:
+        files = input_file.strip().split(',')
+        for f in files:
+            if not os.path.exists(f):
+                files = glob.glob(f)
+                if len(files) == 0 and default_regexp is not None:
+                    files = glob.glob(default_regexp(f))
+                if len(files) > 0: glob_files.extend(files)
+            else: 
+                glob_files.append(f)
+    return optlist(glob_files)
 
 def compress_filenames(files):
     ''' Test if all filenames have a similar prefix and replace the suffix
