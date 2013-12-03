@@ -215,6 +215,8 @@ def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig
         data = numpy.exp(data, data)
         assert(numpy.alltrue(numpy.isfinite(data)))
         #data /= data.sum(axis=1)[:, numpy.newaxis]
+    else:
+        numpy.sqrt(data, data)
     tst = data-data.mean(0)
 
     feat = embed_sample(tst, **extra)
@@ -224,9 +226,13 @@ def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig
         sel, rsel, dist = one_class_classification(feat, **extra)
         if isinstance(label, tuple):
             filename, label = label #psi,theta,phi,inplane,tx,ty,defocus
-            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,rot,group,psi,tx,ty,mirror')
+            dist[:] = tst[:, 0]
+            mindist = numpy.min(tst, 1)
+            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], mindist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,mindist,rot,group,psi,tx,ty,mirror')
         else:
-            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,rot,psi,tx,ty,mirror', default_format=format.csv)
+            dist[:] = tst[:, 0]
+            mindist = numpy.min(tst, 1)
+            format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], mindist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,mindist,rot,psi,tx,ty,mirror', default_format=format.csv)
         _logger.info("Finished embedding view: %d"%(int(input_vals[0])))
     else:
         _logger.info("Skipping view (too few projections): %d"%int(input_vals[0]))
@@ -401,7 +407,7 @@ def decimation_level(apix, window, **extra):
     d = window/float(d)
     return min(max(d, 1), 8)
 
-def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=False, scale_spi=False, ref_vol=None, angs=None, references=None, neighbors=None, **extra):
+def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=False, scale_spi=False, ref_vol=None, angs=None, references=None, neighbors=None, ref_projections=None, **extra):
     ''' Transform the image
     
     :Parameters:
@@ -455,8 +461,30 @@ def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=F
     frame = align[i, :3].copy()
     if ref_vol is not None:
         return distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs)
+    elif ref_projections is not None:
+        return distance_from_projection(img, frame, ctfimg, mask, ref_projections, angs)
     else:
-        return distance_from_reference(img, frame, ctfimg, mask, references, align, neighbors[i])
+        return distance_from_neighbor(img, frame, ctfimg, mask, references, align, neighbors[i], bin_factor)
+
+def distance_from_projection(img, frame, ctfimg, mask, ref_projections, angs):
+    '''
+    '''
+    
+    dist = numpy.zeros(len(angs), dtype=img.dtype)
+    for j in xrange(len(angs)):
+        ang1 = angs[j].copy()
+        avg = ref_projections[j].copy()
+        euler = rotate.rotate_euler(frame, ang1)
+        avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
+        ndimage_utility.normalize_standard(avg, mask, False, out=avg)
+        avg *= (img*avg).sum()/(avg**2).sum()
+        if 1 == 0:
+            avg -= img
+            numpy.square(avg, avg)
+            dist[j] = numpy.sqrt(avg.sum())
+        else:
+            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
+    return dist
 
 def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
     '''
@@ -474,7 +502,7 @@ def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
         euler = rotate.rotate_euler(frame2, euler)
         avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
         ndimage_utility.normalize_standard(avg, mask, False, out=avg)
-        #avg *= (img*avg).sum()/(avg**2).sum()
+        avg *= (img*avg).sum()/(avg**2).sum()
         if 1 == 0:
             avg -= img
             numpy.square(avg, avg)
@@ -483,7 +511,7 @@ def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
             dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
     return dist
 
-def distance_from_neighbor(img, frame, ctfimg, mask, references, align, neighbors):
+def distance_from_neighbor(img, frame, ctfimg, mask, references, align, neighbors, bin_factor):
     '''
     '''
     
@@ -492,6 +520,7 @@ def distance_from_neighbor(img, frame, ctfimg, mask, references, align, neighbor
         euler = rotate.rotate_euler(frame, align[neigh, :3].copy())
         avg = rotate.rotate_image(references[neigh], -(euler[0]+euler[2]))
         ndimage_utility.normalize_standard(avg, mask, False, out=avg)
+        if bin_factor > 1: avg = ndimage_interpolate.downsample(avg, bin_factor)
         avg *= (img*avg).sum()/(avg**2).sum()
         dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
     return dist
@@ -634,11 +663,14 @@ def init_root(files, param):
     if param['local_neighbors'] > 0:
         param['references'], param['neighbors'] = generate_local_neighbor_references(label, align, **param)
         openmp.set_thread_count(param['thread_count'])
+    elif param['all_views']:
+        param['ref_projections'], param['angs'] = generate_reference_projections(label, align, **param)
     else:
         _logger.info("Reconstructing volume")
         param['ref_vol'] = reconstruct_volume(label, align, **param)
         _logger.info("Reconstructing volume - finished")
         param['angs'] = healpix.angles(param['ang_order'], True, out=numpy.zeros((param['ang_limit'],3)))
+        
     _logger.info("Processing %d groups - after removing views with less than 20 particles"%len(group))
     return group
 
@@ -651,11 +683,11 @@ def get_batch(batch):
         return min(batch, 10000)
     
     def batch_size(dtype):
-        _logger.info("Batch: %f (free) -> %d"%(psutil.phymem_usage()['free'], int(psutil.phymem_usage()['free']/dtype.itemsize)))
-        return psutil.phymem_usage()['free']/dtype.itemsize
+        _logger.info("Batch: %f (free) -> %d"%(psutil.virtual_memory().free, int(psutil.virtual_memory().free/dtype.itemsize)))
+        return int(numpy.sqrt(float(psutil.virtual_memory().free/dtype.itemsize)))
     return batch_size
     
-def generate_local_neighbor_references(label, align, local_neighbors, output, cache_file, batch=0, **extra):
+def generate_local_neighbor_references(label, align, local_neighbors, output, cache_file, batch=0, local_sample=0, **extra):
     '''
     '''
     
@@ -675,8 +707,27 @@ def generate_local_neighbor_references(label, align, local_neighbors, output, ca
     _logger.info("Read data - finished")
     _logger.info("Average nearest neighbors")
     neigh = neigh.col.reshape((samp.shape[0], local_neighbors+1))
-    samp = local_neighbor_average(samp, neigh) # Wrong, needs to rotate!
-    ndimage_file.write_stack(format_utility.add_prefix(cache_file, 'avg_'), samp[numpy.random.randint(0, len(samp), 10)])
+    
+    if local_sample > 0:
+        samp_file = format_utility.add_prefix(cache_file, 'samp_')
+        if os.path.exists(samp_file):
+            _logger.info("Searching for cache file: %d == %d"%(ndimage_file.count_images(samp_file), len(samp)))
+        if os.path.exists(samp_file) and ndimage_file.count_images(samp_file) == len(samp):
+            samp = ndimage_file.read_stack(samp_file)
+        else: 
+            samp = local_neighbor_subsample(samp, neigh, align, local_sample) # Wrong, needs to rotate!
+            ndimage_file.write_stack(samp_file, samp)#[numpy.random.randint(0, len(samp), 10)]
+    else:
+        avg_file = format_utility.add_prefix(cache_file, 'avg_')
+        _logger.info("Searching for cache file: %s"%avg_file)
+        _logger.info("Searching for cache file: %d"%os.path.exists(avg_file))
+        if os.path.exists(avg_file):
+            _logger.info("Searching for cache file: %d == %d"%(ndimage_file.count_images(avg_file), len(samp)))
+        if os.path.exists(avg_file) and ndimage_file.count_images(avg_file) == len(samp):
+            samp = ndimage_file.read_stack(avg_file)
+        else: 
+            samp = local_neighbor_average(samp, neigh, align) # Wrong, needs to rotate!
+            ndimage_file.write_stack(avg_file, samp)#[numpy.random.randint(0, len(samp), 10)]
     _logger.info("Average nearest neighbors - finished")
     return samp, neigh
 
@@ -693,6 +744,31 @@ def local_neighbor_average(samp, neigh, align):
             img = rotate.rotate_image(samp[j], -(euler[0]+euler[2]))
             avgsamp[i]+=img
     return avgsamp
+
+def local_neighbor_subsample(samp, neigh, align, sample_size):
+    '''
+    '''
+    
+    avgsamp = numpy.empty_like(samp)
+    avgsamp[:]=samp[:]
+    for i in xrange(samp.shape[0]):
+        frame = align[neigh[i, 0], :3].copy()
+        nn = neigh[i, 1:].copy()
+        numpy.random.shuffle(nn)
+        for j in nn[:sample_size]:
+            euler = rotate.rotate_euler(frame, align[j, :3].copy())
+            img = rotate.rotate_image(samp[j], -(euler[0]+euler[2]))
+            avgsamp[i]+=img
+    return avgsamp
+
+def generate_reference_projections(label, align, ang_order, **extra):
+    '''
+    '''
+    
+    vol = reconstruct_volume(label, align, **extra)
+    angs = healpix.angles(ang_order, True)
+    thread_count = max(extra.get('worker_count', 0), extra.get('thread_count', 0))
+    return reproject.reproject_3q_mp(vol, vol.shape[0]/2, angs, thread_count=thread_count), angs
 
 def reconstruct_volume(label, align, worker_count, output, **extra):
     ''' Reconstruct a volume from the label and alignment parameters
@@ -812,7 +888,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", scale=0.0,                 help="Scale the distance matrix using the RBF kernel")
     group.add_option("", scale_range=[-8.0,8.0,100],help="Range to search for scale")
     group.add_option("", local_neighbors=0,         help="Generate references from local neighborhood averaging")
+    group.add_option("", local_sample=0,            help="Subsample the local neighbors")
     group.add_option("", batch=0,                   help="Size of image batch to process in parallel")
+    group.add_option("", all_views=False,           help="Generate all reference views")
     
     
     pgroup.add_option_group(group)
