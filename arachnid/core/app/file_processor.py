@@ -162,8 +162,8 @@ def main(files, module, **extra):
     '''
     
     
-    if param['worker_count'] > multiprocessing.cpu_count():
-        _logger.warn("Number of workers exceeds number of cores: %d > %d"%(param['worker_count'], multiprocessing.cpu_count()))
+    if extra['worker_count'] > multiprocessing.cpu_count():
+        _logger.warn("Number of workers exceeds number of cores: %d > %d"%(extra['worker_count'], multiprocessing.cpu_count()))
     
     _logger.debug("File processer - begin")
     process, initialize, finalize, reduce_all, init_process, init_root = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None), getattr(module, "init_root", None)
