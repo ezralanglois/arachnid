@@ -91,3 +91,55 @@ class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
         
         return len(self._data[0]) if self._data is not None and len(self._data) > 0 else 0
     
+
+class CheckListTableModel(ListTableModel):
+    '''
+    '''
+    
+
+    def __init__(self, data,header, parent=None):
+        '''
+        '''
+        
+        ListTableModel.__init__(self, data, header, parent)
+        self.checked = set()
+        if len(data) > 0:
+            for i in xrange(len(data[0])): 
+                if isinstance(data[0][i], QtCore.Qt.CheckState):
+                    self.checked.add(i)
+    
+    def setData(self, index, value, role=QtCore.Qt.DisplayRole):
+        '''
+        '''
+        
+        if not index.isValid(): return False
+        
+        if role == QtCore.Qt.CheckStateRole and not index.column() in self.checked: print 'here - bad'
+        if role == QtCore.Qt.CheckStateRole:
+            self._data[index.row()][index.column()] = value
+        return False
+    
+    def data(self, index, role = QtCore.Qt.DisplayRole):
+        ''' Returns the data stored under the given role for the item referred to by the index
+        
+        :Parameters:
+        
+        index : QModelIndex
+                Index of a model item
+        role : enum
+               Data role
+        
+        :Returns:
+        
+        val : object
+              Data object
+        '''
+        
+        if not index.isValid(): return None
+        if index.column() in self.checked:
+            if role == QtCore.Qt.CheckStateRole:
+                return self._data[index.row()][index.column()]
+            elif role == QtCore.Qt.DisplayRole:
+                return None
+        return ListTableModel.data(self, index, role)
+

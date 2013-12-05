@@ -71,6 +71,10 @@ class Widget(QtGui.QWidget):
            self.login.get('leginonDB', None) == leginonDB and \
            self.login.get('projectDB', None) == projectDB and \
            self.login.get('password', None) == password: return 
+        self.login['username']=username
+        self.login['leginonDB']=leginonDB
+        self.login['projectDB']=projectDB
+        self.login['password']=password
         #alternteUser = self.ui.alternateUserLineEdit.text()
         try:
             user = leginondb.projects_for_user(username, password, leginonDB, projectDB)#, alternteUser)
