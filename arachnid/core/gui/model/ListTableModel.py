@@ -2,6 +2,8 @@
 .. Created on Dec 4, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..util.qt4_loader import QtCore
+
 class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
     '''
     '''
