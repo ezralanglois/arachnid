@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/LeginonUI.ui'
 #
-# Created: Thu Dec  5 15:33:23 2013
+# Created: Thu Dec  5 15:48:50 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -31,6 +31,7 @@ class Ui_Form(object):
         self.welcomePage = QtGui.QWidget()
         self.welcomePage.setObjectName("welcomePage")
         self.formLayout = QtGui.QFormLayout(self.welcomePage)
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
         self.formLayout.setObjectName("formLayout")
         self.label = QtGui.QLabel(self.welcomePage)
         font = QtGui.QFont()
@@ -47,6 +48,7 @@ class Ui_Form(object):
         self.loginPage = QtGui.QWidget()
         self.loginPage.setObjectName("loginPage")
         self.formLayout_2 = QtGui.QFormLayout(self.loginPage)
+        self.formLayout_2.setContentsMargins(0, 0, 0, 3)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label_2 = QtGui.QLabel(self.loginPage)
         self.label_2.setObjectName("label_2")
@@ -76,6 +78,11 @@ class Ui_Form(object):
         self.loginStackedWidget.addWidget(self.loginPage)
         self.verticalLayout_2.addWidget(self.loginStackedWidget)
         self.projectTableView = QtGui.QTableView(self.widget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(2)
+        sizePolicy.setHeightForWidth(self.projectTableView.sizePolicy().hasHeightForWidth())
+        self.projectTableView.setSizePolicy(sizePolicy)
         self.projectTableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.projectTableView.setProperty("showDropIndicator", False)
         self.projectTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
@@ -84,7 +91,7 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.widget)
 
         self.retranslateUi(Form)
-        self.loginStackedWidget.setCurrentIndex(0)
+        self.loginStackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):

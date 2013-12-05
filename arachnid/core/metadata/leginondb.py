@@ -12,7 +12,7 @@ necessary to process the data.
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker #scoped_session
 from sqlalchemy.orm import relationship, column_property
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime, desc, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, desc, Float
 from sqlalchemy import select, and_
 import sqlalchemy
 import logging

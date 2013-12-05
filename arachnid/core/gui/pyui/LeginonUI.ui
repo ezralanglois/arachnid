@@ -29,10 +29,13 @@
       <item>
        <widget class="QStackedWidget" name="loginStackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="welcomePage">
          <layout class="QFormLayout" name="formLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item row="2" column="0">
            <widget class="QLabel" name="label">
             <property name="font">
@@ -60,6 +63,18 @@
         </widget>
         <widget class="QWidget" name="loginPage">
          <layout class="QFormLayout" name="formLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
@@ -110,6 +125,12 @@
       </item>
       <item>
        <widget class="QTableView" name="projectTableView">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>2</verstretch>
+         </sizepolicy>
+        </property>
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
