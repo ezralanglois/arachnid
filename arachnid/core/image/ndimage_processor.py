@@ -129,6 +129,10 @@ def write_matrix_to_cache(cache_file, mat):
           Matrix to cache
     '''
     
+    pathname = os.path.dirname(cache_file)
+    if pathname != "" and pathname != "." and not os.path.exists(pathname):
+        os.makedirs(pathname)
+    
     h = numpy.zeros(1, _cache_header)
     h['magic'] = 'CACHEFORM'
     h['dtype']=mat.dtype.str[:2]
