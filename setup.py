@@ -388,7 +388,7 @@ if __name__ == '__main__':
             extras_require = {
             'MPI': 'mpi4py>=1.2.2',
             'plot': 'matplotlib>=1.1.0',
-            'database': 'sqlalchemy>=0.8.2',
+            'database': ['sqlalchemy>=0.8.2', 'mysql-python'],
             'Image': 'PIL>=1.1.7',
             'Qt4' : ['PySide'],
             },
