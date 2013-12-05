@@ -35,6 +35,7 @@ class Widget(QtGui.QWidget):
         _logger.info("\rBuilding main window ...")
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+        self.login={}
     
     @qtSlot()
     def on_changeUserPushButton_clicked(self):
@@ -61,29 +62,39 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
+        
         username = self.ui.usernameLineEdit.text()
         password = self.ui.passwordLineEdit.text()
         leginonDB = self.ui.leginonDBLineEdit.text()
         projectDB = self.ui.projectDBLineEdit.text()
-        alternteUser = self.ui.alternateUserLineEdit.text()
+        if self.login.get('username', None) == username and \
+           self.login.get('leginonDB', None) == leginonDB and \
+           self.login.get('projectDB', None) == projectDB and \
+           self.login.get('password', None) == password: return 
+        #alternteUser = self.ui.alternateUserLineEdit.text()
         try:
-            user = leginondb.projects_for_user(username, password, leginonDB, projectDB, alternteUser)
+            user = leginondb.projects_for_user(username, password, leginonDB, projectDB)#, alternteUser)
         except:
             _logger.exception("Error accessing project")
             self.ui.loginStackedWidget.setCurrentIndex(1)
         else:
-            sessions = user.projects[0].sessions
+            experiments = []#user.projects[0].experiments
+            for i in xrange(len(user.projects)):
+                experiments.extend(user.projects[i].experiments)
             header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
             data = []
-            for session in sessions[:3]:
+            for exp in experiments:
+                session = exp.session
                 project=session.projects[0]
                 if len(session.exposures) == 0: continue
+                #if session.scope.instrument is None: continue
                 voltage = session.scope.voltage/1000
-                cs = session.scope.instrument.cs*1e3
+                cs = session.scope.instrument.cs*1e3 if session.scope.instrument is not None else -1.0
                 magnification = session.exposures[0].scope.magnification
                 pixel_size = session.exposures[0].pixelsize*1e10
                 data.append( (session.name, project.name, len(session.exposures), voltage, pixel_size, magnification, cs))
             self.ui.projectTableView.setModel(ListTableModel(data, header))
+            self.ui.label.setText("Welcome "+str(user.fullname))
     
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -127,7 +138,7 @@ class Widget(QtGui.QWidget):
         self.ui.projectDBLineEdit.setText(settings.value('projectDB'))
         self.ui.usernameLineEdit.setText(settings.value('username'))
         self.ui.passwordLineEdit.setText(settings.value('password'))
-        self.ui.alternateUserLineEdit.setText(settings.value('alternate-user'))
+        #self.ui.alternateUserLineEdit.setText(settings.value('alternate-user'))
         settings.endGroup()
         
     def writeSettings(self):
@@ -140,6 +151,6 @@ class Widget(QtGui.QWidget):
         settings.setValue('projectDB', self.ui.projectDBLineEdit.text())
         settings.setValue('username', self.ui.usernameLineEdit.text())
         settings.setValue('password', self.ui.passwordLineEdit.text())
-        settings.setValue('alternate-user', self.ui.alternateUserLineEdit.text())
+        #settings.setValue('alternate-user', self.ui.alternateUserLineEdit.text())
         settings.endGroup()
 

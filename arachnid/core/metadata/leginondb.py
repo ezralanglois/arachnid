@@ -26,54 +26,29 @@ while len(_sa_logger.handlers) > 0: _sa_logger.removeHandler(_sa_logger.handlers
 _sa_logger.setLevel(logging.ERROR)
 
 Base = declarative_base()
-
-
-
-if 1 == 0:
-    project_session_table = Table('projectexperiments', Base.metadata,
-        Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id')),
-        Column('REF|leginondata|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
-    )
-    project_session_table.__bind_key__='projectdb'
     
-    project_user_table = Table('projectowners', Base.metadata,
-        Column('REF|leginondata|UserData|user', Integer, ForeignKey('UserData.DEF_id')),
-        Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id'))
-    )
-    project_user_table.__bind_key__='projectdb'
-else:
-    
-    class ProjectOwners(Base):
-        '''
-        '''
-        __bind_key__ = 'projectdb'
-        __tablename__='projectowners'
-        
-        id = Column('DEF_id', Integer, primary_key=True)
-        user_id = Column('REF|leginondata|UserData|user', Integer, ForeignKey('UserData.DEF_id'))
-        project_id = Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id'))
-    
-    class ProjectExperiments(Base):
-        '''
-        '''
-        __bind_key__ = 'projectdb'
-        __tablename__='projectexperiments'
-        
-        id = Column('DEF_id', Integer, primary_key=True)
-        project_id = Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id'))
-        session_id = Column('REF|leginondata|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
-
-class User(Base):
+class ProjectOwners(Base):
     '''
     '''
-    __bind_key__ = 'leginondb'
-    __tablename__='UserData'
+    __bind_key__ = 'projectdb'
+    __tablename__='projectowners'
     
-    username = Column('username', String)
     id = Column('DEF_id', Integer, primary_key=True)
-    projects = relationship("Projects", secondary=ProjectOwners.__table__)#project_user_table)
-    sessions = relationship("Session", order_by=lambda: desc(Session.timestamp))
-    #allsessions = relationship("Session", primaryjoin="and_(User.id==ProjectOwners.user_id, ProjectOwners.project_id==ProjectExperiments.project_id, Session.id==ProjectExperiments.session_id)", secondary=ProjectOwners.__table__, order_by=lambda: desc(Session.timestamp))
+    user_id = Column('REF|leginondata|UserData|user', Integer, ForeignKey('UserData.DEF_id'))
+    project_id = Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id'))
+
+class ProjectExperiments(Base):
+    '''
+    '''
+    __bind_key__ = 'projectdb'
+    __tablename__='projectexperiments'
+    
+    id = Column('DEF_id', Integer, primary_key=True)
+    project_id = Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id'))
+    session_id = Column('REF|leginondata|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
+    
+    session = relationship('Session', backref='experiments', primaryjoin='ProjectExperiments.session_id==Session.id', order_by=lambda: desc(Session.timestamp))
+    project = relationship('Projects', backref="experiments", primaryjoin='ProjectExperiments.project_id==Projects.id', order_by=lambda: desc(Projects.timestamp))
 
 class Projects(Base):
     '''
@@ -85,8 +60,24 @@ class Projects(Base):
     name = Column('name', String)
     timestamp = Column('DEF_timestamp', DateTime)
     #sessions = relationship("ProjectExperiments")  # - Workaround
-    sessions = relationship("Session", secondary=ProjectExperiments.__table__) # - Bug? assumes secondary is on other database
+    #sessions = relationship("Session", secondary=ProjectExperiments.__table__) # - Bug? assumes secondary is on other database
+
+class User(Base):
+    '''
+    '''
+    __bind_key__ = 'leginondb'
+    __tablename__='UserData'
     
+    username = Column('username', String)
+    id = Column('DEF_id', Integer, primary_key=True)
+    projects = relationship("Projects", secondary=ProjectOwners.__table__)#project_user_table)
+    sessions = relationship("Session", order_by=lambda: desc(Session.timestamp))
+    firstname = Column('firstname', String)
+    lastname = Column('lastname', String)
+    fullname = column_property(firstname + " " + lastname)
+    #allsessions = relationship("Session", primaryjoin="and_(User.id==ProjectOwners.user_id, ProjectOwners.project_id==ProjectExperiments.project_id, Session.id==ProjectExperiments.session_id)", secondary=ProjectOwners.__table__, order_by=lambda: desc(Session.timestamp))
+
+
 class Session(Base):
     __bind_key__ = 'leginondb'
     __tablename__='SessionData'
@@ -98,11 +89,12 @@ class Session(Base):
     imagefilter = relationship("ImageData", lazy="dynamic")
     timestamp = Column('DEF_timestamp', DateTime)
     user = Column('REF|UserData|user', Integer, ForeignKey('UserData.DEF_id'))
-    projects = relationship("Projects", secondary=ProjectExperiments.__table__)#project_session_table)
+    projects = relationship("Projects", secondary=ProjectExperiments.__table__)#, backref='sessions')#project_session_table)
     instrument_id = Column('REF|InstrumentData|instrument', Integer, ForeignKey('InstrumentData.DEF_id'))
     instrument = relationship("Instrument", uselist=False)
     scope = relationship("ScopeEM", uselist=False)
     camera = relationship("CameraEM", uselist=False)
+    
 
 class ScopeEM(Base):
     __bind_key__ = 'leginondb'
@@ -126,7 +118,6 @@ class PixelSizeCalibration(Base):
     camera_id=Column('REF|InstrumentData|ccdcamera', Integer, ForeignKey('CameraEMData.REF|InstrumentData|ccdcamera'))
     instrument_id=Column('REF|InstrumentData|tem', Integer)#, ForeignKey('ImageData.REF|ScopeEMData|scope'))
     #session = relationship("PixelSizeCalibration", uselist=False, backref='calibration')
-
 
 class CameraEM(Base):
     __bind_key__ = 'leginondb'
@@ -161,8 +152,6 @@ class ImageData(Base):
                                                                                     camera_id==CameraEM.id,
                                                                                     CameraEM.instrument_id==PixelSizeCalibration.camera_id,  #All
                                                                                     ScopeEM.instrument_id==PixelSizeCalibration.instrument_id)).limit(1))
-    #calibration = relationship('PixelSizeCalibration', secondary=ScopeEM.__table__, uselist=True)
-
     
 class Instrument(Base):
     __bind_key__ = 'leginondb'
@@ -170,14 +159,6 @@ class Instrument(Base):
     
     id = Column('DEF_id', Integer, primary_key=True)
     cs = Column('cs', Float)
-    pixel_size = Column('camera pixel size', Float)
-    #calibration = relationship("PixelSizeCalibration", uselist=False)
-
-def find_exposures(session):
-    '''
-    '''
-    
-    return session.imagefilter.filter(ImageData.label=='Exposure') #filter(ImageData.filename=='13jul06a_40S-DHX-GMPPNP-eIF3_00013gr_00217sq_00002hl_00003en')
 
 def projects_for_user(username, password, leginondb='leginondb', projectdb='projectdb', alternate_user=None):
     '''
