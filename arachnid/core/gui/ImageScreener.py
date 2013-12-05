@@ -29,6 +29,7 @@ class MainWindow(ImageViewerWindow):
         
         ImageViewerWindow.__init__(self, parent)
         self.inifile = 'ara_screen.ini'
+        self.settings_group = 'ImageScreener'
         
         # Load the settings
         _logger.info("\rLoading settings ...")

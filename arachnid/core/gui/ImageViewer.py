@@ -50,6 +50,7 @@ class MainWindow(QtGui.QMainWindow):
         self.color_level = None
         self.base_level = None
         self.inifile = '' #'ara_view.ini'
+        self.settings_group = 'ImageViewer'
         
         # Image View
         self.imageListModel = QtGui.QStandardItemModel(self)
@@ -516,7 +517,8 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         if self.inifile == "": return None
-        return QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+        settings = QtCore.QSettings(self.inifile, QtCore.QSettings.IniFormat)
+        return settings
     
     def saveReadOnly(self):
         '''
@@ -550,10 +552,12 @@ class MainWindow(QtGui.QMainWindow):
         self.saveReadOnly()
         settings = self.getSettings()
         if settings is None: return
+        settings.beginGroup(self.settings_group)
         settings.setValue('main_window/geometry', self.saveGeometry())
         settings.setValue('main_window/windowState', self.saveState())
         settings.beginGroup('Advanced')
         self.ui.advancedSettingsTreeView.model().saveState(settings)
+        settings.endGroup()
         settings.endGroup()
         
     def loadSettings(self):
@@ -562,14 +566,15 @@ class MainWindow(QtGui.QMainWindow):
         
         settings = self.getSettings()
         if settings is None: return
+        settings.beginGroup(self.settings_group)
         self.restoreGeometry(settings.value('main_window/geometry'))
         self.restoreState(settings.value('main_window/windowState'))
         settings.beginGroup('Advanced')
         self.ui.advancedSettingsTreeView.model().restoreState(settings) #@todo - does not work!
         settings.endGroup()
         self.loadReadOnly()
-        
-        
+        settings.endGroup()
+
 def read_image(filename, index=None):
     '''
     '''
