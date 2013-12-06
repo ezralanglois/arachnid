@@ -1,6 +1,6 @@
 ''' pyHEALPix Library
 
-It works with Euler angles in the ZYZ convention.
+It works with Euler angles in the ZYZ rotating frame convention where (PSI,THETA,PHI).
 
 Resolution     nside       total    theta      half sphere (equator)  half sphere  half sphere sum
 ----------     -----       -----    -----      ---------------------  -----------  ---------------
@@ -25,22 +25,35 @@ _logger.setLevel(logging.DEBUG)
 try:
     from core import _healpix
     _healpix;
-    '''
-    from _healpix import pix2ang_nest, \
-                                  pix2ang_ring, \
-                                  ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside
-    pix2ang_nest, pix2ang_ring, ang2pix_nest, ang2pix_ring, ring2nest, nest2ring, nside2npix, npix2nside;
-    '''
 except:
-    _logger.addHandler(logging.StreamHandler())
-    _logger.exception("failed to import _healpix")
-    #import core
+    #_logger.addHandler(logging.StreamHandler())
+    #_logger.exception("failed to import _healpix")
     from ..app import tracing
     tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
 
 
 def ensure_valid_deg(theta, phi, half=False):
-    '''
+    ''' Ensure the theta and phi fall in the appropriate range
+    
+    Assumes Theta and PHI are in the ZYZ rotating frame where
+    (PSI,THETA,PHI), respectively.
+    
+    :Parameters:
+    
+    theta : float
+            Theta in ZYZ rotating frame
+    phi : float
+            Phi in ZYZ rotating frame
+    half : bool
+           Mirror THETA (and possibly PHI) to
+           half sphere coordinates
+    
+    :Returns:
+    
+    theta : float
+            Theta in proper range (possibly mirrored)
+    phi : float
+            Phi in proper range (possibly mirrored)
     '''
     
     theta = pmod(theta, 180.0)
@@ -51,7 +64,8 @@ def ensure_valid_deg(theta, phi, half=False):
 def mirror_so2_deg(theta, phi):
     ''' Mirror the angles of a projection
     
-    Assumes Euler ZYZ in degrees, psi,theta,phi
+    Assumes Theta and PHI are in the ZYZ rotating frame where
+    (PSI,THETA,PHI), respectively.
     
     :Parameters:
     
@@ -81,21 +95,22 @@ def mirror_so2_deg(theta, phi):
 def mirror_so2(theta, phi):
     ''' Mirror the angles of a projection
     
-    Assumes Euler ZYZ in radians, psi,theta,phi
+    Assumes Theta and PHI are in the ZYZ rotating frame where
+    (PSI,THETA,PHI), respectively.
     
     :Parameters:
     
     theta : float
-            Longitude 0 <= theta <= 180.0
+            Longitude 0 <= theta <= PI
     phi : float
-            Latitude 0 <= theta <= 360.0
+            Latitude 0 <= phi <= 2PI
             
     :Returns:
     
     theta : float
-            Longitude 0 <= theta <= 90.0
+            Longitude 0 <= theta <= PI/2
     phi : float
-            Latitude 0 <= theta <= 360.0
+            Latitude 0 <= phi <= 2PI
     
     '''
     
@@ -107,7 +122,40 @@ def mirror_so2(theta, phi):
     return theta, phi
 
 def angles(resolution, half=False, out=None):
-    '''
+    ''' Generate a list of angles on SO(2) using HEALPix
+    
+    Assumes Theta and PHI are in the ZYZ rotating frame where
+    (PSI,THETA,PHI), respectively.
+    
+    >>> from arachnid.core.orient.healpix import *
+    >>> angles(1)
+    [[   0.           23.55646431   45.        ]
+     [   0.           23.55646431  135.        ]
+     ...
+     
+    >>> len(angles(1))
+    48
+    >>> len(angles(1, True))
+    20
+     
+    >>> angles(1, out=numpy.zeros((1,3))
+    [[   0.           23.55646431   45.        ]]
+    
+    :Parameters:
+    
+    resolution : int
+                 Healpix resolution or sampling rate on the sphere
+    half : bool
+           Sample only from the half sphere (not equater projections)
+    out : array, optional
+          A nx3 array of angles on SO(2) (psi,theta,phi), where psi
+          zero
+    
+    :Returns:
+    
+    out : array
+          A nx3 array of angles on SO(2) (psi,theta,phi), where psi
+          zero
     '''
     
     nsample = pow(2, resolution)
@@ -121,20 +169,64 @@ def angles(resolution, half=False, out=None):
     return out
     
 def angles_gen(resolution, deg=False, half=False):
-    '''
+    ''' Generator that lists angles on SO(2) using HEALPix
+    
+    Assumes Theta and PHI are in the ZYZ rotating frame where
+    (PSI,THETA,PHI), respectively.
+    
+    >>> from arachnid.core.orient.healpix import *
+    >>> [a for a in angles_gen(1)]
+    [[   0.           23.55646431   45.        ]
+     [   0.           23.55646431  135.        ]
+     ...
+    
+    :Parameters:
+    
+    resolution : int
+                 Sampling resolution 
+    deg : bool
+          Convert radians to degrees
+    half : bool
+           From half sphere (no equator)
+    
+    :Returns:
+    
+    array : array
+            A 1x3 array of angles on SO(2) (psi,theta,phi), where psi
+            zero
     '''
     
     nsample = pow(2, resolution)
     npix = 12*nsample*nsample if not half else 6*nsample*nsample - nsample*2
     ang = numpy.zeros(2)
     for i in xrange(npix):
-        if deg:
-            yield numpy.rad2deg(_healpix.pix2ang_ring(nsample, i, ang))
-        else:
-            yield _healpix.pix2ang_ring(nsample, i, ang)
+        ang = _healpix.pix2ang_ring(nsample, i, ang)
+        yield numpy.rad2deg(ang) if deg else ang
 
 def res2npix(resolution, half=False, equator=False):
-    '''
+    ''' Get the number of pixels for a given resolution
+    
+    >>> from arachnid.core.orient.healpix import *
+    >>> res2npix(1)
+    48
+    >>> res2npix(1, True)
+    20
+    >>> res2npix(1, True, True)
+    28
+    
+    :Parameters:
+    
+    resolution : int
+                 Sampling resolution 
+    half : bool
+           From half sphere
+    equator : bool
+             Include equator pixels
+    
+    :Returns:
+    
+    npix : int
+           Number of pixels for a given resolution
     '''
     
     nsample = pow(2, resolution)
@@ -167,11 +259,11 @@ def nside2pixarea(resolution, degrees=False):
 
     Examples:
     
-    >>> import healpy as hpy
-    >>> hpy.nside2pixarea(128, degrees = True)
+    >>> from arachnid.core.orient.healpix import *
+    >>> nside2pixarea(128, degrees = True)
     0.2098234113027917
 
-    >>> hpy.nside2pixarea(256)
+    >>> nside2pixarea(256)
     1.5978966540475428e-05
 
     :Parameters:
