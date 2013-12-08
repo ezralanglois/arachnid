@@ -22,14 +22,12 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 _sa_logger=logging.getLogger('sqlalchemy')
-while len(_sa_logger.handlers) > 0: _sa_logger.removeHandler(_sa_logger.handlers[0])
+#while len(_sa_logger.handlers) > 0: _sa_logger.removeHandler(_sa_logger.handlers[0])
 _sa_logger.setLevel(logging.ERROR)
 
 Base = declarative_base()
     
 class ProjectOwners(Base):
-    '''
-    '''
     __bind_key__ = 'projectdb'
     __tablename__='projectowners'
     
@@ -38,8 +36,6 @@ class ProjectOwners(Base):
     project_id = Column('REF|projects|project', Integer, ForeignKey('projects.DEF_id'))
 
 class ProjectExperiments(Base):
-    '''
-    '''
     __bind_key__ = 'projectdb'
     __tablename__='projectexperiments'
     
@@ -51,8 +47,6 @@ class ProjectExperiments(Base):
     project = relationship('Projects', backref="experiments", primaryjoin='ProjectExperiments.project_id==Projects.id', order_by=lambda: desc(Projects.timestamp))
 
 class Projects(Base):
-    '''
-    '''
     __bind_key__ = 'projectdb'
     __tablename__='projects'
     
@@ -63,14 +57,12 @@ class Projects(Base):
     #sessions = relationship("Session", secondary=ProjectExperiments.__table__) # - Bug? assumes secondary is on other database
 
 class User(Base):
-    '''
-    '''
     __bind_key__ = 'leginondb'
     __tablename__='UserData'
     
     username = Column('username', String)
     id = Column('DEF_id', Integer, primary_key=True)
-    projects = relationship("Projects", secondary=ProjectOwners.__table__)#project_user_table)
+    projects = relationship("Projects", secondary=ProjectOwners.__table__, order_by=lambda: desc(Projects.timestamp))#project_user_table)
     sessions = relationship("Session", order_by=lambda: desc(Session.timestamp))
     firstname = Column('firstname', String)
     lastname = Column('lastname', String)
@@ -128,6 +120,14 @@ class CameraEM(Base):
     pixel_sizey = Column('SUBD|pixel size|y', Float)
     session_id = Column('REF|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
     instrument_id = Column('REF|InstrumentData|ccdcamera', Integer, ForeignKey('PixelSizeCalibrationData.REF|InstrumentData|ccdcamera'))
+
+class NormImage(Base):
+    __bind_key__ = 'leginondb'
+    __tablename__='NormImageData'
+    
+    id = Column('DEF_id', Integer, primary_key=True)
+    filename = Column('filename', String)
+    mrcimage = Column('MRC|image', String)
     #calibration = relationship("PixelSizeCalibration", uselist=False)
 
 class ImageData(Base):
@@ -140,11 +140,16 @@ class ImageData(Base):
     timestamp = Column('DEF_timestamp', DateTime)
     scope_id = Column('REF|ScopeEMData|scope', Integer, ForeignKey('ScopeEMData.DEF_id'))
     camera_id = Column('REF|CameraEMData|camera', Integer, ForeignKey('CameraEMData.DEF_id'))
+    norm_id = Column('REF|NormImageData|norm', Integer, ForeignKey('NormImageData.DEF_id'))
     filename = Column('filename', String)
+    mrcimage = Column('MRC|image', String)
     label = Column('label', String)
+    frame_list = Column('SEQ|use frames', Integer)
     scope = relationship("ScopeEM", uselist=False)
     camera = relationship("CameraEM", uselist=False)
     #pixeltype = Column('pixeltype', Float) - numpy.dtype
+    norm_filename = column_property(select([NormImage.filename]).where(norm_id==NormImage.id))
+    norm_mrcimage = column_property(select([NormImage.mrcimage]).where(norm_id==NormImage.id))
     magnification = column_property(select([ScopeEM.magnification]).where(scope_id==ScopeEM.id))
     pixelsize = column_property(select([PixelSizeCalibration.pixelsize]).where(
                                                                                and_(ScopeEM.magnification==PixelSizeCalibration.magnification, 
@@ -152,7 +157,6 @@ class ImageData(Base):
                                                                                     camera_id==CameraEM.id,
                                                                                     CameraEM.instrument_id==PixelSizeCalibration.camera_id,  #All
                                                                                     ScopeEM.instrument_id==PixelSizeCalibration.instrument_id)).limit(1))
-    
 class Instrument(Base):
     __bind_key__ = 'leginondb'
     __tablename__='InstrumentData'
@@ -160,8 +164,25 @@ class Instrument(Base):
     id = Column('DEF_id', Integer, primary_key=True)
     cs = Column('cs', Float)
 
-def projects_for_user(username, password, leginondb='leginondb', projectdb='projectdb', alternate_user=None):
-    '''
+def query_user_info(username, password, leginondb, projectdb):
+    ''' Get the user relational object to access the Leginon
+    
+    :Parameters:
+    
+    username : str
+               Username 
+    password : str
+               Password
+    leginondb : str
+                Host/path to Leginon database, e.g. 111.222.32.143/leginondb
+    projectdb  : str
+                Host/path to Leginon Project database, e.g. 111.222.32.143/projectdb
+    
+    :Returns:
+    
+    user : User
+           Relational user object that accesses 
+           information from the database
     '''
     
     leginondb;projectdb;password; # pyflakes hack
@@ -171,8 +192,7 @@ def projects_for_user(username, password, leginondb='leginondb', projectdb='proj
     binds = dict([(v, local_vars[getattr(v, '__bind_key__')])for v in sys.modules[__name__].__dict__.values() if hasattr(v, '__bind_key__')])
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
     db_session = SessionDB(binds=binds)
-    if not alternate_user: alternate_user = username
-    rs = db_session.query(User).filter(User.username==alternate_user).all()
+    rs = db_session.query(User).filter(User.username==username).all()
     if len(rs) > 0: return rs[0]
     return []
 
