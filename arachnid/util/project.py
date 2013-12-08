@@ -51,9 +51,10 @@ The workflow runs the following scripts in order:
     #. project
     #. enumerate_files  (optional)
     #. reference (optional)
-    #. align_frames  (optional)
+    #. micrograph_alignment  (optional)
     #. Defocus
     #. AutoPick
+    #. particle_alignment    (optional)
     #. Crop
     #. Refine
     #. ViCer
@@ -270,18 +271,18 @@ def setup_options(parser, pgroup=None, main_option=False):
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
-    pgroup.add_option("-g", gain_reference="",  help="Gain reference image for movie mode - optional", gui=dict(filetype="open"), required=False)
+    pgroup.add_option("-g", gain_reference="",  help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("", is_film=False,        help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, Angstroms", gui=dict(minimum=0.0, decimals=4, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0.0, singleStep=1.0), required=True)
-    pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
     pgroup.add_option("", window=0,             help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
+    pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
     pgroup.add_option("", mask_diameter=0,      help="Set the mask diameter: 0 means use 1.15*particle_diamater", gui=dict(minimum=0))
     
-    addgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
-    addgroup.add_option("-w", worker_count=1,    help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
-    addgroup.add_option("-t", thread_count=1, help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
+    addgroup = OptionGroup(parser, "Parallel", "Options for parallel processing")
+    addgroup.add_option("-w", worker_count=1,  help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
+    addgroup.add_option("-t", thread_count=1,  help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
     pgroup.add_option_group(addgroup)
     
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
