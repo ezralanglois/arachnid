@@ -1,4 +1,8 @@
 '''
+
+.. todo:: Use background task rather than timer?
+
+
 .. Created on Dec 4, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -7,10 +11,8 @@ from pyui.LeginonUI import Ui_Form
 from util.qt4_loader import QtGui,QtCore,qtSlot
 from model.ListTableModel import ListTableModel
 from ..metadata import leginondb
+import multiprocessing
 import logging
-
-print "Handelers", len(logging.getLogger('sqlalchemy').handlers)
-print "Handelers2", len(logging.getLogger('sqlalchemy.engine').handlers)
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -24,18 +26,25 @@ class Widget(QtGui.QWidget):
         
         QtGui.QWidget.__init__(self, parent)
         
-        root = logging.getLogger()
-        while len(root.handlers) > 0: root.removeHandler(root.handlers[0])
-        h = logging.StreamHandler()
-        h.setFormatter(logging.Formatter('%(message)s'))
-        h.setLevel(logging.INFO)
-        root.addHandler(h)
-        
         # Build window
         _logger.info("\rBuilding main window ...")
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.login={}
+        
+        self.ui.progressDialog = QtGui.QProgressDialog('Loading...', "", 0,5,self)
+        self.ui.progressDialog.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.ui.progressDialog.findChildren(QtGui.QPushButton)[0].hide()
+        #self.ui.progressDialog.setCancelButton(0) # might work
+        #self.ui.progressDialog.setWindowFlags(self.ui.progressDialog.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint) #v5s
+        self.ui.progressDialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
+        
+        self.ui.loadTimer = QtCore.QTimer(self)
+        self.ui.loadTimer.setInterval(500)
+        self.ui.loadTimer.setSingleShot(False)
+        self.ui.loadTimer.timeout.connect(self.on_loadTimer_timeout)
+        self.header=None
+        self.data=None
     
     @qtSlot()
     def on_changeUserPushButton_clicked(self):
@@ -57,11 +66,34 @@ class Widget(QtGui.QWidget):
         '''
         
         if index == 0: self.queryDatabase()
+        
+    def on_loadTimer_timeout(self):
+        '''
+        '''
+        
+        if self.qout is None: self.ui.loadTimer.stop()
+        if self.data is None: self.data=[]
+        while not self.qout.empty():
+            try:
+                val = self.qout.get(False)
+            except multiprocessing.Queue.Empty:
+                break
+            if val is None:
+                self.ui.loadTimer.stop()
+                self.ui.projectTableView.setModel(ListTableModel(self.data, self.header))
+                self.data=None
+                self.header=None
+                self.ui.progressDialog.hide()
+                # check file locations
+            elif not hasattr(val, '__iter__'):
+                self.ui.progressDialog.setMaximum(val)
+            else:
+                self.data.append(val)
+                self.ui.progressDialog.setValue(len(self.data))
     
     def queryDatabase(self):
         '''
         '''
-        
         
         username = self.ui.usernameLineEdit.text()
         password = self.ui.passwordLineEdit.text()
@@ -77,28 +109,18 @@ class Widget(QtGui.QWidget):
         self.login['password']=password
         #alternteUser = self.ui.alternateUserLineEdit.text()
         try:
-            user = leginondb.projects_for_user(username, password, leginonDB, projectDB)#, alternteUser)
+            user = leginondb.query_user_info(username, password, leginonDB, projectDB)#, alternteUser)
         except:
             _logger.exception("Error accessing project")
             self.ui.loginStackedWidget.setCurrentIndex(1)
         else:
-            experiments = []#user.projects[0].experiments
-            for i in xrange(len(user.projects)):
-                experiments.extend(user.projects[i].experiments)
-            header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
-            data = []
-            for exp in experiments:
-                session = exp.session
-                project=session.projects[0]
-                if len(session.exposures) == 0: continue
-                #if session.scope.instrument is None: continue
-                voltage = session.scope.voltage/1000
-                cs = session.scope.instrument.cs*1e3 if session.scope.instrument is not None else -1.0
-                magnification = session.exposures[0].scope.magnification
-                pixel_size = session.exposures[0].pixelsize*1e10
-                data.append( (session.name, project.name, len(session.exposures), voltage, pixel_size, magnification, cs))
-            self.ui.projectTableView.setModel(ListTableModel(data, header))
+            self.ui.progressDialog.show()
             self.ui.label.setText("Welcome "+str(user.fullname))
+            self.header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
+            self.data=[]
+            self.qout = load_projects(user)
+            self.ui.loadTimer.start()
+            self.ui.progressDialog.setValue(0)
     
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -142,6 +164,8 @@ class Widget(QtGui.QWidget):
         self.ui.projectDBLineEdit.setText(settings.value('projectDB'))
         self.ui.usernameLineEdit.setText(settings.value('username'))
         self.ui.passwordLineEdit.setText(settings.value('password'))
+        self.ui.imagesPathLineEdit.setText(settings.value('imagespath'))
+        self.ui.framesPathLineEdit.setText(settings.value('framespath'))
         #self.ui.alternateUserLineEdit.setText(settings.value('alternate-user'))
         settings.endGroup()
         
@@ -155,6 +179,48 @@ class Widget(QtGui.QWidget):
         settings.setValue('projectDB', self.ui.projectDBLineEdit.text())
         settings.setValue('username', self.ui.usernameLineEdit.text())
         settings.setValue('password', self.ui.passwordLineEdit.text())
+        settings.setValue('imagespath', self.ui.imagesPathLineEdit.text())
+        settings.setValue('framespath', self.ui.framesPathLineEdit.text())
         #settings.setValue('alternate-user', self.ui.alternateUserLineEdit.text())
         settings.endGroup()
 
+def load_projects(user):
+    '''
+    '''
+    
+    qout = multiprocessing.Queue()
+    displayProcess = multiprocessing.Process(target=load_projects_worker, args=(user, qout))
+    displayProcess.start()
+    return qout
+
+def load_projects_worker(user, qout):
+    '''
+    '''
+    
+    try:
+        experiments = []#user.projects[0].experiments
+        for i in xrange(len(user.projects)):
+            experiments.extend(user.projects[i].experiments)
+        #header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
+        qout.put(len(experiments))
+        for exp in experiments:
+            session = exp.session
+            project=session.projects[0]
+            if len(session.exposures) == 0: continue
+            voltage = session.scope.voltage/1000
+            cs = session.scope.instrument.cs*1e3 if session.scope.instrument is not None else -1.0
+            magnification = session.exposures[0].scope.magnification
+            pixel_size = session.exposures[0].pixelsize*1e10
+            '''
+            print session.exposures[0].filename
+            print session.exposures[0].mrcimage
+            print session.exposures[0].norm_filename
+            print session.exposures[0].norm_mrcimage
+            print session.exposures[0].frame_list
+            print
+            print
+            '''
+            row = (session.name, project.name, len(session.exposures), voltage, pixel_size, magnification, cs)
+            qout.put( row )
+    finally:
+        qout.put(None)
