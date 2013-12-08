@@ -21,7 +21,6 @@ except:
     tracing.log_import_error('Failed to load _manifold.so module - certain functions will not be available', _logger)
     _manifold = None
 
-        
 def diffusion_maps(samp, dimension, k, mutual=True, batch=10000):
     ''' Embed the sample data into a low dimensional manifold using the
     Diffusion Maps algorithm.
@@ -427,8 +426,10 @@ def knn_geodesic(samp, k, batch=10000):
     col = numpy.empty(n, dtype=numpy.longlong)
     
     if callable(batch): batch = batch(dtype)
-    nbatch = max(1, int(samp.shape[0]/float(batch)))
+    nbatch = max(1, int(samp.shape[0]*samp.shape[0]/(float(batch)*batch)))
     batch = int(samp.shape[0]/float(nbatch))
+    
+    _logger.info("Using %f gigbytes of memory -> %d"%(batch*batch*samp.dtype.itemsize/1073741824.0, batch))
     dense = numpy.empty((batch,batch), dtype=dtype)
     
     #gemm = scipy.linalg.fblas.dgemm
@@ -551,8 +552,9 @@ def knn(samp, k, batch=10000, kernel_cum=None):
     data = numpy.empty(n, dtype=dtype)
     col = numpy.empty(n, dtype=numpy.longlong)
     if callable(batch): batch = batch(dtype)
-    nbatch = max(1, int(samp.shape[0]/float(batch)))
+    nbatch = max(1, int(samp.shape[0]*samp.shape[0]/(float(batch)*batch)))
     batch = int(samp.shape[0]/float(nbatch))
+    _logger.info("Using %f gigbytes of memory"%(batch*samp.dtype.itemsize/1073741824.0))
     dense = numpy.empty((batch,batch), dtype=samp.dtype)
     alpha = -2.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
     beta = 0.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
