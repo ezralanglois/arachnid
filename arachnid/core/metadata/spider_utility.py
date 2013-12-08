@@ -171,6 +171,35 @@ def frame_filename(filename, id):
     if end == -1: raise ValueError, "Not a valid frame filename"
     return os.path.join(os.path.dirname(filename), base[:pos]+str(id)+base[end:])
 
+def frame_id(filename):
+    ''' Get the frame ID/index
+    
+    The filename must have the following naming convention:
+    filename_<frame id>_<micrograph id>.ext.
+    
+    >>> from arachnid.core.metadata.spider_utility import *
+    >>> frame_filename('frame_001_0011.mrc')
+    1
+    
+    :Parameters:
+    
+    filename : str
+               A filename that follows the following convention:
+               filename_<frame id>_<micrograph id>.ext
+    
+    :Returns:
+    
+    id : int
+         Frame id
+    '''
+    
+    base = os.path.basename(filename)
+    pos = base.find('_')+1
+    if pos == -1: raise ValueError, "Not a valid frame filename"
+    end = base.find('_', pos)
+    if end == -1: raise ValueError, "Not a valid frame filename"
+    return int(base[pos:end])
+
 def spider_header_vals(line):
     '''Parse the spider header into a set of words
     
