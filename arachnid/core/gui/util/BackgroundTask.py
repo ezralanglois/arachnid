@@ -11,8 +11,6 @@ class TaskSignal(QtCore.QObject):
     taskFinished = qtSignal(object)
     taskStarted = qtSignal(object)
     taskUpdated = qtSignal(object)
-    
-    
 
 class BackgroundTask(QtCore.QRunnable):
     def __init__(self, parent, functor, *args):
@@ -56,3 +54,4 @@ def launch(parent, functor, *args):
     task = BackgroundTask(parent, functor, *args)
     QtCore.QThreadPool.globalInstance().start(task)
     return task
+
