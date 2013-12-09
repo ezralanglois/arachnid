@@ -15,6 +15,10 @@
         <file>icons/ribosome_70S_32x32.png</file>
         <file>icons/ribosome30s_32x32.png</file>
         <file>icons/ribosome80s_32x32.png</file>
+        <file>icons/ColumbiaLogo.png</file>
+        <file>icons/FrankLab_logo081511.png</file>
+        <file>icons/HHMIlogo.png</file>
+        <file>icons/220px-NIH_Master_Logo_Vertical_2Color.png</file>
     </qresource>
     <qresource prefix="/mini">
         <file>mini/accept.png</file>
