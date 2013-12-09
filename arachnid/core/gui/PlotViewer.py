@@ -183,6 +183,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
                dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
                dict(trans_scale=0.0, help="Value to scale translations (usually pixel size)"),
+               dict(center_mask=0, help="Radius of mask for image center"),
                
                #dict(film=False, help="Set true to disable contrast inversion"),
                #dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
@@ -780,7 +781,7 @@ def read_image(filename, index=None):
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
         
 
-def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, trans_scale=0.0, **extra):
+def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, trans_scale=0.0, center_mask=0, **extra):
     ''' Wrapper for iterate images that support color PNG files
     
     :Parameters:
@@ -796,6 +797,7 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
     
     if hasattr(index, 'ndim'): index = numpy.asarray(index, dtype=numpy.int)
     i=0
+    masks={}
     #for img in itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(files, index)):
     for img in ndimage_file.iter_images(files, index):
         if align is not None:
@@ -807,6 +809,10 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
             if len(align[i]) > 3 and align[i,3] > 180: img = ndimage_utility.mirror(img)
             
             i+=1
+        
+        if center_mask > 0 and img.shape not in masks:
+            masks[img.shape]=ndimage_utility.model_disk(center_mask, img.shape)*-1+1
+        img *= masks[img.shape]
         if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, downsample_type)
         if gaussian_high_pass > 0.0:
             img=ndimage_filter.filter_gaussian_highpass(img, gaussian_high_pass)
