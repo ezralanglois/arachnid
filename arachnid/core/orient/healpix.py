@@ -328,9 +328,9 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
     resolution : int
                  Pixel resolution
     theta : float or array
-            Euler angle theta or array of Euler angles
+            Euler angle theta or array of Euler angles (colatitude)
     phi : float
-          Euler angle phi or optional if theta is array of both
+          Euler angle phi or optional if theta is array of both (longitude)
     scheme : str
              Pixel layout scheme: nest or ring
     half : bool
