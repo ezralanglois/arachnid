@@ -36,9 +36,6 @@ from ..image import ndimage_utility, ndimage_file, analysis, rotate, ndimage_int
 import os, itertools, numpy #, glob
 #import property
 
-
-
-
 class MainWindow(QtGui.QMainWindow):
     ''' Main window display for the plotting tool
     '''
@@ -810,9 +807,10 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
             
             i+=1
         
-        if center_mask > 0 and img.shape not in masks:
-            masks[img.shape]=ndimage_utility.model_disk(center_mask, img.shape)*-1+1
-        img *= masks[img.shape]
+        if center_mask > 0:
+            if img.shape not in masks:
+                masks[img.shape]=ndimage_utility.model_disk(center_mask, img.shape)*-1+1
+            img *= masks[img.shape]
         if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, downsample_type)
         if gaussian_high_pass > 0.0:
             img=ndimage_filter.filter_gaussian_highpass(img, gaussian_high_pass)
