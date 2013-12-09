@@ -144,7 +144,6 @@ def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=Fal
     _logger.debug("Filtering volume")
     if resolution > 0:
         filename = filter_volume.filter_volume_lowpass(filename, spi, extra['apix']/resolution, outputfile=output, **extra)
-    if os.path.exists(tempfile): os.unlink(tempfile)
     _logger.info("Finished: %d,%d"%(2,5))
     _logger.debug("Resizing volume")
     filename = resize_volume(filename, spi, curr_apix, outputfile=output, **extra)
@@ -153,6 +152,9 @@ def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=Fal
         _logger.debug("Centering volume")
         filename = center_volume(filename, spi, output)
     _logger.info("Finished: %d,%d"%(4,5))
+    try:
+        if os.path.exists(tempfile): os.unlink(tempfile)
+    except: pass
     return filename
 
 def center_volume(filename, spi, output):
