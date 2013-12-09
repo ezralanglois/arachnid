@@ -157,7 +157,10 @@ The following parameters are added to a script using the program architecture.
 import tracing
 import settings
 from ..parallel import mpi_utility, openmp
-from ..gui import AutoGUI as autogui
+try:
+    from ..gui import AutoGUI as autogui
+    autogui;
+except: autogui=None
 import logging, sys, os, traceback,psutil
 import arachnid as root_module # TODO: This needs to be found in run_hybrid_program
 import file_processor
@@ -626,16 +629,17 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
         on_error(parser, inst, parser.get_default_values())
         raise settings.OptionValueError, "Failed when parsing options"
     
-    if sys.platform == 'darwin': # Hack for my system?
-        options=autogui.display(name, parser, options, **vars(options))
-    else:
-        options=autogui.display_mp(name, parser, options, **vars(options))
-    if options is None: sys.exit(0)
-    args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
-    # Disable automatic version update
-    #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
-    #
-    #
+    if autogui is not None:
+        if sys.platform == 'darwin': # Hack for my system?
+            options=autogui.display(name, parser, options, **vars(options))
+        else:
+            options=autogui.display_mp(name, parser, options, **vars(options))
+        if options is None: sys.exit(0)
+        args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
+        # Disable automatic version update
+        #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
+        #
+        #
     
     #parser.write("."+parser.default_config_filename(), options)
     if hasattr(main_module, "update_options"): main_module.update_options(options)
@@ -828,7 +832,8 @@ def setup_program_options(parser, main_template, supports_MPI=False, supports_OM
     if supports_OMP:# and openmp.get_max_threads() > 1:
         prg_group.add_option("-t",   thread_count=1, help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
     tracing.setup_options(parser, gen_group)
-    autogui.setup_options(parser, gen_group)
+    if autogui is not None:
+        autogui.setup_options(parser, gen_group)
     if main_template is not None: main_template.setup_options(parser, gen_group)
     gen_group.add_option_group(prg_group)
     parser.add_option_group(gen_group)
