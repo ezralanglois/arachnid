@@ -26,6 +26,7 @@ from ..core.util.matplotlib_nogui import pylab, matplotlib
 from ..core.app import program
 from ..core.metadata import format, format_utility
 from ..core.orient import healpix, orient_utility
+import scipy.io
 
 from mpl_toolkits import basemap
 import matplotlib.cm as cm
@@ -51,7 +52,7 @@ def batch(files, output, dpi, chimera=False, **extra):
     for filename in files:
         if len(files) > 1:
             outputn = format_utility.new_filename(output, suffix=os.path.splitext(os.path.basename(filename))[0], ext='.png')
-        angs = read_angles(filename)
+        angs = read_angles(filename, **extra)
         if chimera:
             chimera_balls(angs, outputn, **extra)
         else:
@@ -131,7 +132,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
                                     )
     
     if numpy.sum(sel) > 0 and not hide_zero_marker:
-        im = m.scatter(x[sel], y[sel], numpy.max(s), marker="x", c=cm.gray(0.5))#@UndefinedVariable
+        im = m.scatter(x[sel], y[sel], numpy.min(s[s>0]), marker="x", c=cm.gray(0.5))#@UndefinedVariable
     
     if not use_scale:
         im = matplotlib.cm.ScalarMappable(cmap=cmap, norm=matplotlib.colors.Normalize())
@@ -151,7 +152,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
         if numpy.sum(sel) > 0 and not hide_zero_marker:
             i=idx[len(idx)-1]
             labels.append("%s"%hist[i])
-            lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.max(s)/5, linestyle='none')) #@UndefinedVariable
+            lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.min(s[s>0]), linestyle='none')) #@UndefinedVariable
         pylab.legend(tuple(lines),tuple(labels), numpoints=1, frameon=False, loc='center left', bbox_to_anchor=(1, 0.5), prop = fontP)
     #l.get_lines()[0]._legmarker.set_ms(numpy.max(s)) 
 
@@ -196,20 +197,41 @@ def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
     return angs, count
     
-def read_angles(filename, header=None):
+def read_angles(filename, header=None, select_file="", **extra):
     '''
     '''
     
+    select_file, header = format_utility.parse_header(select_file)
+    select = None
+    if select_file != "":
+        if os.path.splitext(select_file)[1]=='.mat':
+            select = scipy.io.loadmat(select_file)
+            select = select[header[0]]
+        else:
+            select,header = format.read(select_file, ndarray=True)
+            select=select[:, header.index('id')]
     if format.get_format(filename) == format.star:
-        align = format.read(filename)
-        angles = numpy.zeros((len(align), 2))
-        for i in xrange(len(align)):
-            angles[i] = (align[i].rlnAngleTilt, align[i].rlnAngleRot)
+        align = format.read(filename, numeric=True)
+        
+        if select is None: 
+            select = xrange(len(align))
+            angles = numpy.zeros((len(align), 2))
+        else: 
+            select -= 1
+            angles = numpy.zeros((len(select), 2))
+        for j, i in enumerate(select):
+            angles[j] = (align[i].rlnAngleTilt, align[i].rlnAngleRot)
     else:
-        align = format.read_alignment(filename, header=header)
-        angles = numpy.zeros((len(align), 2))
-        for i in xrange(len(align)):
-            angles[i] = (align[i].theta, align[i].phi)
+        if select is not None:
+            align = format.read_alignment(filename, header=header)
+            angles = numpy.zeros((len(select), 2))
+            for j, i in enumerate(select):
+                angles[j] = (align[i].theta, align[i].phi)
+        else:
+            align = format.read_alignment(filename, header=header, map_ids='id')
+            angles = numpy.zeros((len(align), 2))
+            for i in xrange(len(align)):
+                angles[i] = (align[i].theta, align[i].phi)
     return angles
 
 def setup_options(parser, pgroup=None, main_option=False):
@@ -233,6 +255,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", ball_radius=60,            help="Radius from center for ball projections")
     group.add_option("", ball_size=1.0,             help="Size of largest ball projection")
     group.add_option("", ball_center=0,             help="Offset from center for ball projections")
+    group.add_option("", select_file="",            help="Selection file", gui=dict(filetype="open"))
     
     pgroup.add_option_group(group)
     
