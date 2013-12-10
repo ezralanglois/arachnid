@@ -52,6 +52,11 @@ def correct(img, ctfimg, fourier=False):
     out = numpy.zeros((img.shape[0], nsam), dtype=img.dtype)
     out[:, :img.shape[1]] = img
     if fourier:
+        if ctfimg is None:
+            _spider_ctf.fft2_image(out.T, img.shape[0])
+            out = out.ravel()[::2] + 1j*out.ravel()[1::2]
+            return out.ravel()[:img.shape[0]/2*nsam].reshape((img.shape[0]/2, nsam))
+        
         try:
             _spider_ctf.correct_image_fourier(out.T, ctfimg.T, img.shape[0])
         except:
