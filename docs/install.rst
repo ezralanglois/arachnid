@@ -21,6 +21,17 @@ Update Arachnid
 
 	$ conda install arachnid --yes -fq
 
+.. note::
+
+	This requires that you have a license for the premium accelerate package.
+	
+	https://store.continuum.io/cshop/academicanaconda
+	
+	If you have a license file on one computer, then just copy it to another.
+	
+	$ scp -r ~/.continuum 156.111.X.XXX:~/
+
+
 Anaconda
 ========
 

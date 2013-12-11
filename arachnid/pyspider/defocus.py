@@ -663,7 +663,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc, OptionGroup
     
-    pgroup.add_option("-i", '--micrograph-files', input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
+    pgroup.add_option("-i", '--micrograph-files', input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra, e.g. mic_*.mrc ", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
     pgroup.add_option("-o", '--ctf-file',         output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
     

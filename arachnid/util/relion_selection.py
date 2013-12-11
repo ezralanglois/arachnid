@@ -724,7 +724,6 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, **extra):
     
     _logger.info("Creating movie mode relion selection file: %d"%frame_limit)
     frame_vals = []
-    last = -1
     idlen=None
     consecutive=None
     last=-1
@@ -756,7 +755,7 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, **extra):
     header.append('rlnParticleName')
     format.write(output, frame_vals, header=header)
 
-def select_class_subset(vals, output, random_subset=0, restart=False, **extra):
+def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -776,10 +775,26 @@ def select_class_subset(vals, output, random_subset=0, restart=False, **extra):
     subset=vals
     if os.path.splitext(output)[1] == '.star':
         defocus_dict = read_defocus(**extra)
+        if param_file != "":
+            _logger.info("Update params values")
+            spider_params.read(param_file, extra)
+            cs = extra['cs']
+            ampcont = extra['ampcont']
+            voltage = extra['voltage']
+            for i in xrange(len(subset)):
+                subset[i] = subset[i]._replace(rlnSphericalAberration=cs)
+                subset[i] = subset[i]._replace(rlnVoltage=voltage)
+                subset[i] = subset[i]._replace(rlnAmplitudeContrast=ampcont)
+            
+        _logger.info("Read %d values from a defocus file"%len(defocus_dict))
         if len(defocus_dict) > 0:
+            _logger.info("Update defocus values")
             for i in xrange(len(subset)):
                 mic,par = relion_utility.relion_id(subset[i].rlnImageName)
-                subset[i] = subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
+                try:
+                    subset[i] = subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
+                except:
+                    _logger.warn("Not updating defocus for micrograph %d"%mic)
         if random_subset > 1: 
             _logger.info("Writing %d random subsets of the selection file"%random_subset)
             index = numpy.arange(len(subset), dtype=numpy.int)
@@ -930,8 +945,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
     group.add_option("",   test_all=False,                  help="Test the normalization of all the images")
     group.add_option("",   tilt_pair="",                    help="Selection file that defines pairs of particles (e.g. tilt pairs micrograph1, id1, micrograph2, id2) - outputs a tilted/untilted star files")
-    group.add_option("",   min_defocus=5000,                help="Minimum allowed defocus")
-    group.add_option("",   max_defocus=70000,               help="Maximum allowed defocus")
+    group.add_option("",   min_defocus=4000,                help="Minimum allowed defocus")
+    group.add_option("",   max_defocus=100000,              help="Maximum allowed defocus")
     group.add_option("",   random_subset=0,                 help="Split a relion selection file into specificed number of random subsets (0 disables)")
     group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
     group.add_option("",   frame_limit=0,                   help="Limit number of frames to use (0 means no limit)")
@@ -943,7 +958,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks or ReLion selection file", required_file=True, gui=dict(filetype="open"))
+        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks (e.g. cluster/win/win_*.dat) or ReLion selection file (input.star)", required_file=True, gui=dict(filetype="open"))
         pgroup.add_option("-o", "--align-file", output="",      help="Output filename for the relion selection file (Only required if input is a stack)", gui=dict(filetype="save"), required_file=False)
         parser.change_default(log_level=3)
 
