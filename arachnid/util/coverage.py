@@ -132,7 +132,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
                                     )
     
     if numpy.sum(sel) > 0 and not hide_zero_marker:
-        im = m.scatter(x[sel], y[sel], numpy.min(s[s>0]), marker="x", c=cm.gray(0.5))#@UndefinedVariable
+        im = m.scatter(x[sel], y[sel], numpy.max(s), marker="x", c=cm.gray(0.5))#@UndefinedVariable
     
     if not use_scale:
         im = matplotlib.cm.ScalarMappable(cmap=cmap, norm=matplotlib.colors.Normalize())
@@ -152,7 +152,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
         if numpy.sum(sel) > 0 and not hide_zero_marker:
             i=idx[len(idx)-1]
             labels.append("%s"%hist[i])
-            lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.min(s[s>0]), linestyle='none')) #@UndefinedVariable
+            lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.max(s)/5, linestyle='none')) #@UndefinedVariable
         pylab.legend(tuple(lines),tuple(labels), numpoints=1, frameon=False, loc='center left', bbox_to_anchor=(1, 0.5), prop = fontP)
     #l.get_lines()[0]._legmarker.set_ms(numpy.max(s)) 
 
