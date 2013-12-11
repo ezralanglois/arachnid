@@ -189,7 +189,7 @@ def read(filename, extra=None):
             index += 1
         fin.close()
         #_logger.debug("Decimation: %d, %d"%(bin_factor, param['dec_level']))
-        if bin_factor > 1.0 and bin_factor != param['dec_level']:
+        if bin_factor != 1.0 and bin_factor != param['dec_level']:
             param.update(update_params(bin_factor, **param))
         #_logger.debug("apix: %f"%(param['apix']))
     if 'comm' in param and param['comm'] is not None:

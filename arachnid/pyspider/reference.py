@@ -232,7 +232,10 @@ def initialize(files, param):
     param['spi'] = spider.open_session(files, **param)
     if param['new_window'] > 0:
         param['bin_factor'] = float(param['window'])/param['new_window']
+    _logger.info("Bin-factor: %f"%param['bin_factor'])
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    _logger.info("Pixel size: %f"%param['apix'])
+    _logger.info("Window: %f"%param['window'])
     
 def finalize(files, **extra):
     # Finalize global parameters for the script
