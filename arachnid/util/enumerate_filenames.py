@@ -63,7 +63,7 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Nov 23, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app import program
+from ..core.app import program, tracing
 from ..core.metadata import format_utility, spider_utility, format
 import os
 import logging
@@ -72,7 +72,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mapping_file="", ignore_duplicate=False, **extra):
+def batch(files, output, mapping_file="", **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -83,8 +83,6 @@ def batch(files, output, mapping_file="", ignore_duplicate=False, **extra):
              Output filename for micrograph links
     mapping_file : str
                    Filename of possible existing mapping
-    ignore_duplicate : bool
-                       Disable test for duplicates
     extra : dict
             Unused keyword arguments
     '''
@@ -95,16 +93,15 @@ def batch(files, output, mapping_file="", ignore_duplicate=False, **extra):
     files = sorted(files)    
     output_map_file = format_utility.add_prefix(os.path.splitext(spider_utility.spider_filepath(output))[0]+".star", 'sel_')
     if mapping_file == "":
-        mapped = map_enum_files(files, output_map_file, ignore_duplicate)
+        mapped = map_enum_files(files, output_map_file)
     else:
         mapped = remap_enum_files(files, mapping_file)
-    output = os.path.split(output)[0]+os.path.splitext(files[0])[1]
-    if output_map_file != mapping_file:
-        format.write(output_map_file, mapped, header="filename,id".split(','))
+    output = os.path.splitext(output)[0]+os.path.splitext(files[0])[1]
+    format.write(output_map_file, mapped, header="filename,id".split(','))
     generate_enum_links(mapped, output)
     _logger.info("Completed")
     
-def map_enum_files(files, mapping_file, ignore_duplicate=False):
+def map_enum_files(files, mapping_file):
     ''' Map the list of files, optionally, given an existing mapping
     
     :Parameters:
@@ -113,8 +110,6 @@ def map_enum_files(files, mapping_file, ignore_duplicate=False):
             List of filenames to map
     mapping_file : str
                    Filename of possible existing mapping
-    ignore_duplicate : bool
-                       Disable test for duplicates
     
     :Returns:
     
@@ -122,18 +117,27 @@ def map_enum_files(files, mapping_file, ignore_duplicate=False):
              List of mapped files
     '''
     
-    mapped = format.read(mapping_file, numeric=True) if os.path.exists(mapping_file) else []
+    if os.path.exists(mapping_file):
+        mapped = format.read(mapping_file, numeric=True)
+        tracing.backup(mapping_file)
+    else:
+        mapped = []
     mapset = set([v.filename for v in mapped])
-    baseset = set([os.path.basename(v.filename) for v in mapped])
+    basemap = dict([(os.path.basename(v.filename), i) for i, v in enumerate(mapped)])
     mapped = [tuple(m) for m in mapped]
     index = len(mapped)+1
+    relink = 0
     for filename in files:
-        if filename not in mapset: 
-            if os.path.basename(filename) in baseset and not ignore_duplicate:
-                _logger.error('Same filename in a different location exists in selection file! Use --ignore-duplicate to ignore this test')
-                raise ValueError, "Existing filename"
-            mapped.append((filename, index))
-            index += 1
+        if filename not in mapset:
+            index = basemap.get(os.path.basename(filename), None)
+            if index is not None:
+                mapped[index] = (filename, mapped[index][1])
+                relink += 1
+            else:
+                mapped.append((filename, index))
+                index += 1
+    if relink > 0:
+        _logger.info("Relinked %d of %d files"%(relink, len(files)))
     return mapped
     
 def remap_enum_files(files, mapping_file):
@@ -155,6 +159,7 @@ def remap_enum_files(files, mapping_file):
     mapped = format.read(mapping_file, numeric=True)
     mapped = [tuple(m) for m in mapped]
     newmapping=[]
+    index = len(mapped)+1
     for filename in files:
         basename = os.path.basename(filename)
         found=[]
@@ -162,15 +167,20 @@ def remap_enum_files(files, mapping_file):
             if pair[0].find(basename) != -1 or basename.find(pair[0]) != -1:
                 found.append(pair)
         if len(found) == 1:
+            pair = found[0]
             newmapping.append((filename, pair[1]))
         elif len(found) > 1:
             _logger.error('Duplicate mappings (%d) found for filename %s -> %s'%(len(found), filename, str(found)))
             raise ValueError, 'Duplicate mappings (%d) found for filename %s -> %s'%(len(found), filename, str(found))
         else:
-            _logger.error('Filename not found in mapping: %s'%filename)
-            raise ValueError, 'Filename not found in mapping: %s'%filename
-    if len(newmapping) != len(mapped):
+            newmapping.append((filename, index))
+            index += 1
+            #_logger.error('Filename not found in mapping: %s'%filename)
+            #raise ValueError, 'Filename not found in mapping: %s'%filename
+    if len(newmapping) < len(mapped):
         _logger.warn("New mapping smaller than original: %d < %d"%(len(newmapping), len(mapped)))
+    if len(newmapping) > len(mapped):
+        _logger.warn("New mapping larger than original: %d > %d"%(len(newmapping), len(mapped)))
     return newmapping
 
 def generate_enum_links(mapped, output):
@@ -251,7 +261,7 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     
     if len(options.input_files)==0: raise OptionValueError, "No input filenames"
-    if spider_utility.is_spider_filename(options.output): raise OptionValueError, "Output filename not a enumerated filename, e.g. path/mic_00000.spi"
+    if not spider_utility.is_spider_filename(options.output): raise OptionValueError, "Output filename not a enumerated filename, e.g. path/mic_00000.spi"
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -259,7 +269,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-i", "--unenum-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-o", "--linked-files", output="",              help="Output filename for micrograph links", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-m", mapping_file="",        help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
-    pgroup.add_option("",   ignore_duplicate=False, help="Ignore when duplicates in other pathes are found")
 
 def flags():
     ''' Get flags the define the supported features
