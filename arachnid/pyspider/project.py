@@ -616,6 +616,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", apix=0.0,             help="Pixel size, A", gui=dict(minimum=0.0, decimals=2, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0), required=True)
     pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, angstroms", gui=dict(minimum=0), required=True)
+    pgroup.add_option("", mask_diameter=0,      help="Longest diameter of the particle, angstroms", gui=dict(minimum=0), required=True)
+    
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
     
     
