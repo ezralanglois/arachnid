@@ -383,8 +383,6 @@ def iter_images(filename, index=None, header=None):
         if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
         d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        if header_image_dtype.newbyteorder()==h.dtype: 
-            dtype = dtype.newbyteorder()
         offset = 1024+int(h['nsymbt'])+ 0 * d_len * dtype.itemsize
         try:
             f.seek(int(offset))
@@ -399,6 +397,7 @@ def iter_images(filename, index=None, header=None):
             out = util.fromfile(f, dtype=dtype, count=d_len)
             
             out = reshape_data(out, h, index, count)
+            if header_image_dtype.newbyteorder()==h.dtype: out = out.byteswap()
             '''
             if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0]))
             elif int(h['ny'][0]) > 1:
@@ -444,14 +443,13 @@ def read_image(filename, index=None, header=None, cache=None):
         else:
             d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
-        if header_image_dtype.newbyteorder()==h.dtype:
-            dtype = dtype.newbyteorder()
         offset = 1024+int(h['nsymbt']) + idx * d_len * dtype.itemsize
         total = file_size(f)
         if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
         out = util.fromfile(f, dtype=dtype, count=d_len)
         out = reshape_data(out, h, index, count)
+        if header_image_dtype.newbyteorder()==h.dtype: out = out.byteswap()
     finally:
         util.close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))

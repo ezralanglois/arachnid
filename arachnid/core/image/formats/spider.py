@@ -258,11 +258,7 @@ def read_image(filename, index=None, header=None):
         if index is None: index = 0
         h = read_spider_header(f)
         dtype = numpy.dtype(spi2numpy[float(h['iform'])])
-        try:
-            if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
-        except:
-            _logger.error("dtype: %s"%str(dtype))
-            raise
+        #if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder() # - changed
         #if header is not None: util.update_header(header, h, spi2ara, 'spi')
         if header is not None: header.update(read_header(h))
         
@@ -290,6 +286,7 @@ def read_image(filename, index=None, header=None):
             _logger.error("Offset: %s"%str(offset))
             raise
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
+        if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
         #assert(out.ravel().shape[0]==d_len)
         if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
         elif int(h['ny']) > 1: 
@@ -326,7 +323,7 @@ def iter_images(filename, index=None, header=None):
     try:
         h = read_spider_header(f)
         dtype = numpy.dtype(spi2numpy[float(h['iform'])])
-        if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
+        #if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
         if header is not None: util.update_header(header, h, spi2ara, 'spi')
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
@@ -356,6 +353,7 @@ def iter_images(filename, index=None, header=None):
                     raise
             else: f.seek(h_len, 1)
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
+            if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
             if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
             elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
             yield out
