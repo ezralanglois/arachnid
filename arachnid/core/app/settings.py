@@ -791,7 +791,7 @@ class OptionParser(optparse.OptionParser):
         >>> (options, args) = parser.parse_args_with_config()
     '''
     
-    def __init__(self, usage=None, option_list=None, option_class=Option, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, url=None, comment='#', separator=':', add_input_files="input_files"):
+    def __init__(self, usage=None, option_list=None, option_class=Option, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, url=None, comment='#', separator=':', add_input_files="input_files", external_prog=None):
         '''Construct an OptionParser
     
         :Parameters:
@@ -827,7 +827,11 @@ class OptionParser(optparse.OptionParser):
         usage = "" if usage is None else usage+"\n\n"
         usage += "%prog -h or %prog --help for more help"
         if description is not None:
-            description += "\n   %prog -c $PWD/$0 $@\n   exit $?\n\n"
+            if external_prog is None:
+                description += "\n   %prog -c $PWD/$0 $@\n   exit $?\n\n"
+            else:
+                description += "\n   %s -c $PWD/$0 $@\n   exit $?\n\n"%external_prog
+                
         optparse.OptionParser.__init__(self, usage, option_list, option_class, version, conflict_handler, description, formatter, add_help_option, prog)
         self.comment=comment
         self.separator=separator
