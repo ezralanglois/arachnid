@@ -129,9 +129,9 @@ def map_enum_files(files, mapping_file):
     relink = 0
     for filename in files:
         if filename not in mapset:
-            index = basemap.get(os.path.basename(filename), None)
-            if index is not None:
-                mapped[index] = (filename, mapped[index][1])
+            offset = basemap.get(os.path.basename(filename), None)
+            if offset is not None:
+                mapped[offset] = (filename, mapped[offset][1])
                 relink += 1
             else:
                 mapped.append((filename, index))
