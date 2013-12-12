@@ -278,7 +278,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
     pgroup.add_option("", window=0,             help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
-    pgroup.add_option("", mask_diameter=0,      help="Set the mask diameter: 0 means use 1.15*particle_diamater", gui=dict(minimum=0))
+    pgroup.add_option("", mask_diameter=0,      help="Set the mask diameter: 0 means use 1.1*particle_diamater", gui=dict(minimum=0))
     
     addgroup = OptionGroup(parser, "Parallel", "Options for parallel processing")
     addgroup.add_option("-w", worker_count=1,  help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
@@ -325,6 +325,7 @@ def check_options(options, main_option=False):
         raise OptionValueError, "No spherical aberration in mm specified (--cs), either specifiy it or an existing SPIDER params file"
     if options.particle_diameter == 0.0:
         raise OptionValueError, "No longest diameter of the particle in angstroms specified (--particle-diameter), either specifiy it or an existing SPIDER params file"
+    if options.mask_diameter == 0.0: options.mask_diameter = options.particle_diameter*1.1
 
 def flags():
     ''' Get flags the define the supported features
