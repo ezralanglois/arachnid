@@ -190,8 +190,8 @@ def knn_reduce(dist2, k, mutual=False):
     
         if not mutual:
             data[n:n*2] = data[:n]
-            row[n:n*2] = row[:n]
-            col[n:n*2] = col[:n]
+            row[n:n*2] = col[:n]
+            col[n:n*2] = row[:n]
             data = data[:n*2]
             row = row[:n*2]
             col = col[:n*2]
@@ -456,6 +456,57 @@ def knn_geodesic(samp, k, batch=10000):
         rtmp[r, :]=r
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
+def maximum_geodesic(samp, batch=10000):
+    ''' Calculate the maximum geodesic distance between two points
+    
+    :Parameters:
+    
+    samp : array
+           2D data array of quaternions
+    batch : int
+            Size of temporary distance matrix to hold in memory
+    
+    :Returns:
+    
+    dist : float
+           Maximum distance
+    index1 : int
+             Offset 1
+    index2 : int
+             Offset 2
+    '''
+    
+    if _manifold is None: raise ValueError('Failed to import manifold')
+    if samp.ndim != 2: raise ValueError('Expects 2D array')
+    if samp.shape[1] != 4: raise ValueError('Expects matrix of quaternions')
+    dtype = samp.dtype
+    
+    if callable(batch): batch = batch(dtype)
+    nbatch = max(1, int(samp.shape[0]*samp.shape[0]/(float(batch)*batch)))
+    batch = int(samp.shape[0]/float(nbatch))
+    
+    _logger.info("Using %f gigbytes of memory -> %d"%(batch*batch*samp.dtype.itemsize/1073741824.0, batch))
+    dense = numpy.empty((batch,batch), dtype=dtype)
+    maxval = (0.0, None, None)
+    #gemm = scipy.linalg.fblas.dgemm
+    for r in xrange(0, samp.shape[0], batch):
+        rnext = min(r+batch, samp.shape[0])
+        #beg, end = r*k, rnext*k
+        s1 = samp[r:rnext]
+        for c in xrange(0, samp.shape[0], batch):
+            s2 = samp[c:min(c+batch, samp.shape[0])]
+            tmp = dense.ravel()[:s1.shape[0]*s2.shape[0]].reshape((s1.shape[0],s2.shape[0]))
+            _manifold.gemm(s1, s2, tmp, 1.0, 0.0)
+            dist2=tmp
+            dist2[dist2>1.0]=1.0
+            numpy.arccos(dist2, dist2)
+            c1,r1 = numpy.unravel_index(numpy.argmax(dist2), dist2.shape)
+            assert(dist2[r1,c1] == numpy.max(dist2))
+            if dist2[r1,c1] > maxval[0]: maxval = (dist2[r1,c1], c1+c, r1)
+    
+    del dist2, dense
+    return maxval
+
 def fastdot_t2(s1, s2_t, out=None, alpha=1.0, beta=0.0):
     '''
     '''
@@ -554,7 +605,7 @@ def knn(samp, k, batch=10000, kernel_cum=None):
     if callable(batch): batch = batch(dtype)
     nbatch = max(1, int(samp.shape[0]*samp.shape[0]/(float(batch)*batch)))
     batch = int(samp.shape[0]/float(nbatch))
-    _logger.info("Using %f gigbytes of memory"%(batch*samp.dtype.itemsize/1073741824.0))
+    _logger.info("Using %f gigbytes of memory for %d samples -> %d batch"%(batch*samp.dtype.itemsize/1073741824.0, len(samp), batch))
     dense = numpy.empty((batch,batch), dtype=samp.dtype)
     alpha = -2.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
     beta = 0.0 if not complex else numpy.complex(-2.0, 0.0).astype(samp.dtype)
@@ -595,7 +646,7 @@ def knn(samp, k, batch=10000, kernel_cum=None):
                 raise
             dist2 += a[r:rnext, numpy.newaxis]
             if kernel_cum is not None:
-                _manifold.kernel_range(tmp.ravel(), kernel_cum)
+                _manifold.gaussian_kernel_range(tmp.ravel(), kernel_cum)
             _manifold.push_to_heap(dist2, data[beg:], col[beg:], int(c), k)
         _manifold.finalize_heap(data[beg:end], col[beg:end], int(r), k)
 
@@ -605,6 +656,8 @@ def knn(samp, k, batch=10000, kernel_cum=None):
     tmp2 = data.reshape((samp.shape[0], k))
     for r in xrange(samp.shape[0]):
         tmp[r, :]=r
+        if not numpy.all(tmp2[r][:-2] <= tmp2[r][1:-1]):
+            print r, tmp2[r]
         assert(numpy.all(tmp2[r][:-2] <= tmp2[r][1:-1]))
     return scipy.sparse.coo_matrix((data,(row, col)), shape=(samp.shape[0], samp.shape[0]))
 
@@ -656,6 +709,57 @@ def self_tuning_gaussian_kernel_dense(dist2, normalize=False, normalize2=False):
         dist2[:] = Dr * dist2 * Dc[:, numpy.newaxis]
     return dist2
 
+def gaussian_kernel(dist2, sigma=None):
+    '''
+    '''
+    
+    if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
+    if sigma is not None and sigma > 0:
+        _manifold.gaussian_kernel(dist2.data, dist2.data, float(sigma))
+    else:
+        _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
+    #arr = dist2.todense()
+    #assert( (arr.T == arr).all() )
+    #_manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr) # problem here
+    #arr = dist2.todense()
+    #assert( (arr.T == arr).all() )
+    return dist2
+
+def laplacian(dist2):
+    '''
+    '''
+    
+    #arr = dist2.todense()
+    #assert( (arr.T == arr).all() )
+    dist2 = dist2.tocoo()
+    diag_mask=(dist2.row==dist2.col)
+    #assert(diag_mask.sum() == dist2.shape[0])
+    D = numpy.asarray(dist2.sum(axis=0)).squeeze()
+    print D.shape[0], dist2.shape[0], numpy.max(dist2.row)
+    numpy.sqrt(D, D)
+    D_zero = (D==0)
+    D[D_zero]=1.0
+    dist2.data /= D[dist2.row]
+    dist2.data /= D[dist2.col]
+    dist2.data[diag_mask]=1.0
+    return dist2, D
+
+def embed_laplacian(L, D, dimension):
+    '''
+    '''
+    
+    #arr = L.todense()
+    #assert( (arr.T == arr).all() )
+    
+    if hasattr(scipy.sparse.linalg, 'eigsh'):
+        evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1, sigma=1.0)
+    else:
+        evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
+    evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
+    index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
+    evecs = D[:,numpy.newaxis] * evecs #[:, index2]
+    return evecs[:, index2], evals[index2].squeeze()
+    
 def diffusion_maps_dist(dist2, dimension, sigma=None):
     ''' Embed a sparse distance matrix with the diffusion maps 
     manifold learning algorithm
@@ -680,34 +784,10 @@ def diffusion_maps_dist(dist2, dimension, sigma=None):
     
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
     dist2, index = largest_connected(dist2)
-    #dist2 = (dist2 + dist2.T)/2
-    if sigma is not None and sigma > 0:
-        _manifold.gaussian_kernel(dist2.data, dist2.data, float(sigma))
-    else:
-        _manifold.self_tuning_gaussian_kernel_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr)
-    _manifold.normalize_csr(dist2.data, dist2.data, dist2.indices, dist2.indptr) # problem here
-    assert(numpy.alltrue(numpy.isfinite(dist2.data)))
-    D = numpy.power(dist2.sum(axis=0)+1e-12, -0.5)
-    assert(numpy.alltrue(numpy.isfinite(D)))
-    #D[numpy.logical_not(numpy.isfinite(D))] = 1.0
-    norm = scipy.sparse.dia_matrix((D, (0,)), shape=dist2.shape)
-    L = norm * dist2 * norm
-    del norm
-    #openmp.set_thread_count(1)
-    #assert(numpy.alltrue(numpy.isfinite(L.data)))
-    if hasattr(scipy.sparse.linalg, 'eigen_symmetric'):
-        evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
-    else:
-        try:
-            evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1)
-        except:
-            _logger.error("%s --- %d"%(str(L.shape), dimension))
-            raise
-    del L
-    evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
-    index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
-    evecs = D[:,numpy.newaxis] * evecs #[:, index2]
-    return evecs[:, index2], evals[index2].squeeze(), index
+    gaussian_kernel(dist2, sigma)
+    L,D = laplacian(dist2)
+    evecs, evals = embed_laplacian(L, D, dimension)
+    return evecs, evals, index
 
 def reduce_subset(dist2, index):
     ''' Reduce a sparse matrix (CSR format) using the set of selected

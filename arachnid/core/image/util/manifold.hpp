@@ -688,7 +688,7 @@ void normalize_csr(T* sdist, size_type ns, T* data, size_type nd, I* col_ind, si
 	for(size_type i=0;i<nr;i++)
 	{
 		if(ndist[i] == 0) ndist[i]=1.0;
-		else ndist[i] = T(1.0) / ndist[i];//(ndist[i]+1e-12);
+		else ndist[i] = T(1.0) / std::sqrt(ndist[i]);//(ndist[i]+1e-12);
 	}
 	I* row_ind = new I[nc];
 #	ifdef _OPENMP
