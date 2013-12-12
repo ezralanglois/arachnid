@@ -374,9 +374,9 @@ def default_path(filename, output):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_00000")
-    if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_00000")
-    if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_00000")
+    if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_000000")
+    if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_000000")
+    if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_000000")
     
     if os.path.dirname(param['output_pow']) == 'pow':
         param['output_pow'] = default_path(param['output_pow'], param['output'])
@@ -389,6 +389,8 @@ def initialize(files, param):
         try: os.makedirs(os.path.dirname(param['output_roo'])) 
         except: pass
         try: os.makedirs(os.path.dirname(param['output_ctf'])) 
+        except: pass
+        try: os.makedirs(os.path.dirname(param['output_mic'])) 
         except: pass
     mpi_utility.barrier(**param)
     param['spi'] = spider.open_session(files, **param)
@@ -694,9 +696,18 @@ def check_options(options, main_option=False):
     if main_option:
         if not spider_utility.test_valid_spider_input(options.input_files):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
+        i=0
+        while i < len(options.input_files):
+            if not ndimage_file.is_readable(options.input_files[i]): 
+                del options.input_files[i]
+                _logger.warn("Cannot read: %s"%options.input_files[i])
+            else:
+                i+=1
+        """
         for f in options.input_files:
             if not ndimage_file.is_readable(f): 
                 raise OptionValueError, "Unrecognized image format for input-file: %s \n Check if you have permission to access this file and this file is in an acceptable format"%f
+        """
         if spider_file.is_spider_image(options.input_files[0]) and options.data_ext == "":
             raise OptionValueError, "You must set --data-ext when the input file is not in SPIDER format"
 
