@@ -941,6 +941,7 @@ class OptionParser(optparse.OptionParser):
         return_val : tuple 
                      A tuple of options and arguments without flags
         '''
+        
         if os.path.exists('cfg/project.cfg'):
             values = self.parse_file(args, values, 'cfg/project.cfg')
         values = self.parse_file(args, values, fin)
@@ -1666,9 +1667,9 @@ class optfilelist(optlist):
         '''
         '''
         
-        self._default_regular_expression=None
+        self._default_regular_expression=_default_regular_expression
         if val is not None:
-            optlist.__init__(self,uncompress_filenames(val))
+            optlist.__init__(self,uncompress_filenames(val, _default_regular_expression))
         else:
             optlist.__init__(self)
     
