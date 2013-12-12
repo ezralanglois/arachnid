@@ -96,7 +96,11 @@ def batch(files, output, mapping_file="", **extra):
         mapped = map_enum_files(files, output_map_file)
     else:
         mapped = remap_enum_files(files, mapping_file)
-    output = os.path.splitext(output)[0]+os.path.splitext(files[0])[1]
+    #output = os.path.splitext(output)[0]+os.path.splitext(files[0])[1]
+    path = os.path.dirname(output)
+    if not os.path.exists(path):
+        try: os.makedirs(path)
+        except: pass
     format.write(output_map_file, mapped, header="filename,id".split(','))
     generate_enum_links(mapped, output)
     _logger.info("Completed")
