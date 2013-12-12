@@ -13,7 +13,7 @@ _logger.setLevel(logging.DEBUG)
 def main():
     # Create GUI and display
     
-    tracing.configure_logging(log_level=2, log_file='leginon.log')
+    tracing.configure_logging(log_level=2, log_file='control.log')
     app = qtapp.create_app()
     if app is None:
         _logger.error("PyQT4 not installed")
