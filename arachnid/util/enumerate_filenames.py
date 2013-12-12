@@ -203,7 +203,8 @@ def generate_enum_links(mapped, output):
         except: pass
     for filename, id in mapped:
         link = spider_utility.spider_filename(output, id)
-        if os.path.exists(link): os.unlink(link)
+        try:os.unlink(link)
+        except: pass
         if os.path.exists(filename):
             os.symlink(os.path.abspath(filename), link)
         else:
