@@ -4,6 +4,7 @@
 - Monitor
 - Image viewer
 
+
 .. Created on Sep 5, 2013
 .. codeauthor:: robertlanglois
 '''
@@ -129,6 +130,7 @@ def display_mp(name, parser, values, display_gui=False, **extra):
     displayProcess.start()
     
     newvalues = qout.get()
+    if newvalues is None: return None
     newvalues.input_files = values.input_files.make(newvalues.input_files)
     return newvalues
 
