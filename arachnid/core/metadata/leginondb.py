@@ -76,16 +76,19 @@ class Session(Base):
     
     name = Column('name', String)
     id = Column('DEF_id', Integer, primary_key=True)
-    imagedata = relationship("ImageData")
     exposures = relationship("ImageData", primaryjoin="and_(Session.id==ImageData.session, ImageData.label.startswith('Exposure'))")
-    imagefilter = relationship("ImageData", lazy="dynamic")
     timestamp = Column('DEF_timestamp', DateTime)
+    image_path = Column('image path', String)
+    frame_path = Column('frame path', String)
     user = Column('REF|UserData|user', Integer, ForeignKey('UserData.DEF_id'))
     projects = relationship("Projects", secondary=ProjectExperiments.__table__)#, backref='sessions')#project_session_table)
     instrument_id = Column('REF|InstrumentData|instrument', Integer, ForeignKey('InstrumentData.DEF_id'))
     instrument = relationship("Instrument", uselist=False)
     scope = relationship("ScopeEM", uselist=False)
     camera = relationship("CameraEM", uselist=False)
+    # Unused
+    #imagefilter = relationship("ImageData", lazy="dynamic")
+    #imagedata = relationship("ImageData")
     
 
 class ScopeEM(Base):
@@ -120,7 +123,8 @@ class CameraEM(Base):
     pixel_sizey = Column('SUBD|pixel size|y', Float)
     session_id = Column('REF|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
     instrument_id = Column('REF|InstrumentData|ccdcamera', Integer, ForeignKey('PixelSizeCalibrationData.REF|InstrumentData|ccdcamera'))
-
+    type = Column('exposure type', String)
+    
 class NormImage(Base):
     __bind_key__ = 'leginondb'
     __tablename__='NormImageData'
@@ -163,6 +167,40 @@ class Instrument(Base):
     
     id = Column('DEF_id', Integer, primary_key=True)
     cs = Column('cs', Float)
+
+def query_session_info(username, password, leginondb, projectdb, session):
+    ''' Get the user relational object to access the Leginon
+    
+    :Parameters:
+    
+    username : str
+               Username 
+    password : str
+               Password
+    leginondb : str
+                Host/path to Leginon database, e.g. 111.222.32.143/leginondb
+    projectdb  : str
+                Host/path to Leginon Project database, e.g. 111.222.32.143/projectdb
+    session : str
+              Name of session to query
+    
+    :Returns:
+    
+    session : Session
+              Relational user object that accesses 
+              information from the database
+    '''
+    
+    leginondb;projectdb;password; # pyflakes hack
+    leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
+    projectdb = sqlalchemy.create_engine('mysql://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
+    local_vars = locals()
+    binds = dict([(v, local_vars[getattr(v, '__bind_key__')])for v in sys.modules[__name__].__dict__.values() if hasattr(v, '__bind_key__')])
+    SessionDB = sessionmaker(autocommit=False,autoflush=False)
+    db_session = SessionDB(binds=binds)
+    rs = db_session.query(Session).filter(Session.name==session).all()
+    if len(rs) > 0: return rs[0]
+    return None
 
 def query_user_info(username, password, leginondb, projectdb):
     ''' Get the user relational object to access the Leginon
