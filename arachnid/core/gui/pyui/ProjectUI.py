@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ProjectUI.ui'
 #
-# Created: Sun Dec  8 18:50:42 2013
+# Created: Fri Dec 13 15:56:09 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -100,14 +100,10 @@ class Ui_ProjectWizard(object):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.micFileLineEdit = QtGui.QLineEdit(self.widget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(2)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.micFileLineEdit.sizePolicy().hasHeightForWidth())
-        self.micFileLineEdit.setSizePolicy(sizePolicy)
-        self.micFileLineEdit.setObjectName("micFileLineEdit")
-        self.horizontalLayout.addWidget(self.micFileLineEdit)
+        self.micrographComboBox = QtGui.QComboBox(self.widget)
+        self.micrographComboBox.setEditable(True)
+        self.micrographComboBox.setObjectName("micrographComboBox")
+        self.horizontalLayout.addWidget(self.micrographComboBox)
         self.micrographFileToolButton = QtGui.QToolButton(self.widget)
         self.micrographFileToolButton.setText("")
         icon2 = QtGui.QIcon()
@@ -139,15 +135,10 @@ class Ui_ProjectWizard(object):
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.gainFileLineEdit = QtGui.QLineEdit(self.widget_3)
-        self.gainFileLineEdit.setEnabled(False)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(2)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.gainFileLineEdit.sizePolicy().hasHeightForWidth())
-        self.gainFileLineEdit.setSizePolicy(sizePolicy)
-        self.gainFileLineEdit.setObjectName("gainFileLineEdit")
-        self.horizontalLayout_3.addWidget(self.gainFileLineEdit)
+        self.gainFileComboBox = QtGui.QComboBox(self.widget_3)
+        self.gainFileComboBox.setEditable(True)
+        self.gainFileComboBox.setObjectName("gainFileComboBox")
+        self.horizontalLayout_3.addWidget(self.gainFileComboBox)
         self.gainFilePushButton = QtGui.QPushButton(self.widget_3)
         self.gainFilePushButton.setEnabled(False)
         self.gainFilePushButton.setText("")
@@ -296,8 +287,6 @@ class Ui_ProjectWizard(object):
         self.monitorLayout.setContentsMargins(0, 0, 0, 0)
         self.monitorLayout.setObjectName("monitorLayout")
         ProjectWizard.addPage(self.monitorPage)
-        self.label_3.setBuddy(self.micFileLineEdit)
-        self.label_6.setBuddy(self.gainFileLineEdit)
 
         self.retranslateUi(ProjectWizard)
         QtCore.QMetaObject.connectSlotsByName(ProjectWizard)
@@ -305,7 +294,7 @@ class Ui_ProjectWizard(object):
     def retranslateUi(self, ProjectWizard):
         ProjectWizard.setWindowTitle(QtGui.QApplication.translate("ProjectWizard", "Wizard", None, QtGui.QApplication.UnicodeUTF8))
         self.introductionPage.setTitle(QtGui.QApplication.translate("ProjectWizard", "Welcome to Arachnid", None, QtGui.QApplication.UnicodeUTF8))
-        self.introductionPage.setSubTitle(QtGui.QApplication.translate("ProjectWizard", "This wizard will take you through the steps required to process a dataset collected by electron microscopy", None, QtGui.QApplication.UnicodeUTF8))
+        self.introductionPage.setSubTitle(QtGui.QApplication.translate("ProjectWizard", "<font color=\"#663300\" size=5>Workflow manager for processing data collected by electron microscopy</font>", None, QtGui.QApplication.UnicodeUTF8))
         self.settingsQuestionPage.setTitle(QtGui.QApplication.translate("ProjectWizard", "Leginon Settings Import", None, QtGui.QApplication.UnicodeUTF8))
         self.settingsQuestionPage.setSubTitle(QtGui.QApplication.translate("ProjectWizard", "Would you like to import your experimental settings from a Leginon database?", None, QtGui.QApplication.UnicodeUTF8))
         self.yesLeginonPushButton.setText(QtGui.QApplication.translate("ProjectWizard", "Yes", None, QtGui.QApplication.UnicodeUTF8))

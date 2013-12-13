@@ -15,6 +15,12 @@ class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._data = data
         self._header=header
+        
+    def row(self, index):
+        '''
+        '''
+        
+        return self._data[index.row()]
     
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         '''Returns the data for the given role and section in the header with the specified orientation

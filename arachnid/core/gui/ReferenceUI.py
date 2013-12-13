@@ -140,6 +140,13 @@ class Widget(QtGui.QWidget):
                 self.param['curr_apix'] = header['apix']
 
         return self.param['raw_reference']
+    
+    def registerPage(self, wizardPage):
+        '''
+        '''
+        
+        wizardPage.registerField("referenceEdit*", self.ui.referenceLineEdit)
+                
 
 def download_gunzip_task(urlpath, filepath):
     ''' Download and unzip gzipped file in a separate process
