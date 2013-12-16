@@ -15,6 +15,14 @@ class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._data = data
         self._header=header
+    
+    def setData(self, data, header=None):
+        '''
+        '''
+        
+        self._data = data
+        if header is not None: self._header=header
+        self.reset()
         
     def row(self, index):
         '''
