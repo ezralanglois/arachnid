@@ -145,7 +145,7 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        wizardPage.registerField("referenceEdit*", self.ui.referenceLineEdit)
+        wizardPage.registerField(wizardPage.wizard().param("raw_reference_file*"), self.ui.referenceLineEdit)
                 
 
 def download_gunzip_task(urlpath, filepath):

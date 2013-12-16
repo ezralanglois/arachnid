@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ReferenceUI.ui'
 #
-# Created: Sat Dec  7 10:04:27 2013
+# Created: Mon Dec 16 14:34:39 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -107,7 +107,7 @@ class Ui_Form(object):
         self.horizontalLayout_2.addWidget(self.referenceTabWidget)
 
         self.retranslateUi(Form)
-        self.referenceTabWidget.setCurrentIndex(0)
+        self.referenceTabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
