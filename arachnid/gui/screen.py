@@ -52,6 +52,7 @@ def main():
     coord_files = glob.glob(coordinate_file)
     if len(mic_files) > 0:dialog.setAlternateImage(mic_files[0], True)
     if len(coord_files) > 0:dialog.setCoordinateFile(coord_files[0], True)
+    dialog.setSelectionFile(selection_file)
     
     sys.exit(app.exec_())
 

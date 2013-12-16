@@ -30,6 +30,7 @@ class MainWindow(ImageViewerWindow):
         ImageViewerWindow.__init__(self, parent)
         self.inifile = 'ara_screen.ini'
         self.settings_group = 'ImageScreener'
+        self.selection_file=""
         
         # Load the settings
         _logger.info("\rLoading settings ...")
@@ -54,7 +55,12 @@ class MainWindow(ImageViewerWindow):
             self.selectfout = open(self.advanced_settings.select_file, 'a')
         self.selectedCount = 0
         self.loadSelections()
+    
+    def setSelectionFile(self, filename):
+        '''
+        '''
         
+        self.selection_file=filename
     
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -197,12 +203,23 @@ class MainWindow(ImageViewerWindow):
         '''
         
         if len(self.file_index) == 0: return
-        filename = QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save selection as"), self.lastpath)
+        path = self.lastpath if self.selection_file == "" else self.selection_file
+        filename = QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save selection as"), path)
+        if not filename: return #selection_file
+        self.saveSelection(invert, filename)
+        
+    def saveSelection(self, invert=False, filename=None):
+        '''
+        '''
+        
+        if filename is None: filename=self.selection_file
         self.setEnabled(False)
         progressDialog = QtGui.QProgressDialog('Saving...', "", 0,5,self)
         progressDialog.setWindowModality(QtCore.Qt.WindowModal)
         progressDialog.show()
         if isinstance(filename, tuple): filename = filename[0]
+        if not filename: return
+        
         file_index = self.file_index.copy()
         if invert: 
             sel = file_index[:, 2] > -1
