@@ -214,6 +214,7 @@ def batch(files, relion2spider=False, frame_stack_file="", **extra):
         print_stats(vals, **extra)
         if extra['output'] != "":
             vals = select_good(vals, **extra)
+            reindex_stacks(vals, **extra)
             # output file contains
             #print_stats(vals, **extra)
             
@@ -833,6 +834,30 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
             prefix='mic_'
         format.write(output, numpy.hstack((numpy.asarray(micselect.keys())[:, numpy.newaxis], numpy.ones(len(micselect.keys()))[:, numpy.newaxis])), header="id,select".split(','), format=format.spidersel, prefix=prefix)
 
+def reindex_stacks(subset, reindex=False, **extra):
+    ''' Restart the index of the particle number from 1.
+    
+    This is necessary when you crop a subset of windows based on a selection derived
+    from the input relion seleciton file.
+    
+    :Parameters:
+    
+    vals : list
+           List of entries from a selection file ( replaced in-place)
+    reindex : bool
+              If True, perform reindexing
+    extra : dict
+            Unused key word arguments
+    '''
+    
+    if not reindex: return subset
+    idmap={}
+    for i in xrange(len(subset)):
+        filename = relion_utility.relion_file(subset[i].rlnImageName)[0]
+        if filename not in idmap: idmap[filename]=0
+        idmap[filename] += 1
+        subset[i] = subset[i]._replace(rlnImageName=relion_utility.relion_identifier(filename, idmap[filename]))
+
 def downsample_images(vals, downsample=1.0, param_file="", **extra):
     ''' Downsample images in Relion selection file and update
     selection entries to point to new files.
@@ -954,6 +979,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")
     group.add_option("",   downsample=1.0,                  help="Downsample the windows - create new selection file pointing to decimate stacks")
     group.add_option("",   restart=False,                   help="Outputs minimum Relion file to restart refinement from the beginning")
+    group.add_option("",   reindex=False,                   help="Reindex the relion selection file - necessary when recropping with a particle selection file")
     #group.add_option("",   relion2spider=False,             help="Convert a relion selection file to a set of SPIDER refinement file")
     
     pgroup.add_option_group(group)
