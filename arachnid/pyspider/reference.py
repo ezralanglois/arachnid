@@ -240,13 +240,33 @@ def initialize(files, param):
 def finalize(files, **extra):
     # Finalize global parameters for the script
     _logger.info("Completed")
+    
+def supports(files, raw_reference_file="", **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    raw_reference_file : str
+                         Input filename for raw reference map
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return raw_reference_file != ""
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc
     
     if main_option:
-        pgroup.add_option("-i", input_files=[], help="List of input filenames containing volumes to convert to references", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-i", "--raw-reference-file", input_files=[], help="List of input filenames containing volumes to convert to references", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for references with correct number of digits (e.g. enhanced_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
