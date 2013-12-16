@@ -27,5 +27,5 @@ def create_app():
     QtCore.QCoreApplication.setOrganizationDomain(arachnid.__url__)
     QtCore.QCoreApplication.setApplicationName(arachnid.__project__)
     QtCore.QCoreApplication.setApplicationVersion(arachnid.__version__)
-    QtCore.QSettings.setPath(QtCore.QSettings.Format.NativeFormat, QtCore.QSettings.Scope.UserScope, "$HOME/.arachnid")
+    #QtCore.QSettings.setPath(QtCore.QSettings.Format.NativeFormat, QtCore.QSettings.Scope.UserScope, "$HOME/.arachnid")
     return app
