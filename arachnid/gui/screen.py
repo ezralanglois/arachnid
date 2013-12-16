@@ -36,7 +36,6 @@ def main():
     small_micrograph_file = spider_utility.spider_searchpath(param.get('small_micrograph_file', 'local/mic/mic000001.*'))
     pow_file = spider_utility.spider_searchpath(param.get('pow_file', 'local/pow/pow000001.*'))
     selection_file = param.get('selection_file', 'sel_mic.dat')
-    print selection_file
     
     dialog = Screener() 
     dialog.show()

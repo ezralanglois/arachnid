@@ -273,7 +273,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         
     pgroup.add_option("-i", "--unenum-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-o", "--linked-files", output="",              help="Output filename for micrograph links", gui=dict(filetype="save"), required=True)
-    pgroup.add_option("-m", mapping_file="",        help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
+    pgroup.add_option("-m", mapping_file="",                          help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
 
 def flags():
     ''' Get flags the define the supported features

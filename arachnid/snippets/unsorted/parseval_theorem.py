@@ -14,14 +14,14 @@ if __name__ == "__main__":
         parseval_img = numpy.sum(img**2)
         
         parseval_fft=numpy.sum(numpy.abs(scipy.fftpack.fft2(img))**2) / img.ravel().shape[0]
-    if 1 == 0:
+    elif 1 == 1:
         img1 = numpy.random.rand(78,78)
         img2 = numpy.random.rand(78,78)
         diff = img1-img2
         
         parseval_img = numpy.sum(diff**2)
-        parseval_fft=numpy.sum(numpy.abs(scipy.fftpack.fft2(diff))**2) / img1.ravel().shape[0]
-    if 1 == 0:
+        parseval_fft=numpy.sum(numpy.abs(scipy.fftpack.fftshift(scipy.fftpack.fft2(diff)))**2) / img1.ravel().shape[0]
+    elif 1 == 0:
         img1 = numpy.random.rand(78,78)
         img2 = numpy.random.rand(78,78)
         diff = img1-img2

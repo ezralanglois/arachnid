@@ -34,4 +34,5 @@ if __name__ == '__main__':
     e.read_image(subtomo_stack, index)
     e.process_inplace('filter.lowpass.gauss', dict(cutoff_freq=0.025))
     e.write_image(output)
+    
 
