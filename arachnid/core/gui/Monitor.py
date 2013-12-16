@@ -1,5 +1,8 @@
 ''' A monitor for a running process
 
+
+- Handel errors: Add crash report button, display on error in Details
+
 .. Created on Nov 1, 2013
 .. codeauthor:: robertlanglois
 '''

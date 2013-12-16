@@ -258,7 +258,7 @@ def run_hybrid_program(name, **extra):
         _logger.exception("Unexpected error occurred")
         sys.exit(1)
         
-def collect_file_dependents(main_module, **extra):
+def collect_file_dependents(main_module, config_path=None, **extra):
     ''' Collect all filename options into input and output dependents
     
     This function collects all filename options and divides them
@@ -273,11 +273,15 @@ def collect_file_dependents(main_module, **extra):
     
     main_module : module
                    Reference to main module
+    config_path : str, optional
+                  Path to write configuration file
     extra : dict
             New default values for the options
                    
     :Returns:
     
+    config_file : str
+                  Name of the configuration file
     input_files : list
                  List of options that do not belong to a group
     output_files : list
@@ -288,7 +292,15 @@ def collect_file_dependents(main_module, **extra):
     if hasattr(main_module, 'flags'): extra.update(main_module.flags())
     parser = setup_parser(main_module, main_template, **extra)[0]
     parser.change_default(**extra)
-    return parser.collect_dependent_file_options(type='open'), parser.collect_dependent_file_options(type='save')
+    
+    name = main_module.__name__
+    off = name.rfind('.')
+    if off != -1: name = name[off+1:]
+    if config_path is not None:
+        output = os.path.join(config_path, name+".cfg")
+    else: output = name+".cfg"
+    
+    return output, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
 
 def generate_settings_tree(main_module, **extra):
     ''' Collect options, groups and values

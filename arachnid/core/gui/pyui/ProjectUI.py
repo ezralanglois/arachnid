@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ProjectUI.ui'
 #
-# Created: Fri Dec 13 15:56:09 2013
+# Created: Sun Dec 15 19:29:16 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -275,11 +275,13 @@ class Ui_ProjectWizard(object):
         self.fineTunePage = QtGui.QWizardPage()
         self.fineTunePage.setSubTitle("")
         self.fineTunePage.setObjectName("fineTunePage")
-        self.horizontalLayout_2 = QtGui.QHBoxLayout(self.fineTunePage)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.settingsHorizontalLayout = QtGui.QHBoxLayout(self.fineTunePage)
+        self.settingsHorizontalLayout.setContentsMargins(3, 3, 3, 3)
+        self.settingsHorizontalLayout.setObjectName("settingsHorizontalLayout")
         self.workflowListView = QtGui.QListView(self.fineTunePage)
+        self.workflowListView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.workflowListView.setObjectName("workflowListView")
-        self.horizontalLayout_2.addWidget(self.workflowListView)
+        self.settingsHorizontalLayout.addWidget(self.workflowListView)
         ProjectWizard.addPage(self.fineTunePage)
         self.monitorPage = QtGui.QWizardPage()
         self.monitorPage.setObjectName("monitorPage")

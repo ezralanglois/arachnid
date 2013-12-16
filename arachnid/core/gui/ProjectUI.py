@@ -41,15 +41,20 @@ Workflow
 from LeginonUI import Widget as LeginonUI
 from ReferenceUI import Widget as ReferenceUI
 from Monitor import Widget as MonitorUI
+from SettingsEditor import TabWidget as SettingsUI
 
 from pyui.ProjectUI import Ui_ProjectWizard
 from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
+from arachnid.util import project
 from ..image import ndimage_file
+from ..parallel import openmp
 import logging
 import multiprocessing
 import arachnid
 import os
 import glob
+import sys
+sys.setrecursionlimit(10000)
 
 
 _logger = logging.getLogger(__name__)
@@ -75,6 +80,7 @@ class MainWindow(QtGui.QWizard):
         self.lastpath = str(QtCore.QDir.currentPath())
         self.micrograph_files = []
         self.gain_files = []
+        self.parameters=[]
         
         
         version = arachnid.__version__
@@ -103,7 +109,7 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         ###### Leginon Page
         ########################################################################################################################################
-        self.ui.leginonWidget = LeginonUI()
+        self.ui.leginonWidget = LeginonUI(self)
         self.ui.leginonDBLayout.addWidget(self.ui.leginonWidget)
         #self.subPages[self.idOf(self.ui.leginonDBPage)]=self.ui.leginonWidget
         self.ui.leginonWidget.registerPage(self.ui.leginonDBPage)
@@ -112,27 +118,36 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         ###### Reference Page
         ########################################################################################################################################
-        self.ui.referenceWidget = ReferenceUI()
+        self.ui.referenceWidget = ReferenceUI(self)
         self.ui.referenceLayout.addWidget(self.ui.referenceWidget)
         #self.subPages[self.idOf(self.ui.referencePage)]=self.ui.referenceWidget    
-        self.ui.referenceWidget.registerPage(self.ui.referencePage)    
+        self.ui.referenceWidget.registerPage(self.ui.referencePage) 
         #self.ui.referencePage.registerField("referenceEdit*", self.ui.referenceWidget.ui.referenceLineEdit)
+        
+        ########################################################################################################################################
+        ###### Fine Settings Page
+        ########################################################################################################################################
+        self.ui.settingsTabWidget = SettingsUI(self)
+        self.ui.settingsHorizontalLayout.addWidget(self.ui.settingsTabWidget)
+        self.ui.workflowListView.setModel(QtGui.QStandardItemModel(self))
+        selmodel = self.ui.workflowListView.selectionModel()
+        selmodel.currentChanged.connect(self.ui.settingsTabWidget.settingsChanged)
         
         ########################################################################################################################################
         ###### Monitor Page
         ########################################################################################################################################
-        self.ui.monitorWidget = MonitorUI()
+        self.ui.monitorWidget = MonitorUI(self)
         self.ui.monitorLayout.addWidget(self.ui.monitorWidget)
         
         ########################################################################################################################################
         ###### Manual Settings Page
         ########################################################################################################################################
-        self.ui.manualSettingsPage.registerField("Pixel Size*", self.ui.pixelSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        self.ui.manualSettingsPage.registerField("Voltage*", self.ui.voltageDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        self.ui.manualSettingsPage.registerField("CS*", self.ui.csDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        self.ui.manualSettingsPage.registerField("Micrograph Files*", self, 'micrographFiles', QtCore.SIGNAL('micrographFilesUpdated()'))
-        self.ui.manualSettingsPage.registerField("Gain Files", self, 'gainFiles', QtCore.SIGNAL('gainFilesUpdated()'))
-        self.ui.manualSettingsPage.registerField("CCD", self.ui.invertCheckBox)
+        self.ui.manualSettingsPage.registerField(self.param("apix*"), self.ui.pixelSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.manualSettingsPage.registerField(self.param("voltage*"), self.ui.voltageDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.manualSettingsPage.registerField(self.param("cs*"), self.ui.csDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.manualSettingsPage.registerField(self.param("input_files*"), self, 'micrographFiles', QtCore.SIGNAL('micrographFilesUpdated()'))
+        self.ui.manualSettingsPage.registerField(self.param("gain_files"), self, 'gainFiles', QtCore.SIGNAL('gainFilesUpdated()'))
+        self.ui.manualSettingsPage.registerField(self.param("invert"), self.ui.invertCheckBox)
         
         ########################################################################################################################################
         ###### Additional Settings Page
@@ -142,26 +157,28 @@ class MainWindow(QtGui.QWizard):
         self.ui.maskDiameterDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterPixelLabel.setText("%d (Px)"%(int(x/self.ui.pixelSizeDoubleSpinBox.value()))) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else None)
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowAngstromDoubleSpinBox.setValue(x*1.4))
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
-        self.ui.additionalSettingsPage.registerField("particleSize*", self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        self.ui.additionalSettingsPage.registerField("windowAngstrom*", self.ui.windowAngstromDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        self.ui.additionalSettingsPage.registerField("maskDiameter*", self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        try:self.ui.workerCountSpinBox.setValue(multiprocessing.cpu_count())
-        except: pass
-        
-        ########################################################################################################################################
-        ###### Mapping?
-        ########################################################################################################################################
-        self.map_param_to_widget = dict(apix=self.ui.pixelSizeDoubleSpinBox,
-                                        voltage=self.ui.voltageDoubleSpinBox,
-                                        cs=self.ui.csDoubleSpinBox,
-                                        window_ang=self.ui.windowAngstromDoubleSpinBox,
-                                        particle_diameter=self.ui.particleSizeDoubleSpinBox,
-                                        mask_diameter=self.ui.maskDiameterDoubleSpinBox,
-                                        worker_count=self.ui.workerCountSpinBox,
-                                        thread_count=self.ui.threadCountSpinBox,
-                                        invert=self.ui.invertCheckBox,
-                                        )
+        self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.additionalSettingsPage.registerField(self.param("window_actual*"), self.ui.windowAngstromDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.additionalSettingsPage.registerField(self.param("mask_diameter*"), self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.additionalSettingsPage.registerField(self.param('worker_count'), self.ui.workerCountSpinBox)
+        self.ui.additionalSettingsPage.registerField(self.param('thread_count'), self.ui.threadCountSpinBox)
+        thread_count = 1
+        if openmp.is_openmp_enabled():
+            thread_count = openmp.get_max_threads()
+        else:
+            try: thread_count=multiprocessing.cpu_count()
+            except: pass
+        self.ui.workerCountSpinBox.setValue(thread_count)
     
+    def param(self, name):
+        '''
+        '''
+        if name[-1]=='*':
+            self.parameters.append(name[:len(name)-1])
+        else:
+            self.parameters.append(name)
+        
+        return name
 
     ########################################################################################################################################
     ###### Micrograph filename controls
@@ -176,14 +193,15 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
+        _logger.error("setMicrographFiles-here1")
         try:"+"+files
         except: pass
         else: files = files.split(',')
+        self.ui.micrographComboBox.blockSignals(True)
         self.ui.micrographComboBox.clear()
         self.ui.micrographComboBox.addItems(files)
         self._updateMicrographFiles(files)
         
-        self.ui.micrographComboBox.blockSignals(True)
         if len(files) > 0:
             self.ui.micrographComboBox.lineEdit().setText(self.ui.micrographComboBox.itemText(0))
         else:
@@ -221,6 +239,7 @@ class MainWindow(QtGui.QWizard):
         '''Called when the user clicks the Pan button.
         '''
         
+        _logger.error("on_micrographComboBox_editTextChanged-here1")
         if text == "": return
         files = glob.glob(text)
         if len(files) > 0:
@@ -229,9 +248,7 @@ class MainWindow(QtGui.QWizard):
     ########################################################################################################################################
     ###### Gaile filename controls
     ########################################################################################################################################
-    
-    #gainFileComboBox
-    
+        
     def gainFiles(self):
         '''
         '''
@@ -242,6 +259,7 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
+        _logger.error("setGainFiles-here1")
         try:"+"+files
         except: pass
         else: files = files.split(',')
@@ -287,6 +305,21 @@ class MainWindow(QtGui.QWizard):
             self.setGainFiles(files)
         
     ########################################################################################################################################
+    
+    def setupFineTunePage(self):
+        '''
+        '''
+        
+        param = project.default_settings()
+        for p in self.parameters:
+            param[p]=self.field(p)
+        workflow = project.workflow_settings(self.micrographFiles, **param)
+        model = self.ui.workflowListView.model()
+        model.clear()
+        for mod in workflow:
+            item = QtGui.QStandardItem(mod[0])
+            item.setData(mod, QtCore.Qt.UserRole)
+            model.addItem(item)
     
     ########################################################################################################################################
     
@@ -355,11 +388,13 @@ class MainWindow(QtGui.QWizard):
         page = self.page(self.currentId())
         if page == self.ui.manualSettingsPage:
             fields = self.ui.leginonWidget.currentData()
+            _logger.error("nextId-here1")
             for key, val in fields.iteritems():
+                _logger.error("nextId-here1b-"+str(key))
                 self.setField(key, val)
-            #if self.ui.gainFileComboBox.count() > 0:
-            #    self.ui.gainFileComboBox.setEnabled(True)
-            #    self.ui.gainFilePushButton.setEnabled(True)
+            _logger.error("nextId-here2")
+        elif page == self.ui.fineTunePage:
+            self.setupFineTunePage()
         elif page == self.ui.settingsQuestionPage:
             if self.ui.noLeginonPushButton.isChecked():
                 return self.currentId()+2

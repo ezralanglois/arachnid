@@ -3,7 +3,7 @@
 .. Created on Nov 1, 2013
 .. codeauthor:: robertlanglois
 '''
-from util.qt4_loader import QtGui, qtSignal
+from util.qt4_loader import QtGui, qtSignal, QtCore
 from pyui.SettingsEditor import Ui_TabWidget
 import property 
 import logging
@@ -28,6 +28,7 @@ class TabWidget(QtGui.QTabWidget):
         self.tree_views={}
         self.model_tab={}
         self.invalid_count=0
+        self.removeTab(0)
         # Taken from http://stackoverflow.com/questions/12438095/qt-vertical-scroll-bar-stylesheets
         self.treeViewStyle='''QScrollBar:vertical { 
         border: 1px solid #999999;
@@ -62,6 +63,20 @@ class TabWidget(QtGui.QTabWidget):
         }
         '''
     
+    def settingsChanged(self, curr, prev):
+        '''
+        '''
+        
+        _, _, option_list, group_list, values = curr.data(QtCore.Qt.UserRole)
+        self.setSettings(option_list, group_list, values)
+    
+    def setSettings(self, option_list, group_list, values):
+        '''
+        '''
+        
+        for i in xrange(self.count()): self.removeTab(i)
+        self.addSettings(option_list, group_list, values)
+        
     def addSettings(self, option_list, group_list, values):
         '''
         '''
@@ -85,7 +100,6 @@ class TabWidget(QtGui.QTabWidget):
                 treeView.model().propertyValidity.connect(self.updateValid)
             width = treeView.model().maximumTextWidth(self.fontMetrics(), treeView.indentation())
             treeView.setColumnWidth(0, width)
-        self.removeTab(0)
         #self.ui.propertyTreeView.model().addOptions(option_list, [], values)
         if not self.isValid(): self.controlValidity.emit(self, False)
     

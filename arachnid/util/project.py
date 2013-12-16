@@ -89,7 +89,7 @@ _project = sys.modules[__name__]
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, param_file, **extra):
+def batch(files, **extra):
     '''
     1. Write out config files
     2. Write launch scripts
@@ -98,45 +98,28 @@ def batch(files, param_file, **extra):
         c. get data from leginon
     '''
     
-    workflow = build_workflow(files, **extra)
+    workflow = build_workflow(files, extra)
     _logger.info("Work flow includes %d steps"%len(workflow))
-    scripts = write_config(workflow, **extra)
-    
-    input, scrpt = find_root(scripts, ('unenum_files', 'movie_files', 'micrograph_files'))
-    
-    # Hack
-    if input == '--unenum-files':
-        input2 = find_root(scripts, ('movie_files', 'micrograph_files'))[0]
-        extra['linked_files'] = extra[input2[2:].replace('-', '_')]
-        scrpt[3] = [input2, ]+scrpt[3]
-        write_config([scripts[0][0]], **extra)
+    write_config(workflow, **extra)
+    write_workflow(workflow)
+    # run option
 
-    scripts = [scripts[0]]+build_dependency_tree(scripts[1:], scripts[0], [input])
-    write_workflow(scripts)
-    spider_params.write_update(param_file, **extra)
-    
-def find_root(scripts, root_inputs):
-    ''' Find the input for the root script
-    
-    :Parameters:
-    
-    scripts : list
-              List of tuples containing: module, script name, 
-              input file deps, output file deps.
-    root_inputs : tuple
-                  Possible roots in order of precendence
-    
-    :Returns:
-    
-    root_input : str
-                 Root input
+def workflow_settings(files, **extra):
+    '''
     '''
     
-    for root_input in root_inputs:
-        root_input = '--'+root_input.replace('_', '-')
-        for scrpt in scripts:
-            if root_input in scrpt[2]: return root_input, scrpt
-    raise ValueError, "No root found!"
+    workflow = build_workflow(files, extra)
+    mods=[]
+    for mod, cfg, _, _ in workflow:
+        param = program.generate_settings_tree(mod, **extra)
+        mods.append([mod, cfg]+list(param))
+    return mods
+
+def default_settings():
+    '''
+    '''
+    
+    return program.generate_settings_tree(_project)[2]
 
 def write_workflow(scripts):
     ''' Write out scripts necessary to run the workflow
@@ -182,6 +165,8 @@ def build_dependency_tree(scripts, root, found=[]):
     found=[]
     for script in scripts:
         intersect=outdeps&set(script[2])
+        if _logger.isEnabledFor(logging.DEBUG):
+            _logger.debug("%s -> %s | %d == %d | %s == %s"%(root[1], script[1], len(outdeps), len(script[2]), str(outdeps), str(script[2])))
         if len(intersect)==len(script[2]):
             branch.append(script)
         else:
@@ -196,6 +181,79 @@ def build_dependency_tree(scripts, root, found=[]):
     return branch
     
 def write_config(workflow, **extra):
+    ''' Write configurations files for each script in the
+    workflow including the SPIDER CTF params file
+    
+    :Parameters:
+    
+    workflow : list
+               List of modules
+    extra : dict
+            Keyword arguments
+    '''
+    
+    spider_params.write_update(extra['param_file'], **extra)
+    config_path=extra['config_path']
+    if not os.path.exists(config_path):
+        try: os.makedirs(config_path)
+        except: pass
+    
+    extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
+    for mod, _, _, _ in workflow:
+        config = program.update_config(mod, **extra)
+        if config == "":
+            config = program.write_config(mod, **extra)
+        extra['input_files']=[]
+
+def build_workflow(files, extra):
+    ''' Collect all modules that belong to the current workflow
+    
+    This modules searchs specific packages that contain application
+    scripts and includes those that meet the following criterion:
+        
+        #. Must have a :py:func:`supports` function
+        #. And this function must return true for the given parameters
+    
+    :Parameters:
+    
+    files : list
+            List of input image files
+    extra : dict
+            Option, value pairs - can be updated
+    
+    :Returns:
+    
+    workflow : list
+               List of programs
+    '''
+    
+    import pkgutil
+    from .. import app, pyspider, util
+    
+    workflow = [_project]
+    for pkg in [app, pyspider, util]:
+        modules = [name for _, name, ispkg in pkgutil.iter_modules([os.path.dirname(cpkg.__file__) for cpkg in [pkg]] ) if not ispkg]
+        for name in modules:
+            try:
+                mod = getattr(__import__(pkg.__name__, globals(), locals(), [name]), name)
+            except:pass
+            else:
+                if hasattr(mod, 'supports') and (not callable(mod.supports) or mod.supports(files, **extra)):
+                    workflow.append(mod)
+    for i in xrange(len(workflow)):
+        workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i]))
+    
+    input,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
+    # Hack
+    if input == '--unenum-files':
+        input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
+        extra['linked_files'] = extra[input2[2:].replace('-', '_')]
+        input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
+        first_script[3] = [input2, ]+first_script[3]
+    
+    return [workflow[0]]+build_dependency_tree(workflow[1:], workflow[0], [input])
+
+def write_config_old(workflow, **extra):
     ''' Write configurations files for each script in the
     workflow.
     
@@ -222,48 +280,34 @@ def write_config(workflow, **extra):
     scripts=[]
     for mod in workflow:
         config = program.update_config(mod, ret_file_deps=True, **extra)
-        if config == "":
+        if config[0] == "":
             config = program.write_config(mod, ret_file_deps=True, **extra)
         scripts.append([mod, ]+list(config))
         extra['input_files'] = []
     return scripts
 
-def build_workflow(files, **extra):
-    ''' Collect all modules that belong to the current workflow
-    
-    This modules searchs specific packages that contain application
-    scripts and includes those that meet the following criterion:
-        
-        #. Must have a :py:func:`supports` function
-        #. And this function must return true for the given parameters
+def find_root(scripts, root_inputs):
+    ''' Find the input for the root script
     
     :Parameters:
     
-    files : list
-            List of input image files
-    extra : dict
-            Keyword arguments
+    scripts : list
+              List of tuples containing: module, script name, 
+              input file deps, output file deps.
+    root_inputs : tuple
+                  Possible roots in order of precendence
     
     :Returns:
     
-    workflow : list
-               List of programs
+    root_input : str
+                 Root input
     '''
     
-    import pkgutil
-    from .. import app, pyspider, util
-    
-    workflow = [_project]
-    for pkg in [app, pyspider, util]:
-        modules = [name for _, name, ispkg in pkgutil.iter_modules([os.path.dirname(cpkg.__file__) for cpkg in [pkg]] ) if not ispkg]
-        for name in modules:
-            try:
-                mod = getattr(__import__(pkg.__name__, globals(), locals(), [name]), name)
-            except:pass
-            else:
-                if hasattr(mod, 'supports') and mod.supports(files, **extra):
-                    workflow.append(mod)
-    return workflow
+    for root_input in root_inputs:
+        root_input = '--'+root_input.replace('_', '-')
+        for scrpt in scripts:
+            if root_input in scrpt[2]: return root_input, scrpt
+    raise ValueError, "No root found!"
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -271,7 +315,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         
     pgroup.add_option("-i", input_files=[],     help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-r", raw_reference="",   help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
-    pgroup.add_option("-g", gain_reference="",  help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
+    pgroup.add_option("-g", gain_file="",       help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("", is_film=False,        help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
     pgroup.add_option("", apix=0.0,             help="Pixel size, Angstroms", gui=dict(minimum=0.0, decimals=4, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0.0, singleStep=1.0), required=True)
@@ -314,7 +358,7 @@ def check_options(options, main_option=False):
     #if len(options.ext) != 3: raise OptionValueError, "SPIDER extension must be three characters"
     
     #Move check to movie mode
-    if options.gain_reference == "" and len(options.input_files) > 0 and ndimage_file.count_images(options.input_files[0]) > 1:
+    if options.gain_file == "" and len(options.input_files) > 0 and ndimage_file.count_images(options.input_files[0]) > 1:
         _logger.warn("No gain reference specified for movie mode alignment!")
         
     if options.apix == 0.0:

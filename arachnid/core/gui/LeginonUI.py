@@ -1,6 +1,8 @@
 '''
 
-.. todo:: Use background task rather than timer?
+.. todo:: Combine sessions?
+
+.. todo:: Check mag?
 
 
 .. Created on Dec 4, 2013
@@ -10,12 +12,14 @@
 from pyui.LeginonUI import Ui_Form
 from util.qt4_loader import QtGui,QtCore,qtSlot, qtSignal, qtProperty
 from model.ListTableModel import ListTableModel
+from util import BackgroundTask
 from ..metadata import leginondb
-import multiprocessing
+import base64
 import logging
 import os
 import traceback
 import sys
+import getpass
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -26,6 +30,9 @@ class Widget(QtGui.QWidget):
     
     selectionChanged = qtSignal()
     loadFinished = qtSignal()
+    taskFinished = qtSignal(object)
+    taskUpdated = qtSignal(object)
+    taskError = qtSignal(object)
     
     def __init__(self, parent=None):
         "Initialize LeginonUI widget"
@@ -45,147 +52,22 @@ class Widget(QtGui.QWidget):
         #self.ui.progressDialog.setWindowFlags(self.ui.progressDialog.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint) #v5s
         self.ui.progressDialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
         
-        self.ui.loadProjectTimer = QtCore.QTimer(self)
-        self.ui.loadProjectTimer.setInterval(500)
-        self.ui.loadProjectTimer.setSingleShot(False)
-        self.ui.loadProjectTimer.timeout.connect(self.on_loadProjectTimer_timeout)
-        
-        self.ui.loadImageTimer = QtCore.QTimer(self)
-        self.ui.loadImageTimer.setInterval(500)
-        self.ui.loadImageTimer.setSingleShot(False)
-        self.ui.loadImageTimer.timeout.connect(self.on_loadImageTimer_timeout)
-        
         self.ui.reloadTableToolButton.triggered.connect(self.queryDatabaseForProjects)
+        self.taskUpdated.connect(self.updateProgress)
         
-        self.header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS', 'Image Name', 'Image Path', 'Frame Path']
-        self.data=None
+        self.ui.leginonHostnameLineEdit.editingFinished.connect(lambda: self.ui.projectHostnameLineEdit.setText(self.ui.leginonHostnameLineEdit.text()) if self.ui.projectHostnameLineEdit.text() == "" else None)
+        
+        header = [('Session', None), ('Project', None), ('Images', None), 
+                  ('Voltage', 'voltage'), ('Pixel Size', 'apix'), 
+                  ('Magnification', None), ('CS', 'cs'), ('Image Name', None), 
+                  ('Image Path', None), ('Frame Path', None)]
+        self.header=[h[0] for h in header]
+        self.headermap = dict([h for h in header if h[1] is not None])
         self.images = []
-    
-    @qtSlot()
-    def on_changeUserPushButton_clicked(self):
-        '''
-        '''
         
-        self.ui.loginStackedWidget.setCurrentIndex(1)
-    
-    @qtSlot()
-    def on_loginPushButton_clicked(self):
-        '''
-        '''
-        
-        self.ui.loginStackedWidget.setCurrentIndex(0)
-    
-    @qtSlot(int)
-    def on_loginStackedWidget_currentChanged(self, index):
-        '''
-        '''
-        
-        if index == 0: self.queryDatabaseForProjects()
-        
-    def on_loadProjectTimer_timeout(self):
-        '''
-        '''
-        
-        if self.qout is None: self.ui.loadProjectTimer.stop()
-        if self.data is None: self.data=[]
-        while not self.qout.empty():
-            try:
-                val = self.qout.get(False)
-            except multiprocessing.Queue.Empty:
-                break
-            if val is None:
-                self.ui.loadProjectTimer.stop()
-                if self.ui.projectTableView.selectionModel() is not None:
-                    self.ui.projectTableView.selectionModel().selectionChanged.disconnect(self.selectionChanged)
-                self.ui.projectTableView.setModel(ListTableModel(self.data, self.header))
-                self.ui.projectTableView.selectionModel().selectionChanged.connect(self.selectionChanged)
-                self.data=None
-                self.ui.progressDialog.hide()
-                # check file locations
-            elif not hasattr(val, '__iter__'):
-                self.ui.progressDialog.setMaximum(val)
-            else:
-                self.data.append(val)
-                self.ui.progressDialog.setValue(len(self.data))
-        
-    def on_loadImageTimer_timeout(self):
-        '''
-        '''
-        
-        if self.qout is None: self.ui.loadImageTimer.stop()
-        if self.images is None: self.images=[]
-        while not self.qout.empty():
-            try:
-                val = self.qout.get(False)
-            except multiprocessing.Queue.Empty:
-                break
-            if val is None:
-                self.ui.loadImageTimer.stop()
-                self.loadFinished.emit()
-                
-            elif not hasattr(val, '__iter__'):
-                self.ui.progressDialog.setMaximum(val)
-            else:
-                self.images.append(val)
-                self.ui.progressDialog.setValue(len(self.images))
-    
-    def queryDatabaseForProjects(self):
-        '''
-        '''
-        
-        username = self.ui.usernameLineEdit.text()
-        password = self.ui.passwordLineEdit.text()
-        leginonDB = self.ui.leginonDBLineEdit.text()
-        projectDB = self.ui.projectDBLineEdit.text()
-        limit = self.ui.entryLimitSpinBox.value()
-        if self.login.get('username', None) == username and \
-           self.login.get('leginonDB', None) == leginonDB and \
-           self.login.get('projectDB', None) == projectDB and \
-           self.login.get('password', None) == password and \
-           self.login.get('limit', None) == limit: return
-        self.login['username']=username
-        self.login['leginonDB']=leginonDB
-        self.login['projectDB']=projectDB
-        self.login['password']=password
-        self.login['limit']=limit
-        #alternteUser = self.ui.alternateUserLineEdit.text()
-        try:
-            user = leginondb.query_user_info(username, password, leginonDB, projectDB)#, alternteUser)
-        except:
-            _logger.exception("Error accessing project")
-            exception_message(self, "Error accessing project")
-            self.ui.loginStackedWidget.setCurrentIndex(1)
-        else:
-            self.ui.progressDialog.show()
-            self.ui.label.setText("Welcome "+str(user.fullname))
-            self.data=[]
-            self.qout = load_projects(user, limit)
-            self.ui.loadProjectTimer.start()
-            self.ui.progressDialog.setValue(0)
-    
-    def queryDatabaseImages(self, session_name):
-        '''
-        '''
-        
-        username = self.ui.usernameLineEdit.text()
-        password = self.ui.passwordLineEdit.text()
-        leginonDB = self.ui.leginonDBLineEdit.text()
-        projectDB = self.ui.projectDBLineEdit.text()
-        try:
-            session = leginondb.query_session_info(username, password, leginonDB, projectDB, session_name)#, alternteUser)
-        except:
-            _logger.exception("Error accessing images")
-            exception_message(self, "Error accessing images")
-        else:
-            if session is None:
-                _logger.error("Error accessing images")
-                return
-                
-            self.ui.progressDialog.show()
-            self.images=[]
-            self.qout = load_images(session)
-            self.ui.loadImageTimer.start()
-            self.ui.progressDialog.setValue(0)
+        self.ui.projectTableView.setModel(ListTableModel([], self.header, self))
+        selmodel=self.ui.projectTableView.selectionModel()
+        selmodel.selectionChanged.connect(self.selectionChanged)
     
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -199,11 +81,7 @@ class Widget(QtGui.QWidget):
         # Load the settings
         _logger.info("\rLoading settings ...")
         self.readSettings()
-        if self.ui.leginonDBLineEdit.text() == "":
-            self.ui.loginStackedWidget.setCurrentIndex(1)
-        else:
-            self.ui.loginStackedWidget.setCurrentIndex(0)
-            self.queryDatabaseForProjects()
+        self.on_loginPushButton_clicked()
         QtGui.QWidget.showEvent(self, evt)
         
     def closeEvent(self, evt):
@@ -219,29 +97,174 @@ class Widget(QtGui.QWidget):
         self.writeSettings()
         QtGui.QMainWindow.closeEvent(self, evt)
     
+    @qtSlot()
+    def on_changeUserPushButton_clicked(self):
+        '''
+        '''
+        
+        self.ui.loginStackedWidget.setCurrentIndex(1)
+    
+    @qtSlot()
+    def on_loginPushButton_clicked(self):
+        '''
+        '''
+        
+        fields = [self.ui.usernameLineEdit, self.ui.passwordLineEdit, self.ui.projectHostnameLineEdit, 
+                  self.ui.leginonHostnameLineEdit, self.ui.leginonDBNameLineEdit,
+                  self.ui.projectDBNameLineEdit]
+        for field in fields:
+            if field.text() == "":
+                field.setStyleSheet("border: 2px solid red")
+                return
+        
+        self.writeSettings()
+        self.ui.loginStackedWidget.setCurrentIndex(0)
+    
+    @qtSlot(int)
+    def on_loginStackedWidget_currentChanged(self, index):
+        '''
+        '''
+        
+        if index == 0: self.queryDatabaseForProjects()
+    
+    def queryDatabaseForProjects(self):
+        '''
+        '''
+        #
+        
+        username = self.ui.usernameLineEdit.text()
+        password = self.ui.passwordLineEdit.text()
+        prjhost = self.ui.projectHostnameLineEdit.text() if self.ui.projectHostnameLineEdit.text() != "" else self.ui.leginonHostnameLineEdit.text()
+        leginonDB = self.ui.leginonHostnameLineEdit.text()+'/'+self.ui.leginonDBNameLineEdit.text()
+        projectDB = prjhost+'/'+self.ui.projectDBNameLineEdit.text()
+        limit = self.ui.entryLimitSpinBox.value()
+        if self.login.get('username', None) == username and \
+           self.login.get('leginonDB', None) == leginonDB and \
+           self.login.get('projectDB', None) == projectDB and \
+           self.login.get('password', None) == password and \
+           self.login.get('limit', None) == limit: return
+        #alternteUser = self.ui.alternateUserLineEdit.text()
+        try:
+            user, experiments = leginondb.query_user_info(username, password, leginonDB, projectDB)#, alternteUser)
+        except:
+            _logger.exception("Error accessing project")
+            exception_message(self, "Error accessing project")
+            self.ui.loginStackedWidget.setCurrentIndex(1)
+        else:
+            self.login['username']=username
+            self.login['leginonDB']=leginonDB
+            self.login['projectDB']=projectDB
+            self.login['password']=password
+            self.login['limit']=limit
+            self.ui.progressDialog.show()
+            self.ui.label.setText("Welcome "+str(user.fullname))
+            self.taskFinished.connect(self.projectFinished)
+            self.taskError.connect(self.projectLoadError)
+            BackgroundTask.launch_mp(self, load_projects_iter, experiments[:limit])#, limit)
+    
+    def projectFinished(self, sessions):
+        '''
+        '''
+        
+        self.ui.projectTableView.model().setData(sessions)        
+        self.ui.progressDialog.hide()
+        self.taskFinished.disconnect(self.projectFinished)
+        self.taskError.disconnect(self.projectLoadError)
+    
+    def projectLoadError(self, exception):
+        '''
+        '''
+        
+        self.ui.progressDialog.hide()
+        exception_message(self, "Error accessing projects", exception)
+        self.taskFinished.disconnect(self.projectFinished)
+        self.taskError.disconnect(self.projectLoadError)
+    
+    def updateProgress(self, val):
+        
+        if hasattr(val, '__iter__'):
+            if len(val) == 1 and not hasattr(val, '__iter__'):
+                self.ui.progressDialog.setMaximum(val[0])
+        else:
+            self.ui.progressDialog.setValue(val)
+    
+    def queryDatabaseImages(self, session_name):
+        '''
+        '''
+        
+        username = self.ui.usernameLineEdit.text()
+        password = self.ui.passwordLineEdit.text()
+        prjhost = self.ui.projectHostnameLineEdit.text() if self.ui.projectHostnameLineEdit.text() != "" else self.ui.leginonHostnameLineEdit.text()
+        leginonDB = self.ui.leginonHostnameLineEdit.text()+'/'+self.ui.leginonDBNameLineEdit.text()
+        projectDB = prjhost+'/'+self.ui.projectDBNameLineEdit.text()
+        try:
+            session = leginondb.query_session_info(username, password, leginonDB, projectDB, session_name)#, alternteUser)
+        except:
+            _logger.exception("Error accessing images")
+            exception_message(self, "Error accessing images")
+            self.ui.loginStackedWidget.setCurrentIndex(1)
+        else:
+            if session is None:
+                _logger.error("Error accessing images")
+                return
+                
+            self.taskFinished.connect(self.imageLoadFinished)
+            self.taskError.connect(self.imageLoadError)
+            BackgroundTask.launch_mp(self, load_images_iter, session)
+            self.ui.progressDialog.show()
+            self.ui.progressDialog.setValue(0)
+    
+    
+    def imageLoadError(self, exception):
+        '''
+        '''
+        
+        exception_message(self, "Error accessing images", exception)
+        self.ui.progressDialog.hide()
+        self.taskFinished.disconnect(self.imageLoadFinished)
+        self.taskError.disconnect(self.imageLoadError)
+    
+    def imageLoadFinished(self, images):
+        '''
+        '''
+        
+        self.images = images
+        self.ui.progressDialog.hide()
+        self.taskFinished.disconnect(self.imageLoadFinished)
+        self.taskError.disconnect(self.imageLoadError)
+        self.loadFinished.emit()
+    
     def readSettings(self):
         '''
         '''
         
+        print 'read settings'
         settings = QtCore.QSettings()
         settings.beginGroup("LeginonUI")
-        self.ui.leginonDBLineEdit.setText(settings.value('leginonDB'))
-        self.ui.projectDBLineEdit.setText(settings.value('projectDB'))
+        self.ui.leginonHostnameLineEdit.setText(settings.value('leginonDB'))
+        self.ui.leginonDBNameLineEdit.setText(settings.value('leginonPath'))
+        self.ui.projectHostnameLineEdit.setText(settings.value('projectDB'))
+        self.ui.projectDBNameLineEdit.setText(settings.value('projectPath'))
         self.ui.usernameLineEdit.setText(settings.value('username'))
-        self.ui.passwordLineEdit.setText(settings.value('password'))
+        self.ui.passwordLineEdit.setText(base64.b64decode(settings.value('password')))
         #self.ui.alternateUserLineEdit.setText(settings.value('alternate-user'))
         settings.endGroup()
+        if self.ui.usernameLineEdit.text() == "":
+            self.ui.usernameLineEdit.setText(getpass.getuser())
         
     def writeSettings(self):
         '''
         '''
         
+        print 'write settings - leginon'
         settings = QtCore.QSettings()
         settings.beginGroup("LeginonUI")
-        settings.setValue('leginonDB', self.ui.leginonDBLineEdit.text())
-        settings.setValue('projectDB', self.ui.projectDBLineEdit.text())
+        settings.setValue('leginonDB', self.ui.leginonHostnameLineEdit.text())
+        settings.setValue('leginonPath', self.ui.leginonDBNameLineEdit.text())
+        settings.setValue('projectDB', self.ui.projectHostnameLineEdit.text())
+        settings.setValue('projectPath', self.ui.projectDBNameLineEdit.text())
         settings.setValue('username', self.ui.usernameLineEdit.text())
-        settings.setValue('password', self.ui.passwordLineEdit.text())
+        settings.setValue('password', base64.b64encode(self.ui.passwordLineEdit.text()))
         #settings.setValue('alternate-user', self.ui.alternateUserLineEdit.text())
         settings.endGroup()
     
@@ -256,17 +279,19 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        if self.ui.projectTableView.selectionModel() is None or \
-           len(self.ui.projectTableView.selectionModel().selectedIndexes()) == 0: 
+        model = self.ui.projectTableView.selectionModel()
+        if model is None or \
+           len(model.selectedIndexes()) == 0: 
             return -1
-        return self.ui.projectTableView.selectionModel().selectedIndexes()[0].row()
+        return model.selectedIndexes()[0].row()
     
     def validate(self):
         '''
         '''
         
         if len(self.images) == 0:
-            index = self.ui.projectTableView.selectionModel().selectedIndexes()[0]
+            model = self.ui.projectTableView.selectionModel()
+            index = model.selectedIndexes()[0]
             data = self.ui.projectTableView.model().row(index)   
             self.queryDatabaseImages(data[0])
             return False
@@ -276,57 +301,24 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        if self.ui.projectTableView.selectionModel() is None or \
-           len(self.ui.projectTableView.selectionModel().selectedIndexes()) == 0: 
+        model = self.ui.projectTableView.selectionModel()
+        if model is None or \
+           len(model.selectedIndexes()) == 0: 
             return {}
-        index = self.ui.projectTableView.selectionModel().selectedIndexes()[0]
-        data = self.ui.projectTableView.model().row(index)        
-        #self.header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
+        indexes = model.selectedIndexes()
+        index = indexes[0]
+        dmodel = self.ui.projectTableView.model()
+        data = dmodel.row(index)        
         vals = []
-        for i, h in enumerate(self.header):
-            vals.append((h, data[i]))
-        
+        for key, val in self.headermap.iteritems():
+            vals.append((val, data[self.header.index(key)]))
         images = ",".join([img[0] for img in self.images])
-        vals.append(('Micrograph Files', images))
+        vals.append(('input_files', images))
         if self.images[0][1] is not None:
-            vals.append(('Gain Files', ",".join([img[1] for img in self.images])))
+            vals.append(('gain_files', ",".join([img[1] for img in self.images])))
         return dict(vals)
         
     #def updateWizard(self):
-    
-def load_images(session):
-    '''
-    '''
-    
-    qout = multiprocessing.Queue()
-    displayProcess = multiprocessing.Process(target=load_images_worker, args=(session, qout))
-    displayProcess.start()
-    return qout
-
-def load_images_worker(session, qout):
-    '''
-    '''
-    
-    try:
-        qout.put(len(session.exposures))
-        frame_path = session.frame_path
-        image_path = session.image_path
-        image_ext = '.mrc'
-        if frame_path is None:
-            frame_ext = image_ext
-            frame_path = image_path
-        else:
-            frame_ext = '.frames.mrc'
-        if frame_ext == image_ext:
-            for image in session.exposures:
-                row = (os.path.join(frame_path, image.filename+frame_ext), None)
-                qout.put( row )
-        else:
-            for image in session.exposures:
-                row = (os.path.join(frame_path, image.filename+frame_ext), os.path.join(image_path, image.norm_filename+image_ext))
-                qout.put( row )
-    finally:
-        qout.put(None)
         
 def error_message(parent, msg, details=""):
     '''
@@ -342,56 +334,81 @@ def error_message(parent, msg, details=""):
         msgBox.setDetailedText(details)
     msgBox.exec_()
     
-def exception_message(parent, msg):
+def exception_message(parent, msg, exception=None):
     '''
     '''
     
-    exc_type, exc_value = sys.exc_info()[:2]
+    if exception is None:
+        exc_type, exc_value = sys.exc_info()[:2]
+    else:
+        exc_type, exc_value = exception.exc_type, exception.exc_value
     error_message(parent, msg, traceback.format_exception_only(exc_type, exc_value)[0])
-        
-def load_projects(user, limit):
-    '''
-    '''
-    
-    qout = multiprocessing.Queue()
-    displayProcess = multiprocessing.Process(target=load_projects_worker, args=(user, limit, qout))
-    displayProcess.start()
-    return qout
 
-def load_projects_worker(user, limit, qout):
+def load_images_iter(session):
     '''
     '''
     
-    try:
-        experiments = []#user.projects[0].experiments
-        for i in xrange(len(user.projects)):
-            experiments.extend(user.projects[i].experiments)
-        #header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
-        if len(experiments) > limit: experiments = experiments[:limit]
-        qout.put(len(experiments))
-        for exp in experiments:
-            session = exp.session
-            project=session.projects[0]
-            if len(session.exposures) == 0: continue
-            voltage = session.scope.voltage/1000
-            cs = session.scope.instrument.cs*1e3 if session.scope.instrument is not None else -1.0
-            magnification = session.exposures[0].scope.magnification
-            pixel_size = session.exposures[0].pixelsize*1e10
-            filename = session.exposures[0].mrcimage
-            frame_path = session.frame_path
-            image_path = session.image_path
-            #type = session.exposures[0].camera
-            
-            '''
-            print session.exposures[0].filename
-            print session.exposures[0].mrcimage
-            print session.exposures[0].norm_filename
-            print session.exposures[0].norm_mrcimage
-            print session.exposures[0].frame_list
-            print
-            print
-            '''
-            row = (session.name, project.name, len(session.exposures), voltage, pixel_size, magnification, cs, filename, image_path, frame_path)
-            qout.put( row )
-    finally:
-        qout.put(None)
+    yield (len(session.exposures), )
+    images = []
+    frame_path = session.frame_path
+    image_path = session.image_path
+    image_ext = '.mrc'
+    if frame_path is None:
+        frame_ext = image_ext
+        frame_path = image_path
+    else:
+        frame_ext = '.frames.mrc'
+        
+    if frame_ext == image_ext:
+        for image in session.exposures:
+            row = (os.path.join(frame_path, image.filename+frame_ext), None)
+            images.append(row)
+            yield len(images)
+    else:
+        for image in session.exposures:
+            row = (os.path.join(frame_path, image.filename+frame_ext), os.path.join(image_path, image.norm_filename+image_ext))
+            images.append(row)
+            yield len(images)
+    yield images
+
+'''
+def load_projects_iter(user, limit):
+    
+    _logger.exception("load_projects_iter-1")
+    experiments = []#user.projects[0].experiments
+    projects = user.projects
+    for i in xrange(len(projects)):
+        experiments.extend(projects[i].experiments)
+    #header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
+    if len(experiments) > limit: experiments = experiments[:limit]
+'''
+def load_projects_iter(experiments):
+    yield (len(experiments), )
+    rows=[]
+    for exp in experiments:
+        session = exp.session
+        project=session.projects[0]
+        if len(session.exposures) == 0: continue
+        voltage = session.scope.voltage/1000
+        cs = session.scope.instrument.cs*1e3 if session.scope.instrument is not None else -1.0
+        magnification = session.exposures[0].scope.magnification
+        pixel_size = session.exposures[0].pixelsize*1e10
+        filename = str(session.exposures[0].mrcimage)
+        frame_path = session.frame_path
+        image_path = session.image_path
+        #type = session.exposures[0].camera
+        
+        '''
+        print session.exposures[0].filename
+        print session.exposures[0].mrcimage
+        print session.exposures[0].norm_filename
+        print session.exposures[0].norm_mrcimage
+        print session.exposures[0].frame_list
+        print
+        print
+        '''
+        if frame_path is not None: frame_path=str(frame_path)
+        rows.append((str(session.name), str(project.name), len(session.exposures), float(voltage), float(pixel_size), float(magnification), float(cs), str(filename), str(image_path), frame_path))
+        yield len(rows)
+    yield rows
+

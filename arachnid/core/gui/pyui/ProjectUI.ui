@@ -596,9 +596,16 @@
    <property name="subTitle">
     <string/>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QHBoxLayout" name="settingsHorizontalLayout">
+    <property name="margin">
+     <number>3</number>
+    </property>
     <item>
-     <widget class="QListView" name="workflowListView"/>
+     <widget class="QListView" name="workflowListView">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
