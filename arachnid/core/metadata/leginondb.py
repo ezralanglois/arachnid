@@ -5,6 +5,11 @@ a relational mapper between Python Objects and SQL. This is not a complete
 mapping of the Leginon database, but sufficent to get all information
 necessary to process the data.
 
+.. todo::
+
+    needs to be replaced - multiple scopes
+    scope = relationship("ScopeEM", uselist=False)
+
 .. Created on Dec 3, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -84,7 +89,7 @@ class Session(Base):
     projects = relationship("Projects", secondary=ProjectExperiments.__table__)#, backref='sessions')#project_session_table)
     instrument_id = Column('REF|InstrumentData|instrument', Integer, ForeignKey('InstrumentData.DEF_id'))
     instrument = relationship("Instrument", uselist=False)
-    scope = relationship("ScopeEM", uselist=False)
+    scope = relationship("ScopeEM", uselist=False) # .. todo:: needs to be replaced - multiple scopes
     camera = relationship("CameraEM", uselist=False)
     # Unused
     #imagefilter = relationship("ImageData", lazy="dynamic")
@@ -231,7 +236,14 @@ def query_user_info(username, password, leginondb, projectdb):
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
     db_session = SessionDB(binds=binds)
     rs = db_session.query(User).filter(User.username==username).all()
-    if len(rs) > 0: return rs[0]
-    return []
+    #if len(rs) > 0: return rs[0]
+    if len(rs) > 0: 
+        user = rs[0]
+        experiments = []#user.projects[0].experiments
+        projects = user.projects
+        for i in xrange(len(projects)):
+            experiments.extend(projects[i].experiments)
+        return user, experiments
+    return [], []
 
 
