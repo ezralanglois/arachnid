@@ -284,6 +284,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
             _logger.error("Host: %s"%mpi_utility.hostname())
             raise
         if image_count > 1:
+            if image_count > 1: raise ValueError, "Frames not supported - %s"%filename
             rwin = ndimage_file.iter_images(filename)
             rwin = itertools.imap(prepare_micrograph, rwin, bin_factor, invert)
         else:
@@ -416,16 +417,17 @@ def initialize(files, param):
             param['output_offset']=0
         else:
             _logger.info("Restarting from defocus file")
-            newvals = []
-            if param['use_powerspec']:
-                newvals = defvals
-                defvals = format_utility.map_object_list(defvals)
-                oldfiles = list(files)
-                files = []
-                for f in oldfiles:
-                    if spider_utility.spider_id(f, param['id_len']) not in defvals:
-                        files.append(f)
-                _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
+            #newvals = []
+            #if param['use_powerspec']:
+            #newvals = defvals
+            defvals = format_utility.map_object_list(defvals)
+            oldfiles = list(files)
+            files = []
+            for f in oldfiles:
+                if spider_utility.spider_id(f, param['id_len']) not in defvals:
+                    files.append(f)
+            _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
+            '''
             else:
                 ids = set([spider_utility.spider_id(f, param['id_len']) for f in files])
                 for d in defvals:
@@ -433,7 +435,10 @@ def initialize(files, param):
                         newvals.append(d)
             if len(newvals) > 0:
                 format.write(param['output'], newvals, default_format=format.spiderdoc)
+            _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
             param['output_offset']=len(newvals)
+            '''
+            param['output_offset']=len(defvals)
         if os.path.splitext(param['output'])[1] == '.emx':
             fout = open(param['output'], 'w')
             fout.write('<EMX version="1.0">\n')
