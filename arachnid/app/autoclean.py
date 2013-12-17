@@ -665,7 +665,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", input_files=[], help="List of filenames for the input particle stacks, e.g. cluster/win/win_*.dat ", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-i", input_files=[], help="List of filenames for the input particle stacks, e.g. cluster/win/win_*.dat ", required_file=True, gui=dict(filetype="open"))
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with with no digits at the end (e.g. this is bad -> sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-a", alignment="",   help="Input file containing alignment parameters", required_file=True, gui=dict(filetype="open"))
         spider_params.setup_options(parser, pgroup, True)
@@ -684,9 +684,6 @@ def main():
                         Example:
                          
                         $ %prog input-stack.spi -o view_001.dat -p params.spi -a alignment.spi -w 4
-                        
-                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
-                        exit 0
                         
                       ''',
         use_version = True,
