@@ -1017,9 +1017,9 @@ class OptionParser(optparse.OptionParser):
         if hasattr(options, self.add_input_files):
             input_files = getattr(options, self.add_input_files)
             if len(input_files) == 0: 
-                setattr(options, self.add_input_files+"_orig", args)
+                setattr(options, self.add_input_files+"_orig", list(args))
             else:
-                setattr(options, self.add_input_files+"_orig", input_files)
+                setattr(options, self.add_input_files+"_orig", list(input_files))
             
             _logger.debug("Checking input files - has input "+str(input_files))
             for f in input_files:
