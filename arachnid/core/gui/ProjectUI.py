@@ -125,19 +125,28 @@ class MainWindow(QtGui.QWizard):
         #self.ui.referencePage.registerField("referenceEdit*", self.ui.referenceWidget.ui.referenceLineEdit)
         
         ########################################################################################################################################
-        ###### Fine Settings Page
-        ########################################################################################################################################
-        self.ui.settingsTabWidget = SettingsUI(self)
-        self.ui.settingsHorizontalLayout.addWidget(self.ui.settingsTabWidget)
-        self.ui.workflowListView.setModel(QtGui.QStandardItemModel(self))
-        selmodel = self.ui.workflowListView.selectionModel()
-        selmodel.currentChanged.connect(self.ui.settingsTabWidget.settingsChanged)
-        
-        ########################################################################################################################################
         ###### Monitor Page
         ########################################################################################################################################
         self.ui.monitorWidget = MonitorUI(self)
         self.ui.monitorLayout.addWidget(self.ui.monitorWidget)
+        
+        ########################################################################################################################################
+        ###### Fine Settings Page
+        ########################################################################################################################################
+        self.ui.settingsTabWidget = SettingsUI(self)
+        self.ui.settingsHorizontalLayout.addWidget(self.ui.settingsTabWidget)
+        self.ui.workflowListView.setModel(self.ui.monitorWidget.model())
+        selmodel = self.ui.workflowListView.selectionModel()
+        selmodel.currentChanged.connect(self.ui.settingsTabWidget.settingsChanged)
+        
+        
+        self.job_status_icons=[QtGui.QIcon(f) for f in [':/mini/mini/clock.png', ':/mini/mini/arrow_refresh.png', ':/mini/mini/tick.png', ':/mini/mini/cross.png']]
+        '''
+        for filename in [':/mini/mini/clock.png', ':/mini/mini/arrow_refresh.png', ':/mini/mini/tick.png', ':/mini/mini/cross.png']:
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(filename), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            self.jobStatusIcons.append(icon)
+        '''
         
         ########################################################################################################################################
         ###### Manual Settings Page
@@ -147,6 +156,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.manualSettingsPage.registerField(self.param("cs*"), self.ui.csDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.manualSettingsPage.registerField(self.param("input_files*"), self, 'micrographFiles', QtCore.SIGNAL('micrographFilesUpdated()'))
         self.ui.manualSettingsPage.registerField(self.param("gain_files"), self, 'gainFiles', QtCore.SIGNAL('gainFilesUpdated()'))
+        self.ui.manualSettingsPage.registerField(self.param("gain_file"), self, 'gainFile')
         self.ui.manualSettingsPage.registerField(self.param("invert"), self.ui.invertCheckBox)
         
         ########################################################################################################################################
@@ -162,9 +172,11 @@ class MainWindow(QtGui.QWizard):
         self.ui.additionalSettingsPage.registerField(self.param("mask_diameter*"), self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param('worker_count'), self.ui.workerCountSpinBox)
         self.ui.additionalSettingsPage.registerField(self.param('thread_count'), self.ui.threadCountSpinBox)
+        self.ui.additionalSettingsPage.registerField(self.param("window"), self, "window")
+        
         thread_count = 1
         if openmp.is_openmp_enabled():
-            thread_count = openmp.get_max_threads()
+            thread_count = openmp.get_num_procs()
         else:
             try: thread_count=multiprocessing.cpu_count()
             except: pass
@@ -248,7 +260,7 @@ class MainWindow(QtGui.QWizard):
     ########################################################################################################################################
     ###### Gaile filename controls
     ########################################################################################################################################
-        
+    
     def gainFiles(self):
         '''
         '''
@@ -303,6 +315,24 @@ class MainWindow(QtGui.QWizard):
         if len(files) > 0:
             self.lastpath = os.path.dirname(str(files[0]))
             self.setGainFiles(files)
+            
+    ########################################################################################################################################
+    ###### Converted properties
+    ########################################################################################################################################
+    
+    @qtProperty(str)
+    def gainFile(self):
+        '''
+        '''
+        
+        return self.gain_files[0] if len(self.gain_files) > 0 else ""
+    
+    @qtProperty(float)
+    def window(self):
+        '''
+        '''
+        
+        return int(self.ui.windowAngstromDoubleSpinBox.value()/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() != 0 else 0
         
     ########################################################################################################################################
     
@@ -310,16 +340,11 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        param = project.default_settings()
+        param = vars(project.default_settings())
         for p in self.parameters:
             param[p]=self.field(p)
         workflow = project.workflow_settings(self.micrographFiles, **param)
-        model = self.ui.workflowListView.model()
-        model.clear()
-        for mod in workflow:
-            item = QtGui.QStandardItem(mod[0])
-            item.setData(mod, QtCore.Qt.UserRole)
-            model.addItem(item)
+        self.ui.monitorWidget.setWorkflow(workflow)
     
     ########################################################################################################################################
     
@@ -395,6 +420,10 @@ class MainWindow(QtGui.QWizard):
             _logger.error("nextId-here2")
         elif page == self.ui.fineTunePage:
             self.setupFineTunePage()
+        elif page == self.ui.monitorPage:
+            # save config files
+            # - todo: save current state in local directory
+            pass
         elif page == self.ui.settingsQuestionPage:
             if self.ui.noLeginonPushButton.isChecked():
                 return self.currentId()+2
@@ -403,4 +432,22 @@ class MainWindow(QtGui.QWizard):
                 return self.currentId()+2
         return super(MainWindow, self).nextId()
         
-        
+    
+def module_name(mod):
+    ''' Return the name of the module
+    
+    :Parameters:
+    
+    mod : module
+          Module to format
+    
+    :Returns:
+    
+    name : str
+           Name of the module
+    '''
+    
+    name = mod.__name__
+    idx = name.rfind('.')
+    if idx != -1: name = name[idx+1:]
+    return name
