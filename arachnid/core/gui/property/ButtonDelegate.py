@@ -241,7 +241,7 @@ class FileDialogWidget(DialogWidget):
             if hasattr(self.filename, 'make'):
                 filename = self.filename.make(filenames)
             else:
-                filename = self.filename.__class__(filename)
+                filename = self.filename.__class__(filenames)
         elif self.filetype == 'open':
             filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', self.path, self.filter)
             if isinstance(filename, tuple): filename = filename[0]
