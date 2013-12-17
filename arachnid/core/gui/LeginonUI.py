@@ -13,12 +13,11 @@ from pyui.LeginonUI import Ui_Form
 from util.qt4_loader import QtGui,QtCore,qtSlot, qtSignal, qtProperty
 from model.ListTableModel import ListTableModel
 from util import BackgroundTask
+from util import messagebox
 from ..metadata import leginondb
 import base64
 import logging
 import os
-import traceback
-import sys
 import getpass
 
 _logger = logging.getLogger(__name__)
@@ -148,7 +147,7 @@ class Widget(QtGui.QWidget):
             user, experiments = leginondb.query_user_info(username, password, leginonDB, projectDB)#, alternteUser)
         except:
             _logger.exception("Error accessing project")
-            exception_message(self, "Error accessing project")
+            messagebox.exception_message(self, "Error accessing project")
             self.ui.loginStackedWidget.setCurrentIndex(1)
         else:
             self.login['username']=username
@@ -176,7 +175,7 @@ class Widget(QtGui.QWidget):
         '''
         
         self.ui.progressDialog.hide()
-        exception_message(self, "Error accessing projects", exception)
+        messagebox.exception_message(self, "Error accessing projects", exception)
         self.taskFinished.disconnect(self.projectFinished)
         self.taskError.disconnect(self.projectLoadError)
     
@@ -201,7 +200,7 @@ class Widget(QtGui.QWidget):
             session = leginondb.query_session_info(username, password, leginonDB, projectDB, session_name)#, alternteUser)
         except:
             _logger.exception("Error accessing images")
-            exception_message(self, "Error accessing images")
+            messagebox.exception_message(self, "Error accessing images")
             self.ui.loginStackedWidget.setCurrentIndex(1)
         else:
             if session is None:
@@ -219,7 +218,7 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        exception_message(self, "Error accessing images", exception)
+        messagebox.exception_message(self, "Error accessing images", exception)
         self.ui.progressDialog.hide()
         self.taskFinished.disconnect(self.imageLoadFinished)
         self.taskError.disconnect(self.imageLoadError)
@@ -319,30 +318,6 @@ class Widget(QtGui.QWidget):
         return dict(vals)
         
     #def updateWizard(self):
-        
-def error_message(parent, msg, details=""):
-    '''
-    '''
-    
-    #msgBox = QtGui.QMessageBox(QtGui.QMessageBox.Critical, u'Error', QtGui.QMessageBox.Ok, parent)
-    msgBox = QtGui.QMessageBox(parent)
-    msgBox.setIcon(QtGui.QMessageBox.Critical)
-    msgBox.setWindowTitle('Error')
-    msgBox.addButton(QtGui.QMessageBox.Ok)
-    msgBox.setText(msg)
-    if details != "":
-        msgBox.setDetailedText(details)
-    msgBox.exec_()
-    
-def exception_message(parent, msg, exception=None):
-    '''
-    '''
-    
-    if exception is None:
-        exc_type, exc_value = sys.exc_info()[:2]
-    else:
-        exc_type, exc_value = exception.exc_type, exception.exc_value
-    error_message(parent, msg, traceback.format_exception_only(exc_type, exc_value)[0])
 
 def load_images_iter(session):
     '''
