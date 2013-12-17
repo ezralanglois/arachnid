@@ -53,3 +53,12 @@ def get_max_threads():
     if _omp is not None:
         return _omp.get_max_threads()
     return 1
+
+def get_num_procs():
+    '''
+    '''
+    
+    if _omp is not None:
+        return _omp.get_num_procs()
+    return 1
+    
