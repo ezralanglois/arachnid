@@ -1016,7 +1016,10 @@ class OptionParser(optparse.OptionParser):
         (options, args) = optparse.OptionParser.parse_args(self, args, values)
         if hasattr(options, self.add_input_files):
             input_files = getattr(options, self.add_input_files)
-            setattr(options, self.add_input_files+"_orig", input_files)
+            if len(input_files) == 0: 
+                setattr(options, self.add_input_files+"_orig", args)
+            else:
+                setattr(options, self.add_input_files+"_orig", input_files)
             
             _logger.debug("Checking input files - has input "+str(input_files))
             for f in input_files:
@@ -2001,7 +2004,7 @@ def compress_filenames(files):
     prefixes = [v+'*' for v in prefixes.values()]
     test=[]
     for f in prefixes:
-        test.extend(glob.glob(f)) 
+        test.extend(glob.glob(f))
     return optlist(prefixes) if len(test) == len(files) else files # Ensure its not a subset
 
 def parse_config_simple(config_file, **extra):
