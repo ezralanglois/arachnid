@@ -67,14 +67,18 @@ class TabWidget(QtGui.QTabWidget):
         '''
         '''
         
-        _, _, option_list, group_list, values = curr.data(QtCore.Qt.UserRole)
-        self.setSettings(option_list, group_list, values)
+        data = curr.data(QtCore.Qt.UserRole)
+        if data is None: return
+        self.setSettings(*data.settings())
     
     def setSettings(self, option_list, group_list, values):
         '''
         '''
         
-        for i in xrange(self.count()): self.removeTab(i)
+        self.invalid_count=0
+        self.tree_views.clear()
+        self.model_tab.clear()
+        while self.count() > 0: self.removeTab(0)
         self.addSettings(option_list, group_list, values)
         
     def addSettings(self, option_list, group_list, values):
@@ -96,12 +100,12 @@ class TabWidget(QtGui.QTabWidget):
                 icon.addPixmap(QtGui.QPixmap(":/mini/mini/accept.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             self.model_tab[treeView.model()]=self.count()-1
             self.addTab(treeView, icon, group.title)
-            if treeView.model().totalInvalid() > 0:
-                treeView.model().propertyValidity.connect(self.updateValid)
+            #if treeView.model().totalInvalid() > 0:
+            treeView.model().propertyValidity.connect(self.updateValid)
             width = treeView.model().maximumTextWidth(self.fontMetrics(), treeView.indentation())
             treeView.setColumnWidth(0, width)
         #self.ui.propertyTreeView.model().addOptions(option_list, [], values)
-        if not self.isValid(): self.controlValidity.emit(self, False)
+        self.controlValidity.emit(self, self.isValid())
     
     def isValid(self):
         '''
@@ -113,20 +117,19 @@ class TabWidget(QtGui.QTabWidget):
         '''
         '''
         
-        if valid:
-            if model.totalInvalid() == 0:
+        invalid = model.totalInvalid()
+        if self.invalid_count != invalid:
+            if valid:
                 icon = QtGui.QIcon()
                 icon.addPixmap(QtGui.QPixmap(":/mini/mini/accept.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.setTabIcon(self.model_tab[model], icon)
-                self.invalid_count -= 1
-                if self.isValid(): self.controlValidity.emit(self, True)
-        else:
-            if model.totalInvalid() == 1:
+                self.invalid_count = invalid
+            else:
                 icon = QtGui.QIcon()
                 icon.addPixmap(QtGui.QPixmap(":/mini/mini/exclamation.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.setTabIcon(self.model_tab[model], icon)
-                self.invalid_count += 1
-                if not self.isValid(): self.controlValidity.emit(self, False)
+                self.invalid_count = invalid
+        self.controlValidity.emit(self, self.isValid())
     
     def showEvent(self, event_obj):
         '''Called before the dialog is shown
