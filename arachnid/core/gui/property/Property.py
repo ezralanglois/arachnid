@@ -176,7 +176,7 @@ class Property(QtCore.QObject):
     @qtSlot(int)
     @qtSlot('float')
     @qtSlot('double')
-    def setValue(self, value):
+    def setValue(self, value, valid=True):
         '''Set the value for the property
         
         :Parameters:
@@ -186,7 +186,9 @@ class Property(QtCore.QObject):
         '''
         
         if self.property_obj is not None:
-            if self.required: self.propertyValidity.emit(self, True)
+            #if self.required: 
+            if self.property_obj.property(self.objectName()) != value:
+                self.propertyValidity.emit(self, valid)
             return self.property_obj.setProperty(self.objectName(), value)
     
     def isReadOnly(self):
@@ -1266,11 +1268,8 @@ class FilenameProperty(Property):
         _logger.debug("setValue Qstring")
         if value is not None: 
             if value and not self.testValid(value): return False
-            if value:
-                if self.required: self.propertyValidity.emit(self, True)
-            else:
-                if self.required: self.propertyValidity.emit(self, False)
-            Property.setValue(self, value)
+            valid = True if value else False
+            Property.setValue(self, value, valid)
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
@@ -1518,12 +1517,15 @@ class StringProperty(Property):
         '''
         
         if value is not None:
-            if self.required: 
-                if value:
-                    self.propertyValidity.emit(self, True)
-                else:
-                    self.propertyValidity.emit(self, False)
-            Property.setValue(self, str(value))
+            valid = True if value else False
+            #if self.required: 
+            '''
+            if value:
+                self.propertyValidity.emit(self, True)
+            else:
+                self.propertyValidity.emit(self, False)
+            '''
+            Property.setValue(self, str(value), valid)
     
 def is_int(f):
     '''Test if the float value is an integer
