@@ -49,9 +49,9 @@ Useful Options
     filename to the enumerated filename. This is specified when the files need to be
     relinked because of a change in location.
 
-.. option:: --ignore-duplicate <BOOL>
+.. option:: --test-image <BOOL>
     
-    Ignore duplicates found with same filename but in a different path location
+    Test if the input filename is a valid image - do not link if invalid
 
 Other Options
 =============
@@ -65,6 +65,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program, tracing
 from ..core.metadata import format_utility, spider_utility, format
+from ..core.image import ndimage_file
 import os
 import logging
 
@@ -72,7 +73,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mapping_file="", **extra):
+def batch(files, output, mapping_file="", test_image=False, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -83,6 +84,8 @@ def batch(files, output, mapping_file="", **extra):
              Output filename for micrograph links
     mapping_file : str
                    Filename of possible existing mapping
+    test_image : bool
+                 Test if input file is valid image
     extra : dict
             Unused keyword arguments
     '''
@@ -102,7 +105,7 @@ def batch(files, output, mapping_file="", **extra):
         try: os.makedirs(path)
         except: pass
     format.write(output_map_file, mapped, header="filename,id".split(','))
-    generate_enum_links(mapped, output)
+    generate_enum_links(mapped, output, test_image)
     _logger.info("Completed")
     
 def map_enum_files(files, mapping_file):
@@ -187,7 +190,7 @@ def remap_enum_files(files, mapping_file):
         _logger.warn("New mapping larger than original: %d > %d"%(len(newmapping), len(mapped)))
     return newmapping
 
-def generate_enum_links(mapped, output):
+def generate_enum_links(mapped, output, test_image=False):
     ''' Generate a set of enumerated softlinks
     
     :Parameters:
@@ -196,6 +199,8 @@ def generate_enum_links(mapped, output):
              List of tuples mapping filename to id
     output : str
              Output link filename template
+    test_image : bool
+                 Test if input file is valid image
     '''
     
     if not os.path.exists(os.path.dirname(output)):
@@ -205,6 +210,9 @@ def generate_enum_links(mapped, output):
         link = spider_utility.spider_filename(output, id)
         try:os.unlink(link)
         except: pass
+        if test_image and not ndimage_file.is_readable(filename):
+            _logger.warn("Unlinking %s because %s is not a valid image"%(link, filename))
+            continue
         if os.path.exists(filename):
             os.symlink(os.path.abspath(filename), link)
         else:
@@ -274,7 +282,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-i", "--unenum-files", input_files=[],         help="List of input filenames containing micrographs", required_file=True, gui=dict(filetype="open"))
     pgroup.add_option("-o", "--linked-files", output="",              help="Output filename for micrograph links", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-m", mapping_file="",                          help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
-
+    pgroup.add_option("-t", test_image=False,                         help="Test if the input filename is a valid image - do not link if invalid")
+    
 def flags():
     ''' Get flags the define the supported features
     
