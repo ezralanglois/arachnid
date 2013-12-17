@@ -196,10 +196,10 @@ def run_hybrid_program(name, **extra):
     if hasattr(main_module, 'flags'): extra.update(main_module.flags())
     use_version = extra.get('use_version', False)
     if not use_version and main_template == file_processor: extra['use_version']=True
-    supports_OMP = extra.get('supports_OMP', False)
+    #supports_OMP = extra.get('supports_OMP', False)
     _logger.debug("Checking options ...")
     try:
-        args, param = parse_and_check_options(main_module, main_template, **extra)
+        args, param, parser = parse_and_check_options(main_module, main_template, **extra)
     except SystemExit:
         return
     except VersionChange:
@@ -210,13 +210,47 @@ def run_hybrid_program(name, **extra):
     except:
         _logger.exception("Unexpected error occurred")
         raise
-    _logger.info("Program: %s"%(main_module.__name__), extra=dict(tofile=True))
+    _logger.debug("Checking options ... finished.")
+    launch_program(main_module, main_template, args, param, parser, **extra)
+    
+def launch_program(main_module, main_template, args, options, parser, supports_OMP=False, supports_MPI=False, use_version=False, max_filename_len=0, **extra):
+    '''
+    '''
+    
+    param = vars(options)
+    if hasattr(main_module, 'flags'): 
+        extra.update(main_module.flags())
+        supports_OMP=extra.get('supports_OMP', False)
+        supports_MPI=extra.get('supports_MPI', False)
+        max_filename_len=extra.get('max_filename_len', 0)
+        use_version=extra.get('use_version', False)
+    mpi_utility.mpi_init(param, **param)
+    #_logger.removeHandler(_logger.handlers[0])
+    tracing.configure_logging(**param)
+    '''
+    # do not use these anymore - consider removing
+    for org in dependents:
+        try:
+            if hasattr(org, "organize"):
+                args = org.organize(args, **param)
+        except:
+            _logger.error("org: %s"%str(org.__class__.__name__))
+            raise
+    '''
+    #param = vars(options)
+    if param['rank'] == 0 and use_version: 
+        val = parser.version_control(options)
+        if val is not None: param['vercontrol'], param['opt_changed'] = val
+    param['file_options'] = parser.collect_file_options()
+    param['infile_deps'] = parser.collect_dependent_file_options(type='open')
+    param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
+    param.update(update_file_param(max_filename_len, supports_MPI, **param))
+    args = param['input_files'] #options.input_files
+    
+    _logger.info("Program: %s"%(main_module.__name__))# , extra=dict(tofile=True))
     _logger.info("Version: %s"%(str(root_module.__version__)), extra=dict(tofile=True))
     _logger.info("PID: %d"%os.getpid())
     _logger.info("Created: %d"%psutil.Process(os.getpid()).create_time)
-    
-        
-    _logger.debug("Checking options ... finished.")
     
     #mpi_utility.mpi_init(param, **param)
     if supports_OMP:
@@ -302,7 +336,58 @@ def collect_file_dependents(main_module, config_path=None, **extra):
     
     return output, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
 
-def generate_settings_tree(main_module, **extra):
+class program(object):
+    '''
+    '''
+    
+    __slots__=('main_module', 'main_template', 'dependents', 'parser', 'config_file', 'values')
+    
+    def __init__(self, main_module, main_template, dependents, parser, config_file="", values=None):
+        '''
+        '''
+        
+        self.main_module = main_module
+        self.main_template=main_template
+        self.dependents = dependents
+        self.parser=parser
+        self.values = parser.get_default_values() if values is None else values
+        self.config_file=config_file
+        
+    def name(self):
+        '''
+        '''
+        
+        name = self.main_module.__name__
+        idx = name.rfind('.')
+        if idx != -1: name = name[idx+1:]
+        return name
+    
+    def check_options_validity(self):
+        '''
+        '''
+        
+        check_options(self.main_module, self.main_template, self.dependents, self.values)
+    
+    def launch(self):
+        '''
+        '''
+        
+        launch_program(self.main_module, self.main_template, self.values.input_files, self.values, self.parser)
+    
+    def settings(self):
+        '''
+        '''
+        
+        return self.parser.get_config_options(), self.parser.option_groups, self.values
+    
+    def ensure_log_file(self):
+        '''
+        '''
+        
+        if self.values.log_file == "":
+            self.values.log_file = os.path.basename(sys.argv[0])+".log"
+
+def generate_settings_tree(main_module, config_path=None, **extra):
     ''' Collect options, groups and values
     
     This function collects all options and option groups then updates their default 
@@ -340,9 +425,15 @@ def generate_settings_tree(main_module, **extra):
     if 'description' in extra:
         external_prog = map_module_to_program(main_module.__name__)
         extra['description'] = extra['description'].replace('%prog', '%(prog)s')%dict(prog=external_prog)
-    parser = setup_parser(main_module, main_template, external_prog=external_prog, **extra)[0]
+    parser, dependents = setup_parser(main_module, main_template, external_prog=external_prog, **extra)
     parser.change_default(**extra)
-    return parser.get_config_options(), parser.option_groups, parser.get_default_values()
+    name = main_module.__name__
+    off = name.rfind('.')
+    if off != -1: name = name[off+1:]
+    if config_path is not None:
+        output = os.path.join(config_path, name+".cfg")
+    else: output = name+".cfg"
+    return program(main_module, main_template, dependents, parser, output)
         
 def write_config(main_module, config_path=None, ret_file_deps=False, **extra):
     ''' Write a configuration file
@@ -524,7 +615,7 @@ def map_module_to_program(key=None):
     for i in xrange(len(vals)):
         program, module = vals[i].split('=', 1)
         try:
-            module, main = module.split(':', 1)
+            module = module.split(':', 1)[0]
         except:
             _logger.error("Module name: %s"%module)
             raise
@@ -633,8 +724,8 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
     
     args : list
            List of files to process
-    param : dict
-            Dictionary of parameters and their corresponding values
+    options : object
+              Dictionary of parameters and their corresponding values
     '''
     
     name = main_module.__name__
@@ -650,12 +741,18 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
         raise settings.OptionValueError, "Failed when parsing options"
     
     if autogui is not None:
-        if sys.platform == 'darwin': # Hack for my system?
-            options=autogui.display(name, parser, options, **vars(options))
+        if 1 == 0:
+            if sys.platform == 'darwin': # Hack for my system?
+                options=autogui.display_worker(name, parser, options, **vars(options))
+            else:
+                options=autogui.display_mp(name, parser, options, **vars(options))
+            if options is None: sys.exit(0)
+            args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
         else:
-            options=autogui.display_mp(name, parser, options, **vars(options))
-        if options is None: sys.exit(0)
-        args=list(settings.uncompress_filenames(options.input_files)) #TODO: add spider regexp
+            tracing.configure_logging(**vars(options))
+            #program(main_module, main_template, dependents, parser, output)
+            #main_module, main_template, dependents, parser, config_file
+            autogui.display(program(main_module, main_template, dependents, parser, values=options), **vars(options))
         # Disable automatic version update
         #if options.prog_version != 'latest' and options.prog_version != root_module.__version__: reload_script(options.prog_version)
         #
@@ -677,43 +774,47 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
             parser.write(options.create_cfg, options)
             if not hasattr(options, 'noexit'): sys.exit(0)
     
+    check_options(main_module, main_template, dependents, options, parser)
+    return args, options, parser
+        
+        
+        
+
+def check_options(main_module, main_template, dependents, options, parser=None):
+    ''' Check the validity of the options
+    
+    :Parameters:
+        
+    main_module : module
+                  Main module
+    main_template : module
+                    Main module wrapper
+    dependents : list
+                 List of dependent modules
+    options : object
+              Dictionary of parameters and their corresponding values
+    parser : OptionParser
+             OptionParser
+    
+    :raises: OptionValueError
+    '''
+    
     additional = [tracing]
     if main_template is not None and main_template != main_module: additional.append(main_template)
     try:
         for module in dependents+additional:
             if not hasattr(module, "update_options") or module==main_module: continue
             module.update_options(options)
-        parser.validate(options)
+        if parser is not None: parser.validate(options)
         for module in dependents+additional:
             if not hasattr(module, "check_options"): continue 
             module.check_options(options)
         if hasattr(main_module, "check_options"): main_module.check_options(options, True)
     except settings.OptionValueError, inst:
-        on_error(parser, inst, options)
-        raise settings.OptionValueError, "Failed when testing options"
+        if parser is not None: on_error(parser, inst, options)
+        raise 
+        #settings.OptionValueError, "Failed when testing options"
         #parser.error(inst.msg, options)
-    
-    param = vars(options)
-    mpi_utility.mpi_init(param, **param)
-    #_logger.removeHandler(_logger.handlers[0])
-    tracing.configure_logging(**param)
-    for org in dependents:
-        try:
-            if hasattr(org, "organize"):
-                args = org.organize(args, **param)
-        except:
-            _logger.error("org: %s"%str(org.__class__.__name__))
-            raise
-    #param = vars(options)
-    if param['rank'] == 0 and use_version: 
-        val = parser.version_control(options)
-        if val is not None: param['vercontrol'], param['opt_changed'] = val
-    param['file_options'] = parser.collect_file_options()
-    param['infile_deps'] = parser.collect_dependent_file_options(type='open')
-    param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
-    param.update(update_file_param(max_filename_len, supports_MPI, **param))
-    args = param['input_files'] #options.input_files
-    return args, param
 
 def on_error(parser, inst, options):
     ''' Called when an OptionValueError has been thrown
