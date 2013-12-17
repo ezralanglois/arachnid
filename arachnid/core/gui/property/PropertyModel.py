@@ -78,7 +78,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 if p is not None: break
             if p is None: print option.dest
             assert(p is not None)
-            if p.required: p.propertyValidity.connect(self.firePropertyValidity)
+            #if p.required: 
+            p.propertyValidity.connect(self.firePropertyValidity)
         
         for group in option_groups:
             if group.is_child() and len(group.get_config_options()) > 0:
@@ -145,6 +146,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 for propertyClass in Property.PROPERTIES:
                     p = propertyClass.create(propName, rindex, propertyObject, metaProperty, currentItem)
                     if p is not None: break
+                if p is not None:
+                    p.propertyValidity.connect(self.firePropertyValidity)
                 row = p.row() if p is not None else -1
                 _logger.debug("Add property %s - %d"%(propName,row))
             self._addItems(propertyObject._children, currentItem, rindex)
@@ -229,6 +232,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
                     for propertyClass in Property.PROPERTIES:
                         p = propertyClass.create(metaProperty.name(), rindex, propertyObject, extProperty, propertyItem)
                         if p is not None: break
+                    if p is not None:
+                        p.propertyValidity.connect(self.firePropertyValidity)
             self.endInsertRows()
             if propertyItem: self.addDynamicProperties(propertyItem, propertyObject)
     
