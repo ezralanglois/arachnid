@@ -5,6 +5,7 @@
 '''
 
 import format, spider_utility, relion_utility
+import spider_params
 from ..orient import orient_utility
 from ..image import ndimage_file
 import numpy
@@ -13,7 +14,23 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False ,**extra):
+def is_relion_star(filename):
+    ''' Test if input filename is in the Relion star format
+    
+    :Parameters:
+    
+    filename : str
+               Input filename
+    
+    :Returns:
+    
+    flag : bool
+           True if the format matches the Relion star format
+    '''
+    
+    return format.get_format(filename) == format.star
+
+def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False, ctf_params=False, **extra):
     ''' Read an alignment file and organize images
     
     Supports both SPIDER and Relion alignment files
@@ -31,14 +48,20 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
     force_list : bool
                  Return filename index tuple list rather than converting
                  to SPIDER ID label array
+    ctf_params : bool
+                    Read and return CTF params
     extra : dict
             Unused keyword arguments
     
     :Returns:
     
+    files : list or tuple
+            List of filename/id tuples or a tuple (filename, label array)
     out : array
           2d array where rows are images and columns are alignment
           parameters: psi,theta,phi,inplane,tx,ty,defocus
+    param : dict, optional
+            CTF params
     '''
     
     if align_cols < 7: raise ValueError, "align_cols must be greater than 7"
@@ -47,7 +70,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
     if 'format' in extra: del extra['format']
     if 'numeric' not in extra: extra['numeric']=True
     supports_spider_id="" if not force_list else None
-    if format.get_format(filename, **extra) == format.star:
+    if is_relion_star(filename):
         align = format.read(filename, **extra)
         param = numpy.zeros((len(align), align_cols))
         files = []
@@ -90,7 +113,12 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                 label[:, 1]-=1
             files = (files[0][0], label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+        if ctf_params:
+            ctf_param=dict(cs=align[0].rlnSphericalAberration,
+                           voltage=align[0].rlnVoltage,
+                           ampcont=align[0].rlnAmplitudeContrast) if len(align) > 0 else {}
     else:
+        if ctf_params: ctf_param=spider_params.read(extra['param_file'])
         if 'ndarray' not in extra or not extra['ndarray']: extra['ndarray']=True
         align = read_spider_alignment(filename, **extra)[0]
         param = numpy.zeros((len(align), align_cols))
@@ -149,6 +177,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             if label[:, 1].min() > 0: label[:, 1]-=1
             files = (image_file, label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+    if ctf_params: return files, param, ctf_param
     return files, param
 
 def read_spider_alignment(filename, header=None, **extra):
