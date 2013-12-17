@@ -14,4 +14,5 @@ console_scripts = [
  'autoclass = arachnid.app.autoclass:main',
  'orient = arachnid.app.orient:main',
  'autoctf2 = arachnid.app.autoctf2:main',
+ 'reconstruct = arachnid.app.reconstruct:main',
 ]
