@@ -445,7 +445,7 @@ def read_coordinates(coordinate_file, good_file="", **extra):
 def init_root(files, param):
     # Initialize global parameters for the script
     
-    if len(files) == 0 and len(param['finished']) == 0: return []
+    if len(files) == 0: return []
     filename = files[0] if len(files) > 0 else param['finished'][0]
     if mpi_utility.is_root(**param):
         tot = ndimage_file.count_images(filename)
