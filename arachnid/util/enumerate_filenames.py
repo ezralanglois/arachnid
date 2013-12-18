@@ -210,10 +210,10 @@ def generate_enum_links(mapped, output, test_image=False):
         link = spider_utility.spider_filename(output, id)
         try:os.unlink(link)
         except: pass
-        if test_image and not ndimage_file.is_readable(filename):
-            _logger.warn("Unlinking %s because %s is not a valid image"%(link, filename))
-            continue
         if os.path.exists(filename):
+            if test_image and not ndimage_file.is_readable(filename):
+                _logger.warn("Unlinking %s because %s is not a valid image"%(link, filename))
+                continue
             os.symlink(os.path.abspath(filename), link)
         else:
             _logger.warn("Unlinking %s because %s does not exist"%(link, filename))
