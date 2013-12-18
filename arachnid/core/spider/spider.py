@@ -2952,7 +2952,7 @@ def open_session(args, spider_path="", data_ext="", thread_count=1, enable_resul
             if rank is None or rank == 0:
                 _logger.warn("Changing Spider data extension from %s to %s"%(data_ext, tmp_ext))
             data_ext = tmp_ext
-        elif data_ext == "": data_ext = 'spi'
+    if data_ext == "": data_ext = 'dat'
     return Session(spider_path, data_ext, thread_count, enable_results, rank, local_temp)
 
 def stack(session, inputfile, node_count, outputfile=None):
