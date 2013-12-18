@@ -619,6 +619,7 @@ class Option(optparse.Option):
                  The current option parser instance
         '''
         
+        setattr(parser.values, option.dest+"_compressed", value)
         setattr(parser.values, option.dest, optfilelist(value, option._default_regular_expression))
     
     @staticmethod
@@ -894,9 +895,8 @@ class OptionParser(optparse.OptionParser):
         if output is None:
             if not hasattr(options, 'output'): return
             output = options.output
-        
-        output = os.path.splitext(output)[0]+".cfg"
-        output = os.path.join(os.path.dirname(output), "cfg_"+os.path.basename(output))
+            output = os.path.splitext(output)[0]+".cfg"
+            output = os.path.join(os.path.dirname(output), "cfg_"+os.path.basename(output))
         if os.path.exists(output):
             new_values = vars(options)
             values = vars(self.parse_file(fin=output))
