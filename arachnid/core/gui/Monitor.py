@@ -9,6 +9,7 @@
 from util.qt4_loader import QtCore, QtGui, qtSignal, qtSlot
 from pyui.Monitor import Ui_Form
 import logging, os, psutil
+import multiprocessing
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -35,27 +36,56 @@ class Widget(QtGui.QWidget):
         self.ui.jobUpdateTimer.setSingleShot(False)
         
         self.ui.setupUi(self)
-        self.ui.pushButton.clicked.connect(self.runProgram)
+        #self.ui.pushButton.clicked.connect(self.runProgram)
         self.ui.jobUpdateTimer.timeout.connect(self.on_jobUpdateTimer_timeout)
-        
         self.ui.jobProgressBar.setMinimum(0)
-        
+        self.ui.jobListView.setModel(QtGui.QStandardItemModel(self))
+        self.job_status_icons=[QtGui.QIcon(f) for f in [':/mini/mini/clock.png', ':/mini/mini/arrow_refresh.png', ':/mini/mini/tick.png', ':/mini/mini/cross.png']]
+        self.ui.crashReportToolButton.setEnabled(False)
         #self.text_cursor = QtGui.QTextCursor(self.ui.logTextEdit.document())
         self.current_pid = None
         self.fin = None
         self.log_file = None
         self.created = None
+        self.workflow = []
+        self.log_text=""
+    
+    def saveState(self):
+        '''
+        '''
+        
+        # save workflow in INI file
+        for prog in self.workflow:
+            prog.write_config()
+    
+    def setWorkflow(self, workflow):
+        '''
+        '''
+        
+        if not hasattr(workflow, '__iter__'): workflow=[workflow]
+        self.workflow = workflow
+        model = self.ui.jobListView.model()
+        model.clear()
+        for mod in workflow:
+            item = QtGui.QStandardItem(self.job_status_icons[0], mod.name())
+            item.setData(mod, QtCore.Qt.UserRole)
+            model.appendRow(item)
+    
+    def model(self):
+        '''
+        '''
+        
+        return self.ui.jobListView.model()
     
     def setLogFile(self, filename):
         '''
         '''
         
+        _logger.error("Log file: "+str(filename))
         self.log_file = filename
         if os.path.exists(self.log_file):
             lines = self.readLogFile()
             if len(lines) == 0: return
-            if self.isComplete(lines): return
-            #created = self.parsePID(lines, 'Completed')
             self.current_pid = self.parsePID(lines)
             if self.current_pid is not None:
                 created = self.parsePID(lines, 'Created:')
@@ -65,10 +95,37 @@ class Widget(QtGui.QWidget):
                     self.fin = None
                     self.monitorProgram.emit()
                     self.ui.pushButton.setChecked(QtCore.Qt.Checked)
+                    model = self.ui.jobListView.model()
+                    model.item(0).setIcon(self.job_status_icons[1])
+                    self.ui.crashReportToolButton.setEnabled(False)
                 else:
+                    self.testCompletion(lines)
                     self.current_pid = None
                     self.fin = None
- 
+    
+    def testCompletion(self, lines):
+        '''
+        '''
+        
+        model = self.ui.jobListView.model()
+        if self.isComplete(lines):
+            model.item(0).setIcon(self.job_status_icons[2])
+            self.ui.crashReportToolButton.setEnabled(False)
+        else:
+            model.item(0).setIcon(self.job_status_icons[3])
+            self.ui.crashReportToolButton.setEnabled(True)
+    
+    @qtSlot()
+    def on_crashReportToolButton_toggled(self, checked=False):
+        '''
+        '''
+        
+        if checked:
+            self.log_text = self.ui.logTextEdit.toPlainText()
+            # show crash report
+        else:
+            self.ui.logTextEdit.setPlainText(self.log_text)
+    
     @qtSlot(bool)
     def on_pushButton_toggled(self, checked=False):
         '''
@@ -76,6 +133,7 @@ class Widget(QtGui.QWidget):
         
         self.ui.jobProgressBar.setValue(0)
         if checked:
+            self.run_program()
             self.current_pid = None
             self.created = None
             self.fin = None
@@ -92,6 +150,22 @@ class Widget(QtGui.QWidget):
             self.created = None
             self.fin = None
     
+    def run_program(self):
+        '''
+        '''
+        
+        def _run_worker(workflow):
+            for prog in workflow:
+                prog.launch()
+        proc = multiprocessing.Process(target=_run_worker, args=(self.workflow, ))
+        proc.start()
+        self.runProgram.emit()
+        model = self.ui.jobListView.model()
+        for i in xrange(1, model.rowCount()):
+            model.item(i).setIcon(self.job_status_icons[0])
+        model.item(0).setIcon(self.job_status_icons[1])
+        self.ui.crashReportToolButton.setEnabled(False)
+    
     #@qtSlot()
     def on_jobUpdateTimer_timeout(self):
         '''
@@ -100,6 +174,10 @@ class Widget(QtGui.QWidget):
         if self.ui.jobUpdateTimer.interval() != 500:
             self.ui.jobUpdateTimer.setInterval(500)
         
+        if self.log_file is None:
+            self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
+            return
+            
         if self.current_pid is None:
             if not os.path.exists(self.log_file):
                 self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
@@ -113,6 +191,7 @@ class Widget(QtGui.QWidget):
             if self.current_pid is not None:
                 self.created = self.parsePID(lines, 'Created:')
             if not self.isRunning(self.created):
+                self.testCompletion(lines)
                 self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
                 return
         
@@ -127,8 +206,6 @@ class Widget(QtGui.QWidget):
             self.text_cursor.insertText(line)
         '''
         self.updateProgress(lines)
-        if self.isComplete(lines):
-            self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
     
     def isRunning(self, created):
         '''

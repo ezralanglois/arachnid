@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/Monitor.ui'
 #
-# Created: Mon Dec  2 13:48:25 2013
+# Created: Tue Dec 17 16:51:00 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,6 +34,8 @@ class Ui_Form(object):
         self.jobListView.setSizePolicy(sizePolicy)
         self.jobListView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.jobListView.setProperty("showDropIndicator", False)
+        self.jobListView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+        self.jobListView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.jobListView.setObjectName("jobListView")
         self.horizontalLayout_2.addWidget(self.jobListView)
         self.horizontalLayout.addWidget(self.widget_7)
@@ -81,6 +83,14 @@ class Ui_Form(object):
         self.horizontalLayout_3.addWidget(self.pushButton)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem1)
+        self.crashReportToolButton = QtGui.QToolButton(self.widget)
+        self.crashReportToolButton.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/mini/mini/page_white_error.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.crashReportToolButton.setIcon(icon1)
+        self.crashReportToolButton.setCheckable(True)
+        self.crashReportToolButton.setObjectName("crashReportToolButton")
+        self.horizontalLayout_3.addWidget(self.crashReportToolButton)
         self.verticalLayout.addWidget(self.widget)
         self.horizontalLayout.addWidget(self.widget_5)
 
