@@ -81,6 +81,7 @@ class MainWindow(QtGui.QWizard):
         self.micrograph_files = []
         self.gain_files = []
         self.parameters=[]
+        self.next_page=-1
         
         
         version = arachnid.__version__
@@ -139,15 +140,6 @@ class MainWindow(QtGui.QWizard):
         selmodel = self.ui.workflowListView.selectionModel()
         selmodel.currentChanged.connect(self.ui.settingsTabWidget.settingsChanged)
         
-        
-        self.job_status_icons=[QtGui.QIcon(f) for f in [':/mini/mini/clock.png', ':/mini/mini/arrow_refresh.png', ':/mini/mini/tick.png', ':/mini/mini/cross.png']]
-        '''
-        for filename in [':/mini/mini/clock.png', ':/mini/mini/arrow_refresh.png', ':/mini/mini/tick.png', ':/mini/mini/cross.png']:
-            icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(filename), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-            self.jobStatusIcons.append(icon)
-        '''
-        
         ########################################################################################################################################
         ###### Manual Settings Page
         ########################################################################################################################################
@@ -185,6 +177,7 @@ class MainWindow(QtGui.QWizard):
     def param(self, name):
         '''
         '''
+        
         if name[-1]=='*':
             self.parameters.append(name[:len(name)-1])
         else:
@@ -205,7 +198,6 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        _logger.error("setMicrographFiles-here1")
         try:"+"+files
         except: pass
         else: files = files.split(',')
@@ -327,12 +319,27 @@ class MainWindow(QtGui.QWizard):
         
         return self.gain_files[0] if len(self.gain_files) > 0 else ""
     
-    @qtProperty(float)
+    @gainFile.setter
+    def setGainFile(self, val):
+        '''
+        '''
+        
+        self.gain_files=[val]
+    
+    @qtProperty(int)
     def window(self):
         '''
         '''
         
         return int(self.ui.windowAngstromDoubleSpinBox.value()/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() != 0 else 0
+    
+    @window.setter
+    def setWindow(self, val):
+        '''
+        '''
+        
+        self.ui.windowAngstromDoubleSpinBox.setValue(val*self.ui.pixelSizeDoubleSpinBox.value())
+        
         
     ########################################################################################################################################
     
@@ -340,12 +347,37 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        param = vars(project.default_settings())
+        param = {}
         for p in self.parameters:
             param[p]=self.field(p)
-        workflow = project.workflow_settings(self.micrographFiles, **param)
+        workflow = project.workflow_settings(self.micrographFiles, param)
         self.ui.monitorWidget.setWorkflow(workflow)
     
+    def saveFineTunePage(self):
+        '''
+        '''
+        
+        self.ui.monitorWidget.saveState()
+    
+    def loadProject(self):
+        '''
+        '''
+        
+        settings = project.default_settings()
+        if len(settings.input_files) == 0: return
+        
+        workflow = project.workflow_settings(settings.input_files, vars(settings))
+        self.ui.monitorWidget.setWorkflow(workflow)
+        for p in self.parameters:
+            if not hasattr(workflow[0].values, p): continue
+            val = getattr(workflow[0].values, p)
+            if p == 'input_files':
+                val = ",".join(val)
+            self.setField(p, val)
+        
+        self.next_page = self.idOf(self.ui.fineTunePage)
+        self.next()
+        
     ########################################################################################################################################
     
     ########################################################################################################################################
@@ -361,6 +393,7 @@ class MainWindow(QtGui.QWizard):
         
         # Load the settings
         _logger.info("\rLoading project settings ...")
+        self.loadProject()
         QtGui.QWizard.showEvent(self, evt)
     
     def idOf(self, page):
@@ -410,20 +443,21 @@ class MainWindow(QtGui.QWizard):
     def nextId(self):
         '''
         '''
+        
         page = self.page(self.currentId())
+        if self.next_page != -1:
+            if page == self.ui.monitorPage or page == self.ui.fineTunePage:
+                super(MainWindow, self).nextId()
+            else:
+                return self.next_page
         if page == self.ui.manualSettingsPage:
             fields = self.ui.leginonWidget.currentData()
-            _logger.error("nextId-here1")
             for key, val in fields.iteritems():
-                _logger.error("nextId-here1b-"+str(key))
                 self.setField(key, val)
-            _logger.error("nextId-here2")
         elif page == self.ui.fineTunePage:
             self.setupFineTunePage()
         elif page == self.ui.monitorPage:
-            # save config files
-            # - todo: save current state in local directory
-            pass
+            self.saveFineTunePage()
         elif page == self.ui.settingsQuestionPage:
             if self.ui.noLeginonPushButton.isChecked():
                 return self.currentId()+2
@@ -432,22 +466,4 @@ class MainWindow(QtGui.QWizard):
                 return self.currentId()+2
         return super(MainWindow, self).nextId()
         
-    
-def module_name(mod):
-    ''' Return the name of the module
-    
-    :Parameters:
-    
-    mod : module
-          Module to format
-    
-    :Returns:
-    
-    name : str
-           Name of the module
-    '''
-    
-    name = mod.__name__
-    idx = name.rfind('.')
-    if idx != -1: name = name[idx+1:]
-    return name
+
