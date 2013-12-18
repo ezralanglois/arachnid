@@ -221,8 +221,6 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
     if hasattr(main_module, 'flags'): 
         extra.update(main_module.flags())
         supports_OMP=extra.get('supports_OMP', False)
-        supports_MPI=extra.get('supports_MPI', False)
-        max_filename_len=extra.get('max_filename_len', 0)
         use_version=extra.get('use_version', False)
     mpi_utility.mpi_init(param, **param)
     #_logger.removeHandler(_logger.handlers[0])
@@ -244,7 +242,8 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
     param['file_options'] = parser.collect_file_options()
     param['infile_deps'] = parser.collect_dependent_file_options(type='open')
     param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
-    param.update(update_file_param(max_filename_len, supports_MPI, **param))
+    extra['file_options']=param['file_options']
+    param.update(update_file_param(**extra))
     args = param['input_files'] #options.input_files
     
     _logger.info("Program: %s"%(main_module.__name__))# , extra=dict(tofile=True))
@@ -849,7 +848,7 @@ def on_error(parser, inst, options):
     print parser.get_usage(), "See %s for more information regarding this error"%tracing.default_logfile(**param)
     print
 
-def update_file_param(max_filename_len, warning, file_options, home_prefix=None, local_temp="", **extra):
+def update_file_param(max_filename_len=0, warning=False, file_options=0, home_prefix=None, local_temp="", **extra):
     ''' Create a soft link to the home_prefix and change all filenames to
     reflect this short cut.
     
