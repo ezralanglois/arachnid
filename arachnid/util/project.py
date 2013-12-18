@@ -104,22 +104,33 @@ def batch(files, **extra):
     write_workflow(workflow)
     # run option
 
-def workflow_settings(files, **extra):
+def workflow_settings(files, param):
     '''
     '''
     
+    extra = vars(default_settings())
+    extra.update(param)
     workflow = build_workflow(files, extra)
-    mods=[]
-    for mod, cfg, _, _ in workflow:
-        param = program.generate_settings_tree(mod, **extra)
-        mods.append([mod, cfg]+list(param))
+    
+    if 'input_files_compressed' in extra:
+        extra['input_files'] = extra['input_files_compressed']
+    else:
+        extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
+    prog = program.generate_settings_tree(workflow[0][0], **extra)
+    prog.update(param)
+    param.update(vars(prog.values))
+    mods=[prog]
+    param['input_files'] = []
+    for mod, cfg, _, _ in workflow[1:]:
+        prog = program.generate_settings_tree(mod, **param)
+        mods.append(prog)
     return mods
 
 def default_settings():
     '''
     '''
     
-    return program.generate_settings_tree(_project)[2]
+    return program.generate_settings_tree(_project).values
 
 def write_workflow(scripts):
     ''' Write out scripts necessary to run the workflow
@@ -179,31 +190,6 @@ def build_dependency_tree(scripts, root, found=[]):
             if len(scripts) == 0: break
             branch.extend(build_dependency_tree(scripts, script, current))
     return branch
-    
-def write_config(workflow, **extra):
-    ''' Write configurations files for each script in the
-    workflow including the SPIDER CTF params file
-    
-    :Parameters:
-    
-    workflow : list
-               List of modules
-    extra : dict
-            Keyword arguments
-    '''
-    
-    spider_params.write_update(extra['param_file'], **extra)
-    config_path=extra['config_path']
-    if not os.path.exists(config_path):
-        try: os.makedirs(config_path)
-        except: pass
-    
-    extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
-    for mod, _, _, _ in workflow:
-        config = program.update_config(mod, **extra)
-        if config == "":
-            config = program.write_config(mod, **extra)
-        extra['input_files']=[]
 
 def build_workflow(files, extra):
     ''' Collect all modules that belong to the current workflow
@@ -241,7 +227,7 @@ def build_workflow(files, extra):
                 if hasattr(mod, 'supports') and (not callable(mod.supports) or mod.supports(files, **extra)):
                     workflow.append(mod)
     for i in xrange(len(workflow)):
-        workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i]))
+        workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i], **extra))
     
     input,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
     # Hack
@@ -252,39 +238,6 @@ def build_workflow(files, extra):
         first_script[3] = [input2, ]+first_script[3]
     
     return [workflow[0]]+build_dependency_tree(workflow[1:], workflow[0], [input])
-
-def write_config_old(workflow, **extra):
-    ''' Write configurations files for each script in the
-    workflow.
-    
-    :Parameters:
-    
-    workflow : list
-               List of modules
-    extra : dict
-            Keyword arguments
-    
-    :Returns:
-    
-    scripts : list
-              List of tuples containing: module, script name, 
-              input file deps, output file deps.
-    '''
-    
-    config_path=extra['config_path']
-    if not os.path.exists(config_path):
-        try: os.makedirs(config_path)
-        except: pass
-    
-    extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
-    scripts=[]
-    for mod in workflow:
-        config = program.update_config(mod, ret_file_deps=True, **extra)
-        if config[0] == "":
-            config = program.write_config(mod, ret_file_deps=True, **extra)
-        scripts.append([mod, ]+list(config))
-        extra['input_files'] = []
-    return scripts
 
 def find_root(scripts, root_inputs):
     ''' Find the input for the root script
@@ -308,21 +261,50 @@ def find_root(scripts, root_inputs):
         for scrpt in scripts:
             if root_input in scrpt[2]: return root_input, scrpt
     raise ValueError, "No root found!"
+    
+def write_config(workflow, **extra):
+    ''' Write configurations files for each script in the
+    workflow including the SPIDER CTF params file
+    
+    :Parameters:
+    
+    workflow : list
+               List of modules
+    extra : dict
+            Keyword arguments
+    '''
+    
+    spider_params.write_update(extra['param_file'], **extra)
+    config_path=extra['config_path']
+    if not os.path.exists(config_path):
+        try: os.makedirs(config_path)
+        except: pass
+    
+    if 'input_files_compressed' in extra:
+        extra['input_files'] = extra['input_files_compressed']
+    else:
+        extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
+    for mod, _, _, _ in workflow:
+        param = program.update_config(mod, **extra)
+        if param is not None:
+            param.update(extra)
+            program.write_config(mod, **param)
+        extra['input_files']=[]
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup
         
-    pgroup.add_option("-i", input_files=[],     help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"))
-    pgroup.add_option("-r", raw_reference="",   help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
-    pgroup.add_option("-g", gain_file="",       help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
-    pgroup.add_option("", is_film=False,        help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
-    pgroup.add_option("", apix=0.0,             help="Pixel size, Angstroms", gui=dict(minimum=0.0, decimals=4, singleStep=0.1), required=True)
-    pgroup.add_option("", voltage=0.0,          help="Electron energy, KeV", gui=dict(minimum=0.0, singleStep=1.0), required=True)
-    pgroup.add_option("", cs=0.0,               help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
-    pgroup.add_option("", window=0,             help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
-    pgroup.add_option("", particle_diameter=0,  help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
-    pgroup.add_option("", mask_diameter=0,      help="Set the mask diameter: 0 means use 1.1*particle_diamater", gui=dict(minimum=0))
+    pgroup.add_option("-i", input_files=[],      help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"), dependent=False)
+    pgroup.add_option("-r", raw_reference="",    help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
+    pgroup.add_option("-g", gain_file="",        help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
+    pgroup.add_option("", is_film=False,         help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
+    pgroup.add_option("", apix=0.0,              help="Pixel size, Angstroms", gui=dict(minimum=0.0, decimals=4, singleStep=0.1), required=True)
+    pgroup.add_option("", voltage=0.0,           help="Electron energy, KeV", gui=dict(minimum=0.0, singleStep=1.0), required=True)
+    pgroup.add_option("", cs=0.0,                help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
+    pgroup.add_option("", window=0,              help="Set the window size: 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
+    pgroup.add_option("", particle_diameter=0.0, help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
+    pgroup.add_option("", mask_diameter=0.0,     help="Set the mask diameter: 0 means use 1.1*particle_diamater", gui=dict(minimum=0))
     
     addgroup = OptionGroup(parser, "Parallel", "Options for parallel processing")
     addgroup.add_option("-w", worker_count=1,  help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
@@ -370,6 +352,12 @@ def check_options(options, main_option=False):
     if options.particle_diameter == 0.0:
         raise OptionValueError, "No longest diameter of the particle in angstroms specified (--particle-diameter), either specifiy it or an existing SPIDER params file"
     if options.mask_diameter == 0.0: options.mask_diameter = options.particle_diameter*1.1
+
+def change_option_defaults(parser):
+    ''' Change the values to options specific to the script
+    '''
+    
+    parser.change_default(log_file="data/log/project.log")
 
 def flags():
     ''' Get flags the define the supported features
