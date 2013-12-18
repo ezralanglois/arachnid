@@ -353,6 +353,22 @@ class program(object):
         self.values = parser.get_default_values() if values is None else values
         self.config_file=config_file
         
+    def write_config(self):
+        '''
+        '''
+        
+        if self.config_file != "":
+            if not os.path.exists(os.path.dirname(self.config_file)):
+                os.makedirs(os.path.dirname(self.config_file))
+            self.parser.write(self.config_file, values=self.values)
+    
+    def update(self, param):
+        '''
+        '''
+        
+        for key, val in param.iteritems():
+            setattr(self.values, key, val)
+        
     def name(self):
         '''
         '''
@@ -432,10 +448,13 @@ def generate_settings_tree(main_module, config_path=None, **extra):
     if off != -1: name = name[off+1:]
     if config_path is not None:
         output = os.path.join(config_path, name+".cfg")
+    elif hasattr(parser.get_default_values(), 'config_path'):
+        output = os.path.join(parser.get_default_values().config_path, name+".cfg")
     else: output = name+".cfg"
-    return program(main_module, main_template, dependents, parser, output)
+    options = parser.parse_file(fin=output) if os.path.exists(output) else None
+    return program(main_module, main_template, dependents, parser, output, options)
         
-def write_config(main_module, config_path=None, ret_file_deps=False, **extra):
+def write_config(main_module, config_path=None, **extra):
     ''' Write a configuration file
     
     This function collects all options and option groups then updates their default 
@@ -455,8 +474,6 @@ def write_config(main_module, config_path=None, ret_file_deps=False, **extra):
                    Reference to main module
     config_path : str, optional
                   Path to write configuration file
-    ret_file_deps : bool
-                    Return input/output dependents
     extra : dict
             New default values for the options
                    
@@ -488,12 +505,9 @@ def write_config(main_module, config_path=None, ret_file_deps=False, **extra):
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     parser.write(output) #, options)
-    
-    if ret_file_deps:
-        return output, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
     return output
 
-def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
+def read_config(main_module, config_path=None, **extra):
     ''' Read in option values from a configuration file
     
     This function collects all options and option groups, and then reads in their values from a configuration file
@@ -512,8 +526,6 @@ def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
                    Reference to main module
     config_path : str, optional
                   Path to write configuration file
-    ret_file_deps : bool
-                    Return input/output dependents
     extra : dict
             Unused keyword arguments
                    
@@ -531,6 +543,7 @@ def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
         description = extra['description'].replace('%prog', '%(prog)s')
         extra['description'] = description%dict(prog=external_prog)
     parser = setup_parser(main_module, main_template, external_prog=external_prog, **extra)[0]
+    parser.change_default(**extra)
     name = main_module.__name__
     off = name.rfind('.')
     if off != -1: name = name[off+1:]
@@ -538,13 +551,10 @@ def read_config(main_module, config_path=None, ret_file_deps=False, **extra):
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     param = {}
-    
     if os.path.exists(output): param = vars(parser.parse_file(fin=output))
-    if ret_file_deps:
-        return param, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
     return param
 
-def update_config(main_module, config_path=None, ret_file_deps=False, **extra):
+def update_config(main_module, config_path=None, **extra):
     ''' Test whether a configuration file needs to be updated with new values 
     
     This function collects all options and option groups, then reads in their values from a configuration 
@@ -561,8 +571,6 @@ def update_config(main_module, config_path=None, ret_file_deps=False, **extra):
                    Reference to main module
     config_path : str, optional
                   Path to write configuration file
-    ret_file_deps : bool
-                    Return input/output dependents
     extra : dict
             Unused keyword arguments
     
@@ -574,24 +582,25 @@ def update_config(main_module, config_path=None, ret_file_deps=False, **extra):
     '''
     
     name = main_module.__name__
+    '''
     off = name.rfind('.')
     if off != -1: name = name[off+1:]
     if config_path is not None:
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
-    param = read_config(main_module, ret_file_deps=ret_file_deps, **extra)
-    if ret_file_deps: param, indeps, outdeps = param
-    if len(param)==0: return ""
+    '''
+    param = read_config(main_module, **extra)
+    if len(param)==0: return None
     for key,val in param.iteritems():
+        '''
         if key not in extra:
             _logger.info("Updating %s config - option %s new"%(name, key))
             return ""
-        if str(val) != str(extra[key]):
+        '''
+        if key in extra and str(val) != str(extra[key]):
             _logger.info("Updating %s config - option %s changed from '%s' to '%s'"%(name, key, str(val), str(extra[key])))
-            return ""
-    if ret_file_deps:
-        return output, indeps, outdeps
-    return output
+            return param
+    return None
     
 def map_module_to_program(key=None):
     ''' Create a dictionary that maps each module name to 
