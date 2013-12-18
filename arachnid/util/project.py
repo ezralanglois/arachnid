@@ -117,8 +117,14 @@ def workflow_settings(files, param):
     else:
         extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
     prog = program.generate_settings_tree(workflow[0][0], **extra)
+    
+    if 'input_files_compressed' in param:
+        param['input_files'] = param['input_files_compressed']
+    else:
+        param['input_files'] = program.settings.compress_filenames(param['input_files'])
     prog.update(param)
     param.update(vars(prog.values))
+    spider_params.write_update(param['param_file'], **param)
     mods=[prog]
     param['input_files'] = []
     for mod, cfg, _, _ in workflow[1:]:
@@ -296,7 +302,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
         
     pgroup.add_option("-i", input_files=[],      help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"), dependent=False)
-    pgroup.add_option("-r", raw_reference="",    help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
+    pgroup.add_option("-r", raw_reference_file="", help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("-g", gain_file="",        help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("", is_film=False,         help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
     pgroup.add_option("", apix=0.0,              help="Pixel size, Angstroms", gui=dict(minimum=0.0, decimals=4, singleStep=0.1), required=True)
