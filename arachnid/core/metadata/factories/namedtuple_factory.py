@@ -151,12 +151,12 @@ def get_values(value, header=None, float_format="%.8g", **extra):
     else:
         for h in header:
             v = getattr(value, h, 0.0)
-            if isinstance(v, str): values.append(v)
+            if isinstance(v, basestring): values.append(v)
             else: 
                 try:
                     values.append(float_format % float(v))
                 except:
-                    _logger.error("Cannot convert: %s for %s"%(str(v), h))
+                    _logger.error("Cannot convert: %s for %s -- class: %s"%(str(v), h, v.__class__.__name__))
                     raise
     return values
 
