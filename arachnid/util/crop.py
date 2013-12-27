@@ -189,6 +189,7 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
           Current filename
     '''
     
+    numpy.seterr('raise')
     if isinstance(filename, tuple):
         tot = len(filename[1])
         fid = filename[0]
@@ -399,7 +400,11 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
         _logger.debug("Improving contrast with histogram fitting")
         ndimage_filter.histogram_match(win, mask, noise_win, out=win)
     if not disable_normalize and norm_mask is not None:
-        ndimage_utility.normalize_standard(win, norm_mask, out=win)
+        try:
+            ndimage_utility.normalize_standard(win, norm_mask, out=win)
+        except:
+            _logger.error('Normalize: %f, %f'%(norm_mask.sum(), win.mean()))
+            raise
     _logger.debug("Finished Enhancment")
     return win
 
@@ -571,8 +576,12 @@ def initialize(files, param):
     
     
     param.update(ndimage_file.cache_data())
-    param['mask'] = ndimage_utility.model_disk(int(param['mask_diameter']), (param['window'], param['window']))
+    assert(int(param['mask_diameter']) < int(param['window']))
+    param['mask'] = ndimage_utility.model_disk(int(param['mask_diameter']/2.0), (param['window'], param['window']))
     param['norm_mask']=param['mask']*-1+1
+    assert(param['mask'].sum()>0)
+    assert(param['mask'].sum()<numpy.prod(param['mask'].shape))
+    assert(param['norm_mask'].sum()>0)
     return files
 
 def reduce_all(val, count, id_len, **extra):
