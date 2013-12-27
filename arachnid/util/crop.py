@@ -584,7 +584,7 @@ def reduce_all(val, count, id_len, **extra):
     if isinstance(filename, tuple): filename=filename[0]
     return str(filename)+" - %d windows - %d windows in total in %d files - %1f gigs"%(total, count[0], count[1], psutil.Process(pid).get_memory_info().rss/131072.0)
 
-def finalize(files, count, **extra):
+def finalize(files, count=[0], **extra):
     # Finalize global parameters for the script
     _logger.info("Extracted %d windows"%count[0])
     _logger.info("Completed")
