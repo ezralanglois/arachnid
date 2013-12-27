@@ -205,8 +205,11 @@ def iter_images(filename, index=None):
                     if index[sel, 1].min() < 0: raise ValueError, "Cannot have a negative index"
                     if numpy.any(index[sel, 1]) > count_images(filename):
                         raise ValueError, "Index exceeds stack size: %s - %d > %d"%(filename, index[sel, 1].max(), count_images(filename))
-                    for img in iter_images(filename, index[sel, 1]):
-                        yield img
+                    if len(sel) > 1:
+                        for img in iter_images(filename, index[sel, 1]):
+                            yield img
+                    else:
+                        yield read_image(filename, int(index[sel[0], 1]))
                 except:
                     _logger.error("stack filename: %s - %d to %d"%(filename, numpy.min(index[sel, 1]), numpy.max(index[sel, 1])))
                     raise
