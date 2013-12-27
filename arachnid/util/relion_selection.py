@@ -705,7 +705,69 @@ def print_stats(vals, column="rlnClassNumber", **extra):
         for cl in clazzes:
             _logger.info("Class: %d has %d projections"%(cl, numpy.sum(cl==tmp)))
             
-def create_movie(vals, frame_stack_file, output, frame_limit=0, **extra):
+def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="", **extra):
+    ''' Convert a standard relion selection file to a movie mode selection file and
+    write to output file
+    
+    :Parameters:
+    
+    vals : list
+           Entries from relion selection file
+    frame_stack_file : str
+                       Frame window stack filename
+    output : str
+             Output filename
+    frame_limit : int
+                  Maximum number of frames to include
+    reindex_file : str
+                   Re-indexing selection file for subsets
+    extra : dict
+            Unused key word arguments
+    '''
+    
+    _logger.info("Creating movie mode relion selection file: %d"%frame_limit)
+    frame_vals = []
+    idlen=None
+    consecutive=None
+    last=-1
+    
+    last_percent = -1
+    for offset, v in enumerate(vals):
+        percent = int(float(offset)/len(vals)*100)
+        if (percent%10) == 0 and percent != last_percent:
+            _logger.info("Finished %d of %d -- %f"%(offset, len(vals), percent))
+            last_percent=percent
+        mic,pid1 = relion_utility.relion_id(v.rlnImageName)
+        if mic != last:
+            frames = glob.glob(spider_utility.spider_filename(frame_stack_file, mic))
+            if consecutive is None:
+                avg_count = ndimage_file.count_images(relion_utility.relion_file(v.rlnImageName, True))
+                frm_count = ndimage_file.count_images(frames[0])
+                consecutive = avg_count != frm_count
+                if consecutive:
+                    _logger.info("Detected fewer particles in stack %s - %d < %d"%(v.rlnImageName, frm_count, avg_count))
+                    if reindex_file == "":raise ValueError, "Requires selection file to reindex the relion star file"
+            if consecutive:
+                index = format.read(reindex_file, spiderid=mic, numeric=True)
+                index = dict([(val.id, i+1) for i, val in enumerate(index)])
+            last=mic
+            if idlen is None:
+                idlen = len(str(len(vals)*len(frames)))
+        if consecutive: pid = index[pid1]
+        else: pid=pid1
+        frames = sorted(frames)
+        if frame_limit == 0: frame_limit=len(frames)
+        if len(frames) < frame_limit:
+            _logger.warn("Skipping %s - too few frames: %d < %d"%(v.rlnImageName, len(frames), frame_limit))
+            continue
+        frames=frames[:frame_limit]
+        for f in frames:
+            frame_vals.append(v._replace(rlnImageName="%s@%s"%(str(pid).zfill(idlen), f))+(v.rlnImageName, ))
+    header = list(vals[0]._fields)
+    header.append('rlnParticleName')
+    format.write(output, frame_vals, header=header)
+    
+def create_movie_old(vals, frame_stack_file, output, frame_limit=0, **extra):
     ''' Convert a standard relion selection file to a movie mode selection file and
     write to output file
     
@@ -735,7 +797,7 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, **extra):
             if consecutive is None:
                 avg_count = ndimage_file.count_images(relion_utility.relion_file(v.rlnImageName, True))
                 frm_count = ndimage_file.count_images(frames[0])
-                consecutive = avg_count != frm_count
+                consecutive = False #avg_count != frm_count
                 if consecutive:
                     _logger.info("Detected fewer particles in stack %s - %d < %d"%(v.rlnImageName, frm_count, avg_count))
             last=mic
@@ -851,6 +913,7 @@ def reindex_stacks(subset, reindex=False, **extra):
     '''
     
     if not reindex: return subset
+    _logger.info("Re-indexing star file")
     idmap={}
     for i in xrange(len(subset)):
         filename = relion_utility.relion_file(subset[i].rlnImageName)[0]
@@ -961,6 +1024,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
     group.add_option("-s", selection_file="",               help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("",   reindex_file="",                 help="Reindex file for ", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
@@ -979,7 +1043,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")
     group.add_option("",   downsample=1.0,                  help="Downsample the windows - create new selection file pointing to decimate stacks")
     group.add_option("",   restart=False,                   help="Outputs minimum Relion file to restart refinement from the beginning")
-    group.add_option("",   reindex=False,                   help="Reindex the relion selection file - necessary when recropping with a particle selection file")
+    #group.add_option("",   reindex=False,                   help="Reindex the relion selection file - necessary when recropping with a particle selection file")
     #group.add_option("",   relion2spider=False,             help="Convert a relion selection file to a set of SPIDER refinement file")
     
     pgroup.add_option_group(group)
