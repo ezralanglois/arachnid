@@ -50,6 +50,7 @@ class BackgroundTask(QtCore.QRunnable):
             _logger.exception("unknown task failed")
         else:
             self.signal.taskFinished.emit(val)
+        self.connect_obj(self._parent, 'disconnect')
     
     def connect_obj(self, parent, connect):
         '''
