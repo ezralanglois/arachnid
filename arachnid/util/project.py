@@ -111,25 +111,18 @@ def workflow_settings(files, param):
     extra = vars(default_settings())
     extra.update(param)
     workflow = build_workflow(files, extra)
+    param.update(extra)
     
-    if 'input_files_compressed' in extra:
-        extra['input_files'] = extra['input_files_compressed']
-    else:
-        extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
     prog = program.generate_settings_tree(workflow[0][0], **extra)
     
-    if 'input_files_compressed' in param:
-        param['input_files'] = param['input_files_compressed']
-    else:
-        param['input_files'] = program.settings.compress_filenames(param['input_files'])
     prog.update(param)
     param.update(vars(prog.values))
     spider_params.write_update(param['param_file'], **param)
     mods=[prog]
-    param['input_files'] = []
-    for mod, cfg, _, _ in workflow[1:]:
-        prog = program.generate_settings_tree(mod, **param)
+    for mod in workflow[1:]:
+        prog = program.generate_settings_tree(mod[0], **param)
         mods.append(prog)
+        if len(param['input_files']) > 0: param['input_files'] = []
     return mods
 
 def default_settings():
@@ -286,15 +279,12 @@ def write_config(workflow, **extra):
         try: os.makedirs(config_path)
         except: pass
     
-    if 'input_files_compressed' in extra:
-        extra['input_files'] = extra['input_files_compressed']
-    else:
-        extra['input_files'] = program.settings.compress_filenames(extra['input_files'])
     for mod, _, _, _ in workflow:
         param = program.update_config(mod, **extra)
         if param is not None:
             param.update(extra)
-            program.write_config(mod, **param)
+        else: param=extra
+        program.write_config(mod, **param)
         extra['input_files']=[]
 
 def setup_options(parser, pgroup=None, main_option=False):
