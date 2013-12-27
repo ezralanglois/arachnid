@@ -701,13 +701,14 @@ def check_options(options, main_option=False):
     if main_option:
         if not spider_utility.test_valid_spider_input(options.input_files):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
-        i=0
-        while i < len(options.input_files):
-            if not ndimage_file.is_readable(options.input_files[i]): 
-                del options.input_files[i]
-                _logger.warn("Cannot read: %s"%options.input_files[i])
-            else:
-                i+=1
+        if 1 == 0:
+            i=0
+            while i < len(options.input_files):
+                if not ndimage_file.is_readable(options.input_files[i]): 
+                    del options.input_files[i]
+                    _logger.warn("Cannot read: %s"%options.input_files[i])
+                else:
+                    i+=1
         """
         for f in options.input_files:
             if not ndimage_file.is_readable(f): 
