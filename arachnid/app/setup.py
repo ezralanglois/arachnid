@@ -15,4 +15,5 @@ console_scripts = [
  'orient = arachnid.app.orient:main',
  'autoctf2 = arachnid.app.autoctf2:main',
  'reconstruct = arachnid.app.reconstruct:main',
+ 'alignmovie = arachnid.app.align_frames:main',
 ]
