@@ -17,7 +17,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, image_file, output, **extra):#, neig=1, nstd=1.5
+def batch(files, image_file, output, rand_subset=0, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -49,11 +49,16 @@ def batch(files, image_file, output, **extra):#, neig=1, nstd=1.5
     extra.update(ctf_param)
     
     selection = numpy.arange(len(align), dtype=numpy.int)
+    if rand_subset > 0:
+        selection = numpy.random.choice(selection, rand_subset, False)
     curr_slice = mpi_utility.mpi_slice(len(align), **extra)
     even = numpy.arange(0, len(selection[curr_slice]), 2, dtype=numpy.int)
     odd = numpy.arange(1, len(selection[curr_slice]), 2, dtype=numpy.int)
     if isinstance(files, tuple):
         image_file, label = files
+        label = label[selection].copy()
+        align = align[selection].copy()
+        
         idx = numpy.argsort(label[:, 0]).squeeze()
         label = label[idx].copy()
         align = align[idx].copy()
@@ -79,6 +84,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",     scale_spi=False,           help="Scale the SPIDER translation (if refinement was done by pySPIDER)")
     group.add_option("",     apix=0.0,                  help="Pixel size for the data")
     group.add_option("-t",   thread_count=1,            help="Number of processes per machine", gui=dict(minimum=0), dependent=False)
+    group.add_option("-r",   rand_subset=0,             help="Reconstruct a random subset of the given size", gui=dict(minimum=0), dependent=False)
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of alignment files, e.g. data.star", required_file=True, gui=dict(filetype="open"))
