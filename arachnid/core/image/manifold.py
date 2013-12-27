@@ -752,13 +752,25 @@ def embed_laplacian(L, D, dimension):
     #assert( (arr.T == arr).all() )
     
     if hasattr(scipy.sparse.linalg, 'eigsh'):
-        evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1, sigma=1.0)
+        try:
+            evals, evecs = scipy.sparse.linalg.eigsh(L, k=dimension+1, sigma=1.0)
+            evecs = evecs.T[dimension+1::-1] * D
+            evals = evals[dimension+1::-1]
+        except:
+            X = numpy.random.rand(L.shape[0], dimension + 1)
+            X[:, 0] = D.ravel()
+            evals, evecs = scipy.sparse.linalg.lobpcg(L, X, tol=1e-15, largest=False, maxiter=2000)
+            evecs = evecs.T[:dimension+1] * D
+            evals = evals[:dimension+1]
     else:
         evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
-    evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
-    index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
-    evecs = D[:,numpy.newaxis] * evecs #[:, index2]
-    return evecs[:, index2], evals[index2].squeeze()
+        evecs = evecs.T[dimension+1::-1] * D
+        evals = evals[dimension+1::-1]
+    #evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()
+    #index2 = numpy.argsort(evals)[-2:-2-dimension:-1]
+    #evecs = D[:,numpy.newaxis] * evecs #[:, index2]
+    #return evecs[:, index2], evals[index2].squeeze()
+    return evecs[1:].T, evals[1:]
     
 def diffusion_maps_dist(dist2, dimension, sigma=None):
     ''' Embed a sparse distance matrix with the diffusion maps 
