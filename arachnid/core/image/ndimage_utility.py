@@ -182,7 +182,7 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
     if img.ndim == 2:
         fimg = scipy.fftpack.fft2(img)
         fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
-        img = scipy.fftpack.ifftn(fimg).real
+        img = scipy.fftpack.ifft2(fimg).real
     else:
         fimg = scipy.fftpack.fftn(img)
         if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
@@ -190,6 +190,12 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
         img = scipy.fftpack.ifftn(fimg).real
     if pad > 1: img = depad_image(img, shape)
     return img
+
+def integral_image(img):
+    '''
+    '''
+    
+    return img.cumsum(1).cumsum(0)
 
 #r/2-1,360
 def polar_simple(img, radius=None, angle=360.0):
@@ -893,7 +899,7 @@ def dct_avg(imgs, pad):
     numpy.divide(avg, total, avg)
     return avg #scipy.fftpack.fftshift(avg).real
 
-def powerspec_sum(imgs, pad, avg=None, total=0.0):
+def powerspec_sum(imgs, pad, avg=None, total=0.0, do_ramp=False):
     ''' Calculate an averaged power specra from a set of images
     
     :Parameters:
@@ -913,7 +919,8 @@ def powerspec_sum(imgs, pad, avg=None, total=0.0):
         pad_width = img.shape[0]*pad
         #if eman2_utility.EMAN2 is not None:
         img = img.copy()
-        ndimage_filter.ramp(img, img)
+        if do_ramp:
+            ndimage_filter.ramp(img, img)
         img -= img.min()
         img /= img.max()
         img -= img.mean()
