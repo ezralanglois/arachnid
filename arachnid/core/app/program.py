@@ -387,6 +387,11 @@ class program(object):
         '''
         '''
         
+        # glob input files
+        print self.name(), len(self.values.input_files), self.values.input_files.__class__.__name__
+        if len(self.values.input_files) == 1:
+            self.values.input_files = self.values.input_files.make(self.values.input_files)
+        print self.name(), len(self.values.input_files)
         launch_program(self.main_module, self.main_template, self.values.input_files, self.values, self.parser)
     
     def settings(self):

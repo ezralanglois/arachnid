@@ -109,6 +109,8 @@ def workflow_settings(files, param):
     '''
     
     extra = vars(default_settings())
+    param['input_files_compressed']=program.settings.compress_filenames(param['input_files'])
+    param['input_files']=extra['input_files'].__class__(param['input_files'])
     extra.update(param)
     workflow = build_workflow(files, extra)
     param.update(extra)

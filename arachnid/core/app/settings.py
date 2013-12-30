@@ -521,6 +521,14 @@ class Option(optparse.Option):
         if key == types.ListType and 'dest' in kwargs and kwargs['dest'].find('file') != -1:
             key = 'open-file-list'
         return TYPE_REGISTRY[key] if key in TYPE_REGISTRY else {"default": lambda v: v}, choices
+    
+    def is_glob_files(self):
+        '''
+        '''
+        
+        if self.action == "callback":
+            return self.callback == Option.glob_files
+        return False
         
     def determine_flag(self, args, kwargs):
         '''Determine the flag from the keyword arguments
@@ -1122,7 +1130,55 @@ class OptionParser(optparse.OptionParser):
             if isinstance(val, list):
                 # test if open
                 kwargs[key] = optlist(val)
+        keys = list(kwargs.keys())
+        for key in keys:
+            if key not in self.defaults:
+                opt = self.option_for_flag("--"+key.replace('_', '-'))
+                #print 'Searching for', key, "--"+key.replace('_', '-')
+                if opt is not None:
+                    if hasattr(opt.default, 'make'):
+                        kwargs[opt.dest]=opt.default.make(kwargs[key])
+                    else:
+                        kwargs[opt.dest]=opt.default.__class__(kwargs[key])
         self.defaults.update(kwargs)
+        
+    def option_for_flag(self, flag):
+        ''' Find an option for the given flag
+        
+        :Parameters:
+        
+        flag : str
+               Name of the flag
+        
+        :Returns:
+        
+        option : Option
+                 Option that corresponds to the flag
+        '''
+        
+        for group in [self]+self.option_groups:
+            option = self._option_for_flag(flag, group.option_list)
+            if option is not None: return option
+        return None
+        
+    def _option_for_flag(self, flag, option_list):
+        ''' Find an option for the given flag
+        
+        :Parameters:
+        
+        flag : str
+               Name of the flag
+        
+        :Returns:
+        
+        option : Option
+                 Option that corresponds to the flag
+        '''
+        
+        for option in option_list:
+            if flag in set(option._long_opts):
+                return option
+        return None
     
     def validate(self, values):
         ''' Validate each option value
@@ -1326,11 +1382,18 @@ class OptionParser(optparse.OptionParser):
             if option.dest is None: continue
             value = getattr(values, option.dest, None)
             if value is None: continue
+            '''
             if option.dest == self.add_input_files:
                 if hasattr(options, self.add_input_files+"_orig"):
                     value = getattr(options, self.add_input_files+"_orig")
                 value = compress_filenames(value)
+            '''
             if option.is_choice_index(): value = option.choices[value]
+            elif option.is_glob_files():
+                if hasattr(value, option.dest+'_compressed'):
+                    value = getattr(values, option.dest+'_compressed', None)
+                else:
+                    value=compress_filenames(value)
             help = option.help
             flag_sep = "".join(["\t" for i in xrange(flag_len-len(name[1:])/8)])
             try:
@@ -1671,6 +1734,9 @@ class optfilelist(optlist):
         '''
         
         self._default_regular_expression=_default_regular_expression
+        try: "+"+val
+        except:pass 
+        else: val = val.split(',')
         if val is not None:
             optlist.__init__(self,uncompress_filenames(val, _default_regular_expression))
         else:
@@ -1971,6 +2037,7 @@ def uncompress_filenames(input_files, default_regexp=None):
                 if len(files) > 0: glob_files.extend(files)
             else: 
                 glob_files.append(f)
+    if len(glob_files) == 0: return optlist(input_files)
     return optlist(glob_files)
 
 def compress_filenames(files):
