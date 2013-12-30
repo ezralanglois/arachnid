@@ -50,6 +50,23 @@ def batch(files, output, **extra):
     format.write_dataset(output, feat, 1, label, ref)
     _logger.info("Completed")
     
+def test_symmetric(data):
+    '''
+    '''
+    
+    data = data.tocoo()
+    sym=dict()
+    for i in xrange(len(data.row)):
+        if data.row[i]==data.col[i]: continue
+        tp = (data.row[i], data.col[i]) if data.row[i] < data.col[i] else (data.col[i], data.row[i]) 
+        if tp not in sym: sym[tp]=0
+        sym[tp]+=1
+    sel = numpy.asarray(sym.values()) == 1
+    tot = numpy.sum(sel)
+    print 'nonsym:', tot
+    assert(tot==0)
+    
+    
 def kernel_pca(data, max_eig, neig, max_neighbors=0, sigma=0.0, **extra):
     '''
     '''
@@ -70,6 +87,7 @@ def kernel_pca(data, max_eig, neig, max_neighbors=0, sigma=0.0, **extra):
                 data = manifold.knn_reduce(data, max_neighbors, True)
                 #_logger.error("reduce-safe: %d -> %d"%(n, data.data.shape[0]))
                 #assert(data.data.shape[0]>0)
+            
             feat, evals, index = manifold.diffusion_maps_dist(data, max(max_eig, neig), sigma)
             _logger.info("Eigen-values: %s"%",".join([str(e) for e in evals]))
             if index1 is not None:
@@ -222,15 +240,20 @@ def redistance_worker(beg, end, samp, row, col, align, mask, defocus, ctf_param,
     for i in xrange(beg, end):
         euler_r = align[row[i], :3].copy()
         euler_c = align[col[i], :3].copy()
-        if 1==0:
-            euler_r[0]=0
-            rot = orient_utility.rotate_into_frame(euler_r, euler_c)
-            rimg = rotate.rotate_image(samp[row[i]], -align[row[i], 0])
-        else:
-            euler = rotate.rotate_euler(euler_r, euler_c)
-            rot = -(euler[0]+euler[2])
+        if 1 == 1:
+            if 1==0:
+                euler_r[0]=0
+                rot = orient_utility.rotate_into_frame(euler_r, euler_c)
+                rimg = rotate.rotate_image(samp[row[i]], -align[row[i], 0])
+            else:
+                euler = rotate.rotate_euler(euler_c, euler_r) #euler = rotate.rotate_euler(euler_r, euler_c)
+                #euler = rotate.rotate_euler(euler_r, euler_c) #euler = rotate.rotate_euler(euler_r, euler_c)
+                rot = -(euler[0]+euler[2])
+                rimg = samp[row[i]]
+            cimg = rotate.rotate_image(samp[col[i]], rot)
+        else: 
             rimg = samp[row[i]]
-        cimg = rotate.rotate_image(samp[col[i]], rot)
+            cimg=samp[col[i]]
         rimg=ndimage_utility.normalize_standard(rimg, nmask, False) #*mask
         cimg=ndimage_utility.normalize_standard(cimg, nmask, False) #*mask
         
