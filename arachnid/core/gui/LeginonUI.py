@@ -159,7 +159,7 @@ class Widget(QtGui.QWidget):
             self.ui.label.setText("Welcome "+str(user.fullname))
             self.taskFinished.connect(self.projectFinished)
             self.taskError.connect(self.projectLoadError)
-            BackgroundTask.launch_mp(self, load_projects_iter, experiments[:limit])#, limit)
+            self.task = BackgroundTask.launch_mp(self, load_projects_iter, experiments[:limit])#, limit)
     
     def projectFinished(self, sessions):
         '''
@@ -169,6 +169,7 @@ class Widget(QtGui.QWidget):
         self.ui.progressDialog.hide()
         self.taskFinished.disconnect(self.projectFinished)
         self.taskError.disconnect(self.projectLoadError)
+        self.task = None
     
     def projectLoadError(self, exception):
         '''
@@ -178,6 +179,7 @@ class Widget(QtGui.QWidget):
         messagebox.exception_message(self, "Error accessing projects", exception)
         self.taskFinished.disconnect(self.projectFinished)
         self.taskError.disconnect(self.projectLoadError)
+        self.task = None
     
     def updateProgress(self, val):
         
@@ -209,10 +211,9 @@ class Widget(QtGui.QWidget):
                 
             self.taskFinished.connect(self.imageLoadFinished)
             self.taskError.connect(self.imageLoadError)
-            BackgroundTask.launch_mp(self, load_images_iter, session)
+            self.task = BackgroundTask.launch_mp(self, load_images_iter, session)
             self.ui.progressDialog.show()
             self.ui.progressDialog.setValue(0)
-    
     
     def imageLoadError(self, exception):
         '''
@@ -222,6 +223,7 @@ class Widget(QtGui.QWidget):
         self.ui.progressDialog.hide()
         self.taskFinished.disconnect(self.imageLoadFinished)
         self.taskError.disconnect(self.imageLoadError)
+        self.task = None
     
     def imageLoadFinished(self, images):
         '''
@@ -232,17 +234,19 @@ class Widget(QtGui.QWidget):
         self.taskFinished.disconnect(self.imageLoadFinished)
         self.taskError.disconnect(self.imageLoadError)
         self.loadFinished.emit()
+        self.task = None
     
     def readSettings(self):
         '''
         '''
         
-        print 'read settings'
         settings = QtCore.QSettings()
         settings.beginGroup("LeginonUI")
-        self.ui.leginonHostnameLineEdit.setText(settings.value('leginonDB'))
+        val = settings.value('leginonDB')
+        if val: self.ui.leginonHostnameLineEdit.setText(val)
         self.ui.leginonDBNameLineEdit.setText(settings.value('leginonPath'))
-        self.ui.projectHostnameLineEdit.setText(settings.value('projectDB'))
+        val = settings.value('projectDB')
+        if val: self.ui.projectHostnameLineEdit.setText(val)
         self.ui.projectDBNameLineEdit.setText(settings.value('projectPath'))
         self.ui.usernameLineEdit.setText(settings.value('username'))
         self.ui.passwordLineEdit.setText(base64.b64decode(settings.value('password')))
@@ -255,7 +259,6 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        print 'write settings - leginon'
         settings = QtCore.QSettings()
         settings.beginGroup("LeginonUI")
         settings.setValue('leginonDB', self.ui.leginonHostnameLineEdit.text())
@@ -293,7 +296,7 @@ class Widget(QtGui.QWidget):
             index = model.selectedIndexes()[0]
             data = self.ui.projectTableView.model().row(index)   
             self.queryDatabaseImages(data[0])
-            return False
+            return True
         return True
     
     def currentData(self):
