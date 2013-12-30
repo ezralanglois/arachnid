@@ -445,13 +445,14 @@ def generate_powerspectra(filename, bin_factor, invert, window_size, overlap, pa
             if 1 == 1:
                 if pow is None: pow = ndimage_utility.powerspec_avg(rwin, pad)/float(n)
                 else: pow += ndimage_utility.powerspec_avg(rwin, pad)/float(n)
+                total=1.0
             else:
                 if pow is None:
                     pow, total = ndimage_utility.powerspec_sum(rwin, pad)
                 else:
                     _logger.error("%d -- %f"%(total, pow.sum()))
                     total+= ndimage_utility.powerspec_sum(rwin, pad, pow, total)[1]
-        pow=ndimage_utility.powerspec_fin(pow, total)
+        #pow=ndimage_utility.powerspec_fin(pow, total)
     else:
         if ndimage_file.count_images(filename) > 1 and not disable_average:
             trans = format.read(trans_file, numeric=True, spiderid=filename) if trans_file != "" else None
