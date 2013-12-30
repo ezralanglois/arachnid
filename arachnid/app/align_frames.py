@@ -21,8 +21,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-
-def process(filename, **extra):
+def process(filename, benchmark=False, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -41,13 +40,17 @@ def process(filename, **extra):
     '''
     
     spider_utility.update_spider_files(extra, filename, *extra['outfile_deps'])
-    coords = align_in_memory(filename, **extra)
+    if benchmark:
+        coords = benchmark_in_memory(filename, **extra)
+    else:
+        coords = align_in_memory(filename, **extra)
+        
     if len(coords) > 0:
         write_average(filename, coords, **extra)
         write_coordinates(coords, **extra)
     return filename, coords
 
-def align_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=None, **extra):
+def align_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
     '''
     .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
     .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
@@ -55,27 +58,93 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=None, 
     
     gain = ndimage_file.read_image(gain_file) if gain_file != "" else None
     fourier_frames = []
-    ssds=[]
-    avg = None
-    ideal_pow=None
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
         if bin_factor > 1.0: frame=ndimage_interpolate.downsample(frame, bin_factor)
         ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
-        ssds.append((frame, numpy.square(frame).sum()))
+        frame = scipy.fftpack.fft2(frame)
+        fourier_frames.append(frame)
+    trans = align_l2(fourier_frames, **extra)
+    write_perdiogram(fourier_frames, 0, trans)
+    trans *= bin_factor
+    return trans
+
+def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=None, **extra):
+    '''
+    .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
+    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
+    '''
+    
+    gain = ndimage_file.read_image(gain_file) if gain_file != "" else None
+    fourier_frames = []
+    #ssds=[]
+    avg = None
+    ideal_pow=None
+    #window = None
+    for frame in ndimage_file.iter_images(filename):
+        frame = frame.astype(numpy.float)
+        if gain is not None: numpy.multiply(frame, gain, frame)
+        if bin_factor > 1.0: frame=ndimage_interpolate.downsample(frame, bin_factor)
+        ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
+        #ssds.append((frame, numpy.square(frame).sum()))
         if avg is not None: avg += frame
         else: avg=frame
         pow = perdiogram(frame, **extra)
         if ideal_pow is not None: ideal_pow += pow
         else: ideal_pow=pow
+        """
+        if bin_factor > 1.0:
+            w = min(frame.shape)
+            frame = frame[:w, :w]
+            if window is None:
+                window = numpy.ones(frame.shape, dtype=numpy.bool)
+                
+                #lby2 = 1+len1/2;
+                #d = len1-len2;
+                #f = f(:);
+                #f(floor(lby2-(d-1)/2:lby2+(d-1)/2)) = [];
+                orgshape = numpy.asarray(frame.shape)
+                newshape = orgshape/bin_factor
+                newshape = newshape.astype(numpy.int)
+                off = orgshape/2
+                d = orgshape-newshape
+                print off[0]-(d[0]-1)/2, off[0]+(d[0]-1)/2, window.shape
+                window[off[0]-(d[0]-1)/2:off[0]+(d[0]-1)/2+1, :]=0
+                window[:, off[1]-(d[1]-1)/2:off[1]+(d[1]-1)/2+1]=0
+                print window.sum(), numpy.prod(newshape)
+                #start = (orgshape-newshape)/2
+                #fft_source_image( (2+y_trunc_size):(height - y_trunc_size - 1), :, : ) = [];
+                #fft_source_image( :,(2+x_trunc_size):(width - x_trunc_size - 1), : ) = [];
+                #window[1+newshape[0]:orgshape[0]-newshape[0], 1+newshape[1]:orgshape[1]-newshape[1]]=0
+                #window = scipy.fftpack.ifftshift(window).astype(numpy.bool)
+                #mask = scipy.fftpack.ifftshift(ndimage_utility.model_disk(newshape[0]/2, newshape)).astype(numpy.float)
+                
+                
+                '''
+                y_range = numpy.min(numpy.hstack((numpy.arange(newshape[0])[:, numpy.newaxis], numpy.arange(newshape[0],0,-1)[:, numpy.newaxis])), axis=1)
+                x_range = numpy.min(numpy.hstack((numpy.arange(newshape[1])[:, numpy.newaxis], numpy.arange(newshape[1],0,-1)[:, numpy.newaxis])), axis=1) 
+                y_range = 2 * y_range / (newshape[0] - 1)
+                x_range = 2 * x_range / (newshape[1] - 1)
+                y_range, x_range = numpy.meshgrid( x_range, y_range )
+                mask = y_range**2 + x_range**2
+                mask = (mask <=1).astype(numpy.float)
+                '''
+        """
         frame = scipy.fftpack.fft2(frame)
+        """
+        if window is not None:
+            print frame[window].shape, newshape
+            frame = frame[window].copy().reshape(newshape)
+            frame *= numpy.prod(newshape)/numpy.prod(orgshape)
+            #frame *= mask
+        """
         fourier_frames.append(frame)
     write_perdiogram(avg, 0, **extra)
-    ndimage_file.write_image(extra['pow_file'], ideal_pow, 1)
+    write_pow(ideal_pow, 1, **extra)
     
     _logger.info("Begin sequential")
-    trans = align_sequential(fourier_frames, ssds, **extra)
+    trans = align_sequential(fourier_frames, **extra)
     avg = average_fft(fourier_frames, trans)
     pow1 = write_perdiogram(avg, 2, **extra)
     _logger.info("Sequential error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
@@ -87,10 +156,13 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=None, 
     
     _logger.info("Begin vote")
     trans=align_vote(fourier_frames, **extra)
-    trans=refine(fourier_frames, trans, ideal_pow, **extra)
+    #trans=refine_vote(fourier_frames, trans, ideal_pow, **extra)
     avg = average_fft(fourier_frames, trans)
     pow1=write_perdiogram(avg, 4, **extra)
     _logger.info("Vote error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
+    
+    write_pow(powerspectra(fourier_frames, **extra), 5, **extra)
+    write_pow(powerspectra(fourier_frames, trans, **extra), 6, **extra)
     
     '''
     _logger.info("Begin triplet")
@@ -102,7 +174,7 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=None, 
     trans *= bin_factor
     return []
 
-def refine(fourier_frames, trans, ideal_pow, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+def refine_sequential(fourier_frames, trans, ideal_pow, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
     '''
     
@@ -113,7 +185,7 @@ def refine(fourier_frames, trans, ideal_pow, upsampling=2, search_radius=50, low
     
     avg = average_fft(fourier_frames, trans, False)
     for iter in xrange(5):
-        pow1=write_perdiogram(scipy.fftpack.ifft2(avg).real, 3, **extra)
+        pow1=perdiogram(scipy.fftpack.ifft2(avg).real, **extra)
         _logger.info("Refine(%d) error %f"%(iter+1, numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
         sum = 0
         for i in xrange(len(fourier_frames)):
@@ -129,6 +201,23 @@ def refine(fourier_frames, trans, ideal_pow, upsampling=2, search_radius=50, low
         _logger.info("Distance=%f"%(sum/len(fourier_frames)))
     return trans
 
+def refine_mean_displacement(fourier_frames, trans, ideal_pow, **extra):
+    '''
+    '''
+    
+    fourier_averages=[]
+    i=0
+    last = scipy.ndimage.fourier_shift(fourier_frames[i], (-trans[i, 1], -trans[i, 0]), -1, 0)
+    for i in xrange(1, len(fourier_frames)):
+        frame = scipy.ndimage.fourier_shift(fourier_frames[i], (-trans[i, 1], -trans[i, 0]), -1, 0)
+        fourier_averages.append(frame+last)
+        last=frame
+    i=0
+    fourier_averages.append(scipy.ndimage.fourier_shift(fourier_frames[i], (-trans[i, 1], -trans[i, 0]), -1, 0)+last)
+    ltrans = align_vote(fourier_averages, **extra)
+    _logger.info("Distance: %f"%(numpy.sqrt(numpy.sum(numpy.square(ltrans)))))
+    return ltrans
+
 def align_vote(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
     '''
@@ -139,7 +228,66 @@ def align_vote(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=Non
     else: filter_kernel=1.0
     
     index = numpy.triu_indices(len(fourier_frames), 1)
+    cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 2))
+    
+    for i, j in zip(*index):
+        y, x = xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)[:2]
+        cache[i, j] = (x,y)
+        cache[j, i] = (-x,-y)
+    
+    trans = numpy.zeros((len(fourier_frames), 2))
+    for i in xrange(1, len(fourier_frames)):
+        j = xcorr_dft_peak_best(fourier_frames[0]*filter_kernel, fourier_frames[i], upsampling, search_radius, cache[i], 0, i)
+        trans[i, :] = cache[i, j]
+        print trans[i, :], j, trans[i]-trans[i-1]
+    return trans
+
+def xcorr_dft_peak_best(f1, f2, usfac, search_radius, cache, i, j):
+    '''
+    '''
+    
+    f3 = numpy.multiply(f1, f2.conj())
+    best = (-1e20, None)
+    for k in xrange(len(cache)):
+        if k == i or k==j: continue
+        p = _xcorr_dft_peak_best(f3, min(2, usfac), search_radius, cache[k, 1], cache[k, 0])
+        if p > best[0]: best=(p, k)
+    return best[1]
+    
+def _xcorr_dft_peak_best(f3, usfac, search_radius, y0=0, x0=0):
+    '''
+    '''
+    
+    ny, nx = f3.shape
+    noyx = numpy.ceil(search_radius*usfac)
+    dftshift = numpy.fix(numpy.ceil(search_radius*usfac)/2)
+    yoff = dftshift #- numpy.rint(usfac*y0)
+    xoff = dftshift #- numpy.rint(usfac*x0)
+
+    kerny = numpy.exp((-2j*numpy.pi/(ny*usfac)*(numpy.arange(noyx).T - yoff)[:, numpy.newaxis])*(scipy.fftpack.ifftshift(numpy.arange(ny) - numpy.floor(ny/2)).T[numpy.newaxis, :]))
+    kernx = numpy.exp((-2j*numpy.pi/(nx*usfac)*(numpy.arange(noyx).T - xoff)[:, numpy.newaxis])*(scipy.fftpack.ifftshift(numpy.arange(nx) - numpy.floor(nx/2)).T[numpy.newaxis, :])).T
+    
+    CC = numpy.dot(numpy.dot(kerny, f3), kernx)
+    dy = int(y0*usfac + dftshift)
+    dx = int(x0*usfac + dftshift)
+    
+    dy1, dx1 = numpy.unravel_index(numpy.argmax(CC), CC.shape)
+    vmax = CC[dy1,dx1].real
+    print dy, dx, CC[dy,dx].real, y0, x0, vmax, dy1, dx1
+    return CC[dy,dx].real
+
+def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+    '''
+    '''
+    
+    filter_kernel=None
+    if lowpass_sigma is not None:
+        filter_kernel = scipy.fftpack.ifftshift(ndimage_filter.gaussian_lowpass_kernel(fourier_frames[0].shape, lowpass_sigma, numpy.float))
+    else: filter_kernel=1.0
+    
+    index = numpy.triu_indices(len(fourier_frames), 1)
     cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 3))
+    
     for i, j in zip(*index):
         y, x, p = xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
         cache[i, j] = (x,y,p)
@@ -156,7 +304,7 @@ def align_vote(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=Non
         print trans[i, :], trans[i]-trans[i-1]
     return trans
 
-def align_sequential(fourier_frames, ssds, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+def align_sequential(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
     
     @author: Robert Langlois
@@ -169,7 +317,7 @@ def align_sequential(fourier_frames, ssds, upsampling=2, search_radius=50, lowpa
         filter_kernel = scipy.fftpack.ifftshift(ndimage_filter.gaussian_lowpass_kernel(ref.shape, lowpass_sigma, numpy.float))
     for i, frame in enumerate(fourier_frames[1:]):
         if filter_kernel is not None: numpy.multiply(ref, filter_kernel, ref)
-        y, x, p1 = xcorr_dft_peak(ref, frame, upsampling, search_radius, tshape=ssds[i+1][0], template_ssd=numpy.square(scipy.fftpack.ifft2(ref).real).sum())
+        y, x, p1 = xcorr_dft_peak(ref, frame, upsampling, search_radius)
         trans[i+1, :]=(x,y)
         print i+1, trans[i+1, :], trans[i+1, :]-trans[i, :], p1
         ref += scipy.ndimage.fourier_shift(frame, (-trans[i+1, 1], -trans[i+1, 0]), -1, 0)
@@ -215,6 +363,8 @@ def align_l1(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None,
 
 def xcorr_dft_peak(f1, f2, usfac, search_radius, y0=0, x0=0, tshape=None, template_ssd=None):
     '''
+    .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
+    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
     '''
     
     f3 = numpy.multiply(f1, f2.conj())
@@ -238,6 +388,7 @@ def _centered(arr, newsize):
     
 def _xcorr_dft_peak(f3, usfac, search_radius, y0=0, x0=0, tshape=None, template_ssd=None):
     '''
+    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
     '''
     
     '''
@@ -279,22 +430,35 @@ def average_fft(fourier_frames, trans, do_ifft=True):
         avg += scipy.ndimage.fourier_shift(frame, (-trans[i, 1], -trans[i, 0]), -1, 0)
     return scipy.fftpack.ifft2(avg).real if do_ifft else avg
 
+def powerspectra(fourier_frames, trans=None, window_size=256, pad=1, overlap=0.5, **extra):
+    '''
+    '''
+    
+    avg = numpy.zeros_like(fourier_frames[0])
+    for i, frame in enumerate(fourier_frames):
+        if trans is not None:
+            avg += scipy.ndimage.fourier_shift(fourier_frames[i], (-trans[i, 1], -trans[i, 0]), -1, 0)
+        else:
+            avg += fourier_frames[i]
+    avg = scipy.fftpack.ifft2(avg).real
+    avg = scipy.fftpack.fft2(avg)
+    avg = scipy.fftpack.fftshift(avg).real
+    return ndimage_interpolate.downsample(numpy.ascontiguousarray(avg), (window_size, window_size))
+
 def perdiogram(avg, window_size=256, pad=1, overlap=0.5, **extra):
     '''
     '''
     
     return ndimage_utility.perdiogram(avg, window_size, pad, overlap)
 
-def write_perdiogram(avg, index=0, pow_file="", apix=None, **extra):
+def write_pow(pow, index=0, pow_file="", apix=None, **extra):
     '''
     '''
+    
     
     if pow_file == "": return
-    pow = perdiogram(avg, **extra)
-    
-    
-    rmin=25.0
-    rmax=apix*2.5
+    rmin=30.0
+    rmax=apix*3.0
     
     min_freq = apix/rmin
     max_freq = apix/rmax
@@ -305,6 +469,16 @@ def write_perdiogram(avg, index=0, pow_file="", apix=None, **extra):
     pow = ndimage_utility.filter_annular_bp(pow, freq1, freq2)
     
     ndimage_file.write_image(pow_file, pow, index)
+
+def write_perdiogram(avg, index=0, trans=None, pow_file="", **extra):
+    '''
+    '''
+    
+    if pow_file == "": return
+    if isinstance(avg, list) and trans is not None:
+        avg = average_fft(avg, trans)
+    pow = perdiogram(avg, **extra)
+    write_pow(pow, index, pow_file, **extra)
     return pow
 
 def write_coordinates(coords, translation_file="", **extra):
@@ -338,7 +512,8 @@ def write_average(filename, coords, output, frame_beg=0, frame_end=0, gain_file=
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    spider_params.read(param['param_file'], param)
+    if param['param_file'] != "":
+        spider_params.read(param['param_file'], param)
     if param['gain_file']=="":
         _logger.warn("No gain reference!")
     else:
@@ -384,18 +559,27 @@ def supports(files, **extra):
         return True
     return False
 
+def check_options(options, main_option=False):
+    #Check if the option values are valid
+    
+    from ..core.app.settings import OptionValueError
+    if options.resolution > 0.0 and options.apix == 0.0: 
+        raise OptionValueError, "Pixel size required when using resolution to filter (use --param-file or --apix)"
+
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "Align Frames", "Options to control frame alignment",  id=__name__)
-    group.add_option("", frame_beg=0,  help="Index of the first frame to average, 0 means first frame, 1 second and so on", gui=dict(maximum=10000, minimum=0, singleStep=1))
-    group.add_option("", frame_end=0,  help="Index of last frame to average, if 0 use last in stack", gui=dict(maximum=10000, minimum=0, singleStep=1))
-    group.add_option("", gain_file="", help="Gain reference normalization image", gui=dict(filetype="open"))
-    group.add_option("", resolution=0.0, help="Target resolution to lowpass filter frames")
-    group.add_option("", search_radius=50, help="Maximum search radius")
-    group.add_option("", upsampling=2, help="Upsampling factor")
-    group.add_option("", gap=5, help="Gap between pairs for L1/L2 alignment")
+    group.add_option("", frame_beg=0,       help="Index of the first frame to average, 0 means first frame, 1 second and so on", gui=dict(maximum=10000, minimum=0, singleStep=1))
+    group.add_option("", frame_end=0,       help="Index of last frame to average, if 0 use last in stack", gui=dict(maximum=10000, minimum=0, singleStep=1))
+    group.add_option("", gain_file="",      help="Gain reference normalization image", gui=dict(filetype="open"))
+    group.add_option("", resolution=0.0,    help="Target resolution to lowpass filter frames")
+    group.add_option("", apix=0.0,          help="Pixel size of the image")
+    group.add_option("", search_radius=50,  help="Maximum search radius")
+    group.add_option("", upsampling=2,      help="Upsampling factor")
+    group.add_option("", gap=5,             help="Gap between pairs for L1/L2 alignment")
+    group.add_option("", benchmark=False,   help="Run successive alignment on the same set of micrographs for benchmarking")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--movie-files",          input_files=[],           help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
