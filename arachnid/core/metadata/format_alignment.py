@@ -78,7 +78,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             _logger.info("Standard Relion alignment file - leave 3D")
             for i in xrange(len(align)):
                 files.append(relion_utility.relion_file(align[i].rlnImageName))
-                if supports_spider_id is not None and not spider_utility.is_spider_filename(files[-1][0]):
+                if supports_spider_id is not None and spider_utility.is_spider_filename(files[-1][0]):
                     if supports_spider_id == "":
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
                     elif supports_spider_id != spider_utility.spider_filepath(files[-1][0]):
@@ -94,7 +94,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             _logger.info("Standard Relion alignment file - convert to 2D")
             for i in xrange(len(align)):
                 files.append(relion_utility.relion_file(align[i].rlnImageName))
-                if supports_spider_id is not None and not spider_utility.is_spider_filename(files[-1][0]): 
+                if supports_spider_id is not None and spider_utility.is_spider_filename(files[-1][0]): 
                     if supports_spider_id == "":
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
                     elif supports_spider_id != spider_utility.spider_filepath(files[-1][0]):

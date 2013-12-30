@@ -64,8 +64,14 @@ def batch(files, image_file, output, rand_subset=0, **extra):#, neig=1, nstd=1.5
         align = align[idx].copy()
         iter_single_images1 = ndimage_file.iter_images(image_file, label[even])
         iter_single_images2 = ndimage_file.iter_images(image_file, label[odd])
+        # todo support multiple spider prefixes
     else:
-        raise ValueError, "Not implemented for non-spider stacks"
+        if len(selection) != len(files):
+            files = [files[i] for i in selection]
+            align = align[selection].copy()
+        
+        iter_single_images1 = ndimage_file.iter_images([files[i] for i in even])
+        iter_single_images2 = ndimage_file.iter_images([files[i] for i in odd])
     align_curr = align[curr_slice].copy()
     align1 = align_curr[even]
     align2 = align_curr[odd]
