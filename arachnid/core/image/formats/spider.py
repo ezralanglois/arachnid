@@ -186,7 +186,7 @@ def read_header(filename, index=None):
     header['fourier_even'] = (h['iform'][0] == -12 or h['iform'][0] == -22)
     
     
-    header['count'] = max(int(h['maxim'][0]), int(h['istack'][0]))
+    header['count'] = count_images(h)#max(int(h['maxim'][0]), int(h['istack'][0]))
     header['nx'] = int(h['nx'][0])
     header['ny'] = int(h['ny'][0])
     header['nz'] = int(h['nz'][0])
@@ -272,14 +272,14 @@ def read_image(filename, index=None, header=None):
         
         if count > 1 and int(h['istack']) == 0: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
         offset = h_len*2 + index * (h_len+i_len) if int(h['istack']) > 0 else h_len
-        if count > 1:
+        if count > 1 or h['istack'] == 2:
             if file_size(f) != (h_len + count * (h_len+i_len)): 
-                raise ValueError, "file size != header: %d != %d - %d"%(file_size(f), (h_len + count * (h_len+i_len)), count)
+                raise ValueError, "file size != header: %d != %d - %d -- %d,%d,%d"%(file_size(f), (h_len + count * (h_len+i_len)), count, int(h['nx']), int(h['ny']), int(h['nz']))
         else:
             if file_size(f) != (h_len + count * i_len): 
                 f.seek(h_len + index * (h_len+i_len))
                 h2 = read_spider_header(f)
-                raise ValueError, "file size != header: %d != %d - %d + %d * %d -- %d,%d == %d,%d"%(file_size(f), (h_len + count * i_len), h_len, count, i_len, int(h['istack']), int(h['imgnum']), int(h2['istack']), int(h2['imgnum'])  )
+                raise ValueError, "file size != header: %d != %d - %d + %d * %d -- %d,%d == %d,%d -- count: "%(file_size(f), (h_len + count * i_len), h_len, count, i_len, int(h['istack']), int(h['imgnum']), int(h2['istack']), int(h2['imgnum']), int(h['maxim'])  )
         try:
             f.seek(offset)
         except:
@@ -331,14 +331,18 @@ def iter_images(filename, index=None, header=None):
         count = count_images(h)
         if numpy.any(index >= count):  raise IOError, "Index exceeds number of images in stack: %s < %d"%(str(index), count)
         #offset = h_len + 0 * (h_len+i_len)
+        
+        if file_size(f) != (h_len + count * (h_len+i_len)):
+            raise ValueError, "file size != header: %d != %d - %d -- %d,%d,%d"%(file_size(f), (h_len + count * (h_len+i_len)), count, int(h['nx']), int(h['ny']), int(h['nz']))
         try:
             f.seek(h_len)
         except:
             _logger.error("Offset: %s"%str(h_len))
             raise
+        
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
-        last=0
+        last=-1
         if count > 1 and int(h['istack']) == 0: raise ValueError, "Improperly formatted SPIDER header - not stack but contains mutliple images"
         
         for i in index:
@@ -351,11 +355,23 @@ def iter_images(filename, index=None, header=None):
                     _logger.error("Offset: %s"%str(offset))
                     _logger.error("i: %s"%str(i))
                     raise
-            else: f.seek(h_len, 1)
+            else: 
+                f.seek(h_len, 1)
+            last=i
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
             if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
-            if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
-            elif int(h['ny']) > 1: out = out.reshape(int(h['ny']), int(h['nx']))
+            if int(h['nz']) > 1:   
+                try:
+                    out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
+                except:
+                    _logger.error("%d, %d, %d == %d == %d", int(h['nz']), int(h['ny']), int(h['nx']), numpy.prod((int(h['nz']), int(h['ny']), int(h['nx']))), out.shape[0])
+                    raise
+            elif int(h['ny']) > 1: 
+                try:
+                    out = out.reshape(int(h['ny']), int(h['nx']))
+                except:
+                    _logger.error("(%d < %d) -- %d, %d == %d == %d", i, count, int(h['ny']), int(h['nx']), numpy.prod((int(h['ny']), int(h['nx']))), out.shape[0])
+                    raise
             yield out
     finally:
         util.close(filename, f)
@@ -376,7 +392,7 @@ def count_images(filename):
     
     if hasattr(filename, 'dtype'): h=filename
     else: h = read_spider_header(filename)
-    return max(int(h['maxim']), 1)
+    return max(int(h['maxim'][0]), 1)
 
 def is_writable(filename):
     ''' Test if the image extension of the given filename is understood
