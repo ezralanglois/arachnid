@@ -66,7 +66,7 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
         frame = scipy.fftpack.fft2(frame)
         fourier_frames.append(frame)
     trans = align_l2(fourier_frames, **extra)
-    write_perdiogram(fourier_frames, 0, trans)
+    write_perdiogram(fourier_frames, 0, trans, **extra)
     trans *= bin_factor
     return trans
 
@@ -85,7 +85,7 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=No
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
-        if bin_factor > 1.0: frame=ndimage_interpolate.downsample(frame, bin_factor)
+        #if bin_factor > 1.0: frame=ndimage_interpolate.downsample(frame, bin_factor)
         ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
         #ssds.append((frame, numpy.square(frame).sum()))
         if avg is not None: avg += frame
@@ -93,52 +93,9 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=No
         pow = perdiogram(frame, **extra)
         if ideal_pow is not None: ideal_pow += pow
         else: ideal_pow=pow
-        """
-        if bin_factor > 1.0:
-            w = min(frame.shape)
-            frame = frame[:w, :w]
-            if window is None:
-                window = numpy.ones(frame.shape, dtype=numpy.bool)
-                
-                #lby2 = 1+len1/2;
-                #d = len1-len2;
-                #f = f(:);
-                #f(floor(lby2-(d-1)/2:lby2+(d-1)/2)) = [];
-                orgshape = numpy.asarray(frame.shape)
-                newshape = orgshape/bin_factor
-                newshape = newshape.astype(numpy.int)
-                off = orgshape/2
-                d = orgshape-newshape
-                print off[0]-(d[0]-1)/2, off[0]+(d[0]-1)/2, window.shape
-                window[off[0]-(d[0]-1)/2:off[0]+(d[0]-1)/2+1, :]=0
-                window[:, off[1]-(d[1]-1)/2:off[1]+(d[1]-1)/2+1]=0
-                print window.sum(), numpy.prod(newshape)
-                #start = (orgshape-newshape)/2
-                #fft_source_image( (2+y_trunc_size):(height - y_trunc_size - 1), :, : ) = [];
-                #fft_source_image( :,(2+x_trunc_size):(width - x_trunc_size - 1), : ) = [];
-                #window[1+newshape[0]:orgshape[0]-newshape[0], 1+newshape[1]:orgshape[1]-newshape[1]]=0
-                #window = scipy.fftpack.ifftshift(window).astype(numpy.bool)
-                #mask = scipy.fftpack.ifftshift(ndimage_utility.model_disk(newshape[0]/2, newshape)).astype(numpy.float)
-                
-                
-                '''
-                y_range = numpy.min(numpy.hstack((numpy.arange(newshape[0])[:, numpy.newaxis], numpy.arange(newshape[0],0,-1)[:, numpy.newaxis])), axis=1)
-                x_range = numpy.min(numpy.hstack((numpy.arange(newshape[1])[:, numpy.newaxis], numpy.arange(newshape[1],0,-1)[:, numpy.newaxis])), axis=1) 
-                y_range = 2 * y_range / (newshape[0] - 1)
-                x_range = 2 * x_range / (newshape[1] - 1)
-                y_range, x_range = numpy.meshgrid( x_range, y_range )
-                mask = y_range**2 + x_range**2
-                mask = (mask <=1).astype(numpy.float)
-                '''
-        """
         frame = scipy.fftpack.fft2(frame)
-        """
-        if window is not None:
-            print frame[window].shape, newshape
-            frame = frame[window].copy().reshape(newshape)
-            frame *= numpy.prod(newshape)/numpy.prod(orgshape)
-            #frame *= mask
-        """
+        if bin_factor > 1.0: 
+            frame = ndimage_interpolate.resample_fft(frame, bin_factor, True)
         fourier_frames.append(frame)
     write_perdiogram(avg, 0, **extra)
     write_pow(ideal_pow, 1, **extra)
@@ -155,7 +112,8 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=No
     _logger.info("l2 error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
     
     _logger.info("Begin vote")
-    trans=align_vote(fourier_frames, **extra)
+    #trans=align_vote(fourier_frames, **extra)
+    trans=align_mean_displacement(fourier_frames, **extra)
     #trans=refine_vote(fourier_frames, trans, ideal_pow, **extra)
     avg = average_fft(fourier_frames, trans)
     pow1=write_perdiogram(avg, 4, **extra)
@@ -277,6 +235,39 @@ def _xcorr_dft_peak_best(f3, usfac, search_radius, y0=0, x0=0):
     return CC[dy,dx].real
 
 def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+    '''
+    '''
+    
+    filter_kernel=None
+    if lowpass_sigma is not None:
+        filter_kernel = scipy.fftpack.ifftshift(ndimage_filter.gaussian_lowpass_kernel(fourier_frames[0].shape, lowpass_sigma, numpy.float))
+    else: filter_kernel=1.0
+    
+    index = numpy.triu_indices(len(fourier_frames), 1)
+    cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 3))
+    
+    for i, j in zip(*index):
+        y, x, p = xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
+        cache[i, j, 2:] = (x,y,p)
+        cache[j, i] = (-x,-y,p)
+    
+    idx = numpy.arange(0, len(fourier_frames), dtype=numpy.int)
+    cache_old = cache.copy()
+    for i, j in zip(*index):
+        cidx = idx[idx != i]
+        cache[i, j, :2] = numpy.mean(cache_old[i, cidx, :2]-cache_old[i, cidx, :2], axis=0)
+        cache[j, i, :2] = -cache[i, j, :2]
+    
+    trans = numpy.zeros((len(fourier_frames), 2))
+    idx = numpy.arange(1, len(fourier_frames), dtype=numpy.int)
+    for i in xrange(1, trans.shape[0]):
+        cidx = idx[idx != i]
+        
+        trans[i, :] = numpy.mean(cache[0, cidx, :2]-cache[i, cidx, :2], axis=0)
+        print trans[i, :], trans[i]-trans[i-1]
+    return trans
+
+def align_mean_displacement_old(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
     '''
     
@@ -457,16 +448,17 @@ def write_pow(pow, index=0, pow_file="", apix=None, **extra):
     
     
     if pow_file == "": return
-    rmin=30.0
-    rmax=apix*3.0
-    
-    min_freq = apix/rmin
-    max_freq = apix/rmax
-    
-    rang = ((max_freq*pow.shape[0])-(min_freq*pow.shape[0]))/2.0
-    freq2 = float(pow.shape[0])/(rang/1)
-    freq1 = float(pow.shape[0])/(rang/15)
-    pow = ndimage_utility.filter_annular_bp(pow, freq1, freq2)
+    if apix is not None and apix > 0.0:
+        rmin=30.0
+        rmax=apix*3.0
+        
+        min_freq = apix/rmin
+        max_freq = apix/rmax
+        
+        rang = ((max_freq*pow.shape[0])-(min_freq*pow.shape[0]))/2.0
+        freq2 = float(pow.shape[0])/(rang/1)
+        freq1 = float(pow.shape[0])/(rang/15)
+        pow = ndimage_utility.filter_annular_bp(pow, freq1, freq2)
     
     ndimage_file.write_image(pow_file, pow, index)
 
@@ -514,6 +506,12 @@ def initialize(files, param):
     
     if param['param_file'] != "":
         spider_params.read(param['param_file'], param)
+    if param['benchmark']:
+        _logger.warn("Running Alignment in Benchmark mode!")
+    else:
+        _logger.info("Running l2-Alignment")
+    if param['pow_file'] != "":
+        _logger.info("Writing diagnostic power spectra to %s"%param['pow_file'])
     if param['gain_file']=="":
         _logger.warn("No gain reference!")
     else:
@@ -523,6 +521,12 @@ def initialize(files, param):
     else:
         _logger.info("Output translation coordinate file: %s"%param['translation_file'])
     _logger.info("Decimation factor %f"%param['bin_factor'])
+    if param['bin_factor'] > 1.0 and param['param_file'] == "" and param['apix'] > 0:
+        apix = param['apix']
+        param['apix'] *= float(param['bin_factor'])
+        _logger.info("Using scaled pixel size: %f (originally %f)"%(param['apix'], apix))
+    else:
+        _logger.info("Pixel size: %f"%param['apix'])
     if param['resolution'] > 0.0:
         _logger.info("Filter frames to %f (%f)"%(param['resolution'], param['apix']/param['resolution']))
         param['lowpass_sigma']=param['apix']/param['resolution']

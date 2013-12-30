@@ -11,6 +11,7 @@ SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html
 '''
 from ..app import tracing
 import logging, numpy
+import scipy.fftpack
 import sys
 
 _ndinter = sys.modules[__name__]
@@ -35,6 +36,77 @@ except:
     #_logger.addHandler(logging.StreamHandler())
     #_logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
+
+def resample_offsets(img, shape, axis=None):
+    '''
+    '''
+    
+    if not hasattr(shape, 'ndim'):
+        if hasattr(shape, '__len__'): shape = (int(shape[0]), int(shape[1]), int(shape[2])) if img.ndim == 3 else (int(shape[0]), int(shape[1]))
+        else: shape = (int(img.shape[0]/shape), int(img.shape[1]/shape), int(img.shape[2]/shape)) if img.ndim == 3 else (int(img.shape[0]/shape), int(img.shape[1]/shape))
+    
+    if axis is None:
+        iy, oy = resample_offsets(img, shape, 0)
+        ix, ox = resample_offsets(img, shape, 1)
+        return ((iy, ix), (oy, ox))
+
+    i_range = numpy.arange(0, min(img.shape[axis], shape[axis]), dtype=numpy.int)
+    if (((img.shape[axis]%2) == 0) and (shape[axis]>img.shape[axis])) or (((img.shape[axis]%2) != 0) and shape[axis] < img.shape[axis]):
+        x_out_idx = max(int(numpy.floor((shape[axis]-img.shape[axis])/2.0)), 0) + i_range
+        x_img_idx = max(int(numpy.floor((img.shape[axis]-shape[axis])/2.0)), 0) + i_range
+    else:
+        x_out_idx = max(int(numpy.ceil((shape[axis]-img.shape[axis])/2.0)), 0) + i_range
+        x_img_idx = max(int(numpy.ceil((img.shape[axis]-shape[axis])/2.0)), 0) + i_range
+    return (x_img_idx, x_out_idx)
+    
+def resample_fft(img, out, is_fft=False, offsets=None):
+    '''
+    '''
+    
+    if not hasattr(out, 'ndim'):
+        if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
+        else:
+            assert(out > 1.0)
+            shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
+        out = numpy.zeros(shape, dtype=img.dtype)
+    if not is_fft: img = scipy.fftpack.fft2(img)
+    img = scipy.fftpack.fftshift(img)
+    
+    gain_x = float(out.shape[1])/float(img.shape[1])
+    gain_y = float(out.shape[0])/float(img.shape[0])
+    
+    if offsets is None:
+        ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = resample_offsets(img, out.shape)
+    else:
+        ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = offsets
+    '''
+    i_range = numpy.arange(0, min(img.shape[1], out.shape[1]), dtype=numpy.int)
+    if (((img.shape[1]%2) == 0) and (out.shape[1]>img.shape[1])) or (((img.shape[1]%2) != 0) and out.shape[1] < img.shape[1]):
+        x_out_idx = max(int(numpy.floor((out.shape[1]-img.shape[1])/2.0)), 0) + i_range
+        x_img_idx = max(int(numpy.floor((img.shape[1]-out.shape[1])/2.0)), 0) + i_range
+    else:
+        x_out_idx = max(int(numpy.ceil((out.shape[1]-img.shape[1])/2.0)), 0) + i_range
+        x_img_idx = max(int(numpy.ceil((img.shape[1]-out.shape[1])/2.0)), 0) + i_range
+    
+    i_range = numpy.arange(0, min(img.shape[0], out.shape[0]), dtype=numpy.int)
+    if (((img.shape[0]%2) == 0) and (out.shape[0]>img.shape[0])) or (((img.shape[0]%2) != 0) and out.shape[0] < img.shape[0]):
+        y_out_idx = max(int(numpy.floor((out.shape[0]-img.shape[0])/2.0)), 0) + i_range
+        y_img_idx = max(int(numpy.floor((img.shape[0]-out.shape[0])/2.0)), 0) + i_range
+    else:
+        y_out_idx = max(int(numpy.ceil((out.shape[0]-img.shape[0])/2.0)), 0) + i_range
+        y_img_idx = max(int(numpy.ceil((img.shape[0]-out.shape[0])/2.0)), 0) + i_range
+    del i_range
+    '''
+    
+    fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
+    fout[y_out_idx, x_out_idx[:, numpy.newaxis]] = img[y_img_idx, x_img_idx[:, numpy.newaxis]].squeeze()
+    fout[:]=scipy.fftpack.ifftshift(fout)
+    
+    if not is_fft: 
+        out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+        return out
+    return fout
+    
     
 def sincblackman(bin_factor, template_min = 15, kernel_size=2002, dtype=numpy.float32):
     '''
