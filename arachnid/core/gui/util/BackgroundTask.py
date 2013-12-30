@@ -27,6 +27,10 @@ class TaskSignal(QtCore.QObject):
     taskStarted = qtSignal(object)
     taskUpdated = qtSignal(object)
     taskError = qtSignal(object)
+    taskCleanup = qtSignal(object)
+    
+    def cleanup(self, task):
+        task.connect_obj(task._parent, 'disconnect')
 
 class BackgroundTask(QtCore.QRunnable):
     def __init__(self, parent, functor, *args):
@@ -50,7 +54,7 @@ class BackgroundTask(QtCore.QRunnable):
             _logger.exception("unknown task failed")
         else:
             self.signal.taskFinished.emit(val)
-        self.connect_obj(self._parent, 'disconnect')
+        self.signal.taskCleanup.emit(self)
     
     def connect_obj(self, parent, connect):
         '''
@@ -61,6 +65,7 @@ class BackgroundTask(QtCore.QRunnable):
             sig = getattr(self.signal, signal)
             psig = getattr(parent, signal)
             getattr(sig, connect)(psig)
+        getattr(self.signal.taskCleanup, connect)(self.signal.cleanup)
             
     def disconnect(self, val=None):
         self.connect_obj(self._parent, 'disconnect')
