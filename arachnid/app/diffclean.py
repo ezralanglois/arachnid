@@ -129,10 +129,11 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Sep 21, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-
+#sh cfg/diffclean_ref.cfg --force --scale 0.0073
 from ..core.app import program
 from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate, preprocess_utility, reproject, reconstruct, manifold
 from ..core.image.ctf import correct as ctf_correct
+from ..core.image.ctf import model as ctf_model
 from ..core.metadata import format, format_utility, spider_params, format_alignment
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
@@ -177,8 +178,11 @@ def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig
     
     #data -= data.min()
     #data /= data.max()
+    _logger.info("Data: %d,%d"%data.shape)
     openmp.set_thread_count(extra['thread_count'])
     assert(data.shape[0] == align.shape[0])
+    #if scale != 0.0:
+    #    data -= data.mean(axis=1)[:, numpy.newaxis]
     if scale < 0.0:
         sigma = numpy.linspace(float(scale_range[0]), float(scale_range[1]), int(scale_range[2]))
         kernel_cum = numpy.zeros((2, sigma.shape[0]))
@@ -186,7 +190,7 @@ def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig
         _logger.info("Start:%f"%(numpy.sum(data)))
         totmax = 2
         totmin = 2
-        while (totmax+totmin) > 2:
+        while abs(totmax-totmin)+1 != len(sigma):
             kernel_cum[0, :]=-10**sigma
             for i in xrange(kernel_cum.shape[1]):
                 tmp[:] = data[:]*kernel_cum[0,i]
@@ -195,49 +199,149 @@ def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig
                 kernel_cum[1, i] = numpy.sum(tmp)
             for i in xrange(len(sigma)):
                 _logger.info("%f,%f  (%f)"%(sigma[i], kernel_cum[1, i], kernel_cum[0, i]))
-            totmax = (kernel_cum[1, :].max()==kernel_cum[1, :]).sum()
-            totmin = (kernel_cum[1, :].min()==kernel_cum[1, :]).sum()
-            if kernel_cum[1, 0] == kernel_cum[1, :].max():
-                _logger.info("New range1: %d - %d"%(int(totmax-1), int(kernel_cum.shape[1]-totmin)))
-                minval = sigma[totmax-1]
-                maxval = sigma[kernel_cum.shape[1]-totmin]
+            idx = numpy.argwhere(numpy.isfinite(kernel_cum[1, :])).squeeze()
+            totmax = idx[numpy.argmax(kernel_cum[1, idx])]
+            totmin = idx[numpy.argmin(kernel_cum[1, idx])]
+            #totmax = idx[(kernel_cum[1, idx].max()==kernel_cum[1, idx]).sum()]
+            #totmin = idx[(kernel_cum[1, idx].min()==kernel_cum[1, idx]).sum()]
+            _logger.info("max: %f - min: %f"%(kernel_cum[1, totmax], kernel_cum[1, totmin]))
+            if totmax < totmin:
+                _logger.info("New range1: %d - %d"%(int(totmax), int(totmin)))
+                minval = sigma[totmax]
+                maxval = sigma[totmin]
             else:
-                _logger.info("New range2: %d - %d"%(int(totmin-1), int(kernel_cum.shape[1]-totmax)))
-                minval = sigma[totmax-1]
-                maxval = sigma[kernel_cum.shape[1]-totmax]
+                _logger.info("New range2: %d - %d"%(int(totmin), int(totmax)))
+                minval = sigma[totmin]
+                maxval = sigma[totmax]
             _logger.info("New range: %f - %f"%(float(minval), float(maxval)))
             sigma = numpy.linspace(float(minval), float(maxval), int(scale_range[2]))
+            
+        
+        tmp[:] = data
+        kernel_cum[0, :]=-10**sigma
+        numpy.sqrt(tmp, tmp)
+        feat = embed_sample(tmp, **extra)
+        _logger.info("Linear")
+        performance(label, feat, **extra)
+        for i in xrange(kernel_cum.shape[1]):
+            tmp[:] = data
+            _logger.info("Kernel: %f"%kernel_cum[0,i])
+            tmp = numpy.multiply(tmp, kernel_cum[0,i], tmp)
+            tmp = numpy.exp(tmp, tmp)
+            #rnorm = numpy.sqrt(tmp.sum(axis=0))
+            #tmp /= numpy.sqrt(tmp.sum(axis=1)[:, numpy.newaxis])
+            #tmp /= rnorm
+            try:
+                feat = embed_sample(tmp, **extra)
+            except:
+                break
+            performance(label, feat, **extra)
+        
     if scale != 0.0:
         assert(numpy.alltrue(numpy.isfinite(data)))
         if scale > 0.0: scale = -scale
+        print scale
         data = numpy.multiply(data, scale, data)
         assert(numpy.alltrue(numpy.isfinite(data)))
         data = numpy.exp(data, data)
         assert(numpy.alltrue(numpy.isfinite(data)))
-        #data /= data.sum(axis=1)[:, numpy.newaxis]
+        rnorm = numpy.sqrt(data.sum(axis=0))
+        data /= numpy.sqrt(data.sum(axis=1)[:, numpy.newaxis])
+        data /= rnorm
     else:
+        #print data[data<0][0]
+        assert(numpy.alltrue(data>=0))
         numpy.sqrt(data, data)
-    tst = data-data.mean(0)
+        #data -= data.mean(axis=1)[:, numpy.newaxis]
 
-    feat = embed_sample(tst, **extra)
+    feat = embed_sample(data, **extra)
+    performance(label, feat, **extra)
         
     rsel=None
     if feat is not None:
         sel, rsel, dist = one_class_classification(feat, **extra)
         if isinstance(label, tuple):
             filename, label = label #psi,theta,phi,inplane,tx,ty,defocus
-            dist[:] = tst[:, 0]
-            mindist = numpy.min(tst, 1)
+            dist[:] = data[:, 0]
+            mindist = numpy.min(data, 1)
             format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], mindist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], label[:, 1][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,mindist,rot,group,psi,tx,ty,mirror')
         else:
-            dist[:] = tst[:, 0]
-            mindist = numpy.min(tst, 1)
+            dist[:] = data[:, 0]
+            mindist = numpy.min(data, 1)
             format.write_dataset(output, numpy.hstack((sel[:, numpy.newaxis], dist[:, numpy.newaxis], mindist[:, numpy.newaxis], align[:, 0][:, numpy.newaxis], align[:, (3,4,5,1)], feat)), input_vals[0], label, header='select,dist,mindist,rot,psi,tx,ty,mirror', default_format=format.csv)
         _logger.info("Finished embedding view: %d"%(int(input_vals[0])))
     else:
         _logger.info("Skipping view (too few projections): %d"%int(input_vals[0]))
     
     return input_vals, rsel
+
+def performance(label, feat, **extra):
+    '''
+    '''
+    
+    if isinstance(label, tuple): label = label[1]
+    threshold=100000
+    p_sel = label[:, 1] < threshold
+    n_sel = label[:, 1] >= threshold
+    tp = numpy.sum(feat[p_sel, 0]>0)
+    fp = numpy.sum(feat[n_sel, 0]>0)
+    p = numpy.sum(p_sel)
+    n = numpy.sum(n_sel)
+    _logger.info("%d,%d,%d,%d"%(tp, fp, p, n))
+    _logger.info("%f,%f"%(tp/float(tp+fp), tp/float(p)))
+    
+    tp = numpy.sum(feat[p_sel, 0]<0)
+    fp = numpy.sum(feat[n_sel, 0]<0)
+    _logger.info("lt - %d,%d,%d,%d"%(tp, fp, p, n))
+    _logger.info("lt - %f,%f"%(tp/float(tp+fp), tp/float(p)))
+
+def precision(tp, fp, tn, fn):
+    ''' Estimate the precision from a confusion matrix
+    
+    |precision|
+    
+    :Parameters:
+    
+    tp : float
+         True positive rate
+    fp : float
+         False positive rate
+    tn : float
+         True negative rate
+    fn : float
+         False negative rate
+    
+    :Returns:
+    
+    precision : float
+                Esimated precision
+    '''
+    
+    return numpy.divide(tp, float(fp+tp))
+
+def recall(tp, fp, tn, fn):
+    ''' Estimate the recall from a confusion matrix
+    
+    |recall|
+    
+    :Parameters:
+    
+    tp : float
+         True positive rate
+    fp : float
+         False positive rate
+    tn : float
+         True negative rate
+    fn : float
+         False negative rate
+    
+    :Returns:
+    
+    precision : float
+                Esimated precision
+    '''
+    
+    return numpy.divide(tp, float(fn+tp))
 
 def embed_sample(samp, neig, expected, **extra):
     ''' Embed the sample images into a lower dimensional factor space
@@ -259,6 +363,7 @@ def embed_sample(samp, neig, expected, **extra):
            2D array where each row is a compressed image and each column a factor
     '''
     
+    #samp = samp-samp.mean(0)
     if expected == 0.0:
         eigv, feat = analysis.pca_fast(samp, samp, neig)[1:]
     else:
@@ -446,7 +551,7 @@ def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=F
             img = ndimage_utility.fourier_shift(img, align[i, 4]/apix, align[i, 5]/apix).copy()
         else:
             img = ndimage_utility.fourier_shift(img, align[i, 4], align[i, 5]).copy()
-    elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
+    #elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(apix, **extra)
@@ -454,10 +559,13 @@ def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=F
     if mask.shape[0] != img.shape[0]:
         _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
     assert(mask.shape[0]==img.shape[0])
-    ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
+    #ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
+    ndimage_utility.normalize_standard(img, mask, var_one, out=img)
     
-    #ctfimg = ctf_correct.ctf_model_spi_2d(align[i, -1], img.shape[0], apix=apix, **extra)
-    ctfimg = ctf_correct.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
+    if 1 == 0:
+        ctfimg = ctf_model.model_2d(align[i, -1], img.shape[0], extra['ampcont'], extra['cs'], extra['voltage'], apix)
+    else:
+        ctfimg = ctf_correct.transfer_function(img.shape, align[i, -1], apix=apix, **extra)
     frame = align[i, :3].copy()
     if ref_vol is not None:
         return distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs)
@@ -474,16 +582,11 @@ def distance_from_projection(img, frame, ctfimg, mask, ref_projections, angs):
     for j in xrange(len(angs)):
         ang1 = angs[j].copy()
         avg = ref_projections[j].copy()
-        euler = rotate.rotate_euler(frame, ang1)
+        euler = rotate.rotate_euler(ang1, frame)#frame, ang1)
         avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
         ndimage_utility.normalize_standard(avg, mask, False, out=avg)
-        avg *= (img*avg).sum()/(avg**2).sum()
-        if 1 == 0:
-            avg -= img
-            numpy.square(avg, avg)
-            dist[j] = numpy.sqrt(avg.sum())
-        else:
-            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
+        #avg *= (img*avg).sum()/(avg**2).sum()
+        dist[j] = ctf_correct_distance(img, avg, ctfimg)
     return dist
 
 def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
@@ -494,6 +597,7 @@ def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
     frame[0]=0
     frame = -frame[::-1]
     dist = numpy.zeros(len(angs), dtype=img.dtype)
+    #rdist = dist.copy()
     for j in xrange(len(angs)):
         ang1 = angs[j].copy()
         ang1[0]=0
@@ -502,13 +606,23 @@ def distance_from_reference(img, frame, ctfimg, mask, ref_vol, angs):
         euler = rotate.rotate_euler(frame2, euler)
         avg = rotate.rotate_image(avg, -(euler[0]+euler[2]))
         ndimage_utility.normalize_standard(avg, mask, False, out=avg)
-        avg *= (img*avg).sum()/(avg**2).sum()
+        #avg *= (img*avg).sum()/(avg**2).sum()
+        #rdist[j] = numpy.sum((ctf_correct.correct(avg, ctfimg)-img)**2)
+        #rdist[j] = numpy.sqrt(numpy.sum((avg-img)**2))
         if 1 == 0:
+            #avg = ctf_correct.correct(avg, ctfimg)
             avg -= img
             numpy.square(avg, avg)
-            dist[j] = numpy.sqrt(avg.sum())
+            dist[j] = avg.sum()
         else:
-            dist[j] = numpy.sqrt(ctf_correct_distance(img, avg, ctfimg))
+            dist[j] = ctf_correct_distance(img, avg, ctfimg)
+    '''
+    if dist.argmin()!=0:
+        print dist[0], dist.min(), angs[0], angs[dist.argmin()]
+        print dist[0], rdist[0]
+        print dist.min(), rdist.min(), rdist.argmin(), dist.argmin()
+    assert(dist.argmin()==0)
+    '''
     return dist
 
 def distance_from_neighbor(img, frame, ctfimg, mask, references, align, neighbors, bin_factor):
@@ -529,17 +643,19 @@ def ctf_correct_distance(img, ref, ctfimg):
     '''
     '''
     
-    zimg = ctfimg.copy()
-    zimg[:] = 1+1j
-    img = ctf_correct.correct(img.copy(), zimg, True)
-    ref = ctf_correct.correct(ref, ctfimg, True)
-    #img = ctf_correct.correct_model(img, None, True)
-    #ref = ctf_correct.correct_model(ref, ctfimg, True)
-    tmp=numpy.subtract(img, ref, ref)
-    numpy.abs(tmp, tmp)
-    numpy.square(tmp,tmp)
-    d = numpy.sum(tmp).real
-    return d
+    if 1 == 1:
+        img = ctf_correct.correct(img.copy(), None, True)
+        ref = ctf_correct.correct(ref, ctfimg, True) #ref = ctf_correct.correct(ref, None, True) 
+    else:
+        img = ctf_correct.correct_model(img, None, True)
+        ref = ctf_correct.correct_model(ref, ctfimg, True)
+    if 1 == 0:
+        tmp=numpy.subtract(img, ref, ref)
+        numpy.abs(tmp, tmp)
+        numpy.square(tmp,tmp)
+        d = numpy.sum(tmp).real
+        return d
+    return numpy.sum(numpy.abs((img-ref))**2)/img.ravel().shape[0]
 
 def group_by_reference(label, align, ref):
     ''' Group alignment entries by view number
@@ -669,12 +785,14 @@ def init_root(files, param):
         _logger.info("Reconstructing volume")
         param['ref_vol'] = reconstruct_volume(label, align, **param)
         _logger.info("Reconstructing volume - finished")
-        param['angs'] = healpix.angles(param['ang_order'], True, out=numpy.zeros((param['ang_limit'],3)))
+        out = numpy.zeros((param['ang_limit'],3))
+        healpix.angles(param['ang_order'], True, out=out[1:])
+        param['angs'] = out
         
     _logger.info("Processing %d groups - after removing views with less than 20 particles"%len(group))
     return group
 
-def get_batch(batch):
+def get_batch(batch=0):
     '''
     '''
     try: import psutil
@@ -682,8 +800,9 @@ def get_batch(batch):
         _logger.exception("Failed to import psutil")
         return min(batch, 10000)
     
+    if batch > 0: return batch
     def batch_size(dtype):
-        _logger.info("Batch: %f (free) -> %d"%(psutil.virtual_memory().free, int(psutil.virtual_memory().free/dtype.itemsize)))
+        _logger.info("Batch: %f (free) -> %d"%(psutil.virtual_memory().free/1073741824.0, int(psutil.virtual_memory().free/float(dtype.itemsize))))
         return int(numpy.sqrt(float(psutil.virtual_memory().free/dtype.itemsize)))
     return batch_size
     
@@ -766,8 +885,11 @@ def generate_reference_projections(label, align, ang_order, **extra):
     '''
     
     vol = reconstruct_volume(label, align, **extra)
-    angs = healpix.angles(ang_order, True)
+    angs2 = healpix.angles(ang_order, True)
+    angs = numpy.zeros((angs2.shape[0]+1, angs2.shape[1]))
+    angs[1:] = angs2
     thread_count = max(extra.get('worker_count', 0), extra.get('thread_count', 0))
+    _logger.info("Columns: %d"%len(angs))
     return reproject.reproject_3q_mp(vol, vol.shape[0]/2, angs, thread_count=thread_count), angs
 
 def reconstruct_volume(label, align, worker_count, output, **extra):
@@ -830,6 +952,7 @@ def initialize(files, param):
     
     if not mpi_utility.is_root(**param): 
         spider_params.read(param['param_file'], param)
+    #param['envelope_half_width'] = 10 # - no change
 
 def reduce_all(val, sel_by_mic, id_len=0, **extra):
     # Process each input file in the main thread (for multi-threaded code)
