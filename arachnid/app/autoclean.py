@@ -188,7 +188,7 @@ def process(input_vals, output, **extra):#, neig=1, nstd=1.5
     
     return input_vals, rsel
 
-def embed_sample(samp, neig, expected, **extra):
+def embed_sample(samp, neig, expected, niter=5, **extra):
     ''' Embed the sample images into a lower dimensional factor space
     
     :Parameters:
@@ -208,7 +208,7 @@ def embed_sample(samp, neig, expected, **extra):
            2D array where each row is a compressed image and each column a factor
     '''
     
-    eigv, feat=analysis.dhr_pca(samp, samp, neig, expected, True)
+    eigv, feat=analysis.dhr_pca(samp, samp, neig, expected, True, niter)
     _logger.info("Eigen: %s"%(",".join([str(v) for v in eigv[:10]])))
     tc=eigv.cumsum()
     _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
@@ -571,6 +571,7 @@ def init_root(files, param):
         newgroup=[]
         for i in index[::-1]:
             if count[i] > 20:
+                _logger.info("Group: %d = %d"%(i, count[i]))
                 newgroup.append(group[i])
         group=newgroup
     _logger.info("Processing %d groups - after removing views with less than 20 particles"%len(group))
@@ -663,6 +664,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", prob_reject=0.97,          help="Probablity that a rejected particle is bad", dependent=False)
     group.add_option("", random_view=0,             help="Set number of views to assign randomly, 0 means skip this")
     group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
+    group.add_option("", niter=5,                   help="Number of iterations for cleaning")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input particle stacks, e.g. cluster/win/win_*.dat ", required_file=True, gui=dict(filetype="open"))
