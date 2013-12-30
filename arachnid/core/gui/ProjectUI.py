@@ -47,6 +47,7 @@ from pyui.ProjectUI import Ui_ProjectWizard
 from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
 from arachnid.util import project
 from ..image import ndimage_file
+from util import messagebox
 from ..parallel import openmp
 import logging
 import multiprocessing
@@ -54,6 +55,7 @@ import arachnid
 import os
 import glob
 import sys
+import functools
 sys.setrecursionlimit(10000)
 
 
@@ -77,7 +79,8 @@ class MainWindow(QtGui.QWizard):
         self.ui = Ui_ProjectWizard()
         self.ui.setupUi(self)
         #self.subPages={}
-        self.lastpath = str(QtCore.QDir.currentPath())
+        self.lastmicpath = str(QtCore.QDir.currentPath())
+        self.lastgainpath = str(QtCore.QDir.currentPath())
         self.micrograph_files = []
         self.gain_files = []
         self.parameters=[]
@@ -114,7 +117,8 @@ class MainWindow(QtGui.QWizard):
         self.ui.leginonDBLayout.addWidget(self.ui.leginonWidget)
         #self.subPages[self.idOf(self.ui.leginonDBPage)]=self.ui.leginonWidget
         self.ui.leginonWidget.registerPage(self.ui.leginonDBPage)
-        self.ui.leginonWidget.loadFinished.connect(self.next)
+        #self.ui.leginonWidget.loadFinished.connect(self.next)
+        self.ui.leginonWidget.loadFinished.connect(self.onLeginonLoadFinished)
         
         ########################################################################################################################################
         ###### Reference Page
@@ -154,13 +158,33 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         ###### Additional Settings Page
         ########################################################################################################################################
-        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.particleDiameterPixelLabel.setText("%d (Px)"%(int(x/self.ui.pixelSizeDoubleSpinBox.value()))) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else None)
-        self.ui.windowAngstromDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowWidthAnstromsLabel.setText("%d (Px)"%(x/self.ui.pixelSizeDoubleSpinBox.value())) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else None)
-        self.ui.maskDiameterDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterPixelLabel.setText("%d (Px)"%(int(x/self.ui.pixelSizeDoubleSpinBox.value()))) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else None)
-        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowAngstromDoubleSpinBox.setValue(x*1.4))
+        
+        self.updateParticleSizeSpinBox = lambda x: self.ui.particleSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
+        self.updateWindowSizeSpinBox = lambda x: self.ui.windowSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
+        self.updateMaskDiameterSpinBox = lambda x: self.ui.maskDiameterSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
+        
+        self.updateParticleSizeDoubleSpinBox = lambda x: self.ui.particleSizeDoubleSpinBox.setValue(float(x*self.ui.particleSizeSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
+        self.updateWindowSizeDoubleSpinBox = lambda x: self.ui.windowSizeDoubleSpinBox.setValue(float(x*self.ui.windowSizeSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
+        self.updateMaskDiameterDoubleSpinBox = lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(float(x*self.ui.maskDiameterSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
+        
+        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(self.updateParticleSizeSpinBox)
+        self.ui.windowSizeDoubleSpinBox.valueChanged.connect(self.updateWindowSizeSpinBox)
+        self.ui.maskDiameterDoubleSpinBox.valueChanged.connect(self.updateMaskDiameterSpinBox)
+        
+        self.ui.particleSizeUnitComboBox.currentIndexChanged.connect(self.ui.particleDiameterStackedWidget.setCurrentIndex)
+        self.ui.windowSizeUnitComboBox.currentIndexChanged.connect(self.ui.windowSizeStackedWidget.setCurrentIndex)
+        self.ui.maskDiameterUnitComboBox.currentIndexChanged.connect(self.ui.maskDiameterStackedWidget.setCurrentIndex)
+        
+        self.ui.particleSizeUnitComboBox.currentIndexChanged.connect(functools.partial(connect_visible_spin_box, signals=(self.ui.particleSizeDoubleSpinBox.valueChanged, self.ui.particleSizeSpinBox.valueChanged), slots=(self.updateParticleSizeSpinBox, self.updateParticleSizeDoubleSpinBox)))
+        self.ui.windowSizeUnitComboBox.currentIndexChanged.connect(functools.partial(connect_visible_spin_box, signals=(self.ui.windowSizeDoubleSpinBox.valueChanged, self.ui.windowSizeSpinBox.valueChanged), slots=(self.updateWindowSizeSpinBox, self.updateWindowSizeDoubleSpinBox)))
+        self.ui.maskDiameterUnitComboBox.currentIndexChanged.connect(functools.partial(connect_visible_spin_box, signals=(self.ui.maskDiameterDoubleSpinBox.valueChanged, self.ui.maskDiameterSpinBox.valueChanged), slots=(self.updateMaskDiameterSpinBox, self.updateMaskDiameterDoubleSpinBox)))
+        
+        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeDoubleSpinBox.setValue(x*1.4))
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
+        #self.ui.particleSizeSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeSpinBox.setValue(x*1.4))
+        #self.ui.particleSizeSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterSpinBox.setValue(x*1.2))
         self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
-        self.ui.additionalSettingsPage.registerField(self.param("window_actual*"), self.ui.windowAngstromDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        self.ui.additionalSettingsPage.registerField(self.param("window_actual*"), self.ui.windowSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param("mask_diameter*"), self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param('worker_count'), self.ui.workerCountSpinBox)
         self.ui.additionalSettingsPage.registerField(self.param('thread_count'), self.ui.threadCountSpinBox)
@@ -207,6 +231,7 @@ class MainWindow(QtGui.QWizard):
         self._updateMicrographFiles(files)
         
         if len(files) > 0:
+            self.lastmicpath = os.path.dirname(self.ui.micrographComboBox.itemText(0))
             self.ui.micrographComboBox.lineEdit().setText(self.ui.micrographComboBox.itemText(0))
         else:
             self.ui.micrographComboBox.lineEdit().setText("")
@@ -219,10 +244,11 @@ class MainWindow(QtGui.QWizard):
         '''Called when the user clicks the Pan button.
         '''
         
-        files = QtGui.QFileDialog.getOpenFileNames(self, self.tr("Open a set of micrograph images"), self.lastpath)
+        
+        files = QtGui.QFileDialog.getOpenFileNames(self, self.tr("Open a set of micrograph images"), self.lastmicpath)
         if isinstance(files, tuple): files = files[0]
         if len(files) > 0:
-            self.lastpath = os.path.dirname(str(files[0]))
+            self.lastmicpath = os.path.dirname(str(files[0]))
             self.setMicrographFiles(files)
     
     def _updateMicrographFiles(self, files=None):
@@ -243,7 +269,6 @@ class MainWindow(QtGui.QWizard):
         '''Called when the user clicks the Pan button.
         '''
         
-        _logger.error("on_micrographComboBox_editTextChanged-here1")
         if text == "": return
         files = glob.glob(text)
         if len(files) > 0:
@@ -263,7 +288,6 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        _logger.error("setGainFiles-here1")
         try:"+"+files
         except: pass
         else: files = files.split(',')
@@ -273,6 +297,7 @@ class MainWindow(QtGui.QWizard):
         
         self.ui.gainFileComboBox.blockSignals(True)
         if len(files) > 0:
+            self.lastgainpath = os.path.dirname(self.ui.gainFileComboBox.itemText(0))
             self.ui.gainFileComboBox.lineEdit().setText(self.ui.gainFileComboBox.itemText(0))
         else:
             self.ui.gainFileComboBox.lineEdit().setText("")
@@ -302,7 +327,7 @@ class MainWindow(QtGui.QWizard):
         '''Called when the user clicks the Pan button.
         '''
         
-        files = QtGui.QFileDialog.getOpenFileNames(self, self.tr("Open a set of gain images"), self.lastpath)
+        files = QtGui.QFileDialog.getOpenFileNames(self, self.tr("Open a set of gain images"), self.lastgainpath)
         if isinstance(files, tuple): files = files[0]
         if len(files) > 0:
             self.lastpath = os.path.dirname(str(files[0]))
@@ -331,14 +356,14 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        return int(self.ui.windowAngstromDoubleSpinBox.value()/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() != 0 else 0
+        return int(self.ui.windowSizeDoubleSpinBox.value()/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() != 0 else 0
     
     @window.setter
     def setWindow(self, val):
         '''
         '''
         
-        self.ui.windowAngstromDoubleSpinBox.setValue(val*self.ui.pixelSizeDoubleSpinBox.value())
+        self.ui.windowSizeDoubleSpinBox.setValue(val*self.ui.pixelSizeDoubleSpinBox.value())
         
         
     ########################################################################################################################################
@@ -349,9 +374,19 @@ class MainWindow(QtGui.QWizard):
         
         param = {}
         for p in self.parameters:
-            param[p]=self.field(p)
-        workflow = project.workflow_settings(self.micrographFiles, param)
+            val = self.field(p)
+            if p == 'input_files':
+                #val=[val]
+                #print val
+                assert(val.find(',')!=-1)
+                val = val.split(',')
+                #val = []
+                #for filename in tmp:
+                #    val.extend(glob.glob(filename))
+            param[p]=val
+        workflow = project.workflow_settings(self.micrograph_files, param)
         self.ui.monitorWidget.setWorkflow(workflow)
+        self.ui.monitorWidget.setLogFile('project.log')
     
     def saveFineTunePage(self):
         '''
@@ -413,11 +448,12 @@ class MainWindow(QtGui.QWizard):
             return self.ui.leginonWidget.validate()
         elif page == self.ui.manualSettingsPage:
             if self.ui.micrographComboBox.count() == 0: 
+                messagebox.error_message(self, "No micrographs to process!")
                 # give error
                 return False
             for i in xrange(self.ui.micrographComboBox.count()):
                 if not os.path.exists(self.ui.micrographComboBox.itemText(i)): 
-                    # give error
+                    messagebox.error_message(self, "Micrograph not found!", self.ui.micrographComboBox.itemText(i))
                     return False
             return True
         return True
@@ -451,9 +487,12 @@ class MainWindow(QtGui.QWizard):
             else:
                 return self.next_page
         if page == self.ui.manualSettingsPage:
+            pass
+            '''
             fields = self.ui.leginonWidget.currentData()
             for key, val in fields.iteritems():
                 self.setField(key, val)
+            '''
         elif page == self.ui.fineTunePage:
             self.setupFineTunePage()
         elif page == self.ui.monitorPage:
@@ -465,5 +504,20 @@ class MainWindow(QtGui.QWizard):
             if self.ui.noReferencePushButton.isChecked():
                 return self.currentId()+2
         return super(MainWindow, self).nextId()
+    
+    def onLeginonLoadFinished(self):
+        '''
+        '''
         
+        fields = self.ui.leginonWidget.currentData()
+        for key, val in fields.iteritems():
+            self.setField(key, val)
+        
+def connect_visible_spin_box(index, signals, slots):
+    '''
+    '''
+    prev = 0 if index == 1 else 1
+    signals[prev].disconnect(slots[prev])
+    signals[index].connect(slots[index])
+
 
