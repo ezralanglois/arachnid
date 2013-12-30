@@ -113,6 +113,10 @@ Movie-mode Options
 .. option:: --frame-limit <int>
     
     Limit number of frames to use (0 means no limit)
+
+.. option:: --reindex-file <FILENAME> 
+    
+    Reindex file for running movie mode on a subset of selected particles in a stack
     
 More Options
 ============
@@ -192,7 +196,7 @@ def batch(files, relion2spider=False, frame_stack_file="", **extra):
             Unused key word arguments
     '''
     
-    if not format.is_readable(files[0]) and ndimage_file.is_readable(files[0]):
+    if ndimage_file.is_readable(files[0]):
         _logger.info("Generating a relion selection file from a set of stacks")
         img = ndimage_file.read_image(files[0])
         generate_relion_selection_file(files, img, **extra)
@@ -1024,7 +1028,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
     group.add_option("-s", selection_file="",               help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
-    group.add_option("",   reindex_file="",                 help="Reindex file for ", gui=dict(filetype="open"))
+    group.add_option("",   reindex_file="",                 help="Reindex file for running movie mode on a subset of selected particles in a stack", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
