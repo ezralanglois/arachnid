@@ -744,6 +744,18 @@ def laplacian(dist2):
     dist2.data[diag_mask]=1.0
     return dist2, D
 
+def normalize_kernel(dist2):
+    '''
+    '''
+    
+    dist2 = dist2.tocoo()
+    D = numpy.asarray(dist2.sum(axis=0)).squeeze()
+    D_zero = (D==0)
+    D[D_zero]=1.0
+    dist2.data /= D[dist2.row]
+    dist2.data /= D[dist2.col]
+    return dist2
+
 def embed_laplacian(L, D, dimension):
     '''
     '''
@@ -797,6 +809,7 @@ def diffusion_maps_dist(dist2, dimension, sigma=None):
     if not scipy.sparse.isspmatrix_csr(dist2): dist2 = dist2.tocsr()
     dist2, index = largest_connected(dist2)
     gaussian_kernel(dist2, sigma)
+    dist2=normalize_kernel(dist2)
     L,D = laplacian(dist2)
     evecs, evals = embed_laplacian(L, D, dimension)
     return evecs, evals, index
