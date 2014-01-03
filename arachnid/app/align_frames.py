@@ -14,6 +14,7 @@ from ..core.image import ndimage_filter
 from ..core.metadata import format
 from ..core.metadata import spider_params
 from ..core.metadata import spider_utility
+from ..core.util import drawing
 import scipy.fftpack
 import numpy
 import logging
@@ -46,7 +47,9 @@ def process(filename, benchmark=False, **extra):
         coords = align_in_memory(filename, **extra)
         
     if len(coords) > 0:
+        _logger.info("Writing average")
         write_average(filename, coords, **extra)
+        _logger.info("Writing average - finished")
         write_coordinates(coords, **extra)
     return filename, coords
 
@@ -58,19 +61,22 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
     
     gain = ndimage_file.read_image(gain_file) if gain_file != "" else None
     fourier_frames = []
+    _logger.info("Caching FFT in memory")
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
-        if bin_factor > 1.0: frame=ndimage_interpolate.downsample(frame, bin_factor)
         ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
         frame = scipy.fftpack.fft2(frame)
+        if bin_factor > 1.0: frame = ndimage_interpolate.resample_fft_fast(frame, bin_factor, True)
         fourier_frames.append(frame)
+    _logger.info("Aligning FFTs with l2 optimization")
     trans = align_l2(fourier_frames, **extra)
+    _logger.info("Alignment finished")
     write_perdiogram(fourier_frames, 0, trans, **extra)
     trans *= bin_factor
     return trans
 
-def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=None, **extra):
+def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
     '''
     .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
     .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
@@ -78,24 +84,23 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=No
     
     gain = ndimage_file.read_image(gain_file) if gain_file != "" else None
     fourier_frames = []
-    #ssds=[]
     avg = None
     ideal_pow=None
     #window = None
+    #cache = None
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
-        #if bin_factor > 1.0: frame=ndimage_interpolate.downsample(frame, bin_factor)
         ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
-        #ssds.append((frame, numpy.square(frame).sum()))
-        if avg is not None: avg += frame
-        else: avg=frame
-        pow = perdiogram(frame, **extra)
+        frame2 = ndimage_interpolate.downsample(frame, bin_factor) if bin_factor > 1.0 else frame
+        if avg is not None: avg += frame2
+        else: avg=frame2
+        pow = perdiogram(frame2, **extra)
         if ideal_pow is not None: ideal_pow += pow
         else: ideal_pow=pow
         frame = scipy.fftpack.fft2(frame)
         if bin_factor > 1.0: 
-            frame = ndimage_interpolate.resample_fft(frame, bin_factor, True)
+            frame = ndimage_interpolate.resample_fft_fast(frame, bin_factor, True)
         fourier_frames.append(frame)
     write_perdiogram(avg, 0, **extra)
     write_pow(ideal_pow, 1, **extra)
@@ -114,13 +119,14 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, lowpass_sigma=No
     _logger.info("Begin vote")
     #trans=align_vote(fourier_frames, **extra)
     trans=align_mean_displacement(fourier_frames, **extra)
-    #trans=refine_vote(fourier_frames, trans, ideal_pow, **extra)
     avg = average_fft(fourier_frames, trans)
     pow1=write_perdiogram(avg, 4, **extra)
     _logger.info("Vote error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
-    
-    write_pow(powerspectra(fourier_frames, **extra), 5, **extra)
-    write_pow(powerspectra(fourier_frames, trans, **extra), 6, **extra)
+    trans=refine_sequential(fourier_frames, trans, ideal_pow, **extra)
+    avg = average_fft(fourier_frames, trans)
+    pow1=write_perdiogram(avg, 5, **extra)
+    _logger.info("Refined Vote error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
+    write_average_with_path(avg, trans, **extra)
     
     '''
     _logger.info("Begin triplet")
@@ -172,7 +178,7 @@ def refine_mean_displacement(fourier_frames, trans, ideal_pow, **extra):
         last=frame
     i=0
     fourier_averages.append(scipy.ndimage.fourier_shift(fourier_frames[i], (-trans[i, 1], -trans[i, 0]), -1, 0)+last)
-    ltrans = align_vote(fourier_averages, **extra)
+    ltrans = align_mean_displacement(fourier_averages, **extra)
     _logger.info("Distance: %f"%(numpy.sqrt(numpy.sum(numpy.square(ltrans)))))
     return ltrans
 
@@ -234,7 +240,7 @@ def _xcorr_dft_peak_best(f3, usfac, search_radius, y0=0, x0=0):
     print dy, dx, CC[dy,dx].real, y0, x0, vmax, dy1, dx1
     return CC[dy,dx].real
 
-def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+def align_mean_displacement_new(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
     '''
     
@@ -255,7 +261,7 @@ def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowp
     cache_old = cache.copy()
     for i, j in zip(*index):
         cidx = idx[idx != i]
-        cache[i, j, :2] = numpy.mean(cache_old[i, cidx, :2]-cache_old[i, cidx, :2], axis=0)
+        cache[i, j, :2] = numpy.mean(cache_old[i, cidx, :2]-cache_old[j, cidx, :2], axis=0)
         cache[j, i, :2] = -cache[i, j, :2]
     
     trans = numpy.zeros((len(fourier_frames), 2))
@@ -267,7 +273,7 @@ def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowp
         print trans[i, :], trans[i]-trans[i-1]
     return trans
 
-def align_mean_displacement_old(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
     '''
     
@@ -421,6 +427,19 @@ def average_fft(fourier_frames, trans, do_ifft=True):
         avg += scipy.ndimage.fourier_shift(frame, (-trans[i, 1], -trans[i, 0]), -1, 0)
     return scipy.fftpack.ifft2(avg).real if do_ifft else avg
 
+def write_average_with_path(avg, trans, waypoint_file="", **extra):
+    '''
+    '''
+    
+    if waypoint_file == "": return
+    radius = numpy.asarray((avg.shape[1]/2, avg.shape[0]/2))
+    trans = trans.copy()
+    trans -= trans.min(axis=0)
+    trans /= trans.max(axis=0)
+    trans *= radius
+    trans += radius
+    drawing.draw_path(avg, trans, width=10, out=waypoint_file)
+
 def powerspectra(fourier_frames, trans=None, window_size=256, pad=1, overlap=0.5, **extra):
     '''
     '''
@@ -530,6 +549,14 @@ def initialize(files, param):
     if param['resolution'] > 0.0:
         _logger.info("Filter frames to %f (%f)"%(param['resolution'], param['apix']/param['resolution']))
         param['lowpass_sigma']=param['apix']/param['resolution']
+    if not drawing.is_available():
+        if param['waypoint_file'] != "":
+            _logger.info("Cannot write out illustrative waypoint average - no PIL installed")
+            param['waypoint_file']=""
+    else:
+        if param['waypoint_file'] != "":
+            _logger.info("Writing out illustrative waypoint image: %s"%param['waypoint_file'])
+        
     
 def reduce_all(val, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -584,12 +611,15 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", upsampling=2,      help="Upsampling factor")
     group.add_option("", gap=5,             help="Gap between pairs for L1/L2 alignment")
     group.add_option("", benchmark=False,   help="Run successive alignment on the same set of micrographs for benchmarking")
+    group.add_option("", window_size=256,   help="Window size for the diagnostic power spectra")
+    group.add_option("", pad=2,             help="Padding for the diagnostic power spectra")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--movie-files",          input_files=[],           help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
         pgroup.add_option("-o", "--micrograph-files",     output="",                help="Output filename for the averaged micrograph image with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("",                             translation_file="",      help="Output filename for the translation coordinates with correct number of digits (e.g. sndc_0000.spi), if empty no coordinates are saved", gui=dict(filetype="save"), required_file=False)
         pgroup.add_option("",                             pow_file="",              help="Output filename for the power spectra images with correct number of digits (e.g. sndc_0000.spi), if empty no power spectra are saved", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("",                             waypoint_file="",         help="Output filename for the average with path in color", gui=dict(filetype="save"), required_file=False)
         spider_params.setup_options(parser, pgroup, False)
 
 def flags():
