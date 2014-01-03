@@ -120,7 +120,7 @@ def replace_extension(filename, filter, formats=None):
     filename = os.path.splitext(str(filename))[0]
     return filename + "." + extension(filter, formats)
 
-def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=None, replace_ext=False, **extra):
+def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=None, replace_ext=False, nospiderid=False, **extra):
     '''Get the extension associated with the given file filter
     
     This functions removes the header (if there is one) at the end of the string
@@ -167,6 +167,8 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     replace_ext : bool
                   If True and spiderid is a filename with an extension, replace current filename
                   with this extension.
+    nospiderid : bool
+                If true remove the numeric suffix from the filename
     extra : dict
             Unused extra keyword arguments
     
@@ -186,6 +188,8 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     _logger.debug("Using header: %s"%str(header))
     if spiderid is not None: 
         filename = spider_utility.spider_filename(filename, spiderid, id_len)
+    elif nospiderid:
+        filename = spider_utility.spider_filepath(filename)
     filename = format_utility.add_prefix(filename, prefix)
     if replace_ext and isinstance(spiderid, str):
         ext = os.path.splitext(spiderid)[1]
@@ -242,6 +246,7 @@ def get_format_by_ext(filename, format=None, formats=None, default_format=spider
         if format is None: 
             if default_format is None: raise format_utility.WriteFormatError, "Cannot find format for "+ext
             else: format = default_format
+        
     return format
 
 def get_format(filename, format=None, formats=None, mode='r', getformat=True, header=None, **extra):
@@ -481,6 +486,8 @@ def write(filename, values, mode='w', factory=namedtuple_factory, **extra):
     if len(values) == 0: raise ValueError, "Nothing to write - array has length 0"
     
     format = get_format_by_ext(filename, **extra)
+    if format !=  spiderdoc and os.path.splitext(filename)[1][1:] != format.extension():
+        filename = os.path.splitext(filename)[0] + "." + format.extension()
     filename, fout = open_file(filename, mode=mode, **extra)
     values = factory.ensure_container(values, **extra)
     extra['header'] = factory.get_header(values, **extra)
