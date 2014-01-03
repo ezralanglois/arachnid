@@ -32,6 +32,74 @@ The following commands must be run in the same directory.
 	.. sourcecode:: sh
 	
 		$ ara-screen
+	
+	By default, ara-screen displays the power spectra. You can view the micrographs by checking `Load Alternate`
+	under the `Advanced Settings` on the `Loading` tab. Click the `Reload` Button to display the micrographs for
+	the current set of images.
+	
+	.. note::
+		
+		The `Alternate Image` setting must be set to the micrograph file path for this work. If you used sp-project to perform your processing
+		then ara-screen should automatically find the decimated micrograph.
+	
+	To view the particle selection, you need to check both `Load Alternate` and `Show Coords` under the `Advanced Settings` on 
+	the `Loading` tab. 
+	
+	.. note::
+		
+		The `Coords` setting must be set to the coordinates file path for this work. If you used sp-project to perform your processing
+		then ara-screen should automatically find the coordinates file unless you loaded ara-screen before AutoPicker started to run. If
+		it did not find the  coordinates file you can set it by hand or close and reopen ara-screen in the same directory you last loaded it.
+
+4. Decimated dataset for Relion Classification
+
+	.. sourcecode:: sh
+	
+		ara-selrelion cluster/data/data.star -o cluster/data/data_dec02.star --downsample 2.0
+
+Tips
+====
+
+1. Check the particle selection in ara-screen
+	
+	By default, ara-screen displays the power spectra
+
+2. Check the reference
+	
+	Use Chimera to visualize the reference
+
+3. Check the contrast inversion of the micrograph.
+	
+	It is assumed that your micrograph requires contrast inversion and the parameter `--is-film` 
+	can keep the current contrast. You want light particles on a dark background.
+
+4. Check normalization if you use Relion
+
+	For Arachnid=0.1.2 the particle-diameter must match the mask diameter used in Relion.
+	For Arachnid=0.1.3 the mask-diamter must match the mask diameter used in Relion.
+
+5. Suggested AutoPicker parameters for various conditions/samples
+
+	1. Crowded micrographs: --overlap-mult 0.8
+	2. Very asymmetric particles (40S subunit of the ribosome) --disk-mult 0.2 
+	3. Very few particles --threshold-minimum 10 (only works for Arachnid 0.1.3 or later)
+
+6. Very Dirty Dataset - Use ara-autoclean
+
+	You must first run a short Relion Refinement, suggested on 4x decimated data. It does not have to run to the end, but 
+	the longer you run it the better ara-autoclean will work.
+	
+	To run, do the following
+	
+	.. sourcecode:: sh
+		
+		# Determine the good particles
+		
+		$ ara-autoclean cluster/win/win_*.dat -a relion_it012_data.star -o output/view_0000000.dat -w8 -p cluster/data/params.dat 
+		
+		# Create a new star file from only good particles
+		
+		$ ara-selrelion relion_it012_data.star -o relion_it012_data_good.star -g output/sel_view_0000000.dat 
 
 Getting Started
 ===============

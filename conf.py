@@ -194,7 +194,7 @@ todo_include_todos = False
 
 
 # todo glob for all inc files
-rst_epilog = "".join(open('docs/include/option_details.inc').readlines())
+rst_epilog = "" #"".join(open('docs/include/option_details.inc').readlines())
 
 
 # -- Options for LaTeX output --------------------------------------------------
