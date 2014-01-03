@@ -315,11 +315,11 @@ class Option(optparse.Option):
         self._default_regular_expression = None
         choices = None
         flag, value = self.determine_flag(args, kwargs)
-        if flag is not None:
-            args, choices = self.setup_auto_flag(flag, value, args, kwargs)
         if 'regexp' in kwargs:
             self._default_regular_expression = kwargs["regexp"]
             del kwargs["regexp"]
+        if flag is not None:
+            args, choices = self.setup_auto_flag(flag, value, args, kwargs)
         if "gui" in kwargs: # TODO remove this
             self.gui_hint = kwargs["gui"]
             if 'operations' in self.gui_hint:
@@ -509,7 +509,7 @@ class Option(optparse.Option):
             types.BooleanType   : {"action":   lambda v: "store_false" if v else "store_true", "type": None, "default": lambda v: v},
             types.TupleType     : {"callback": Option.choice_type, "default": lambda v: v[0], "type": lambda v: v[0].__class__.__name__},
             "index_true"        : {"callback": Option.choice_index, "default": 0, "type": lambda v: v[0].__class__.__name__},
-            'open-file-list'    : {"callback": Option.glob_files, "default": lambda v: optfilelist(v), "type": "string"},
+            'open-file-list'    : {"callback": Option.glob_files, "default": lambda v: optfilelist(v, self._default_regular_expression), "type": "string"},
         }
         
         choices = None
@@ -1134,7 +1134,6 @@ class OptionParser(optparse.OptionParser):
         for key in keys:
             if key not in self.defaults:
                 opt = self.option_for_flag("--"+key.replace('_', '-'))
-                #print 'Searching for', key, "--"+key.replace('_', '-')
                 if opt is not None:
                     if hasattr(opt.default, 'make'):
                         kwargs[opt.dest]=opt.default.make(kwargs[key])
