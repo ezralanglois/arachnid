@@ -262,7 +262,7 @@ def default_logfile(rank=0, **extra):
     
     return "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
 
-def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_stderr=False, **extra):
+def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_stderr=False, log_mode='w', **extra):
     '''Configure logging with use selected options
 
     .. sourcecode:: py
@@ -282,6 +282,8 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_st
                  File path for logging configuration
     enable_stderr : bool
                     Do redirect to stderr
+    log_mode : str
+               Mode to open log file
     extra : dict
             Unused keyword arguments
     '''
@@ -308,7 +310,7 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_st
                 logging.debug("Writing to log file: %s"%(log_file))
                 backupname = backup(log_file)
                 if backupname: logging.debug("Backing up log file to %s"%(backupname))
-                h = logging.FileHandler(log_file, mode='w')
+                h = logging.FileHandler(log_file, mode=log_mode)
                 h.addFilter(ExceptionFilter())
                 handlers.append(logging.FileHandler(default_error_log, mode='w'))
                 handlers.append(h)
