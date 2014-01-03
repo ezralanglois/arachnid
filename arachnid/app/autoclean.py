@@ -133,6 +133,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app import program
 from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
 from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
+from ..core.metadata import relion_utility
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
 import logging, numpy, scipy, scipy.cluster.vq, scipy.spatial.distance
@@ -615,7 +616,7 @@ def reduce_all(val, sel_by_mic, id_len=0, **extra):
     total = len(label[1]) if isinstance(label, tuple) else len(label)
     return "%d - Selected: %d -- Removed %d"%(input[0], tot, total-tot)
 
-def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, input_files, **extra):
+def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, input_files, alignment, **extra):
     # Finalize global parameters for the script
     
     nsamples = None
@@ -643,6 +644,11 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         _logger.info("Writing %d to selection file %d"%(n, id))
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
+    
+    data = format.read(alignment)
+    data = relion_utility.select_subset(data, sel_by_mic)
+    format.write(output, data, nospiderid=True, format=format.star)
+    
     _logger.info("Selected %d projections"%(tot))
     _logger.info("Completed")
 
