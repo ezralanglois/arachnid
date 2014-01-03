@@ -405,8 +405,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Template-matching", "Options to control template-matching",  id=__name__)
     #group.add_option("-r", pixel_radius=0,      help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, --param-file)")
     #group.add_option("",   window=1.0,          help="Size of the output window or multiplicative factor if less than particle diameter (overridden by SPIDER params file, --param-file)")
-    group.add_option("",   disk_mult=0.65,      help="Disk smooth kernel size factor", gui=dict(maximum=10.0, minimum=0.01, singleStep=0.1, decimals=2)) #"2:0.1:0.01:10.0"
-    group.add_option("",   overlap_mult=1.2,    help="Multiplier for the amount of allowed overlap or inter-particle distance", gui=dict(maximum=10.0, minimum=0.001, singleStep=0.1, decimals=2))
+    group.add_option("",   disk_mult=0.6,      help="Disk smooth kernel size factor", gui=dict(maximum=10.0, minimum=0.01, singleStep=0.1, decimals=2)) #"2:0.1:0.01:10.0"
+    group.add_option("",   overlap_mult=1.0,    help="Multiplier for the amount of allowed overlap or inter-particle distance", gui=dict(maximum=10.0, minimum=0.001, singleStep=0.1, decimals=2))
     group.add_option("",   template="",         help="Optional predefined template", gui=dict(filetype="open"))
     group.add_option("",   disable_bin=False,   help="Disable micrograph decimation")
     group.add_option("",   invert=False,        help="Invert the contrast of CCD micrographs")
