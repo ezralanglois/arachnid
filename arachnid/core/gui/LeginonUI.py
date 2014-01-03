@@ -108,7 +108,7 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        fields = [self.ui.usernameLineEdit, self.ui.passwordLineEdit, self.ui.projectHostnameLineEdit, 
+        fields = [self.ui.usernameLineEdit, self.ui.dbPasswordLineEdit, self.ui.dbUsernameLineEdit, self.ui.projectHostnameLineEdit, 
                   self.ui.leginonHostnameLineEdit, self.ui.leginonDBNameLineEdit,
                   self.ui.projectDBNameLineEdit]
         for field in fields:
@@ -131,8 +131,10 @@ class Widget(QtGui.QWidget):
         '''
         #
         
-        username = self.ui.usernameLineEdit.text()
-        password = self.ui.passwordLineEdit.text()
+        targetuser = self.ui.usernameLineEdit.text()
+        #targetpass = self.ui.passwordLineEdit.text()
+        username = self.ui.dbUsernameLineEdit.text()
+        password = self.ui.dbPasswordLineEdit.text()
         prjhost = self.ui.projectHostnameLineEdit.text() if self.ui.projectHostnameLineEdit.text() != "" else self.ui.leginonHostnameLineEdit.text()
         leginonDB = self.ui.leginonHostnameLineEdit.text()+'/'+self.ui.leginonDBNameLineEdit.text()
         projectDB = prjhost+'/'+self.ui.projectDBNameLineEdit.text()
@@ -141,10 +143,11 @@ class Widget(QtGui.QWidget):
            self.login.get('leginonDB', None) == leginonDB and \
            self.login.get('projectDB', None) == projectDB and \
            self.login.get('password', None) == password and \
+           self.login.get('targetuser', None) == targetuser and \
            self.login.get('limit', None) == limit: return
         #alternteUser = self.ui.alternateUserLineEdit.text()
         try:
-            user, experiments = leginondb.query_user_info(username, password, leginonDB, projectDB)#, alternteUser)
+            user, experiments = leginondb.query_user_info(username, password, leginonDB, projectDB, targetuser)#, alternteUser)
         except:
             _logger.exception("Error accessing project")
             messagebox.exception_message(self, "Error accessing project")
@@ -155,6 +158,7 @@ class Widget(QtGui.QWidget):
             self.login['projectDB']=projectDB
             self.login['password']=password
             self.login['limit']=limit
+            self.login['targetuser']=targetuser
             self.ui.progressDialog.show()
             self.ui.label.setText("Welcome "+str(user.fullname))
             self.taskFinished.connect(self.projectFinished)
@@ -193,8 +197,10 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        username = self.ui.usernameLineEdit.text()
-        password = self.ui.passwordLineEdit.text()
+        username = self.ui.dbUsernameLineEdit.text()
+        password = self.ui.dbPasswordLineEdit.text()
+        #targetuser = self.ui.usernameLineEdit.text()
+        #targetpass = self.ui.passwordLineEdit.text()
         prjhost = self.ui.projectHostnameLineEdit.text() if self.ui.projectHostnameLineEdit.text() != "" else self.ui.leginonHostnameLineEdit.text()
         leginonDB = self.ui.leginonHostnameLineEdit.text()+'/'+self.ui.leginonDBNameLineEdit.text()
         projectDB = prjhost+'/'+self.ui.projectDBNameLineEdit.text()
@@ -248,8 +254,13 @@ class Widget(QtGui.QWidget):
         val = settings.value('projectDB')
         if val: self.ui.projectHostnameLineEdit.setText(val)
         self.ui.projectDBNameLineEdit.setText(settings.value('projectPath'))
-        self.ui.usernameLineEdit.setText(settings.value('username'))
-        self.ui.passwordLineEdit.setText(base64.b64decode(settings.value('password')))
+        self.ui.usernameLineEdit.setText(settings.value('targetuser'))
+        self.ui.passwordLineEdit.setText(base64.b64decode(settings.value('targetpass')))
+        
+        self.ui.dbUsernameLineEdit.setText(settings.value('username'))
+        self.ui.dbPasswordLineEdit.setText(base64.b64decode(settings.value('password')))
+        
+        
         #self.ui.alternateUserLineEdit.setText(settings.value('alternate-user'))
         settings.endGroup()
         if self.ui.usernameLineEdit.text() == "":
@@ -265,8 +276,10 @@ class Widget(QtGui.QWidget):
         settings.setValue('leginonPath', self.ui.leginonDBNameLineEdit.text())
         settings.setValue('projectDB', self.ui.projectHostnameLineEdit.text())
         settings.setValue('projectPath', self.ui.projectDBNameLineEdit.text())
-        settings.setValue('username', self.ui.usernameLineEdit.text())
-        settings.setValue('password', base64.b64encode(self.ui.passwordLineEdit.text()))
+        settings.setValue('targetuser', self.ui.usernameLineEdit.text())
+        settings.setValue('targetpass', base64.b64encode(self.ui.passwordLineEdit.text()))
+        settings.setValue('username', self.ui.dbUsernameLineEdit.text())
+        settings.setValue('password', base64.b64encode(self.ui.dbPasswordLineEdit.text()))
         #settings.setValue('alternate-user', self.ui.alternateUserLineEdit.text())
         settings.endGroup()
     
