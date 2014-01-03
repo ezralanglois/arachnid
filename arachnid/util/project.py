@@ -146,7 +146,10 @@ def write_workflow(scripts):
     try:
         fout.write("#!/bin/bash\n")
         for script in scripts:
-            fout.write('sh %s\n'%script[1])
+            if hasattr(script, 'configFile'):
+                fout.write('sh %s\n'%script.configFile())
+            else:
+                fout.write('sh %s\n'%script[1])
             fout.write('if [ "$?" != "0" ] ; then\nexit $?\nfi\n')
     finally:
         fout.close()
