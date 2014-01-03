@@ -128,7 +128,6 @@ class CheckListTableModel(ListTableModel):
         
         if not index.isValid(): return False
         
-        if role == QtCore.Qt.CheckStateRole and not index.column() in self.checked: print 'here - bad'
         if role == QtCore.Qt.CheckStateRole:
             self._data[index.row()][index.column()] = value
         return False

@@ -76,7 +76,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             for propertyClass in Property.PROPERTIES:
                 p = propertyClass.create(option, rindex, option_values, parent=parent)
                 if p is not None: break
-            if p is None: print option.dest
+            if p is None: print 'Error', option.dest
             assert(p is not None)
             #if p.required: 
             p.propertyValidity.connect(self.firePropertyValidity)
@@ -226,7 +226,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
                     try:
                         extProperty = pypropertyMap[prop.name()]
                     except:
-                        print prop.name(), "-->", pypropertyMap
+                        print 'Error', prop.name(), "-->", pypropertyMap
                         raise
                     p = None
                     for propertyClass in Property.PROPERTIES:

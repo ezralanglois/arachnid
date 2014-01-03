@@ -27,7 +27,7 @@ try:
     qtSlot= QtCore.Slot
     qtProperty= QtCore.Property
 except ImportError:
-    print 'here'
+    print 'Import error for pyside'
     #pass
     """
     import sip

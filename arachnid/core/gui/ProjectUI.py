@@ -189,6 +189,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.additionalSettingsPage.registerField(self.param('worker_count'), self.ui.workerCountSpinBox)
         self.ui.additionalSettingsPage.registerField(self.param('thread_count'), self.ui.threadCountSpinBox)
         self.ui.additionalSettingsPage.registerField(self.param("window"), self, "window")
+        self.ui.additionalSettingsPage.registerField(self.param('enable_stderr'), self.ui.enableStderrCheckBox)
         
         thread_count = 1
         if openmp.is_openmp_enabled():
@@ -393,7 +394,9 @@ class MainWindow(QtGui.QWizard):
         '''
         
         self.ui.monitorWidget.saveState()
-    
+        project.write_workflow(self.ui.monitorWidget.workflow)
+        #todo add update if project option changes!
+        
     def loadProject(self):
         '''
         '''

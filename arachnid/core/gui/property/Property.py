@@ -1226,7 +1226,7 @@ class FilenameProperty(Property):
         
         if self.filetype == 'file-list':
             for f in data.split(','):
-                print f, len(glob.glob(f))
+                #print f, len(glob.glob(f))
                 if len(glob.glob(f)) == 0: return False
         elif self.filetype == 'open':
             if data.find(',') != -1: return False
