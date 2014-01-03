@@ -19,8 +19,39 @@ import numpy, logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def is_available():
+    ''' Test if matplotlib is available
+    
+    :Returns:
+    
+    flag : bool
+           True if matplotlib is available
+    '''
+    
+    return pylab is not None
 
 def is_plotting_disabled(): return pylab is None
+
+def plot_line_on_image(img, x, y, color='w', **extra):
+    '''
+    '''
+    
+    if is_plotting_disabled(): return img
+    fig, ax=draw_image(img, **extra)
+    newax = ax.twinx()
+    newax.plot(x, y, c=color)
+    val = numpy.max(numpy.abs(y))*4
+    newax.set_ylim(-val, val)
+    newax.set_axis_off()
+    newax.get_yaxis().tick_left()
+    newax.axes.get_yaxis().set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    newax.get_yaxis().tick_left()
+    newax.axes.get_yaxis().set_visible(False)
+    return save_as_image(fig)
 
 def plot_line(output, x, y, x_label=None, y_label=None, color=None, marker_idx=None, dpi=72):
     ''' Plot a scatter plot
