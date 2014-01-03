@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ProjectUI.ui'
 #
-# Created: Fri Dec 27 16:18:58 2013
+# Created: Fri Jan  3 10:26:26 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -95,17 +95,23 @@ class Ui_ProjectWizard(object):
         self.label_3.setObjectName("label_3")
         self.formLayout_4.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_3)
         self.widget = QtGui.QWidget(self.groupBox_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(2)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.widget.sizePolicy().hasHeightForWidth())
+        self.widget.setSizePolicy(sizePolicy)
         self.widget.setObjectName("widget")
         self.horizontalLayout = QtGui.QHBoxLayout(self.widget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.micrographComboBox = QtGui.QComboBox(self.widget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(2)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.micrographComboBox.sizePolicy().hasHeightForWidth())
         self.micrographComboBox.setSizePolicy(sizePolicy)
+        self.micrographComboBox.setMinimumSize(QtCore.QSize(200, 0))
         self.micrographComboBox.setEditable(True)
         self.micrographComboBox.setObjectName("micrographComboBox")
         self.horizontalLayout.addWidget(self.micrographComboBox)
@@ -142,7 +148,7 @@ class Ui_ProjectWizard(object):
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.gainFileComboBox = QtGui.QComboBox(self.widget_3)
         self.gainFileComboBox.setEnabled(False)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(2)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.gainFileComboBox.sizePolicy().hasHeightForWidth())
@@ -346,6 +352,13 @@ class Ui_ProjectWizard(object):
         self.threadCountSpinBox.setProperty("value", 1)
         self.threadCountSpinBox.setObjectName("threadCountSpinBox")
         self.formLayout_2.setWidget(1, QtGui.QFormLayout.FieldRole, self.threadCountSpinBox)
+        self.enableStderrCheckBox = QtGui.QCheckBox(self.groupBox_3)
+        self.enableStderrCheckBox.setText("")
+        self.enableStderrCheckBox.setObjectName("enableStderrCheckBox")
+        self.formLayout_2.setWidget(2, QtGui.QFormLayout.FieldRole, self.enableStderrCheckBox)
+        self.label_12 = QtGui.QLabel(self.groupBox_3)
+        self.label_12.setObjectName("label_12")
+        self.formLayout_2.setWidget(2, QtGui.QFormLayout.LabelRole, self.label_12)
         self.verticalLayout_6.addWidget(self.groupBox_3)
         ProjectWizard.addPage(self.additionalSettingsPage)
         self.fineTunePage = QtGui.QWizardPage()
@@ -417,6 +430,7 @@ class Ui_ProjectWizard(object):
         self.groupBox_3.setTitle(QtGui.QApplication.translate("ProjectWizard", "Parallel", None, QtGui.QApplication.UnicodeUTF8))
         self.label_19.setText(QtGui.QApplication.translate("ProjectWizard", "Process Count", None, QtGui.QApplication.UnicodeUTF8))
         self.label_20.setText(QtGui.QApplication.translate("ProjectWizard", "Thread Count", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_12.setText(QtGui.QApplication.translate("ProjectWizard", "Log to Console", None, QtGui.QApplication.UnicodeUTF8))
         self.fineTunePage.setTitle(QtGui.QApplication.translate("ProjectWizard", "Fine Tune Options", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

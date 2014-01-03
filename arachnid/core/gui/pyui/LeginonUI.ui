@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>396</width>
-    <height>421</height>
+    <width>643</width>
+    <height>426</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -148,7 +148,11 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="leginonHostnameLineEdit"/>
+           <widget class="QLineEdit" name="leginonHostnameLineEdit">
+            <property name="text">
+             <string>bb02frank15.cpmc.columbia.edu</string>
+            </property>
+           </widget>
           </item>
           <item row="7" column="0">
            <widget class="QLabel" name="label_3">
@@ -168,7 +172,11 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLineEdit" name="projectHostnameLineEdit"/>
+           <widget class="QLineEdit" name="projectHostnameLineEdit">
+            <property name="text">
+             <string>bb02frank15.cpmc.columbia.edu</string>
+            </property>
+           </widget>
           </item>
           <item row="8" column="1">
            <widget class="QLineEdit" name="passwordLineEdit">
@@ -229,6 +237,26 @@
            <widget class="QLabel" name="label_7">
             <property name="text">
              <string>Database Name</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="2">
+           <widget class="QLineEdit" name="dbUsernameLineEdit">
+            <property name="text">
+             <string>robertl</string>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="2">
+           <widget class="QLineEdit" name="dbPasswordLineEdit">
+            <property name="text">
+             <string>guest</string>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
             </property>
            </widget>
           </item>

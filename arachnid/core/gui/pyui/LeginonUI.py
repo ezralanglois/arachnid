@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/LeginonUI.ui'
 #
-# Created: Mon Dec 23 12:04:13 2013
+# Created: Fri Jan  3 14:09:36 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from ..util.qt4_loader import QtCore, QtGui
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(396, 421)
+        Form.resize(643, 426)
         self.verticalLayout = QtGui.QVBoxLayout(Form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.widget = QtGui.QWidget(Form)
@@ -130,6 +130,14 @@ class Ui_Form(object):
         self.label_7 = QtGui.QLabel(self.loginPage)
         self.label_7.setObjectName("label_7")
         self.gridLayout.addWidget(self.label_7, 0, 2, 1, 1)
+        self.dbUsernameLineEdit = QtGui.QLineEdit(self.loginPage)
+        self.dbUsernameLineEdit.setEchoMode(QtGui.QLineEdit.Password)
+        self.dbUsernameLineEdit.setObjectName("dbUsernameLineEdit")
+        self.gridLayout.addWidget(self.dbUsernameLineEdit, 7, 2, 1, 1)
+        self.dbPasswordLineEdit = QtGui.QLineEdit(self.loginPage)
+        self.dbPasswordLineEdit.setEchoMode(QtGui.QLineEdit.Password)
+        self.dbPasswordLineEdit.setObjectName("dbPasswordLineEdit")
+        self.gridLayout.addWidget(self.dbPasswordLineEdit, 8, 2, 1, 1)
         self.loginStackedWidget.addWidget(self.loginPage)
         self.verticalLayout_2.addWidget(self.loginStackedWidget)
         self.verticalLayout.addWidget(self.widget)
@@ -154,13 +162,17 @@ class Ui_Form(object):
         self.reloadTableToolButton.setText(QtGui.QApplication.translate("Form", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.changeUserPushButton.setText(QtGui.QApplication.translate("Form", "Change User...", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Form", "Leginon DB", None, QtGui.QApplication.UnicodeUTF8))
+        self.leginonHostnameLineEdit.setText(QtGui.QApplication.translate("Form", "bb02frank15.cpmc.columbia.edu", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Form", "Username", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Form", "Project DB", None, QtGui.QApplication.UnicodeUTF8))
+        self.projectHostnameLineEdit.setText(QtGui.QApplication.translate("Form", "bb02frank15.cpmc.columbia.edu", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Form", "Password", None, QtGui.QApplication.UnicodeUTF8))
         self.loginPushButton.setText(QtGui.QApplication.translate("Form", "Login", None, QtGui.QApplication.UnicodeUTF8))
         self.leginonDBNameLineEdit.setText(QtGui.QApplication.translate("Form", "leginondb", None, QtGui.QApplication.UnicodeUTF8))
         self.projectDBNameLineEdit.setText(QtGui.QApplication.translate("Form", "projectdb", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("Form", "Host name", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("Form", "Database Name", None, QtGui.QApplication.UnicodeUTF8))
+        self.dbUsernameLineEdit.setText(QtGui.QApplication.translate("Form", "robertl", None, QtGui.QApplication.UnicodeUTF8))
+        self.dbPasswordLineEdit.setText(QtGui.QApplication.translate("Form", "guest", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;
