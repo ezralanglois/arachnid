@@ -14,6 +14,8 @@
 #include "numpy/arrayobject.h"
 #include <limits>
 #include <cmath>
+#include <complex>
+#include <algorithm>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -26,6 +28,7 @@
 %feature("autodoc", "0");
 
 %include "numpy.i"
+%include <std_complex.i>
 
 %init %{
     import_array();
@@ -47,6 +50,9 @@
 typedef long dsize_type;
 %}
 
+%numpy_typemaps( std::complex<float> , NPY_CFLOAT , int)
+%numpy_typemaps( std::complex<double> , NPY_CDOUBLE, int)
+
 
 /** Declare the numpy array data types 
  */
@@ -55,6 +61,12 @@ typedef long dsize_type;
 %apply (dtype* INPLACE_ARRAY2, int DIM1, int DIM2) {(dtype* out, dsize_type orow, dsize_type ocol)};
 %apply (dtype* INPLACE_ARRAY1, int DIM1) {(dtype* kernel, dsize_type ksize)};
 %enddef
+
+
+%apply (std::complex<float>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<float>* img, dsize_type img_r, dsize_type img_c)};
+%apply (std::complex<float>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<float>* out, dsize_type out_r, dsize_type out_c)};
+%apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* img, dsize_type img_r, dsize_type img_c)};
+%apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* out, dsize_type out_r, dsize_type out_c)};
 
 
 DECLARE_DATA_TYPE(float)
@@ -67,6 +79,32 @@ DECLARE_DATA_TYPE(long double)
 %template(f_name)   f_name<double>;
 %template(f_name)   f_name<long double>;
 %enddef
+
+%define INSTANTIATE_DATA_MORE( f_name )
+%template(f_name)   f_name<float>;
+%template(f_name)   f_name<double>;
+%template(f_name)   f_name<long double>;
+%template(f_name)   f_name< std::complex<float> >;
+%template(f_name)   f_name< std::complex<double> >;
+%template(f_name)   f_name< std::complex<long double> >;
+%enddef
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function resample an image from
+		the Fourier Transform.
+		
+		Assumes the Fourier transform is shifted to the center
+		using fftshift.
+
+		:Parameters:
+
+		img : array
+			  Input 2D complex array
+		out : array
+			  Resampled output 2D complex array
+		");
+INSTANTIATE_DATA_MORE(resample_fft_center);
 
 %feature("autodoc", "");
 %feature("docstring",

@@ -4,6 +4,9 @@ This module contains functions to resize an image or a volume. It supports both
 bilinear and energy conserving interpolations implemented using Fortran 
 accelerated code from the SPIDER library.
 
+.. todo:: resample fft without shift
+.. todo:: 3d downsample with sinc-blackman
+
 SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html 
 
 .. Created on Mar 8, 2013
@@ -79,27 +82,34 @@ def resample_fft(img, out, is_fft=False, offsets=None):
         ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = resample_offsets(img, out.shape)
     else:
         ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = offsets
-    '''
-    i_range = numpy.arange(0, min(img.shape[1], out.shape[1]), dtype=numpy.int)
-    if (((img.shape[1]%2) == 0) and (out.shape[1]>img.shape[1])) or (((img.shape[1]%2) != 0) and out.shape[1] < img.shape[1]):
-        x_out_idx = max(int(numpy.floor((out.shape[1]-img.shape[1])/2.0)), 0) + i_range
-        x_img_idx = max(int(numpy.floor((img.shape[1]-out.shape[1])/2.0)), 0) + i_range
-    else:
-        x_out_idx = max(int(numpy.ceil((out.shape[1]-img.shape[1])/2.0)), 0) + i_range
-        x_img_idx = max(int(numpy.ceil((img.shape[1]-out.shape[1])/2.0)), 0) + i_range
-    
-    i_range = numpy.arange(0, min(img.shape[0], out.shape[0]), dtype=numpy.int)
-    if (((img.shape[0]%2) == 0) and (out.shape[0]>img.shape[0])) or (((img.shape[0]%2) != 0) and out.shape[0] < img.shape[0]):
-        y_out_idx = max(int(numpy.floor((out.shape[0]-img.shape[0])/2.0)), 0) + i_range
-        y_img_idx = max(int(numpy.floor((img.shape[0]-out.shape[0])/2.0)), 0) + i_range
-    else:
-        y_out_idx = max(int(numpy.ceil((out.shape[0]-img.shape[0])/2.0)), 0) + i_range
-        y_img_idx = max(int(numpy.ceil((img.shape[0]-out.shape[0])/2.0)), 0) + i_range
-    del i_range
-    '''
     
     fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
     fout[y_out_idx, x_out_idx[:, numpy.newaxis]] = img[y_img_idx, x_img_idx[:, numpy.newaxis]].squeeze()
+    fout[:]=scipy.fftpack.ifftshift(fout)
+    
+    if not is_fft: 
+        out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+        return out
+    return fout
+
+def resample_fft_fast(img, out, is_fft=False):
+    '''
+    '''
+    
+    if not hasattr(out, 'ndim'):
+        if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
+        else:
+            assert(out > 1.0)
+            shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
+        out = numpy.zeros(shape, dtype=img.dtype)
+    if not is_fft: img = scipy.fftpack.fft2(img)
+    img = scipy.fftpack.fftshift(img)
+    
+    gain_x = float(out.shape[1])/float(img.shape[1])
+    gain_y = float(out.shape[0])/float(img.shape[0])
+    
+    fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
+    _resample.resample_fft_center(img, fout)
     fout[:]=scipy.fftpack.ifftshift(fout)
     
     if not is_fft: 
