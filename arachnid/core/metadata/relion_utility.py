@@ -7,6 +7,36 @@ This module provides a set a utility functions to handle RELION star files.
 '''
 import spider_utility
 
+def select_subset(vals, selection):
+    ''' Select a subset of data read from a Relion star file
+    
+    :Parameters:
+    
+    vals : list
+           List of records from a relion star file
+    selection : dict
+                Selection mapping filename/id to particle id
+    :Returns:
+    
+    vals : list
+           List of selected records from a relion star file
+    '''
+    
+    if isinstance(selection, dict):
+        if not isinstance(selection[selection.keys()[0]], dict):
+            keys = selection.keys()
+            for k in keys:
+                selection[k]=dict([(int(v), 1) for v in selection[k]])
+        newvals = []
+        for v in vals:
+            filename, id = relion_file(v.rlnImageName)
+            filename = spider_utility.spider_id(filename) if spider_utility.is_spider_filename(filename) else filename
+            if filename in selection and id in selection[filename]:
+                newvals.append(v)
+        return newvals
+    else:
+        raise ValueError, 'Type %s not currently supported'%str(selection.__class__.__name__)
+
 def list_micrograph_names(vals, column="rlnImageName"):
     ''' Get a list of micrograph names
     
