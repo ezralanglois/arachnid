@@ -1795,8 +1795,14 @@ def crop_window(img, x, y, offset, out=None):
         raise
     try:
         if dxe > 0: out[dyb:width-dye, width-dxe:] = img[yb:ye, xb-dxe:xb]
+        #if dxe > 0: out[dyb:width-dye, width-dxe:] = img[yb:ye, xb-dxe-1:xb]
+        # (78,6) xb-dxe:xb = 856-7:856
+        # into shape 
+        # (78,7) width-dxe = 78 - 7:78  71:78
+        
+        #1773,2091 - 3433,3710 | 0,0 - 0,41 - width: 318
     except:
-        _logger.error("Error in window2 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        _logger.error("Error in window2 xb:%d,%d - yb:%d,%d | dxb:%d,%d - dyb:%d,%d - width: %d -- out: %d -- img: %d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye, width, out.shape[0], img.shape[0]))
         raise
     try:
         # ValueError: could not broadcast input array from shape (3,74) into shape (2,74)
@@ -1805,6 +1811,7 @@ def crop_window(img, x, y, offset, out=None):
         #ye=927
         #dyb=0
         #dye=3
+        #if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye-1:yb, xb:xe]
         if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye:yb, xb:xe]
     except:
         _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d - width: %d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye, width))
