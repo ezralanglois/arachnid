@@ -31,6 +31,6 @@ if __name__ == '__main__':
     
     e = EMAN2.EMData()
     e.read_image(input)
-    e.process_inplace('filter.lowpass.gauss', dict(cutoff_freq=0.01))
+    e.process_inplace('filter.lowpass.gauss', dict(cutoff_freq=0.025))
     e.write_image(output)
 
