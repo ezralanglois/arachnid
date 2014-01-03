@@ -207,7 +207,7 @@ def query_session_info(username, password, leginondb, projectdb, session):
     if len(rs) > 0: return rs[0]
     return None
 
-def query_user_info(username, password, leginondb, projectdb):
+def query_user_info(username, password, leginondb, projectdb, targetuser=None):
     ''' Get the user relational object to access the Leginon
     
     :Parameters:
@@ -220,6 +220,8 @@ def query_user_info(username, password, leginondb, projectdb):
                 Host/path to Leginon database, e.g. 111.222.32.143/leginondb
     projectdb  : str
                 Host/path to Leginon Project database, e.g. 111.222.32.143/projectdb
+    targetuser : str, optional
+                 Target user to query
     
     :Returns:
     
@@ -235,7 +237,8 @@ def query_user_info(username, password, leginondb, projectdb):
     binds = dict([(v, local_vars[getattr(v, '__bind_key__')])for v in sys.modules[__name__].__dict__.values() if hasattr(v, '__bind_key__')])
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
     db_session = SessionDB(binds=binds)
-    rs = db_session.query(User).filter(User.username==username).all()
+    if targetuser is None: targetuser = username
+    rs = db_session.query(User).filter(User.username==targetuser).all()
     #if len(rs) > 0: return rs[0]
     if len(rs) > 0: 
         user = rs[0]
