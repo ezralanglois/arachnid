@@ -13,7 +13,9 @@ from util import qimage_utility
 import property
 from ..metadata import spider_utility, format
 from ..image import ndimage_utility, ndimage_file, ndimage_interpolate, ndimage_filter
+from ..image.ctf import estimate1d as estimate_ctf1d
 from ..util import drawing
+from ..util import plotting
 import glob, os, numpy #, itertools
 import logging
 
@@ -133,6 +135,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(bin_window=6.0, help="Number of times to decimate coordinates (and window)"),
                dict(window=200, help="Size of window to box particle"),
                dict(center_mask=0, help="Radius of mask for image center"),
+               dict(power1D=False, help="Display 1D radial average (1D power spect if image is a 2D powerspec)"),
                dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
                dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
                dict(show_label=False, help="Show the labels below each image"),
@@ -333,6 +336,9 @@ class MainWindow(QtGui.QMainWindow):
         if not drawing.is_available():
             _logger.info("No PIL loaded")
             self.advanced_settings.mark_image=False
+        if not plotting.is_available():
+            _logger.info("No matplotlib loaded")
+            self.advanced_settings.mark_image=False
         
         added_items=[]
         for i, (imgname, img) in enumerate(iter_images(self.files, index, template)):
@@ -352,6 +358,7 @@ class MainWindow(QtGui.QMainWindow):
                     img *= masks[img.shape]
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 img = self.box_particles(img, imgname)
+                img = self.display_powerspectra_1D(img, imgname)
                 if self.advanced_settings.mark_image:
                     selimg = qimage_utility.numpy_to_qimage(drawing.mark(img))
                 qimg = qimage_utility.numpy_to_qimage(img)
@@ -462,6 +469,22 @@ class MainWindow(QtGui.QMainWindow):
             item.setToolTip(qimage_utility.qimage_to_html(qimg))
         else:
             item.setToolTip('%d@%s'%(imgname[1], imgname[0]))
+    
+    def display_powerspectra_1D(self, img, fileid):
+        '''
+        '''
+        
+        if not plotting.is_available():
+            _logger.warn("No matplotlib loaded")
+            return img
+        
+        if not self.advanced_settings.power1D: return img
+        raw = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
+        raw[1:] = raw[:len(raw)-1]
+        raw[:2]=0
+        roo = estimate_ctf1d.subtract_background(raw, int(len(raw)*0.2))
+        freq = numpy.arange(len(roo), dtype=numpy.float)
+        return plotting.plot_line_on_image(img, freq+len(roo), roo)
     
     def box_particles(self, img, fileid):
         ''' Draw particle boxes on each micrograph
