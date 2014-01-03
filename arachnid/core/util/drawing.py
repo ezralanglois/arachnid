@@ -6,6 +6,7 @@
 from ..app import tracing
 import logging
 import scipy.misc
+import numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -143,4 +144,70 @@ def draw_particle_boxes_to_array(mic, coords, window, bin_factor=1.0, **extra):
     mic = draw_particle_boxes(mic, coords, window, bin_factor, **extra)
     return scipy.misc.fromimage(mic)
 
+def draw_arrow(draw, x0, y0, x1, y1, width=5, fill=None):
+    '''
+    '''
+    
+    vec = numpy.array([[x1 - x0,], [y1 - y0,]])
+    
+    vec_anti = numpy.dot(numpy.array([[0.0, -1.0], [1.0, 0.0]]), vec)
+    vec_clock = numpy.dot(numpy.array([[0.0, 1.0], [-1.0, 0.0]]), vec)
+    print vec_anti, vec_clock
+    vec_anti *= 0.5*width/((vec_anti**2).sum())**0.5
+    vec_clock *= 0.5*width/((vec_clock**2).sum())**0.5
+    
+    perp_st = (x1 + float(vec_anti[0]), y1 + float(vec_anti[1]))
+    perp_end = (x1 + float(vec_clock[0]), y1 + float(vec_clock[1]))
+    
+    slope = (y1-y0)/(x1-x0)
+    angle = numpy.arctan(slope)
+    dirc_pt = (x1 + width*numpy.cos(angle), y1 + width*numpy.sin(angle))
+    draw.polygon((perp_st[0], perp_st[1], perp_end[0], perp_end[1], dirc_pt[0], dirc_pt[1]), fill=fill)
+    
+
+def draw_path(img, waypoints, color="#ff4040", width=10, out=None):
+    ''' Draw a path on an image using the given waypoints.
+    
+    :Parameters:
+    
+    mic : array
+          An image
+    waypoints : array
+                Waypoints for the path
+    color : str
+            Color code for the line segments
+    out : str or array, optional
+    
+    '''
+    
+    if ImageDraw is None or len(waypoints) == 0: return img
+    
+    if hasattr(img, 'ndim'): 
+        img = img - img.min()
+        img /= img.max()
+        img *= 255
+        img = scipy.misc.toimage(img).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    origin = waypoints[0]
+    for point in waypoints[1:]:
+        draw.line((origin[0], origin[1], point[0], point[1]), fill=color, width=width)
+        if (origin[1]-origin[0]) != 0 and (point[1]-point[0]) != 0:
+            draw_arrow(draw, origin[0], origin[1], point[0], point[1], width, color)
+        
+        #draw.ellipse((origin[0]-width, origin[1]-width, width, width), fill=color)
+        origin=point
+    
+    if out is not None:
+        try:out+""
+        except:
+            if hasattr(out, 'ndim'):
+                img -= img.min()
+                img /= img.max()
+                img *= 255
+                out[:]=scipy.misc.fromimage(img)
+            else: raise ValueError, "`out` must be str or array"
+        else:
+            img.save(out)
+    else: out = img
+    return out
 
