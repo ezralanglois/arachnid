@@ -97,9 +97,7 @@ Tips
 		
 		$ ara-autoclean cluster/win/win_*.dat -a relion_it012_data.star -o output/view_0000000.dat -w8 -p cluster/data/params.dat 
 		
-		# Create a new star file from only good particles
-		
-		$ ara-selrelion relion_it012_data.star -o relion_it012_data_good.star -g output/sel_view_0000000.dat 
+	Note that this script writes out a relion selection file with the name view.star.
 
 Getting Started
 ===============
