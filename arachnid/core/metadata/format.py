@@ -190,6 +190,9 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
         filename = spider_utility.spider_filename(filename, spiderid, id_len)
     elif nospiderid:
         filename = spider_utility.spider_filepath(filename)
+        basename, ext = os.path.splitext(filename)
+        if basename[-1] == '_' or basename[-1] == '-':
+            filename = basename[:len(basename)-1]+ext
     filename = format_utility.add_prefix(filename, prefix)
     if replace_ext and isinstance(spiderid, str):
         ext = os.path.splitext(spiderid)[1]
