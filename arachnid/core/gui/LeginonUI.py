@@ -51,7 +51,7 @@ class Widget(QtGui.QWidget):
         #self.ui.progressDialog.setWindowFlags(self.ui.progressDialog.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint) #v5s
         self.ui.progressDialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
         
-        self.ui.reloadTableToolButton.triggered.connect(self.queryDatabaseForProjects)
+        self.ui.reloadTableToolButton.clicked.connect(self.queryDatabaseForProjects)
         self.taskUpdated.connect(self.updateProgress)
         
         self.ui.leginonHostnameLineEdit.editingFinished.connect(lambda: self.ui.projectHostnameLineEdit.setText(self.ui.leginonHostnameLineEdit.text()) if self.ui.projectHostnameLineEdit.text() == "" else None)
@@ -126,11 +126,10 @@ class Widget(QtGui.QWidget):
         
         if index == 0: self.queryDatabaseForProjects()
     
-    def queryDatabaseForProjects(self):
+    def queryDatabaseForProjects(self, dummy=None):
         '''
         '''
         #
-        
         targetuser = self.ui.usernameLineEdit.text()
         #targetpass = self.ui.passwordLineEdit.text()
         username = self.ui.dbUsernameLineEdit.text()
@@ -304,12 +303,10 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        if len(self.images) == 0:
-            model = self.ui.projectTableView.selectionModel()
-            index = model.selectedIndexes()[0]
-            data = self.ui.projectTableView.model().row(index)   
-            self.queryDatabaseImages(data[0])
-            return True
+        model = self.ui.projectTableView.selectionModel()
+        index = model.selectedIndexes()[0]
+        data = self.ui.projectTableView.model().row(index)   
+        self.queryDatabaseImages(data[0])
         return True
     
     def currentData(self):
@@ -356,8 +353,14 @@ def load_images_iter(session):
             images.append(row)
             yield len(images)
     else:
+        norm_file=None
+        norm_id=None
         for image in session.exposures:
-            row = (os.path.join(frame_path, image.filename+frame_ext), os.path.join(image_path, image.norm_filename+image_ext))
+            if image.norm_id != norm_id:
+                norm_path=image.norm_path
+                norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
+                norm_id=image.norm_id
+            row = (os.path.join(frame_path, image.filename+frame_ext), norm_file)
             images.append(row)
             yield len(images)
     yield images
@@ -388,16 +391,6 @@ def load_projects_iter(experiments):
         frame_path = session.frame_path
         image_path = session.image_path
         #type = session.exposures[0].camera
-        
-        '''
-        print session.exposures[0].filename
-        print session.exposures[0].mrcimage
-        print session.exposures[0].norm_filename
-        print session.exposures[0].norm_mrcimage
-        print session.exposures[0].frame_list
-        print
-        print
-        '''
         if frame_path is not None: frame_path=str(frame_path)
         rows.append((str(session.name), str(project.name), len(session.exposures), float(voltage), float(pixel_size), float(magnification), float(cs), str(filename), str(image_path), frame_path))
         yield len(rows)
