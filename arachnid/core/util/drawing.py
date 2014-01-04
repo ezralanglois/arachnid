@@ -148,6 +148,8 @@ def draw_arrow(draw, x0, y0, x1, y1, width=5, fill=None):
     '''
     '''
     
+    assert((x1-x0)!=0)
+    assert((y1-y0)!=0)
     vec = numpy.array([[x1 - x0,], [y1 - y0,]])
     
     vec_anti = numpy.dot(numpy.array([[0.0, -1.0], [1.0, 0.0]]), vec)
@@ -191,8 +193,8 @@ def draw_path(img, waypoints, color="#ff4040", width=10, out=None):
     origin = waypoints[0]
     for point in waypoints[1:]:
         draw.line((origin[0], origin[1], point[0], point[1]), fill=color, width=width)
-        if (origin[1]-origin[0]) != 0 and (point[1]-point[0]) != 0:
-            draw_arrow(draw, origin[0], origin[1], point[0], point[1], width, color)
+        if (origin[1]-point[1]) != 0 and (origin[0]-point[0]) != 0:
+            draw_arrow(draw, origin[0], origin[1], point[0], point[1], width*2, 'blue')
         
         #draw.ellipse((origin[0]-width, origin[1]-width, width, width), fill=color)
         origin=point
