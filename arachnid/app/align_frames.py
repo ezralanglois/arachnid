@@ -53,7 +53,7 @@ def process(filename, benchmark=False, **extra):
         write_coordinates(coords, **extra)
     return filename, coords
 
-def align_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
+def align_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **extra):
     '''
     .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
     .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
@@ -65,6 +65,7 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
+        if invert: ndimage_utility.invert(frame, frame)
         ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
         frame = scipy.fftpack.fft2(frame)
         if bin_factor > 1.0: frame = ndimage_interpolate.resample_fft_fast(frame, bin_factor, True)
@@ -76,7 +77,7 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
     trans *= bin_factor
     return trans
 
-def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
+def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **extra):
     '''
     .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
     .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
@@ -91,6 +92,7 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
+        if invert: ndimage_utility.invert(frame, frame)
         ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
         frame2 = ndimage_interpolate.downsample(frame, bin_factor) if bin_factor > 1.0 else frame
         if avg is not None: avg += frame2
@@ -461,12 +463,12 @@ def perdiogram(avg, window_size=256, pad=1, overlap=0.5, **extra):
     
     return ndimage_utility.perdiogram(avg, window_size, pad, overlap)
 
-def write_pow(pow, index=0, pow_file="", apix=None, **extra):
+def write_pow(pow, index=0, diagnostic_file="", apix=None, **extra):
     '''
     '''
     
     
-    if pow_file == "": return
+    if diagnostic_file == "": return
     if apix is not None and apix > 0.0:
         rmin=30.0
         rmax=apix*3.0
@@ -479,17 +481,17 @@ def write_pow(pow, index=0, pow_file="", apix=None, **extra):
         freq1 = float(pow.shape[0])/(rang/15)
         pow = ndimage_utility.filter_annular_bp(pow, freq1, freq2)
     
-    ndimage_file.write_image(pow_file, pow, index)
+    ndimage_file.write_image(diagnostic_file, pow, index)
 
-def write_perdiogram(avg, index=0, trans=None, pow_file="", **extra):
+def write_perdiogram(avg, index=0, trans=None, diagnostic_file="", **extra):
     '''
     '''
     
-    if pow_file == "": return
+    if diagnostic_file == "": return
     if isinstance(avg, list) and trans is not None:
         avg = average_fft(avg, trans)
     pow = perdiogram(avg, **extra)
-    write_pow(pow, index, pow_file, **extra)
+    write_pow(pow, index, diagnostic_file, **extra)
     return pow
 
 def write_coordinates(coords, translation_file="", **extra):
@@ -529,8 +531,8 @@ def initialize(files, param):
         _logger.warn("Running Alignment in Benchmark mode!")
     else:
         _logger.info("Running l2-Alignment")
-    if param['pow_file'] != "":
-        _logger.info("Writing diagnostic power spectra to %s"%param['pow_file'])
+    if param['diagnostic_file'] != "":
+        _logger.info("Writing diagnostic power spectra to %s"%param['diagnostic_file'])
     if param['gain_file']=="":
         _logger.warn("No gain reference!")
     else:
@@ -613,12 +615,13 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", benchmark=False,   help="Run successive alignment on the same set of micrographs for benchmarking")
     group.add_option("", window_size=256,   help="Window size for the diagnostic power spectra")
     group.add_option("", pad=2,             help="Padding for the diagnostic power spectra")
+    group.add_option("", invert=False,      help="Invert the contrast of the input frames")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--movie-files",          input_files=[],           help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
         pgroup.add_option("-o", "--micrograph-files",     output="",                help="Output filename for the averaged micrograph image with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("",                             translation_file="",      help="Output filename for the translation coordinates with correct number of digits (e.g. sndc_0000.spi), if empty no coordinates are saved", gui=dict(filetype="save"), required_file=False)
-        pgroup.add_option("",                             pow_file="",              help="Output filename for the power spectra images with correct number of digits (e.g. sndc_0000.spi), if empty no power spectra are saved", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("",                             diagnostic_file="",       help="Output filename for the power spectra images with correct number of digits (e.g. sndc_0000.spi), if empty no power spectra are saved", gui=dict(filetype="save"), required_file=False)
         pgroup.add_option("",                             waypoint_file="",         help="Output filename for the average with path in color", gui=dict(filetype="save"), required_file=False)
         spider_params.setup_options(parser, pgroup, False)
 
