@@ -135,8 +135,10 @@ class NormImage(Base):
     __tablename__='NormImageData'
     
     id = Column('DEF_id', Integer, primary_key=True)
+    session_id = Column('REF|SessionData|session', Integer)
     filename = Column('filename', String)
     mrcimage = Column('MRC|image', String)
+    norm_path = column_property(select([Session.image_path]).where(session_id==Session.id))
     #calibration = relationship("PixelSizeCalibration", uselist=False)
 
 class ImageData(Base):
@@ -157,6 +159,7 @@ class ImageData(Base):
     scope = relationship("ScopeEM", uselist=False)
     camera = relationship("CameraEM", uselist=False)
     #pixeltype = Column('pixeltype', Float) - numpy.dtype
+    norm_path = column_property(select([NormImage.norm_path]).where(norm_id==NormImage.id))
     norm_filename = column_property(select([NormImage.filename]).where(norm_id==NormImage.id))
     norm_mrcimage = column_property(select([NormImage.mrcimage]).where(norm_id==NormImage.id))
     magnification = column_property(select([ScopeEM.magnification]).where(scope_id==ScopeEM.id))
