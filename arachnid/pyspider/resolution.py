@@ -406,7 +406,11 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param['spi'] = spider.open_session(files, **param)
+    if param['param_file'] != "" and os.path.splitext(param['param_file'])[1] != "":
+        _logger.warn("Using extension from SPIDER params file: %s"%param['param_file'])
+        sfiles=[param['param_file']]
+    else: sfiles=files
+    param['spi'] = spider.open_session(sfiles, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)    
     param['fsc_curves'] = []
     pfiles = []
