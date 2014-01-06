@@ -11,7 +11,6 @@
     Property
     PropertyDelegate
     PropertyModel
-
 '''
 
 
