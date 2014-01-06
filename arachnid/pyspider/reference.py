@@ -228,14 +228,19 @@ def initialize(files, param):
     
     if len(files) == 0: return
     if param['param_file'] != "" and os.path.splitext(param['param_file'])[1] != "":
+        _logger.warn("Using extension from SPIDER params file: %s"%param['param_file'])
         files=[param['param_file']]
     param['spi'] = spider.open_session(files, **param)
     if param['new_window'] > 0:
         param['bin_factor'] = float(param['window'])/param['new_window']
+    _logger.info("Params: %s"%param['param_file'])
     _logger.info("Bin-factor: %f"%param['bin_factor'])
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     _logger.info("Pixel size: %f"%param['apix'])
     _logger.info("Window: %f"%param['window'])
+    if os.path.dirname(param['output']) != "" and not os.path.exists(os.path.dirname(param['output'])):
+        try: os.makedirs(os.path.exists(os.path.dirname(param['output'])))
+        except: pass
     
 def finalize(files, **extra):
     # Finalize global parameters for the script
@@ -267,7 +272,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     if main_option:
         pgroup.add_option("-i", "--raw-reference-file", input_files=[], help="List of input filenames containing volumes to convert to references", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",      help="Output filename for references with correct number of digits (e.g. enhanced_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-o", "--reference-file", output="",      help="Output filename for references with correct number of digits (e.g. enhanced_0000.spi)", gui=dict(filetype="save"), required_file=True)
         spider_params.setup_options(parser, pgroup, True)
         pgroup.add_option("-r", resolution=30.0,        help="Resolution to filter the volumes")
         pgroup.add_option("",   curr_apix=0.0,          help="Current pixel size of the input volume (only necessary if not MRC)")
@@ -303,7 +308,7 @@ def main():
                         exit 0
                       ''',
         supports_MPI=False,
-        use_version = False,
+        use_version = True,
         max_filename_len = 78,
     )
 def dependents(): return [filter_volume]
