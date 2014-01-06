@@ -22,6 +22,7 @@ class Widget(QtGui.QWidget):
     '''
     
     taskFinished = qtSignal(object)
+    captureScreen = qtSignal(int)
     
     def __init__(self, parent=None):
         "Initialize ReferenceUI widget"
@@ -34,7 +35,7 @@ class Widget(QtGui.QWidget):
         self.ui.setupUi(self)
         self.task=None
         self.lastpath = str(QtCore.QDir.currentPath())
-        
+        self.ui.referenceTabWidget.currentChanged.connect(lambda x: self.captureScreen.emit(x+1))
         
         self.emdbCannedModel = QtGui.QStandardItemModel(self)
         canned = [('Ribosome-70S', '2183', ':/icons/icons/ribosome_70S_32x32.png'),
@@ -51,10 +52,9 @@ class Widget(QtGui.QWidget):
             self.emdbCannedModel.appendRow(item)
         self.ui.emdbCannedListView.setModel(self.emdbCannedModel)
         self.taskFinished.connect(self.onDownloadFromEMDBComplete)
-        
-        #self.ui.referenceLineEdit.setText(self.param['raw_reference'])
-        #self.ui.referencePixelSizeDoubleSpinBox.setValue(self.param['curr_apix'])
-        #self.openReference(self.param['raw_reference'])
+        self.ui.referenceLineEdit.editingFinished.connect(self.onReferenceEditChanged)
+        self.ui.referenceTabWidget.setCurrentIndex(0)
+        self.ui.referenceTabWidget.setCurrentIndex(1)
     
     @qtSlot()
     def on_emdbDownloadPushButton_clicked(self):
@@ -82,6 +82,7 @@ class Widget(QtGui.QWidget):
         else:
             self.ui.referenceLineEdit.setText(os.path.abspath(local))
             self.ui.referenceTabWidget.setCurrentIndex(0)
+            self.openReference(os.path.abspath(local))
         self.task=None
     
     @qtSlot(QtCore.QModelIndex)
@@ -117,8 +118,6 @@ class Widget(QtGui.QWidget):
         ''' Open a list of micrograph files
         '''
         
-        if filename == "":
-            self.param['raw_reference'] = str(filename)
         if filename != "" and not os.path.exists(filename):
             QtGui.QMessageBox.warning(self, "Warning", "File does not exist: %s"%filename)
 
@@ -129,23 +128,22 @@ class Widget(QtGui.QWidget):
                 self.ui.referenceWidthLabel.setText(str(img.shape[0]))
                 self.ui.referenceHeightLabel.setText(str(img.shape[1]))
                 self.ui.referenceDepthLabel.setText(str(img.shape[2]))
-                self.param['raw_reference'] = str(filename)
             else:
                 QtGui.QMessageBox.warning(self, "Warning", "File is not a volume: %s"%str(img.shape))
-            if self.param['curr_apix'] == 0:
-                header = ndimage_file.read_header(filename)
-                self.ui.referencePixelSizeDoubleSpinBox.blockSignals(True)
-                self.ui.referencePixelSizeDoubleSpinBox.setValue(header['apix'])
-                self.ui.referencePixelSizeDoubleSpinBox.blockSignals(False)
-                self.param['curr_apix'] = header['apix']
+            header = ndimage_file.read_header(filename)
+            self.ui.referencePixelSizeDoubleSpinBox.blockSignals(True)
+            print 'apix', header['apix']
+            self.ui.referencePixelSizeDoubleSpinBox.setValue(header['apix'])
+            self.ui.referencePixelSizeDoubleSpinBox.blockSignals(False)
 
-        return self.param['raw_reference']
+        return filename
     
     def registerPage(self, wizardPage):
         '''
         '''
         
         wizardPage.registerField(wizardPage.wizard().param("raw_reference_file*"), self.ui.referenceLineEdit)
+        wizardPage.registerField(wizardPage.wizard().param("curr_apix*"), self.ui.referencePixelSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
                 
 
 def download_gunzip_task(urlpath, filepath):
