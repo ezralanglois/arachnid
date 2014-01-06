@@ -239,6 +239,7 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
     if param['rank'] == 0 and use_version: 
         val = parser.version_control(options)
         if val is not None: param['vercontrol'], param['opt_changed'] = val
+    else: param['opt_changed']=False
     param['file_options'] = parser.collect_file_options()
     param['infile_deps'] = parser.collect_dependent_file_options(type='open')
     param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
