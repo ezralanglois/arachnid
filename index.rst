@@ -28,6 +28,7 @@ Table of Contents
 	Install <docs/install>
 	License <license>
 	Reconstruction Protocol <docs/reconstruction>
+	Command-line Protocol <docs/reconstruction_cmdline>
 	Manual <docs/manual>
 	Developer's Guide <docs/development>
 	API <docs/api>

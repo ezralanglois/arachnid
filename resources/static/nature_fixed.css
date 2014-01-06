@@ -16,6 +16,34 @@ overflow:hidden; /*get rid of scroll bars in IE */
 /* */
 }
 
+.content {
+display:none;
+z-index: 10;
+position: relative;
+right: 0;
+top: 0;
+}
+.content01 {display:none;}
+.content02 {display:none;}
+.content03 {display:none;}
+.content04 {display:none;}
+.content05 {display:none;}
+.content06 {display:none;}
+.content07 {display:none;}
+.content08 {display:none;}
+.content09 {display:none;}
+.content10 {display:none;}
+.content11 {display:none;}
+.content12 {display:none;}
+.content13 {display:none;}
+.content14 {display:none;}
+.content15 {display:none;}
+.content16 {display:none;}
+.content17 {display:none;}
+.content18 {display:none;}
+.content19 {display:none;}
+.content20 {display:none;}
+
 
 body {
 height:100%; /* fix height to 100% for IE */
