@@ -42,11 +42,13 @@ from LeginonUI import Widget as LeginonUI
 from ReferenceUI import Widget as ReferenceUI
 from Monitor import Widget as MonitorUI
 from SettingsEditor import TabWidget as SettingsUI
+from model.ListTableModel import ListTableModel
 
 from pyui.ProjectUI import Ui_ProjectWizard
 from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
 from arachnid.util import project
 from ..image import ndimage_file
+from ..metadata import spider_utility
 from util import messagebox
 from ..parallel import openmp
 import logging
@@ -69,7 +71,7 @@ class MainWindow(QtGui.QWizard):
     micrographFilesUpdated = qtSignal()
     gainFilesUpdated = qtSignal()
     
-    def __init__(self, parent=None):
+    def __init__(self, screen_shot_file=None, parent=None):
         '''
         '''
         
@@ -85,7 +87,7 @@ class MainWindow(QtGui.QWizard):
         self.gain_files = []
         self.parameters=[]
         self.next_page=-1
-        
+        self.screen_shot_file=screen_shot_file
         
         version = arachnid.__version__
         n=version.find('_')
@@ -100,6 +102,9 @@ class MainWindow(QtGui.QWizard):
         ###### Introduction Page
         ########################################################################################################################################
         self.ui.introductionPage.setTitle('Welcome to Arachnid - v%s'%version)
+        if screen_shot_file:
+            self.ui.screenShotCheckBox.setCheckState(QtCore.Qt.Checked)
+            self.ui.screenShotCheckBox.setEnabled(False)
         
         ########################################################################################################################################
         ###### Question Page
@@ -119,6 +124,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.leginonWidget.registerPage(self.ui.leginonDBPage)
         #self.ui.leginonWidget.loadFinished.connect(self.next)
         self.ui.leginonWidget.loadFinished.connect(self.onLeginonLoadFinished)
+        self.ui.leginonWidget.captureScreen.connect(self.captureScreen)
         
         ########################################################################################################################################
         ###### Reference Page
@@ -128,6 +134,7 @@ class MainWindow(QtGui.QWizard):
         #self.subPages[self.idOf(self.ui.referencePage)]=self.ui.referenceWidget    
         self.ui.referenceWidget.registerPage(self.ui.referencePage) 
         #self.ui.referencePage.registerField("referenceEdit*", self.ui.referenceWidget.ui.referenceLineEdit)
+        self.ui.referenceWidget.captureScreen.connect(self.captureScreen)
         
         ########################################################################################################################################
         ###### Monitor Page
@@ -154,6 +161,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.manualSettingsPage.registerField(self.param("gain_files"), self, 'gainFiles', QtCore.SIGNAL('gainFilesUpdated()'))
         self.ui.manualSettingsPage.registerField(self.param("gain_file"), self, 'gainFile')
         self.ui.manualSettingsPage.registerField(self.param("invert"), self.ui.invertCheckBox)
+        self.ui.imageStatTableView.setModel(ListTableModel([], ['Exposure', 'Gain'], ['Width', 'Height', 'Frames', 'Total'], self))
         
         ########################################################################################################################################
         ###### Additional Settings Page
@@ -292,11 +300,11 @@ class MainWindow(QtGui.QWizard):
         try:"+"+files
         except: pass
         else: files = files.split(',')
+        self.ui.gainFileComboBox.blockSignals(True)
         self.ui.gainFileComboBox.clear()
         self.ui.gainFileComboBox.addItems(files)
         self._updateGainFiles(files)
         
-        self.ui.gainFileComboBox.blockSignals(True)
         if len(files) > 0:
             self.lastgainpath = os.path.dirname(self.ui.gainFileComboBox.itemText(0))
             self.ui.gainFileComboBox.lineEdit().setText(self.ui.gainFileComboBox.itemText(0))
@@ -343,6 +351,7 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
+        print 'gain:', (self.gain_files[0] if len(self.gain_files) > 0 else "")
         return self.gain_files[0] if len(self.gain_files) > 0 else ""
     
     @gainFile.setter
@@ -373,21 +382,18 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
+        print '------setupFineTunePage----------'
         param = {}
         for p in self.parameters:
             val = self.field(p)
-            if p == 'input_files':
-                #val=[val]
-                #print val
-                assert(val.find(',')!=-1)
-                val = val.split(',')
-                #val = []
-                #for filename in tmp:
-                #    val.extend(glob.glob(filename))
+            if p == 'input_files': val = val.split(',')
+            if p == 'gain_file':
+                print 'gain2:', p, val
             param[p]=val
         workflow = project.workflow_settings(self.micrograph_files, param)
         self.ui.monitorWidget.setWorkflow(workflow)
         self.ui.monitorWidget.setLogFile('project.log')
+        print '------setupFineTunePage-done----------'
     
     def saveFineTunePage(self):
         '''
@@ -447,8 +453,12 @@ class MainWindow(QtGui.QWizard):
         '''
         
         page = self.page(self.currentId())
-        if page == self.ui.leginonDBPage:
-            return self.ui.leginonWidget.validate()
+        if page == self.ui.introductionPage:
+            if self.ui.screenShotCheckBox.checkState() == QtCore.Qt.Checked and not self.screen_shot_file:
+                self.screen_shot_file = "screen_shots/wizard_screen_shot_0000.png"
+        elif page == self.ui.leginonDBPage:
+            if not self.ui.leginonWidget.validate():
+                return False
         elif page == self.ui.manualSettingsPage:
             if self.ui.micrographComboBox.count() == 0: 
                 messagebox.error_message(self, "No micrographs to process!")
@@ -458,8 +468,20 @@ class MainWindow(QtGui.QWizard):
                 if not os.path.exists(self.ui.micrographComboBox.itemText(i)): 
                     messagebox.error_message(self, "Micrograph not found!", self.ui.micrographComboBox.itemText(i))
                     return False
-            return True
+        self.captureScreen()
         return True
+    
+    def captureScreen(self, subid=0):
+        '''
+        '''
+        
+        if self.screen_shot_file:
+            if os.path.dirname(self.screen_shot_file) != "" and not os.path.exists(os.path.dirname(self.screen_shot_file)):
+                try:os.makedirs(os.path.dirname(self.screen_shot_file))
+                except: pass
+            originalPixmap = QtGui.QPixmap.grabWidget(self)
+            screen_shot=spider_utility.spider_filename(self.screen_shot_file, self.currentId()*10+subid)
+            originalPixmap.save(os.path.splitext(screen_shot)[0]+'.png', 'png')
 
     def onCurrentIDChanged(self, id=None):
         '''
@@ -478,29 +500,47 @@ class MainWindow(QtGui.QWizard):
             self.ui.noReferencePushButton.setChecked(False)
             button = self.button(QtGui.QWizard.WizardButton.NextButton)
             button.setVisible(False)
+            
+    def initializePage(self, id):
+        '''
+        '''
+        
+        page = self.page(id)
+        if page == self.ui.fineTunePage:
+            self.setupFineTunePage()
+        elif page == self.ui.monitorPage:
+            self.saveFineTunePage()
+        
         
     def nextId(self):
         '''
         '''
         
         page = self.page(self.currentId())
+        '''
         if self.next_page != -1:
             if page == self.ui.monitorPage or page == self.ui.fineTunePage:
                 super(MainWindow, self).nextId()
             else:
                 return self.next_page
+        '''
+        
+        '''
         if page == self.ui.manualSettingsPage:
             pass
-            '''
+            """
             fields = self.ui.leginonWidget.currentData()
             for key, val in fields.iteritems():
                 self.setField(key, val)
-            '''
+            """
         elif page == self.ui.fineTunePage:
+            print '--called - setupFineTunePage', page
             self.setupFineTunePage()
         elif page == self.ui.monitorPage:
             self.saveFineTunePage()
-        elif page == self.ui.settingsQuestionPage:
+        el
+        '''
+        if page == self.ui.settingsQuestionPage:
             if self.ui.noLeginonPushButton.isChecked():
                 return self.currentId()+2
         elif page == self.ui.referenceQuestionPage:
@@ -513,8 +553,36 @@ class MainWindow(QtGui.QWizard):
         '''
         
         fields = self.ui.leginonWidget.currentData()
+        if fields is None:
+            timer = QtCore.QTimer(self)
+            timer.setSingleShot(True)
+            timer.setInterval(500)
+            timer.timeout.connect(functools.partial(self.captureScreen, subid=1))
+            messagebox.error_message(self, "Can only process one pixel size at a time!")
+            return
         for key, val in fields.iteritems():
             self.setField(key, val)
+        self.ui.manualSettingsPage.updateGeometry()
+        
+        mics = self.micrograph_files
+        if len(mics) == 0: return
+        header = ndimage_file.read_header(mics[0])
+        data = [
+                [header['nx'], 'N/A'],
+                [header['ny'], 'N/A'],
+                #[header['nz'], 'N/A'],
+                [header['count'], 'N/A'],
+                [len(mics), 'N/A'],
+                ]
+        mics = self.gain_files
+        if len(mics) > 0:
+            header = ndimage_file.read_header(mics[0])
+            total = len(set(mics))
+            data[0][1] = header['nx']
+            data[1][1] = header['ny']
+            data[2][1] = header['count']
+            data[3][1] = total
+        self.ui.imageStatTableView.model().setData(data)
         
 def connect_visible_spin_box(index, signals, slots):
     '''
