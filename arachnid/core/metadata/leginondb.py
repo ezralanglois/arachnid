@@ -189,13 +189,13 @@ def query_session_info(username, password, leginondb, projectdb, session):
                 Host/path to Leginon database, e.g. 111.222.32.143/leginondb
     projectdb  : str
                 Host/path to Leginon Project database, e.g. 111.222.32.143/projectdb
-    session : str
+    session : str or list (of str)
               Name of session to query
     
     :Returns:
     
-    session : Session
-              Relational user object that accesses 
+    session : list
+              List of Session objects containing relational user object that accesses 
               information from the database
     '''
     
@@ -206,9 +206,17 @@ def query_session_info(username, password, leginondb, projectdb, session):
     binds = dict([(v, local_vars[getattr(v, '__bind_key__')])for v in sys.modules[__name__].__dict__.values() if hasattr(v, '__bind_key__')])
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
     db_session = SessionDB(binds=binds)
-    rs = db_session.query(Session).filter(Session.name==session).all()
-    if len(rs) > 0: return rs[0]
-    return None
+    try: "+"+session
+    except:
+        results = []
+        for session_name in session:
+            rs = db_session.query(Session).filter(Session.name==session_name).all()
+            if len(rs) > 0: results.append(rs[0])
+        return results  
+    else:
+        rs = db_session.query(Session).filter(Session.name==session).all()
+    if len(rs) > 0: return [rs[0]]
+    return []
 
 def query_user_info(username, password, leginondb, projectdb, targetuser=None):
     ''' Get the user relational object to access the Leginon
@@ -249,6 +257,7 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None):
         projects = user.projects
         for i in xrange(len(projects)):
             experiments.extend(projects[i].experiments)
+        experiments.sort(key=lambda x: x.session.timestamp, reverse=True)
         return user, experiments
     return [], []
 

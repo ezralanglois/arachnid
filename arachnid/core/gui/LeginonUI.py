@@ -32,6 +32,7 @@ class Widget(QtGui.QWidget):
     taskFinished = qtSignal(object)
     taskUpdated = qtSignal(object)
     taskError = qtSignal(object)
+    captureScreen = qtSignal(int)
     
     def __init__(self, parent=None):
         "Initialize LeginonUI widget"
@@ -64,7 +65,7 @@ class Widget(QtGui.QWidget):
         self.headermap = dict([h for h in header if h[1] is not None])
         self.images = []
         
-        self.ui.projectTableView.setModel(ListTableModel([], self.header, self))
+        self.ui.projectTableView.setModel(ListTableModel([], self.header, None, self))
         selmodel=self.ui.projectTableView.selectionModel()
         selmodel.selectionChanged.connect(self.selectionChanged)
     
@@ -124,6 +125,7 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
+        self.captureScreen.emit(index+1)
         if index == 0: self.queryDatabaseForProjects()
     
     def queryDatabaseForProjects(self, dummy=None):
@@ -210,7 +212,7 @@ class Widget(QtGui.QWidget):
             messagebox.exception_message(self, "Error accessing images")
             self.ui.loginStackedWidget.setCurrentIndex(1)
         else:
-            if session is None:
+            if len(session)==0:
                 _logger.error("Error accessing images")
                 return
                 
@@ -304,9 +306,10 @@ class Widget(QtGui.QWidget):
         '''
         
         model = self.ui.projectTableView.selectionModel()
-        index = model.selectedIndexes()[0]
-        data = self.ui.projectTableView.model().row(index)   
-        self.queryDatabaseImages(data[0])
+        #index = model.selectedIndexes()[0]
+        selectedRows = [index for index in model.selectedIndexes() if index.column() == 0]
+        data = [self.ui.projectTableView.model().row(index)[0] for index in selectedRows]
+        self.queryDatabaseImages(data)#[0])
         return True
     
     def currentData(self):
@@ -324,45 +327,74 @@ class Widget(QtGui.QWidget):
         vals = []
         for key, val in self.headermap.iteritems():
             vals.append((val, data[self.header.index(key)]))
-        images = ",".join([img[0] for img in self.images])
+        
+        
+        if len(self.images) > 1:
+            choices=[]
+            for key in self.images.keys():
+                choices.append("%f (%d)"%(key, len(self.images[key])))
+            apix = QtGui.QInputDialog.getItem(self, "Multiple exposure sizes found!", "Pixel sizes (# exposures):", choices)
+            if isinstance(apix, tuple): apix=apix[0]
+            if apix is None: return None
+            apix = float(apix[:apix.find('(')].strip())
+            image_list = self.images[apix]
+            for i in xrange(len(vals)):
+                if vals[i][0] == 'apix': vals[i]=('apix', apix)
+        else: image_list=self.images[self.images.keys()[0]]
+        
+        images = ",".join([img[0] for img in image_list])
         vals.append(('input_files', images))
-        if self.images[0][1] is not None:
-            vals.append(('gain_files', ",".join([img[1] for img in self.images])))
+        if image_list[0][1] is not None:
+            vals.append(('gain_files', ",".join([img[1] for img in image_list])))
         return dict(vals)
         
     #def updateWizard(self):
 
-def load_images_iter(session):
+def load_images_iter(sessions):
     '''
     '''
+    total = 0
+    for session in sessions: total += len(session.exposures)
+    yield total
     
-    yield (len(session.exposures), )
-    images = []
-    frame_path = session.frame_path
-    image_path = session.image_path
-    image_ext = '.mrc'
-    if frame_path is None:
-        frame_ext = image_ext
-        frame_path = image_path
-    else:
-        frame_ext = '.frames.mrc'
+    images = {}
+    total=0
+    for session in sessions:
+        frame_path = session.frame_path
+        image_path = session.image_path
+        image_ext = '.mrc'
+        if frame_path is None:
+            frame_ext = image_ext
+            frame_path = image_path
+        else:
+            frame_ext = '.frames.mrc'
         
-    if frame_ext == image_ext:
-        for image in session.exposures:
-            row = (os.path.join(frame_path, image.filename+frame_ext), None)
-            images.append(row)
-            yield len(images)
-    else:
-        norm_file=None
-        norm_id=None
-        for image in session.exposures:
-            if image.norm_id != norm_id:
-                norm_path=image.norm_path
-                norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
-                norm_id=image.norm_id
-            row = (os.path.join(frame_path, image.filename+frame_ext), norm_file)
-            images.append(row)
-            yield len(images)
+        if frame_ext == image_ext:
+            for image in session.exposures:
+                row = (os.path.join(frame_path, image.filename+frame_ext), None)
+                apix = image.pixelsize*1e10
+                if apix not in images: images[apix]=[]
+                images[apix].append(row)
+                total += 1
+                yield total
+        else:
+            norm_file=None
+            norm_id=None
+            for image in session.exposures:
+                if image.norm_id != norm_id:
+                    norm_path=image.norm_path
+                    norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
+                    norm_id=image.norm_id
+                exposure=os.path.join(frame_path, image.filename+frame_ext)
+                if not os.path.exists(exposure):
+                    exposure += '.bz2'
+                row = (exposure, norm_file)
+                    
+                apix = image.pixelsize*1e10
+                if apix not in images: images[apix]=[]
+                images[apix].append(row)
+                total += 1
+                yield total
     yield images
 
 '''
