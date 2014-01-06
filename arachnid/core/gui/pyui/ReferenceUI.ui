@@ -180,6 +180,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Double click on map icon above or enter code below, then click Download.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="widget_8" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>

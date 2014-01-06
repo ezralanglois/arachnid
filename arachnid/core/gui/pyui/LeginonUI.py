@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/LeginonUI.ui'
 #
-# Created: Fri Jan  3 14:09:36 2014
+# Created: Mon Jan  6 11:23:23 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -114,7 +114,7 @@ class Ui_Form(object):
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 8, 0, 1, 1)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem, 11, 1, 1, 1)
+        self.gridLayout.addItem(spacerItem, 12, 1, 1, 1)
         self.loginPushButton = QtGui.QPushButton(self.loginPage)
         self.loginPushButton.setObjectName("loginPushButton")
         self.gridLayout.addWidget(self.loginPushButton, 10, 0, 1, 1)
@@ -138,6 +138,22 @@ class Ui_Form(object):
         self.dbPasswordLineEdit.setEchoMode(QtGui.QLineEdit.Password)
         self.dbPasswordLineEdit.setObjectName("dbPasswordLineEdit")
         self.gridLayout.addWidget(self.dbPasswordLineEdit, 8, 2, 1, 1)
+        self.label_9 = QtGui.QLabel(self.loginPage)
+        self.label_9.setObjectName("label_9")
+        self.gridLayout.addWidget(self.label_9, 4, 2, 1, 1)
+        self.label_10 = QtGui.QLabel(self.loginPage)
+        self.label_10.setObjectName("label_10")
+        self.gridLayout.addWidget(self.label_10, 4, 1, 1, 1)
+        self.label_11 = QtGui.QLabel(self.loginPage)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
+        self.label_11.setSizePolicy(sizePolicy)
+        self.label_11.setMaximumSize(QtCore.QSize(250, 16777215))
+        self.label_11.setWordWrap(True)
+        self.label_11.setObjectName("label_11")
+        self.gridLayout.addWidget(self.label_11, 10, 2, 1, 1)
         self.loginStackedWidget.addWidget(self.loginPage)
         self.verticalLayout_2.addWidget(self.loginStackedWidget)
         self.verticalLayout.addWidget(self.widget)
@@ -174,5 +190,8 @@ class Ui_Form(object):
         self.label_7.setText(QtGui.QApplication.translate("Form", "Database Name", None, QtGui.QApplication.UnicodeUTF8))
         self.dbUsernameLineEdit.setText(QtGui.QApplication.translate("Form", "robertl", None, QtGui.QApplication.UnicodeUTF8))
         self.dbPasswordLineEdit.setText(QtGui.QApplication.translate("Form", "guest", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_9.setText(QtGui.QApplication.translate("Form", "Database Credentials*", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_10.setText(QtGui.QApplication.translate("Form", "Leginon Credentials", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_11.setText(QtGui.QApplication.translate("Form", "* Note that the Database Credentials will be supplied by your System Administrator", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

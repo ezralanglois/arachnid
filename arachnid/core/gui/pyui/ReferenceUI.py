@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ReferenceUI.ui'
 #
-# Created: Mon Dec 16 14:34:39 2013
+# Created: Mon Jan  6 11:52:43 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -90,6 +90,10 @@ class Ui_Form(object):
         self.emdbCannedListView.setViewMode(QtGui.QListView.IconMode)
         self.emdbCannedListView.setObjectName("emdbCannedListView")
         self.verticalLayout_6.addWidget(self.emdbCannedListView)
+        self.label = QtGui.QLabel(self.tab_2)
+        self.label.setWordWrap(True)
+        self.label.setObjectName("label")
+        self.verticalLayout_6.addWidget(self.label)
         self.widget_8 = QtGui.QWidget(self.tab_2)
         self.widget_8.setObjectName("widget_8")
         self.horizontalLayout_3 = QtGui.QHBoxLayout(self.widget_8)
@@ -120,6 +124,7 @@ class Ui_Form(object):
         self.referenceHeightLabel.setText(QtGui.QApplication.translate("Form", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.label_18.setText(QtGui.QApplication.translate("Form", "Reference Pixel Size", None, QtGui.QApplication.UnicodeUTF8))
         self.referenceTabWidget.setTabText(self.referenceTabWidget.indexOf(self.tab), QtGui.QApplication.translate("Form", "Local File", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText(QtGui.QApplication.translate("Form", "Double click on map icon above or enter code below, then click Download.", None, QtGui.QApplication.UnicodeUTF8))
         self.emdbDownloadPushButton.setText(QtGui.QApplication.translate("Form", "Download", None, QtGui.QApplication.UnicodeUTF8))
         self.referenceTabWidget.setTabText(self.referenceTabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("Form", "EMDB", None, QtGui.QApplication.UnicodeUTF8))
 
