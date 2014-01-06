@@ -8,13 +8,14 @@ class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
     '''
     '''
 
-    def __init__(self, data,header, parent=None):
+    def __init__(self, data,header, vheader=None, parent=None):
         '''
         '''
         
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._data = data
         self._header=header
+        self._vheader=vheader
     
     def setData(self, data, header=None):
         '''
@@ -50,6 +51,8 @@ class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
         
         if (orientation, role) == (QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole):
             return self._header[section]
+        if self._vheader is not None and (orientation, role) == (QtCore.Qt.Vertical, QtCore.Qt.DisplayRole):
+            return self._vheader[section]
         return None
     
     def data(self, index, role = QtCore.Qt.DisplayRole):
