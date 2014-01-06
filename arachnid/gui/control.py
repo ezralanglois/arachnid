@@ -27,6 +27,10 @@ def main():
         raise
         sys.exit(1)
     
-    dialog = ProjectUI() 
+    screen_shot_file=None
+    if len(sys.argv) > 1 and sys.argv[1]=='--screen-shot':
+        screen_shot_file=sys.argv[2]
+    dialog = ProjectUI(screen_shot_file) 
     dialog.show()
+        
     sys.exit(app.exec_())
