@@ -1765,6 +1765,60 @@ def crop_window(img, x, y, offset, out=None):
     out : numpy.ndarray
           Output window
     '''
+    
+    offset=int(offset)
+    xb = int(x)-offset
+    yb = int(y)-offset
+    width = offset*2
+    xe = xb+width
+    ye = yb+width
+    
+    if out is None: out = numpy.zeros((width, width), dtype=img.dtype)
+    dxb, dyb, dxe, dye = 0, 0, out.shape[1], out.shape[0]
+    dx, dy = dxe, dye
+    
+    if xb < 0:
+        dxb = -xb
+        xb = 0
+    if yb < 0:
+        dyb = -yb
+        yb = 0
+    if img.shape[1] < xe: xe = img.shape[1]
+    if img.shape[0] < ye: ye = img.shape[0]
+    dxe = dxb+(xe-xb)
+    dye = dyb+(ye-yb)
+
+    out[dyb:dye, dxb:dxe] = img[yb:ye, xb:xe]
+    if dxb > 0: out[dyb:dye, :dxb] = img[yb:ye, img.shape[1]-dxb:]
+    if dyb > 0: out[:dyb, dxb:dxe] = img[img.shape[0]-dyb:, xb:xe]
+    if dxe < out.shape[1]: out[dyb:dye, dxe:] = img[yb:ye, :out.shape[1]-dxe]
+    if dye < out.shape[0]: out[dye:, dxb:dxe] = img[:out.shape[0]-dye, xb:xe]
+    return out
+
+@_em2numpy2em
+def crop_window_old(img, x, y, offset, out=None):
+    ''' Extract a square window from an image
+    
+    .. todo:: requires testing for wrap around!
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    x : int
+        Center of window on x-axis
+    y : int
+        Center of window on y-axis
+    offset : int
+             Half-width of the window
+    out : numpy.ndarray
+          Output window
+                     
+    :Returns:
+    
+    out : numpy.ndarray
+          Output window
+    '''
 
     
     xb = x-offset
@@ -1775,21 +1829,28 @@ def crop_window(img, x, y, offset, out=None):
     
     if out is None: out = numpy.zeros((width, width), dtype=img.dtype)
     dxb, dyb, dxe, dye = 0, 0, 0, 0
-    if img.shape[1] < xe: 
-        dxe = xe-img.shape[1]
-        xe = img.shape[1]
-    if img.shape[0] < ye: 
-        dye = ye-img.shape[0]
-        ye = img.shape[0]
     if xb < 0:
         dxb = -xb
         xb = 0
     if yb < 0:
         dyb = -yb
         yb = 0
+    if img.shape[1] < xe: 
+        dxe = xe-img.shape[1]
+        xe = img.shape[1]
+    if img.shape[0] < ye:
+        #img.shape[0]-yb
+        dye = ye-img.shape[0]
+        ye = img.shape[0]
     
     try:
         out[dyb:width-dye, dxb:width-dxe] = img[yb:ye, xb:xe]
+        '''
+        xb: 894, xe:1009 - yb: 3994, ye: 4096 | dxb:0, dxe:0 - dyb:0, dye:13
+        (102,115) into shape (101,115)
+        4096x4096
+        
+        '''
     except:
         _logger.error("Error in window1 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
@@ -2080,7 +2141,7 @@ def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
           Output image
     '''
     
-    from util._new_numpy import meshgrid
+    #from ..util.numpy_ext import meshgrid
     shape = numpy.asarray(shape)
     center = numpy.asarray(shape, dtype=numpy.int)//2
     sigma2 = 2*sigma*sigma
@@ -2090,7 +2151,7 @@ def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
     for s,c in zip(shape,center): 
         rng.append(numpy.arange(0, s, dtype=numpy.float)-c)
         norm *= 1.0/(sigma*sr2pi)
-    rng = meshgrid(*rng, indexing='xy')
+    rng = numpy.meshgrid(*rng, indexing='xy')
     val = (rng[0].astype(numpy.float)**2)/sigma2
     for i in xrange(1, len(rng)):
         val += (rng[i].astype(numpy.float)**2)/sigma2
