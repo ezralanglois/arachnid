@@ -29,6 +29,8 @@ class Property(QtCore.QObject):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
              Parent object
     '''
@@ -37,7 +39,7 @@ class Property(QtCore.QObject):
     
     propertyValidity = qtSignal(object, bool)
     
-    def __init__(self, name, group=0, property=None, hints={}, doc={}, parent=None):
+    def __init__(self, name, group=0, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Property"
         
         QtCore.QObject.__init__(self, parent)
@@ -46,6 +48,7 @@ class Property(QtCore.QObject):
         self.group = group
         self.doc = doc
         self.hints = hints
+        self._flag = flag
         self.required = 'required' in hints and hints['required']
         
         if 'label' in self.hints:
@@ -57,6 +60,18 @@ class Property(QtCore.QObject):
             else:
                 vals = name.replace('_', ' ').split()
             self.displayName = " ".join([v.capitalize() for v in vals]) if len(vals) > 0 else name.capitalize()
+    
+    def flag(self):
+        ''' Get the name of the flag if property correspondes 
+        to a command-line option.
+        
+        :Returns:
+        
+        flag : str
+               Name of the flag
+        '''
+        
+        return self._flag
     
     def isValid(self):
         ''' Test if the property holds a valid value
@@ -424,15 +439,16 @@ def parseHints(name, obj):
             beg = doc.find('{')
             end = doc.find('}')
             if beg != -1 and end != -1:
-                return name, dict(doc[beg:end]), doc
+                return name, dict(doc[beg:end]), doc, ""
     else:
         obj = name
         name = obj.dest
         doc = obj.help
         if hasattr(obj, 'gui_hint') and obj.gui_hint is not None:
             hints = obj.gui_hint
+        flag = obj.sphinx_name()
         
-    return name, hints, doc
+    return name, hints, doc, flag
 
 class ChoiceProperty(Property):
     '''Connect a choice property to a QComboBox
@@ -449,16 +465,18 @@ class ChoiceProperty(Property):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, hints, doc, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
         self.choices = self.hints["choices"]
         self.use_int = isinstance( property.property(name), ( int, long ) )
     
@@ -485,11 +503,11 @@ class ChoiceProperty(Property):
               Property object
         '''
         
-        name, hints, doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
         val = property.property(name)
         if( isinstance( val, ( int, long ) ) or isinstance( val, basestring )  ) and "choices" in hints:
-            return cls(name, group, property, hints, doc, parent)
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -640,16 +658,18 @@ class NumericProperty(Property):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Numeric Property"
         
-        Property.__init__(self, name, group, property, hints, doc, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
         #editorHints
         self.minimum = self.hints["minimum"] if "minimum" in self.hints else -32767
         self.maximum = self.hints["maximum"] if "maximum" in self.hints else 32767
@@ -695,10 +715,10 @@ class NumericProperty(Property):
               Property object
         '''
         
-        name, hints,doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create NumericProperty: %s - %s - %s | %d"%(name, str(property.property(name).__class__), str(hints), isinstance( property.property(name), ( int, long, float ) )))
         if isinstance( property.property(name), ( int, long, float ) ) and not isinstance(property.property(name), bool):
-            return cls(name, group, property, hints, doc, parent)
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -805,16 +825,18 @@ class BoolProperty(Property):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Boolean Property"
         
-        Property.__init__(self, name, group, property, hints, doc, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -839,11 +861,11 @@ class BoolProperty(Property):
               Property object
         '''
         
-        name, hints,doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create BoolProperty: %s - %s"%(name, str(property.property(name).__class__), ))
         
         if isinstance(property.property(name), bool):
-            return cls(name, group, property, hints, doc, parent)
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
     
     def setValue(self, val):
@@ -969,16 +991,18 @@ class FontProperty(Property):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, hints, doc, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1003,10 +1027,10 @@ class FontProperty(Property):
               Property object
         '''
         
-        name, hints,doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create FontProperty: %s - %s"%(name, str(property.property(name).__class__)))
         if isinstance(property.property(name), QtGui.QFont):
-            return cls(name, group, property, hints, doc, parent)
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1117,16 +1141,18 @@ class FilenameProperty(Property):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, hints, doc, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
         self.filter = self.hints["filter"] if 'filter' in self.hints else ""
         self.path = self.hints["path"]if 'path' in self.hints else ""
         self.filetype = self.hints["filetype"]
@@ -1173,10 +1199,10 @@ class FilenameProperty(Property):
               Property object
         '''
         
-        name, hints,doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
         if (isinstance(property.property(name), basestring) or isinstance(property.property(name), list)) and 'filetype' in hints:
-            return cls(name, group, property, hints, doc, parent)
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1265,10 +1291,13 @@ class FilenameProperty(Property):
                Value to store
         '''
         
+        print '1. FilenameProperty:setValue - ', value
         _logger.debug("setValue Qstring")
         if value is not None: 
             if value and not self.testValid(value): return False
+            print '2. FilenameProperty:setValue - ', value
             valid = True if value else False
+            print '3. FilenameProperty:setValue - ', value, valid
             Property.setValue(self, value, valid)
     
     def value(self, role = QtCore.Qt.UserRole):
@@ -1340,7 +1369,7 @@ class WorkflowProperty(Property):
               Property object
         '''
         
-        name, hints,doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create WorkflowProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
         if isinstance(property.property(name), basestring) and 'operations' in hints:
             return cls(name, group, property, hints, doc, parent)
@@ -1455,16 +1484,18 @@ class StringProperty(Property):
             GUI hints
     doc : str
           GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a String Property"
         
-        Property.__init__(self, name, group, property, hints, doc, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
     
     def isValid(self):
         ''' Test if the property holds a valid value
@@ -1501,10 +1532,10 @@ class StringProperty(Property):
               Property object
         '''
         
-        name, hints,doc = parseHints(name, extended)
+        name, hints, doc, flag = parseHints(name, extended)
         _logger.debug("Create StringProperty: %s - %s"%(name, str(property.property(name).__class__)))
         if isinstance(property.property(name), basestring) or isinstance(property.property(name), list):
-            return cls(name, group, property, hints, doc, parent)
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
     
     def setValue(self, value):
