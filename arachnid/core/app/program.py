@@ -340,9 +340,9 @@ class program(object):
     '''
     '''
     
-    __slots__=('main_module', 'main_template', 'dependents', 'parser', 'config_file', 'values')
+    __slots__=('main_module', 'main_template', 'dependents', 'parser', 'config_file', 'values', 'external_prog')
     
-    def __init__(self, main_module, main_template, dependents, parser, config_file="", values=None):
+    def __init__(self, main_module, main_template, dependents, parser, config_file="", values=None, external_prog=""):
         '''
         '''
         
@@ -352,6 +352,13 @@ class program(object):
         self.parser=parser
         self.values = parser.get_default_values() if values is None else values
         self.config_file=config_file
+        self.external_prog = external_prog
+        
+    def program_name(self):
+        '''
+        '''
+        
+        return self.external_prog
     
     def configFile(self):
         '''
@@ -363,9 +370,13 @@ class program(object):
         '''
         '''
         
+        #print 'write-config1',self.config_file
         if self.config_file != "":
+            #print 'write-config2',self.config_file
             if not os.path.exists(os.path.dirname(self.config_file)):
                 os.makedirs(os.path.dirname(self.config_file))
+            #if hasattr(self.values, 'resolution'):
+            #    print 'write-config', self.values.resolution
             self.parser.write(self.config_file, values=self.values)
     
     def update(self, param):
@@ -451,9 +462,8 @@ def generate_settings_tree(main_module, config_path=None, **extra):
     
     main_template = file_processor if file_processor.supports(main_module) else None
     if hasattr(main_module, 'flags'): extra.update(main_module.flags())
-    external_prog = None
+    external_prog = map_module_to_program(main_module.__name__)
     if 'description' in extra:
-        external_prog = map_module_to_program(main_module.__name__)
         extra['description'] = extra['description'].replace('%prog', '%(prog)s')%dict(prog=external_prog)
     parser, dependents = setup_parser(main_module, main_template, external_prog=external_prog, **extra)
     parser.change_default(**extra)
@@ -466,7 +476,7 @@ def generate_settings_tree(main_module, config_path=None, **extra):
         output = os.path.join(parser.get_default_values().config_path, name+".cfg")
     else: output = name+".cfg"
     options = parser.parse_file(fin=output) if os.path.exists(output) else None
-    return program(main_module, main_template, dependents, parser, output, options)
+    return program(main_module, main_template, dependents, parser, output, options, external_prog)
         
 def write_config(main_module, config_path=None, **extra):
     ''' Write a configuration file
@@ -646,7 +656,7 @@ def map_module_to_program(key=None):
     vals = dict(vals)
     return vals if key is None else vals[key]
         
-def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, external_prog=None, **extra):
+def setup_parser(main_module, main_template, description="", usage=None, supports_MPI=False, supports_OMP=False, external_prog=None, doc_url=None, **extra):
     ''' Collect all the options from the main module, its dependents, the main template and those shared by all programs
     
     This function also collects all the dependent modules and updates the default values of the options.
@@ -672,6 +682,8 @@ def setup_parser(main_module, main_template, description="", usage=None, support
                    If True, add OpenMP capability
     external_prog : str, optional
                     Name of external program to launch script
+    doc_url : str, optional
+              URL for the documentation, if not specified, then it uses __doc_url__ from the root_module (e.g., arachnid)
     extra : dict
             Unused keyword arguments
     
@@ -682,10 +694,16 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     dependents : list
                  List of dependent modules
     '''
+    
+    
+    description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '.' else '# '+s.strip() for s in description.split("\n")]
+    description="\n".join([s for s in description])
         
     dependents = main_module.dependents() if hasattr(main_module, "dependents") else []
     dependents = collect_dependents(dependents)
-    url = root_module.__doc_url__%main_module.__name__ if hasattr(root_module, '__doc_url__') else None
+    if doc_url is None:
+        url = root_module.__doc_url__%main_module.__name__ if hasattr(root_module, '__doc_url__') else None
+    else: url = doc_url%main_module.__name__
     parser = settings.OptionParser(usage, version=root_module.__version__, description=description, url=url, external_prog=external_prog)
     try:
         mgroup = settings.OptionGroup(parser, "Primary", "Options that must be set to run the program", group_order=-20,  id=__name__) 
@@ -754,8 +772,6 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
     name = main_module.__name__
     if len(description.split("\n")) > 0:
         name = description.split("\n")[0].strip()
-    description=["   "+s.strip()[1:] if len(s.strip())>0 and s.strip()[0] == '.' else '# '+s.strip() for s in description.split("\n")]
-    description="\n".join([s for s in description])
     parser, dependents = setup_parser(main_module, main_template, description, usage, supports_MPI, supports_OMP)
     
     try: options, args = parser.parse_args_with_config()    
