@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/Monitor.ui'
 #
-# Created: Tue Dec 17 16:51:00 2013
+# Created: Fri Jan 10 10:23:33 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -91,6 +91,13 @@ class Ui_Form(object):
         self.crashReportToolButton.setCheckable(True)
         self.crashReportToolButton.setObjectName("crashReportToolButton")
         self.horizontalLayout_3.addWidget(self.crashReportToolButton)
+        self.monitorInformationToolButton = QtGui.QToolButton(self.widget)
+        self.monitorInformationToolButton.setText("")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(":/mini/mini/information.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.monitorInformationToolButton.setIcon(icon2)
+        self.monitorInformationToolButton.setObjectName("monitorInformationToolButton")
+        self.horizontalLayout_3.addWidget(self.monitorInformationToolButton)
         self.verticalLayout.addWidget(self.widget)
         self.horizontalLayout.addWidget(self.widget_5)
 
@@ -99,6 +106,29 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton.setToolTip(QtGui.QApplication.translate("Form", "Run the program", None, QtGui.QApplication.UnicodeUTF8))
+        self.jobListView.setToolTip(QtGui.QApplication.translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Current program running</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/clock.png\" /> - Waiting to run</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/arrow_refresh.png\" /> - Running</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/tick.png\" /> - Finished sucessfully</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/cross.png\" /> - Stopped due to error</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.jobProgressBar.setToolTip(QtGui.QApplication.translate("Form", "Progress of the current program", None, QtGui.QApplication.UnicodeUTF8))
+        self.logTextEdit.setToolTip(QtGui.QApplication.translate("Form", "Messages logged by the current program\n"
+"\n"
+"The most recent message is on the top", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton.setToolTip(QtGui.QApplication.translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Runs the program</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/exclamation.png\" /> This button cannot be used to kill the program. It only stops the monitor.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/exclamation.png\" /> Closing the window also does not kill the program. You can open the window later to monitor your current progress.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;
