@@ -91,6 +91,16 @@ def batch(files, output, mapping_file="", test_image=False, **extra):
     '''
     
     if is_enum_filename(files):
+        if len(files) > 0 and os.path.islink(files[0]):
+            mapped=[]
+            for filename in files:
+                if not os.path.islink(filename): continue
+                index = spider_utility.spider_id(filename)
+                filename = os.readlink(filename)
+                mapped.append((filename, index))
+            output_map_file = format_utility.add_prefix(os.path.splitext(spider_utility.spider_filepath(output))[0]+".star", 'sel_')
+            format.write(output_map_file, mapped, header="filename,id".split(','))
+            return
         _logger.info("All files follow the proper convention!")
         return
     files = sorted(files)    
@@ -236,6 +246,7 @@ def is_enum_filename(files):
            True if a single filename does not follow this convention or
            if the ID is not unique
     '''
+    if len(files) == 0: raise ValueError, "No input files!"
     
     found = set()
     for f in files:
