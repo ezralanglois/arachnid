@@ -239,7 +239,8 @@ def initialize(files, param):
     _logger.info("Pixel size: %f"%param['apix'])
     _logger.info("Window: %f"%param['window'])
     if os.path.dirname(param['output']) != "" and not os.path.exists(os.path.dirname(param['output'])):
-        try: os.makedirs(os.path.exists(os.path.dirname(param['output'])))
+        _logger.info("Creating directory: %s"%os.path.dirname(param['output']))
+        try: os.makedirs(os.path.dirname(param['output']))
         except: pass
     
 def finalize(files, **extra):
@@ -291,26 +292,29 @@ def check_options(options, main_option=False):
         if not spider_utility.test_valid_spider_input(options.input_files):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
 
+def flags():
+    ''' Get flags the define the supported features
+    
+    :Returns:
+    
+    flags : dict
+            Supported features
+    '''
+    
+    return dict(description = '''Generate a reference for alignment
+                        
+                        Example: 
+                        $ %prog emd_1076.map -p params.ter -o reference.ter --data-ext ter -r 30
+                      ''',
+                supports_MPI=False, 
+                supports_OMP=False,
+                use_version=True,
+                max_filename_len=78)
+
 def main():
     #Main entry point for this script
     
-    program.run_hybrid_program(__name__,
-        description = '''Generate a reference for alignment
-                        
-                        http://guam/vispider/vispider/manual.html#module-vispider.batch.reference
-                        
-                        $ spi-reference emd_1076.map -p params.ter -o reference.ter --data-ext ter -r 30
-                        
-                        Uncomment (but leave a space before) the following lines to run current configuration file on
-                        
-                        source /guam.raid.cluster.software/arachnid/arachnid.rc
-                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
-                        exit 0
-                      ''',
-        supports_MPI=False,
-        use_version = True,
-        max_filename_len = 78,
-    )
+    program.run_hybrid_program(__name__)
 def dependents(): return [filter_volume]
 if __name__ == "__main__": main()
 
