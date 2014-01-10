@@ -324,11 +324,16 @@ def generate_noise(filename, noise="", output="", noise_stack=True, window=None,
                 Noise window
     '''
     
-    if noise != "":  return ndimage_file.read_image(noise)
+    if noise != "":  
+        noise_img = ndimage_file.read_image(noise)
+        if noise_img.shape[0] == window: return noise_img
+        _logger.warn("Noise window size does not match window size: %d != %d - generating new noise window!"%(noise_img.shape[0], window))
     noise_file = format_utility.add_prefix(output, "noise_")
     if os.path.exists(noise_file):
         _logger.warn("Found cached noise file: %s - delete if you want to regenerate"%noise_file)
-        return ndimage_file.read_image(noise_file)  
+        noise_img = ndimage_file.read_image(noise_file)  
+        if noise_img.shape[0] == window: return noise_img
+        _logger.warn("Noise window size does not match window size: %d != %d - generating new noise window!"%(noise_img.shape[0], window))
     tot = ndimage_file.count_images(filename)
     if tot > 1:
         return None
@@ -559,18 +564,14 @@ def initialize(files, param):
     
     if len(files) == 0:
         param['noise']=None
-    elif param['noise'] == "":
+    else:
         if not isinstance(filename, tuple):
-            
             if mpi_utility.is_root(**param):
                 param['noise'] = generate_noise(filename, **param)
             mpi_utility.barrier(**param)
             if mpi_utility.is_client_strict(**param):
                 param['noise'] = generate_noise(filename, **param)
         else: param['noise']=None
-        
-    else: 
-        param['noise'] =  ndimage_file.read_image(param['noise'])
     if param['gain_file'] != "":
         param['gain'] =  ndimage_file.read_image(param['gain_file'])
     
@@ -677,8 +678,7 @@ def flags():
                       ''',
                 supports_MPI=True, 
                 supports_OMP=True,
-                use_version=True,
-                max_filename_len=78)
+                use_version=True)
 
 def main():
     #Main entry point for this script
