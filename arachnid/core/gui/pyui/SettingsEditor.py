@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/SettingsEditor.ui'
 #
-# Created: Sat Nov 30 15:04:08 2013
+# Created: Wed Jan  8 11:24:43 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
