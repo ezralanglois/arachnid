@@ -749,7 +749,7 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="",
                 frm_count = ndimage_file.count_images(frames[0])
                 consecutive = avg_count != frm_count
                 if consecutive:
-                    _logger.info("Detected fewer particles in stack %s - %d < %d"%(v.rlnImageName, frm_count, avg_count))
+                    _logger.info("Detected fewer particles in stack %s - %d < %d (frame < average)"%(v.rlnImageName, frm_count, avg_count))
                     if reindex_file == "":raise ValueError, "Requires selection file to reindex the relion star file"
             if consecutive:
                 index = format.read(reindex_file, spiderid=mic, numeric=True)
@@ -1030,7 +1030,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("",   reindex_file="",                 help="Reindex file for running movie mode on a subset of selected particles in a stack", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
-    group.add_option("-d", defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
+    group.add_option("-d", '--ctf-file', defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
     group.add_option("-m", minimum_group=50,                help="Minimum number of particles per defocus group (regroups using the micrograph name)", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
@@ -1052,7 +1052,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks (e.g. cluster/win/win_*.dat) or ReLion selection file (input.star)", required_file=True, gui=dict(filetype="open"))
+        pgroup.add_option("-i", "--particle-file", input_files=[], help="List of filenames for the input images stacks (e.g. cluster/win/win_*.dat) or ReLion selection file (input.star)", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
         pgroup.add_option("-o", "--align-file", output="",      help="Output filename for the relion selection file (Only required if input is a stack)", gui=dict(filetype="save"), required_file=False)
         parser.change_default(log_level=3)
 
@@ -1070,11 +1070,16 @@ def check_options(options, main_option=False):
     #elif main_option:
     #    if len(options.input_files) != 1: raise OptionValueError, "Only a single input file is supported"
 
-def main():
-    #Main entry point for this script
+def flags():
+    ''' Get flags the define the supported features
     
-    program.run_hybrid_program(__name__,
-        description = '''Generate a relion selection file from a set of stacks and a defocus file
+    :Returns:
+    
+    flags : dict
+            Supported features
+    '''
+    
+    return dict(description = '''Generate a relion selection file from a set of stacks and a defocus file
                          
                          Example: Generate a relion selection file from a set of stacks, defocus file and params file
                          
@@ -1084,9 +1089,14 @@ def main():
                          
                          $ ara-selrelion relion_select.star -s good_classes.spi relion_select_good.star
                       ''',
-        supports_MPI = False,
-        use_version = False,
-    )
+                supports_MPI=False, 
+                supports_OMP=False,
+                use_version=False)
+
+def main():
+    #Main entry point for this script
+    
+    program.run_hybrid_program(__name__)
 def dependents(): return []
 if __name__ == "__main__": main()
 
