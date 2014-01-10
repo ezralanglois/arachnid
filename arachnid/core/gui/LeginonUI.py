@@ -19,6 +19,7 @@ import base64
 import logging
 import os
 import getpass
+#import functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -34,7 +35,7 @@ class Widget(QtGui.QWidget):
     taskError = qtSignal(object)
     captureScreen = qtSignal(int)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, helpDialog=None):
         "Initialize LeginonUI widget"
         
         QtGui.QWidget.__init__(self, parent)
@@ -44,6 +45,7 @@ class Widget(QtGui.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.login={}
+        self.helpDialog=helpDialog
         
         self.ui.progressDialog = QtGui.QProgressDialog('Loading...', "", 0,5,self)
         self.ui.progressDialog.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -68,6 +70,17 @@ class Widget(QtGui.QWidget):
         self.ui.projectTableView.setModel(ListTableModel([], self.header, None, self))
         selmodel=self.ui.projectTableView.selectionModel()
         selmodel.selectionChanged.connect(self.selectionChanged)
+    
+    @qtSlot()
+    def on_userInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        if self.helpDialog is not None:
+            self.helpDialog.setHTML(self.ui.changeUserPushButton.toolTip())
+            self.helpDialog.show()
+        else:
+            QtGui.QToolTip.showText(self.ui.changeUserPushButton.mapToGlobal(QtCore.QPoint(0,0)), self.ui.changeUserPushButton.toolTip())
     
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -164,7 +177,14 @@ class Widget(QtGui.QWidget):
             self.ui.label.setText("Welcome "+str(user.fullname))
             self.taskFinished.connect(self.projectFinished)
             self.taskError.connect(self.projectLoadError)
-            self.task = BackgroundTask.launch_mp(self, load_projects_iter, experiments[:limit])#, limit)
+            experiment_list = []
+            cnt = 0
+            for i in xrange(len(experiments)):
+                if len(experiments[i].session.exposures) == 0: continue
+                experiment_list.append(experiments[i])
+                cnt += 1
+                if cnt >= limit: break
+            self.task = BackgroundTask.launch_mp(self, load_projects_iter, experiment_list)
     
     def projectFinished(self, sessions):
         '''
@@ -331,7 +351,9 @@ class Widget(QtGui.QWidget):
         
         if len(self.images) > 1:
             choices=[]
-            for key in self.images.keys():
+            keys = self.images.keys()
+            keys = [k[1] for k in sorted(zip([self.images[key] for key in keys], keys))]
+            for key in keys:
                 choices.append("%f (%d)"%(key, len(self.images[key])))
             apix = QtGui.QInputDialog.getItem(self, "Multiple exposure sizes found!", "Pixel sizes (# exposures):", choices)
             if isinstance(apix, tuple): apix=apix[0]
@@ -386,8 +408,7 @@ def load_images_iter(sessions):
                     norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
                     norm_id=image.norm_id
                 exposure=os.path.join(frame_path, image.filename+frame_ext)
-                if not os.path.exists(exposure):
-                    exposure += '.bz2'
+                if not os.path.exists(exposure) and os.path.exists(exposure+'.bz2'): exposure += '.bz2'
                 row = (exposure, norm_file)
                     
                 apix = image.pixelsize*1e10

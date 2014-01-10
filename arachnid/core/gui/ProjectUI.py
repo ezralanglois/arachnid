@@ -1,27 +1,5 @@
 '''
 
-SessionData - name
-SessionData.name
-SessionData.DEF_id
-
-tquery = leginondata.AcquisitionImageTargetData(list=targetlistdata)
-imquery = leginondata.AcquisitionImageData(target=tquery)
-
-
-Gain Reference
---------------
-
-cam = leginondata.InstrumentData(name='GatanK2Counting').query(results=1)[0]
-camem = leginondata.CameraEMData(ccdcamera=cam)
-
-refpath = None
-norm = leginondata.NormImageData(camera=camem).query(results=1)
-if norm:
-  # If norm image is indeed saved as a database entry, then database would know where it is saved
-  refpath = norm[0]['session']['image path']
-  print 'norm image path', refpath
-  print 'file can be found', os.path.isfile(os.path.join(refpath,norm[0]['filename']+'.mrc'))
-
 Workflow
 --------
 
@@ -43,6 +21,7 @@ from ReferenceUI import Widget as ReferenceUI
 from Monitor import Widget as MonitorUI
 from SettingsEditor import TabWidget as SettingsUI
 from model.ListTableModel import ListTableModel
+from HelpUI import Dialog as HelpDialog
 
 from pyui.ProjectUI import Ui_ProjectWizard
 from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
@@ -86,13 +65,14 @@ class MainWindow(QtGui.QWizard):
         self.micrograph_files = []
         self.gain_files = []
         self.parameters=[]
-        self.next_page=-1
         self.screen_shot_file=screen_shot_file
+        self.helpDialog = HelpDialog(self)
         
         version = arachnid.__version__
         n=version.find('_')
         if n != -1: version = version[:n]
         self.setWindowTitle("Arachnid - Workflow Creation Wizard - v%s"%version)
+        self.docs_url = ""
 
         
         self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(':/icons/icons/icon256x256.png'))
@@ -118,7 +98,7 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         ###### Leginon Page
         ########################################################################################################################################
-        self.ui.leginonWidget = LeginonUI(self)
+        self.ui.leginonWidget = LeginonUI(self, self.helpDialog)
         self.ui.leginonDBLayout.addWidget(self.ui.leginonWidget)
         #self.subPages[self.idOf(self.ui.leginonDBPage)]=self.ui.leginonWidget
         self.ui.leginonWidget.registerPage(self.ui.leginonDBPage)
@@ -129,7 +109,7 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         ###### Reference Page
         ########################################################################################################################################
-        self.ui.referenceWidget = ReferenceUI(self)
+        self.ui.referenceWidget = ReferenceUI(self, self.helpDialog)
         self.ui.referenceLayout.addWidget(self.ui.referenceWidget)
         #self.subPages[self.idOf(self.ui.referencePage)]=self.ui.referenceWidget    
         self.ui.referenceWidget.registerPage(self.ui.referencePage) 
@@ -139,14 +119,22 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         ###### Monitor Page
         ########################################################################################################################################
-        self.ui.monitorWidget = MonitorUI(self)
+        self.ui.monitorWidget = MonitorUI(self, self.helpDialog)
         self.ui.monitorLayout.addWidget(self.ui.monitorWidget)
         
         ########################################################################################################################################
         ###### Fine Settings Page
         ########################################################################################################################################
         self.ui.settingsTabWidget = SettingsUI(self)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(2)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ui.settingsTabWidget.sizePolicy().hasHeightForWidth())
+        self.ui.settingsTabWidget.setSizePolicy(sizePolicy)
         self.ui.settingsHorizontalLayout.addWidget(self.ui.settingsTabWidget)
+        
+        
+        
         self.ui.workflowListView.setModel(self.ui.monitorWidget.model())
         selmodel = self.ui.workflowListView.selectionModel()
         selmodel.currentChanged.connect(self.ui.settingsTabWidget.settingsChanged)
@@ -162,6 +150,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.manualSettingsPage.registerField(self.param("gain_file"), self, 'gainFile')
         self.ui.manualSettingsPage.registerField(self.param("invert"), self.ui.invertCheckBox)
         self.ui.imageStatTableView.setModel(ListTableModel([], ['Exposure', 'Gain'], ['Width', 'Height', 'Frames', 'Total'], self))
+        self.ui.importMessageLabel.setVisible(False)
         
         ########################################################################################################################################
         ###### Additional Settings Page
@@ -199,6 +188,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.additionalSettingsPage.registerField(self.param("window"), self, "window")
         self.ui.additionalSettingsPage.registerField(self.param('enable_stderr'), self.ui.enableStderrCheckBox)
         
+        
         thread_count = 1
         if openmp.is_openmp_enabled():
             thread_count = openmp.get_num_procs()
@@ -206,6 +196,98 @@ class MainWindow(QtGui.QWizard):
             try: thread_count=multiprocessing.cpu_count()
             except: pass
         self.ui.workerCountSpinBox.setValue(thread_count)
+        self.ui.selectLeginonInformationLabel.setVisible(False)
+        self.ui.selectReferenceInformationLabel.setVisible(False)
+    
+    @qtSlot()
+    def on_documentationURLToolButton_clicked(self):
+        '''
+        '''
+        
+        model = self.ui.workflowListView.model()
+        selmodel = self.ui.workflowListView.selectionModel()
+        index = selmodel.currentIndex()
+        if index is None: return
+        program = model.data(index, QtCore.Qt.UserRole)
+        if program is None: return
+        option = self.ui.settingsTabWidget.selectedOption()
+        
+        if self.docs_url == "":
+            url, ok = QtGui.QInputDialog.getText(self, 'Use default URL?', 'URL:', QtGui.QLineEdit.Normal, 'code.google.com/p')
+            if ok:
+                self.docs_url = 'http://'+url+'/arachnid/docs/api_generated/'
+            else: return
+        if option is not None:
+            QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html#cmdoption-%s%s"%(program.program_name(), option))
+        else:
+            QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html")
+    
+    @qtSlot()
+    def on_selectReferenceInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.yesReferencePushButton.toolTip()+self.ui.noReferencePushButton.toolTip())
+        self.helpDialog.show()
+        #self.ui.selectReferenceInformationLabel.setVisible(self.ui.selectReferenceInformationToolButton.isChecked())
+    
+    @qtSlot()
+    def on_selectLeginonInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.yesLeginonPushButton.toolTip()+self.ui.noLeginonPushButton.toolTip())
+        self.helpDialog.show()
+        
+        #self.ui.selectLeginonInformationLabel.setVisible(self.ui.selectLeginonInformationToolButton.isChecked())
+    
+    @qtSlot()
+    def on_settingsInformatToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.workflowListView.toolTip())
+        self.helpDialog.show()
+    
+    @qtSlot()
+    def on_dimensionInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.particleSizeDoubleSpinBox.toolTip())
+        self.helpDialog.show()
+    
+    @qtSlot()
+    def on_parallelInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.workerCountSpinBox.toolTip())
+        self.helpDialog.show()
+    
+    @qtSlot()
+    def on_logInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.enableStderrCheckBox.toolTip())
+        self.helpDialog.show()
+    
+    @qtSlot()
+    def on_micrographInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.micrographComboBox.toolTip())
+        self.helpDialog.show()
+    
+    @qtSlot()
+    def on_gainInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.gainFileComboBox.toolTip())
+        self.helpDialog.show()
     
     def param(self, name):
         '''
@@ -351,7 +433,6 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        print 'gain:', (self.gain_files[0] if len(self.gain_files) > 0 else "")
         return self.gain_files[0] if len(self.gain_files) > 0 else ""
     
     @gainFile.setter
@@ -382,25 +463,21 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        print '------setupFineTunePage----------'
         param = {}
         for p in self.parameters:
             val = self.field(p)
             if p == 'input_files': val = val.split(',')
-            if p == 'gain_file':
-                print 'gain2:', p, val
             param[p]=val
         workflow = project.workflow_settings(self.micrograph_files, param)
-        self.ui.monitorWidget.setWorkflow(workflow)
         self.ui.monitorWidget.setLogFile('project.log')
-        print '------setupFineTunePage-done----------'
+        self.ui.monitorWidget.setWorkflow(workflow)
     
     def saveFineTunePage(self):
         '''
         '''
         
         self.ui.monitorWidget.saveState()
-        project.write_workflow(self.ui.monitorWidget.workflow)
+        project.write_workflow(self.ui.monitorWidget.workflow())
         #todo add update if project option changes!
         
     def loadProject(self):
@@ -418,8 +495,7 @@ class MainWindow(QtGui.QWizard):
             if p == 'input_files':
                 val = ",".join(val)
             self.setField(p, val)
-        
-        self.next_page = self.idOf(self.ui.fineTunePage)
+        self.setStartId(self.idOf(self.ui.fineTunePage))
         self.next()
         
     ########################################################################################################################################
@@ -455,7 +531,7 @@ class MainWindow(QtGui.QWizard):
         page = self.page(self.currentId())
         if page == self.ui.introductionPage:
             if self.ui.screenShotCheckBox.checkState() == QtCore.Qt.Checked and not self.screen_shot_file:
-                self.screen_shot_file = "screen_shots/wizard_screen_shot_0000.png"
+                self.screen_shot_file = "data/screen_shots/wizard_screen_shot_0000.png"
         elif page == self.ui.leginonDBPage:
             if not self.ui.leginonWidget.validate():
                 return False
@@ -511,35 +587,11 @@ class MainWindow(QtGui.QWizard):
         elif page == self.ui.monitorPage:
             self.saveFineTunePage()
         
-        
     def nextId(self):
         '''
         '''
         
         page = self.page(self.currentId())
-        '''
-        if self.next_page != -1:
-            if page == self.ui.monitorPage or page == self.ui.fineTunePage:
-                super(MainWindow, self).nextId()
-            else:
-                return self.next_page
-        '''
-        
-        '''
-        if page == self.ui.manualSettingsPage:
-            pass
-            """
-            fields = self.ui.leginonWidget.currentData()
-            for key, val in fields.iteritems():
-                self.setField(key, val)
-            """
-        elif page == self.ui.fineTunePage:
-            print '--called - setupFineTunePage', page
-            self.setupFineTunePage()
-        elif page == self.ui.monitorPage:
-            self.saveFineTunePage()
-        el
-        '''
         if page == self.ui.settingsQuestionPage:
             if self.ui.noLeginonPushButton.isChecked():
                 return self.currentId()+2
@@ -554,10 +606,6 @@ class MainWindow(QtGui.QWizard):
         
         fields = self.ui.leginonWidget.currentData()
         if fields is None:
-            timer = QtCore.QTimer(self)
-            timer.setSingleShot(True)
-            timer.setInterval(500)
-            timer.timeout.connect(functools.partial(self.captureScreen, subid=1))
             messagebox.error_message(self, "Can only process one pixel size at a time!")
             return
         for key, val in fields.iteritems():
@@ -583,6 +631,7 @@ class MainWindow(QtGui.QWizard):
             data[2][1] = header['count']
             data[3][1] = total
         self.ui.imageStatTableView.model().setData(data)
+        self.ui.importMessageLabel.setVisible(True)
         
 def connect_visible_spin_box(index, signals, slots):
     '''

@@ -22,8 +22,9 @@ class Widget(QtGui.QWidget):
     monitorProgram = qtSignal()
     fireProgress = qtSignal(int)
     fireMaximum = qtSignal(int)
+    captureScreen = qtSignal(int)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, helpDialog=None):
         '''
         '''
         
@@ -35,6 +36,7 @@ class Widget(QtGui.QWidget):
         self.ui.jobUpdateTimer = QtCore.QTimer(self)
         self.ui.jobUpdateTimer.setInterval(self.timer_interval)
         self.ui.jobUpdateTimer.setSingleShot(False)
+        self.helpDialog=helpDialog
         
         self.ui.setupUi(self)
         #self.ui.pushButton.clicked.connect(self.runProgram)
@@ -48,16 +50,37 @@ class Widget(QtGui.QWidget):
         self.fin = None
         self.log_file = None
         self.created = None
-        self.workflow = []
         self.log_text=""
         self.workflowProcess=None
+    
+    @qtSlot()
+    def on_monitorInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        if self.helpDialog is not None:
+            self.helpDialog.setHTML(self.ui.pushButton.toolTip())
+            self.helpDialog.show()
+        else:
+            QtGui.QToolTip.showText(self.ui.pushButton.mapToGlobal(QtCore.QPoint(0,0)), self.ui.pushButton.toolTip())
+    
+    def workflow(self):
+        '''
+        '''
+        
+        flow = []
+        model = self.ui.jobListView.model()
+        for i in xrange(model.rowCount()):
+            flow.append( model.data(model.index(i, 0), QtCore.Qt.UserRole) )
+        return flow
     
     def saveState(self):
         '''
         '''
         
         # save workflow in INI file
-        for prog in self.workflow:
+        
+        for i, prog in enumerate(self.workflow()):
             prog.write_config()
     
     def setWorkflow(self, workflow):
@@ -65,7 +88,6 @@ class Widget(QtGui.QWidget):
         '''
         
         if not hasattr(workflow, '__iter__'): workflow=[workflow]
-        self.workflow = workflow
         model = self.ui.jobListView.model()
         model.clear()
         mode='w'
@@ -88,7 +110,6 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        _logger.error("Log file: "+str(filename))
         self.log_file = filename
         if not os.path.exists(self.log_file): return
         
@@ -163,7 +184,9 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        if self.isRunning(): return
+        if self.isRunning():
+            _logger.error("Already running!")
+            return
         
         def _run_worker(workflow):
             _logger.info("Workflow started")
@@ -173,7 +196,7 @@ class Widget(QtGui.QWidget):
                     prog.launch()
                 except: break
             _logger.info("Workflow ended")
-        self.workflowProcess=multiprocessing.Process(target=_run_worker, args=(self.workflow, ))
+        self.workflowProcess=multiprocessing.Process(target=_run_worker, args=(self.workflow(), ))
         self.workflowProcess.start()
         self.runProgram.emit()
         model = self.ui.jobListView.model()
@@ -181,6 +204,7 @@ class Widget(QtGui.QWidget):
             model.item(i).setIcon(self.job_status_icons[0])
         model.item(0).setIcon(self.job_status_icons[1])
         self.ui.crashReportToolButton.setEnabled(False)
+        self.captureScreen.emit(1)
     
     #@qtSlot()
     def on_jobUpdateTimer_timeout(self):
@@ -234,10 +258,12 @@ class Widget(QtGui.QWidget):
         program = program.strip()
         model = self.ui.jobListView.model()
         for offset in xrange(model.rowCount()):
+            print "Marking finished: %s == %s"%(str(model.item(offset).data(QtCore.Qt.UserRole).id()), program)
             if str(model.item(offset).data(QtCore.Qt.UserRole).id()) == program:
                 break
         if offset == model.rowCount(): 
             _logger.error("Could not find ID: %s"%program)
+            print "Could not find ID: %s"%program
             return
         for i in xrange(offset):
             model.item(i).setIcon(self.job_status_icons[2])
@@ -248,6 +274,7 @@ class Widget(QtGui.QWidget):
         '''
         if created is None:
             lines = self.readLogFile(True)
+            self.current_pid = self.parsePID(lines)
             created = self.parsePID(lines, 'Created:')
         
         if self.workflowProcess is not None:
@@ -273,7 +300,7 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
-        for i in xrange(len(lines)-1, -1, -1):
+        for i in xrange(len(lines)):
             idx = lines[i].find(tag)
             if idx != -1:
                 line = lines[i][idx+len(tag):]

@@ -24,7 +24,7 @@ class Widget(QtGui.QWidget):
     taskFinished = qtSignal(object)
     captureScreen = qtSignal(int)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, helpDialog=None):
         "Initialize ReferenceUI widget"
         
         QtGui.QWidget.__init__(self, parent)
@@ -35,27 +35,74 @@ class Widget(QtGui.QWidget):
         self.ui.setupUi(self)
         self.task=None
         self.lastpath = str(QtCore.QDir.currentPath())
+        self.helpDialog=helpDialog
         self.ui.referenceTabWidget.currentChanged.connect(lambda x: self.captureScreen.emit(x+1))
         
         self.emdbCannedModel = QtGui.QStandardItemModel(self)
-        canned = [('Ribosome-70S', '2183', ':/icons/icons/ribosome_70S_32x32.png'),
-                  ('Ribosome-50S', '1456', ':/icons/icons/ribosome_60S_32x32.png'),
-                  ('Ribosome-30S', '5503', ':/icons/icons/ribosome30s_32x32.png'),
-                  ('Ribosome-80S', '2275', ':/icons/icons/ribosome80s_32x32.png'),
-                  ('Ribosome-60S', '1705', ':/icons/icons/ribosome_60S_32x32.png'),
-                  ('Ribosome-40S', '1925', ':/icons/icons/ribosome_40S_32x32.png'),]
+        canned = [('Ribosome-40S', '1346', ':/reference/reference/1346/emdb_1346_pix32.png', 
+"""The eukaryotic translation initiation factors eIF1 and eIF1A induce an open conformation of the 40S ribosome.
+Passmore LA, Schmeing TM, Maag D, Applefield DJ, Acker MG, Algire MA, Lorsch JR, Ramakrishnan V
+MOLECULAR CELL (2007) 26, pp. 41-50"""),
+                  ('Ribosome-60S', '1705', ':/reference/reference/1705/emdb_1705_pix32.png', 
+"""Mechanism of eIF6-mediated inhibition of ribosomal subunit joining.
+Gartmann M, Blau M, Armache JP, Mielke T, Topf M, Beckmann R
+J.BIOL.CHEM. (2010) 285, pp. 14848-14851"""),
+                  ('Ribosome-80S', '2275', ':/reference/reference/2275/emdb_2275_pix32.png',
+"""Ribosome structures to near-atomic resolution from thirty thousand cryo-EM particles.
+Bai XC, Fernandez IS, McMullan G, Scheres SH
+ELIFE (2013) 2, pp. e00461-e00461"""),
+                  ('ATP synthase', '5335', ':/reference/reference/5335/emd_5335_pix32.png',
+"""Subnanometre-resolution structure of the intact Thermus thermophilus H+-driven ATP synthase.
+Lau WC, Rubinstein JL
+NATURE (2012) 481, pp. 214-218"""),
+                  ('Ribosome-70S', '5360', ':/reference/reference/5360/emdb_5360_pix32.png',
+"""Structural characterization of mRNA-tRNA translocation intermediates.
+Agirrezabala X, Liao HY, Schreiner E, Fu J, Ortiz-Meoz RF, Schulten K, Green R, Frank J
+PROC.NAT.ACAD.SCI.USA (2012) 109, pp. 6094-6099"""),
+                  ('Ribosome-30S', '5503', ':/reference/reference/5503/emdb_5503_pix512.png',
+"""Dissecting the in vivo assembly of the 30S ribosomal subunit reveals the role of RimM and general features of the assembly process.
+Guo Q, Goto S, Chen Y, Feng B, Xu Y, Muto A, Himeno H, Deng H, Lei J, Gao N
+NUCLEIC ACIDS RES. (2013) 41, pp. 2609-2620"""),
+                  ('Ribosome-50S', '5787', ':/reference/reference/5787/emdb_5787_pix32.png',
+"""Functional domains of the 50S subunit mature late in the assembly process.
+Jomaa A, Jain N, Davis JH, Williamson JR, Britton RA, Ortega J
+NUCLEIC ACIDS RES. (2013)"""),]
         for entry in canned:
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(entry[2]), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item = QtGui.QStandardItem(icon, entry[0])
             item.setData(entry[1], QtCore.Qt.UserRole)
+            item.setData(entry[3], QtCore.Qt.UserRole+1)
             self.emdbCannedModel.appendRow(item)
         self.ui.emdbCannedListView.setModel(self.emdbCannedModel)
         self.taskFinished.connect(self.onDownloadFromEMDBComplete)
         self.ui.referenceLineEdit.editingFinished.connect(self.onReferenceEditChanged)
         self.ui.referenceTabWidget.setCurrentIndex(0)
         self.ui.referenceTabWidget.setCurrentIndex(1)
+        
     
+    @qtSlot()
+    def on_downloadInformationToolButton_clicked(self):
+        '''
+        '''
+        
+        if self.helpDialog is not None:
+            self.helpDialog.setHTML(self.ui.emdbDownloadPushButton.toolTip())
+            self.helpDialog.show()
+        else:
+            QtGui.QToolTip.showText(self.ui.emdbDownloadPushButton.mapToGlobal(QtCore.QPoint(0,0)), self.ui.emdbDownloadPushButton.toolTip())
+    
+    @qtSlot()
+    def on_openURLToolButton_clicked(self):
+        '''Called when the user clicks the link button
+        '''
+        
+        num = self.ui.emdbNumberLineEdit.text()
+        if num == "":
+            QtGui.QMessageBox.warning(self, "Warning", "Empty Accession Number")
+            return
+        QtGui.QDesktopServices.openUrl("http://www.ebi.ac.uk/pdbe/entry/EMD-%s"%num) 
+        
     @qtSlot()
     def on_emdbDownloadPushButton_clicked(self):
         '''Called when the user clicks the download button
@@ -67,7 +114,10 @@ class Widget(QtGui.QWidget):
             return
         url="ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-%s/map/emd_%s.map.gz"%(num, num)
         self.setEnabled(False)
-        self.task=BackgroundTask.launch(self, download_gunzip_task, url, '.')
+        if not os.path.exists('data/rawmap/'):
+            try:os.makedirs('data/rawmap/')
+            except: pass
+        self.task=BackgroundTask.launch(self, download_gunzip_task, url, 'data/rawmap/')
     
     def onDownloadFromEMDBComplete(self, local):
         ''' Called when the download and unzip is complete
@@ -92,6 +142,9 @@ class Widget(QtGui.QWidget):
         
         num = index.data(QtCore.Qt.UserRole) #.toString()
         self.ui.emdbNumberLineEdit.setText(num)
+        
+        text = index.data(QtCore.Qt.UserRole+1)
+        self.ui.mapInfoPlainTextEdit.document().setPlainText(text)
     
     #@qtSlot(name='on_referenceLineEdit_editingFinished')
     def onReferenceEditChanged(self):
@@ -131,10 +184,7 @@ class Widget(QtGui.QWidget):
             else:
                 QtGui.QMessageBox.warning(self, "Warning", "File is not a volume: %s"%str(img.shape))
             header = ndimage_file.read_header(filename)
-            self.ui.referencePixelSizeDoubleSpinBox.blockSignals(True)
-            print 'apix', header['apix']
             self.ui.referencePixelSizeDoubleSpinBox.setValue(header['apix'])
-            self.ui.referencePixelSizeDoubleSpinBox.blockSignals(False)
 
         return filename
     

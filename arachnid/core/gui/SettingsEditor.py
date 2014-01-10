@@ -63,6 +63,16 @@ class TabWidget(QtGui.QTabWidget):
         }
         '''
     
+    def selectedOption(self):
+        '''
+        '''
+        
+        selmodel = self.currentWidget().selectionModel()
+        index = selmodel.currentIndex()
+        if not index.isValid(): return None
+        item = index.internalPointer()
+        return item.flag()
+    
     def settingsChanged(self, curr, prev):
         '''
         '''
