@@ -355,6 +355,18 @@ class Option(optparse.Option):
         optparse.Option.__init__(self, *args, **kwargs)
         self.choices = kwargs['choices'] if choices is None and 'choices' in kwargs else choices
     
+    def sphinx_name(self):
+        ''' Return the name Sphinx uses to identify an option
+        
+        :Returns:
+        
+        flag : str
+               Short option if it exists, otherwise long option
+        '''
+        
+        if len(self._short_opts) > 0: return self._short_opts[0]
+        return self._long_opts[-1]
+    
     def is_not_config(self):
         ''' Test if option should be written to the configuration file
         
