@@ -436,7 +436,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 return QtGui.QColor('#F0E68C')
         
         if (role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.StatusTipRole) and item.doc is not None:
-            return item.doc
+            return "<FONT COLOR=black>"+item.doc+"<FONT>"
         elif role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.DecorationRole or role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0: return item.displayName
             if index.column() == 1: return item.value(role)
