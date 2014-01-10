@@ -1022,4 +1022,37 @@
         <file>mini/zoom_in.png</file>
         <file>mini/zoom_out.png</file>
     </qresource>
+    <qresource prefix="/reference">
+        <file>reference/1346/emdb_1346_pix32.png</file>
+        <file>reference/1346/emdb_1346_pix64.png</file>
+        <file>reference/1346/emdb_1346_pix128.png</file>
+        <file>reference/1346/emdb_1346_pix256.png</file>
+        <file>reference/1346/emdb_1346_pix512.png</file>
+        <file>reference/1705/emdb_1705_pix32.png</file>
+        <file>reference/1705/emdb_1705_pix64.png</file>
+        <file>reference/1705/emdb_1705_pix128.png</file>
+        <file>reference/1705/emdb_1705_pix256.png</file>
+        <file>reference/1705/emdb_1705_pix512.png</file>
+        <file>reference/2275/emdb_2275_pix32.png</file>
+        <file>reference/2275/emdb_2275_pix64.png</file>
+        <file>reference/2275/emdb_2275_pix128.png</file>
+        <file>reference/2275/emdb_2275_pix256.png</file>
+        <file>reference/2275/emdb_2275_pix512.png</file>
+        <file>reference/5335/emd_5335_pix32.png</file>
+        <file>reference/5335/emd_5335_pix64.png</file>
+        <file>reference/5335/emd_5335_pix128.png</file>
+        <file>reference/5335/emd_5335_pix256.png</file>
+        <file>reference/5335/emd_5335_pix512.png</file>
+        <file>reference/5360/emdb_5360_pix32.png</file>
+        <file>reference/5360/emdb_5360_pix64.png</file>
+        <file>reference/5360/emdb_5360_pix128.png</file>
+        <file>reference/5360/emdb_5360_pix256.png</file>
+        <file>reference/5360/emdb_5360_pix512.png</file>
+        <file>reference/5503/emdb_5503_pix512.png</file>
+        <file>reference/5787/emdb_5787_pix32.png</file>
+        <file>reference/5787/emdb_5787_pix64.png</file>
+        <file>reference/5787/emdb_5787_pix128.png</file>
+        <file>reference/5787/emdb_5787_pix256.png</file>
+        <file>reference/5787/emdb_5787_pix512.png</file>
+    </qresource>
 </RCC>
