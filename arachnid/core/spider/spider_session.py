@@ -122,15 +122,16 @@ class Session(object):
             self.pipename = base+("_%d"%rank)+ext
         else: rank=0
         if tmp_path is not None and tmp_path != "": 
-            self.pipename = os.path.join(tmp_path, self.pipename)
-        if os.path.exists(self.pipename):
-            try: os.remove(self.pipename)
+            self.pipename_file = os.path.join(tmp_path, self.pipename)
+        else: self.pipename_file = self.pipename
+        if os.path.exists(self.pipename_file):
+            try: os.remove(self.pipename_file)
             except: pass
         _logger.debug("Using PIPE = %s"%self.pipename)
         try:
-            os.mkfifo(self.pipename)
+            os.mkfifo(self.pipename_file)
         except: 
-            _logger.error("Pipe exists: %s"%self.pipename)
+            _logger.error("Pipe exists: %s"%self.pipename_file)
             raise
         if tmp_path == "": tmp_path = None
         self.tmp_path = tmp_path
@@ -163,7 +164,7 @@ class Session(object):
         self._invoke('MD', 'PIPE', self.pipename)
         self._invoke('MD', 'SET MP', thread_count)
         
-        self.registers = open(self.pipename, 'r')
+        self.registers = open(self.pipename_file, 'r')
         self.register_poll = io_select.poll()
         self.register_poll.register(self.registers.fileno())
         self.incore_imgs = spider_var.spider_var_pool()
@@ -205,10 +206,10 @@ class Session(object):
         try: self.close()
         except: pass
         
-        if os.path.exists(self.pipename):
-            try: os.remove(self.pipename)
+        if os.path.exists(self.pipename_file):
+            try: os.remove(self.pipename_file)
             except: pass
-        os.mkfifo(self.pipename)
+        os.mkfifo(self.pipename_file)
         self.spider = subprocess.Popen(self.spiderexec, cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         self.spider_err = self.spider.stderr
@@ -230,7 +231,7 @@ class Session(object):
         self._invoke('MD', 'PIPE', self.pipename)
         self._invoke('MD', 'SET MP', self.thread_count)
         
-        self.registers = open(self.pipename, 'r')
+        self.registers = open(self.pipename_file, 'r')
         self.register_poll = io_select.poll()
         self.register_poll.register(self.registers.fileno())
         
@@ -387,8 +388,8 @@ class Session(object):
             self.registers.close()
             self.registers = None
         
-        if hasattr(self, 'pipename') and self.pipename is not None:
-            try: os.remove(self.pipename)
+        if hasattr(self, 'pipename_file') and self.pipename_file is not None:
+            try: os.remove(self.pipename_file)
             except: pass
         tmp_files = ['jnkASSIGN1', 'LOG.%s'%self.dataext, 'LOG.tmp']
         #if not self._results:
