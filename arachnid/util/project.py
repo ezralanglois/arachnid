@@ -89,7 +89,7 @@ _project = sys.modules[__name__]
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, **extra):
+def batch(files, is_film=False, **extra):
     '''
     1. Write out config files
     2. Write launch scripts
@@ -98,6 +98,7 @@ def batch(files, **extra):
         c. get data from leginon
     '''
     
+    extra['invert'] = not is_film
     workflow = build_workflow(files, extra)
     _logger.info("Work flow includes %d steps"%len(workflow))
     write_config(workflow, **extra)
@@ -121,10 +122,12 @@ def workflow_settings(files, param):
     param.update(vars(prog.values))
     spider_params.write_update(param['param_file'], **param)
     mods=[prog]
+    first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))[1]
     for mod in workflow[1:]:
         prog = program.generate_settings_tree(mod[0], **param)
         mods.append(prog)
-        if len(param['input_files']) > 0: param['input_files'] = []
+        if len(param['input_files']) > 0 and mod[0] == first_script[0]:
+            param['input_files'] = []
     return mods
 
 def default_settings():
@@ -234,6 +237,7 @@ def build_workflow(files, extra):
         workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i], **extra))
     
     input,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
+    print 'build workflow', input, first_script[0]
     # Hack
     if input == '--unenum-files':
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
@@ -299,7 +303,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-i", input_files=[],      help="List of input filenames containing raw micrographs or stacks of micrograph frames", required_file=True, gui=dict(filetype="open"), dependent=False)
     pgroup.add_option("-r", raw_reference_file="", help="Raw reference volume - optional", gui=dict(filetype="open"), required=False)
     pgroup.add_option("-g", gain_file="",        help="Gain reference image for movie mode (must be a normalization image!) - optional", gui=dict(filetype="open"), required=False)
-    pgroup.add_option("", is_film=False,         help="Set true if the micrographs have already been contrast inverted, usually when collected on film", required=True)
+    pgroup.add_option("", is_film=False,         help="Set true if the micrographs have already been contrast inverted, usually when collected on film")
     pgroup.add_option("", apix=0.0,              help="Pixel size, Angstroms", gui=dict(minimum=0.0, decimals=4, singleStep=0.1), required=True)
     pgroup.add_option("", voltage=0.0,           help="Electron energy, KeV", gui=dict(minimum=0.0, singleStep=1.0), required=True)
     pgroup.add_option("", cs=0.0,                help="Spherical aberration, mm", gui=dict(minimum=0.0, decimals=2), required=True)
@@ -330,6 +334,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup.add_option("", selection_file="data/local/screen/select.dat",              help="Location of micrograph selection", gui=dict(filetype="open"))
     shrgroup.add_option("", small_micrograph_file="data/local/mic_sm/mic_000000.dat",   help="Location of micrograph selection", gui=dict(filetype="open"))
     shrgroup.add_option("", frame_shift_file="data/local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
+    #shrgroup.add_option("", local_temp="data/temp/",                                    help="Location for temporary files (on local node for MPI)", gui=dict(filetype="open"))
     pgroup.add_option_group(shrgroup)
     # create suffix system? internal database?
     
@@ -371,7 +376,7 @@ def flags():
     
     return dict(description = '''Generate all the scripts and directories for an Arachnid workflow
                                  
-                                 $ %prog micrograph_files* -r raw-reference --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
+                                 $ ara-project micrograph_files* -r raw-reference --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220
                               ''',
                 supports_MPI=False, 
                 supports_OMP=False,
