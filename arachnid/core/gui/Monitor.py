@@ -8,6 +8,7 @@
 '''
 from util.qt4_loader import QtCore, QtGui, qtSignal, qtSlot
 from pyui.Monitor import Ui_Form
+from ..app import tracing
 import logging, os, psutil
 import multiprocessing
 
@@ -153,7 +154,7 @@ class Widget(QtGui.QWidget):
             self.log_text = self.ui.logTextEdit.toPlainText()
             text = ""
             try:
-                text = "".join(open('.ara-control.crash_report.0', 'r').readlines())
+                text = "".join(open(tracing.default_logfile(), 'r').readlines())
             except:
                 _logger.error("Failed to read crash report")
             self.ui.logTextEdit.setPlainText(text)
