@@ -145,13 +145,18 @@ class Widget(QtGui.QWidget):
             self.ui.crashReportToolButton.setEnabled(True)
     
     @qtSlot()
-    def on_crashReportToolButton_toggled(self, checked=False):
+    def on_crashReportToolButton_clicked(self):
         '''
         '''
         
-        if checked:
+        if self.ui.crashReportToolButton.isChecked():
             self.log_text = self.ui.logTextEdit.toPlainText()
-            # show crash report
+            text = ""
+            try:
+                text = "".join(open('.ara-control.crash_report.0', 'r').readlines())
+            except:
+                _logger.error("Failed to read crash report")
+            self.ui.logTextEdit.setPlainText(text)
         else:
             self.ui.logTextEdit.setPlainText(self.log_text)
     
