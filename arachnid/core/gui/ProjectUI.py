@@ -187,7 +187,14 @@ class MainWindow(QtGui.QWizard):
         self.ui.additionalSettingsPage.registerField(self.param('thread_count'), self.ui.threadCountSpinBox)
         self.ui.additionalSettingsPage.registerField(self.param("window"), self, "window")
         self.ui.additionalSettingsPage.registerField(self.param('enable_stderr'), self.ui.enableStderrCheckBox)
-        
+        self.ui.additionalSettingsPage.registerField(self.param("disk_mult"), self, 'sampleShape') 
+        self.ui.additionalSettingsPage.registerField(self.param("overlap_mult"), self, 'sampleDensity')
+        self.ui.additionalSettingsPage.registerField(self.param("threshold_minimum"), self, 'sampleDensityMin')
+        self.ui.sampleShapeComboBox.setItemData(0, 0.6)
+        self.ui.sampleShapeComboBox.setItemData(1, 0.35)
+        self.ui.sampleDensityComboBox.setItemData(0, 1.0)
+        self.ui.sampleDensityComboBox.setItemData(1, 1.2)
+        self.ui.sampleDensityComboBox.setItemData(2, 0.8)
         
         thread_count = 1
         if openmp.is_openmp_enabled():
@@ -221,6 +228,22 @@ class MainWindow(QtGui.QWizard):
             QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html#cmdoption-%s%s"%(program.program_name(), option))
         else:
             QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html")
+    
+    @qtSlot()
+    def on_sampleShapeInfoToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.sampleShapeComboBox.toolTip())
+        self.helpDialog.show()
+    
+    @qtSlot()
+    def on_sampleDensityInfoToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.sampleDensityComboBox.toolTip())
+        self.helpDialog.show()
     
     @qtSlot()
     def on_selectReferenceInformationToolButton_clicked(self):
@@ -299,6 +322,34 @@ class MainWindow(QtGui.QWizard):
             self.parameters.append(name)
         
         return name
+    
+    ########################################################################################################################################
+    ###### Sample controls
+    ########################################################################################################################################
+    
+    def sampleShape(self):
+        '''
+        '''
+        
+        if self.ui.sampleShapeComboBox.count() == 0 or self.ui.sampleShapeComboBox.currentIndex() < 1: return 0.6
+        return float(self.ui.sampleShapeComboBox.itemData(self.ui.sampleShapeComboBox.currentIndex()))
+    sampleShape = qtProperty(float, sampleShape)
+    
+    def sampleDensity(self):
+        '''
+        '''
+        
+        if self.ui.sampleDensityComboBox.count() == 0 or self.ui.sampleDensityComboBox.currentIndex() < 1: return 1.0
+        return float(self.ui.sampleDensityComboBox.itemData(self.ui.sampleDensityComboBox.currentIndex()))
+    sampleDensity = qtProperty(float, sampleDensity)
+    
+    def sampleDensityMin(self):
+        '''
+        '''
+        
+        if self.ui.sampleDensityComboBox.count() == 0 or self.ui.sampleDensityComboBox.currentIndex() < 1: return 25
+        return int(10 if self.ui.sampleDensityComboBox.currentIndex() == 1 else 25)
+    sampleDensityMin = qtProperty(int, sampleDensityMin)
 
     ########################################################################################################################################
     ###### Micrograph filename controls
@@ -327,6 +378,7 @@ class MainWindow(QtGui.QWizard):
         else:
             self.ui.micrographComboBox.lineEdit().setText("")
         self.ui.micrographComboBox.blockSignals(False)
+        self.updateImageInfo()
     
     micrographFiles = qtProperty(str, micrographFiles, setMicrographFiles)
     
@@ -366,7 +418,7 @@ class MainWindow(QtGui.QWizard):
             self.setMicrographFiles(files)
     
     ########################################################################################################################################
-    ###### Gaile filename controls
+    ###### Gain filename controls
     ########################################################################################################################################
     
     def gainFiles(self):
@@ -393,6 +445,7 @@ class MainWindow(QtGui.QWizard):
         else:
             self.ui.gainFileComboBox.lineEdit().setText("")
         self.ui.gainFileComboBox.blockSignals(False)
+        self.updateImageInfo()
     
     gainFiles = qtProperty(str, gainFiles, setGainFiles)
     
@@ -495,7 +548,9 @@ class MainWindow(QtGui.QWizard):
             if p == 'input_files':
                 val = ",".join(val)
             self.setField(p, val)
+        print 'load:', self.idOf(self.ui.fineTunePage)
         self.setStartId(self.idOf(self.ui.fineTunePage))
+        self.restart()
         self.next()
         
     ########################################################################################################################################
@@ -610,6 +665,11 @@ class MainWindow(QtGui.QWizard):
             return
         for key, val in fields.iteritems():
             self.setField(key, val)
+        self.ui.importMessageLabel.setVisible(True)
+        
+    def updateImageInfo(self):
+        '''
+        '''
         self.ui.manualSettingsPage.updateGeometry()
         
         mics = self.micrograph_files
@@ -631,7 +691,7 @@ class MainWindow(QtGui.QWizard):
             data[2][1] = header['count']
             data[3][1] = total
         self.ui.imageStatTableView.model().setData(data)
-        self.ui.importMessageLabel.setVisible(True)
+            
         
 def connect_visible_spin_box(index, signals, slots):
     '''
