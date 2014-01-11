@@ -102,7 +102,6 @@ class TabWidget(QtGui.QTabWidget):
             self.tree_views[group.title]=treeView
             treeView.model().addOptions(group.get_config_options(), group.option_groups, values)
             icon = QtGui.QIcon()
-            #print group.title, treeView.model().totalInvalid()
             if treeView.model().totalInvalid() > 0:
                 icon.addPixmap(QtGui.QPixmap(":/mini/mini/exclamation.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.invalid_count += 1

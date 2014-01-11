@@ -11,12 +11,12 @@ from ..core.app import settings
 from ..core.metadata import spider_utility
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.INFO)
 
 def main():
     # Create GUI and display
     
-    tracing.configure_logging()
+    tracing.configure_logging(log_file='screen.log')
     app = qtapp.create_app()
     if app is None:
         _logger.error("PyQT4 not installed")
@@ -49,9 +49,13 @@ def main():
     else:
         if len(sys.argv) > 1: _logger.info("Ignoring command line arguments - project already loaded")
     mic_files = glob.glob(small_micrograph_file)
+    print 'coordinate_file=', coordinate_file
+    print 'small_micrograph_file=', small_micrograph_file
     coord_files = glob.glob(coordinate_file)
     if len(mic_files) > 0:dialog.setAlternateImage(mic_files[0], True)
+    elif 'small_micrograph_file' in param: dialog.setAlternateImage(param['small_micrograph_file'], True)
     if len(coord_files) > 0:dialog.setCoordinateFile(coord_files[0], True)
+    elif 'coordinate_file' in param: dialog.setCoordinateFile(param['coordinate_file'], True)
     dialog.setSelectionFile(selection_file)
     
     sys.exit(app.exec_())

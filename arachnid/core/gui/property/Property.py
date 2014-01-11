@@ -1251,8 +1251,7 @@ class FilenameProperty(Property):
         '''
         
         if self.filetype == 'file-list':
-            for f in data.split(','):
-                #print f, len(glob.glob(f))
+            for f in data:
                 if len(glob.glob(f)) == 0: return False
         elif self.filetype == 'open':
             if data.find(',') != -1: return False
@@ -1291,13 +1290,11 @@ class FilenameProperty(Property):
                Value to store
         '''
         
-        print '1. FilenameProperty:setValue - ', value
         _logger.debug("setValue Qstring")
         if value is not None: 
-            if value and not self.testValid(value): return False
-            print '2. FilenameProperty:setValue - ', value
+            #if value and not self.testValid(value): 
+            #    return False
             valid = True if value else False
-            print '3. FilenameProperty:setValue - ', value, valid
             Property.setValue(self, value, valid)
     
     def value(self, role = QtCore.Qt.UserRole):
@@ -1314,7 +1311,7 @@ class FilenameProperty(Property):
                 Stored value
         '''
         
-        return str(Property.value(self, role))
+        return Property.value(self, role)
 
 
 

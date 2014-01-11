@@ -265,7 +265,7 @@ class FileDialogWidget(DialogWidget):
         if not os.path.isdir(filename):
             self.path = os.path.dirname(str(filename))
         else: self.path = filename
-        if self.filetype == 'open' and not os.path.exists(filename) and filename != "":
+        if self.filetype == 'open' and not os.path.exists(filename) and filename != "" and 1 == 0:
             self.field.setText("")
             self.showDialog()
         elif self.field.text() != "":

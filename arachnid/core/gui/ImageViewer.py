@@ -332,6 +332,8 @@ class MainWindow(QtGui.QMainWindow):
         template = None
         if self.advanced_settings.alternate_image != "" and self.advanced_settings.load_alternate:
             template = self.advanced_settings.alternate_image
+            if not os.path.exists(template) and hasattr(self.advanced_settings, 'path_prefix'):
+                template = os.path.join(self.advanced_settings.path_prefix, template)
         
         if not drawing.is_available():
             _logger.info("No PIL loaded")
@@ -447,6 +449,8 @@ class MainWindow(QtGui.QMainWindow):
         
         if imgname[1] == 0 and self.advanced_settings.second_image != "":
             second_image = spider_utility.spider_filename(self.advanced_settings.second_image, imgname[0])
+            if not os.path.exists(second_image) and hasattr(self.advanced_settings, 'path_prefix'):
+                second_image = os.path.join(self.advanced_settings.path_prefix, second_image)
             if os.path.exists(second_image):
                 img = read_image(second_image)
                 if hasattr(img, 'ndim'):
@@ -495,7 +499,11 @@ class MainWindow(QtGui.QMainWindow):
             return img
         if self.advanced_settings.coords == "" or not self.advanced_settings.show_coords: return img
         if isinstance(fileid, tuple): fileid=fileid[0]
-        coords=format.read(self.advanced_settings.coords, spiderid=fileid, numeric=True)
+        coords = self.advanced_settings.coords
+        if not os.path.exists(coords) and hasattr(self.advanced_settings, 'path_prefix'):
+            coords = os.path.join(self.advanced_settings.path_prefix, coords)
+        
+        coords=format.read(coords, spiderid=fileid, numeric=True)
         bin_factor=self.advanced_settings.bin_window
         return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor)
     
@@ -549,11 +557,12 @@ class MainWindow(QtGui.QMainWindow):
         
         current_state = self.advancedSettings()
         for state in current_state:
-            if 'gui' in state and 'readonly' in state['gui'] and state['gui']['readonly']:
+            if 'gui' in state and 'readonly' in state['gui'] and state['gui']['readonly'] and 'value' in state['gui']:
                 keys = [key for key in state.keys() if key not in ('gui', 'help')]
                 if len(keys) != 1: raise ValueError, "Cannot find unique key: %s"%str(keys)
+                widget = state['gui']['value']
                 name = keys[0]
-                setattr(self.advanced_settings, name, state[name])
+                setattr(self.advanced_settings, name, widget.value())
     
     def loadReadOnly(self):
         '''

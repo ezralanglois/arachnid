@@ -76,7 +76,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             for propertyClass in Property.PROPERTIES:
                 p = propertyClass.create(option, rindex, option_values, parent=parent)
                 if p is not None: break
-            if p is None: print 'Error', option.dest
+            if p is None: print 'Error', option.dest, getattr(option_values, option.dest)
             assert(p is not None)
             #if p.required: 
             p.propertyValidity.connect(self.firePropertyValidity)
@@ -439,7 +439,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             return "<FONT COLOR=black>"+item.doc+"<FONT>"
         elif role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.DecorationRole or role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0: return item.displayName
-            if index.column() == 1: return item.value(role)
+            if index.column() == 1: return str(item.value(role))
         #if role == QtCore.Qt.BackgroundRole:
         #    if item.isRoot(): return QtGui.QApplication.palette("QTreeView").brush(QtGui.QPalette.Normal, QtGui.QPalette.Button).color()
             '''

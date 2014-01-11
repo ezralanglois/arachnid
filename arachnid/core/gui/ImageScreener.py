@@ -13,6 +13,7 @@
 from ImageViewer import MainWindow as ImageViewerWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot
 from ..metadata import format, spider_utility, relion_utility
+from util import messagebox
 import os, numpy, logging
 #from ..util import relion_selection
 
@@ -48,10 +49,17 @@ class MainWindow(ImageViewerWindow):
         try:
             self.selectfout = open(self.advanced_settings.select_file, 'a')
         except:  
-            path = QtGui.QFileDialog.getExistingDirectory(self.ui.centralwidget, self.tr("Open an existing directory to save the selections"), self.lastpath)
-            if isinstance(path, tuple): path = path[0]
-            self.inifile = os.path.join(path, 'ara_screen.ini')
-            self.advanced_settings.select_file = os.path.join(path, 'ara_view_select.csv')
+            while True:
+                
+                path = QtGui.QFileDialog.getExistingDirectory(self.ui.centralwidget, self.tr("Open an existing directory to save the selections"), os.path.expanduser('~/'))
+                if isinstance(path, tuple): path = path[0]
+                self.inifile = os.path.join(path, 'ara_screen.ini')
+                self.advanced_settings.select_file = os.path.join(path, os.path.basename(self.advanced_settings.select_file))
+                if not os.path.exists(self.advanced_settings.select_file):
+                    break
+                else: 
+                    messagebox.error_message(self, "A model file already exists in this directory! You must run ara-screen in %s"%os.path.dirname(self.advanced_settings.select_file))
+                    
             self.selectfout = open(self.advanced_settings.select_file, 'a')
         self.selectedCount = 0
         self.loadSelections()
@@ -82,6 +90,7 @@ class MainWindow(ImageViewerWindow):
                dict(show_images=('All', 'Selected', 'Unselected'), help="Show images of specified type"),
                dict(relion="", help="Path to a relion selection file", gui=dict(filetype='open')),
                dict(select_file="ara_screen_model.csv", help="Location of output selection file", gui=dict(readonly=True)),
+               dict(path_prefix=str(QtCore.QDir.currentPath()), help="Prefix for the data", gui=dict(readonly=True)),
                ]+ImageViewerWindow.sharedAdvancedSettings(self)
         
     def setup(self):
@@ -127,10 +136,12 @@ class MainWindow(ImageViewerWindow):
         self.file_index = []
         self.selectedCount=0
         fin = open(self.advanced_settings.select_file, 'r')
+        curr_path = self.advanced_settings.path_prefix
         for line in fin:
             if line =="": continue
             if line[0] == '@':
                 f = line[1:].strip()
+                f = os.path.join(curr_path, f)
                 self.updateFileIndex([f])
                 self.files.append(f)
             else:
