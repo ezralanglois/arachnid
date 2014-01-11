@@ -238,6 +238,7 @@ def initialize(files, param):
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)
     _logger.info("Pixel size: %f"%param['apix'])
     _logger.info("Window: %f"%param['window'])
+    _logger.info("Thread Count: %d"%param['thread_count'])
     if os.path.dirname(param['output']) != "" and not os.path.exists(os.path.dirname(param['output'])):
         _logger.info("Creating directory: %s"%os.path.dirname(param['output']))
         try: os.makedirs(os.path.dirname(param['output']))
