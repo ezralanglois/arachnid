@@ -45,7 +45,7 @@ def fcompiler_options():
     
     if issubclass(fcompiler.__class__, PGroupFCompiler):
         openmp_enabled, needs_gomp = detect_openmp()
-        compiler_args = ['-fastsse', '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
+        compiler_args = ['-fastsse', '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse', '-Wtabs']#, '-tp=nehalem-64']
         if openmp_enabled:
             compiler_args.append('-mp=nonuma')
         compiler_libraries = [] if needs_gomp else []

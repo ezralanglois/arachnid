@@ -16,6 +16,7 @@ def select_subset(vals, selection):
            List of records from a relion star file
     selection : dict
                 Selection mapping filename/id to particle id
+    
     :Returns:
     
     vals : list

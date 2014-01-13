@@ -39,7 +39,7 @@ import os, numpy, logging
 #__formats = [star, spiderdoc, spidersel, frealign, mrccoord, csv, prediction]
 __formats = [star, spiderdoc, spidersel, csv, prediction]
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.INFO)
 
 def filters(formats=None):
     '''Get a list file filters from a list of supported formats
