@@ -8,6 +8,7 @@ This module defines a set of common tasks that can be performed in parallel or s
 
 import process_queue
 import logging
+import numpy.ctypeslib
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -110,7 +111,7 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
         if val is None: raise ValueError, "Exception in child process"
         yield val
 
-def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
+def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array_info=None, **extra):
     ''' Iterate over the input value and reduce after finished processing
     '''
     
@@ -118,6 +119,20 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
         yield worker(enumerate(for_func), process_number=0, **extra)
         return
     
+    shmem_map=None
+    if shmem_array_info is not None:
+        shmem_map=[]
+        shmem_map_base=[]
+        for i in xrange(thread_count):
+            base = {}
+            arr = {}
+            for key in shmem_array_info.iterkeys():
+                base[key] = numpy.ctypeslib.as_ctypes(numpy.ctypeslib.as_ctypes(shmem_array_info[key]))
+                arr[key] = numpy.ctypeslib.as_array(base[key])
+                arr[key] = arr[key].reshape(shmem_array_info[key].shape)
+            shmem_map.append(arr)                                  
+            shmem_map_base.append(base)
+        del shmem_array_info
     
     def queue_iterator(qin, process_number):
         try:
@@ -128,9 +143,10 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
         finally:
             _logger.error("queue-done")
     
-    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra):
+    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra, shmem_arr=shmem_map):
         val = None
         try:
+            extra.update(shmem_arr[process_number])
             val = worker(queue_iterator(qin, process_number), process_number=process_number, **extra)
         except:
             _logger.exception("Error in child process")
@@ -138,8 +154,10 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
                 val = qin.get()
                 if val is None: break
         finally:
-            qout.put(val)
-            #qin.get()
+            if shmem_arr is not None:
+                qout.put(process_number)
+            else:
+                qout.put(val)
     
     if queue_limit is None: queue_limit = thread_count*8
     else: queue_limit *= thread_count
@@ -156,6 +174,8 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
     
     for i in xrange(thread_count):
         val = qout.get()
+        if shmem_map is not None:
+            val = shmem_map[val]
         #qin.put(None)
         if val is None: raise ValueError, "Exception in child process"
         yield val

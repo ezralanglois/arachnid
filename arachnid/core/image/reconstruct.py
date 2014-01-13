@@ -51,7 +51,7 @@ def reconstruct3_bp3f_mp(image_size, gen1, gen2, align1=None, align2=None, **ext
           Reconstruction half volume (IF MPI, then only to the root, otherwise None)
     '''
     
-    return reconstruct3_mp(backproject_bp3f, finalize_bp3f, image_size, gen1, gen2, align1, align2, **extra)
+    return reconstruct3_mp(backproject_bp3f, finalize_bp3f, backproject_bp3f_array, image_size, gen1, gen2, align1, align2, **extra)
 
 def reconstruct_bp3f_mp(gen, image_size, align, npad=2, cleanup_fft=True, **extra):
     '''Reconstruct a single volume with the given image generator and alignment
@@ -76,7 +76,7 @@ def reconstruct_bp3f_mp(gen, image_size, align, npad=2, cleanup_fft=True, **extr
           Reconstruction volume (IF MPI, then only to the root, otherwise None)
     '''
     
-    fftvol, weight = reconstruct_fft(backproject_bp3f, gen, image_size, align, npad, **extra)
+    fftvol, weight = reconstruct_fft(backproject_bp3f, backproject_bp3f_array, gen, image_size, align, npad, **extra)
     if mpi_utility.is_root(**extra): return finalize_bp3f(fftvol, weight, image_size, cleanup_fft)
 
 def finalize_bp3f(fftvol, weight, image_size, cleanup_fft):
@@ -92,19 +92,15 @@ def finalize_bp3f(fftvol, weight, image_size, cleanup_fft):
         return vol
     if cleanup_fft: _spider_reconstruct.cleanup_bp3f()
     
-def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_image=None, psi='psi', theta='theta', phi='phi', **extra):
+def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_image=None, psi='psi', theta='theta', phi='phi', forvol=None, weight=None, **extra):
     '''
     '''
     
     try:
-        try:
-            pad_size = image_size*npad
-        except:
-            _logger.error("image_size: %s | npad: %s"%(str(image_size), str(npad)))
-            raise
+        pad_size = image_size*npad
         tabi = numpy.zeros(4999, dtype=numpy.float32)
-        forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
-        weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=tabi.dtype)
+        if forvol is None: forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
+        if weight is None: weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=tabi.dtype)
         
         _spider_reconstruct.setup_bp3f(tabi, pad_size)
         if len(align) > 0 and hasattr(align[0], psi):
@@ -121,6 +117,13 @@ def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_ima
         _logger.exception("Error in backproject worker")
         raise
     return forvol, weight
+
+def backproject_bp3f_array(image_size, npad=2, **extra):
+    ''' Get the shape of the Fourier volume use for backprojection
+    '''
+    
+    pad_size = image_size*npad
+    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.float32))
 
 def reconstruct3_bp3n_mp(image_size, gen1, gen2, align1=None, align2=None, **extra):
     '''Reconstruct three volumes using BP3F
@@ -150,7 +153,7 @@ def reconstruct3_bp3n_mp(image_size, gen1, gen2, align1=None, align2=None, **ext
           Reconstruction half volume (IF MPI, then only to the root, otherwise None)
     '''
     
-    return reconstruct3_mp(backproject_bp3n, finalize_bp3n, image_size, gen1, gen2, align1, align2, **extra)
+    return reconstruct3_mp(backproject_bp3n, finalize_bp3n, backproject_bp3n_array, image_size, gen1, gen2, align1, align2, **extra)
 
 def reconstruct_bp3n_mp(gen, image_size, align, npad=2, cleanup_fft=True, **extra):
     '''Reconstruct a single volume with the given image generator and alignment
@@ -172,7 +175,7 @@ def reconstruct_bp3n_mp(gen, image_size, align, npad=2, cleanup_fft=True, **extr
     '''
     
     
-    fftvol, weight = reconstruct_fft(backproject_bp3n, gen, image_size, align, npad, **extra)
+    fftvol, weight = reconstruct_fft(backproject_bp3n, backproject_bp3n_array, gen, image_size, align, npad, **extra)
     if mpi_utility.is_root(**extra): return finalize_bp3n(fftvol, weight, image_size, cleanup_fft)
     
 def finalize_bp3n(fftvol, weight, image_size, cleanup_fft):
@@ -186,14 +189,14 @@ def finalize_bp3n(fftvol, weight, image_size, cleanup_fft):
         return vol
     if cleanup_fft: _spider_reconstruct.cleanup_nn4f()
 
-def backproject_bp3n(gen, image_size, align, process_number, npad=2, **extra):
+def backproject_bp3n(gen, image_size, align, process_number, npad=2, forvol=None, weight=None, **extra):
     '''
     '''
     
     try:
         pad_size = image_size*npad
-        forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
-        weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.int32)
+        if forvol is None: forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
+        if weight is None: weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.int32)
         
         for i, img in gen:
             a = align[i]
@@ -203,7 +206,14 @@ def backproject_bp3n(gen, image_size, align, process_number, npad=2, **extra):
         raise
     return forvol, weight
 
-def reconstruct3_mp(backproject, finalize, image_size, gen1, gen2, align1=None, align2=None, npad=2, cleanup_fft=True, **extra):
+def backproject_bp3n_array(image_size, npad=2, **extra):
+    ''' Get the shape of the Fourier volume use for backprojection
+    '''
+    
+    pad_size = image_size*npad
+    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.int32))
+
+def reconstruct3_mp(backproject, finalize, make_array, image_size, gen1, gen2, align1=None, align2=None, npad=2, cleanup_fft=True, **extra):
     '''Reconstruct three volumes using BP3F
     
     :Parameters:
@@ -235,10 +245,10 @@ def reconstruct3_mp(backproject, finalize, image_size, gen1, gen2, align1=None, 
     
     if mpi_utility.get_size(**extra) > 100 and 1 == 0:
         rank = mpi_utility.get_rank(**extra)
-        recon = reconstruct_fft(backproject, gen1, image_size, align1, npad, **extra)#, root=1
+        recon = reconstruct_fft(backproject, make_array, gen1, image_size, align1, npad, **extra)#, root=1
         #mpi_utility.send_to_root(recon[0], 1, **extra)
         #mpi_utility.send_to_root(recon[1], 1, **extra)
-        recon1 = reconstruct_fft(backproject, gen2, image_size, align2, npad, **extra)#, root=2
+        recon1 = reconstruct_fft(backproject, make_array, gen2, image_size, align2, npad, **extra)#, root=2
         #mpi_utility.send_to_root(recon1[0], 2, **extra)
         #mpi_utility.send_to_root(recon1[1], 2, **extra)
         hvol1, hvol2 = None, None
@@ -259,9 +269,9 @@ def reconstruct3_mp(backproject, finalize, image_size, gen1, gen2, align1=None, 
         mpi_utility.send_to_root(hvol2, 2, **extra)
     else:
         _logger.info("Started back projection of %d even projections with %d threads on node %s"%(len(align1), extra['thread_count'], mpi_utility.hostname()))
-        recon = reconstruct_fft(backproject, gen1, image_size, align1, npad, **extra)
+        recon = reconstruct_fft(backproject, make_array, gen1, image_size, align1, npad, **extra)
         _logger.info("Started back projection of %d odd projections with %d threads on node %s"%(len(align1), extra['thread_count'], mpi_utility.hostname()))
-        recon1 = reconstruct_fft(backproject, gen2, image_size, align2, npad, **extra)
+        recon1 = reconstruct_fft(backproject, make_array, gen2, image_size, align2, npad, **extra)
         
         if mpi_utility.is_root(**extra):
             #_logger.error("finalize-1-full")
@@ -276,7 +286,7 @@ def reconstruct3_mp(backproject, finalize, image_size, gen1, gen2, align1=None, 
             finalize(None, None, 0, cleanup_fft)
         return None
 
-def reconstruct_fft(backproject, gen, image_size, align, npad=2, **extra):
+def reconstruct_fft(backproject, backproject_array, gen, image_size, align, npad=2, **extra):
     '''Reconstruct a single volume with the given image generator and alignment file.
     
     :Parameters:
@@ -301,7 +311,11 @@ def reconstruct_fft(backproject, gen, image_size, align, npad=2, **extra):
     '''
     
     fftvol, weight = None, None
-    for v, w in process_tasks.iterate_reduce(gen, backproject, align=align, npad=npad, image_size=image_size, **extra):
+    for val in process_tasks.iterate_reduce(gen, backproject, align=align, npad=npad, image_size=image_size, shmem_array_info=backproject_array(image_size, npad), **extra):
+        if isinstance(val, tuple): v, w = val
+        elif isinstance(val, dict):
+            v, w = val['forvol'], val['weight']
+        else: raise ValueError, "iterate_reduce must return dict or tuple"
         if fftvol is None:
             fftvol = v
             weight = w
