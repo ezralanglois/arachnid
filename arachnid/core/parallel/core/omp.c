@@ -5,9 +5,12 @@
 #include <omp.h>
 #endif
 
-#ifdef _SCIPY_MKL_H
-#include "mkl_service.h"
+#ifdef SCIPY_MKL_H_SKIP
+//#include "mkl_service.h"
+void mkl_set_num_threads( int nt );
 #endif
+
+#include <stdio.h>
 
 char py_set_num_threads_doc[] =
     "Set the number of threads for OpenMP to use";
@@ -18,8 +21,7 @@ static PyObject* py_set_num_threads(PyObject *obj, PyObject *args)
 #	ifdef _OPENMP
     if (thread_count < 1) thread_count = 1;
 	omp_set_num_threads(thread_count);
-#		ifdef _SCIPY_MKL_H
-		fprintf(stderr, 'called\n');
+#		ifdef SCIPY_MKL_H_SKIP
 		mkl_set_num_threads(thread_count);
 #		endif
 #	endif

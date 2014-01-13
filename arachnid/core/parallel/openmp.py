@@ -15,6 +15,12 @@ except:
     from ..app import tracing
     tracing.log_import_error("Failed to import OpenMP module - certain functionality will not be available", _logger)
     _omp = None
+
+try: 
+    import mkl
+    mkl;
+except:
+    mkl=None
     
 def is_openmp_enabled():
     ''' Test if OpenMP is enabled
@@ -38,6 +44,7 @@ def set_thread_count(thread_count):
                    Number of threads to be used by OpenMP
     '''
     
+    if mkl is not None: mkl.set_num_threads(thread_count)
     _omp.set_num_threads(thread_count)
 
 def get_max_threads():
