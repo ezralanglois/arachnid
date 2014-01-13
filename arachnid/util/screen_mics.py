@@ -38,7 +38,8 @@ def process(filename, output, bin_factor, sigma, film, clamp_window, window=0, i
     if sigma > 0.0 and window > 0:
         mic = ndimage_filter.gaussian_highpass(mic, sigma/(window), 2)
     if not film: ndimage_utility.invert(mic, mic)
-    ndimage_utility.replace_outlier(mic, clamp_window, out=mic)
+    if clamp_window > 0:
+        ndimage_utility.replace_outlier(mic, clamp_window, out=mic)
     ndimage_file.write_image(output, mic)
     return filename
 
