@@ -180,7 +180,7 @@ import numpy, os, logging, operator, glob
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, relion2spider=False, frame_stack_file="", **extra):
+def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extra):
     '''Generate a relion selection file
     
     :Parameters:
@@ -216,7 +216,13 @@ def batch(files, relion2spider=False, frame_stack_file="", **extra):
         
         # file contains
         print_stats(vals, **extra)
-        if extra['output'] != "":
+        
+        if renormalize > 0:
+            _logger.info("Renormalizing images to diameter of %f"%(renormalize))
+            vals = renormalize_images(vals, renormalize, **extra)
+            extra['output']='data_norm.star'
+            select_class_subset(vals, **extra)
+        elif extra['output'] != "":
             vals = select_good(vals, **extra)
             reindex_stacks(vals, **extra)
             # output file contains
@@ -822,7 +828,7 @@ def create_movie_old(vals, frame_stack_file, output, frame_limit=0, **extra):
     header.append('rlnParticleName')
     format.write(output, frame_vals, header=header)
 
-def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", **extra):
+def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -832,12 +838,26 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
     output : str
              Filename for output selection file
     random_subset : int
-                    Generate the specified number of random subsets\
+                    Generate the specified number of random subsets
     restart : bool
               If True, then output only minimum header
     extra : dict
             Unused key word arguments
+    
     '''
+    
+    
+    if reindex_file != "":
+        last=-1
+        idlen = len(str(len(vals)))
+        for i in xrange(len(vals)):
+            filename,pid1 = relion_utility.relion_file(vals[i].rlnImageName)
+            if last != filename:
+                index = format.read(reindex_file, spiderid=filename, numeric=True)
+                index = dict([(val.id, i+1) for i, val in enumerate(index)])
+                last=filename
+            pid = index[pid1]
+            vals[i] = vals[i]._replace(rlnImageName="%s@%s"%(str(pid).zfill(idlen), filename))
     
     subset=vals
     if os.path.splitext(output)[1] == '.star':
@@ -924,6 +944,43 @@ def reindex_stacks(subset, reindex=False, **extra):
         if filename not in idmap: idmap[filename]=0
         idmap[filename] += 1
         subset[i] = subset[i]._replace(rlnImageName=relion_utility.relion_identifier(filename, idmap[filename]))
+
+def renormalize_images(vals, pixel_radius, apix, output, invert=False, **extra):
+    ''' Renormalize a set of images in-place
+    
+    :Parameters:
+    
+    vals : list
+           List of entries from a selection file
+    pixel_radius : float
+                   Radius of the mask in angstroms
+    apix : float
+           Radius of the mask in angstroms
+    output : str
+             Output filename for image
+    extra : dict
+            Unused key word arguments
+    
+    '''
+    
+    pixel_radius = int(pixel_radius/apix)
+    filename, index = relion_utility.relion_file(vals[0].rlnImageName)
+    img = ndimage_file.read_image(filename, index)
+    mask = ndimage_utility.model_disk(int(pixel_radius/2), img.shape)*-1+1
+    new_vals = []
+    idmap={}
+    for v in vals:
+        filename, index = relion_utility.relion_file(v.rlnImageName)
+        img = ndimage_file.read_image(filename, index-1)
+        if img.shape[0] != mask.shape[0]:
+            _logger.error("Image does not match mask (%d != %d) - %s"%(img.shape[0], mask.shape[0], filename))
+        ndimage_utility.normalize_standard(img, mask, True, img)
+        if filename not in idmap: idmap[filename]=0
+        if invert: ndimage_utility.invert(img, img)
+        ndimage_file.write_image(spider_utility.spider_filename(output, filename), img, idmap[filename])
+        idmap[filename] += 1
+        new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
+    return new_vals
 
 def downsample_images(vals, downsample=1.0, param_file="", **extra):
     ''' Downsample images in Relion selection file and update
@@ -1030,7 +1087,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("",   reindex_file="",                 help="Reindex file for running movie mode on a subset of selected particles in a stack", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
-    group.add_option("-d", '--ctf-file', defocus_file="",                 help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
+    group.add_option("-d", '--ctf-file', defocus_file="",   help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
     group.add_option("-m", minimum_group=50,                help="Minimum number of particles per defocus group (regroups using the micrograph name)", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
@@ -1047,8 +1104,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")
     group.add_option("",   downsample=1.0,                  help="Downsample the windows - create new selection file pointing to decimate stacks")
     group.add_option("",   restart=False,                   help="Outputs minimum Relion file to restart refinement from the beginning")
-    #group.add_option("",   reindex=False,                   help="Reindex the relion selection file - necessary when recropping with a particle selection file")
-    #group.add_option("",   relion2spider=False,             help="Convert a relion selection file to a set of SPIDER refinement file")
+    group.add_option("",   renormalize=0.0,                 help="Diameter of mask in angstroms - overwrites old images with renormalized images")
+    group.add_option("",   apix=1.0,                        help="Pixel size of the particle")
+    group.add_option("",   invert=False,                    help="Invert the images")
     
     pgroup.add_option_group(group)
     if main_option:
