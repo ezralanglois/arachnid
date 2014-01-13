@@ -1,6 +1,6 @@
 ''' Clean particle selection with the view classifier or ViCer
 
-This script (`ara-autoclean`) was designed to post clean an existing particle selection. It requires
+This script (`ara-vicer`) was designed to post clean an existing particle selection. It requires
 that the projections be grouped by view as well as 2D alignment parameters. This can be obtained by
 2D-reference free classification or 3D orientation determination.
 
@@ -20,12 +20,12 @@ Examples
     
     # Run with a disk as a template on a raw film micrograph
     
-    $ ara-autoclean -i image_file_0001.spi -a align_file.spi -o output/clean_000.spi -p params.spi -w 10
+    $ ara-vicer -i image_file_0001.spi -a align_file.spi -o output/clean_000.spi -p params.spi -w 10
 
 Critical Options
 ================
 
-.. program:: ara-autoclean
+.. program:: ara-vicer
 
 .. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
     
@@ -52,7 +52,7 @@ Useful Options
 
 These options 
 
-.. program:: ara-autoclean
+.. program:: ara-vicer
 
 .. option:: --order <INT>
     
@@ -79,7 +79,7 @@ Customization Options
 
 Generally, these options do not need to be changed, unless you are giving the program a non-standard input.
 
-.. program:: ara-autoclean
+.. program:: ara-vicer
     
 .. option:: --disable-rtsq <BOOL>
 
@@ -94,7 +94,7 @@ Testing Options
 
 Generally, these options do not need to be considered unless you are developing or testing the code.
 
-.. program:: ara-autoclean
+.. program:: ara-vicer
     
 .. option:: --single-view <INT>
 
@@ -131,14 +131,14 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, analysis, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
+from ..core.image import ndimage_file, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
 from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
 from ..core.metadata import relion_utility
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix, orient_utility
-import logging, numpy, scipy, scipy.cluster.vq, scipy.spatial.distance
-from sklearn.covariance import MinCovDet, EmpiricalCovariance
-import scipy.stats
+from ..core.learn import unary_classification
+from ..core.learn import dimensionality_reduction
+import logging, numpy, scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -209,7 +209,7 @@ def embed_sample(samp, neig, expected, niter=5, **extra):
            2D array where each row is a compressed image and each column a factor
     '''
     
-    eigv, feat=analysis.dhr_pca(samp, samp, neig, expected, True, niter)
+    eigv, feat=dimensionality_reduction.dhr_pca(samp, samp, neig, expected, True, niter)
     _logger.info("Eigen: %s"%(",".join([str(v) for v in eigv[:10]])))
     tc=eigv.cumsum()
     _logger.info("Eigen-cum: %s"%(",".join([str(v) for v in tc[:10]])))
@@ -243,14 +243,8 @@ def one_class_classification(feat, neig, nsamples, prob_reject, **extra):
     '''
 
     feat=feat[:, :neig]
-    try:
-        robust_cov = MinCovDet().fit(feat)
-    except:
-        robust_cov = EmpiricalCovariance().fit(feat)
-    dist = robust_cov.mahalanobis(feat - numpy.median(feat, 0))
-    cut = scipy.stats.chi2.ppf(prob_reject, feat.shape[1])
-    sel =  dist < cut
-    _logger.debug("Cutoff: %d -- for df: %d | sel: %d"%(cut, feat.shape[1], numpy.sum(sel)))
+    sel, dist = unary_classification.mahalanobis_with_chi2(feat, prob_reject, True)
+    #_logger.debug("Cutoff: %d -- for df: %d | sel: %d"%(cut, feat.shape[1], numpy.sum(sel)))
     if nsamples > 1:
         rsel = numpy.ones(int(feat.shape[0]/nsamples), dtype=numpy.bool)
         for i in xrange(rsel.shape[0]):
