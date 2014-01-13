@@ -19,6 +19,14 @@ is given in :doc:`attribution<docs/attribution>`.
 This software is under development by the `Frank Lab`_ and is licensed under :doc:`GPL 2.0 <license>` 
 or later.
 
+.. raw:: html
+
+	<a class="btn btn-lg btn-success" href="#" role="button">Download</a></p>
+
+.. class:: btn
+
+`Frank Lab`_
+
 Table of Contents
 ==================
 

@@ -1,5 +1,19 @@
 {% extends "!layout.html" %}
 
+{#
+    arachnid/layout.html
+    ====================
+
+    Sphinx layout template for the arachnid package.
+
+#}
+
+{#
+
+{% set css_files = css_files + ['_static/nature_fixed.css', '_static/css/bootstrap.min.css'] %}
+{% set script_files = script_files + ["http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js", '_static/simple-expand.js', '_static/js/bootstrap.min.js'] %}
+#}
+
 {% set css_files = css_files + ['_static/nature_fixed.css'] %}
 {% set script_files = script_files + ["http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js", '_static/simple-expand.js'] %}
 
@@ -11,6 +25,13 @@ $(document).ready(function(){
 });
 </script>
     
+{% endblock %}
+
+{% block body %}
+{{ super() }}
+<script type="text/javascript">
+$('.image-reference').simpleexpand();
+</script>
 {% endblock %}
 
 {% block sidebarlogo %}

@@ -18,10 +18,15 @@ Quick Start
 	.. sourcecode:: sh
 	
 		$ ara-control
+
+Introduction
+------------
 	
-#. This command opens the following window.
+The first page in the workflow wizard gives the user basic information
+concerning the software including contributions made by people and funding
+agencies.
 	
-	.. image:: images/wizard_000.png
+	.. image:: images/wizard_screen_shot_0000.png
 		:scale: 20%
 		:target: content_
 
@@ -29,11 +34,15 @@ Quick Start
 
 	.. container:: content
 		
-		.. image:: images/wizard_000.png
+		.. image:: images/wizard_screen_shot_0000.png
+		
+Import Prompt
+-------------
 
-#. You will then be asked whether you wish to automatically import or manually enter certain information describing your experiment.
+Next, the user is asked whether they wish to automatically import or manually enter information 
+describing the experiment.
 
-	.. image:: images/wizard_010.png
+	.. image:: images/wizard_screen_shot_0010.png
 		:scale: 20%
 		:target: content02_
 
@@ -41,58 +50,206 @@ Quick Start
 
 	.. container:: content
 		
-		.. image:: images/wizard_010.png
+		.. image:: images/wizard_screen_shot_0010.png
 
-#. Assuming you choose to import from the leginon database and **this is your first time**, then you will see the following page:
+Leginon Database Import
+-----------------------
 
-	This page asks you for the following information, which you will need to obtain from
-	your systems administrator:
+If the user elects to import information from the Leginon database, then they will see the following page.
+
+Leginon Account
+~~~~~~~~~~~~~~~
+
+This page asks you for the following information, which the user may need to obtain from
+their systems administrator:
 	
-		- Hostname or IP Address for Leginon Primary Database followed by name of the database
-		- Hostname or IP Address of Leginon Project Database followed by name of the database
-		- Leginon Credentials (You should know this)
-		- Database Credentials
+	- Hostname or IP Address for Leginon Primary Database followed by name of the database
+	- Hostname or IP Address of Leginon Project Database followed by name of the database
+	- Leginon Credentials (You should know this)
+	- Database Credentials
 
-	.. image:: images/wizard_022.png
-		:scale: 20%
-		:target: content03_
+.. image:: images/wizard_screen_shot_0022.png
+	:scale: 20%
+	:target: content03_
 
-	.. _content03:
+.. _content03:
 
-	.. container:: content
-		
-		.. image:: images/wizard_022.png
-
-#. Once you have successfully logged into the Leginon Database, then you should see the following page:
-
-	If this is not your first time, then you should see this page first.
+.. container:: content
 	
-	Note that the last session for which you collected data should be displayed. You can
-	view more by increasing the number shown and then clicking the refresh button.
+	.. image:: images/wizard_screen_shot_0022.png
 
-	.. image:: images/wizard_021.png
-		:scale: 20%
-		:target: content04_
+Leginon Sessions
+~~~~~~~~~~~~~~~~
 
-	.. _content04:
+Once you have successfully logged into the Leginon Database, then the following page will be displayed:
 
-	.. container:: content
-		
-		.. image:: images/wizard_021.png
+Note that, If this is not your first time, then you should see this page first.
 
-#. You must select at least one session to process before you can continue.
+Note that the last session for which you collected data should be displayed. You can
+view more by increasing the number shown and then clicking the refresh button.
 
-	.. image:: images/wizard_020.png
-		:scale: 20%
-		:target: content05_
+.. image:: images/wizard_screen_shot_0020.png
+	:scale: 20%
+	:target: content04_
 
-	.. _content05:
+.. _content04:
 
-	.. container:: content
-		
-		.. image:: images/wizard_020.png
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0020.png
 
-Next
+Manual Settings
+---------------
+
+After selecting a session from Leginon or skipping the database import, the next page asks the user
+to enter the following information:
+
+	- File path for the micrograph exposures (either single images or stacks)
+	- Gain normalization image (only used for movie-mode stacks)
+	- Contrast inversion
+	- Microscope parameters
+		- Pixel size (1/angstroms)
+		- Voltage aka High tension (kV)
+		- Spherical Abberation aka CS (mm)
+	
+.. image:: images/wizard_screen_shot_0030.png
+	:scale: 20%
+	:target: content06_
+
+.. _content06:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0030.png
+
+Reference Prompt
+----------------
+
+Next the user is asked whether they wish to preprocess a volume to use as a
+reference. The reference generation script will ensure the volume as the 
+proper window size and pixel size as well as filtering it to a low resolution.
+
+.. image:: images/wizard_screen_shot_0040.png
+	:scale: 20%
+	:target: content07_
+
+.. _content07:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0040.png
+
+Reference Generation
+--------------------
+
+EMDB Download
+~~~~~~~~~~~~~
+
+The user is given the option of downloading a volume from the EMDB.
+
+.. note::
+	
+	If you already have a volume, then you can select the `Local File` tab
+
+The user has the option of selecting one of the "canned" volumes displayed in the list by double clicking
+on the icon. Otherwise, the user can enter an EMDB accession number into the text box below.
+
+The user then has the option of viewing the EMDB page associated with the accession number using
+the world link button.
+
+When the user has selected the appropriate volume, the user can then click the download button.
+
+.. note::
+
+	It can take some time to download the map, don't panic.
+
+.. image:: images/wizard_screen_shot_0052.png
+	:scale: 20%
+	:target: content08_
+
+.. _content08:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0052.png
+
+Local File
+~~~~~~~~~~
+
+After the user downloads a volume or the user opted to go directly to the local file page.
+
+Here, the user can verify or must enter the current Pixel Size for the volume (not the target pixel size
+corresponding to your data!).
+	
+.. image:: images/wizard_screen_shot_0050.png
+	:scale: 20%
+	:target: content09_
+
+.. _content09:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0050.png
+
+Additional Parameters
+---------------------
+
+The user is then prompted to enter information describing both the macromolecule of interest, 
+a qualititative assessment of the particle crowding on the micrograph and the amount of 
+processing power they wish to use.
+
+.. image:: images/wizard_screen_shot_0060.png
+	:scale: 20%
+	:target: content10_
+
+.. _content10:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0060.png
+
+Review Parameters
+-----------------
+
+The user is next asked to review the settings of the individual progams. Generally, this
+will only be used by advanced users that understand how each parameter affects the underlying
+steps in the workflow.
+
+.. image:: images/wizard_screen_shot_0070.png
+	:scale: 20%
+	:target: content11_
+
+.. _content11:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0070.png
+	
+Run the Workflow
+----------------
+
+Finally, the user is present with the workflow monitor. The user can start
+the processing and then monitor its progress from this screen.
+
+.. note::
+
+	The user cannot kill the workflow by closing the window to clicking
+	the stop button.
+
+Restarting the `ara-control` script in the original directory it was run allows the user
+to continue montoring the progress from the same or a different computer.
+
+.. image:: images/wizard_screen_shot_0080.png
+	:scale: 20%
+	:target: content12_
+
+.. _content12:
+
+.. container:: content
+	
+	.. image:: images/wizard_screen_shot_0080.png
+
+
 
 Tips
 ====
@@ -140,5 +297,5 @@ Alternative
 ===========
 
 You may alternatively wish to run everything from the command line. This is covered in the 
-:ref:`Command-line Protocol <reconstruction_cmdline>`.
+:doc:`Command-line Protocol <reconstruction_cmdline>`.
 

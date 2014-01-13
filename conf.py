@@ -30,6 +30,10 @@ Todo for Launch
 #import sys, os
 import arachnid
 
+
+
+
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -117,7 +121,17 @@ pygments_style = 'sphinx'
 # Sphinx are currently 'default' and 'sphinxdoc'.
 #html_theme = 'haiku'
 #html_theme = 'agogo'
-html_theme = 'nature'
+if 1 == 1:
+    html_theme = 'nature'
+    html_theme_options = {
+    #"nosidebar": "true"
+    }
+else:
+    html_theme = 'bootstrap'
+    import sphinx_bootstrap_theme
+    html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+    html_theme_options = {
+    }
 
 html_show_sphinx=False
 
@@ -194,7 +208,11 @@ todo_include_todos = False
 
 
 # todo glob for all inc files
-rst_epilog = "" #"".join(open('docs/include/option_details.inc').readlines())
+rst_epilog = '''
+.. |pys| replace:: pySPIDER
+.. |spi| replace:: pySPIDER
+'''
+ #"".join(open('docs/include/option_details.inc').readlines())
 
 
 # -- Options for LaTeX output --------------------------------------------------
