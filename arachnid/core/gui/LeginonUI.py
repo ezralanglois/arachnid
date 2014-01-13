@@ -1,9 +1,5 @@
 '''
 
-.. todo:: Combine sessions?
-
-.. todo:: Check mag?
-
 
 .. Created on Dec 4, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -418,17 +414,7 @@ def load_images_iter(sessions):
                 yield total
     yield images
 
-'''
-def load_projects_iter(user, limit):
-    
-    _logger.exception("load_projects_iter-1")
-    experiments = []#user.projects[0].experiments
-    projects = user.projects
-    for i in xrange(len(projects)):
-        experiments.extend(projects[i].experiments)
-    #header=['Session', 'Project', 'Images', 'Voltage', 'Pixel Size', 'Magnification', 'CS']
-    if len(experiments) > limit: experiments = experiments[:limit]
-'''
+
 def load_projects_iter(experiments):
     yield (len(experiments), )
     rows=[]
@@ -436,8 +422,8 @@ def load_projects_iter(experiments):
         session = exp.session
         project=session.projects[0]
         if len(session.exposures) == 0: continue
-        voltage = session.scope.voltage/1000
-        cs = session.scope.instrument.cs*1e3 if session.scope.instrument is not None else -1.0
+        voltage = session.scopes[0].voltage/1000
+        cs = session.scopes[0].instrument.cs*1e3 if session.scopes[0].instrument is not None else -1.0
         magnification = session.exposures[0].scope.magnification
         pixel_size = session.exposures[0].pixelsize*1e10
         filename = str(session.exposures[0].mrcimage)

@@ -1,12 +1,7 @@
-'''
-
-- Settings
-- Monitor
-- Image viewer
-
+''' Help Dialog
 
 .. Created on Sep 5, 2013
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.HelpUI import Ui_Dialog
 from util.qt4_loader import QtGui, QtCore #, qtSlot,QtWebKit

@@ -16,7 +16,7 @@
     :toctree: api_generated/
     :template: api_module.rst
     
-    AutoGUI
+    ImageScreener
 
 :mod:`arachnid.core.gui.model`
 ================================

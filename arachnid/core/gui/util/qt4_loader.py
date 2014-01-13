@@ -27,9 +27,9 @@ try:
     qtSlot= QtCore.Slot
     qtProperty= QtCore.Property
 except ImportError:
-    print 'Import error for pyside'
+    #print 'Import error for pyside'
     #pass
-    """
+    
     import sip
     sip.setapi('QString', 2)
     sip.setapi('QVariant', 2)
@@ -48,4 +48,4 @@ except ImportError:
     qtSignal=QtCore.pyqtSignal
     qtSlot= QtCore.pyqtSlot
     qtProperty= QtCore.pyqtProperty
-    """
+    

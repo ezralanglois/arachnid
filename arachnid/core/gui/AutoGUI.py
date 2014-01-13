@@ -1,12 +1,7 @@
-'''
-
-- Settings
-- Monitor
-- Image viewer
-
+''' Configuration file editor GUI
 
 .. Created on Sep 5, 2013
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.AutoGUI import Ui_Dialog
 from SettingsEditor import TabWidget
