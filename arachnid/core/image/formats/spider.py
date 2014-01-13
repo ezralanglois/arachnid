@@ -274,7 +274,7 @@ def read_image(filename, index=None, header=None):
         offset = h_len*2 + index * (h_len+i_len) if int(h['istack']) > 0 else h_len
         if count > 1 or h['istack'] == 2:
             if file_size(f) != (h_len + count * (h_len+i_len)): 
-                raise ValueError, "file size != header: %d != %d - %d -- %d,%d,%d"%(file_size(f), (h_len + count * (h_len+i_len)), count, int(h['nx']), int(h['ny']), int(h['nz']))
+                raise ValueError, "file size != header: %d != %d - count: %d -- nx:%d,ny:%d,nz:%d"%(file_size(f), (h_len + count * (h_len+i_len)), count, int(h['nx']), int(h['ny']), int(h['nz']))
         else:
             if file_size(f) != (h_len + count * i_len): 
                 f.seek(h_len + index * (h_len+i_len))
@@ -412,7 +412,7 @@ def is_writable(filename):
     ext = os.path.splitext(filename)[1][1:].lower()
     return ext == 'spi'
 
-def write_image(filename, img, index=None, header=None):
+def write_image(filename, img, index=None, header=None, inplace=False):
     ''' Write an image array to a file in the MRC format
     
     :Parameters:
@@ -425,6 +425,8 @@ def write_image(filename, img, index=None, header=None):
             Index to write image in the stack
     header : dict, optional
              Dictionary of header values
+    inplace : bool
+              Write new image to stack without removing the stack
     '''
     
     #float64
@@ -435,7 +437,7 @@ def write_image(filename, img, index=None, header=None):
     try: img = img.astype(dtype)
     except: raise TypeError, "Unsupported type for SPIDER writing: %s"%str(img.dtype)
     
-    mode = 'rb+' if index is not None and index > 0 else 'wb+'
+    mode = 'rb+' if index is not None and (index > 0 or inplace and index > -1) else 'wb+'
     try:
         f = util.uopen(filename, mode)
     except:
@@ -481,16 +483,19 @@ def write_image(filename, img, index=None, header=None):
         for name, idx in _header_map.iteritems(): 
             fheader[idx-1]=float(header[name])
         
-        if index is not None:
-            fheader[_header_map['maxim']-1] = index+1
-            fheader[_header_map['imgnum']-1] = index+1
-            fheader[_header_map['istack']-1] = 2
-            
-            f.seek(0)
+        if inplace:
+            f.seek(index * (imgsize + headsize)+headsize+headsize)
+        else:
+            if index is not None:
+                fheader[_header_map['maxim']-1] = index+1
+                fheader[_header_map['imgnum']-1] = index+1
+                fheader[_header_map['istack']-1] = 2
+                
+                f.seek(0)
+                fheader.tofile(f)
+                fheader[_header_map['istack']-1] = 0
+                f.seek(index * (imgsize + headsize)+headsize)
             fheader.tofile(f)
-            fheader[_header_map['istack']-1] = 0
-            f.seek(index * (imgsize + headsize)+headsize)
-        fheader.tofile(f)
         img.tofile(f)
     finally:
         util.close(filename, f)

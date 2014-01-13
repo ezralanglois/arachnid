@@ -516,7 +516,7 @@ def is_writable(filename):
            ext == 'ccp4' or \
            ext == 'map'
 
-def write_image(filename, img, index=None, header=None):
+def write_image(filename, img, index=None, header=None, inplace=False):
     ''' Write an image array to a file in the MRC format
     
     :Parameters:
@@ -529,6 +529,8 @@ def write_image(filename, img, index=None, header=None):
             Index to write image in the stack
     header : dict, optional
              Dictionary of header values
+    inplace : bool
+              Write new image to stack without removing the stack
     '''
     
     if header is None and hasattr(img, 'header'): header=img.header
@@ -536,7 +538,7 @@ def write_image(filename, img, index=None, header=None):
     except:
         raise TypeError, "Unsupported type for MRC writing: %s"%str(img.dtype)
     
-    mode = 'rb+' if index is not None and index > 0 else 'wb+'
+    mode = 'rb+' if index is not None and (index > 0 or inplace and index > -1) else 'wb+'
     f = util.uopen(filename, mode)
     if header is None or not hasattr(header, 'dtype') or not is_format_header(header):
         h = numpy.zeros(1, header_image_dtype)
@@ -584,7 +586,9 @@ def write_image(filename, img, index=None, header=None):
             #header['zorigin'] = stack_count/2.0
     
     try:
-        if f != filename:
+        if inplace:
+            f.seek(int(1024+int(h['nsymbt'])+index*img.ravel().shape[0]*img.dtype.itemsize))
+        elif f != filename:
             f.seek(0)
             header.tofile(f)
             if index > 0: f.seek(int(1024+int(h['nsymbt'])+index*img.ravel().shape[0]*img.dtype.itemsize))

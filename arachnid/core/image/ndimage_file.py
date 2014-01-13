@@ -121,7 +121,14 @@ def read_image(filename, index=None, **extra):
     for key in cache_keys:
         if key not in extra: continue
         param[key] = extra[key]
-    return format.read_image(filename, index, **param)
+    try:
+        return format.read_image(filename, index, **param)
+    except:
+        if index is not None:
+            _logger.error("Error reading: %d@%s"%(index, filename))
+        else:
+            _logger.error("Error reading: %s"%filename)
+        raise
 
 def read_stack(filename):
     ''' Read an entire stack into a multi-dimensional array
@@ -265,7 +272,7 @@ def is_writable(filename):
     
     return get_write_format(filename) is not None
 
-def write_image(filename, img, index=None, header=None):
+def write_image(filename, img, index=None, header=None, inplace=False):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
@@ -279,15 +286,15 @@ def write_image(filename, img, index=None, header=None):
             Index image should be written to in the stack
     header : dict
             Header dictionary
+    inplace : bool
+              Write new image to stack without removing the stack
     '''
     
-    if index is not None and index == 0 and os.path.exists(filename):
-        os.unlink(filename)
     
     format = get_write_format(filename)
     if format is None: 
         raise IOError, "Could not find format for extension of %s"%filename
-    format.write_image(filename, img, index, header)
+    format.write_image(filename, img, index, header, inplace)
     
 def write_stack(filename, imgs):
     ''' Write the given image to the given filename using a format

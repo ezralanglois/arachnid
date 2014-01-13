@@ -291,7 +291,7 @@ def write_spider_image(filename, img, index=None):
     
     write_image(filename, img, index, None, eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN)
 
-def write_image(filename, img, index=None, header=None, type=None):
+def write_image(filename, img, index=None, header=None, inplace=False, type=None):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
@@ -305,6 +305,8 @@ def write_image(filename, img, index=None, header=None, type=None):
             Index image should be written to in the stack
     header : dict, optional
              Dictionary of header values
+    inplace : bool
+              Write new image to stack without removing the stack
     type : eman2_utility.EMAN2.EMUtil.ImageType, optional
            Format in which to write image
     '''
@@ -313,6 +315,10 @@ def write_image(filename, img, index=None, header=None, type=None):
     if header is None and hasattr(img, 'header'): header=img.header
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    
+    if not inplace and index is not None and index == 0 and os.path.exists(filename):
+        os.unlink(filename)
+    
     if not eman2_utility.is_em(img): 
         img = eman2_utility.numpy2em(img)
     h={'apix_x': 1.0}
