@@ -74,6 +74,24 @@ class User(Base):
     fullname = column_property(firstname + " " + lastname)
     #allsessions = relationship("Session", primaryjoin="and_(User.id==ProjectOwners.user_id, ProjectOwners.project_id==ProjectExperiments.project_id, Session.id==ProjectExperiments.session_id)", secondary=ProjectOwners.__table__, order_by=lambda: desc(Session.timestamp))
 
+class Instrument(Base):
+    __bind_key__ = 'leginondb'
+    __tablename__='InstrumentData'
+    
+    id = Column('DEF_id', Integer, primary_key=True)#, ForeignKey('ScopeEMData.REF|InstrumentData|tem'), ForeignKey('SessionData.REF|InstrumentData|instrument')
+    cs = Column('cs', Float)
+    scope = Column('scope', String)
+
+class ScopeEM(Base):
+    __bind_key__ = 'leginondb'
+    __tablename__='ScopeEMData'
+    
+    id = Column('DEF_id', Integer, primary_key=True)
+    voltage = Column('high tension', Float)
+    magnification = Column('magnification', Integer, ForeignKey('PixelSizeCalibrationData.magnification'))
+    session_id = Column('REF|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
+    instrument_id = Column('REF|InstrumentData|tem', Integer, ForeignKey('InstrumentData.DEF_id'))
+    instrument = relationship("Instrument", uselist=False)
 
 class Session(Base):
     __bind_key__ = 'leginondb'
@@ -88,24 +106,11 @@ class Session(Base):
     user = Column('REF|UserData|user', Integer, ForeignKey('UserData.DEF_id'))
     projects = relationship("Projects", secondary=ProjectExperiments.__table__)#, backref='sessions')#project_session_table)
     instrument_id = Column('REF|InstrumentData|instrument', Integer, ForeignKey('InstrumentData.DEF_id'))
-    instrument = relationship("Instrument", uselist=False)
-    scope = relationship("ScopeEM", uselist=False) # .. todo:: needs to be replaced - multiple scopes
+    scopes = relationship("ScopeEM") # .. todo:: needs to be replaced - multiple scopes
     camera = relationship("CameraEM", uselist=False)
     # Unused
     #imagefilter = relationship("ImageData", lazy="dynamic")
     #imagedata = relationship("ImageData")
-    
-
-class ScopeEM(Base):
-    __bind_key__ = 'leginondb'
-    __tablename__='ScopeEMData'
-    
-    id = Column('DEF_id', Integer, primary_key=True)
-    voltage = Column('high tension', Float)
-    magnification = Column('magnification', Integer, ForeignKey('PixelSizeCalibrationData.magnification'))
-    session_id = Column('REF|SessionData|session', Integer, ForeignKey('SessionData.DEF_id'))
-    instrument_id = Column('REF|InstrumentData|tem', Integer, ForeignKey('InstrumentData.DEF_id'))
-    instrument = relationship("Instrument", uselist=False)
 
 class PixelSizeCalibration(Base):
     __bind_key__ = 'leginondb'
@@ -169,12 +174,6 @@ class ImageData(Base):
                                                                                     camera_id==CameraEM.id,
                                                                                     CameraEM.instrument_id==PixelSizeCalibration.camera_id,  #All
                                                                                     ScopeEM.instrument_id==PixelSizeCalibration.instrument_id)).limit(1))
-class Instrument(Base):
-    __bind_key__ = 'leginondb'
-    __tablename__='InstrumentData'
-    
-    id = Column('DEF_id', Integer, primary_key=True)
-    cs = Column('cs', Float)
 
 def query_session_info(username, password, leginondb, projectdb, session):
     ''' Get the user relational object to access the Leginon
