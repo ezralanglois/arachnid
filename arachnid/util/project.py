@@ -20,7 +20,7 @@ illustrated below.
     |     - crop.cfg
     |     - crop_frame.cfg
     |     - autorefine.cfg
-    |     - autoclean.cfg
+    |     - vicer.cfg
     |     - relion_selection.cfg
     |     
     |    data/
@@ -148,7 +148,7 @@ def write_workflow(scripts):
     fout = open('run.sh', 'w')
     try:
         fout.write("#!/bin/bash\n")
-        for script in scripts:
+        for script in scripts[1:]:
             if hasattr(script, 'configFile'):
                 fout.write('sh %s\n'%script.configFile())
             else:
@@ -237,7 +237,6 @@ def build_workflow(files, extra):
         workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i], **extra))
     
     input,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
-    print 'build workflow', input, first_script[0]
     # Hack
     if input == '--unenum-files':
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
