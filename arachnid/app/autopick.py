@@ -5,8 +5,7 @@ This script (`ara-autopick`) was designed locate particles on a micrograph using
 windows and contaminants.
 
 It will not remove all contaminants but experiments have demonstrated that in many cases it removes enough 
-to achieve a descent resolution. To remove more contaminants, use 2D classification (e.g. Relion). Currently,
-I am working on a classification to further reduce contamination, this algorithm will be called AutoClean (`ara-autoclean`).
+to achieve a descent resolution. To further reduce contamination, see ViCer (`ara-vicer`).
 
 The AutoPicker script (`ara-autopick`) takes at minimum as input the micrograph and size of the particle in pixels and
 writes out a set of coordinate files for each selected particle.

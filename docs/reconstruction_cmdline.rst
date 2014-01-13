@@ -84,10 +84,10 @@ Tips
 	2. Very asymmetric particles (40S subunit of the ribosome) --disk-mult 0.2 
 	3. Very few particles --threshold-minimum 10 (only works for Arachnid 0.1.3 or later)
 
-6. Very Dirty Dataset - Use ara-autoclean
+6. Very Dirty Dataset - Use ara-vicer
 
 	You must first run a short Relion Refinement, suggested on 4x decimated data. It does not have to run to the end, but 
-	the longer you run it the better ara-autoclean will work.
+	the longer you run it the better ara-vicer will work.
 	
 	To run, do the following
 	
@@ -95,7 +95,7 @@ Tips
 		
 		# Determine the good particles
 		
-		$ ara-autoclean cluster/win/win_*.dat -a relion_it012_data.star -o output/view_0000000.dat -w8 -p cluster/data/params.dat 
+		$ ara-vicer cluster/win/win_*.dat -a relion_it012_data.star -o output/view_0000000.dat -w8 -p cluster/data/params.dat 
 		
 	Note that this script writes out a relion selection file with the name view.star.
 
