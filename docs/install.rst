@@ -2,6 +2,13 @@
 Installation
 =============
 
+
+.. toctree::
+	:maxdepth: 1
+	:hidden:
+	
+	install_franklab
+
 .. note::
 	
 	If you are a member of the Frank lab, see :doc:`Frank Lab Install <install_franklab>`
@@ -12,6 +19,7 @@ Anaconda
 Move to the directory you wish to install Anaconda
 
 Install Anaconda
+----------------
 
 .. sourcecode:: sh
 
@@ -31,7 +39,7 @@ Ensure Anaconda is on your path
 Alternatively, you can add these commands to your $HOME/.bashrc or $HOME/.cshrc, respectively.
 
 Additional Packages
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 .. sourcecode:: sh
 
@@ -40,7 +48,7 @@ Additional Packages
 	conda install mysql-python --yes	# Necessary for Leginon import in GUI
 	
 Install Accelerate
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Note that this step requires you obtain a license from https://store.continuum.io/cshop/accelerate/. This is free.
 if you have an .edu email.
@@ -50,14 +58,14 @@ if you have an .edu email.
 	$ conda install accelerate --yes
 
 Fix GUI
-~~~~~~~
+-------
 
 .. sourcecode:: sh
 
 	$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
 Installing Arachnid
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 Add the Arachnid channel to your $HOME/.condarc
 

@@ -18,7 +18,11 @@
 {% set script_files = script_files + ["http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js", '_static/simple-expand.js'] %}
 #}
 
-{% set css_files = css_files + ['_static/nature_fixed.css', '_static/css/bootstrap.min.css'] %}
+{% if pagename != 'index' %}
+{% set css_files = ['_static/nature_fixed.css', '_static/css/bootstrap.min.css'] %}
+{% else %}
+{% set css_files = ['_static/nature_index.css', '_static/css/bootstrap.min.css'] %}
+{% endif %}
 {% set script_files = script_files + ["http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js", '_static/simple-expand.js', '_static/js/bootstrap.min.js'] %}
 
 {%- block extrahead %} 
@@ -38,7 +42,25 @@ $('.image-reference').simpleexpand();
 </script>
 {% endblock %}
 
+
+
+{% block sidebar1 %}
+{% if pagename != 'index' %}
+{{ sidebar() }}
+{% endif %}
+{% endblock %}
+
+{% block sidebar2 %}
+{% if pagename != 'index' %}
+{{ sidebar() }}
+{% endif %}
+{% endblock %}
+
+
 {% block sidebarlogo %}
+
+{% if pagename != 'index' %}
+
    {{ super() }}
    &nbsp;
    
@@ -47,15 +69,30 @@ $('.image-reference').simpleexpand();
       {%- else %}
         {% trans copyright=copyright|e %}&copy; Copyright {{ copyright }}.{% endtrans %}
       {%- endif %}
-  
+
+{% endif %}
+
 <script type="text/javascript">
 $('.image-reference').simpleexpand();
 </script>
+
   
 {% endblock %}
 
+{%- block relbar1 %}
 
-{%- block relbar2 %}{% endblock %}
+{{ super() }}
+
+{% endblock %}
+
+
+{%- block relbar2 %}
+
+{% endblock %}
+
+
+
+
 
 {%- block footer %}{%- endblock %}
 

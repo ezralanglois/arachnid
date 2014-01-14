@@ -16,6 +16,8 @@ overflow:hidden; /*get rid of scroll bars in IE */
 /* */
 }
 
+div.body h1 {}
+
 /* master content table */
 .contentstable.docutils, .contentstable.docutils td {
     border-color: transparent;
@@ -25,6 +27,10 @@ overflow:hidden; /*get rid of scroll bars in IE */
 }
 .contentstable.docutils .last {
     padding-left: 10px;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 0;
 }
 
 
@@ -73,7 +79,7 @@ div.related {
 
    
 div.bodywrapper {
-//margin: 0 0 0 245px;
+margin: 0 0 0 0;
 padding: 0px;
 border: 0;
 }
@@ -119,7 +125,7 @@ height:100%;
 max-height:100%;
 display:block;
 overflow-y:scroll; /* add scroll bars as required */
-width: 245px; /* hack to keep the search button up */
+width: 0; /* hack to keep the search button up */
 padding:0; /*remove padding */
 //margin:0; /* remove margins */
 border:0; /* remove borders */

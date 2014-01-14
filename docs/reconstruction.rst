@@ -2,6 +2,13 @@
 Reconstruction Protocol
 =======================
 
+
+.. toctree::
+	:maxdepth: 1
+	:hidden:
+	
+	reconstruction_cmdline
+
 This protocol describes single-particle reconstruction of a biological specimen (e.g. the ribosome) 
 from a collection of electron micrographs. 
 
