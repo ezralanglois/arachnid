@@ -244,7 +244,7 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
     param['infile_deps'] = parser.collect_dependent_file_options(type='open')
     param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
     extra['file_options']=param['file_options']
-    param.update(update_file_param(**extra))
+    param.update(update_file_param(**param))
     args = param['input_files'] #options.input_files
     
     _logger.info("Program: %s"%(main_module.__name__))# , extra=dict(tofile=True))
@@ -945,7 +945,6 @@ def update_file_param(max_filename_len=0, warning=False, file_options=0, home_pr
             _logger.error("Src: %s"%home_prefix)
             _logger.error("Des: %s"%shortcut)
             raise
-    
     for opt in file_options:
         if opt not in extra or len(extra[opt])==0: continue
         assert(opt != 'home_prefix')
