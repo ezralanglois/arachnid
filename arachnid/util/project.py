@@ -90,12 +90,19 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 def batch(files, is_film=False, **extra):
-    '''
-    1. Write out config files
-    2. Write launch scripts
-        a. detect MPI
-        b. download reference
-        c. get data from leginon
+    ''' Main entry point for a batch script.
+    
+    This function builds the workflow, writes configuration files
+    and writes the workflow script.
+    
+    :Parameters:
+    
+    files : list
+            List of input exposure images (or movie-mode stacks of frames)
+    is_film : bool
+              Disable contrast inversion
+    extra : dict
+            Unused keyword arguments
     '''
     
     extra['invert'] = not is_film
@@ -106,7 +113,20 @@ def batch(files, is_film=False, **extra):
     # run option
 
 def workflow_settings(files, param):
-    '''
+    ''' Generate a list of program objects for each script
+    in the workflow.
+    
+    :Parameters:
+    
+    files : list
+            List of input exposure images (or movie-mode stacks of frames)
+    param : dict
+            Parameter value pairs already set in the GUI
+    
+    :Returns:
+    
+    mods : list
+           List of modules
     '''
     
     extra = vars(default_settings())
@@ -131,7 +151,13 @@ def workflow_settings(files, param):
     return mods
 
 def default_settings():
-    '''
+    ''' Generate a settings object from the default
+    project settings.
+    
+    :Returns:
+    
+    values : object
+             Settings object
     '''
     
     return program.generate_settings_tree(_project).values
