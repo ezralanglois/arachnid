@@ -7,15 +7,19 @@
 '''
 from ..core.app import program
 from ..core.image import ndimage_utility
+from ..core.image import enhance as enhance_image
 from ..core.image import ndimage_file
 from ..core.image import ndimage_interpolate
 from ..core.image import ndimage_filter
+from ..core.image import affine_transform
+from ..core.image import alignment
 #from ..core.image import similarity
 from ..core.metadata import format
 from ..core.metadata import spider_params
 from ..core.metadata import spider_utility
 from ..core.util import drawing
 import scipy.fftpack
+import scipy.ndimage
 import numpy
 import logging
 
@@ -65,8 +69,8 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **extr
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
-        if invert: ndimage_utility.invert(frame, frame)
-        ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
+        if invert: enhance_image.invert(frame, frame)
+        enhance_image.normalize_standard(frame, var_one=True, out=frame)
         frame = scipy.fftpack.fft2(frame)
         if bin_factor > 1.0: frame = ndimage_interpolate.resample_fft_fast(frame, bin_factor, True)
         fourier_frames.append(frame)
@@ -92,8 +96,8 @@ def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
-        if invert: ndimage_utility.invert(frame, frame)
-        ndimage_utility.normalize_standard(frame, var_one=True, out=frame)
+        if invert: enhance_image.invert(frame, frame)
+        enhance_image.normalize_standard(frame, var_one=True, out=frame)
         frame2 = ndimage_interpolate.downsample(frame, bin_factor) if bin_factor > 1.0 else frame
         if avg is not None: avg += frame2
         else: avg=frame2
@@ -159,7 +163,7 @@ def refine_sequential(fourier_frames, trans, ideal_pow, upsampling=2, search_rad
             if filter_kernel is not None: ref=numpy.multiply(avg, filter_kernel)
             else: ref = avg
             
-            y, x, p1 = xcorr_dft_peak(ref, fourier_frames[i], upsampling, search_radius)
+            y, x, p1 = alignment.xcorr_dft_peak(ref, fourier_frames[i], upsampling, search_radius)
             #print i+1, trans[i, :], x,y
             avg += scipy.ndimage.fourier_shift(fourier_frames[i], (-y, -x), -1, 0)
             sum += numpy.sqrt(numpy.sum(numpy.square((x-trans[i, 0], y-trans[i, 1]))))
@@ -197,7 +201,7 @@ def align_vote(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=Non
     cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 2))
     
     for i, j in zip(*index):
-        y, x = xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)[:2]
+        y, x = alignment.xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)[:2]
         cache[i, j] = (x,y)
         cache[j, i] = (-x,-y)
     
@@ -255,7 +259,7 @@ def align_mean_displacement_new(fourier_frames, upsampling=2, search_radius=50, 
     cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 3))
     
     for i, j in zip(*index):
-        y, x, p = xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
+        y, x, p = alignment.xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
         cache[i, j, 2:] = (x,y,p)
         cache[j, i] = (-x,-y,p)
     
@@ -288,7 +292,7 @@ def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowp
     cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 3))
     
     for i, j in zip(*index):
-        y, x, p = xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
+        y, x, p = alignment.xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
         cache[i, j] = (x,y,p)
         cache[j, i] = (-x,-y,p)
     
@@ -316,7 +320,7 @@ def align_sequential(fourier_frames, upsampling=2, search_radius=50, lowpass_sig
         filter_kernel = scipy.fftpack.ifftshift(ndimage_filter.gaussian_lowpass_kernel(ref.shape, lowpass_sigma, numpy.float))
     for i, frame in enumerate(fourier_frames[1:]):
         if filter_kernel is not None: numpy.multiply(ref, filter_kernel, ref)
-        y, x, p1 = xcorr_dft_peak(ref, frame, upsampling, search_radius)
+        y, x, p1 = alignment.xcorr_dft_peak(ref, frame, upsampling, search_radius)
         trans[i+1, :]=(x,y)
         print i+1, trans[i+1, :], trans[i+1, :]-trans[i, :], p1
         ref += scipy.ndimage.fourier_shift(frame, (-trans[i+1, 1], -trans[i+1, 0]), -1, 0)
@@ -343,7 +347,7 @@ def align_l2(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None,
         A[i, p[0]:p[1]] = 1
     b = numpy.zeros((len(pairs), 2))
     for i, p in enumerate(pairs):
-        b[i, 1], b[i, 0] = xcorr_dft_peak(fourier_frames[p[0]]*filter_kernel, fourier_frames[p[1]], upsampling, search_radius)[:2]
+        b[i, 1], b[i, 0] = alignment.xcorr_dft_peak(fourier_frames[p[0]]*filter_kernel, fourier_frames[p[1]], upsampling, search_radius)[:2]
     x0 = numpy.linalg.lstsq(A, b)[0]
     trans = numpy.zeros((len(fourier_frames), 2))
     trans[1:] = x0.cumsum(axis=0)
@@ -359,22 +363,6 @@ def align_l1(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None,
     '''
     
     pass
-
-def xcorr_dft_peak(f1, f2, usfac, search_radius, y0=0, x0=0, tshape=None, template_ssd=None):
-    '''
-    .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
-    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
-    '''
-    
-    f3 = numpy.multiply(f1, f2.conj())
-    y, x, p = _xcorr_dft_peak(f3, min(2, usfac), search_radius, y0, x0, tshape, template_ssd)
-    y += y0
-    x += x0
-    if usfac > 2:
-        dy, dx, p = _xcorr_dft_peak(f3, usfac, 1.5, y, x, tshape, template_ssd)
-        y += dy
-        x += dx
-    return numpy.asarray((y, x, p))
 
 def _centered(arr, newsize):
     # Return the center newsize portion of the array.
@@ -479,7 +467,7 @@ def write_pow(pow, index=0, diagnostic_file="", apix=None, **extra):
         rang = ((max_freq*pow.shape[0])-(min_freq*pow.shape[0]))/2.0
         freq2 = float(pow.shape[0])/(rang/1)
         freq1 = float(pow.shape[0])/(rang/15)
-        pow = ndimage_utility.filter_annular_bp(pow, freq1, freq2)
+        pow = ndimage_filter.filter_annular_bp(pow, freq1, freq2)
     
     ndimage_file.write_image(diagnostic_file, pow, index)
 
@@ -516,7 +504,7 @@ def write_average(filename, coords, output, frame_beg=0, frame_end=0, gain_file=
     for i, frame in enumerate(ndimage_file.iter_images(filename)):
         frame = frame.astype(numpy.float)
         if gain is not None: frame *= gain
-        frame = ndimage_utility.fourier_shift(frame, -coords[i, 0], -coords[i, 1])
+        frame = affine_transform.fourier_shift(frame, -coords[i, 0], -coords[i, 1])
         if avg is None: avg = frame
         else: avg += frame
     avg /= len(coords)
