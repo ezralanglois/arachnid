@@ -467,6 +467,66 @@ def gaussian_highpass(img, high_cutoff, pad=1):
     if pad > 1: img = depad_image(img, shape)
     return img
 
+def filter_annular_bp_kernel(shape, dtype, freq1, freq2):
+    ''' Filter an image with a Gaussian low pass filter
+    
+    Todo: optimize kernel
+    
+    :Parameters:
+    
+    shape : tuple
+            Tuple of ints describing the shape of the kernel
+    dtype : dtype
+            Data type of the image
+    freq1 : float
+            Cutoff frequency
+    freq2 : array
+            Cutoff frequency
+    
+    :Returns:
+    
+    out : array
+          Annular BP kernel
+    '''
+    
+    kernel = numpy.zeros(shape, dtype=dtype)
+    irad = radial_image(shape)
+    val =  (1.0/(1.0+numpy.exp(((numpy.sqrt(irad)-freq1))/(10.0))))*(1.0-(numpy.exp(-irad /(2*freq2*freq2))))
+    kernel[:, :].real = val
+    kernel[:, :].imag = val
+    return kernel
+
+def filter_annular_bp(img, freq1, freq2, pad=1):
+    ''' Filter an image with a Gaussian low pass filter
+    
+    Todo: optimize kernel
+    
+    :Parameters:
+    
+    img : array
+          Image to filter
+    freq1 : float
+            Cutoff frequency
+    freq2 : array
+            Cutoff frequency
+    pad : int
+          Padding
+    
+    :Returns:
+    
+    out : array
+          Filtered image
+    '''
+    
+    ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
+    else: img = img.astype(ctype)
+    img = filter_image(img, filter_annular_bp_kernel(img.shape, img.dtype, freq1, freq2), pad)
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
 def filter_image(img, kernel, pad=1):
     '''
     '''
@@ -553,4 +613,12 @@ def grid_image(shape, center=None):
     else: cx, cy = center
     y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
     return x, y
+
+def radial_image(shape, center=None):
+    '''
+    '''
+    
+    x, y = grid_image(shape, center)
+    return x**2+y**2
+
 

@@ -1,7 +1,5 @@
 ''' Image enhancement routines
 
-
-
 .. Created on Jan 13, 2014
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
