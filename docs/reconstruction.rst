@@ -10,7 +10,7 @@ Reconstruction Protocol
 	reconstruction_cmdline
 
 This protocol describes single-particle reconstruction of a biological specimen (e.g. the ribosome) 
-from a collection of electron micrographs. 
+from a collection of cryo-electron micrographs. 
 
 This tutorial covers setting up a workflow for preprocessing images for 3D angular refinement using
 a graphical User Interface. You may alternatively wish to run everything from the command line. This 
