@@ -3,8 +3,31 @@ Welcome to Arachnid
 ====================
 
 Arachnid is an open source software package written primarily in Python to perform image
-processing in single-particle reconstruction. It has the following highlighted applications
-and subpackage:
+processing in single-particle reconstruction. This software is under development by 
+the `Frank Lab`_ and is licensed under :doc:`GPL 2.0 <license>` or later.
+
+Table of Contents
+==================
+
+.. toctree::
+	:maxdepth: 1
+	
+	Install <docs/install>
+	License <license>
+	Reconstruction Protocol <docs/reconstruction>
+	Manual <docs/manual>
+	Developer's Guide <docs/development>
+	API <docs/api>
+	Attribution <docs/attribution>
+
+.. raw:: html
+
+	<a class="btn btn-lg btn-success" href="#" role="button">Download</a></p>
+	
+Overview
+========
+
+Arachnid has the following highlighted applications and subpackage:
 
 - AutoPicker: Automated reference-free particle selection
 - ViCer: Automated particle verification
@@ -16,31 +39,6 @@ been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py)
 is also utilizes several third-party packages, namely `SPIDER`_:, a full list 
 is given in :doc:`attribution<docs/attribution>`.
 
-This software is under development by the `Frank Lab`_ and is licensed under :doc:`GPL 2.0 <license>` 
-or later.
-
-.. raw:: html
-
-	<a class="btn btn-lg btn-success" href="#" role="button">Download</a></p>
-
-.. class:: btn
-
-`Frank Lab`_
-
-Table of Contents
-==================
-
-.. toctree::
-	:maxdepth: 1
-
-	Install <docs/install>
-	License <license>
-	Reconstruction Protocol <docs/reconstruction>
-	Command-line Protocol <docs/reconstruction_cmdline>
-	Manual <docs/manual>
-	Developer's Guide <docs/development>
-	API <docs/api>
-	Attribution <docs/attribution>
 
 How to cite
 ===========

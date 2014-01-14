@@ -2,46 +2,9 @@
 Installation
 =============
 
-
-FrankLab
-========
-
-If you are a member of FrankLab, then you only require to do the following in this
-section.
-
-Install Anaconda
-
-.. sourcecode:: sh
-
-	$ cd <to-path-where-anaconda-will-be-installed>
-	# For example
-	$ cd /data/robertl/
-	
-	$ bash /guam.raid.cluster.software/arachnid/install
-	
-Update to the Latest Version of Arachnid
-
-.. sourcecode:: sh
-
-	$ conda install arachnid --yes -fq
-
-Update Arachnid to a specific version
-
-.. sourcecode:: sh
-
-	$ conda install arachnid=0.1.2 --yes -fq
-	# or 
-	$ conda install arachnid=0.1.3 --yes -fq
-
 .. note::
-
-	This requires that you have a license for the premium accelerate package.
 	
-	https://store.continuum.io/cshop/academicanaconda
-	
-	If you have a license file on one computer, then just copy it to another.
-	
-	$ scp -r ~/.continuum 156.111.X.XXX:~/
+	If you are a member of the Frank lab, see :doc:`Frank Lab Install <install_franklab>`
 
 Anaconda
 ========
@@ -65,9 +28,19 @@ Ensure Anaconda is on your path
 	# C-Shell
 	$ setenv PATH $PWD/anaconda/bin:$PATH
 
-Alternatively, you can add these commands to your $HOME/.bashrc or $HOME/.cshrc.
+Alternatively, you can add these commands to your $HOME/.bashrc or $HOME/.cshrc, respectively.
+
+Additional Packages
+~~~~~~~~~~~~~~~~~~~
+
+.. sourcecode:: sh
+
+	conda install basemap --yes			# Necessary for ara-cover
+	conda install psutil --yes			# Necessary for all scripts
+	conda install mysql-python --yes	# Necessary for Leginon import in GUI
 	
 Install Accelerate
+~~~~~~~~~~~~~~~~~~
 
 Note that this step requires you obtain a license from https://store.continuum.io/cshop/accelerate/. This is free.
 if you have an .edu email.
@@ -77,13 +50,14 @@ if you have an .edu email.
 	$ conda install accelerate --yes
 
 Fix GUI
+~~~~~~~
 
 .. sourcecode:: sh
 
 	$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
-Installing Arachnid in Anaconda
-===============================
+Installing Arachnid
+~~~~~~~~~~~~~~~~~~~
 
 Add the Arachnid channel to your $HOME/.condarc
 
@@ -100,7 +74,6 @@ Install Arachnid
 .. sourcecode:: sh
 
 	$ conda install arachnid --yes
-
 
 Installing an official release
 ==============================

@@ -3,7 +3,16 @@ Reconstruction Protocol
 =======================
 
 This protocol describes single-particle reconstruction of a biological specimen (e.g. the ribosome) 
-from a collection of electron micrographs.
+from a collection of electron micrographs. 
+
+This tutorial covers setting up a workflow for preprocessing images for 3D angular refinement using
+a graphical User Interface. You may alternatively wish to run everything from the command line. This 
+is covered in the  :doc:`Command-line Protocol <reconstruction_cmdline>`.
+
+.. note::
+
+	The command line version of the program does not currently support certain features
+	such as Leginon database import.
 
 .. contents:: 
 	:depth: 1
@@ -42,6 +51,13 @@ Import Prompt
 Next, the user is asked whether they wish to automatically import or manually enter information 
 describing the experiment.
 
+If the user clicks Yes, then the program will attempt to connect to the Leginon Database and retrieve 
+their most recent sessions. The user will be able to select multiple sessions and this information will 
+be used to fill the next page: Manual Settings.
+
+If the user clicks No, then the program will show the Manual Settings page where the user will be prompted 
+to manually enter information concerning the data.
+
 	.. image:: images/wizard_screen_shot_0010.png
 		:scale: 20%
 		:target: content02_
@@ -55,18 +71,22 @@ describing the experiment.
 Leginon Database Import
 -----------------------
 
-If the user elects to import information from the Leginon database, then they will see the following page.
+If the user elects to import information from the Leginon database, then they will see one of
+the following pages.
 
 Leginon Account
 ~~~~~~~~~~~~~~~
 
-This page asks you for the following information, which the user may need to obtain from
-their systems administrator:
+This page asks the user for the following information:
 	
 	- Hostname or IP Address for Leginon Primary Database followed by name of the database
 	- Hostname or IP Address of Leginon Project Database followed by name of the database
 	- Leginon Credentials (You should know this)
 	- Database Credentials
+	
+.. note::
+	
+	The system administrator should provide all the information expect the Leginon Credentials.
 
 .. image:: images/wizard_screen_shot_0022.png
 	:scale: 20%
@@ -83,10 +103,22 @@ Leginon Sessions
 
 Once you have successfully logged into the Leginon Database, then the following page will be displayed:
 
-Note that, If this is not your first time, then you should see this page first.
+.. note::
 
-Note that the last session for which you collected data should be displayed. You can
-view more by increasing the number shown and then clicking the refresh button.
+	If this is not your first time, then you should see this page first.
+	
+The `Change User` button displays a settings panel where the user can change their username or information
+concerning the Leginon database.
+
+By default, only the most recent session is shown. More sessions can be displayed by increasting the
+`Show last` number and then clicking the refresh button.
+
+Also, the page contains an information button. By clicking this button a separate window is opened
+display relavent help information. This window can be left open and will be updated as the user
+clicks such buttons on later pages.
+
+In the table below, the last session for which you collected data should be displayed. More sessions
+can be viewed by increasing the `Show last` number shown and then clicking the refresh button.
 
 .. image:: images/wizard_screen_shot_0020.png
 	:scale: 20%
@@ -293,9 +325,4 @@ Tips
 		
 	Note that this script writes out a relion selection file with the name view.star.
 
-Alternative
-===========
-
-You may alternatively wish to run everything from the command line. This is covered in the 
-:doc:`Command-line Protocol <reconstruction_cmdline>`.
 
