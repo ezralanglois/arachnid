@@ -46,7 +46,8 @@ def process(filename, output, bin_factor, sigma, film, clamp_window, window=0, i
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    _logger.info("Window size: %d"%(param['window']))
+    if param.get('window', 0) > 0:
+        _logger.info("Window size: %d"%(param.get('window', 0)))
     if param.get('window', 0) == 0:
         _logger.info("High-pass filtering disabled - no params file")
     if param['sigma'] > 0 and param.get('window', 0)>0: _logger.info("High pass filter: %f"%(param['sigma'] / param['window']))
