@@ -196,6 +196,12 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
             Unused key word arguments
     '''
     
+    
+    if os.path.dirname(extra['output']) != "" and not os.path.exists(os.path.dirname(extra['output'])):
+        _logger.info("Creating directory: %s"%os.path.dirname(extra['output']))
+        try: os.makedirs(os.path.dirname(extra['output']))
+        except: pass
+    
     if ndimage_file.is_readable(files[0]):
         _logger.info("Generating a relion selection file from a set of stacks")
         img = ndimage_file.read_image(files[0])
