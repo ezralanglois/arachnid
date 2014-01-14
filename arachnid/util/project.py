@@ -287,13 +287,15 @@ def write_config(workflow, **extra):
         try: os.makedirs(config_path)
         except: pass
     
+    first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))[1]
     for mod, _, _, _ in workflow:
         param = program.update_config(mod, **extra)
         if param is not None:
             param.update(extra)
         else: param=extra
         program.write_config(mod, **param)
-        extra['input_files']=[]
+        if len(param['input_files']) > 0 and mod[0] == first_script[0]:
+            param['input_files'] = []
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -325,7 +327,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup.add_option("", particle_file="data/cluster/win/win_000000.dat",            help="Location for windowed particle stacks", gui=dict(filetype="open"))
     shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat",                          help="Location of estimated CTF parameters per micrograph", gui=dict(filetype="open"))
     shrgroup.add_option("", pow_file="data/local/ctf/pow/pow_000000.dat",               help="Location of power spectra for each micrograph", gui=dict(filetype="open"))
-    shrgroup.add_option("", reference_file="data/cluster/reference.dat",                help="Location of generated reference", gui=dict(filetype="open"))
+    shrgroup.add_option("", reference_file="data/cluster/data/reference.dat",           help="Location of generated reference", gui=dict(filetype="open"))
     shrgroup.add_option("", align_file="data/cluster/data/data.star",                   help="Location of relion selection file", gui=dict(filetype="open"))
     shrgroup.add_option("", good_file="",                                               help="Location of cleaned up particle selection files", gui=dict(filetype="open"))
     #data/local/vicer/good/good_000000.dat
