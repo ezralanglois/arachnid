@@ -86,6 +86,9 @@ def finalize_bp3f(fftvol, weight, image_size, cleanup_fft):
     if fftvol is not None:
         vol = numpy.zeros((image_size, image_size, image_size), order='F', dtype=weight.dtype)
         #_logger.error("finalize_bp3f-1")
+        if not fftvol.flags.f_contiguous: fftvol = fftvol.T
+        if not weight.flags.f_contiguous: weight = weight.T
+        if not vol.flags.f_contiguous: vol = vol.T
         _spider_reconstruct.finalize_bp3f(fftvol, weight, vol)#, image_size)
         if cleanup_fft: _spider_reconstruct.cleanup_bp3f()
         #_logger.error("finalize_bp3f-2")
@@ -101,6 +104,8 @@ def backproject_bp3f(gen, image_size, align, process_number, npad=2, process_ima
         tabi = numpy.zeros(4999, dtype=numpy.float32)
         if forvol is None: forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
         if weight is None: weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=tabi.dtype)
+        if not forvol.flags.f_contiguous: forvol = forvol.T
+        if not weight.flags.f_contiguous: weight = weight.T
         
         _spider_reconstruct.setup_bp3f(tabi, pad_size)
         if len(align) > 0 and hasattr(align[0], psi):
@@ -123,7 +128,7 @@ def backproject_bp3f_array(image_size, npad=2, **extra):
     '''
     
     pad_size = image_size*npad
-    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.float32))
+    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.float32))
 
 def reconstruct3_bp3n_mp(image_size, gen1, gen2, align1=None, align2=None, **extra):
     '''Reconstruct three volumes using BP3F
@@ -184,6 +189,9 @@ def finalize_bp3n(fftvol, weight, image_size, cleanup_fft):
     
     if fftvol is not None:
         vol = numpy.zeros((image_size, image_size, image_size), order='F', dtype=weight.dtype)
+        if not fftvol.flags.f_contiguous: fftvol = fftvol.T
+        if not weight.flags.f_contiguous: weight = weight.T
+        if not vol.flags.f_contiguous: vol = vol.T
         _spider_reconstruct.finalize_nn4f(fftvol, weight, vol)#, image_size)
         if cleanup_fft: _spider_reconstruct.cleanup_nn4f()
         return vol
@@ -197,6 +205,8 @@ def backproject_bp3n(gen, image_size, align, process_number, npad=2, forvol=None
         pad_size = image_size*npad
         if forvol is None: forvol = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64)
         if weight is None: weight = numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.int32)
+        if not forvol.flags.f_contiguous: forvol = forvol.T
+        if not weight.flags.f_contiguous: weight = weight.T
         
         for i, img in gen:
             a = align[i]
@@ -211,7 +221,7 @@ def backproject_bp3n_array(image_size, npad=2, **extra):
     '''
     
     pad_size = image_size*npad
-    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='F', dtype=numpy.int32))
+    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.int32))
 
 def reconstruct3_mp(backproject, finalize, make_array, image_size, gen1, gen2, align1=None, align2=None, npad=2, cleanup_fft=True, **extra):
     '''Reconstruct three volumes using BP3F
@@ -261,8 +271,8 @@ def reconstruct3_mp(backproject, finalize, make_array, image_size, gen1, gen2, a
             recon[1]+=recon1[1]
             del recon1
             vol = finalize(recon[0], recon[1], image_size, cleanup_fft)
-            hvol1 = vol.copy(order='F')
-            hvol2 = vol.copy(order='F')
+            hvol1 = vol.copy(order='F') if vol.flags.f_contiguous else vol.copy()
+            hvol2 = vol.copy(order='F') if vol.flags.f_contiguous else vol.copy()
         else:
             finalize(None, None, 0)
         mpi_utility.send_to_root(hvol1, 1, **extra)
@@ -286,7 +296,7 @@ def reconstruct3_mp(backproject, finalize, make_array, image_size, gen1, gen2, a
             finalize(None, None, 0, cleanup_fft)
         return None
 
-def reconstruct_fft(backproject, backproject_array, gen, image_size, align, npad=2, **extra):
+def reconstruct_fft(backproject, backproject_array, gen, image_size, align, npad=2, shared=True, **extra):
     '''Reconstruct a single volume with the given image generator and alignment file.
     
     :Parameters:
@@ -311,7 +321,8 @@ def reconstruct_fft(backproject, backproject_array, gen, image_size, align, npad
     '''
     
     fftvol, weight = None, None
-    for val in process_tasks.iterate_reduce(gen, backproject, align=align, npad=npad, image_size=image_size, shmem_array_info=backproject_array(image_size, npad), **extra):
+    shmem_array_info=backproject_array(image_size, npad) if shared else None
+    for val in process_tasks.iterate_reduce(gen, backproject, align=align, npad=npad, image_size=image_size, shmem_array_info=shmem_array_info, **extra):
         if isinstance(val, tuple): v, w = val
         elif isinstance(val, dict):
             v, w = val['forvol'], val['weight']
@@ -325,8 +336,10 @@ def reconstruct_fft(backproject, backproject_array, gen, image_size, align, npad
     assert(fftvol is not None)
     assert(weight is not None)
     #_logger.info("begin-block_reduce1: %f"%numpy.sum(fftvol.real))
-    mpi_utility.block_reduce(fftvol.ravel(order='F'), **extra)
+    order = 'F' if fftvol.flags.f_contiguous else 'C'
+    mpi_utility.block_reduce(fftvol.ravel(order=order), **extra)
     #_logger.info("begin-block_reduce2: %f -- %f"%(numpy.sum(fftvol.real), numpy.sum(tmp.real)))
-    mpi_utility.block_reduce(weight.ravel(order='F'), **extra)
+    order = 'F' if weight.flags.f_contiguous else 'C'
+    mpi_utility.block_reduce(weight.ravel(order=order), **extra)
     return fftvol, weight
 
