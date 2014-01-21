@@ -2,34 +2,38 @@
 Reconstruction Protocol
 =======================
 
+.. include:: includes/icons.rst
 
 .. toctree::
-	:maxdepth: 1
+	:maxdepth: 0
 	:hidden:
 	
 	reconstruction_cmdline
 
-This protocol describes single-particle reconstruction of a biological specimen (e.g. the ribosome) 
-from a collection of cryo-electron micrographs. 
+This tutorial covers setting up a workflow for preprocessing images for 3D angular 
+refinement using the Arachnid Graphical User Interface (GUI).  The GUI allows 
+for an effective, easy, interactive wizard for the pre-processing of electron 
+micrograph data. The design, scope, and rationale for this workflow can be found 
+in the :doc:`References <../CITE>` section of the website. The workflow 
+has been benchmarked for a variety of single-particle reconstruction projects.
 
-This tutorial covers setting up a workflow for preprocessing images for 3D angular refinement using
-a graphical User Interface. You may alternatively wish to run everything from the command line. This 
-is covered in the  :doc:`Command-line Protocol <reconstruction_cmdline>`.
+All commands and options in the program can alternatively be accessed and run 
+via the command line. This is covered in the 
+:doc:`Command-line Protocol <reconstruction_cmdline>`. This tutorial 
+also assumes that :doc:`installation <install>` of the program was successful.
 
 .. note::
 
-	The command line version of the program does not currently support certain features
-	such as Leginon database import.
-
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
+	While there are advantages to running the command-line version, it does not currently support 
+	certain features such as Leginon database import.
 	
 Quick Start
 ===========
 
-#. Run the following to load the Graphical User Interface.
+The following tutorial will take you step-by-step through the use of the Arachnid GUI. Each section
+is accompanied by a screen shot illustrating what you will see after the GUI has been launched.
+
+To lauch the GUI, run the following on the terminal:
 
 	.. sourcecode:: sh
 	
@@ -38,42 +42,34 @@ Quick Start
 Introduction
 ------------
 	
-The first page in the workflow wizard gives the user basic information
-concerning the software including contributions made by people and funding
-agencies.
+The first page in the workflow wizard (illustrated in the screen shot below) 
+gives the user basic information concerning the software including contributions 
+made by people and funding agencies.
 	
-	.. image:: images/wizard_screen_shot_0000.png
-		:scale: 20%
-		:target: content_
+	.. image:: images/wizard/wizard_screen_shot_0000.png
+		:scale: 60%
 
-	.. _content:
-
-	.. container:: content
-		
-		.. image:: images/wizard_screen_shot_0000.png
-		
 Import Prompt
 -------------
 
 Next, the user is asked whether they wish to automatically import or manually enter information 
 describing the experiment.
 
-If the user clicks Yes, then the program will attempt to connect to the Leginon Database and retrieve 
-their most recent sessions. The user will be able to select multiple sessions and this information will 
-be used to fill the next page: Manual Settings.
+If the user clicks |accept_icon| "Yes", then the program will attempt to connect to the Leginon Database and retrieve 
+their most recent sessions. The user will then be able to select multiple sessions and this information will 
+be used to fill the next page: **Manual Settings**.
 
-If the user clicks No, then the program will show the Manual Settings page where the user will be prompted 
+If the user clicks |reject_icon| "No", then the program will show the **Manual Settings** page where the user will be prompted 
 to manually enter information concerning the data.
 
-	.. image:: images/wizard_screen_shot_0010.png
-		:scale: 20%
-		:target: content02_
+	.. image:: images/wizard/wizard_screen_shot_0010.png
+		:scale: 60%
 
-	.. _content02:
-
-	.. container:: content
-		
-		.. image:: images/wizard_screen_shot_0010.png
+.. note::
+	
+	Certain pages have an information button |info_icon|. By clicking this button a separate window is opened, 
+	displaying relevant help information. This window can be left open and will be updated as the user clicks 
+	such buttons on later pages.
 
 Leginon Database Import
 -----------------------
@@ -84,58 +80,40 @@ the following pages.
 Leginon Account
 ~~~~~~~~~~~~~~~
 
-This page asks the user for the following information:
+If this is the user's first time using the program on the current machine, then user will be shown
+the following page prompting the user for the following information:
 	
 	- Hostname or IP Address for Leginon Primary Database followed by name of the database
 	- Hostname or IP Address of Leginon Project Database followed by name of the database
-	- Leginon Credentials (You should know this)
+	- Leginon Credentials (Specific to each user)
 	- Database Credentials
 	
 .. note::
 	
-	The system administrator should provide all the information expect the Leginon Credentials.
+	Since most of the information, excluding the Leginon Credentials, is universal to the lab,
+	the system administrator should provide this information.
 
-.. image:: images/wizard_screen_shot_0022.png
-	:scale: 20%
-	:target: content03_
-
-.. _content03:
-
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0022.png
+.. image:: images/wizard/wizard_screen_shot_0022.png
+	:scale: 60%
 
 Leginon Sessions
 ~~~~~~~~~~~~~~~~
 
-Once you have successfully logged into the Leginon Database, then the following page will be displayed:
+Once you have successfully logged into the Leginon Database, the following page will be displayed:
 
 .. note::
 
 	If this is not your first time, then you should see this page first.
 	
-The `Change User` button displays a settings panel where the user can change their username or information
-concerning the Leginon database.
+The |user_icon| `Change User` button displays a settings panel where the user can change their 
+username or information regarding the Leginon database.
 
-By default, only the most recent session is shown. More sessions can be displayed by increasting the
-`Show last` number and then clicking the refresh button.
+In the table picture in the screen shot below, the last session for which you collected data should be 
+displayed. More sessions can be viewed by increasing the `Show last` number shown and then clicking 
+the |refresh_icon| `Refresh` button. By default, only the most recent session is shown.
 
-Also, the page contains an information button. By clicking this button a separate window is opened
-display relavent help information. This window can be left open and will be updated as the user
-clicks such buttons on later pages.
-
-In the table below, the last session for which you collected data should be displayed. More sessions
-can be viewed by increasing the `Show last` number shown and then clicking the refresh button.
-
-.. image:: images/wizard_screen_shot_0020.png
-	:scale: 20%
-	:target: content04_
-
-.. _content04:
-
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0020.png
+.. image:: images/wizard/wizard_screen_shot_0020.png
+	:scale: 60%
 
 Manual Settings
 ---------------
@@ -145,150 +123,117 @@ to enter the following information:
 
 	- File path for the micrograph exposures (either single images or stacks)
 	- Gain normalization image (only used for movie-mode stacks)
-	- Contrast inversion
-	- Microscope parameters
-		- Pixel size (1/angstroms)
-		- Voltage aka High tension (kV)
-		- Spherical Abberation aka CS (mm)
+	- Contrast inversion (generally exposures taken on a CCD or CMOS camera must be inverted)
+	- Microscope parameters (later used for CTF estimation)
+		- Pixel size (Pixel/angstroms)
+		- Acceleration Voltage or High tension (kV)
+		- Spherical Abberation or CS (mm)
 	
-.. image:: images/wizard_screen_shot_0030.png
-	:scale: 20%
-	:target: content06_
+.. image:: images/wizard/wizard_screen_shot_0030.png
+	:scale: 60%
 
-.. _content06:
-
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0030.png
-
-Reference Prompt
-----------------
+Reference Preprocessing Prompt
+------------------------------
 
 Next the user is asked whether they wish to preprocess a volume to use as a
 reference. The reference generation script will ensure the volume as the 
-proper window size and pixel size as well as filtering it to a low resolution.
+proper window size and pixel size as well as inital resolution for filtering.
 
-.. image:: images/wizard_screen_shot_0040.png
-	:scale: 20%
-	:target: content07_
+.. note:: :py:mod:`More information on reference generation <arachnid.pyspider.reference>`
 
-.. _content07:
+If the user clicks |accept_icon| "Yes", then the user will be asked to either locate
+a local file to use as a reference or download a file from the EMDB.
 
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0040.png
+.. image:: images/wizard/wizard_screen_shot_0040.png
+	:scale: 60%
 
-Reference Generation
---------------------
+Reference Map Generation
+-------------------------
 
-EMDB Download
-~~~~~~~~~~~~~
-
-The user is given the option of downloading a volume from the EMDB.
+The user is given the option of downloading a volume from the EMDB or locating
+a local file containing a volume to be used as a reference.
 
 .. note::
 	
 	If you already have a volume, then you can select the `Local File` tab
 
-The user has the option of selecting one of the "canned" volumes displayed in the list by double clicking
+EMDB Download
+~~~~~~~~~~~~~
+
+The user has the option of selecting one of the curated volumes displayed in the list by double clicking
 on the icon. Otherwise, the user can enter an EMDB accession number into the text box below.
 
-The user then has the option of viewing the EMDB page associated with the accession number using
-the world link button.
+The user then has the option of viewing the EMDB webpage associated with the accession number using
+the |link_icon| `Link` button.
 
-When the user has selected the appropriate volume, the user can then click the download button.
+When the user has selected the appropriate volume, the user can then click the |download_icon| `Download` button.
 
 .. note::
 
-	It can take some time to download the map, don't panic.
+	Depending on the pixel size, it can take some time to download the map: don't panic.
 
-.. image:: images/wizard_screen_shot_0052.png
-	:scale: 20%
-	:target: content08_
-
-.. _content08:
-
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0052.png
+.. image:: images/wizard/wizard_screen_shot_0052.png
+	:scale: 60%
 
 Local File
 ~~~~~~~~~~
 
-After the user downloads a volume or the user opted to go directly to the local file page.
+After the user downloads a volume or has gone directly to the local file page and opened a volume file, 
+the following information about the volume will be displayed.
 
-Here, the user can verify or must enter the current Pixel Size for the volume (not the target pixel size
-corresponding to your data!).
+.. warning:: 
 	
-.. image:: images/wizard_screen_shot_0050.png
-	:scale: 20%
-	:target: content09_
-
-.. _content09:
-
-.. container:: content
+	The user must verify or must enter the current Pixel Size for the volume (not the target pixel size
+	corresponding to your data!).
 	
-	.. image:: images/wizard_screen_shot_0050.png
+.. image:: images/wizard/wizard_screen_shot_0050.png
+	:scale: 60%
 
 Additional Parameters
 ---------------------
 
 The user is then prompted to enter information describing both the macromolecule of interest, 
-a qualititative assessment of the particle crowding on the micrograph and the amount of 
+a qualitative assessment of the particle crowding on the micrograph and the amount of 
 processing power they wish to use.
 
-.. image:: images/wizard_screen_shot_0060.png
-	:scale: 20%
-	:target: content10_
-
-.. _content10:
-
-.. container:: content
+.. note::
 	
-	.. image:: images/wizard_screen_shot_0060.png
+	The mask diameter should be the same value as will be used in angular refinement,
+	e.g. Relion.
+
+.. image:: images/wizard/wizard_screen_shot_0060.png
+	:scale: 60%
 
 Review Parameters
 -----------------
 
-The user is next asked to review the settings of the individual progams. Generally, this
+The user is next asked to review the settings of the individual sub-programs. Generally, this
 will only be used by advanced users that understand how each parameter affects the underlying
 steps in the workflow.
 
-.. image:: images/wizard_screen_shot_0070.png
-	:scale: 20%
-	:target: content11_
+After clicking on a particular parameter and hitting the |link_icon| `Link` button, a brower
+will display the manual page associated with that parameter.
 
-.. _content11:
-
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0070.png
+.. image:: images/wizard/wizard_screen_shot_0070.png
+	:scale: 60%
 	
 Run the Workflow
 ----------------
 
 Finally, the user is present with the workflow monitor. The user can start
-the processing and then monitor its progress from this screen.
+the preprocessing and monitor the progress from this screen.
 
 .. note::
 
-	The user cannot kill the workflow by closing the window to clicking
+	The user cannot kill the workflow by closing the window or by clicking
 	the stop button.
 
-Restarting the `ara-control` script in the original directory it was run allows the user
-to continue montoring the progress from the same or a different computer.
+Restarting the `ara-control` script in the original directory where it was run 
+allows the user to continue montoring the progress from the same or a 
+different computer.
 
-.. image:: images/wizard_screen_shot_0080.png
-	:scale: 20%
-	:target: content12_
-
-.. _content12:
-
-.. container:: content
-	
-	.. image:: images/wizard_screen_shot_0080.png
-
-
+.. image:: images/wizard/wizard_screen_shot_0080.png
+	:scale: 60%
 
 Tips
 ====
@@ -309,9 +254,9 @@ Tips
 4. Check normalization when preparing the data for Relion
 
 	For Arachnid=0.1.2 the particle-diameter must match the mask diameter used in Relion.
-	For Arachnid=0.1.3 the mask-diamter must match the mask diameter used in Relion.
+	For Arachnid=0.1.3 and later the mask-diamter must match the mask diameter used in Relion.
 
-5. Suggested AutoPicker parameters for various conditions/samples
+5. Suggested AutoPicker parameters for various conditions/samples (These parameters are set for you in the GUI)
 
 	1. Crowded micrographs: --overlap-mult 0.8
 	2. Very asymmetric particles (40S subunit of the ribosome) --disk-mult 0.2 

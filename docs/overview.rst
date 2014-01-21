@@ -1,16 +1,24 @@
 
+.. toctree::
+	:maxdepth: 0
+	:hidden:
+	
+	Attribution <attribution>
+
+========
 Overview
 ========
 
-Arachnid is an open source software package written primarily in Python to perform image
-processing in single-particle reconstruction. This software is under development by 
-the `Frank Lab`_ and is licensed under :doc:`GPL 2.0 <../license>` or later.
+Arachnid is an open source software package written primarily in Python to perform
+single-particle reconstruction of macromolecules imaged by cryo-electron microscopy
+(cryo-EM). Arachnid is largely an image-processing suite focused on tasks unique to 
+cryo-EM, such as locating and recognizing macromolecules in the image.
 
 Arachnid has the following highlighted applications and subpackage:
 
-- AutoPicker: Automated reference-free particle selection
-- ViCer: Automated particle verification
-- pySPIDER: Python batch files designed to better automate the reconstruction protocol
+	- AutoPicker: Automated reference-free particle selection
+	- ViCer: Automated particle verification
+	- pySPIDER: Python batch files designed to better automate the reconstruction protocol
 
 The algorithms and tools provided are rooted in image processing and object recognition as well as 
 machine learning (see the `malibu`_ package). Critical, time-intensive sections of the code have 
@@ -18,17 +26,21 @@ been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py)
 is also utilizes several third-party packages, namely `SPIDER`_:, a full list 
 is given in :doc:`attribution<attribution>`.
 
+This software is under development by the `Frank Lab`_ and is licensed under 
+:doc:`GPL 2.0 <../license>` or later.
+
 
 How to cite
 ===========
 
+Coming soon ...
 
 Important links
 ===============
 
 - Official source code repo: https://code.google.com/p/arachnid/
 - HTML documentation (stable release): https://code.google.com/p/arachnid/w/list
-- Download releases: https://code.google.com/p/arachnid/downloads/list
+- Download releases: TODO
 - Issue tracker: https://code.google.com/p/arachnid/issues/list
 - Mailing list: http://groups.google.com/group/arachnid-general
 
@@ -55,6 +67,10 @@ contribute. This can be just as easy as reporting a bug or you can even add your
 References
 ==========
 
+.. [Langlois2014]  Langlois, R. E., Ash, J. T.,  Pallesen, J., and Frank, J. (2014).
+                   Fully Automated Particle Selection and Verification in Single-Particle Cryo-EM.
+                   In the proceedings of Minisymposium on Computational Methods in Three-Dimensional Microscopy Reconstruction. 
+                   Birkhauser Springer (In press)
 .. [Langlois2011b] `Langlois, R., Pallesen, J., and Frank, J. (2011).
                    Reference-free segmentation enhanced with data-driven template matching for particle selection in cryo-electron microscopy.
                    Journal of structural biology 175 (3) 353-361 <http://view.ncbi.nlm.nih.gov/pubmed/21708269>`_

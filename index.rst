@@ -2,76 +2,54 @@
 Arachnid Single-particle Reconstruction
 ========================================
 
+.. include:: docs/includes/icons.rst
+
 .. line-block::
 	:class: lead
 	
-	Intelligent, intuitive, and powerful workflow for faster and painless single-particle reconstruction
+	Streamlined, intuitive, and powerful workflow for faster and more intelligent single-particle reconstruction
 
-.. raw:: html
-
-	<a class="btn btn-warning btn-big" href="#" role="button">Download</a>
-	<a class="btn btn-warning btn-big" href="#" role="button">Get Source</a>
-	<a class="btn btn-warning btn-big" href="#" role="button">Cite</a>
+.. container:: well
 	
-
-
-Contents
-========
+	.. raw:: html
+	
+		<center>
+		<a class="btn btn-success" href="#" role="button">Get it!</a>
+		<a class="btn btn-success" href="#" role="button">Cite</a>
+		</center>
 
 .. toctree::
-	:maxdepth: 1
+	:maxdepth: 0
 	:hidden:
 	
-	Overview <docs/overview>
-	Install <docs/install>
 	License <license>
-	Reconstruction Protocol <docs/reconstruction>
-	Manual <docs/manual>
-	Developer's Guide <docs/development>
-	API <docs/api>
-	Attribution <docs/attribution>
+	User's Guide <users_guide>
+	Developer's Corner <developer_guide>
+	Overview <docs/overview>
 	
 
 .. list-table::
    :class: contentstable
 
-   * - :doc:`Overview <docs/overview>`
+   * - :icon-overview:`.` :doc:`Overview <docs/overview>`
 
-       Introduction to Arachnid.
+       Introduction to Arachnid
 
-     - :doc:`License <license>`
+     - :icon-license:`.` :doc:`License <license>`
 
-       Conditions on the use and redistribution of this package.
+       Conditions on the use and redistribution of this package
 
-   * - :doc:`Installation <docs/install>`
+   * - :icon-user-guide:`.` :doc:`User Guide <users_guide>` 
 
-       How to install Arachnid.
+       A guide for users
 
-     - :doc:`Quick Start <docs/reconstruction>`
+     - :icon-developer:`.` :doc:`Developer's Corner <developer_guide>`
 
-       Step-by-step tutorial for single-particle reconstruction
-
-   * - :doc:`User Guide <docs/manual>` 
-
-       The manual for Arachnid
-
-     - :doc:`API Reference <docs/api>`
-
-       Documentation for the functions included in Arachnid
-
-   * - :doc:`Contribute <docs/development>` 
-
-       Take part in development.
-
-     - :doc:`Attribution <docs/attribution>`
-     	
-       Important contributions
+       A guide for developers
 
 
 	
 
-
-.. _`Frank Lab`: http://www.columbia.edu/cu/franklab/index.html
 
 
 

@@ -5,9 +5,35 @@ Attribution
 Documentation
 =============
 
-This documentation is generated using Sphinx with a modified version of the nature template.
+Tool
+----
 
-Website: http://sphinx.pocoo.org/concepts.html
+This documentation was generated using the popular Sphinx tool.
+
+Website: http://sphinx.pocoo.org/
+
+Theme
+-----
+
+The theme was originally designed by Ryan Roemer. There were several modifications
+made to the sidebar.
+
+Website: http://loose-bits.com/2011/12/09/sphinx-twitter-bootstrap-theme.html
+
+Framework
+---------
+
+The theme is based on a framework developed by the folks at Twitter providing typography, dynamic content,
+layout, forms, tables and navigation.
+
+Website: http://getbootstrap.com/
+
+Icons
+-----
+
+The icons were provided by Glyphicons free of charge for developers using the bootstrap theme.
+
+Website: http://glyphicons.com/
  
 Art Work
 ==========
@@ -36,11 +62,11 @@ mjames@gmail.com
 Any other questions about this icon set please
 contact mjames@gmail.com
 
-Orbweaver Logo
+Logo
 ---------------
 
-The autopart.orbweaver logo is adopted from a photo taken by 
-Louise Docker from Sydney, Australia and is license under CC 2.0.
+The Arachnid Logo was a collaborative effort conceptualized by Nam Ho, Joachim Frank and Melissa Thomas. The
+final product was designed by Melissa Thomas.
 
 Open source software
 ======================

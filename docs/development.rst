@@ -1,40 +1,9 @@
-===================
-Developer's Guide
-===================
 
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
-	
-	
-------------
-Custom Code
-------------
-
-Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
-that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
-a way to test new ideas, perform a simple task quickly or customize objects such as plots.
-
-The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
-examples range from unstacking a SPIDER image stack to customizing the FSC plot.
-
-
- 
--------------------------------
-Application Programs Interface
--------------------------------
-
-See :doc:`api` for a full list of available modules
-
------------
+===========
 Development
------------
+===========
 
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
+See :doc:`api` for code documentation.
 
 Getting Source
 ==============
@@ -59,17 +28,14 @@ Every time you add a new script or the first time you get the source, you may ru
 
 .. _contribute:
 
-Contributing
-=============
-
-Bug Report
-----------
+Reporting Bugs
+==============
 
 As a user or developer, you can report bugs or request features on the `Google Issues Tab <http://code.google.com/p/arachnid/issues/entry>`_. Please,
 search for your issue before submitting it.
 
-Source Code
------------
+Contributing Code
+=================
 
 The preferred way to contribute to Arachnid is to create your own local version or fork on code.google.com.
 
@@ -123,8 +89,8 @@ proper standards.
 		$ easy_install nose coverage
 		$ nosetests --with-coverage path/to/tests_for_package
 
-Debugging C/C++-code
----------------------
+Debugging C/C++ code
+====================
 
 Memory errors are the bain of every C/C++ developers existence. One important tool to finding these 
 errors is `valgrind <http://valgrind.org/>`_.
@@ -143,7 +109,7 @@ errors is `valgrind <http://valgrind.org/>`_.
 	
 
 Testing compilation of code
----------------------------
+===========================
 
 To test whether your code has any problems such as uninitalized variable, use the following flags in the environment for GCC type compilers.
 
@@ -152,8 +118,8 @@ To test whether your code has any problems such as uninitalized variable, use th
 	$ export CFLAGS="-Werror -Wno-unused-function -Wno-unknown-pragmas -Wno-format" CXXFLAGS="-Werror -Wno-format -Wno-unknown-pragmas -Wno-unused-function"
 	$ export FFLAGS="-Werror -Wno-unused-function -Wtabs" F90FLAGS="-Werror -Wno-unused-function -Wtabs" F77FLAGS="-Werror -Wno-unused-function -Wtabs"
 
-Creating a binary Anaconda package
-==================================
+Packaging for Anaconda
+======================
 
 .. sourcecode:: sh
 	
@@ -203,6 +169,17 @@ Create a Program Script
 .. example file processor program
 
 Under construction
+
+------------
+Custom Code
+------------
+
+Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
+that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
+a way to test new ideas, perform a simple task quickly or customize objects such as plots.
+
+The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
+examples range from unstacking a SPIDER image stack to customizing the FSC plot.
 
 ------
 TODO
