@@ -17,51 +17,68 @@ _logger.setLevel(logging.INFO)
 def is_relion_star(filename):
     ''' Test if input filename is in the Relion star format
     
-    :Parameters:
+    This function reads the header of the document file to determine
+    whether is conforms with the Relion star format.
     
-    filename : str
-               Input filename
+    >>> open('test.csv').write('header1,header2\\n0,1\\n')
+    >>> is_relion_star('test.csv')
+    False
     
-    :Returns:
+    Args:
     
-    flag : bool
-           True if the format matches the Relion star format
+        filename : str
+                   Input filename
+    
+    Returns:
+    
+        flag : bool
+               True if the format matches the Relion star format
+    
     '''
     
     return format.get_format(filename) == format.star
 
-def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False, ctf_params=False, **extra):
+def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False, ctf_params=False, scale_spi=False, apix=0, **extra):
     ''' Read an alignment file and organize images
     
-    Supports both SPIDER and Relion alignment files
+    This comprehensive function reads alignment parameters from either a 
+    Relion Star file or a SPIDER alignment file. It can optionally read
+    and return CTF information taken from a Relion star file or the combination
+    of the pySPIDER alignment file and a SPIDER params file.
     
-    :Parameters:
+    .. note::
     
-    filename : str
-               Filename for alignment file
-    image_file : str
-                 Filename for image template - not required for relion
-    use_3d : bool
-             If True, then translations are RT, otherwise they are TR
-    align_cols : int
-                 Number of columns in alignment array (must be greater than 7)
-    force_list : bool
-                 Return filename index tuple list rather than converting
-                 to SPIDER ID label array
-    ctf_params : bool
-                    Read and return CTF params
-    extra : dict
-            Unused keyword arguments
+        Supports both SPIDER and Relion alignment files
     
-    :Returns:
+    Args:
     
-    files : list or tuple
-            List of filename/id tuples or a tuple (filename, label array)
-    out : array
-          2d array where rows are images and columns are alignment
-          parameters: psi,theta,phi,inplane,tx,ty,defocus
-    param : dict, optional
-            CTF params
+        filename : str
+                   Filename for alignment file
+        image_file : str
+                     Filename for image template - not required for relion
+        use_3d : bool
+                 If True, then translations are RT, otherwise they are TR
+        align_cols : int
+                     Number of columns in alignment array (must be greater than 7)
+        force_list : bool
+                     Return filename index tuple list rather than converting
+                     to SPIDER ID label array
+        ctf_params : bool
+                        Read and return CTF params
+        scale_spi : bool
+                    Scale translations by the pixel size
+        extra : dict
+                Unused keyword arguments
+    
+    Returns:
+    
+        files : list or tuple
+                List of filename/id tuples or a tuple (filename, label array)
+        out : array
+              2d array where rows are images and columns are alignment
+              parameters: psi,theta,phi,inplane,tx,ty,defocus
+        param : dict, optional
+                CTF params
     '''
     
     if align_cols < 7: raise ValueError, "align_cols must be greater than 7"
@@ -118,16 +135,21 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                            voltage=align[0].rlnVoltage,
                            ampcont=align[0].rlnAmplitudeContrast) if len(align) > 0 else {}
     else:
-        if ctf_params: ctf_param=spider_params.read(extra['param_file'])
+        if ctf_params: 
+            ctf_param=spider_params.read(extra['param_file'])
+            if not apix: apix=ctf_param['apix']
         if 'ndarray' not in extra or not extra['ndarray']: extra['ndarray']=True
         align = read_spider_alignment(filename, **extra)[0]
         param = numpy.zeros((len(align), align_cols))
+        
         if align.shape[1] > 17: 
             param[:, 6] = align[:, 17]
         if use_3d:
+            _logger.critical("Using 3D")
             if numpy.sum(align[:, 5]) != 0.0:
                 _logger.info("Standard SPIDER alignment file - convert to 3D")
                 if numpy.all(align[:,5]==0): 
+                    _logger.critical("Align: %s"%(str(align[0])))
                     _logger.info("Detected non-standard SPIDER alignment file with no 2D parameters")
                     param[:, :3] = align[:, :3]
                 else:
@@ -142,7 +164,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
         else:
             _logger.info("Standard SPIDER alignment file - leave 2D")
             param[:, 1:3] = align[:, 1:3]
-            if param.shape[1] > 7:
+            if numpy.sum(align[:, 5]) != 0.0:
                 param[:, 3:6] = align[:, 5:8]
                 
             else:
@@ -177,25 +199,33 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             if label[:, 1].min() > 0: label[:, 1]-=1
             files = (image_file, label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+        _logger.critical("Check: %d - %f"%(scale_spi, apix))
+        if scale_spi and apix > 0:
+            _logger.critical("Align: %s"%(str(align[0])))
+            _logger.critical("Label: %s"%(str(label[0])))
+            _logger.critical("1Scale trans: %s"%(str(param[0])))
+            _logger.critical("1Scale trans: %f,%f"%(param[0, 4], param[0, 5]))
+            param[:, 4:6] /= apix
+            _logger.critical("2Scale trans: %f,%f"%(param[0, 4], param[0, 5]))
     if ctf_params: return files, param, ctf_param
     return files, param
 
 def read_spider_alignment(filename, header=None, **extra):
     ''' Read a SPIDER alignment data from a file
     
-    :Parameters:
+    Args:
     
-    filename : str
-              Input filename containing alignment data
-    header : str
-             User-specified header for the alignment file
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                  Input filename containing alignment data
+        header : str
+                 User-specified header for the alignment file
+        extra : dict
+                Unused extra keyword arguments
     
-    :Returns:
+    Returns:
     
-    align : list
-            List of named tuples
+        align : list
+                List of named tuples
     '''
     
     
