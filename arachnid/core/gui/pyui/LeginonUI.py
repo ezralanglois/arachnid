@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/LeginonUI.ui'
 #
-# Created: Wed Jan  8 11:24:50 2014
+# Created: Tue Jan 14 13:39:15 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -53,31 +53,33 @@ class Ui_Form(object):
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.label_6 = QtGui.QLabel(self.widget_3)
         self.label_6.setObjectName("label_6")
-        self.gridLayout_2.addWidget(self.label_6, 1, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.label_6, 1, 1, 1, 1)
         self.entryLimitSpinBox = QtGui.QSpinBox(self.widget_3)
         self.entryLimitSpinBox.setMinimum(1)
         self.entryLimitSpinBox.setMaximum(100000)
         self.entryLimitSpinBox.setObjectName("entryLimitSpinBox")
-        self.gridLayout_2.addWidget(self.entryLimitSpinBox, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.entryLimitSpinBox, 1, 2, 1, 1)
         self.reloadTableToolButton = QtGui.QToolButton(self.widget_3)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/mini/mini/arrow_refresh.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.reloadTableToolButton.setIcon(icon)
         self.reloadTableToolButton.setObjectName("reloadTableToolButton")
-        self.gridLayout_2.addWidget(self.reloadTableToolButton, 1, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.reloadTableToolButton, 1, 3, 1, 1)
         self.changeUserPushButton = QtGui.QPushButton(self.widget_3)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(":/mini/mini/user_edit.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.changeUserPushButton.setIcon(icon1)
         self.changeUserPushButton.setObjectName("changeUserPushButton")
-        self.gridLayout_2.addWidget(self.changeUserPushButton, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.changeUserPushButton, 0, 2, 1, 1)
         self.userInformationToolButton = QtGui.QToolButton(self.widget_3)
         self.userInformationToolButton.setText("")
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(":/mini/mini/information.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.userInformationToolButton.setIcon(icon2)
         self.userInformationToolButton.setObjectName("userInformationToolButton")
-        self.gridLayout_2.addWidget(self.userInformationToolButton, 0, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.userInformationToolButton, 0, 3, 1, 1)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout_2.addItem(spacerItem, 1, 0, 1, 1)
         self.verticalLayout_4.addWidget(self.widget_3)
         self.verticalLayout_3.addWidget(self.widget_2)
         self.projectTableView = QtGui.QTableView(self.welcomePage)
@@ -123,8 +125,8 @@ class Ui_Form(object):
         self.label_4 = QtGui.QLabel(self.loginPage)
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 8, 0, 1, 1)
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem, 12, 1, 1, 1)
+        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem1, 12, 1, 1, 1)
         self.loginPushButton = QtGui.QPushButton(self.loginPage)
         self.loginPushButton.setObjectName("loginPushButton")
         self.gridLayout.addWidget(self.loginPushButton, 10, 0, 1, 1)
@@ -169,7 +171,7 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.widget)
 
         self.retranslateUi(Form)
-        self.loginStackedWidget.setCurrentIndex(1)
+        self.loginStackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
         Form.setTabOrder(self.leginonHostnameLineEdit, self.projectHostnameLineEdit)
         Form.setTabOrder(self.projectHostnameLineEdit, self.usernameLineEdit)
@@ -197,7 +199,7 @@ class Ui_Form(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Change the Leginon database information including User Login.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/user_edit.png\" /> Change the Leginon database information including User Login.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/information.png\" /> Only the most recent session is displayed. Increasing the number in the Show last box and then clicking the reload <img src=\":/mini/mini/arrow_refresh.png\" /> button will load additional recent sessions.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
