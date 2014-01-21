@@ -155,6 +155,8 @@ def fourier_shift2(img, dx, dy, dz=0, pad=1):
 def fourier_shift(img, dx, dy, dz=0, pad=1):
     ''' Shift using sinc interpolation
     
+    .. note:: Returns non-contiguous array!
+    
     :Parameters:
     
     img : array
