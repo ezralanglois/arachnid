@@ -7,7 +7,7 @@ formats as well as exceptions.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from type_utility import is_float_int
-from collections import defaultdict, namedtuple
+import collections
 import operator
 import functools
 import os, logging
@@ -45,15 +45,15 @@ def combine(vals):
     >>> combine([NTuple(id=1, select=2, order=0), NTuple(id=5, select=0)])
     [CombinedArray(id=1, select=2), CombinedArray(id=5, select=0)]
     
-    :Parameters:
+    Args:
     
-    vals : list
-           List of lists of values
+        vals : list
+               List of lists of values
     
-    :Returns:
+    Returns:
     
-    vals : list
-           List of combined values
+        vals : list
+               List of combined values
     '''
     
     header = {}
@@ -64,7 +64,7 @@ def combine(vals):
     for key in header.keys():
         if header[key] < len(vals): del header[key]
     header = header.keys()
-    Tuple = namedtuple("CombinedArray", header)
+    Tuple = collections.namedtuple("CombinedArray", header)
     retvals = []
     for curr in vals:
         for v in curr:
@@ -80,23 +80,23 @@ def new_filename(filename, prefix=None, suffix=None, ext=None, subdir=None):
     >>> print add_prefix('output.txt', 'new')
         'new_output.txt'
     
-    :Parameters:
+    Args:
     
-    filename : str
-               Name of the file to prefix
-    prefix : str
-             Prefix to add to a filename
-    suffix : str
-             Suffix to add to a filename
-    ext : str
-          Extension to add to a filename
-    subdir : str
-             New subdirectory
+        filename : str
+                   Name of the file to prefix
+        prefix : str
+                 Prefix to add to a filename
+        suffix : str
+                 Suffix to add to a filename
+        ext : str
+              Extension to add to a filename
+        subdir : str
+                 New subdirectory
     
-    :Returns:
+    Returns:
     
-    filename : str
-               Filename with prefix
+        filename : str
+                   Filename with prefix
     '''
     
     if subdir is not None: filename = os.path.join(os.path.dirname(filename), subdir, os.path.basename(filename))
@@ -114,17 +114,17 @@ def add_prefix(filename, prefix):
     >>> print add_prefix('output.txt', 'new')
         'new_output.txt'
     
-    :Parameters:
+    Args:
     
-    filename : str
-               Name of the file to prefix
-    prefix : str
-             Prefix to add to a filename
+        filename : str
+                   Name of the file to prefix
+        prefix : str
+                 Prefix to add to a filename
     
-    :Returns:
+    Returns:
     
-    filename : str
-               Filename with prefix
+        filename : str
+                   Filename with prefix
     '''
     
     if prefix is not None and prefix != "":
@@ -140,17 +140,17 @@ def add_suffix(filename, suffix):
     >>> print add_prefix('output.txt', 'new')
         'new_output.txt'
     
-    :Parameters:
+    Args:
     
-    filename : str
-               Name of the file to suffix
-    suffix : str
-             Suffix to add to a filename
+        filename : str
+                   Name of the file to suffix
+        suffix : str
+                 Suffix to add to a filename
     
-    :Returns:
-    
-    filename : str
-               Filename with suffix
+    Returns:
+        
+        filename : str
+                   Filename with suffix
     '''
     
     if suffix is not None and suffix != "":
@@ -163,29 +163,29 @@ def create_namedtuple_list(values, name, header, label=None, good=None):
     
     >>> from arachnid.core.metadata.format_utility import *
     >>> values = [ [1,0], [2,1], [3,1] ]
-    >>> create_namedtuple_list(values, "Selection", "id,select")
+    >>> create_collections.namedtuple_list(values, "Selection", "id,select")
     [ Selection(id=1, select=0), Selection(id=2, select=1) Selection(id=3, select=1) ]
     
-    :Parameters:
+    Args:
     
-    val : collection
-          Iterable 2D collection of values
-    name : str
-            Name of namedtuple class
-    header : str
-             Header of namedtuple
-    label : collection
-            Iterable collection of identifiers
-    good : collection
-            Iterable collection of selections
+        val : collection
+              Iterable 2D collection of values
+        name : str
+                Name of collections.namedtuple class
+        header : str
+                 Header of collections.namedtuple
+        label : collection
+                Iterable collection of identifiers
+        good : collection
+                Iterable collection of selections
     
-    :Returns:
+    Returns:
 
-    val : list
-          List of namedtuples
+        val : list
+              List of collections.namedtuples
     '''
     
-    Tuple = namedtuple(name, header)
+    Tuple = collections.namedtuple(name, header)
     retvals = []
     
     if label is not None:
@@ -225,15 +225,15 @@ def convert(val):
     >>> convert("2.1")
     2.1
     
-    :Parameters:
+    Args:
     
-    val : string
-          Value for conversion
+        val : string
+              Value for conversion
     
-    :Returns:
+    Returns:
 
-    val : numeric
-          Numeric (float or int) converted from string
+        val : numeric
+              Numeric (float or int) converted from string
     '''
     
     if val == '-': return None
@@ -267,19 +267,19 @@ def parse_header(filename, header=None):
     >>> parse_header(filename2, default_header)
     ('/path/to/file/filename', ['field1', 'field2', 'field3'])
     
-    :Parameters:
+    Args:
     
-    val : string
-          Filename with header to parse
-    header : list
-          List of strings describing a header
+        val : string
+              Filename with header to parse
+        header : list
+              List of strings describing a header
     
-    :Returns:
+    Returns:
 
-    val : str
-          New filename 
-    header : list
-             List of strings describing the header
+        val : str
+              New filename 
+        header : list
+                 List of strings describing the header
     '''
     
     if filename.find('=') != -1: 
@@ -301,17 +301,17 @@ def create_id(objid, fileid):
     >>> create_id('1', '2')
     "2/1"
     
-    :Parameters:
+    Args:
     
-    objid : integer
-          ID of the object to be converted to a string
-    fileid : integer
-          ID of the file to be converted to a string
+        objid : integer
+              ID of the object to be converted to a string
+        fileid : integer
+              ID of the file to be converted to a string
     
-    :Returns:
+    Returns:
 
-    val : string
-          Concatenated string identifier separated by an '/'
+        val : string
+              Concatenated string identifier separated by an '/'
     '''
     
     if fileid is None: return str(object_id(objid))
@@ -324,17 +324,17 @@ def split_id(id, numeric=False):
     >>> split_id("2/1")
     ['2', '1']
     
-    :Parameters:
+    Args:
     
-    id : string
-         String ID containing two IDs separated by an '/'
+        id : string
+             String ID containing two IDs separated by an '/'
     
-    :Returns:
+    Returns:
 
-    file_id : str
-              File ID
-    object_id : str
-                Object ID
+        file_id : str
+                  File ID
+        object_id : str
+                    Object ID
     '''
     
     ids = id.replace('/', ' ').replace(':', ' ').replace(',', ' ').replace('@', ' ').split()
@@ -350,15 +350,15 @@ def file_id(id):
     >>> file_id("1")
     1
     
-    :Parameters:
+    Args:
     
-    id : id-like object
-         String full ID or integer partial ID
+        id : id-like object
+             String full ID or integer partial ID
     
-    :Returns:
+    Returns:
 
-    val : integer
-          Integer ID
+        val : integer
+              Integer ID
     '''
     
     try:
@@ -379,15 +379,15 @@ def object_id(id):
     >>> object_id("1")
     1
     
-    :Parameters:
+    Args:
     
-    id : id-like object
-         String full ID or integer partial ID
+        id : id-like object
+             String full ID or integer partial ID
     
-    :Returns:
-
-    val : integer
-          Integer ID
+    Returns:
+    
+        val : integer
+              Integer ID
     '''
     
     try:
@@ -409,19 +409,19 @@ def has_file_id(val):
     False
     >>> has_file_id(["2/1"])
     True
-    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> TestTuple = collections.namedtuple("TestTuple", "id,select")
     >>> has_file_id(TestTuple("1", 0))
     False
     
-    :Parameters:
+    Args:
     
-    val : object
-         ID, value or collection
+        val : object
+             ID, value or collection
     
-    :Returns:
+    Returns:
 
-    val : bool
-          True if ID is not an integer
+        val : bool
+              True if ID is not an integer
     '''
     
     if isinstance(val, tuple):
@@ -441,7 +441,7 @@ def get_header(value, key=None):
     '''Get the header of a named tuple or collection of named tuples
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> TestTuple = collections.namedtuple("TestTuple", "id,select")
     >>> get_header(TestTuple("1", 0))
     ('id', 'select')
     >>> get_header([TestTuple("1", 0)])
@@ -449,19 +449,19 @@ def get_header(value, key=None):
     >>> get_header(TestTuple("1", 0), "id")
     0
     
-    :Parameters:
+    Args:
 
-    value : object
-            Namedtuple or collection of namedtuples
-    key : str, optional
-          If not None, return index of header column
+        value : object
+                Namedtuple or collection of collections.namedtuples
+        key : str, optional
+              If not None, return index of header column
     
-    :Returns:
+    Returns:
     
-    val1 : tuple
-          If key is not specified, tuple of strings describing a header
-    val2 : integer
-           If key is specified, index of column
+        val1 : tuple
+              If key is not specified, tuple of strings describing a header
+        val2 : integer
+               If key is specified, index of column
     '''
     
     if isinstance(value, dict): return get_header(value[value.keys()[0]], key)
@@ -471,27 +471,27 @@ def get_header(value, key=None):
         except: 
             if hasattr(value, "_fields"): value = list(value._fields)
             try: return value.index(key)
-            except: raise FormatUtilityError, "Cannot find key in namedtuple: "+str(key)
+            except: raise FormatUtilityError, "Cannot find key in collections.namedtuple: "+str(key)
     return value._fields
 
 def has_field(val, key):
-    ''' Test if the namedtuple or collection of namedtuples has the specific field
+    ''' Test if the collections.namedtuple or collection of collections.namedtuples has the specific field
     
     >>> from arachnid.core.metadata.format_utility import *
     >>> has_field([Select(id=1)], 'id')
     True
     
-    :Parameters:
+    Args:
     
-    val : namedtuple
-          Value to test
-    key : str
-          Name of the field
+        val : collections.namedtuple
+              Value to test
+        key : str
+              Name of the field
     
-    :Returns:
+    Returns:
     
-    ret : bool
-          True if val has field of name key
+        ret : bool
+              True if val has field of name key
     '''
     
     try: get_header(val, key)
@@ -502,22 +502,22 @@ def map_object_list(vals, key="id"):
     '''Map the list of named tuples to a dictionary
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> TestTuple = collections.namedtuple("TestTuple", "id,select")
     >>> testlist = [TestTuple(1,1), TestTuple(20,1)]
     >>> map_object_list(testlist)
     {1: TestTuple(id=1, select=1), 20: TestTuple(id=20, select=1)}
     
-    :Parameters:
+    Args:
 
-    vals : list
-           List of values
-    key : index-like object, optional
-          Column integer or string to map
+        vals : list
+               List of values
+        key : index-like object, optional
+              Column integer or string to map
     
-    :Returns:
+    Returns:
     
-    val : dict
-           Dictionary of mapped values
+        val : dict
+               Dictionary of mapped values
     '''
     
     idx = get_header(vals, key)
@@ -535,28 +535,28 @@ def map_file_list(vals, replace=False, key="id"):
     '''Map the list of named tuples to a dictionary
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> TestTuple = collections.namedtuple("TestTuple", "id,select")
     >>> testlist = [TestTuple("1/1",1), TestTuple("20/1",1)]
     >>> map_file_list(testlist)
-    defaultdict(<type 'list'>, {1: [TestTuple(id='1/1', select=1)], 20: [TestTuple(id='20/1', select=1)]})
+    collections.defaultdict(<type 'list'>, {1: [TestTuple(id='1/1', select=1)], 20: [TestTuple(id='20/1', select=1)]})
     
-    :Parameters:
+    Args:
 
-    vals : list
-           List of values
-    replace : bool, optional
-              If True, script the file id form the object
-    key : index-like object, optional
-          Column integer or string to map
+        vals : list
+               List of values
+        replace : bool, optional
+                  If True, script the file id form the object
+        key : index-like object, optional
+              Column integer or string to map
     
-    :Returns:
+    Returns:
     
-    val : dict
-           Dictionary of mapped values
+        val : dict
+               Dictionary of mapped values
     '''
     
     idx = get_header(vals, key)
-    d = defaultdict(list)
+    d = collections.defaultdict(list)
     if replace:
         for v in vals:
             d[file_id(v[idx])].append(v._replace(id=object_id(v[idx])))
@@ -569,29 +569,29 @@ def map_list(vals, key="id", replace=True):
     '''Map the list of named tuples to a dictionary
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple = namedtuple("TestTuple", "id,select")
+    >>> TestTuple = collections.namedtuple("TestTuple", "id,select")
     >>> testlist = [TestTuple("1/1",1), TestTuple("1/2",0), TestTuple("20/1",1)]
     >>> map_list(testlist)
-    defaultdict(<type 'list'>, {1: {1: TestTuple(id='1/1', select=1), 2: TestTuple(id='1/2', select=0)}, 20: {1: TestTuple(id='20/1', select=1)}})
+    collections.defaultdict(<type 'list'>, {1: {1: TestTuple(id='1/1', select=1), 2: TestTuple(id='1/2', select=0)}, 20: {1: TestTuple(id='20/1', select=1)}})
     
-    :Parameters:
+    Args:
 
-    vals : list
-           List of values
-    key : index-like object, optional
-          Column integer or string to map
-    replace : bool
-              If True, replace the id of the output dict 
-              with the object id
+        vals : list
+               List of values
+        key : index-like object, optional
+              Column integer or string to map
+        replace : bool
+                  If True, replace the id of the output dict 
+                  with the object id
     
-    :Returns:
+    Returns:
     
-    val : dict
-           Dictionary of mapped values
+        val : dict
+               Dictionary of mapped values
     '''
     
     idx = get_header(vals, key)
-    d = defaultdict(list)
+    d = collections.defaultdict(list)
     if replace:
         for v in vals:
             d[file_id(v[idx])].append(v._replace(id=object_id(v[idx])))
@@ -603,29 +603,29 @@ def map_list(vals, key="id", replace=True):
     return d
 
 def concat_tuple(t1, t2, NamedTuple):
-    '''Concatenate two namedtuples
+    '''Concatenate two collections.namedtuples
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
-    >>> TestTuple2 = namedtuple("TestTuple2", "id,peak")
-    >>> CatTuple = namedtuple("CatTuple", "id,select,peak")
+    >>> TestTuple1 = collections.namedtuple("TestTuple1", "id,select")
+    >>> TestTuple2 = collections.namedtuple("TestTuple2", "id,peak")
+    >>> CatTuple = collections.namedtuple("CatTuple", "id,select,peak")
     
     >>> concat_tuple(TestTuple1(1, 1), TestTuple2(1,0.9), CatTuple)
     CatTuple(id=1, select=1, peak=0.90)
     
-    :Parameters:
+    Args:
 
-    t1 : namedtuple
-         First namedtuple
-    t2 : namedtuple
-         Second namedtuple
-    NamedTuple : class
-                 Class of namedtuple
+        t1 : collections.namedtuple
+             First collections.namedtuple
+        t2 : collections.namedtuple
+             Second collections.namedtuple
+        NamedTuple : class
+                     Class of collections.namedtuple
     
-    :Returns:
+    Returns:
     
-    val : namedtuple
-          Concatenated namedtuple
+        val : collections.namedtuple
+              Concatenated collections.namedtuple
     '''
     
     vals = []
@@ -642,30 +642,30 @@ def stack(tlist1, tlist2, classname="StackTuple"):
     '''Stack two lists of tuples into a single tuple
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
-    >>> TestTuple2 = namedtuple("TestTuple2", "id,peak")
+    >>> TestTuple1 = collections.namedtuple("TestTuple1", "id,select")
+    >>> TestTuple2 = collections.namedtuple("TestTuple2", "id,peak")
     >>> testlist1 = [TestTuple1(2,0)]
     >>> testlist2 = [TestTuple1(2,0.5)]
     >>> stack(testlist1, testlist2)
     [StackTuple(id=2, select=0.5)]
     
-    :Parameters:
+    Args:
 
-    tlist1 : container
-             List or dictionary containing namedtuples
-    tlist2 : namedtuple
-             List or dictionary containing namedtuples
-    classname : string, optional
-                Name of namedtuple class
+        tlist1 : container
+                 List or dictionary containing collections.namedtuples
+        tlist2 : collections.namedtuple
+                 List or dictionary containing collections.namedtuples
+        classname : string, optional
+                    Name of collections.namedtuple class
     
-    :Returns:
+    Returns:
     
-    val : list
-          List of namedtuples
+        val : list
+              List of collections.namedtuples
     '''
     
     if len(tlist1) == 0: return tlist2
-    NamedTuple = namedtuple(classname, ",".join(set(get_header(tlist1)+get_header(tlist2))))
+    NamedTuple = collections.namedtuple(classname, ",".join(set(get_header(tlist1)+get_header(tlist2))))
     if not isinstance(tlist2, dict): tlist2 = map_object_list(tlist2)
     def stack_tuple(t):
         try: t2 = tlist2.get(object_id(t.id), None)
@@ -680,21 +680,21 @@ def column_offsets(vals, column):
     '''Get the column offsets of a header (or list of headers) from the specified named tuple (or list of named tuples).
     
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
+    >>> TestTuple1 = collections.namedtuple("TestTuple1", "id,select")
     >>> column_offsets([TestTuple1(2,0)], "select")
     1
     
-    :Parameters:
+    Args:
 
-    vals : object
-             A namedtuple (or collection of namedtuples) with a header
-    column : object
-             Columns to search for: Integer, string or list of integers or strings
+        vals : object
+                 A collections.namedtuple (or collection of collections.namedtuples) with a header
+        column : object
+                 Columns to search for: Integer, string or list of integers or strings
     
-    :Returns:
+    Returns:
     
-    val : int or list
-          Column offset or list of column offsets
+        val : int or list
+              Column offset or list of column offsets
     '''
     
     header = list(get_header(vals))
@@ -704,10 +704,10 @@ def column_offsets(vals, column):
         return get_header(header, column)
 
 def flatten(values):
-    ''' Flatten a collection of collection of namedtuples
+    ''' Flatten a collection of collection of collections.namedtuples
 
     >>> from arachnid.core.metadata.format_utility import *
-    >>> TestTuple1 = namedtuple("TestTuple1", "id,select")
+    >>> TestTuple1 = collections.namedtuple("TestTuple1", "id,select")
     >>> flatten([TestTuple1(2,0)])
     [TestTuple1(id=2, select=0)]
     >>> flatten([[TestTuple1(2,0)],[TestTuple1(3,0)]])
@@ -715,15 +715,15 @@ def flatten(values):
     >>> flatten({1: [TestTuple1(2,0)], 2: [TestTuple1(3,0)]})
     [TestTuple1(id=2, select=0), TestTuple1(id=3, select=0)]
     
-    :Parameters:
+    Args:
 
-    values : collection
-             A collection of collections of namedtuples
+        values : collection
+                 A collection of collections of collections.namedtuples
     
-    :Returns:
+    Returns:
     
-    val : list
-          List of namedtuples
+        val : list
+              List of collections.namedtuples
     '''
     
     if isinstance(values, dict): values = values.values()
@@ -745,26 +745,26 @@ def order(values, index, keep_old=False):
     >>> order([TestTuple1(id=2, select=0), TestTuple1(id=3, select=1)], (1,0))
     [TestTuple1(id=1, select=1), TestTuple1(id=2, select=0)]
     
-    :Parameters:
+    Args:
     
-    values : list
-             List to reorder
-    index : array
-            Array of sorted indices
-    keep_old : bool
-               If True, maintain the old id, otherwise create a new
-               id based on the order
+        values : list
+                 List to reorder
+        index : array
+                Array of sorted indices
+        keep_old : bool
+                   If True, maintain the old id, otherwise create a new
+                   id based on the order
     
-    :Returns:
-        
-    vals : list
-           Ordered list   
+    Returns:
+            
+        vals : list
+               Ordered list   
     '''
     
     vals = []
     if keep_old:
         header = ",".join(values[0]._fields)+",oldid"
-        Tuple = namedtuple('OrderTuple', header)
+        Tuple = collections.namedtuple('OrderTuple', header)
         for id, i in enumerate(index):
             old = values[i]._asdict()
             old['id'] = id+1
@@ -781,17 +781,17 @@ def add_file_id(values, fid):
     >>> add_file_id([TestTuple1(id=2, select=0), TestTuple1(id=3, select=1)], 10)
     [TestTuple1(id='10/2', select=0), TestTuple1(id='10/3', select=1)]
     
-    :Parameters:
+    Args:
     
-    values : list
-             List of namedtuples to alter, in place
-    fid : int
-          Micrograph id
+        values : list
+                 List of collections.namedtuples to alter, in place
+        fid : int
+              Micrograph id
     
-    :Returns:
+    Returns:
     
-    values : list
-             List with replaced ids
+        values : list
+                 List with replaced ids
     '''
     
     if not has_file_id(values):
@@ -807,15 +807,15 @@ def renumber(values):
     >>> renumber([TestTuple1(id=2, order=1), TestTuple1(id=4, order=2), TestTuple1(id=1, order=3)])
     [TestTuple1(id=1, order=3), TestTuple1(id=2, order=1), TestTuple1(id=3, order=2)]
     
-    :Parameters:
+    Args:
 
-    values : list
-             List of values
+        values : list
+                 List of values
     
-    :Returns:
+    Returns:
     
-    output : list
-             List of output values
+        output : list
+                 List of output values
     '''
     
     output = flatten(values)
@@ -834,15 +834,15 @@ def fileid(fileset):
     
     .. deprecated:: 0.1.3
     
-    :Parameters:
+    Args:
+        
+        fileset : object
+                  Tuple, list or string describing the file names
     
-    fileset : object
-              Tuple, list or string describing the file names
+    Returns:
     
-    :Returns:
-    
-    val : str
-          Filename ID
+        val : str
+              Filename ID
     '''
     
     if isinstance(fileset, list):  fileset = fileset[0]
