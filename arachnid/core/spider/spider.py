@@ -112,7 +112,8 @@ class Session(spider_session.Session):
     '''
     
     def __init__(self, *args, **kwargs):
-        #Setup spider based on the version
+        '''
+        '''
         
         spider_session.Session.__init__(self, *args, **kwargs)
         
@@ -135,19 +136,19 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
         
-        outputfile : str
-                     Filename of output image
+            outputfile : str
+                         Filename of output image
         '''
         
         return spider_session.spider_command_fifo(self, 'ac', inputfile, outputfile, "Applying auto-correlation to an image")
@@ -162,19 +163,19 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         return spider_session.spider_command_fifo(self, 'ac n', inputfile, outputfile, "Applying the normalized auto-correlation to an image")
@@ -191,19 +192,19 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        otherfiles : str
-                     Other filenames listed on the as function parameters
-        extra : dict
-                Unused key word arguments (outputfile hidden here and used)
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            otherfiles : str
+                         Other filenames listed on the as function parameters
+            extra : dict
+                    Unused key word arguments (outputfile hidden here and used)
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_multi_input(self, 'ad', "Add a set of files", inputfile, *otherfiles, **extra)
@@ -226,47 +227,47 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image projection stack
-        inputselect : str
-                      Experiment projection selection file
-        reference : str
-                    Filename for the reference projection stack
-        selectref : str
-                    Filename for the reference projection selection file
-        ring_file : str
-                    Temporary ring file
-        angle_range : float
-                      Maximum allowed deviation of the Euler angles
-        angle_threshold : float
-                          Record differences that exceed this threshold
-        trans_range : float
-                      Maximum allowed translation
-        first_ring : int
-                     First polar ring to analyze
-        ring_last : int
-                    Last polar ring to analyze
-        ring_step : int
-                    Polar ring step size
-        test_mirror : bool
-                      If true, test the mirror position of the projection
-        refangles : str
-                    Document file with euler angles for each reference
-        inputangles : str
-                      Document file with euler angles for each experimental projection (previous alignment)
-        interpolation : str, optional
-                        Set interpolation type
-        outputfile : str
-                     Filename of output image (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image projection stack
+            inputselect : str
+                          Experiment projection selection file
+            reference : str
+                        Filename for the reference projection stack
+            selectref : str
+                        Filename for the reference projection selection file
+            ring_file : str
+                        Temporary ring file
+            angle_range : float
+                          Maximum allowed deviation of the Euler angles
+            angle_threshold : float
+                              Record differences that exceed this threshold
+            trans_range : float
+                          Maximum allowed translation
+            first_ring : int
+                         First polar ring to analyze
+            ring_last : int
+                        Last polar ring to analyze
+            ring_step : int
+                        Polar ring step size
+            test_mirror : bool
+                          If true, test the mirror position of the projection
+            refangles : str
+                        Document file with euler angles for each reference
+            inputangles : str
+                          Document file with euler angles for each experimental projection (previous alignment)
+            interpolation : str, optional
+                            Set interpolation type
+            outputfile : str
+                         Filename of output image (If none, temporary incore file is used and returned)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
         
-        outputfile : str
-                     Filename of output image
+            outputfile : str
+                         Filename of output image
         '''
         
         if interpolation is not None:
@@ -321,50 +322,50 @@ class Session(spider_session.Session):
             Bugs: Does not support incore document files!
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image projection stack
-        inputselect : str
-                      Experiment projection selection file
-        reference : str
-                    Filename for the reference projection stack
-        selectref : str
-                    Filename for the reference projection selection file
-        angle_range : float
-                      Maximum allowed deviation of the Euler angles, where 0.0 means no restriction
-        angle_threshold : float
-                          Record differences that exceed this threshold
-        trans_range : float
-                      Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
-        trans_step : float
-                     Translation step size
-        first_ring : int
-                     First polar ring to analyze
-        ring_last : int
-                    Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
-        ring_step : int
-                    Polar ring step size
-        ray_step : int
-                    Step for the radial array
-        test_mirror : bool
-                      If true, test the mirror position of the projection
-        refangles : str
-                    Document file with euler angles for each reference
-        inputangles : str
-                      Document file with euler angles for each experimental projection (previous alignment)
-        interpolation : str, optional
-                        Set interpolation type
-        outputfile : str
-                     Filename of output image (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image projection stack
+            inputselect : str
+                          Experiment projection selection file
+            reference : str
+                        Filename for the reference projection stack
+            selectref : str
+                        Filename for the reference projection selection file
+            angle_range : float
+                          Maximum allowed deviation of the Euler angles, where 0.0 means no restriction
+            angle_threshold : float
+                              Record differences that exceed this threshold
+            trans_range : float
+                          Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
+            trans_step : float
+                         Translation step size
+            first_ring : int
+                         First polar ring to analyze
+            ring_last : int
+                        Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
+            ring_step : int
+                        Polar ring step size
+            ray_step : int
+                        Step for the radial array
+            test_mirror : bool
+                          If true, test the mirror position of the projection
+            refangles : str
+                        Document file with euler angles for each reference
+            inputangles : str
+                          Document file with euler angles for each experimental projection (previous alignment)
+            interpolation : str, optional
+                            Set interpolation type
+            outputfile : str
+                         Filename of output image (If none, temporary incore file is used and returned)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         if interpolation is not None:
@@ -407,21 +408,21 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        operation : str
-                    Math operation as a string
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            operation : str
+                        Math operation as a string
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         _logger.debug("Perform math operation on an image")
@@ -436,21 +437,21 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        image_size : (float,float)
-                     Size of the image
-        background : float
-                     Background color of the image (Default: 2.0)
-        outputfile : str
-                 Filename of the output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            image_size : (float,float)
+                         Size of the image
+            background : float
+                         Background color of the image (Default: 2.0)
+            outputfile : str
+                     Filename of the output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Int or str describing the output file
+            
+            outputfile : str
+                         Int or str describing the output file
         '''
         
         _logger.debug("Creating blank image of size %s in file %s: "%(str(image_size), str(outputfile)))
@@ -469,31 +470,31 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input file template, stack template or stack
-        angle_file : str
-                     File containing euler angles and shifts
-        stack_count : int
-                     Number of projections in the stack
-        input_select : int
-                       Input filename or number of images in the stack
-        sym_file : str
-                   Input filename with symetries
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input file template, stack template or stack
+            angle_file : str
+                         File containing euler angles and shifts
+            stack_count : int
+                         Number of projections in the stack
+            input_select : int
+                           Input filename or number of images in the stack
+            sym_file : str
+                       Input filename with symetries
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output full volume
-        outputfile1 : str
-                      Output half volume
-        outputfile2 : str
-                      Output half volume
+            
+            outputfile : str
+                         Output full volume
+            outputfile1 : str
+                          Output half volume
+            outputfile2 : str
+                          Output half volume
         '''
         
         _logger.debug("Back project")
@@ -511,41 +512,41 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input file template, stack template or stack
-        angle_file : str
-                     File containing euler angles and shifts
-        cg_radius : int
-                    Radius of reconstructed object
-        error_limit : float
-                      Stopping criteria
-        chi2_limit :  float
-                      Stopping criteria
-        iter_limit :  float
-                      Maximum number of iterations
-        reg_mode : int
-                   Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
-        lambda_weight : float
-                        Weight of regularization
-        stack_count : int
-                     Number of projections in the stack
-        input_select : int
-                       Input filename or number of images in the stack
-        sym_file : str
-                   Input filename with symetries
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        pixel_diameter : int
-                         Pixel diameter of the particle (params file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input file template, stack template or stack
+            angle_file : str
+                         File containing euler angles and shifts
+            cg_radius : int
+                        Radius of reconstructed object
+            error_limit : float
+                          Stopping criteria
+            chi2_limit :  float
+                          Stopping criteria
+            iter_limit :  float
+                          Maximum number of iterations
+            reg_mode : int
+                       Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
+            lambda_weight : float
+                            Weight of regularization
+            stack_count : int
+                         Number of projections in the stack
+            input_select : int
+                           Input filename or number of images in the stack
+            sym_file : str
+                       Input filename with symetries
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            pixel_diameter : int
+                             Pixel diameter of the particle (params file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output full volume
+            
+            outputfile : str
+                         Output full volume
         '''
         
         _logger.debug("SIRT")
@@ -568,41 +569,41 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input file template, stack template or stack
-        angle_file : str
-                     File containing euler angles and shifts
-        cg_radius : int
-                    Radius of reconstructed object
-        error_limit : float
-                      Stopping criteria
-        chi2_limit :  float
-                      Stopping criteria
-        iter_limit :  float
-                      Maximum number of iterations
-        reg_mode : int
-                   Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
-        lambda_weight : float
-                        Weight of regularization
-        stack_count : int
-                     Number of projections in the stack
-        input_select : int
-                       Input filename or number of images in the stack
-        sym_file : str
-                   Input filename with symetries
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        pixel_diameter : int
-                         Pixel diameter of the particle
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input file template, stack template or stack
+            angle_file : str
+                         File containing euler angles and shifts
+            cg_radius : int
+                        Radius of reconstructed object
+            error_limit : float
+                          Stopping criteria
+            chi2_limit :  float
+                          Stopping criteria
+            iter_limit :  float
+                          Maximum number of iterations
+            reg_mode : int
+                       Regularization mode: (0) No regularization (1) First derivative (2) Second derivative (3) Third derivative
+            lambda_weight : float
+                            Weight of regularization
+            stack_count : int
+                         Number of projections in the stack
+            input_select : int
+                           Input filename or number of images in the stack
+            sym_file : str
+                       Input filename with symetries
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            pixel_diameter : int
+                             Pixel diameter of the particle
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
         
-        values : tuple
-                 Namedtuple of values where fields correspond to header names
+            values : tuple
+                     Namedtuple of values where fields correspond to header names
         '''
         
         _logger.debug("SIRT")
@@ -621,24 +622,24 @@ class Session(spider_session.Session):
         `Original Spider (CE FIT) <http://www.wadsworth.org/spider_doc/spider/docs/man/cefit.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        reference : str
-                    Reference input file
-        mask : str
-               Mask to use for image correction
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            reference : str
+                        Reference input file
+            mask : str
+                   Mask to use for image correction
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         _logger.debug("Enhance contrast of the image")
@@ -654,28 +655,28 @@ class Session(spider_session.Session):
         ..todo:: determine if image or volume (assumes volume)
         
         :Parameters:
-            
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        extra : dict
-                Unused key word arguments
+                
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-            
-        x : int
-            Center of gravity x-coordinate
-        y : int
-            Center of gravity y-coordinate
-        z : int
-            Center of gravity z-coordinate (For volume only)
-        rx : float
-            Center of gravity x-coordinate
-        ry : float
-            Center of gravity y-coordinate
-        rz : float
-            Center of gravity z-coordinate (For volume only)
+                
+            x : int
+                Center of gravity x-coordinate
+            y : int
+                Center of gravity y-coordinate
+            z : int
+                Center of gravity z-coordinate (For volume only)
+            rx : float
+                Center of gravity x-coordinate
+            ry : float
+                Center of gravity y-coordinate
+            rz : float
+                Center of gravity z-coordinate (For volume only)
         '''
         
         _logger.debug("Determining the center of gravity (phase apporximation) for input image")
@@ -691,19 +692,19 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         
@@ -725,20 +726,20 @@ class Session(spider_session.Session):
         `Original Spider (CP FROM MRC) <http://www.wadsworth.org/spider_doc/spider/docs/man/cpfrommrc.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'cp from mrc', inputfile, outputfile, "Copy a SPIDER image file from MRC")
@@ -749,20 +750,20 @@ class Session(spider_session.Session):
         `Original Spider (CP TO MRC) <http://www.wadsworth.org/spider_doc/spider/docs/man/cptomrc.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'cp to mrc8', inputfile, outputfile, "Copy a SPIDER image file to MRC", spider_tuple(-9999))
@@ -775,20 +776,20 @@ class Session(spider_session.Session):
         .. todo :: Add support for volume slice number
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'cp to tiff', inputfile, outputfile, "Copy a SPIDER image file")
@@ -797,22 +798,22 @@ class Session(spider_session.Session):
         ''' Shrink a micrograph using the Spider decimation algorithm
                 
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        bin_fac : float
-                     Reduce the image size by this factor
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            bin_fac : float
+                         Reduce the image size by this factor
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         if isinstance(bin_fac, int):
@@ -834,12 +835,12 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    File path to input image or volume
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        File path to input image or volume
+            extra : dict
+                    Unused key word arguments
         '''
         
         if is_incore_filename(inputfile) and hasattr(inputfile, 'hook'): 
@@ -855,22 +856,22 @@ class Session(spider_session.Session):
         `Original Spider (DU) <http://www.wadsworth.org/spider_doc/spider/docs/man/du.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        du_nstd : int
-                  Number of standard deviations
-        du_type : int
-                  Dedusting type: (1) BOTTOM, (2) TOP, (3) BOTH SIDES: 3
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            du_nstd : int
+                      Number of standard deviations
+            du_type : int
+                      Dedusting type: (1) BOTTOM, (2) TOP, (3) BOTH SIDES: 3
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        inputfile : str
-                    Input filename
+            
+            inputfile : str
+                        Input filename
         '''
         
         _logger.debug("Get value of pixel in an image")
@@ -884,22 +885,22 @@ class Session(spider_session.Session):
         `Original Spider (FD) <http://www.wadsworth.org/spider_doc/spider/docs/man/fd.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        scatterfile : str
-                      Filter document file
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            scatterfile : str
+                          Filter document file
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'fd', inputfile, outputfile, "Filtering image using a filter built from a file", spider_image(scatterfile))
@@ -918,19 +919,19 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        header : str
-                 Comma separated list of headers to query
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            header : str
+                     Comma separated list of headers to query
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        values : tuple
-                 Namedtuple of values where fields correspond to header names
+            
+            values : tuple
+                     Namedtuple of values where fields correspond to header names
         '''
         
         _logger.debug("Querying information from file header")
@@ -948,40 +949,40 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        filter_type : int
-                      Type of filter:
-                          #. LOW-PASS
-                          #. HIGH-PASS
-                          #. GAUSS LOW-PASS
-                          #. GAUSS HIGH-PASS
-                          #. FERMI LOW-PASS
-                          #. FERMI HIGH-PASS
-                          #. BUTER. LOW-PASS
-                          #. BUTER. HIGH-PASS
-        filter_radius : float
-                        The FILTER RADIUS can be given either in absolute units or pixel units. 
-                        If answer is > 1.0 it is treated as given in pixel units. If filter function 
-                        radius is given in frequency units, they should be in the range 0.0<=f<=0.5
-                        (All except, Butterworth)
-        pass_band : float
-                    Allowed frequence cutoff for band-pass filter (Butterworth type)
-        stop_band : float
-                    Disallowed frequence cutoff for band-pass filter (Butterworth type)
-        temperature : float
-                      Roughly within this reciprocal distance for filter fall off (Fermi type)
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            filter_type : int
+                          Type of filter:
+                              #. LOW-PASS
+                              #. HIGH-PASS
+                              #. GAUSS LOW-PASS
+                              #. GAUSS HIGH-PASS
+                              #. FERMI LOW-PASS
+                              #. FERMI HIGH-PASS
+                              #. BUTER. LOW-PASS
+                              #. BUTER. HIGH-PASS
+            filter_radius : float
+                            The FILTER RADIUS can be given either in absolute units or pixel units. 
+                            If answer is > 1.0 it is treated as given in pixel units. If filter function 
+                            radius is given in frequency units, they should be in the range 0.0<=f<=0.5
+                            (All except, Butterworth)
+            pass_band : float
+                        Allowed frequence cutoff for band-pass filter (Butterworth type)
+            stop_band : float
+                        Disallowed frequence cutoff for band-pass filter (Butterworth type)
+            temperature : float
+                          Roughly within this reciprocal distance for filter fall off (Fermi type)
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         filter_type = int(filter_type)
@@ -1004,23 +1005,34 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            extra : dict
+                    Unused key word arguments
+            
+            :Returns:
+            
+            maximum : float
+                      Maximum of values in the image
+            minimum : float
+                      Minimum of values in the image
+            mean : float
+                   Mean of values in the image
+            std : float
+                  Standard deviation of values in the image
         
         :Returns:
-        
-        maximum : float
-                  Maximum of values in the image
-        minimum : float
-                  Minimum of values in the image
-        mean : float
-               Mean of values in the image
-        std : float
-              Standard deviation of values in the image
+            
+            minimum : float
+                      Minimum value in the image
+            maximum : float
+                      Maximum value in the image
+            average : float
+                      Average of the image
+            standard_deviation : float
+                                 Standard Deviation of the image
         '''
         
         _logger.debug("Calculate statistics of an image")
@@ -1035,19 +1047,19 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         return spider_session.spider_command_fifo(self, 'ft', inputfile, outputfile, "Applying the fourier transform to an image")
@@ -1059,19 +1071,19 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        location : tuple
-                   2-tuple or 3-tuple depending on image dimensions
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            location : tuple
+                       2-tuple or 3-tuple depending on image dimensions
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        value : float
-                Pixel value
+            
+            value : float
+                    Pixel value
         '''
         
         _logger.debug("Get value of pixel in an image")
@@ -1086,21 +1098,21 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        size : tuple
-               New image size
-        outputfile : str
-                     Filename for output file
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            size : tuple
+                   New image size
+            outputfile : str
+                         Filename for output file
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename for output file
+            
+            outputfile : str
+                         Filename for output file
         '''
         
         return spider_session.spider_command_fifo(self, 'ip', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
@@ -1112,21 +1124,21 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        size : tuple
-               New image size
-        outputfile : str
-                     Filename for output file
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            size : tuple
+                   New image size
+            outputfile : str
+                         Filename for output file
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename for output file
+            
+            outputfile : str
+                         Filename for output file
         '''
 
         return spider_session.spider_command_fifo(self, 'ip fs', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
@@ -1139,21 +1151,21 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        size : tuple
-               New image size
-        outputfile : str
-                     Filename for output file
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            size : tuple
+                   New image size
+            outputfile : str
+                         Filename for output file
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename for output file
+            
+            outputfile : str
+                         Filename for output file
         '''
         
         return spider_session.spider_command_fifo(self, 'ip ft', inputfile, outputfile, "Resize image/volume with interpolation", spider_tuple(*size))
@@ -1164,18 +1176,18 @@ class Session(spider_session.Session):
         `Original Spider (IQ FI) <http://www.wadsworth.org/spider_doc/spider/docs/man/iqfi.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        exists : bool
-                 True if file exists
+            
+            exists : bool
+                     True if file exists
         '''
         
         _logger.debug("Querying if file exists")
@@ -1188,22 +1200,22 @@ class Session(spider_session.Session):
         `Original Spider (IQ SYNC) <http://www.wadsworth.org/spider_doc/spider/docs/man/iqsync.html>`_
         
         :Parameters:
-            
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        check_delay : int
-                      Seconds for delay between checks
-        total_delay : int
-                      Total delay before giving up
-        extra : dict
-                Unused key word arguments
+                
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            check_delay : int
+                          Seconds for delay between checks
+            total_delay : int
+                          Total delay before giving up
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        exists : int
-                 Number of seconds waited
+            
+            exists : int
+                     Number of seconds waited
         '''
         
         _logger.debug("Wait for a file to exist")
@@ -1216,32 +1228,32 @@ class Session(spider_session.Session):
         `Original Spider (LI D) <http://www.wadsworth.org/spider_doc/spider/docs/man/lid.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        info_type : str
-                    Type of information to list: .HEADER, PIXEL, ROW, COLUMN, IMAGE, OR WINDOW (H/P/R/C/I/W)
-        row : tuple
-              Row or tuple describing a row range
-        column : tuple
-                 Column or tuple describing a column range
-        header_pos : tuple
-                     Tuple or list of header positions
-        use_2d : bool
-                 Set false for a 3D image
-        use_phase : bool
-                    Set true for  phase/modulus listing
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            info_type : str
+                        Type of information to list: .HEADER, PIXEL, ROW, COLUMN, IMAGE, OR WINDOW (H/P/R/C/I/W)
+            row : tuple
+                  Row or tuple describing a row range
+            column : tuple
+                     Column or tuple describing a column range
+            header_pos : tuple
+                         Tuple or list of header positions
+            use_2d : bool
+                     Set false for a 3D image
+            use_phase : bool
+                        Set true for  phase/modulus listing
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         _logger.debug("List values of an image to a document file")
@@ -1271,34 +1283,34 @@ class Session(spider_session.Session):
         .. todo:: Check order of parameters
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        radius : tuple
-                 Radius of the disk (if tuple, outer and inner radius)
-        center : tuple
-                 Center coordinates either 2 or 3-tuple
-        mask_type : str
-                    Type of the mask: (D)isk, (C)osine, (G)aussian edge, or (T)rue Gaussian
-        background_type : str
-                          Type of the background (A)V, (P)REC AV, (C)IRCUMF, OR (E)XTERNAL
-        width : float
-                Width of the Cosine
-        half_width : float
-                     Half-width of the Gaussian
-        background : float
-                     Backgroud pixel value
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            radius : tuple
+                     Radius of the disk (if tuple, outer and inner radius)
+            center : tuple
+                     Center coordinates either 2 or 3-tuple
+            mask_type : str
+                        Type of the mask: (D)isk, (C)osine, (G)aussian edge, or (T)rue Gaussian
+            background_type : str
+                              Type of the background (A)V, (P)REC AV, (C)IRCUMF, OR (E)XTERNAL
+            width : float
+                    Width of the Cosine
+            half_width : float
+                         Half-width of the Gaussian
+            background : float
+                         Backgroud pixel value
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         if mask_type not in ('D', 'C', 'G', 'T'): raise SpiderParameterError, "mask type must be D/C/G/T"
@@ -1319,15 +1331,15 @@ class Session(spider_session.Session):
         `Original Spider (MD) <http://www.wadsworth.org/spider_doc/spider/docs/man/md.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        mode : str
-               Specific mode to change
-        value : str
-                New value of the mode
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            mode : str
+                   Specific mode to change
+            value : str
+                    New value of the mode
+            extra : dict
+                    Unused key word arguments
         '''
         
         additional = []
@@ -1352,33 +1364,33 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        image_size : (int,int)
-                     Size of the image
-        model : str
-                Type of the model object
-        background_constant : float
-                              Background for (B)lank image
-        circle_radius : int
-                        Radius for filled (C)ircle 
-        gaus_center : (float,float)
-                      Center for (G)aussian distribution
-        gaus_std : float
-                   Standard deviation for (G)aussian and (R)andom distributions
-        gaus_mean : float
-                    Mean for (R)andom gaussian distribution
-        rand_gauss : bool
-                     True for (R)andom gaussian distribution
-        outputfile : str
-                 Filename of the output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            image_size : (int,int)
+                         Size of the image
+            model : str
+                    Type of the model object
+            background_constant : float
+                                  Background for (B)lank image
+            circle_radius : int
+                            Radius for filled (C)ircle 
+            gaus_center : (float,float)
+                          Center for (G)aussian distribution
+            gaus_std : float
+                       Standard deviation for (G)aussian and (R)andom distributions
+            gaus_mean : float
+                        Mean for (R)andom gaussian distribution
+            rand_gauss : bool
+                         True for (R)andom gaussian distribution
+            outputfile : str
+                     Filename of the output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Int or str describing the output file
+            
+            outputfile : str
+                         Int or str describing the output file
         '''
         
         _logger.debug("Creating model image of size %s in file %s: "%(str(image_size), str(outputfile)))
@@ -1415,21 +1427,21 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        axis : str
-               Axis to mirror image over
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            axis : str
+                   Axis to mirror image over
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Name of the outputfile
+            
+            outputfile : str
+                         Name of the outputfile
         '''
         
         return spider_session.spider_command_fifo(self, 'mr', inputfile, outputfile, "Creates mirror-symmetry", axis)
@@ -1449,27 +1461,27 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        num_images : int
-                     Number of images in the stack
-        image_width : int
-                      Width of the image
-        height : int
-                 Height of the image (Default: 0)
-        depth : int
-                 Depth of the image (Default: 1)
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        window : int
-                 Window size from the params file
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            num_images : int
+                         Number of images in the stack
+            image_width : int
+                          Width of the image
+            height : int
+                     Height of the image (Default: 0)
+            depth : int
+                     Depth of the image (Default: 1)
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            window : int
+                     Window size from the params file
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Name of the outputfile
+            
+            outputfile : str
+                         Name of the outputfile
         '''
         
         _logger.debug("Create an inline stack - True")
@@ -1497,19 +1509,19 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        otherfiles : str
-                     Other filenames listed on the as function parameters
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            otherfiles : str
+                         Other filenames listed on the as function parameters
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         return spider_session.spider_command_multi_input(self, 'mu', "Multiply images", inputfile, *otherfiles, **extra)
@@ -1521,19 +1533,19 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         return spider_session.spider_command_fifo(self, 'neg a', inputfile, outputfile, "Invert contrast")
@@ -1554,39 +1566,39 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of experimental input image
-        reference : str
-                    Filename of reference image
-        trans_range : int
-                      Translation range
-        trans_step : int
-                     Translation step size
-        ring_first : int
-                     Start of polar coordinate radial rings analyzed for rotational alignment
-        ring_last : int
-                     End of polar coordinate radial rings analyzed for rotational alignment
-        test_mirror : bool
-                      Test the mirror of the experimental image
-        window : int
-                 Size of the particle window
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of experimental input image
+            reference : str
+                        Filename of reference image
+            trans_range : int
+                          Translation range
+            trans_step : int
+                         Translation step size
+            ring_first : int
+                         Start of polar coordinate radial rings analyzed for rotational alignment
+            ring_last : int
+                         End of polar coordinate radial rings analyzed for rotational alignment
+            test_mirror : bool
+                          Test the mirror of the experimental image
+            window : int
+                     Size of the particle window
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        psi : float
-              Angle of in plane rotation (PSI)
-        x : float
-            Translation in the x-direction
-        y : float
-            Translation in the y-direction
-        mirror : bool
-                 Translation in the x-direction
-        cc : float
-             Cross-correlation peak
+            
+            psi : float
+                  Angle of in plane rotation (PSI)
+            x : float
+                Translation in the x-direction
+            y : float
+                Translation in the y-direction
+            mirror : bool
+                     Translation in the x-direction
+            cc : float
+                 Cross-correlation peak
         '''
         
         _logger.debug("Performing orientation search")
@@ -1607,28 +1619,28 @@ class Session(spider_session.Session):
         `Original Spider (PD) <http://www.wadsworth.org/spider_doc/spider/docs/man/pd.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        window_size : tuple
-                      New size of the image/volume window
-        center_coord : tuple
-                      New size of the image/volume window
-        background : str
-                     Type of background: Y - overall average, N - specified value, B - average density of perimeter, M - minimum density
-        background_value : float
-                           Specified background value
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            window_size : tuple
+                          New size of the image/volume window
+            center_coord : tuple
+                          New size of the image/volume window
+            background : str
+                         Type of background: Y - overall average, N - specified value, B - average density of perimeter, M - minimum density
+            background_value : float
+                               Specified background value
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         z_size, x_size, y_size, = self.fi_h(inputfile, ('NSLICE', 'NSAM', 'NROW'))
@@ -1675,31 +1687,31 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for 3D volume
-        angle_doc : str
-                    Document file containing the angles
-        angle_list : str
-                     List of angles numbers either file or range (1-[numang])
-        pj_radius : int
-                    Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
-        pixel_diameter : int
-                         Pixel diameter of the particle
-        max_ref_proj : int, optional
-                       Maximum number of projections in in-memory stack
-        interpolation : str, optional
-                        Type of interpolation
-        outputfile : str
-                    Filename to store 2D projections (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for 3D volume
+            angle_doc : str
+                        Document file containing the angles
+            angle_list : str
+                         List of angles numbers either file or range (1-[numang])
+            pj_radius : int
+                        Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
+            pixel_diameter : int
+                             Pixel diameter of the particle
+            max_ref_proj : int, optional
+                           Maximum number of projections in in-memory stack
+            interpolation : str, optional
+                            Type of interpolation
+            outputfile : str
+                        Filename to store 2D projections (If none, temporary incore file is used and returned)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                    Tuple containing the output file and number of angles
+            
+            outputfile : str
+                        Tuple containing the output file and number of angles
         '''
         if interpolation is not None:
             v = self.get_version()
@@ -1736,20 +1748,20 @@ class Session(spider_session.Session):
         `Original Spider (PW) <http://www.wadsworth.org/spider_doc/spider/docs/man/pw.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename (Fourier Transform)
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename (Fourier Transform)
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'pw', inputfile, outputfile, "Estimate power spectrum of an image")
@@ -1761,20 +1773,20 @@ class Session(spider_session.Session):
         `Original Spider (RA) <http://www.wadsworth.org/spider_doc/spider/docs/man/ra.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input file template, stack template or stack
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input file template, stack template or stack
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'ra', inputfile, outputfile, "Estimate and remove ramp from image")
@@ -1791,29 +1803,29 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input file template, stack template or stack
-        angle_file : str
-                     File containing euler angles and shifts
-        input_select : int
-                       Input filename or number of images in the stack
-        sym_file : str
-                   Input filename with symetries
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input file template, stack template or stack
+            angle_file : str
+                         File containing euler angles and shifts
+            input_select : int
+                           Input filename or number of images in the stack
+            sym_file : str
+                       Input filename with symetries
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output full volume
-        outputfile1 : str
-                      Output half volume
-        outputfile2 : str
-                      Output half volume
+            
+            outputfile : str
+                         Output full volume
+            outputfile1 : str
+                          Output half volume
+            outputfile2 : str
+                          Output half volume
         '''
         
         _logger.debug("Back project")
@@ -1835,34 +1847,34 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        inputfile1 : str
-                     Input file containing first half volume
-        inputfile2 : str
-                     Input file containing second half volume
-        ring_width : float
-                     Shell thickness in reciprocal space sampling units
-        lower_scale : float
-                      Lower range of scale factors by which the second Fourier must be multiplied for the comparison
-        upper_scale : float
-                      Upper range of scale factors by which the second Fourier must be multiplied for the comparison
-        missing_ang : str
-                      `C` if you have a missing cone and `W` if you have a missing wedge
-        max_tilt : float
-                   Angle of maximum tilt angle in degrees
-        noise_factor : float
-                       Factor given here determines the FSCCRIT. Here 3.0 corresponds to the 3 sigma criterion i.e., 3/SQRT(N), 
-                       where N is number of voxels for a given shell.
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile1 : str
+                         Input file containing first half volume
+            inputfile2 : str
+                         Input file containing second half volume
+            ring_width : float
+                         Shell thickness in reciprocal space sampling units
+            lower_scale : float
+                          Lower range of scale factors by which the second Fourier must be multiplied for the comparison
+            upper_scale : float
+                          Upper range of scale factors by which the second Fourier must be multiplied for the comparison
+            missing_ang : str
+                          `C` if you have a missing cone and `W` if you have a missing wedge
+            max_tilt : float
+                       Angle of maximum tilt angle in degrees
+            noise_factor : float
+                           Factor given here determines the FSCCRIT. Here 3.0 corresponds to the 3 sigma criterion i.e., 3/SQRT(N), 
+                           where N is number of voxels for a given shell.
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        values : tuple
-                 Namedtuple of values where fields correspond to header names
+            
+            values : tuple
+                     Namedtuple of values where fields correspond to header names
         '''
         
         _logger.debug("Create an inline stack")
@@ -1879,20 +1891,20 @@ class Session(spider_session.Session):
         `Original Spider (RO) <http://www.wadsworth.org/spider_doc/spider/docs/man/ro.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'ro', inputfile, outputfile, "Take a rotational average of an image")
@@ -1968,22 +1980,22 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image projection stack
-        alignment : str
-                    Filename for the alignment parameters or for single image, tuple of alignment parameters
-        input_select : str
-                       Input selection file
-        alignment_cols : tuple
-                         List of alignment columns
-        interpolation : str, optional
-                        Type of interpolation
-        outputfile : str
-                     Filename of output image (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image projection stack
+            alignment : str
+                        Filename for the alignment parameters or for single image, tuple of alignment parameters
+            input_select : str
+                           Input selection file
+            alignment_cols : tuple
+                             List of alignment columns
+            interpolation : str, optional
+                            Type of interpolation
+            outputfile : str
+                         Filename of output image (If none, temporary incore file is used and returned)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
             
@@ -2010,18 +2022,18 @@ class Session(spider_session.Session):
         `Original Spider (SD E) <http://www.wadsworth.org/spider_doc/spider/docs/man/sde.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     SPIDER reference to in core document file
+            
+            outputfile : str
+                         SPIDER reference to in core document file
         '''
         
         self.invoke('sd e', spider_doc(outputfile))
@@ -2034,23 +2046,23 @@ class Session(spider_session.Session):
         
         :Parameters:
             
-        self : Session
-                  Current spider session
-        key : int
-              Row of the array
-        values : ndarray
-                 List of fields to store in the array
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        hreg : list
-               List of registers
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            key : int
+                  Row of the array
+            values : ndarray
+                     List of fields to store in the array
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            hreg : list
+                   List of registers
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     SPIDER reference to in core document file
+            
+            outputfile : str
+                         SPIDER reference to in core document file
         '''
         
         if hreg is None: 
@@ -2070,20 +2082,20 @@ class Session(spider_session.Session):
         `Original Spider (SD IC NEW) <http://www.wadsworth.org/spider_doc/spider/docs/man/sdicnew.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        shape : tuple
-                Number of columns and rows of the matrix
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            shape : tuple
+                    Number of columns and rows of the matrix
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     SPIDER reference to in core document file
+            
+            outputfile : str
+                         SPIDER reference to in core document file
         '''
         
         if outputfile is None:  outputfile = self.temp_incore_doc(hook=self.ud_ice)
@@ -2096,22 +2108,22 @@ class Session(spider_session.Session):
         `Original Spider (SH F) <http://www.wadsworth.org/spider_doc/spider/docs/man/shf.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename of input image
-        coords : tuple
-                 Shift in x, y and z
-        outputfile : str
-                     Filename of output image (Default: None | e.g. create an incore file)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename of input image
+            coords : tuple
+                     Shift in x, y and z
+            outputfile : str
+                         Filename of output image (Default: None | e.g. create an incore file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Filename of output image
+            
+            outputfile : str
+                         Filename of output image
         '''
         
         if isinstance(coords, str):
@@ -2129,19 +2141,19 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'sq', inputfile, outputfile, "Square an image")
@@ -2172,31 +2184,31 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        defocus : float
-                  Amount of defocus, in Angstroems
-        cs : float
-             Spherical aberration constant
-        window : int
-                 Dimension of the 2D array
-        source : float
-                 Size of the illumination source in reciprocal Angstroems
-        defocus_spread : float
-                         Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
-        ampcont : float
-                  Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
-        envelope_half_width : float
-                              Envelope parameter specifies the 2 sigma level of the Gaussian
-        outputfile : str
-                    Filename to store the computed function (If none, temporary incore file is used and returned) (Defaut: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            defocus : float
+                      Amount of defocus, in Angstroems
+            cs : float
+                 Spherical aberration constant
+            window : int
+                     Dimension of the 2D array
+            source : float
+                     Size of the illumination source in reciprocal Angstroems
+            defocus_spread : float
+                             Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
+            ampcont : float
+                      Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
+            envelope_half_width : float
+                                  Envelope parameter specifies the 2 sigma level of the Gaussian
+            outputfile : str
+                        Filename to store the computed function (If none, temporary incore file is used and returned) (Defaut: None)
+            extra : dict
+                    Unused key word arguments
 
         :Returns:
-        
-        outputfile : str
-                    Output image of CTF model
+            
+            outputfile : str
+                        Output image of CTF model
         '''
 
         _logger.debug("Create a contrast transfer function for a complex 3D object")
@@ -2219,22 +2231,22 @@ class Session(spider_session.Session):
             Use mu and ft for older spider versions
             
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    File path to input image or volume
-        ctffile : str
-                  File containing the contrast transfer function
-        outputfile : str
-                    Filename to store ctf corrected image or volume (If none, temporary incore file is used and returned) (Defaut: None)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        File path to input image or volume
+            ctffile : str
+                      File containing the contrast transfer function
+            outputfile : str
+                        Filename to store ctf corrected image or volume (If none, temporary incore file is used and returned) (Defaut: None)
+            extra : dict
+                    Unused key word arguments
 
         :Returns:
-        
-        outputfile : str
-                    CTF corrected image
+            
+            outputfile : str
+                        CTF corrected image
         '''
         
         _logger.debug("CTF correct 2D or 3D object with back transform")
@@ -2267,32 +2279,32 @@ class Session(spider_session.Session):
             For all required CTF parameters
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        defocus : float
-                  Amount of defocus, in Angstroems
-        cs : object
-             Spherical aberration constant
-        window : int
-                 Dimension of the 2D array
-        source : float
-                 Size of the illumination source in reciprocal Angstroems
-        defocus_spread : float
-                         Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
-        ampcont : float
-                  Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
-        envelope_half_width : float
-                              Envelope parameter specifies the 2 sigma level of the Gaussian
-        outputfile : str
-                    Filename to store the computed function (If none, temporary incore file is used and returned) (Defaut: None)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            defocus : float
+                      Amount of defocus, in Angstroems
+            cs : object
+                 Spherical aberration constant
+            window : int
+                     Dimension of the 2D array
+            source : float
+                     Size of the illumination source in reciprocal Angstroems
+            defocus_spread : float
+                             Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
+            ampcont : float
+                      Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
+            envelope_half_width : float
+                                  Envelope parameter specifies the 2 sigma level of the Gaussian
+            outputfile : str
+                        Filename to store the computed function (If none, temporary incore file is used and returned) (Defaut: None)
+            extra : dict
+                    Unused key word arguments
 
         :Returns:
-        
-        outputfile : str
-                    Output image of CTF model
+            
+            outputfile : str
+                        Output image of CTF model
         '''
         
         _logger.debug("Create a contrast transfer function for phase flipping with padding")
@@ -2327,31 +2339,31 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        defocus : float
-                  Amount of defocus, in Angstroems
-        cs : object
-             Spherical aberration constant
-        window : int
-                 Dimension of the 2D array
-        source : float
-                 Size of the illumination source in reciprocal Angstroems
-        defocus_spread : float
-                         Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
-        ampcont : float
-                  Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
-        envelope_half_width : float
-                              Envelope parameter specifies the 2 sigma level of the Gaussian
-        outputfile : str
-                    Filename to store the computed function (If none, temporary incore file is used and returned) (Defaut: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            defocus : float
+                      Amount of defocus, in Angstroems
+            cs : object
+                 Spherical aberration constant
+            window : int
+                     Dimension of the 2D array
+            source : float
+                     Size of the illumination source in reciprocal Angstroems
+            defocus_spread : float
+                             Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
+            ampcont : float
+                      Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
+            envelope_half_width : float
+                                  Envelope parameter specifies the 2 sigma level of the Gaussian
+            outputfile : str
+                        Filename to store the computed function (If none, temporary incore file is used and returned) (Defaut: None)
+            extra : dict
+                    Unused key word arguments
 
         :Returns:
-        
-        outputfile : str
-                    Output image of CTF model
+            
+            outputfile : str
+                        Output image of CTF model
         '''
         
         _logger.debug("Create a contrast transfer function for phase flipping with padding")
@@ -2374,41 +2386,41 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        apix : float
-               Size of pixel in angstroms
-        cs : float
-             Spherical aberration constant
-        ampcont : float
-                  Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
-        lam : float
-              Wavelength of the electrons
-        voltage : float
-                  Voltage of microscope
-        elambda : float
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            apix : float
+                   Size of pixel in angstroms
+            cs : float
+                 Spherical aberration constant
+            ampcont : float
+                      Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
+            lam : float
                   Wavelength of the electrons
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
+            voltage : float
+                      Voltage of microscope
+            elambda : float
+                      Wavelength of the electrons
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
         
-        angle : float
-                Angle of astigmatism
-        magnitude : float
-                    Magnitude of astigmatism
-        astdefocus : float
-                     Astigmatism corrected defocus
-        defocus : float
-                  Overall defocus
-        cutoff : float
-                 Cutoff frequency in 1/A
-        outputfile : str
-                     Output filename
+            angle : float
+                    Angle of astigmatism
+            magnitude : float
+                        Magnitude of astigmatism
+            astdefocus : float
+                         Astigmatism corrected defocus
+            defocus : float
+                      Overall defocus
+            cutoff : float
+                     Cutoff frequency in 1/A
+            outputfile : str
+                         Output filename
         '''
         
         _logger.debug("Estimate the transfer function:  defocus, astigmatism, and cutoff frequency of high frequencies: %f"%apix)
@@ -2424,24 +2436,24 @@ class Session(spider_session.Session):
         `Original Spider (UD) <http://www.wadsworth.org/spider_doc/spider/docs/man/ud.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        key : int
-              Key for row in document file
-        nreg : int
-               Number of registers or columns in the document file
-        out : ndarray
-              Array containing all the entries in the document
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            key : int
+                  Key for row in document file
+            nreg : int
+                   Number of registers or columns in the document file
+            out : ndarray
+                  Array containing all the entries in the document
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        out : ndarray
-              Array containing all the entries in the document
+            
+            out : ndarray
+                  Array containing all the entries in the document
         '''
         
         if out is None: out = numpy.zeros((nreg))
@@ -2457,13 +2469,13 @@ class Session(spider_session.Session):
         `Original Spider (UD E) <http://www.wadsworth.org/spider_doc/spider/docs/man/ude.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            extra : dict
+                    Unused key word arguments
         '''
         
         self.invoke('ud e')
@@ -2475,23 +2487,23 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        key : int
-              Key for row in document file
-        nreg : int
-               Number of registers or columns in the document file
-        out : ndarray
-              Array containing all the entries in the document
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            key : int
+                  Key for row in document file
+            nreg : int
+                   Number of registers or columns in the document file
+            out : ndarray
+                  Array containing all the entries in the document
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        out : ndarray
-              Array containing all the entries in the document
+            
+            out : ndarray
+                  Array containing all the entries in the document
         '''
         
         if out is None: out = numpy.zeros((nreg))
@@ -2508,12 +2520,12 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            extra : dict
+                    Unused key word arguments
         '''
         
         _logger.debug("Delete incore file %s"%str(inputfile))
@@ -2527,22 +2539,22 @@ class Session(spider_session.Session):
         `Original Spider (UD N) <http://www.wadsworth.org/spider_doc/spider/docs/man/udn.html>`_
         
         :Parameters:
-            
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Filename for query file
-        extra : dict
-                Unused key word arguments
+                
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Filename for query file
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
         
-        maxkey : int
-                 Maximum key in the document file
-        ncols : int
-                Number of columns in the document file
-        nrows : int
-                Number of rows in the document file
+            maxkey : int
+                     Maximum key in the document file
+            ncols : int
+                    Number of columns in the document file
+            nrows : int
+                    Number of rows in the document file
         '''
         
         if isinstance(inputfile, int): return inputfile, 0, inputfile+1
@@ -2564,30 +2576,30 @@ class Session(spider_session.Session):
             #. Supports incore document files
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        theta_delta : int
-                      Angular step for the theta angles
-        theta_start : int
-                      Start of theta angle range
-        theta_end : int
-                    End of theta angle range
-        phi_start : int
-                    Start of phi angle range
-        phi_end : int
-                  End of phi angle range
-        outputfile : str
-                     Filename for the angle output (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
+            
+            self : Session
+                      Current spider session
+            theta_delta : int
+                          Angular step for the theta angles
+            theta_start : int
+                          Start of theta angle range
+            theta_end : int
+                        End of theta angle range
+            phi_start : int
+                        Start of phi angle range
+            phi_end : int
+                      End of phi angle range
+            outputfile : str
+                         Filename for the angle output (If none, temporary incore file is used and returned)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     File path to an output file
-        num_angles : int
-                     Number of angles generated
+            
+            outputfile : str
+                         File path to an output file
+            num_angles : int
+                         Number of angles generated
         '''
         
         _logger.debug("Generating evenly space angles")
@@ -2617,25 +2629,25 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Name of the input angle file
-        angle_num : int
-                    Number of angles
-        rotation : (float,float,float)
-                   Rotation in terms of (PHI,THETA,PSI)
-        psi_value : (int,float)
-                    Column to set to zero
-        outputfile : str
-                     Filename for the angle output (If none, temporary incore file is used and returned)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Name of the input angle file
+            angle_num : int
+                        Number of angles
+            rotation : (float,float,float)
+                       Rotation in terms of (PHI,THETA,PSI)
+            psi_value : (int,float)
+                        Column to set to zero
+            outputfile : str
+                         Filename for the angle output (If none, temporary incore file is used and returned)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     File path to an output file
+            
+            outputfile : str
+                         File path to an output file
         '''
         
         _logger.debug("Generating rotated angles")
@@ -2654,23 +2666,23 @@ class Session(spider_session.Session):
         
         :Parameters:
         
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input file template, stack template or stack
-        dimensions : (int,int,int)
-                     Width, height and depth of the slice (NSAM, NROW, NSLICE)
-        coords : (int,int,int)
-                 X, Y, Z coordinate for top left origin of the window
-        outputfile : str
-                     Filename for incore stack (Default: None)
-        extra : dict
-                Unused key word arguments
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input file template, stack template or stack
+            dimensions : (int,int,int)
+                         Width, height and depth of the slice (NSAM, NROW, NSLICE)
+            coords : (int,int,int)
+                     X, Y, Z coordinate for top left origin of the window
+            outputfile : str
+                         Filename for incore stack (Default: None)
+            extra : dict
+                    Unused key word arguments
         
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
                 
         #stack_count, z_size, x_size, y_size, = self.fi_h(spider_stack(inputfile), ('MAXIM', 'NSLICE', 'NSAM', 'NROW'))
@@ -2711,20 +2723,20 @@ class Session(spider_session.Session):
         `Original Spider (WU) <http://www.wadsworth.org/spider_doc/spider/docs/man/wu.html>`_
         
         :Parameters:
-        
-        self : Session
-                  Current spider session
-        inputfile : str
-                    Input filename
-        outputfile : str
-                     Output filename (If not specified (None), then it creates an incore-file)
-        extra : dict
-                Unused key word arguments
-        
+            
+            self : Session
+                      Current spider session
+            inputfile : str
+                        Input filename
+            outputfile : str
+                         Output filename (If not specified (None), then it creates an incore-file)
+            extra : dict
+                    Unused key word arguments
+            
         :Returns:
-        
-        outputfile : str
-                     Output filename
+            
+            outputfile : str
+                         Output filename
         '''
         
         return spider_session.spider_command_fifo(self, 'wu', inputfile, outputfile, "Take square root of an image")
@@ -2743,19 +2755,19 @@ def rt_sq_single(session, inputfile, alignment, interpolation=None, outputfile=N
         - Single image unsupported
     
     :Parameters:
-    
-    session : Session
-              Current spider session
-    inputfile : str
-                Filename of input image projection stack
-    alignment : tuple
-                PHI, DX, DY
-    interpolation : str, optional
-                    Type of interpolation
-    outputfile : str
-                 Filename of output image (If none, temporary incore file is used and returned)
-    extra : dict
-            Unused key word arguments
+        
+        session : Session
+                  Current spider session
+        inputfile : str
+                    Filename of input image projection stack
+        alignment : tuple
+                    PHI, DX, DY
+        interpolation : str, optional
+                        Type of interpolation
+        outputfile : str
+                     Filename of output image (If none, temporary incore file is used and returned)
+        extra : dict
+                Unused key word arguments
     
     :Returns:
         
@@ -2779,13 +2791,13 @@ def supports_internal_rtsq(session):
     
     :Parameters:
         
-    session : Session
-              Current spider session
+        session : Session
+                  Current spider session
     
     :Returns:
     
-    support : bool
-              True if the version support internal RTSQ
+        support : bool
+                  True if the version support internal RTSQ
     '''
     
     return session.version[0] >= 19 and session.version >= 11 and 1 ==0
@@ -2795,15 +2807,15 @@ def max_translation_range(window, ring_last, **extra):
     
     :Pararameters:
     
-    window : int
-             Size of the window
-    ring_last : int
-                Last alignment ring
+        window : int
+                 Size of the window
+        ring_last : int
+                    Last alignment ring
     
     :Returns:
-    
-    trans_range : int
-                  Max translation range
+        
+        trans_range : int
+                      Max translation range
     '''
     
     return int(window/2.0) - ring_last - 3
@@ -2812,9 +2824,9 @@ def ensure_proper_parameters(param):
     ''' Ensure certain SPIDER parameters have the proper values
     
     :Parameters:
-    
-    param : dict
-            Parameter dictionary
+        
+        param : dict
+                Parameter dictionary
     '''
     
     if 'ring_last' in param:
@@ -2832,16 +2844,16 @@ def count_images(session, filename):
     ''' Count number of images in a SPIDER file
     
     :Parameters:
-        
-    session : Session
-              Current spider session
-    filename : str
-               Name of stack to count
+            
+        session : Session
+                  Current spider session
+        filename : str
+                   Name of stack to count
     
     :Returns:
     
-    stack_count : int
-                  Number of images in the stack
+        stack_count : int
+                      Number of images in the stack
     '''
     
     stack_count,  = session.fi_h(spider_stack(filename), ('MAXIM'))
@@ -2851,16 +2863,16 @@ def image_size(session, filename):
     ''' Count number of images in a SPIDER file
     
     :Parameters:
-        
-    session : Session
-              Current spider session
-    filename : str
-               Name of input file
+            
+        session : Session
+                  Current spider session
+        filename : str
+                   Name of input file
     
     :Returns:
-    
-    shape : tuple
-            Shape of the image
+        
+        shape : tuple
+                Shape of the image
     '''
     
     ''' Add code to detect SPIDER stack?
@@ -2876,16 +2888,16 @@ def for_image(session, filename, count=None):
     ''' Iterate through a SPIDER stack, yeild an incore image
     
     :Parameters:
-        
-    session : Session
-              Current spider session
-    filename : str
-               Name of stack to count
+            
+        session : Session
+                  Current spider session
+        filename : str
+                   Name of stack to count
     
     :Returns:
-    
-    image : spider_var
-            Incore SPIDER image
+        
+        image : spider_var
+                Incore SPIDER image
     '''
     
     if count is None: count = count_images(session, filename)
@@ -2898,18 +2910,18 @@ def nonspi_file(session, filename, temp):
     ''' Add extension to filename, in addition write to temp file if file is incore
     
     :Parameters:
-        
-    session : Session
-              Current spider session
-    filename : str
-               Name of filename to convert
-    temp : str
-           Temporary file to contain incore file
+            
+        session : Session
+                  Current spider session
+        filename : str
+                   Name of filename to convert
+        temp : str
+               Temporary file to contain incore file
     
     :Returns:
-    
-    image : spider_var
-            Incore SPIDER image
+        
+        image : spider_var
+                Incore SPIDER image
     '''
     
     if is_incore_filename(filename):
@@ -2921,28 +2933,28 @@ def open_session(args, spider_path="", data_ext="", thread_count=1, enable_resul
     '''Opens a spider session
     
     :Parameters:
-    
-    args : list
-           List of input file names
-    spider_path : str
-                  File path to spider executable
-    data_ext : str
-               Extension of spider data files
-    thread_count : int, noupdate
-                   Number of threads per machine, 0 means use all cores
-    enable_results : bool, noupdate
-                     If set true, print results file to terminal
-    rank : int
-           MPI node rank
-    local_temp : str
-                 Path to start SPIDER
-    extra : dict
-            Unused keyword arguments
+        
+        args : list
+               List of input file names
+        spider_path : str
+                      File path to spider executable
+        data_ext : str
+                   Extension of spider data files
+        thread_count : int, noupdate
+                       Number of threads per machine, 0 means use all cores
+        enable_results : bool, noupdate
+                         If set true, print results file to terminal
+        rank : int
+               MPI node rank
+        local_temp : str
+                     Path to start SPIDER
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    session : Session
-              A spider sesssion with all available commands
+        
+        session : Session
+                  A spider sesssion with all available commands
     '''
     
     if args is not None and len(args) > 0:
@@ -2964,22 +2976,22 @@ def stack(session, inputfile, node_count, outputfile=None):
     This code assumes the numbering starts a 1 and goes to `node_count`.
     
     :Parameters:
-        
-    session : Session
-              Current spider session
-    inputfile : list or dict
-                List of input files in pySPIDER template format, file_0000
-    node_count : int
-                 Number of spider stacks
-    outputfile : str
-                 Output file path
+
+        session : Session
+                  Current spider session
+        inputfile : list or dict
+                    List of input files in pySPIDER template format, file_0000
+        node_count : int
+                     Number of spider stacks
+        outputfile : str
+                     Output file path
     
     :Returns:
-    
-    outputfile : str
-                 Output file path
-    stack_total : int
-                  Number of projections in output stack
+        
+        outputfile : str
+                     Output file path
+        stack_total : int
+                      Number of projections in output stack
     '''
     
     if node_count < 2: 
@@ -2994,10 +3006,14 @@ def stack(session, inputfile, node_count, outputfile=None):
     
     if outputfile is None: outputfile = session.ms(stack_total, spider_stack( (inputfile[0], 1) ))
     start = 1 if inputfile == outputfile else 0
-    stack_offset = 0
+    stack_offset = 1
     for i in xrange(start, node_count):
-        for j in xrange(stack_count[i]):
-            session.cp((inputfile[i], j+1), outputfile=(outputfile, stack_offset))
+        for j in xrange(stack_count[i-1]-1):
+            try:
+                session.cp((inputfile[i+1], j+1), outputfile=(outputfile, stack_offset))
+            except:
+                _logger.error("Error for %d: %s (%d)"%(i, inputfile[i+1], stack_count[i-start]))
+                raise
             stack_offset += 1
     return outputfile, stack_total
 
@@ -3011,20 +3027,20 @@ def enumerate_stack(inputfile, selection, outputfile=None):
             ft_stack_slice = spi.ft(input)
     
     :Parameters:
-        
-    inputfile : str (or dict)
-                Input filename to iterate over
-    selection : int or array
-                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
-    outputfile : str, optional
-                 Output filename to include
+            
+        inputfile : str (or dict)
+                    Input filename to iterate over
+        selection : int or array
+                    Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+        outputfile : str, optional
+                     Output filename to include
     
     :Returns:
-    
-    inputslice : generator
-                 Tuple filename and index
-    outputslice : generator
-                  Tuple filename and index (If outputfile is not None)
+        
+        inputslice : generator
+                     Tuple filename and index
+        outputslice : generator
+                      Tuple filename and index (If outputfile is not None)
     '''
     
     if not hasattr(selection, '__iter__'): selection = xrange(1, selection+1)
@@ -3046,21 +3062,21 @@ def phase_flip(session, inputfile, defocusvals, outputfile, mult_ctf=False, rank
     ''' Phase flip the input stack and store in the given output stack
     
     :Parameters:
-    
-    session : Session
-              Current spider session
-    inputfile : str (or dict)
-                Input filename to iterate over
-    defocusvals : array
-                 Array of defocus values that correspond to the input stack
-    outputfile : str, optional
-                 Output filename to include
-    mult_ctf : bool
-              Multiply by the CTF rather than phase flip
-    rank : int
-            Current process rank
-    extra : dict
-            Unused keyword arguments
+        
+        session : Session
+                  Current spider session
+        inputfile : str (or dict)
+                    Input filename to iterate over
+        defocusvals : array
+                     Array of defocus values that correspond to the input stack
+        outputfile : str, optional
+                     Output filename to include
+        mult_ctf : bool
+                  Multiply by the CTF rather than phase flip
+        rank : int
+                Current process rank
+        extra : dict
+                Unused keyword arguments
     '''
     
     defocus = 0
@@ -3093,34 +3109,34 @@ def scale_parameters(bin_factor, dec_level=1.0, pj_radius=-1, trans_range=24, tr
     ''' Scale parameters that depend on the window size
     
     :Parameters:
-    
-    bin_factor : float
-                 Current decimation factor
-    dec_level : int
-                Previous decimation level
-    pj_radius : int
-                Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
-    trans_range : float
-                  Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
-    trans_step : float
-                 Translation step size
-    first_ring : int
-                 First polar ring to analyze
-    ring_last : int
-                Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
-    ring_step : int
-                Polar ring step size
-    cg_radius : int
-                Radius of reconstructed object
-    window : int
-             Current window size
-    extra : dict
-            Unused keyword arguments
+        
+        bin_factor : float
+                     Current decimation factor
+        dec_level : int
+                    Previous decimation level
+        pj_radius : int
+                    Radius of sphere to compute projection, if less than one use 0.69 times the diameter of the object in pixels (Default: -1)
+        trans_range : float
+                      Maximum allowed translation; if this value exceeds the window size, then it will lowered to the maximum possible
+        trans_step : float
+                     Translation step size
+        first_ring : int
+                     First polar ring to analyze
+        ring_last : int
+                    Last polar ring to analyze; if this value is zero, then it is chosen to be the radius of the particle in pixels
+        ring_step : int
+                    Polar ring step size
+        cg_radius : int
+                    Radius of reconstructed object
+        window : int
+                 Current window size
+        extra : dict
+                Unused keyword arguments
             
     :Returns:
-    
-    param : dict
-            Dictionary of updated parameters
+        
+        param : dict
+                Dictionary of updated parameters
     '''
     
     
@@ -3164,24 +3180,24 @@ def cache_data(session, inputfile, selection, outputfile, window, rank=0):
     .. todo:: write selection file and compare when not writing
     
     :Parameters:
-    
-    session : Session
-              Current spider session
-    inputfile : str (or dict)
-                Input filename to iterate over
-    selection : int or array
-                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
-    outputfile : str, optional
-                 Output filename to include
-    window : int
-             New size each window
-    rank : int
-            Current process rank
+        
+        session : Session
+                  Current spider session
+        inputfile : str (or dict)
+                    Input filename to iterate over
+        selection : int or array
+                    Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+        outputfile : str, optional
+                     Output filename to include
+        window : int
+                 New size each window
+        rank : int
+                Current process rank
     
     :Returns:
-    
-    copied : bool
-             True if a copy was performed
+        
+        copied : bool
+                 True if a copy was performed
     '''
     
     window = int(window)
@@ -3220,24 +3236,24 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
     .. todo:: write selection file and compare when not writing
     
     :Parameters:
-    
-    session : Session
-              Current spider session
-    inputfile : str (or dict)
-                Input filename to iterate over
-    selection : int or array
-                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
-    outputfile : str, optional
-                 Output filename to include
-    window : int
-             New size each window
-    rank : int
-            Current process rank
+        
+        session : Session
+                  Current spider session
+        inputfile : str (or dict)
+                    Input filename to iterate over
+        selection : int or array
+                    Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+        outputfile : str, optional
+                     Output filename to include
+        window : int
+                 New size each window
+        rank : int
+                Current process rank
     
     :Returns:
-    
-    copied : bool
-             True if a copy was performed
+        
+        copied : bool
+                 True if a copy was performed
     '''
     
     window = int(window)
@@ -3275,19 +3291,19 @@ def interpolate_stack(session, inputfile, outputfile=None, window=0, **extra):
     
     :Parameters:
     
-    session : Session
-              Current spider session
-    inputfile : str (or dict)
-                Input filename for image
-    outputfile : str, optional
-                 Output filename
-    window : int
-             New size each window
+        session : Session
+                  Current spider session
+        inputfile : str (or dict)
+                    Input filename for image
+        outputfile : str, optional
+                     Output filename
+        window : int
+                 New size each window
     
     :Returns:
-    
-    outputfile : str
-                 Filename of output image
+        
+        outputfile : str
+                     Filename of output image
     '''
     
     '''
@@ -3309,18 +3325,18 @@ def copy_safe(session, inputfile, window=0, **extra):
     ''' Safely copy the input image to match the proper window size
     
     :Parameters:
-    
-    session : Session
-              Current spider session
-    inputfile : str (or dict)
-                Input filename for image
-    window : int
-             New size each window
+        
+        session : Session
+                  Current spider session
+        inputfile : str (or dict)
+                    Input filename for image
+        window : int
+                 New size each window
     
     :Returns:
-    
-    outputfile : str
-                 Filename of output image
+        
+        outputfile : str
+                     Filename of output image
     '''
         
     width, = session.fi_h(inputfile, ('NSAM'))
@@ -3333,17 +3349,17 @@ def copy_interpolate(session, inputfile, selection, outputfile, window):
     ''' Copy an interpolated set of stacks to an output stack
     
     :Parameters:
-    
-    session : Session
-              Current spider session 
-    inputfile : str (or dict)
-                Input filename to iterate over
-    selection : int or array
-                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
-    outputfile : str, optional
-                 Output filename to include
-    window : int
-             New size each window
+        
+        session : Session
+                  Current spider session 
+        inputfile : str (or dict)
+                    Input filename to iterate over
+        selection : int or array
+                    Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+        outputfile : str, optional
+                     Output filename to include
+        window : int
+                 New size each window
     '''
     
     session.de(outputfile)
@@ -3356,15 +3372,15 @@ def copy(session, inputfile, selection, outputfile):
     ''' Copy a set of stacks to an output stack
     
     :Parameters:
-    
-    session : Session
-              Current spider session  
-    inputfile : str (or dict)
-                Input filename to iterate over
-    selection : int or array
-                Size of stack or array of selected indices (if inputfile dict, then must be 2D)
-    outputfile : str, optional
-                 Output filename to include
+        
+        session : Session
+                  Current spider session  
+        inputfile : str (or dict)
+                    Input filename to iterate over
+        selection : int or array
+                    Size of stack or array of selected indices (if inputfile dict, then must be 2D)
+        outputfile : str, optional
+                     Output filename to include
     '''
     
     session.de(outputfile)
@@ -3416,15 +3432,15 @@ def throttle_mp(spi, new_thread_count=1, thread_count=0, **extra):
     ''' Set number of cores in SPIDER to 1
     
     :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    new_thread_count : int
-                       Number of new threads to use
-    thread_count : int
-                   Number of threads to use
-    extra : dict
-            Unused keyword arguments 
+        
+        spi : spider.Session
+              Current SPIDER session
+        new_thread_count : int
+                           Number of new threads to use
+        thread_count : int
+                       Number of threads to use
+        extra : dict
+                Unused keyword arguments 
     '''
     
     spi.md('SET MP', new_thread_count)
@@ -3433,13 +3449,13 @@ def release_mp(spi, thread_count, **extra):
     ''' Reset number of cores in SPIDER to default
     
     :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    thread_count : int
-                   Number of threads to use
-    extra : dict
-            Unused keyword arguments 
+        
+        spi : spider.Session
+              Current SPIDER session
+        thread_count : int
+                       Number of threads to use
+        extra : dict
+                Unused keyword arguments 
     '''
     
     spi.md('SET MP', thread_count)
