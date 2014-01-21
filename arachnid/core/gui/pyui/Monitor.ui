@@ -164,7 +164,7 @@ p, li { white-space: pre-wrap; }
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../icons/icons.qrc">
+            <iconset resource="../../../../docs/images/icons/icons.qrc">
              <normaloff>:/mini/mini/resultset_next.png</normaloff>
              <normalon>:/mini/mini/stop.png</normalon>:/mini/mini/resultset_next.png</iconset>
            </property>
@@ -195,7 +195,7 @@ p, li { white-space: pre-wrap; }
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../icons/icons.qrc">
+            <iconset resource="../../../../docs/images/icons/icons.qrc">
              <normaloff>:/mini/mini/page_white_error.png</normaloff>:/mini/mini/page_white_error.png</iconset>
            </property>
            <property name="checkable">
@@ -209,7 +209,7 @@ p, li { white-space: pre-wrap; }
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../icons/icons.qrc">
+            <iconset resource="../../../../docs/images/icons/icons.qrc">
              <normaloff>:/mini/mini/information.png</normaloff>:/mini/mini/information.png</iconset>
            </property>
           </widget>
@@ -224,6 +224,7 @@ p, li { white-space: pre-wrap; }
  </widget>
  <resources>
   <include location="../icons/icons.qrc"/>
+  <include location="../../../../docs/images/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>
