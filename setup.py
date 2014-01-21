@@ -1,7 +1,4 @@
 '''
-Installation Notes
-==================
-
 Arachnid depends on several packages that cannot or should not be installed
 using easy_install. 
 
@@ -13,12 +10,6 @@ PyQT4 and EMAN2/Sparx have a more extensive set of installation requirements
 and thus must be downloaded from their respective sites.
 
 Matplotlib can use the PyQT4 library if installed after PyQT4.
-
-Prerequisites
-=============
-
-Please look over the list of prerequisites, if you do not have one
-installed then refer to the installation steps below.
 
 Compilers
 ---------

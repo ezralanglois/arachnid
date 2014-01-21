@@ -50,7 +50,7 @@ coverage_ignore_functions=['setView', 'init_process', 'check_options', 'dependen
 coverage_ignore_classes=['check_dep', 'VersionChange', 'OptionValueError', 'ProcessException', 'SpiderParameterError', 'SpiderCommandError'] # These are exceptions with little documentation
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['resources/templates']
+templates_path = ['docs/templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -91,7 +91,7 @@ release = arachnid.__version__
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = ['resources', 'git-hooks', 'build', 'dist']#, 'arachnid/core/gui/icons']
+exclude_trees = ['resources', 'git-hooks', 'build', 'dist', 'docs/themes', 'docs/templates', 'docs/logo', 'docs/images', 'docs/includes']#, 'arachnid/core/gui/icons']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -114,24 +114,29 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-
+#1133672
+#1132167
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 #html_theme = 'haiku'
-#html_theme = 'agogo'
-if 1 == 1:
-    html_theme = 'nature'
-    html_theme_options = {
-    #"nosidebar": "true"
-    }
-else:
-    html_theme = 'bootstrap'
-    import sphinx_bootstrap_theme
-    html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-    html_theme_options = {
-    }
+#html_theme = 'scrolls'
+
+import os
+html_theme = 'arachnid'
+html_theme_path = [os.path.abspath('docs/themes')]
+html_theme_options = {
+    "navbar_site_name": 'Site Map',
+    "navbar_sidebarrel": False,
+    "navbar_pagenav": False,
+    "globaltoc_includehidden": True,
+    "navbar_fixed_top": True,
+    "globaltoc_depth": 0,
+    "navbar_links": [('Issues', 'http://code.google.com/p/arachnid/issues/list'), ('Mailing List', 'http://groups.google.com/group/arachnid-general')]
+}
+html_sidebars = {'docs/*': ['localtoc.html'], 'docs/api_generated/*': ['apitoc.html', 'localtoc.html']} #, 'docs/api_generated/api_generated/*': ['localtoc.html']}
+
 
 html_show_sphinx=False
 
@@ -152,19 +157,19 @@ html_show_sphinx=False
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "resources/icon128x128.png"
+html_logo = "docs/logo/icon16x16.png"
 #html_logo = "resources/icons/icon64x64.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "resources/favicon.ico"
+html_favicon = "docs/logo/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['resources/static']
-#html_style='nature_fixed.css'
+#html_static_path = []#'resources/static']
+#html_style=''#nature_fixed.css'
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
