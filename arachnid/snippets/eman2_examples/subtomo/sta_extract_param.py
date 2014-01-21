@@ -40,8 +40,8 @@ if __name__ == '__main__':
         rot = trans.get_rotation('spider')
         psi, theta, phi = rot['psi'],rot['theta'],rot['phi']
         tx, ty, tz = trans.get_pre_trans()
-        data.append([psi, theta, phi, tx, ty, tz])
-    numpy.savetxt(output, data, delimiter='\t')
+        data.append([i+1, 7, i+1, psi, theta, phi, tx, ty, tz])
+    numpy.savetxt(output, data, "%.4f", delimiter='\t')
         
         
         # norm, intervt, threshold

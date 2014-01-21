@@ -33,10 +33,14 @@ if __name__ == '__main__':
     lines = [line.strip() for line in open(selected, 'r')]
     select = []
     for line in lines[1:]:
-        b = line.find(',')+1
-        e = line.find(',', b)
-        if e == -1: e = len(line)
-        print b, e
+        if 1 == 0:
+            b = line.find(',')+1
+            e = line.find(',', b)
+            if e == -1: e = len(line)
+            print b, e
+        else:
+            b = 0
+            e = line.find(',')
         select.append(int(line[b:e]))
     
     #e.process_inplace(options.normproc[0],options.normproc[1])
@@ -45,7 +49,7 @@ if __name__ == '__main__':
     print "Averaging %d subtomograms"%EMAN2.EMUtil.get_image_count(subtomo_stack)
     for i in select:
         e = EMAN2.EMData()
-        e.read_image(subtomo_stack, i)
+        e.read_image(subtomo_stack, i-1)
         #e*=-1
         #e.process_inplace('normalize', {})
         print i+1, e.get_attr('mean')
@@ -58,4 +62,11 @@ if __name__ == '__main__':
     #mask.process_inplace('mask.sharp', dict(outer_radius=72))
     #avg.mult(mask)
     avg.process_inplace('normalize', {})
+    avg.process_inplace('filter.lowpass.gauss', dict(cutoff_freq=0.025))
     avg.write_image(output)
+
+
+
+
+
+

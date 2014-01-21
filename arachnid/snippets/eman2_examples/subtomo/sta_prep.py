@@ -55,4 +55,5 @@ if __name__ == '__main__':
         e.write_image(output, total)
         print i+1, e.get_attr('mean')
         total += 1
+    mask.write_image('mask.hdf')
     print 'Total', total
