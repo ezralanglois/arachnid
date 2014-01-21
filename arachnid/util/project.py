@@ -320,7 +320,7 @@ def write_config(workflow, **extra):
             param.update(extra)
         else: param=extra
         program.write_config(mod, **param)
-        if len(param['input_files']) > 0 and mod[0] == first_script[0]:
+        if len(param['input_files']) > 0 and mod == first_script[0]:
             param['input_files'] = []
 
 def setup_options(parser, pgroup=None, main_option=False):
