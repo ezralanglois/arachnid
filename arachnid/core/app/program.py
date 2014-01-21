@@ -247,10 +247,11 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
     param.update(update_file_param(**param))
     args = param['input_files'] #options.input_files
     
-    _logger.info("Program: %s"%(main_module.__name__))# , extra=dict(tofile=True))
-    _logger.info("Version: %s"%(str(root_module.__version__)), extra=dict(tofile=True))
-    _logger.info("PID: %d"%os.getpid())
-    _logger.info("Created: %d"%psutil.Process(os.getpid()).create_time)
+    if mpi_utility.is_root(**param):
+        _logger.info("Program: %s"%(main_module.__name__))# , extra=dict(tofile=True))
+        _logger.info("Version: %s"%(str(root_module.__version__)), extra=dict(tofile=True))
+        _logger.info("PID: %d"%os.getpid())
+        _logger.info("Created: %d"%psutil.Process(os.getpid()).create_time)
     
     #mpi_utility.mpi_init(param, **param)
     if supports_OMP:
