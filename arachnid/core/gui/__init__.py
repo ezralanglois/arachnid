@@ -16,24 +16,24 @@
     :toctree: api_generated/
     :template: api_module.rst
     
-    ImageScreener
+    arachnid.core.gui.HelpUI
 
 :mod:`arachnid.core.gui.model`
-================================
+==============================
 
 .. automodule:: arachnid.core.gui.model
 
 :mod:`arachnid.core.gui.icons`
-================================
+==============================
 
 .. automodule:: arachnid.core.gui.icons
 
-:mod:`arachnid.core.property`
-=============================
+:mod:`arachnid.core.gui.property`
+=================================
 
 .. automodule:: arachnid.core.gui.property
 
-:mod:`arachnid.core.util`
+:mod:`arachnid.core.gui.util`
 =============================
 
 .. automodule:: arachnid.core.gui.util

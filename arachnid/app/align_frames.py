@@ -1,5 +1,139 @@
 ''' Micrograph alignment for tilt, defocus, or dose fractionated series
 
+This script (`ara-alignmovie`) translationally aligns and then averages a series of image frames to
+reduce blur due to thermal drift.
+
+Tips
+====
+
+ #. Parallel Processing - Several micrographs can be run in parallel (assuming you have the memory and cores available). 
+    `-p 8` will run 8 micrographs in parallel. 
+    
+ #. A diagnostic power spectra can be written out for each average image using the `--diagnostic-file` option
+ 
+ #. By default, translation coordinates are not written out. This can be enabled by setting the `--translation-file` option.
+
+Examples
+========
+
+.. sourcecode :: sh
+    
+    # Align frames using l2 optimization over decimated data - output average is not decimated
+    
+    $ ara-alignmovie -i mic_0001.frames.mrc -o avg_mic_0001.dat --bin-factor 2 --gain-file norm_0.mrc
+    
+    # Align frames using l2 optimization
+    
+    $ ara-alignmovie -i mic_0001.frames.mrc -o avg_mic_0001.dat --apix 1.2 --resolution 10 --gain-file norm_0.mrc
+
+Critical Options
+================
+
+.. program:: ara-alignmovie
+
+.. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2, --movie-files <FILENAME1,FILENAME2>
+    
+    List of filenames for the input micrograph frame stacks.
+    If you use the parameters `-i` or `--inputfiles` they must be comma separated 
+    (no spaces). If you do not use a flag, then separate by spaces. For a 
+    very large number of files (>5000) use `-i "filename*"`
+
+.. option:: -o <FILENAME>, --output <FILENAME>, --micrograph-files <FILENAME>
+    
+    Output filename for the averaged micrograph image. The filename should 
+    have the correct number of digits (e.g. sndc_0000.spi).
+
+.. option:: -p <FILENAME>, --param-file <FILENAME> 
+    
+    Filename for SPIDER parameter file describing a Cryo-EM experiment
+
+.. option:: --gain-file <FILENAME>
+    
+    Gain reference normalization image, optional but highly recommended
+
+Useful Options
+===============
+
+.. option:: --selection-file <FILENAME>
+    
+    Micrograph selection file
+
+.. option:: --frame-beg <INT>
+    
+    Index of the first frame to average, 0 means first frame, 1 second and so on
+
+.. option:: --frame-end <INT>
+    
+    Index of last frame to average, if 0 use last in stack
+
+.. option:: --resolution <FLOAT>
+    
+    Target resolution to lowpass filter frames
+
+.. option:: --apix <FLOAT>
+    
+    Pixel size of the image
+    
+Tunable Options
+===============
+
+.. option:: --search-radius <FLOAT>
+    
+    Maximum search radius
+
+.. option:: --upsampling <FLOAT>
+    
+    Upsampling factor
+
+.. option:: --gap <INT>
+    
+    Gap between pairs for L1/L2 alignment
+
+.. option:: --invert <BOOL>
+    
+    Invert the contrast of the input frames
+
+Diagnostic Options
+==================
+
+.. option:: --benchmark <BOOL>
+    
+    Run every alignment algorithm on the same set of micrographs for benchmarking
+
+.. option:: --window-size <INT>
+    
+    Window size for the diagnostic power spectra periodogram calculation
+
+.. option:: --pad <INT>
+    
+    Padding for the diagnostic power spectra periodogram calculation
+
+.. option:: --pad <INT>
+    
+    Padding for the diagnostic power spectra periodogram calculation
+
+.. option:: --translation-file <FILENAME>
+    
+    Output filename for the translation coordinates, optional.  The filename should have the correct number of digits (e.g. sndc_0000.spi).
+
+.. option:: --diagnostic-file <FILENAME>
+    
+    Output filename for the power spectra images, optional.  The filename should have the correct number of digits (e.g. sndc_0000.spi).
+
+.. option:: --waypoint-file <FILENAME>
+    
+   Output filename for the average with path in color drawn on the micrograph images, optional. The filename should have the correct number of digits (e.g. sndc_0000.spi).
+
+Other Options
+=============
+
+This is not a complete list of options available to this script, for additional options see:
+
+    #. :ref:`Options shared by all scripts ... <shared-options>`
+    #. :ref:`Options shared by MPI-enabled scripts... <mpi-options>`
+    #. :ref:`Options shared by file processor scripts... <file-proc-options>`
+    #. :ref:`Options shared by SPIDER params scripts... <param-options>`
+
 .. Created on Dec 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
@@ -17,11 +151,13 @@ from ..core.image import alignment
 from ..core.metadata import format
 from ..core.metadata import spider_params
 from ..core.metadata import spider_utility
+from ..core.metadata import selection_utility
 from ..core.util import drawing
 import scipy.fftpack
 import scipy.ndimage
 import numpy
 import logging
+import os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -437,9 +573,9 @@ def powerspectra(fourier_frames, trans=None, window_size=256, pad=1, overlap=0.5
     avg = numpy.zeros_like(fourier_frames[0])
     for i, frame in enumerate(fourier_frames):
         if trans is not None:
-            avg += scipy.ndimage.fourier_shift(fourier_frames[i], (-trans[i, 1], -trans[i, 0]), -1, 0)
+            avg += scipy.ndimage.fourier_shift(frame, (-trans[i, 1], -trans[i, 0]), -1, 0)
         else:
-            avg += fourier_frames[i]
+            avg += frame
     avg = scipy.fftpack.ifft2(avg).real
     avg = scipy.fftpack.fft2(avg)
     avg = scipy.fftpack.fftshift(avg).real
@@ -546,7 +682,15 @@ def initialize(files, param):
     else:
         if param['waypoint_file'] != "":
             _logger.info("Writing out illustrative waypoint image: %s"%param['waypoint_file'])
-        
+    
+    
+    if 'selection_file' in param and param['selection_file'] != "":
+        if os.path.exists(param['selection_file']):
+            select = format.read(param['selection_file'], numeric=True)
+            oldcnt = len(files)
+            files = selection_utility.select_file_subset(files, select, param.get('id_len', 0), len(param['finished']) > 0)
+            _logger.info("Selecting %d files from %d"%(len(files), oldcnt))
+    return files
     
 def reduce_all(val, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -600,17 +744,22 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", search_radius=50,  help="Maximum search radius")
     group.add_option("", upsampling=2,      help="Upsampling factor")
     group.add_option("", gap=5,             help="Gap between pairs for L1/L2 alignment")
-    group.add_option("", benchmark=False,   help="Run successive alignment on the same set of micrographs for benchmarking")
-    group.add_option("", window_size=256,   help="Window size for the diagnostic power spectra")
-    group.add_option("", pad=2,             help="Padding for the diagnostic power spectra")
     group.add_option("", invert=False,      help="Invert the contrast of the input frames")
+    
+    dgroup = OptionGroup(parser, "Diagnostic", "Options to control diagnostic output",  id=__name__)
+    dgroup.add_option("", benchmark=False,   help="Run every alignment algorithm on the same set of micrographs for benchmarking")
+    dgroup.add_option("", window_size=256,   help="Window size for the diagnostic power spectra")
+    dgroup.add_option("", pad=2,             help="Padding for the diagnostic power spectra")
+    group.add_option_group(dgroup)
+    
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--movie-files",          input_files=[],           help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
-        pgroup.add_option("-o", "--micrograph-files",     output="",                help="Output filename for the averaged micrograph image with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
-        pgroup.add_option("",                             translation_file="",      help="Output filename for the translation coordinates with correct number of digits (e.g. sndc_0000.spi), if empty no coordinates are saved", gui=dict(filetype="save"), required_file=False)
-        pgroup.add_option("",                             diagnostic_file="",       help="Output filename for the power spectra images with correct number of digits (e.g. sndc_0000.spi), if empty no power spectra are saved", gui=dict(filetype="save"), required_file=False)
-        pgroup.add_option("",                             waypoint_file="",         help="Output filename for the average with path in color", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("-o", "--micrograph-files",     output="",                help="Output filename for the averaged micrograph image. The filename should have the correct number of digits (e.g. sndc_0000.spi).", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("",                             translation_file="",      help="Output filename for the translation coordinates, optional.  The filename should have the correct number of digits (e.g. sndc_0000.spi).", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("",                             diagnostic_file="",       help="Output filename for the power spectra images, optional.  The filename should have the correct number of digits (e.g. sndc_0000.spi).", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("",                             waypoint_file="",         help="Output filename for the average with path in color drawn on the micrograph images, optional. The filename should have the correct number of digits (e.g. sndc_0000.spi).", gui=dict(filetype="save"), required_file=False)
+        pgroup.add_option("",                             selection_file="",        help="Micrograph selection file", gui=dict(filetype="open"), required_file=False)
         spider_params.setup_options(parser, pgroup, False)
 
 def flags():

@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try: 
-    from util import _transform
+    from util import _transform #@UnresolvedImport
     _transform;
 except:
     tracing.log_import_error('Failed to load _transform.so module - certain functions will not be available', _logger)

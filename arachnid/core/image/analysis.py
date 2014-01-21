@@ -43,9 +43,10 @@ def robust_sigma(in_y, zero=0):
    Exploratory Data Analysis, by Hoaglin, Mosteller
    and Tukey, John Wiley and Sons, 1983.
 
-   .. note:: ROBUST_SIGMA routine from IDL ASTROLIB.
-   
-   .. note:: Python Code from https://gist.github.com/1310949
+   .. note:: 
+       
+       ROBUST_SIGMA routine from IDL ASTROLIB.
+       Python Code adopted from https://gist.github.com/1310949
 
    :History:
        * H Freudenreich, STX, 8/90

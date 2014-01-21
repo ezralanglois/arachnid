@@ -12,6 +12,16 @@
     util
     snippets
 
+:mod:`arachnid.core`
+====================
+
+.. automodule:: arachnid.core
+
+:mod:`arachnid.snippets`
+========================
+
+.. automodule:: arachnid.snippets
+
 :mod:`arachnid.app`
 ===================
 
@@ -26,16 +36,6 @@
 =========================
 
 .. automodule:: arachnid.pyspider
-    
-:mod:`arachnid.core`
-====================
-
-.. automodule:: arachnid.core
-
-:mod:`arachnid.snippets`
-========================
-
-.. automodule:: arachnid.snippets
 
 '''
 
@@ -48,7 +48,7 @@ except ImportError:
 
 __project__ = "arachnid"
 __author__ = "Robert Langlois"
-__copyright__ = "Copyright (C) 2012, Robert Langlois"
+__copyright__ = "Copyright (C) 2009-2014, Robert Langlois"
 __license__ = "GPL"
 __author_email__ = "rl2528@columbia.edu"
 __description__ = "Single Particle Data Analysis Suite"

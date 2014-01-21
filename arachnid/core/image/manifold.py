@@ -775,7 +775,7 @@ def embed_laplacian(L, D, dimension):
             evecs = evecs.T[:dimension+1] * D
             evals = evals[:dimension+1]
     else:
-        evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1)
+        evals, evecs = scipy.sparse.linalg.eigen_symmetric(L, k=dimension+1) #@UnresolvedImport
         evecs = evecs.T[dimension+1::-1] * D
         evals = evals[dimension+1::-1]
     #evecs, D = numpy.asarray(evecs), numpy.asarray(D).squeeze()

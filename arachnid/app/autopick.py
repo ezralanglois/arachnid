@@ -1,11 +1,11 @@
 ''' Automated particle selection (AutoPicker)
 
 This script (`ara-autopick`) was designed locate particles on a micrograph using template matching 
-(like LFCPick) but incorporates several post-processing algorithm to reduce the number of noise 
+(like LFCPick), yet incorporates several post-processing algorithms to reduce the number of noise 
 windows and contaminants.
 
 It will not remove all contaminants but experiments have demonstrated that in many cases it removes enough 
-to achieve a descent resolution. To further reduce contamination, see ViCer (`ara-vicer`).
+to achieve a high-resolution. To further reduce contamination, see ViCer (`ara-vicer`).
 
 The AutoPicker script (`ara-autopick`) takes at minimum as input the micrograph and size of the particle in pixels and
 writes out a set of coordinate files for each selected particle.
@@ -27,10 +27,6 @@ Examples
 ========
 
 .. sourcecode :: sh
-
-    # Source AutoPart - FrankLab only
-    
-    $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
     # Run with a disk as a template on a raw film micrograph
     
@@ -139,10 +135,6 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
     #. :ref:`Options shared by SPIDER params scripts... <param-options>`
 
-.. todo:: Test histogram
-
-.. todo:: Test Version control
-
 .. Created on Dec 21, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -164,21 +156,21 @@ _logger.setLevel(logging.DEBUG)
 def process(filename, id_len=0, **extra):
     '''Concatenate files and write to a single output file
         
-    :Parameters:
+    Args:
     
-    filename : str
-               Input filename
-    id_len : int, optional
-             Maximum length of the ID
-    extra : dict
-            Unused key word arguments
+        filename : str
+                   Input filename
+        id_len : int, optional
+                 Maximum length of the ID
+        extra : dict
+                Unused key word arguments
                 
-    :Returns:
+    Returns:
     
-    filename : str
-               Current filename
-    peaks : str
-            Coordinates found
+        filename : str
+                   Current filename
+        peaks : str
+                Coordinates found
     '''
     
     try:
@@ -207,19 +199,19 @@ def process(filename, id_len=0, **extra):
 def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
     
-    :Parameters:
+    Args:
         
-    img : array
-          Micrograph image
-    disable_prune : bool
-                    Disable the removal of bad particles
-    extra : dict
-            Unused key word arguments
+        img : array
+              Micrograph image
+        disable_prune : bool
+                        Disable the removal of bad particles
+        extra : dict
+                Unused key word arguments
     
-    :Returns:
-        
-    peaks : numpy.ndarray
-            List of peaks: height and coordinates
+    Returns:
+            
+        peaks : array
+                List of peaks: height and coordinates
     '''
     
     template = lfcpick.create_template(**extra)
@@ -246,21 +238,21 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
 def template_match(img, template_image, pixel_diameter, **extra):
     ''' Find peaks using given template in the micrograph
     
-    :Parameters:
+    Args:
         
-    img : array
-          Micrograph
-    template_image : array
-                     Template image
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    extra : dict
-            Unused key word arguments
+        img : array
+              Micrograph
+        template_image : array
+                         Template image
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        extra : dict
+                Unused key word arguments
           
-    :Returns:
-    
-    peaks : array
-            List of peaks including peak size, x-coordinate, y-coordinate
+    Returns:
+        
+        peaks : array
+                List of peaks including peak size, x-coordinate, y-coordinate
     '''
     
     _logger.debug("Filter micrograph")
@@ -276,23 +268,23 @@ def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
     ''' Remove peaks where the window goes outside the boundary of the 
     micrograph image.
     
-    :Parameters:
-    
-    peaks : array
-            List of peaks including peak size, x-coordinate, y-coordinate
-    shape : tuple
-            Number of rows, columns in micrograph
-    boundary : list
-               Margin for particle selection top, bottom, left, right
-    bin_factor : float
-                 Image downsampling factor
-    extra : dict
-            Unused key word arguments
+    Args:
+        
+        peaks : array
+                List of peaks including peak size, x-coordinate, y-coordinate
+        shape : tuple
+                Number of rows, columns in micrograph
+        boundary : list
+                   Margin for particle selection top, bottom, left, right
+        bin_factor : float
+                     Image downsampling factor
+        extra : dict
+                Unused key word arguments
           
-    :Returns:
+    Returns:
     
-    peaks : array
-            List of peaks within the boundary including peak size, x-coordinate, y-coordinate
+        peaks : array
+                List of peaks within the boundary including peak size, x-coordinate, y-coordinate
     '''
     
     if len(boundary) == 0: return peaks
@@ -318,39 +310,39 @@ def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
 def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
-    :Parameters:
+    Args:
         
-    mic : array
-          Micrograph
-    scoords : list
-              List of potential particle coordinates
-    dust_sigma : float
-                 Number of standard deviations for removal of outlier dark pixels
-    xray_sigma : float
-                 Number of standard deviations for removal of outlier light pixels
-    disable_threshold : bool
-                        Disable noise removal with threshold selection
-    remove_aggregates : bool
-                        Set True to remove aggregates
-    pca_mode : float
-               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
-    iter_threshold : int
-                     Number of times to repeat thresholding
-    real_space_nstd : float
-                      Number of standard deviations for real-space PCA rejection
-    window : int
-             Size of the window in pixels
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    threshold_minimum : int
-                        Minimum number of consider success
-    extra : dict
-            Unused key word arguments
-    
-    :Returns:
+        mic : array
+              Micrograph
+        scoords : list
+                  List of potential particle coordinates
+        dust_sigma : float
+                     Number of standard deviations for removal of outlier dark pixels
+        xray_sigma : float
+                     Number of standard deviations for removal of outlier light pixels
+        disable_threshold : bool
+                            Disable noise removal with threshold selection
+        remove_aggregates : bool
+                            Set True to remove aggregates
+        pca_mode : float
+                   Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
+        iter_threshold : int
+                         Number of times to repeat thresholding
+        real_space_nstd : float
+                          Number of standard deviations for real-space PCA rejection
+        window : int
+                 Size of the window in pixels
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        threshold_minimum : int
+                            Minimum number of consider success
+        extra : dict
+                Unused key word arguments
         
-    sel : numpy.ndarray
-          Bool array of selected good windows 
+    Returns:
+
+        sel : numpy.ndarray
+              Bool array of selected good windows 
     '''
     
     _logger.debug("Total particles: %d"%len(scoords))
@@ -444,7 +436,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
 def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
-    :Parameters:
+    Args:
         
     mic : array
           Micrograph
@@ -471,7 +463,7 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     extra : dict
             Unused key word arguments
     
-    :Returns:
+    Returns:
         
     sel : numpy.ndarray
           Bool array of selected good windows 
@@ -620,21 +612,21 @@ def outlier_rejection(feat, prob):
 def classify_noise(scoords, dsel, sel=None, threshold_minimum=25):
     ''' Classify out the noise windows
     
-    :Parameters:
+    Args:
         
-    scoords : list
-              List of peak and coordinates
-    dsel : numpy.ndarray
-           Good values selected by PCA
-    sel : numpy.ndarray
-           Total good values selected by PCA and DoG
-    threshold_minimum : int
-                        Minimum number of consider success
+        scoords : list
+                  List of peak and coordinates
+        dsel : numpy.ndarray
+               Good values selected by PCA
+        sel : numpy.ndarray
+               Total good values selected by PCA and DoG
+        threshold_minimum : int
+                            Minimum number of consider success
     
-    :Returns:
+    Returns:
         
-    tsel : numpy.ndarray
-           Good values selected by Otsu
+        tsel : numpy.ndarray
+               Good values selected by Otsu
                
     '''
     
@@ -651,21 +643,21 @@ def classify_noise(scoords, dsel, sel=None, threshold_minimum=25):
     return tsel
 
 def classify_aggregates(scoords, offset, sel):
-    ''' Rmove all aggregated windows
+    ''' Remove all aggregated windows
     
-    :Parameters:
+    Args:
         
-    scoords : list
-              List of peak and coordinates
-    offset : int
-             Window half-width
-    sel : numpy.ndarray
-          Good values selected by aggerate removal
+        scoords : list
+                  List of peak and coordinates
+        offset : int
+                 Window half-width
+        sel : numpy.ndarray
+              Good values selected by aggerate removal
     
-    :Returns:
-        
-    sel : numpy.ndarray
-          Good values selected by aggregate removal
+    Returns:
+            
+        sel : numpy.ndarray
+              Good values selected by aggregate removal
                
     '''
     
@@ -681,14 +673,14 @@ def remove_overlap(scoords, radius, sel):
     ''' Remove coordinates where the windows overlap by updating
     the selection array (`sel`)
     
-    :Parameters:
+    Args:
      
-    scoords : array
-              Selected coordinates
-    radius : int
-             Radius of the particle in pixels 
-    sel : array
-          Output selection array that is modified in place
+        scoords : array
+                  Selected coordinates
+        radius : int
+                 Radius of the particle in pixels 
+        sel : array
+              Output selection array that is modified in place
     
     '''
     
@@ -711,24 +703,24 @@ def remove_overlap(scoords, radius, sel):
 def write_example(mic, coords, filename, box_image="", bin_factor=1.0, pixel_diameter=None, window=None, **extra):
     ''' Write out an image with the particles boxed
     
-    :Parameters:
+    Args:
     
-    mic : array
-          Micrograph image
-    coords : list
-             List of particle coordinates
-    filename : str
-               Current micrograph filename to load benchmark if available
-    box_image : str
-                Output filename
-    bin_factor : float
-                 Image downsampling factor
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    window : int
-             Size of window in pixels
-    extra : dict
-            Unused key word arguments
+        mic : array
+              Micrograph image
+        coords : list
+                 List of particle coordinates
+        filename : str
+                   Current micrograph filename to load benchmark if available
+        box_image : str
+                    Output filename
+        bin_factor : float
+                     Image downsampling factor
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        window : int
+                 Size of window in pixels
+        extra : dict
+                Unused key word arguments
     '''
     
     if box_image == "" or not drawing.is_available(): return
@@ -773,17 +765,17 @@ def finalize(files, **extra):
 def supports(files, **extra):
     ''' Test if this module is required in the project workflow
     
-    :Parameters:
+    Args:
     
-    files : list
-            List of filenames to test
-    extra : dict
-            Unused keyword arguments
+        files : list
+                List of filenames to test
+        extra : dict
+                Unused keyword arguments
     
-    :Returns:
+    Returns:
     
-    flag : bool
-           True if this module should be added to the workflow
+        flag : bool
+               True if this module should be added to the workflow
     '''
     
     return True
@@ -833,8 +825,6 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
-    #if options.pixel_radius == 0:
-    #    raise OptionValueError, "Pixel radius must be greater than zero"
     if len(options.boundary) > 0:
         try: options.boundary = [int(v) for v in options.boundary]
         except: raise OptionValueError, "Unable to convert boundary margin to list of integers"
@@ -842,10 +832,10 @@ def check_options(options, main_option=False):
 def flags():
     ''' Get flags the define the supported features
     
-    :Returns:
+    Returns:
     
-    flags : dict
-            Supported features
+        flags : dict
+                Supported features
     '''
     
     return dict(description = '''Automated particle selection (AutoPicker)
@@ -866,10 +856,33 @@ def flags():
                 use_version=True)
 
 def main():
-    #Main entry point for this script
+    '''Main entry point for this script
+    
+    .. seealso:: 
+    
+        arachnid.core.app.program.run_hybrid_program
+    
+    '''
     program.run_hybrid_program(__name__)
 
-def dependents(): return [lfcpick]
+def dependents():
+    ''' List of depenent modules
+    
+    The autopick script depends on lfc for the template-matching 
+    operations and uses many of the same parameters.
+    
+    .. seealso:: 
+        
+        arachnid.app.lfcpick
+    
+    Returns:
+        
+        modules : list
+                  List of modules
+    '''
+    
+    return [lfcpick]
+
 if __name__ == "__main__": main()
 
 
