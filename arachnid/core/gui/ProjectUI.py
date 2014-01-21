@@ -160,9 +160,9 @@ class MainWindow(QtGui.QWizard):
         self.updateWindowSizeSpinBox = lambda x: self.ui.windowSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         self.updateMaskDiameterSpinBox = lambda x: self.ui.maskDiameterSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         
-        self.updateParticleSizeDoubleSpinBox = lambda x: self.ui.particleSizeDoubleSpinBox.setValue(float(x*self.ui.particleSizeSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
-        self.updateWindowSizeDoubleSpinBox = lambda x: self.ui.windowSizeDoubleSpinBox.setValue(float(x*self.ui.windowSizeSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
-        self.updateMaskDiameterDoubleSpinBox = lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(float(x*self.ui.maskDiameterSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
+        self.updateParticleSizeDoubleSpinBox = lambda x: self.ui.particleSizeDoubleSpinBox.setValue(float(x*self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
+        self.updateWindowSizeDoubleSpinBox = lambda x: self.ui.windowSizeDoubleSpinBox.setValue(float(x*self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
+        self.updateMaskDiameterDoubleSpinBox = lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(float(x*self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0.0)
         
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(self.updateParticleSizeSpinBox)
         self.ui.windowSizeDoubleSpinBox.valueChanged.connect(self.updateWindowSizeSpinBox)
