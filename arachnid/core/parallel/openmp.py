@@ -17,7 +17,7 @@ except:
     _omp = None
 
 try: 
-    import mkl
+    import mkl #@UnresolvedImport
     mkl;
 except:
     mkl=None
