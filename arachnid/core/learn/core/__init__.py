@@ -1,6 +1,6 @@
 
 
 try: 
-    import _fastdot
+    import _fastdot #@UnresolvedImport
     _fastdot;
 except: pass

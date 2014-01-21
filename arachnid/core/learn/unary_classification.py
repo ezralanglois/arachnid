@@ -64,6 +64,35 @@ def robust_mahalanobis_with_chi2(feat, prob_reject, ret_dist=False):
     sel =  dist < cut
     return (sel, dist) if ret_dist else sel
 
+def robust_euclidean(data, nsigma=2.67, mdata=None):
+    ''' Robust outlier rejection using the MAD score
+    
+    :Parameters:
+    
+    data : array
+           Sample vector for robust seleciton
+    nsigma : float
+             Number of standard deviation cutoff
+    mdata : array, optional
+            Array to calculate statistics over (alternative
+            to `data`.
+    
+    :Returns:
+    
+    sel : array
+          Boolean array of selected points
+    '''
+    
+    if mdata is None: mdata=data
+    cent = numpy.median(mdata, axis=0)#scipy.stats.mstats.mode(mdata, axis=0)[0]
+    d = numpy.sqrt(numpy.sum(numpy.square(mdata-cent), axis=1))
+    m = scipy.stats.mstats.mode(d)[0]
+    s = robust_sigma(d)
+    
+    d = numpy.sqrt(numpy.sum(numpy.square(data-cent), axis=1))
+    print m, s, m+s*nsigma, nsigma, numpy.max(d[d < m+s*nsigma]), numpy.min(d[d < m+s*nsigma])
+    return d < m+s*nsigma
+
 def robust_rejection(data, nsigma=2.67, mdata=None):
     ''' Robust outlier rejection using the MAD score
     

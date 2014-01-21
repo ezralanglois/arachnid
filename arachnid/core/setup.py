@@ -10,6 +10,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('image')
     config.add_subpackage('orient')
     config.add_subpackage('parallel')
+    config.add_subpackage('learn')
     try: numpy_include = numpy.get_include()
     except: numpy_include = numpy.get_numpy_include() #@UndefinedVariable
     config.add_include_dirs(numpy_include)
