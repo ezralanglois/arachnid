@@ -951,7 +951,7 @@ def reindex_stacks(subset, reindex=False, **extra):
         idmap[filename] += 1
         subset[i] = subset[i]._replace(rlnImageName=relion_utility.relion_identifier(filename, idmap[filename]))
 
-def renormalize_images(vals, pixel_radius, apix, output, invert=False, **extra):
+def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=False, **extra):
     ''' Renormalize a set of images in-place
     
     :Parameters:
@@ -977,13 +977,15 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, **extra):
     idmap={}
     for v in vals:
         filename, index = relion_utility.relion_file(v.rlnImageName)
-        img = ndimage_file.read_image(filename, index-1)
-        if img.shape[0] != mask.shape[0]:
-            _logger.error("Image does not match mask (%d != %d) - %s"%(img.shape[0], mask.shape[0], filename))
-        ndimage_utility.normalize_standard(img, mask, True, img)
+        output = spider_utility.spider_filename(output, filename)
         if filename not in idmap: idmap[filename]=0
-        if invert: ndimage_utility.invert(img, img)
-        ndimage_file.write_image(spider_utility.spider_filename(output, filename), img, idmap[filename])
+        if not dry_run:
+            img = ndimage_file.read_image(filename, index-1)
+            if img.shape[0] != mask.shape[0]:
+                _logger.error("Image does not match mask (%d != %d) - %s"%(img.shape[0], mask.shape[0], filename))
+            ndimage_utility.normalize_standard(img, mask, True, img)
+            if invert: ndimage_utility.invert(img, img)
+            ndimage_file.write_image(output, img, idmap[filename])
         idmap[filename] += 1
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
     return new_vals
@@ -1113,6 +1115,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   renormalize=0.0,                 help="Diameter of mask in angstroms - overwrites old images with renormalized images")
     group.add_option("",   apix=1.0,                        help="Pixel size of the particle")
     group.add_option("",   invert=False,                    help="Invert the images")
+    group.add_option("",   dry_run=False,                   help="Do not process images - only output star file")
     
     pgroup.add_option_group(group)
     if main_option:
