@@ -76,8 +76,8 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
                 val = qin.get()
                 if val is None: break
                 yield val
-        finally:
-            _logger.error("queue-done")
+        finally: pass
+        #_logger.error("queue-done")
     
     def iterate_map_worker(qin, qout, process_number, process_limit, extra):
         val = None
@@ -127,9 +127,15 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
             base = {}
             arr = {}
             for key in shmem_array_info.iterkeys():
-                base[key] = numpy.ctypeslib.as_ctypes(numpy.ctypeslib.as_ctypes(shmem_array_info[key]))
+                ar = shmem_array_info[key]
+                if ar.dtype.str[1]=='c':
+                    typestr = ar.dtype.str[0]+'f'+str(int(ar.dtype.str[2:])/2)
+                    print ar.dtype.itemsize, ar.shape
+                    ar = ar.view(numpy.dtype(typestr))
+                    print ar.dtype.itemsize, ar.shape
+                base[key] = numpy.ctypeslib.as_ctypes(ar)
                 arr[key] = numpy.ctypeslib.as_array(base[key])
-                arr[key] = arr[key].reshape(shmem_array_info[key].shape)
+                arr[key] = arr[key].view(shmem_array_info[key].dtype).reshape(shmem_array_info[key].shape)
             shmem_map.append(arr)                                  
             shmem_map_base.append(base)
         del shmem_array_info
@@ -140,13 +146,14 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
                 val = qin.get()
                 if val is None: break
                 yield val
-        finally:
-            _logger.error("queue-done")
+        finally: pass
+        #_logger.error("queue-done")
     
     def iterate_reduce_worker(qin, qout, process_number, process_limit, extra, shmem_arr=shmem_map):
         val = None
         try:
-            extra.update(shmem_arr[process_number])
+            if shmem_arr is not None:
+                extra.update(shmem_arr[process_number])
             val = worker(queue_iterator(qin, process_number), process_number=process_number, **extra)
         except:
             _logger.exception("Error in child process")
