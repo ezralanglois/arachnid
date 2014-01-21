@@ -4,8 +4,11 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-import logging, numpy
-
+import logging
+import numpy
+import scipy.ndimage
+import scipy.fftpack
+import ndimage_filter
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -57,7 +60,7 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
     if dx == 0 and dy == 0 and dz == 0: return img
     if pad > 1:
         shape = img.shape
-        img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
+        img = ndimage_filter.pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
     if img.ndim == 2:
         fimg = scipy.fftpack.fft2(img)
         fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
@@ -67,6 +70,6 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
         if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
         else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy), -1)
         img = scipy.fftpack.ifftn(fimg).real
-    if pad > 1: img = depad_image(img, shape)
+    if pad > 1: img = ndimage_filter.depad_image(img, shape)
     return img
 
