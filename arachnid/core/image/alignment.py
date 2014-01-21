@@ -15,11 +15,11 @@ def xcorr_dft_peak(f1, f2, usfac, search_radius, y0=0, x0=0):
     '''
     
     f3 = numpy.multiply(f1, f2.conj())
-    y, x, p = _xcorr_dft_peak(f3, min(2, usfac), search_radius, y0, x0, tshape, template_ssd)
+    y, x, p = _xcorr_dft_peak(f3, min(2, usfac), search_radius, y0, x0)
     y += y0
     x += x0
     if usfac > 2:
-        dy, dx, p = _xcorr_dft_peak(f3, usfac, 1.5, y, x, tshape, template_ssd)
+        dy, dx, p = _xcorr_dft_peak(f3, usfac, 1.5, y, x)
         y += dy
         x += dx
     return numpy.asarray((y, x, p))
