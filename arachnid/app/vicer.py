@@ -135,7 +135,8 @@ from ..core.image import ndimage_file, ndimage_utility, rotate, ndimage_processo
 from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
 from ..core.metadata import relion_utility
 from ..core.parallel import mpi_utility, openmp
-from ..core.orient import healpix, orient_utility
+from ..core.orient import healpix
+from ..core.orient import spider_transforms
 from ..core.learn import unary_classification
 from ..core.learn import dimensionality_reduction
 import logging, numpy, scipy
@@ -243,7 +244,7 @@ def one_class_classification(feat, neig, nsamples, prob_reject, **extra):
     '''
 
     feat=feat[:, :neig]
-    sel, dist = unary_classification.mahalanobis_with_chi2(feat, prob_reject, True)
+    sel, dist = unary_classification.robust_mahalanobis_with_chi2(feat, prob_reject, True)
     #_logger.debug("Cutoff: %d -- for df: %d | sel: %d"%(cut, feat.shape[1], numpy.sum(sel)))
     if nsamples > 1:
         rsel = numpy.ones(int(feat.shape[0]/nsamples), dtype=numpy.bool)
@@ -432,10 +433,12 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
     '''
     
     if not disable_rtsq: 
+        '''
         if scale_spi:
             img = rotate.rotate_image(img, align[i, 3], align[i, 4]/apix, align[i, 5]/apix)
         else:
-            img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
+        '''
+        img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
     elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
@@ -524,7 +527,7 @@ def read_alignment(files, alignment="", disable_mirror=False, order=0, random_vi
 
     files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8)
     align[:, 7]=align[:, 6]
-    if order > 0: orient_utility.coarse_angles(order, align, half=not disable_mirror, out=align)
+    if order > 0: spider_transforms.coarse_angles(order, align, half=not disable_mirror, out=align)
     if random_view>0:
         ref = numpy.random.randint(0, random_view, len(align))
     else:

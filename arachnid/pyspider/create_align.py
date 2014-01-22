@@ -93,7 +93,8 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app import program
 from ..core.metadata import format, spider_utility, format_utility, relion_utility
 from ..core.image import ndimage_file
-from ..core.orient import orient_utility, healpix
+from ..core.orient import healpix
+from ..core.orient import spider_transforms
 from ..core.util import numpy_ext
 import numpy, logging, glob, os
 
@@ -139,7 +140,7 @@ def create_alignment_from_relion(star_file, apix, **extra):
     for i in xrange(len(projections)):
         projection = projections[i]
         stack_file, stack_id = relion_utility.relion_file(projection.rlnImageName)
-        psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
+        psi, dx, dy = spider_transforms.align_param_3D_to_2D(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
         align[i, 1] = projection.rlnAngleTilt
         align[i, 2] = projection.rlnAngleRot
         align[i, 3] = healpix.ang2pix(3, numpy.deg2rad(projection.rlnAngleTilt), numpy.deg2rad(projection.rlnAngleRot))

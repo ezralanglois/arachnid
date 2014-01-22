@@ -9,7 +9,6 @@ from ..core.metadata import spider_utility, format_utility, format, spider_param
 from ..core.image.formats import mrc as mrc_file
 from ..core.image import ndimage_file
 from ..core.spider import spider
-#from ..core.orient import orient_utility
 import logging, numpy, os
 
 _logger = logging.getLogger(__name__)
@@ -99,7 +98,6 @@ def batch(files, output, param_file, image_file, **extra):
             
             #spi.sh_f(filename, (projection.rlnOriginX, projection.rlnOriginY), outputfile=(output, index+1))
             values[index, 0] = projection.rlnAnglePsi
-            #psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
             values[index, 1] = projection.rlnAngleTilt
             values[index, 2] = projection.rlnAngleRot
             #values[index, 5] = psi

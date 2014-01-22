@@ -7,7 +7,8 @@ from ..core.app import program
 from ..core.metadata import format, spider_utility, spider_params, relion_utility
 from ..core.image import ndimage_file, rotate
 from ..core.image.ctf import correct as ctf_correct
-from ..core.orient import orient_utility, healpix
+from ..core.orient import healpix
+from ..core.orient import spider_transforms
 import logging, numpy
 
 _logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
                 theta, phi = numpy.rad2deg(healpix.pix2ang(resolution, pix))
                 rang = rotate.rotate_euler((0, theta, phi), (projection.rlnAnglePsi, projection.rlnAngleTilt, projection.rlnAngleRot))
                 psi = (rang[0]+rang[2])
-                psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(psi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
+                psi, dx, dy = spider_transforms.align_param_3D_to_2D(psi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
                 if index < 10:
                     _logger.info("%f,%f,%f -> %f,%f,%f | %f,%f == %f,%f"%(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor, psi, dx, dy, projection.rlnAngleTilt, projection.rlnAngleRot, theta, phi))
                 
@@ -62,7 +63,7 @@ def batch(files, output, bin_factor=1.0, resolution=2, align_only=False, use_rts
                 if img is not None:
                     img = rotate.rotate_image(img, psi, dx, dy)
             else:
-                psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
+                psi, dx, dy = spider_transforms.align_param_3D_to_2D(projection.rlnAnglePsi, projection.rlnOriginX/bin_factor, projection.rlnOriginY/bin_factor)
                 theta = projection.rlnAngleTilt
                 phi = projection.rlnAngleRot
                 pix=0

@@ -6,7 +6,7 @@
 
 import format, spider_utility, relion_utility
 import spider_params
-from ..orient import orient_utility
+from ..orient import spider_transforms
 from ..image import ndimage_file
 import numpy
 import logging
@@ -118,7 +118,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                         supports_spider_id=None
                 param[i, 1] = align[i].rlnAngleTilt
                 param[i, 2] = align[i].rlnAngleRot
-                rot, tx, ty = orient_utility.align_param_3D_to_2D_simple(align[i].rlnAnglePsi, align[i].rlnOriginX, align[i].rlnOriginY)
+                rot, tx, ty = spider_transforms.align_param_3D_to_2D(align[i].rlnAnglePsi, align[i].rlnOriginX, align[i].rlnOriginY)
                 param[i, 3] = rot
                 param[i, 4] = tx
                 param[i, 5] = ty
@@ -154,7 +154,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                     param[:, :3] = align[:, :3]
                 else:
                     for i in xrange(len(align)):
-                        rot, tx, ty = orient_utility.align_param_2D_to_3D_simple(align[i, 5], align[i, 6], align[i, 7])
+                        rot, tx, ty = spider_transforms.align_param_2D_to_3D(align[i, 5], align[i, 6], align[i, 7])
                         param[i, 0] = rot
                         param[i, 1:3] = align[i, 1:3]
                         param[i, 4:6] = (tx, ty)

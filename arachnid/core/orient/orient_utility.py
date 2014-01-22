@@ -8,6 +8,7 @@ import transforms,healpix
 import logging, scipy, scipy.optimize
 from ..parallel import process_queue
 from ..image import rotate
+from ..image import manifold
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -18,6 +19,36 @@ try:
 except:
     from ..app import tracing
     tracing.log_import_error("Failed to import rotation mapping module - certain functionality will not be available", _logger)
+
+def missing_views(ang, resolution, radians=False, batch=20000):
+    '''
+    '''
+    
+    from pyproj import Geod #@UnresolvedImport
+    pix = healpix.ang2pix(resolution, numpy.deg2rad(ang), half=True) if not radians else healpix.ang2pix(resolution, ang, half=True)
+    views = numpy.histogram(pix, bins=healpix.res2npix(resolution, True))[0]
+    sel = views > 0
+    maxdist, idx1, idx2 = manifold.maximum_geodesic(spider_to_quaternion(ang[sel]), batch)
+    _logger.info("Maximum distance: %f"%numpy.rad2deg(maxdist))
+    # sample angles on great circle
+    geo = Geod(ellps='sphere')
+    
+    lat1, lon1 = numpy.rad2deg(healpix.pix2ang(resolution, pix[idx1]))
+    lat2, lon2 = numpy.rad2deg(healpix.pix2ang(resolution, pix[idx2]))
+    
+    az, d = geo.inv(lon1, 90.0-lat1, lon2, 90.0-lat2)
+    lon2, lat2 = geo.fwd(lon1, 90.0-lat1, az, 6371000)
+    
+    npts = int(numpy.power(healpix.res2npix(resolution, True), 1/3))
+    samp = geo.npts(lon1, 90.0-lat1, lon2, lat2, npts)
+    samp = numpy.asarray(samp)
+    tmp = samp[:, 0].copy()
+    samp[:, 0]=samp[:, 1]
+    samp[:, 1]=90.0-tmp
+    pix = numpy.asarray(set(healpix.ang2pix(resolution, numpy.deg2rad(samp), half=True)))
+    _logger.info("Must fill in %d views"%len(pix))
+    return numpy.rad2deg(healpix.pix2ang(resolution, pix))
+    
 
 def rotate_into_frame(frame, curr):
     '''
@@ -327,13 +358,15 @@ def spider_to_quaternion(euler, use_2d=False, out=None):
     
     if len(euler) == 3 and (not hasattr(euler[0], '__len__') or len(euler[0])==1):
         euler1 = numpy.deg2rad(euler[:3])
-        if use_2d: euler[0]=-euler[2]
+        #if use_2d: euler[0]=-euler[2]
+        if use_2d: euler[0]=0
         return transforms.quaternion_from_euler(euler1[0], euler1[1], euler1[2], 'rzyz')
     
     if out is None: out = numpy.zeros((len(euler), 4))
     for i in xrange(out.shape[0]):
         euler1 = numpy.deg2rad(euler[i, :3])
-        if use_2d: euler1[0]=-euler1[2]
+        #if use_2d: euler1[0]=-euler1[2]
+        if use_2d: euler1[0]=0
         out[i, :] = transforms.quaternion_from_euler(euler1[0], euler1[1], euler1[2], 'rzyz')
     return out
 

@@ -1,4 +1,4 @@
-''' Utilities to handle orientation in 3D
+''' Utilities to handle orientation in 2D and 3D
 
 .. currentmodule:: arachnid.core.orient
 
@@ -15,7 +15,7 @@
     
     healpix
     transforms
-    orient_utility
+    spider_transforms
 
 :mod:`arachnid.core.orient.core`
 ================================

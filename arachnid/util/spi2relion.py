@@ -5,7 +5,7 @@
 '''
 from ..core.app import program
 from ..core.metadata import format, spider_utility, spider_params
-from ..core.orient import orient_utility
+from ..core.orient import spider_transforms
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def batch(files, output, voltage, cs, ampcont, stack_file="", **extra):
     for val in align:
         mic = spider_utility.spider_filename(stack_file, val.micrograph)
         if mic not in group: group[mic]=len(group)+1
-        psi, tx, ty = orient_utility.align_param_2D_to_3D_simple(val.psi, val.tx, val.ty)
+        psi, tx, ty = spider_transforms.align_param_2D_to_3D(val.psi, val.tx, val.ty)
         vals.append( [voltage, val.defocus, cs, ampcont, "%d@%s"%(val.stack_id, mic), mic, group[mic], tx, ty, val.phi, val.theta, psi, 1 ] )
     
     _logger.info("Writing alignment file")
