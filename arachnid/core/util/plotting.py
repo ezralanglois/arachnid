@@ -10,11 +10,11 @@ try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 except:
     print "Cannot import offset, upgrade matplotlib"
-from ..image import analysis
 from ..metadata import format_utility
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 import numpy, logging
+import scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -31,6 +31,38 @@ def is_available():
     return pylab is not None
 
 def is_plotting_disabled(): return pylab is None
+
+def subset_no_overlap(data, overlap, n=100):
+    ''' Select a non-overlapping subset of the data based on hyper-sphere exclusion
+    
+    :Parameters:
+    
+        data : array
+               Full set array
+        overlap : float
+                  Exclusion distance
+        n : int
+            Maximum number in the subset
+    
+    :Returns:
+        
+        out : array
+              Indices of non-overlapping subset
+    '''
+    
+    k=1
+    out = numpy.zeros(n, dtype=numpy.int)
+    for i in xrange(1, len(data)):
+        ref = data[out[:k]]
+        if ref.ndim == 1: ref = ref.reshape((1, data.shape[1]))
+        mat = scipy.spatial.distance.cdist(ref, data[i].reshape((1, len(data[i]))), metric='euclidean')
+        if mat.ndim == 0 or mat.shape[0]==0: continue
+        val = numpy.min(mat)
+        if val > overlap:
+            out[k] = i
+            k+=1
+            if k >= n: break
+    return out[:k]
 
 def plot_line_on_image(img, x, y, color='w', **extra):
     '''
@@ -244,7 +276,7 @@ def nonoverlapping_subset(ax, x, y, radius, n):
     
     if x.ndim == 1: x=x.reshape((x.shape[0], 1))
     if y.ndim == 1: y=y.reshape((y.shape[0], 1))
-    return analysis.subset_no_overlap(ax.transData.transform(numpy.hstack((x, y))), numpy.hypot(radius, radius)*2, n)
+    return subset_no_overlap(ax.transData.transform(numpy.hstack((x, y))), numpy.hypot(radius, radius)*2, n)
 
 def plot_images(fig, img_iter, x, y, zoom, radius):
     ''' Plot images on the specified figure

@@ -10,9 +10,63 @@ of observations into a few highly informative factors.
 import logging
 import numpy
 import core_utility
+import scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+def pca(trn, tst=None, frac=-1, mtrn=None, use_svd=True):
+    ''' Principal component analysis using SVD
+    
+    :Parameters:
+        
+        trn : numpy.ndarray
+              Matrix to decompose with PCA
+        tst : numpy.ndarray
+              Matrix to project into lower dimensional space (if not specified, then `trn` is projected)
+        frac : float
+               Number of Eigen vectors: frac < 1: fraction of variance, frac >= 1: number of components
+    
+    :Returns:
+        
+        val : numpy.ndarray
+              Projected data
+        idx : int
+              Selected number of Eigen vectors
+        V : numpy.ndarray
+            Eigen vectors
+        spec : float
+               Explained variance
+    '''
+
+    
+    if mtrn is None: mtrn = trn.mean(axis=0)
+    trn = trn - mtrn
+
+    if use_svd:
+        U, d, V = scipy.linalg.svd(trn, False)
+    else:
+        d, V = numpy.linalg.eig(numpy.cov(trn))
+
+    t = d**2/trn.shape[0]
+    t /= t.sum()
+    if frac >= 1:
+        idx = int(frac)
+    elif frac > 0.0:
+        idx = numpy.sum(t.cumsum()<frac)+1
+    else: idx = d.shape[0]
+    if idx >= len(d): idx = 1
+    if isinstance(tst, tuple):
+        val = []
+        for t in tst:
+            t = t - mtrn
+            val.append(d[:idx]*numpy.dot(V[:idx], tst.T).T)
+        val = tuple(val)
+    else:
+        if tst is None: tst = trn
+        else: tst = tst - mtrn
+        val = d[:idx]*numpy.dot(V[:idx], tst.T).T
+    return val, idx, V[:idx], numpy.sum(t[:idx])
 
 def pca_fast(trn, tst=None, frac=0.0, centered=False):
     '''

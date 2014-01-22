@@ -11,7 +11,7 @@ custom wrapped fortran functions (taken from SPIDER).
 from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
 #import eman2_utility
-import analysis
+from ..learn import unary_classification
 import numpy, scipy, scipy.ndimage
 import numpy.fft
 import scipy.fftpack, scipy.signal
@@ -1496,9 +1496,9 @@ def segment(img, bins=0, mask=None, out=None):
     '''
     
     if mask is not None:
-        th = analysis.otsu(compress_image(img, mask).ravel(), bins)
+        th = unary_classification.otsu(compress_image(img, mask).ravel(), bins)
     else:
-        th = analysis.otsu(img.ravel(), bins)
+        th = unary_classification.otsu(img.ravel(), bins)
     return numpy.greater(img, th, out)
 
 @_em2numpy2em
@@ -2017,7 +2017,7 @@ def flatten_solvent(img, threshold=None, out=None):
     _logger.debug("Tight mask - started")
     if threshold is None or threshold == 'A': 
         _logger.debug("Finding threshold")
-        threshold = analysis.otsu(img.ravel())
+        threshold = unary_classification.otsu(img.ravel())
     else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")
@@ -2061,7 +2061,7 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     _logger.debug("Tight mask - started")
     if threshold is None or threshold == 'A': 
         _logger.debug("Finding threshold")
-        threshold = analysis.otsu(img.ravel())
+        threshold = unary_classification.otsu(img.ravel())
     else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")

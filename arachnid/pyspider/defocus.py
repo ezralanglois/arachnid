@@ -147,7 +147,8 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import format, spider_params, spider_utility, format_utility
-from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility, analysis
+from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility
+from ..core.learn import unary_classification
 from ..core.parallel import mpi_utility
 from ..core.spider import spider, spider_file
 from ..core.util import plotting
@@ -598,7 +599,7 @@ def min_freq(roo):
     '''
     '''
     
-    cut = numpy.median(numpy.abs(roo)) + analysis.robust_sigma(numpy.abs(roo))*2
+    cut = numpy.median(numpy.abs(roo)) + unary_classification.robust_sigma(numpy.abs(roo))*2
     sel = numpy.abs(roo) < cut
     off = numpy.argwhere(sel).squeeze()[0]
     return off

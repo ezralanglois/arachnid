@@ -101,7 +101,7 @@ http://stackoverflow.com/questions/13101780/representing-a-simple-function-with-
 from ..core.app import program
 from ..core.metadata import spider_params, format_utility
 from ..core.parallel import mpi_utility
-from ..core.image import analysis
+from ..core.learn import unary_classification
 from ..core.spider import spider, spider_file
 import reconstruct, prepare_volume, align, refine
 import logging, numpy, os
@@ -376,7 +376,7 @@ def translation_range(alignvals, apix2, **extra):
     t = numpy.abs(alignvals[:, 12:14].ravel())/apix2
     mtrans = numpy.median(t)
     #strans = numpy.std(t)
-    strans = analysis.robust_sigma(t)
+    strans = unary_classification.robust_sigma(t)
     trans_range= int(mtrans+strans*4)
     if mpi_utility.is_root(**extra):
         _logger.info("Translation Range: %f -- Median: %f -- STD: %f"%(trans_range, mtrans, strans))
@@ -404,7 +404,7 @@ def angular_restriction(alignvals, theta_delta, **extra):
         _logger.warn("gdist has zero elements")
         return 0
     mang = numpy.median(gdist)
-    sang = analysis.robust_sigma(gdist)
+    sang = unary_classification.robust_sigma(gdist)
     if numpy.isnan(sang):
         _logger.warn("Nan for sang")
         return 0;

@@ -16,18 +16,18 @@ def mahalanobis_with_chi2(feat, prob_reject, ret_dist=False):
     estimate from a robust covariance as calculated by minimum covariance determinant.
     
     :Parameters:
-    
-    feat : array
-           2D array where each row is a feature and each column a factor
-    prob_reject : float
-                  Probability threshold for rejecting outliers
-    extra : dict
-            Unused keyword arguments
+        
+        feat : array
+               2D array where each row is a feature and each column a factor
+        prob_reject : float
+                      Probability threshold for rejecting outliers
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    sel : array
-          Boolean selection array for each feature
+        
+        sel : array
+              Boolean selection array for each feature
     '''
     
     feat -= numpy.median(feat, axis=0)#feat.mean(axis=0)#scipy.stats.mstats.mode(feat, 0)[0]
@@ -42,18 +42,18 @@ def robust_mahalanobis_with_chi2(feat, prob_reject, ret_dist=False):
     estimate from a robust covariance as calculated by minimum covariance determinant.
     
     :Parameters:
-    
-    feat : array
-           2D array where each row is a feature and each column a factor
-    prob_reject : float
-                  Probability threshold for rejecting outliers
-    extra : dict
-            Unused keyword arguments
+        
+        feat : array
+               2D array where each row is a feature and each column a factor
+        prob_reject : float
+                      Probability threshold for rejecting outliers
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    sel : array
-          Boolean selection array for each feature
+        
+        sel : array
+              Boolean selection array for each feature
     '''
     
     feat -= numpy.median(feat, axis=0)#feat.mean(axis=0)#scipy.stats.mstats.mode(feat, 0)[0]
@@ -69,49 +69,45 @@ def robust_euclidean(data, nsigma=2.67, mdata=None):
     
     :Parameters:
     
-    data : array
-           Sample vector for robust seleciton
-    nsigma : float
-             Number of standard deviation cutoff
-    mdata : array, optional
-            Array to calculate statistics over (alternative
-            to `data`.
+        data : array
+               Sample vector for robust seleciton
+        nsigma : float
+                 Number of standard deviation cutoff
+        mdata : array, optional
+                Array to calculate statistics over (alternative
+                to `data`.
     
     :Returns:
-    
-    sel : array
-          Boolean array of selected points
+        
+        sel : array
+              Boolean array of selected points
     '''
     
     if mdata is None: mdata=data
     cent = numpy.median(mdata, axis=0)#scipy.stats.mstats.mode(mdata, axis=0)[0]
     d = numpy.sqrt(numpy.sum(numpy.square(mdata-cent), axis=1))
-    m = scipy.stats.mstats.mode(d)[0]
-    s = robust_sigma(d)
-    
-    d = numpy.sqrt(numpy.sum(numpy.square(data-cent), axis=1))
-    print m, s, m+s*nsigma, nsigma, numpy.max(d[d < m+s*nsigma]), numpy.min(d[d < m+s*nsigma])
-    return d < m+s*nsigma
+    return robust_rejection(d, nsigma)
 
 def robust_rejection(data, nsigma=2.67, mdata=None):
     ''' Robust outlier rejection using the MAD score
     
     :Parameters:
-    
-    data : array
-           Sample vector for robust seleciton
-    nsigma : float
-             Number of standard deviation cutoff
-    mdata : array, optional
-            Array to calculate statistics over (alternative
-            to `data`.
+        
+        data : array
+               Sample vector for robust seleciton
+        nsigma : float
+                 Number of standard deviation cutoff
+        mdata : array, optional
+                Array to calculate statistics over (alternative
+                to `data`.
     
     :Returns:
-    
-    sel : array
-          Boolean array of selected points
+        
+        sel : array
+              Boolean array of selected points
     '''
     
+    #m = scipy.stats.mstats.mode(d)[0]
     if mdata is None: mdata=data
     m = numpy.median(mdata)
     s = robust_sigma(mdata)
@@ -145,20 +141,20 @@ def robust_sigma(in_y, zero=0):
    >>> result = robust_sigma(in_y, zero=1)
 
    :Parameters:
-   
-   in_y: array_like
-         Vector of quantity for which the dispersion is
-         to be calculated
-
-   zero: int
-          If set, the dispersion is calculated w.r.t. 0.0
-          rather than the central value of the vector. If
-          Y is a vector of residuals, this should be set.
+       
+       in_y: array_like
+             Vector of quantity for which the dispersion is
+             to be calculated
+    
+       zero: int
+              If set, the dispersion is calculated w.r.t. 0.0
+              rather than the central value of the vector. If
+              Y is a vector of residuals, this should be set.
 
    :Returns:
-   
-   out_val: float
-            Dispersion value. If failed, returns -1.
+       
+       out_val: float
+                Dispersion value. If failed, returns -1.
 
     """
     # Flatten array
@@ -214,22 +210,22 @@ def robust_sigma(in_y, zero=0):
 def otsu(data, bins=0):
     ''' Otsu's threshold selection algorithm
     
-    :Parameters:
-        
-    data : numpy.ndarray
-           Data to find threshold
-    bins : int
-           Number of bins [if 0, use sqrt(len(data))]
-    
-    :Returns:
-    
-    th : float
-         Optimal threshold to divide classes
-    
     .. note::
         
         Code originally from:
             https://svn.broadinstitute.org/CellProfiler/trunk/CellProfiler/cellprofiler/cpmath/otsu.py
+    
+    :Parameters:
+        
+        data : numpy.ndarray
+               Data to find threshold
+        bins : int
+               Number of bins [if 0, use sqrt(len(data))]
+    
+    :Returns:
+        
+        th : float
+             Optimal threshold to divide classes
     '''
         
     data = numpy.array(data).flatten()
@@ -263,18 +259,6 @@ def otsu(data, bins=0):
 def running_variance(x, axis=None):
     '''Given a vector x, compute the variance for x[0:i]
     
-    :Parameters:
-        
-    x : numpy.ndarray
-        Sorted data
-    axis : int, optional
-           Axis along which the running variance is computed
-    
-    :Returns:
-        
-    var : numpy.ndarray
-          Running variance
-    
     .. note::
         
         Code originally from:
@@ -283,6 +267,18 @@ def running_variance(x, axis=None):
         http://www.johndcook.com/standard_deviation.html
             S[i] = S[i-1]+(x[i]-mean[i-1])*(x[i]-mean[i])
             var(i) = S[i] / (i-1)
+    
+    :Parameters:
+        
+        x : numpy.ndarray
+            Sorted data
+        axis : int, optional
+               Axis along which the running variance is computed
+    
+    :Returns:
+            
+        var : numpy.ndarray
+              Running variance
     '''
     n = len(x)
     # The mean of x[0:i]
@@ -299,3 +295,98 @@ def running_variance(x, axis=None):
     # Prepend Inf so we have a variance for x[0]
     return numpy.hstack(([0],var))
 
+def one_class_classification_old(data, nstd_min=3, sel=None):
+    ''' Classify a set of data into one-class and outliers
+    
+    .. deprecated:: 0.1.4
+    
+    :Parameters:
+        
+    data : numpy.ndarray
+           Data to find center
+    nstd_min : int
+               Minimum number of standard deviations for outlier rejection
+
+    :Returns:
+    
+    dist : numpy.ndarray
+          Distance of each point in data from the center
+    '''
+    
+    dist = _one_class_distance(data, nstd_min, sel)
+    dsel = _one_class_selection(dist, 4, sel)
+    #th = otsu(dist, len(dist)/16)
+    #th = otsu(dist, numpy.sqrt(len(dist)))
+    #dsel = dist < th
+    return dsel
+
+def _one_class_distance(data, nstd_min=3, sel=None):
+    ''' Calculate the distance from the median center of the data
+    
+    :Parameters:
+        
+    data : numpy.ndarray
+           Data to find center
+    nstd_min : int
+               Minimum number of standard deviations for outlier rejection
+
+    :Returns:
+    
+    dist : numpy.ndarray
+          Distance of each point in data from the center
+    '''
+    
+    sel = _one_class_selection(data, nstd_min, sel)
+    axis = 0 if data.ndim == 2 else None
+    m = numpy.median(data[sel], axis=axis)
+    axis = 1 if data.ndim == 2 else None
+    assert(data.ndim==2)
+    dist = numpy.sqrt(numpy.sum(numpy.square(data-m), axis=axis)).squeeze()
+    assert(dist.ndim==1)
+    return dist
+
+def _one_class_selection(data, nstd_min=3, sel=None):
+    ''' Select a set of non-outlier projections
+    
+    This code starts at 10 (max) standard deviations from the median
+    and goes down to `nstd_min`, throwing out outliers and recalculating
+    the median and standard deviation.
+    
+    :Parameters:
+        
+    data : numpy.ndarray
+           Data to find non-outliers
+    nstd_min : int
+               Minimum number of standard deviations
+
+    :Returns:
+
+    selected : numpy.ndarray
+               Boolen array of selected data
+    '''
+    
+    assert(hasattr(data, 'ndim'))
+    axis = 0 if data.ndim == 2 else None
+    m = numpy.median(data, axis=axis)
+    s = numpy.std(data, axis=axis)
+    maxval = numpy.max(data, axis=axis)
+    minval = numpy.min(data, axis=axis)
+    
+    if sel is None: sel = numpy.ones(len(data), dtype=numpy.bool)    
+    start = int(min(10, max(numpy.max((maxval-m)/s),numpy.max((m-minval)/s))))
+    for nstd in xrange(start, nstd_min-1, -1):
+        m=numpy.median(data[sel], axis=axis)
+        s = numpy.std(data[sel], axis=axis)
+        hcut = m+s*nstd
+        lcut = m-s*nstd
+        
+        if data.ndim > 1:
+            tmp = data<hcut
+            assert(tmp.shape[1]==data.shape[1])
+            sel = numpy.logical_and(data[:, 0]<hcut[0], data[:, 0]>lcut[0])
+            for i in xrange(1, data.shape[1]):
+                sel = numpy.logical_and(sel, numpy.logical_and(data[:, i]<hcut[i], data[:, i]>lcut[i]))
+        else:
+            sel = numpy.logical_and(data<hcut, data>lcut)
+        assert(numpy.sum(sel)>0)
+    return sel

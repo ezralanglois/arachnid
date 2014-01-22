@@ -26,7 +26,8 @@ import sys
 #sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
 
 from arachnid.core.metadata import format_alignment, format #format, 
-from arachnid.core.image import ndimage_file,  ndimage_utility, analysis, manifold, ndimage_interpolate
+from arachnid.core.image import ndimage_file,  ndimage_utility, manifold, ndimage_interpolate
+from arachnid.core.learn import dimensionality_reduction
 import numpy, logging
 
 def image_transform(img, mask, bin_factor, align):
@@ -105,9 +106,9 @@ if __name__ == '__main__':
             label = label[index]
             good = good[index]
     elif 1 == 0:
-        eigv, feat = analysis.pca_fast(data, data, 5)[1:]
+        eigv, feat = dimensionality_reduction.pca_fast(data, data, 5)[1:]
     else:
-        eigv, feat = analysis.dhr_pca(data, data, 5, iter=5)
+        eigv, feat = dimensionality_reduction.dhr_pca(data, data, 5, iter=5)
     print eigv[:10]
     format.write_dataset(output_file, feat, None, label, good)
     

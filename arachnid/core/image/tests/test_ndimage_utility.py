@@ -5,7 +5,7 @@
 '''
 from .. import eman2_utility
 from .. import ndimage_utility
-from .. import analysis
+from ..ndimage_utility import unary_classification
 import numpy.testing
 import scipy.fftpack
 try: 
@@ -155,7 +155,7 @@ def test_biggest_object():
     obj = ndimage_utility.model_disk(rad, (width, width)).astype(numpy.float)
     mask = obj + numpy.random.rand(width,width)*0.2
     emmask = eman2_utility.numpy2em(mask)
-    threshold = analysis.otsu(mask.ravel())
+    threshold = unary_classification.otsu(mask.ravel())
     embin = binarize(emmask, threshold)
     m1 = eman2_utility.EMAN2.Util.get_biggest_cluster(embin)
     m2 = ndimage_utility.biggest_object(mask>threshold)
@@ -176,7 +176,7 @@ def test_tight_mask():
     obj = ndimage_utility.model_disk(rad, (width, width)).astype(numpy.float)
     mask = obj + numpy.random.rand(width,width)*0.2
     emmask = eman2_utility.numpy2em(mask)
-    threshold = analysis.otsu(mask.ravel())
+    threshold = unary_classification.otsu(mask.ravel())
     
     if 1 == 1:
         m1 = eman2_utility.EMAN2.Util.get_biggest_cluster(binarize(emmask, threshold))

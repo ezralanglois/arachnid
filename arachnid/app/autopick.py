@@ -139,7 +139,9 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.image import ndimage_utility, analysis, ndimage_filter
+from ..core.image import ndimage_utility, ndimage_filter
+from ..core.learn import dimensionality_reduction
+from ..core.learn import unary_classification
 from ..core.metadata import format_utility, format, spider_utility, spider_params
 from ..core.parallel import mpi_utility
 from ..core.util import drawing
@@ -228,7 +230,7 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     if not disable_prune:
         _logger.debug("Classify peaks")
         if experimental:
-            sel = classify_windows_new(img, peaks, **extra)
+            sel = classify_windows_experimental(img, peaks, **extra)
         else:
             sel = classify_windows(img, peaks, **extra)
         peaks = peaks[sel].copy()
@@ -360,6 +362,114 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     imgs=[]
     _logger.debug("Windowing %d particles"%len(scoords))
     for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
+        if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
+        #win=ndimage_filter.ramp(win)
+        imgs.append(win.copy())
+        
+        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
+        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, mask, False), mask)
+        
+        if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
+        datar[i, :] = ar
+        if vfeat is not None:
+            vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
+        amp=ndimage_utility.fftamp(win)*maskap
+        ndimage_utility.vst(amp, amp)
+        ndimage_utility.normalize_standard(amp, masksm, out=amp)
+        ndimage_utility.compress_image(amp, masksm, data[i])
+    
+    _logger.debug("Performing PCA")
+    feat, idx = dimensionality_reduction.pca(data, data, 1)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
+    dsel = unary_classification.one_class_classification_old(feat)
+    
+
+    feat, idx = dimensionality_reduction.pca(datar, datar, pca_mode)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
+    
+    dsel = numpy.logical_and(dsel, unary_classification.robust_euclidean(feat, real_space_nstd))
+    
+    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    if vfeat is not None:
+        sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
+        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
+    else: sel = dsel
+    if not disable_threshold:
+        for i in xrange(1, iter_threshold):
+            tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
+            dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
+            sel = numpy.logical_and(sel, numpy.logical_not(tsel))
+        tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
+        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
+        sel = numpy.logical_and(tsel, sel)
+        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
+        sel = numpy.logical_and(dsel, sel)    
+    
+    if remove_aggregates: classify_aggregates(scoords, window/2, sel)
+    #else: remove_overlap(scoords, radius, sel)
+    return sel
+
+def classify_windows_experimental(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
+    ''' Classify particle windows from non-particle windows
+    
+    Args:
+        
+        mic : array
+              Micrograph
+        scoords : list
+                  List of potential particle coordinates
+        dust_sigma : float
+                     Number of standard deviations for removal of outlier dark pixels
+        xray_sigma : float
+                     Number of standard deviations for removal of outlier light pixels
+        disable_threshold : bool
+                            Disable noise removal with threshold selection
+        remove_aggregates : bool
+                            Set True to remove aggregates
+        pca_mode : float
+                   Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
+        iter_threshold : int
+                         Number of times to repeat thresholding
+        real_space_nstd : float
+                          Number of standard deviations for real-space PCA rejection
+        window : int
+                 Size of the window in pixels
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        threshold_minimum : int
+                            Minimum number of consider success
+        extra : dict
+                Unused key word arguments
+        
+    Returns:
+
+        sel : numpy.ndarray
+              Bool array of selected good windows 
+    '''
+    
+    _logger.debug("Total particles: %d"%len(scoords))
+    radius = pixel_diameter/2
+    win_shape = (window, window)
+    dgmask = ndimage_utility.model_disk(radius/2, win_shape)
+    masksm = dgmask
+    maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
+    vfeat = numpy.zeros((len(scoords)))
+    data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
+    
+    mask = ndimage_utility.model_disk(int(radius*1.2+1), (window, window)) * (ndimage_utility.model_disk(int(radius*0.9), win_shape)*-1+1)
+    datar=None
+    
+    imgs=[]
+    _logger.debug("Windowing %d particles"%len(scoords))
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
         #if data is None:
         #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
@@ -385,33 +495,23 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
             data[i, :]=amp
     
     _logger.debug("Performing PCA")
-    feat, idx = analysis.pca(data, data, 1)[:2]
+    feat, idx = dimensionality_reduction.pca(data, data, 1)[:2]
     if feat.ndim != 2:
         _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
-    dsel = analysis.one_class_classification_old(feat)
+    dsel = unary_classification.one_class_classification_old(feat)
     
 
-    feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
+    feat, idx = dimensionality_reduction.pca(datar, datar, pca_mode)[:2]
     if feat.ndim != 2:
         _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
     
-    cent = numpy.median(feat, axis=0)
-    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    dsel = numpy.logical_and(dsel, analysis.robust_rejection(dist_cent, real_space_nstd))
-    '''
-    for i in xrange(feat.shape[1]):
-        if dsel is None:
-            dsel = analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5)
-        else:
-            dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
-    '''
-    #dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
+    dsel = numpy.logical_and(dsel, unary_classification.robust_euclidean(feat, real_space_nstd))
     
     _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
@@ -431,166 +531,6 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     
     if remove_aggregates: classify_aggregates(scoords, window/2, sel)
     #else: remove_overlap(scoords, radius, sel)
-    return sel
-
-def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
-    ''' Classify particle windows from non-particle windows
-    
-    Args:
-        
-    mic : array
-          Micrograph
-    scoords : list
-              List of potential particle coordinates
-    dust_sigma : float
-                 Number of standard deviations for removal of outlier dark pixels
-    xray_sigma : float
-                 Number of standard deviations for removal of outlier light pixels
-    disable_threshold : bool
-                        Disable noise removal with threshold selection
-    remove_aggregates : bool
-                        Set True to remove aggregates
-    pca_mode : float
-               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
-    iter_threshold : int
-                     Number of times to repeat thresholding
-    window : int
-             Size of the window in pixels
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    threshold_minimum : int
-                        Minimum number of consider success
-    extra : dict
-            Unused key word arguments
-    
-    Returns:
-        
-    sel : numpy.ndarray
-          Bool array of selected good windows 
-    '''
-    
-    _logger.debug("Total particles: %d"%len(scoords))
-    radius = pixel_diameter/2
-    win_shape = (window, window)
-    dgmask = ndimage_utility.model_disk(radius/2, win_shape)
-    masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
-    vfeat = numpy.zeros((len(scoords)))
-    data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    
-    mask = ndimage_utility.model_disk(int(radius*1.2+1), win_shape) * (ndimage_utility.model_disk(int(radius*0.9), win_shape)*-1+1)
-    datar=None
-    
-    imgs=[]
-    _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
-        if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        win=ndimage_filter.ramp(win)
-        imgs.append(win.copy())
-        
-        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), mask)
-        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, mask, False), mask)
-        
-        if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
-        datar[i, :] = ar
-        if vfeat is not None:
-            vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
-        #amp = ndimage_utility.fourier_mellin(win)*maskap
-        amp=ndimage_utility.fftamp(win)*maskap
-        #amp = ndimage_utility.powerspec1d(win)
-        ndimage_utility.vst(amp, amp)
-        ndimage_utility.normalize_standard(amp, masksm, out=amp)
-        if 1 == 1:
-            ndimage_utility.compress_image(amp, masksm, data[i])
-        else:
-            data[i, :]=amp
-    
-    if experimental2:
-        data -= data.mean(0)
-        #eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
-        feat = analysis.pca_fast(data, data, 2)[-1]
-        dsel = outlier_rejection(feat[:, :2], 0.9)
-    else:
-        _logger.debug("Performing PCA")
-        feat, idx = analysis.pca(data, data, 1)[:2]
-        if feat.ndim != 2:
-            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-        assert(idx > 0)
-        assert(feat.shape[0]>1)
-        _logger.debug("Eigen: %d"%idx)
-        dsel = analysis.one_class_classification_old(feat)
-    
-    if experimental2:
-        datar -= datar.mean(0)
-        feat = analysis.pca_fast(datar, datar, 2)[-1]
-        #eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
-        dsel = numpy.logical_and(dsel, outlier_rejection(feat[:, :2], 0.9))
-    else:
-        feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
-        if feat.ndim != 2:
-            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-        assert(idx > 0)
-        assert(feat.shape[0]>1)
-        _logger.debug("Eigen: %d"%idx)
-        
-        cent = numpy.median(feat, axis=0)
-        dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-        dsel = numpy.logical_and(dsel, analysis.robust_rejection(dist_cent, real_space_nstd))
-    '''
-    for i in xrange(feat.shape[1]):
-        if dsel is None:
-            dsel = analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5)
-        else:
-            dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
-    '''
-    dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-    
-    #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
-    if vfeat is not None:
-        sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
-    else: sel = dsel
-    if not disable_threshold:
-        for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
-            dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
-            sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
-        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
-        sel = numpy.logical_and(tsel, sel)
-        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
-        sel = numpy.logical_and(dsel, sel)
-    
-    if experimental2 and 1 == 0: # New untested contaminant removal algorithm - looks at pixel correlation
-        out = numpy.zeros(numpy.sum(sel))
-        j=0
-        for i in numpy.argwhere(sel).squeeze():
-            img = imgs[i]
-            if 1 == 0:
-                if 1 == 0:
-                    d, V = scipy.linalg.svd(img, False)[1:]
-                else:
-                    rimg=ndimage_utility.rolling_window(img, (10,10), (5,5))
-                    rimg = rimg.reshape((rimg.shape[0]*rimg.shape[1], rimg.shape[2]*rimg.shape[3]))
-                    d, V = scipy.linalg.svd(rimg, False)[1:]
-                
-                val = d[:2]*numpy.dot(V[:2], rimg.T).T
-                out[j] = numpy.max(scipy.stats.normaltest(val)[0]) #normaltest
-            else:
-                #img=ndimage_utility.compress_image(img, mask)
-                out[j] = numpy.max(scipy.stats.normaltest(img)[0]) #normaltest
-            j += 1
-        th = analysis.otsu(out, int(numpy.sqrt(numpy.sum(sel))))
-        tsel = out > th
-        bsel = out < th
-        if numpy.sum(tsel) < numpy.sum(bsel): tsel = bsel
-        sel[numpy.argwhere(sel).squeeze()]=tsel
-        #sel = numpy.logical_and(sel, tsel)
-        
-    
-    if remove_aggregates: classify_aggregates(scoords,  window/2, sel)
-    else: remove_overlap(scoords, radius, sel)
     return sel
 
 def outlier_rejection(feat, prob):
@@ -636,7 +576,7 @@ def classify_noise(scoords, dsel, sel=None, threshold_minimum=25):
     i=0
     while bcnt < threshold_minimum and i < 10:
         if tsel is not None: dsel = numpy.logical_and(numpy.logical_not(tsel), dsel)
-        th = analysis.otsu(scoords[dsel, 0], numpy.sum(dsel)/16)
+        th = unary_classification.otsu(scoords[dsel, 0], numpy.sum(dsel)/16)
         tsel = scoords[:, 0] > th
         bcnt = numpy.sum(numpy.logical_and(dsel, numpy.logical_and(tsel, sel)))
         i+=1
@@ -794,7 +734,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   iter_threshold=1,            help="Number of times to iterate thresholding")
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
-    group.add_option("",   experimental2=False,         help="Use the latest experimental features, 2nd generation!")
     group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
     group.add_option("",   threshold_minimum=25,        help="Minimum number of particles for threshold selection")

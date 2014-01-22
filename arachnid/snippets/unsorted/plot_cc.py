@@ -20,7 +20,7 @@ To run:
    :linenos:
 '''
 from arachnid.core.metadata import format
-from arachnid.core.image import analysis
+from arachnid.core.learn import unary_classification
 from arachnid.core.orient import healpix
 import numpy
 import pylab, os
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     
     output_files.append(os.path.join(output_path, "ccrot_histogram.png"))
     ax = pylab.figure(0)
-    th = analysis.otsu(align[:, cc_rot], numpy.sqrt(align.shape[0]))
+    th = unary_classification.otsu(align[:, cc_rot], numpy.sqrt(align.shape[0]))
     n = ax.hist(align[:, cc_rot], bins=numpy.sqrt(align.shape[0]))[0]
     max_val = sorted(n)[-1]
     ax.plot((th, th), (0, max_val))

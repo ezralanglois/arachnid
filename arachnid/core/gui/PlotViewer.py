@@ -32,7 +32,12 @@ import property
 from pyui.PlotViewer import Ui_MainWindow
 #from util import qimage_utility
 from ..metadata import format #, spider_utility #, format
-from ..image import ndimage_utility, ndimage_file, analysis, rotate, ndimage_interpolate, ndimage_filter
+from ..image import ndimage_utility
+from ..image import ndimage_file
+from ..image import rotate
+from ..image import ndimage_interpolate
+from ..image import ndimage_filter
+from ..util import plotting
 import os, itertools, numpy #, glob
 #import property
 
@@ -844,7 +849,7 @@ def nonoverlapping_subset(ax, xy, radius, n):
         if x.ndim == 1: x=x.reshape((x.shape[0], 1))
         if y.ndim == 1: y=y.reshape((y.shape[0], 1))
         xy = numpy.hstack((x, y))
-    return analysis.subset_no_overlap(ax.transData.transform(xy), numpy.hypot(radius, radius)*2, n)
+    return plotting.subset_no_overlap(ax.transData.transform(xy), numpy.hypot(radius, radius)*2, n)
 
 
 
