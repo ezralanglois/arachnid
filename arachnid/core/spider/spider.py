@@ -3383,9 +3383,14 @@ def copy(session, inputfile, selection, outputfile):
                      Output filename to include
     '''
     
-    session.de(outputfile)
-    for inputfile, outputfile in enumerate_stack(inputfile, selection, outputfile):
-        session.cp(inputfile, outputfile=outputfile)
+    if 1 == 1:
+        from arachnid.core.image import ndimage_file
+        for inputfile, outputfile in enumerate_stack(inputfile, selection, outputfile):
+            ndimage_file.write_image(session.replace_ext(outputfile[0]), ndimage_file.read_image(session.replace_ext(inputfile[0]), inputfile[1]-1), outputfile[1]-1)
+    else:
+        session.de(outputfile)
+        for inputfile, outputfile in enumerate_stack(inputfile, selection, outputfile):
+            session.cp(inputfile, outputfile=outputfile)
 
 def angle_count(theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0, phi_end=359.9, **extra):
     '''Count number of angles returned by vo ea.
