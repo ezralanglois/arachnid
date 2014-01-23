@@ -15,6 +15,46 @@ def phaseflip(img, i, param, **extra):
     img = ctf_correct.correct(img, ctfimg)
     return img
 
+def align2d_i(img, i, param, **extra):
+    ''' Align images in 2D
+    
+    :Parameters:
+    
+    img : array
+          2D array of image data
+    param : array
+            Alignment parameters
+    extra : dict
+            Unused keyword arguements
+    
+    :Returns:
+    
+    img : array
+          Aligned and CTF-corrected image
+    '''
+    
+    return rotate.rotate_image(img, param[i, 3], param[i, 4], param[i, 5])
+
+def phaseflip_align2d_i(img, i, param, **extra):
+    ''' CTF-correct and align images in 2D
+    
+    :Parameters:
+    
+    img : array
+          2D array of image data
+    param : array
+            Alignment parameters
+    extra : dict
+            Unused keyword arguements
+    
+    :Returns:
+    
+    img : array
+          Aligned and CTF-corrected image
+    '''
+    
+    return phaseflip_align2d(img, param[i], **extra)
+
 def phaseflip_align2d(img, param, **extra):
     ''' CTF-correct and align images in 2D
     
