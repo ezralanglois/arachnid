@@ -223,7 +223,10 @@ def read_spider_header(filename, index=None):
             i_len = int(h['nx']) * int(h['ny']) * int(h['nz']) * 4
             count = max(int(h['istack']), 1)
             if index >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(index, count)
-            offset = index * (h_len+i_len)
+            #offset = index * (h_len+i_len)
+            
+            offset = h_len + index * (h_len+i_len) if int(h['istack']) > 0 else 0
+            
             try:
                 f.seek(offset)
             except:
@@ -462,6 +465,7 @@ def write_image(filename, img, index=None, header=None, inplace=False):
             header['labbyt'] = int(header['labrec'] ) * int(header['lenbyt'])
             imgsize = img.ravel().shape[0]*4
             headsize = int(header['labbyt'])
+            header['irec'] = header['labrec']+header['nx']
             
             # 
             #header['irec']
@@ -495,6 +499,7 @@ def write_image(filename, img, index=None, header=None, inplace=False):
                 fheader.tofile(f)
                 fheader[_header_map['istack']-1] = 0
                 f.seek(index * (imgsize + headsize)+headsize)
+                fheader[_header_map['maxim']-1] = 0
             fheader.tofile(f)
         img.tofile(f)
     finally:
