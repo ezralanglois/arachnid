@@ -1,4 +1,6 @@
-''' Reconstruct 3D density map from a set of windowed projection images
+''' Reconstruct a 3D volume from a set of windowed projection images
+
+
 
 .. Created on Feb 28, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -9,7 +11,7 @@ from ..core.image import preprocess_utility
 from ..core.metadata import format_alignment
 from ..core.metadata import spider_params
 from ..core.metadata import format_utility
-from arachnid.core.image import reconstruct
+from ..core.image import reconstruct
 from ..core.parallel import mpi_utility
 import numpy
 import logging
@@ -17,27 +19,34 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, image_file, output, rand_subset=0, **extra):#, neig=1, nstd=1.5
+def batch(files, image_file, output, rand_subset=0, experimental=False, experimental_2d=False, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
-    :Parameters:
+    :Args
     
-    input_vals : list 
-                 Tuple(view id, image labels and alignment parameters)
-    output : str
-             Filename for output file
-    extra : dict
-            Unused key word arguments
+        input_vals : list 
+                     Tuple(view id, image labels and alignment parameters)
+        output : str
+                 Filename for output file
+        extra : dict
+                Unused key word arguments
                 
-    :Returns:
+    Returns:
     
-    filename : str
-               Current filename
+        filename : str
+                   Current filename
     '''
     
+    if experimental: _logger.info("Experimental shared memory: enabled")
+    if image_file: _logger.info("Using image file: %s"%image_file)
+    if rand_subset: _logger.info("Drawing random subset: %d"%rand_subset)
+    if extra['scale_spi']: _logger.info("Scaling translations for pySPIDER")
+    if extra['thread_count']: _logger.info("Using %d threads"%extra['thread_count'])
+    
     align, image_size = None, None
+    ctf_param=None
     if mpi_utility.is_root(**extra): 
-        files, align, ctf_param = format_alignment.read_alignment(files[0], image_file, use_3d=True, ctf_params=True, **extra)
+        files, align, ctf_param = format_alignment.read_alignment(files[0], image_file, use_3d=not experimental_2d, ctf_params=True, **extra)
         filename = files[0] if isinstance(files, tuple) else files[0][0]
         image_size = ndimage_file.read_image(filename).shape[0]
         _logger.info("Reconstructing %d projections"%len(align))
@@ -75,11 +84,14 @@ def batch(files, image_file, output, rand_subset=0, **extra):#, neig=1, nstd=1.5
     align_curr = align[curr_slice].copy()
     align1 = align_curr[even]
     align2 = align_curr[odd]
-    vol = reconstruct.reconstruct3_bp3f_mp(image_size, iter_single_images1, iter_single_images2, align1, align2, process_image=preprocess_utility.phaseflip_shift, **extra)
+    if experimental_2d:
+        vol = reconstruct.reconstruct3_bp3f_mp(image_size, iter_single_images1, iter_single_images2, align1, align2, process_image=preprocess_utility.phaseflip_align2d, shared=experimental, **extra)
+    else:
+        vol = reconstruct.reconstruct3_bp3f_mp(image_size, iter_single_images1, iter_single_images2, align1, align2, process_image=preprocess_utility.phaseflip_shift, shared=experimental, **extra)
     if vol is not None: 
-        ndimage_file.write_image(output, vol[0])
-        ndimage_file.write_image(format_utility.add_prefix(output, 'h1_'), vol[1])
-        ndimage_file.write_image(format_utility.add_prefix(output, 'h2_'), vol[2])
+        ndimage_file.write_image(output, vol[0].T.copy())
+        ndimage_file.write_image(format_utility.add_prefix(output, 'h1_'), vol[1].T.copy())
+        ndimage_file.write_image(format_utility.add_prefix(output, 'h2_'), vol[2].T.copy())
     _logger.info("Complete")
 
 def setup_options(parser, pgroup=None, main_option=False):
@@ -91,6 +103,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",     apix=0.0,                  help="Pixel size for the data")
     group.add_option("-t",   thread_count=1,            help="Number of processes per machine", gui=dict(minimum=0), dependent=False)
     group.add_option("-r",   rand_subset=0,             help="Reconstruct a random subset of the given size", gui=dict(minimum=0), dependent=False)
+    group.add_option("",     experimental=False,        help="Test experimental shared memory")
+    group.add_option("",     experimental_2d=False,     help="Test 2d representation of alignment")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of alignment files, e.g. data.star", required_file=True, gui=dict(filetype="open"))
@@ -124,8 +138,8 @@ def main():
                       ''',
         use_version = True,
         supports_OMP=False,
+        supports_MPI=True,
     )
 
-def dependents(): return []
 if __name__ == "__main__": main()
 
