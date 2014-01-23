@@ -132,6 +132,7 @@ This is not a complete list of options available to this script, for additional 
 
 from ..core.app import program
 from ..core.image import ndimage_file, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
+from ..core.image import preprocess_utility
 from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
 from ..core.metadata import relion_utility
 from ..core.parallel import mpi_utility, openmp
@@ -433,12 +434,10 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
     '''
     
     if not disable_rtsq: 
-        '''
         if scale_spi:
             img = rotate.rotate_image(img, align[i, 3], align[i, 4]/apix, align[i, 5]/apix)
         else:
-        '''
-        img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
+            img = rotate.rotate_image(img, align[i, 3], align[i, 4], align[i, 5])
     elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
@@ -497,7 +496,7 @@ def group_by_reference(label, align, ref):
             group.append((r, [label[i] for i in numpy.argwhere(sel).squeeze()], align[sel]))
     return group
 
-def read_alignment(files, alignment="", disable_mirror=False, order=0, random_view=0, **extra):
+def read_alignment(files, alignment="", disable_mirror=False, order=0, random_view=0, diagnostic="", **extra):
     ''' Read alignment parameters
     
     :Parameters:
@@ -527,7 +526,22 @@ def read_alignment(files, alignment="", disable_mirror=False, order=0, random_vi
 
     files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8)
     align[:, 7]=align[:, 6]
+    
     if order > 0: spider_transforms.coarse_angles(order, align, half=not disable_mirror, out=align)
+    print 'after', len(numpy.unique(align[:, 6]))
+    
+    if diagnostic != "":
+        extra['thread_count']=extra['worker_count']
+        avg = ndimage_processor.image_array_from_file(files, preprocess_utility.align2d_i, param=align, **extra)
+        ref = align[:, 6].astype(numpy.int)
+        view = numpy.unique(ref)
+        avgs = []
+        for i, v in enumerate(view):
+            if numpy.sum(v==ref)==0: continue
+            avgs.append(avg[v==ref].mean(axis=0))
+        ndimage_file.write_stack(diagnostic, avgs)
+    
+    
     if random_view>0:
         ref = numpy.random.randint(0, random_view, len(align))
     else:
@@ -668,6 +682,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", random_view=0,             help="Set number of views to assign randomly, 0 means skip this")
     group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
     group.add_option("", niter=5,                   help="Number of iterations for cleaning")
+    group.add_option("", diagnostic="",             help="Diagnosic view averages", gui=dict(filetype="save"))
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input particle stacks, e.g. cluster/win/win_*.dat ", required_file=True, gui=dict(filetype="open"))
