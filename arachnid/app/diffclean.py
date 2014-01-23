@@ -176,8 +176,8 @@ def process(input_vals, output, cache_file, scale, scale_range, **extra):#, neig
         data = ndimage_processor.create_matrix_from_file(label, image_transform, align=align, mask=mask, dtype=numpy.float32, **extra)
         ndimage_processor.write_matrix_to_cache(cache_file, data)
     
-    #data -= data.min()
-    #data /= data.max()
+    data -= data.min()
+    data /= data.max()
     _logger.info("Data: %d,%d"%data.shape)
     openmp.set_thread_count(extra['thread_count'])
     assert(data.shape[0] == align.shape[0])
@@ -547,10 +547,12 @@ def image_transform(img, i, mask, apix, var_one=True, align=None, disable_rtsq=F
     '''
     
     if not disable_rtsq: #psi,theta,phi,inplane,tx,ty,defocus
+        '''
         if scale_spi:
             img = ndimage_utility.fourier_shift(img, align[i, 4]/apix, align[i, 5]/apix).copy()
         else:
-            img = ndimage_utility.fourier_shift(img, align[i, 4], align[i, 5]).copy()
+        '''
+        img = ndimage_utility.fourier_shift(img, align[i, 4], align[i, 5]).copy()
     #elif align[i, 0] != 0: img = rotate.rotate_image(img, -align[i, 0])
     if align[i, 1] > 179.999: img = ndimage_utility.mirror(img)
     ndimage_utility.vst(img, img)
