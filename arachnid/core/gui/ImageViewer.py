@@ -668,9 +668,10 @@ def iter_images(files, index, template=None, average=False):
                 try:
                     img = ndimage_file.read_image(filename, i) 
                 except:
-                    ndimage_file._default_write_format.read_image(filename)
-                    print f, i, len(files), files[f], template, filename
-                    raise
+                    _logger.exception("Error while reading!")
+                    img = ndimage_file.read_image(filename)
+                    #print f, i, len(files), files[f], template, filename
+                    #raise
                 try:img=ndimage_utility.normalize_min_max(img)
                 except: pass
                 yield (filename, i), img
