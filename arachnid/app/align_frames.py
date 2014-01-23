@@ -724,6 +724,12 @@ def supports(files, **extra):
         return True
     return False
 
+def change_option_defaults(parser):
+    ''' Change the values to options specific to the script
+    '''
+    
+    parser.change_default(bin_factor=2)
+
 def check_options(options, main_option=False):
     #Check if the option values are valid
     
