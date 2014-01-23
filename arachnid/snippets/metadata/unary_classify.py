@@ -30,7 +30,7 @@ if __name__ == '__main__':
     c_2 = header.index('c_2')
     data2 = data[:, (c_1, c_2)]
     
-    if 1 == 1:
+    if 1 == 0:
         from sklearn.cluster import MeanShift, estimate_bandwidth
         bandwidth = estimate_bandwidth(data2, quantile=0.01, n_samples=500)
         ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
@@ -61,15 +61,15 @@ if __name__ == '__main__':
     
     
     #sel = unary_classification.mahalanobis_with_chi2(data2, 0.1)
-    sel = unary_classification.robust_euclidean(data2, 0.001)
+    sel = unary_classification.robust_euclidean(data2, 0.97)
     print numpy.sum(sel)
     #sel2 = unary_classification.mahalanobis_with_chi2(data2[sel], 0.4)
     #sel[sel][numpy.logical_not(sel2)]=0
     #print numpy.sum(sel)
     index = numpy.argwhere(sel).ravel()+1
     non_index = numpy.argwhere(numpy.logical_not(sel)).ravel()+1
-    if 1 == 0:
-        format.write(output, numpy.hstack((index[:, numpy.newaxis], numpy.ones(len(index))[:, numpy.newaxis])), header=['id', 'select'])
+    if 1 == 1:
+        format.write(output, numpy.hstack((index[:, numpy.newaxis], numpy.ones(len(index))[:, numpy.newaxis])), header=['id', 'select'], prefix='sel_')
         format.write(output, numpy.hstack((non_index[:, numpy.newaxis], numpy.ones(len(non_index))[:, numpy.newaxis])), header=['id', 'select'], prefix="non_")
     else:
         data2 = numpy.zeros((data.shape[0], data.shape[1]+1))
