@@ -7,7 +7,7 @@ from ..core.util.matplotlib_nogui import pylab
 from ..core.app import program
 #from ..core.util import plotting
 from ..core.metadata import spider_utility, spider_params, format_utility, format #, format_utility
-from ..core.image import ndimage_file, ndimage_utility, align, rotate, ndimage_interpolate, ndimage_filter #, ctf #, analysis
+from ..core.image import ndimage_file, ndimage_utility, rotate, ndimage_interpolate, ndimage_filter #, ctf #, analysis
 from ..core.image.formats import mrc as mrc_file
 from ..core.parallel import mpi_utility
 import numpy, logging, scipy, scipy.stats #, os, scipy
@@ -254,9 +254,6 @@ def align_win(img, ref, id, cc_output, quality_test, apix, resolution, pixel_dia
                 p = snr(ref1.ravel(), simg.ravel())
                 if p > best[0]: best=(p, x, y)
         x, y = best[1:]
-    elif 1 == 0:
-        y, x, z = align.align_translation(img1, ref1, (10, 10))[:3]
-        assert(z==0)
     else:
         cc_map = ndimage_utility.cross_correlate(img1, ref1, False)
         x, y = select_peak(cc_map)
