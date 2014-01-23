@@ -68,7 +68,7 @@ import logging, os, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output="", all=False, stat=False, force=False, **extra):
+def batch(files, output="", all=False, stat=False, force=False, offset=0, **extra):
     ''' Retrieve information from the header of an image
     
     :Parameters:
@@ -89,7 +89,9 @@ def batch(files, output="", all=False, stat=False, force=False, **extra):
         if force and ndimage_file.eman_format.is_avaliable() and ndimage_file.eman_format.is_readable(filename):
             header = ndimage_file.eman_format.read_header(filename)
         else:
-            header = ndimage_file.read_header(filename)
+            if offset == 0: offset=None
+            else: offset -= 1
+            header = ndimage_file.read_header(filename, offset)
         header['name'] = os.path.basename(filename)
         if all:
             #count = ndimage_file.count_images(filename)
@@ -127,6 +129,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Image information", "Retrieve information from the header of an image",  id=__name__)
     group.add_option("-a", all=False,                     help="Show all the information contained in the header. Note the output format changes.")
     group.add_option("-s", stat=False,                    help="Calculate and displays simple statistics for each image, which include: mean, standard deviation, max, min and number of unique values.")
+    group.add_option("-n", offset=0,                      help="Read header of given index in stack - 0 mean global header")
     if ndimage_file.eman_format.is_avaliable():
         group.add_option("-f", force=False,               help="Use EMAN2/Sparx formats (if available) instead of internal image formats: SPIDER and MRC")
     pgroup.add_option_group(group)
