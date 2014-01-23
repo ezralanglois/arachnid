@@ -3391,6 +3391,7 @@ def copy(session, inputfile, selection, outputfile):
         session.de(outputfile)
         for inputfile, outputfile in enumerate_stack(inputfile, selection, outputfile):
             session.cp(inputfile, outputfile=outputfile)
+        session.flush()
 
 def angle_count(theta_delta=15.0, theta_start=0.0, theta_end=90.0, phi_start=0.0, phi_end=359.9, **extra):
     '''Count number of angles returned by vo ea.
