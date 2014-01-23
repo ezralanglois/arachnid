@@ -141,8 +141,9 @@ class Session(object):
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=self.spider_err.fileno()) #stdout=subprocess.PIPE
         else:
             #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-            self.devnull = open(os.devnull, 'w')
-            self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=self.devnull)
+            
+            #self.devnull = open(os.devnull, 'w')
+            self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)#, stdout=self.devnull)
             self.spider_err = self.spider.stderr
         self.spider_proc = len(Session.PROCESSES)
         Session.PROCESSES.append(self.spider)
@@ -150,13 +151,18 @@ class Session(object):
         self.spider_poll.register(self.spider_err.fileno())
         self._invoke(self.dataext)
         if enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
-            if 1 == 1:
+            if 1 == 0:
                 self._invoke('MD', 'TERM OFF')
                 self._invoke('MD', 'RESULTS ON')
             else:
-                self._invoke('MD', 'RESULTS ON')
-                self._invoke('MD', 'TERM ON') 
-                
+                if rank == 0:
+                    _logger.critical('Results enabled')
+                    self._invoke('MD', 'RESULTS ON')
+                    self._invoke('MD', 'TERM ON') 
+                else:
+                    self._invoke('MD', 'RESULTS OFF')
+                    self._invoke('MD', 'TERM OFF') 
+                    
             if rank == 0: _logger.warn("Result enabled")
         else: 
             self._invoke('MD', 'RESULTS OFF')
