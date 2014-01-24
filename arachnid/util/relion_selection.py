@@ -570,9 +570,11 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
                 newfile = None
                 for f in stack_files:
                     f = relion_utility.relion_identifier(f, vals[name_col])
-                    if not os.path.exists(f): continue
+                    #print vals[name_col], '->', relion_utility.relion_file(f, True), '==', os.path.exists(relion_utility.relion_file(f, True))
+                    if not os.path.exists(relion_utility.relion_file(f, True)): continue
                     newfile=f
                     break
+                if newfile is None: raise ValueError, "Cannot find %s"%str(vals[name_col])
                 vals[name_col] = newfile
             else:
                 vals[name_col] = relion_utility.relion_identifier(stack_file, vals[name_col])
@@ -902,7 +904,7 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
             groupmap = regroup(build_group(subset), **extra)
             update_parameters(subset, list(subset[0]._fields), groupmap, **extra)
             
-            subset=downsample_images(subset, **extra)
+            subset=downsample_images(subset, param_file=param_file, **extra)
             
             if restart:
                 format.write(output, subset, header="rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(','))
