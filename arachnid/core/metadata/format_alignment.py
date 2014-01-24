@@ -87,14 +87,21 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
     if 'format' in extra: del extra['format']
     if 'numeric' not in extra: extra['numeric']=True
     supports_spider_id="" if not force_list else None
-    if is_relion_star(filename):
-        align = format.read(filename, **extra)
+    if isinstance(filename, list) and len(filename) > 0 and hasattr(filename[0], 'rlnImageName') or is_relion_star(filename):
+        if isinstance(filename, list) and len(filename) > 0 and hasattr(filename[0], 'rlnImageName'):
+            align=filename
+        else:
+            align = format.read(filename, **extra)
         param = numpy.zeros((len(align), align_cols))
         files = []
         if use_3d:
             _logger.info("Standard Relion alignment file - leave 3D")
             for i in xrange(len(align)):
-                files.append(relion_utility.relion_file(align[i].rlnImageName))
+                filename, index = relion_utility.relion_file(align[i].rlnImageName)
+                if image_file != "":
+                    filename = spider_utility.spider_filename(image_file, filename)
+                    
+                files.append((filename, index))
                 if supports_spider_id is not None and spider_utility.is_spider_filename(files[-1][0]):
                     if supports_spider_id == "":
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
@@ -110,7 +117,10 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
         else:
             _logger.info("Standard Relion alignment file - convert to 2D")
             for i in xrange(len(align)):
-                files.append(relion_utility.relion_file(align[i].rlnImageName))
+                filename, index = relion_utility.relion_file(align[i].rlnImageName)
+                if image_file != "":
+                    filename = spider_utility.spider_filename(image_file, filename)
+                files.append((filename, index))
                 if supports_spider_id is not None and spider_utility.is_spider_filename(files[-1][0]): 
                     if supports_spider_id == "":
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
