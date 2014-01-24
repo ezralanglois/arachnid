@@ -155,7 +155,7 @@ import logging, os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, id_len=0, **extra):
+def process(filename, disk_mult_range, id_len=0, **extra):
     '''Concatenate files and write to a single output file
         
     Args:
@@ -184,7 +184,10 @@ def process(filename, id_len=0, **extra):
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
     try:
-        peaks = search(mic, **extra)
+        if len(disk_mult_range) > 0:
+            peaks = search_range(mic, disk_mult_range, **extra)
+        else:
+            peaks = search(mic, **extra)
     except numpy.linalg.LinAlgError:
         _logger.info("Skipping: %s"%filename)
         return filename, []
@@ -237,6 +240,32 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     peaks[:, 1:3] *= extra['bin_factor']
     return peaks[::-1]
 
+def search_range(img, disk_mult_range, **extra):
+    ''' Search a micrograph for particles using a template
+    
+    Args:
+        
+        img : array
+              Micrograph image
+        disk_mult_range : list
+                          List of disk multipliers
+        extra : dict
+                Unused key word arguments
+    
+    Returns:
+            
+        peaks : array
+                List of peaks: height and coordinates
+    '''
+    
+    coords_last = None
+    for disk_mult in disk_mult_range:
+        coords = search(img, **extra)
+        coords_last[:, 1:3] /= extra['bin_factor']
+        coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
+    coords_last[:, 1:3] *= extra['bin_factor']
+    return coords_last
+
 def template_match(img, template_image, pixel_diameter, **extra):
     ''' Find peaks using given template in the micrograph
     
@@ -265,6 +294,24 @@ def template_match(img, template_image, pixel_diameter, **extra):
     peaks = lfcpick.search_peaks(cc_map, pixel_diameter, **extra)
     if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
     return peaks
+
+def merge_coords(coords1, coords2, pixel_diameter, **extra):
+    '''
+    '''
+    
+    pixel_radius = pixel_diameter/2
+    pixel_radius = pixel_radius*pixel_radius
+    selected = []
+    for i, f in enumerate(coords2):
+        dist = f[1:3]-coords1[:, 1:3]
+        numpy.square(dist, dist)
+        dist = numpy.sum(dist, axis=1)
+        if not (dist.min() < pixel_radius):
+            selected.append(i)
+    coords3 = numpy.zeros((coords1.shape[0]+len(selected), coords1.shape[1]))
+    coords3[:coords1.shape[0]]=coords1
+    coords3[coords1.shape[0]:]=coords2[selected]
+    return coords3
 
 def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
     ''' Remove peaks where the window goes outside the boundary of the 
@@ -737,6 +784,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
     group.add_option("",   threshold_minimum=25,        help="Minimum number of particles for threshold selection")
+    group.add_option("",   disk_mult_range=[],          help="Experimental parameter to search range of template sizes")
+    
     
     pgroup.add_option_group(group)
     if main_option:
@@ -767,6 +816,9 @@ def check_options(options, main_option=False):
     if len(options.boundary) > 0:
         try: options.boundary = [int(v) for v in options.boundary]
         except: raise OptionValueError, "Unable to convert boundary margin to list of integers"
+    if len(options.disk_mult_range) > 0:
+        try: options.disk_mult_range = [float(v) for v in options.disk_mult_range]
+        except: raise OptionValueError, "Unable to convert --disk-mult-range to list of floats"
 
 def flags():
     ''' Get flags the define the supported features
