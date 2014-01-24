@@ -124,7 +124,8 @@ class MainWindow(QtGui.QMainWindow):
                dict(mark_image=False, help="Cross out selected images"),
                dict(downsample_type=('ft', 'bilinear', 'fs', 'sblack'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
                dict(invert=False, help="Perform contrast inversion"),
-               dict(coords="", help="Path to coordinate file", gui=dict(filetype='open')),
+               dict(coords="",      help="Path to coordinate file", gui=dict(filetype='open')),
+               dict(good_file="", help="Highlight selected coordinates in red - unselected in blue", gui=dict(filetype='open')),
                dict(show_coords=False, help="Hide the loaded coordinates"),
                dict(second_image="", help="Path to a tooltip image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
                dict(alternate_image="", help="Path to a alternate image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
@@ -502,10 +503,18 @@ class MainWindow(QtGui.QMainWindow):
         coords = self.advanced_settings.coords
         if not os.path.exists(coords) and hasattr(self.advanced_settings, 'path_prefix'):
             coords = os.path.join(self.advanced_settings.path_prefix, coords)
+        good_file = self.advanced_settings.good_file
+        if good_file != "" and not os.path.exists(good_file) and hasattr(self.advanced_settings, 'path_prefix'):
+            good_file = os.path.join(self.advanced_settings.path_prefix, good_file)
         
         coords=format.read(coords, spiderid=fileid, numeric=True)
+        select=format.read(good_file, spiderid=fileid, ndarray=True)[0].astype(numpy.int) if good_file != "" else None
         bin_factor=self.advanced_settings.bin_window
-        return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor)
+        if select is not None:
+            img = drawing.draw_particle_boxes(img, coords, self.advanced_settings.window/bin_factor, bin_factor, outline="blue")
+            return drawing.draw_particle_boxes_to_array(img, [coords[i-1] for i in select[:, 0]], self.advanced_settings.window/bin_factor, bin_factor)
+        else:
+            return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor)
     
     def openImageFiles(self, files):
         ''' Open a collection of image files, sort by content type
