@@ -28,6 +28,8 @@ if __name__ == '__main__':
     # Parameters
     alignment = sys.argv[1]
     output = sys.argv[2]
+    coords = [line.strip().split() for line in open(sys.argv[3]).readlines()]
+    coords = [(float(c[0]), float(c[1]), float(c[2])) for c in coords]
     
     data = []
     
@@ -36,11 +38,11 @@ if __name__ == '__main__':
         t.read_image(alignment, i)
         trans = t['xform.align3d']
         
-        
+        trans.translate(coords[i][0], coords[i][1], coords[i][2])
         rot = trans.get_rotation('spider')
         psi, theta, phi = rot['psi'],rot['theta'],rot['phi']
         tx, ty, tz = trans.get_pre_trans()
-        data.append([i+1, 7, i+1, psi, theta, phi, tx, ty, tz])
+        data.append([i+1, 7, i+1, psi, theta, phi, tx/8, ty/8, tz/8])
     numpy.savetxt(output, data, "%.4f", delimiter='\t')
         
         
