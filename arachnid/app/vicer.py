@@ -134,6 +134,7 @@ from ..core.app import program
 from ..core.image import ndimage_file, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
 from ..core.image import preprocess_utility
 from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
+from ..core.metadata import format_utility
 from ..core.metadata import relion_utility
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix
@@ -656,8 +657,28 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
     
+    
+        
+        
+    
     data = format.read(alignment)
     data = relion_utility.select_subset(data, sel_by_mic)
+    
+    if diagnostic != "":
+        extra['thread_count']=extra['worker_count']
+        files, align = format_alignment.read_alignment(data, "", use_3d=False, align_cols=8)
+        align[:, 7]=align[:, 6]
+        order=extra['order']
+        if order > 0: spider_transforms.coarse_angles(order, align, half=not extra['disable_mirror'], out=align)
+        avg = ndimage_processor.image_array_from_file(files, preprocess_utility.align2d_i, param=align, **extra)
+        ref = align[:, 6].astype(numpy.int)
+        view = numpy.unique(ref)
+        avgs = []
+        for i, v in enumerate(view):
+            if numpy.sum(v==ref)==0: continue
+            avgs.append(avg[v==ref].mean(axis=0))
+        ndimage_file.write_stack(format_utility.add_prefix(diagnostic, 'sel_'), avgs)
+        
     format.write(output, data, nospiderid=True, format=format.star)
     
     _logger.info("Selected %d projections"%(tot))
@@ -682,7 +703,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", random_view=0,             help="Set number of views to assign randomly, 0 means skip this")
     group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
     group.add_option("", niter=5,                   help="Number of iterations for cleaning")
-    group.add_option("", diagnostic="",             help="Diagnosic view averages", gui=dict(filetype="save"))
+    group.add_option("", diagnostic="",             help="Diagnosic view averages", gui=dict(filetype="save"), dependent=False)
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input particle stacks, e.g. cluster/win/win_*.dat ", required_file=True, gui=dict(filetype="open"))
