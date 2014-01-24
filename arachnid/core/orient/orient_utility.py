@@ -66,7 +66,7 @@ def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
     rt3d = align_param_2D_to_3D_simple(inplane, dx, dy)
     return align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
 
-def coarse_angles(resolution, align, half=False, out=None): # The bitterness of men who fear human progress
+def coarse_angles(resolution, align, half=False, out=None):
     '''
     TODO: disable mirror
     
