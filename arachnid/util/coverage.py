@@ -223,12 +223,12 @@ def read_angles(filename, header=None, select_file="", **extra):
             angles[j] = (align[i].rlnAngleTilt, align[i].rlnAngleRot)
     else:
         if select is not None:
-            align = format.read_alignment(filename, header=header)
+            align = format.read_alignment(filename, header=header, map_ids='id')
             angles = numpy.zeros((len(select), 2))
             for j, i in enumerate(select):
                 angles[j] = (align[i].theta, align[i].phi)
         else:
-            align = format.read_alignment(filename, header=header, map_ids='id')
+            align = format.read_alignment(filename, header=header)
             angles = numpy.zeros((len(align), 2))
             for i in xrange(len(align)):
                 angles[i] = (align[i].theta, align[i].phi)
