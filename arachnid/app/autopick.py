@@ -261,7 +261,6 @@ def search_range(img, disk_mult_range, **extra):
     coords_last = None
     for disk_mult in disk_mult_range:
         coords = search(img, **extra)
-        coords_last[:, 1:3] /= extra['bin_factor']
         coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
     coords_last[:, 1:3] *= extra['bin_factor']
     return coords_last
@@ -299,6 +298,7 @@ def merge_coords(coords1, coords2, pixel_diameter, **extra):
     '''
     '''
     
+    coords1[:, 1:3] /= extra['bin_factor']
     pixel_radius = pixel_diameter/2
     pixel_radius = pixel_radius*pixel_radius
     selected = []
