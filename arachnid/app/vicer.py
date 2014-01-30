@@ -136,6 +136,7 @@ from ..core.image import preprocess_utility
 from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
 from ..core.metadata import format_utility
 from ..core.metadata import relion_utility
+from ..core.metadata import spider_utility
 from ..core.parallel import mpi_utility, openmp
 from ..core.orient import healpix
 from ..core.orient import spider_transforms
@@ -628,7 +629,7 @@ def reduce_all(val, sel_by_mic, id_len=0, **extra):
     total = len(label[1]) if isinstance(label, tuple) else len(label)
     return "%d - Selected: %d -- Removed %d"%(input[0], tot, total-tot)
 
-def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, input_files, alignment, **extra):
+def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, input_files, alignment, diagnostic, **extra):
     # Finalize global parameters for the script
     
     nsamples = None
@@ -657,29 +658,29 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
     
-    
-        
-        
-    
     data = format.read(alignment)
-    data = relion_utility.select_subset(data, sel_by_mic)
-    
-    if diagnostic != "":
-        extra['thread_count']=extra['worker_count']
-        files, align = format_alignment.read_alignment(data, "", use_3d=False, align_cols=8)
-        align[:, 7]=align[:, 6]
-        order=extra['order']
-        if order > 0: spider_transforms.coarse_angles(order, align, half=not extra['disable_mirror'], out=align)
-        avg = ndimage_processor.image_array_from_file(files, preprocess_utility.align2d_i, param=align, **extra)
-        ref = align[:, 6].astype(numpy.int)
-        view = numpy.unique(ref)
-        avgs = []
-        for i, v in enumerate(view):
-            if numpy.sum(v==ref)==0: continue
-            avgs.append(avg[v==ref].mean(axis=0))
-        ndimage_file.write_stack(format_utility.add_prefix(diagnostic, 'sel_'), avgs)
+    if len(data) > 0 and hasattr(data[0], 'rlnImageName'):
+        data = relion_utility.select_subset(data, sel_by_mic)
         
-    format.write(output, data, nospiderid=True, format=format.star)
+        if diagnostic != "":
+            extra['thread_count']=extra['worker_count']
+            files, align = format_alignment.read_alignment(data, "", use_3d=False, align_cols=8)
+            align[:, 7]=align[:, 6]
+            order=extra['order']
+            if order > 0: spider_transforms.coarse_angles(order, align, half=not extra['disable_mirror'], out=align)
+            avg = ndimage_processor.image_array_from_file(files, preprocess_utility.align2d_i, param=align, **extra)
+            ref = align[:, 6].astype(numpy.int)
+            view = numpy.unique(ref)
+            avgs = []
+            for i, v in enumerate(view):
+                if numpy.sum(v==ref)==0: continue
+                avgs.append(avg[v==ref].mean(axis=0))
+            ndimage_file.write_stack(format_utility.add_prefix(diagnostic, 'sel_'), avgs)
+            
+        format.write(output, data, nospiderid=True, format=format.star)
+    else:
+        spider_utility.select_subset(data, sel_by_mic)
+        format.write(output, data, nospiderid=True, format=format.spider_doc)
     
     _logger.info("Selected %d projections"%(tot))
     _logger.info("Completed")
