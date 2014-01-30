@@ -222,6 +222,14 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
         
         # file contains
         print_stats(vals, **extra)
+        if extra['test_all']:
+            last = None
+            for v in vals:
+                filename = relion_utility.relion_file(v.rlnImageName, True)
+                if filename != last:
+                    if not os.path.exists(filename):
+                        _logger.warn("Does not exist: %s"%filename)
+                    last = filename
         
         if renormalize > 0:
             _logger.info("Renormalizing images to diameter of %f"%(renormalize))
