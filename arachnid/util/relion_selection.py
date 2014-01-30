@@ -222,14 +222,17 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
         
         # file contains
         print_stats(vals, **extra)
-        if extra['test_all']:
-            last = None
+        if extra['test_valid']:
+            count = {}
             for v in vals:
-                filename = relion_utility.relion_file(v.rlnImageName, True)
-                if filename != last:
-                    if not os.path.exists(filename):
-                        _logger.warn("Does not exist: %s"%filename)
-                    last = filename
+                filename, id = relion_utility.relion_file(v.rlnImageName)
+                if filename not in count: 
+                    try:
+                        count[filename]=ndimage_file.count_images(filename)
+                    except:
+                        if not os.path.exists(filename): raise IOError, "%s does not exist - check your relative path"%(filename)
+                        count[filename]=ndimage_file.count_images(filename)
+                if id > count[filename]: raise ValueError, "%s does not have index %d in stack of size %d"%(filename, id, count[filename])
         
         if renormalize > 0:
             _logger.info("Renormalizing images to diameter of %f"%(renormalize))
@@ -1112,6 +1115,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   scale=1.0,                       help="Used to scale the translations in a relion file")
     group.add_option("",   column="rlnClassNumber",         help="Column name in relion file for selection, e.g. rlnClassNumber to select classes")
     group.add_option("",   test_all=False,                  help="Test the normalization of all the images")
+    group.add_option("",   test_valid=False,                help="Test whether the input star file can access all the images")
     group.add_option("",   tilt_pair="",                    help="Selection file that defines pairs of particles (e.g. tilt pairs micrograph1, id1, micrograph2, id2) - outputs a tilted/untilted star files")
     group.add_option("",   min_defocus=4000,                help="Minimum allowed defocus")
     group.add_option("",   max_defocus=100000,              help="Maximum allowed defocus")
