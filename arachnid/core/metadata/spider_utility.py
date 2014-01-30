@@ -15,6 +15,36 @@ import numpy
 
 __spider_identifer = namedtuple("SpiderIdentifer", "fid,id")
 
+def select_subset(vals, selection):
+    ''' Select a subset of data read from a Relion star file
+    
+    :Parameters:
+    
+        vals : list
+               List of records from a relion star file
+        selection : dict
+                    Selection mapping filename/id to particle id
+        
+    :Returns:
+        
+        vals : list
+               List of selected records from a relion star file
+    '''
+    
+    if isinstance(selection, dict):
+        if not isinstance(selection[selection.keys()[0]], dict):
+            keys = selection.keys()
+            for k in keys:
+                selection[k]=dict([(int(v), 1) for v in selection[k]])
+        newvals = []
+        for v in vals:
+            filename, id = v.micrograph, v.stack_id
+            if filename in selection and id in selection[filename]:
+                newvals.append(v)
+        return newvals
+    else:
+        raise ValueError, 'Type %s not currently supported'%str(selection.__class__.__name__)
+
 def single_images(files):
     ''' Organize a set of files into groups of single images
     
