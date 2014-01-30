@@ -54,14 +54,14 @@ def single_images(files):
     [(2, ['40S_002_001','40S_002_002']),(3, ['40S_003_001','40S_003_002'])]
     
     :Parameters:
-    
-    files : list
-            List of filenames of form: '40S_003_001.spi'
+        
+        files : list
+                List of filenames of form: '40S_003_001.spi'
     
     :Returns:
     
-    groups : list
-             List of tuples (3, ['40S_003_001.spi' ...])
+        groups : list
+                 List of tuples (3, ['40S_003_001.spi' ...])
     '''
     
     groups = defaultdict(list)
@@ -110,21 +110,21 @@ def select_file_subset(files, select, id_len=0, fill_mode=0):
     
     :Parameters:
     
-    files : list
-            List of filenames
-    select : array
-             Array of file ids
-    id_len : int
-             Maximum length of SPIDER ID
-    fill_mode : int, choice
-                0: Add files from selection if # files is 1, otherwise select subset (default)
-                1: Do not add files from selection
-                2: Force add files from selection
+        files : list
+                List of filenames
+        select : array
+                 Array of file ids
+        id_len : int
+                 Maximum length of SPIDER ID
+        fill_mode : int, choice
+                    0: Add files from selection if # files is 1, otherwise select subset (default)
+                    1: Do not add files from selection
+                    2: Force add files from selection
              
     :Returns:
-    
-    out : list
-          List of selected filenames
+        
+        out : list
+              List of selected filenames
     '''
     
     if len(select) == 0 or len(files)==0: return []
@@ -148,13 +148,13 @@ def update_spider_files(map, id, *files):
     ''' Update the list of files in the dictionary to the current ID
     
     :Parameters:
-    
-    map : dict
-          Dictionary mapping file param to value
-    id : int
-         SPIDER ID
-    files : list
-            List of files to update
+        
+        map : dict
+              Dictionary mapping file param to value
+        id : int
+             SPIDER ID
+        files : list
+                List of files to update
     '''
     
     for key in files:
@@ -182,16 +182,16 @@ def frame_filename(filename, id):
     
     :Parameters:
     
-    filename : str
-               A filename that follows the following convention:
-               filename_<frame id>_<micrograph id>.ext
-    id : int
-         New ID
+        filename : str
+                   A filename that follows the following convention:
+                   filename_<frame id>_<micrograph id>.ext
+        id : int
+             New ID
     
     :Returns:
-    
-    out : str
-          A new filename with the <frame id> updated
+        
+        out : str
+              A new filename with the <frame id> updated
     '''
     
     base = os.path.basename(filename)
@@ -212,15 +212,15 @@ def frame_id(filename):
     1
     
     :Parameters:
-    
-    filename : str
-               A filename that follows the following convention:
-               filename_<frame id>_<micrograph id>.ext
+        
+        filename : str
+                   A filename that follows the following convention:
+                   filename_<frame id>_<micrograph id>.ext
     
     :Returns:
     
-    id : int
-         Frame id
+        id : int
+             Frame id
     '''
     
     base = os.path.basename(filename)
@@ -240,14 +240,14 @@ def spider_header_vals(line):
     ['X', 'Y', 'PARTICLE NO', 'PEAK HT']
     
     :Parameters:
-
-    line : str
-           A string header
-        
+    
+        line : str
+               A string header
+            
     :Returns:
-        
-    return_val : list
-                A list of string header values
+            
+        return_val : list
+                    A list of string header values
     '''
     
     line = line[1:].strip()
@@ -271,13 +271,13 @@ def spider_header_vars(line):
     
     :Parameters:
 
-    line : str
-           A string header
+        line : str
+               A string header
     
     :Returns:
-
-    return_val : list
-                A list of string header values
+    
+        return_val : list
+                    A list of string header values
     '''
     
     header = spider_header_vals(line)
@@ -297,14 +297,14 @@ def spider_id_length(base):
     5
     
     :Parameters:
-
-    base : str
-          A file base name
+    
+        base : str
+              A file base name
     
     :Returns:
-    
-    return_val : int 
-                 Length of spider id
+        
+        return_val : int 
+                     Length of spider id
     '''
     
     maxlen = 0
@@ -328,13 +328,13 @@ def is_spider_filename(filename):
     
     :Parameters:
 
-    filename : str
-               A file name
+        filename : str
+                   A file name
     
     :Returns:
     
-    return_val : bool 
-                 True if filename conforms to Spider filename
+        return_val : bool 
+                     True if filename conforms to Spider filename
     '''
     
     try: int(filename)
@@ -360,16 +360,16 @@ def spider_basename(filename, idlen=0):
     "basename"
 
     :Parameters:
-    
-    filename : str
-               A file name
-    idlen : int 
-            Maximum length of ID (default 0)
-    
+        
+        filename : str
+                   A file name
+        idlen : int 
+                Maximum length of ID (default 0)
+        
     :Returns:
     
-    return_val : str 
-                 Base spider filename
+        return_val : str 
+                     Base spider filename
     '''
     
     filename = os.path.splitext(os.path.basename(filename))[0]
@@ -390,17 +390,17 @@ def spider_searchpath(filename, wildcard='*', idlen=0):
 
     :Parameters:
 
-    filename : str
-               A file name
-    wildcard : str
-               Wild card to substitute for spider ID
-    idlen : int 
-            Maximum length of ID (default 0)
+        filename : str
+                   A file name
+        wildcard : str
+                   Wild card to substitute for spider ID
+        idlen : int 
+                Maximum length of ID (default 0)
     
     :Returns:
-    
-    return_val : str 
-                 Base spider filename with wildcard in place of ID
+        
+        return_val : str 
+                     Base spider filename with wildcard in place of ID
     '''
     
     filename, ext = os.path.splitext(filename)
@@ -420,16 +420,16 @@ def spider_filepath(filename, idlen=0):
     "path/basename.ext"
 
     :Parameters:
-
-    filename : str
-               A file name
-    idlen : int 
-            Maximum length of ID (default 0)
+    
+        filename : str
+                   A file name
+        idlen : int 
+                Maximum length of ID (default 0)
     
     :Returns:
-    
-    return_val : str 
-                 Base spider filename with extension
+        
+        return_val : str 
+                     Base spider filename with extension
     '''
     
     filename, ext = os.path.splitext(filename)
@@ -450,17 +450,17 @@ def spider_id(filename, idlen=0, use_int=True):
 
     :Parameters:
 
-    filename : str
-               A file name
-    idlen : int 
-            Maximum length of ID (default 0)
-    use_int: bool
-             Convert to integer, (default True)
+        filename : str
+                   A file name
+        idlen : int 
+                Maximum length of ID (default 0)
+        use_int: bool
+                 Convert to integer, (default True)
     
     :Returns:
-    
-    return_val : int 
-                 Spider ID
+        
+        return_val : int 
+                     Spider ID
     '''
     
     try:
@@ -490,18 +490,18 @@ def split_spider_id(id, idlen=0, use_int=True):
     SpiderIdentifer(fid=1, id=10)
 
     :Parameters:
-
-    id : str
-         Concatenated identifier (or a list of identifiers)
-    idlen : int 
-            Maximum length of ID (default 0)
-    use_int: bool
-             Convert to integer, (default True)
+    
+        id : str
+             Concatenated identifier (or a list of identifiers)
+        idlen : int 
+                Maximum length of ID (default 0)
+        use_int: bool
+                 Convert to integer, (default True)
     
     :Returns:
-    
-    return_val : tuple 
-                 (File ID, Object ID) or list of tuples
+        
+        return_val : tuple 
+                     (File ID, Object ID) or list of tuples
     '''
     
     if isinstance(id, list):
@@ -544,12 +544,12 @@ def tuple2id(tvals, filename=None, id_len=0):
     
     :Parameters:
         
-    tvals : list
-            List of namedtuples
-    filename : str,optional
-               Name of the micrograph file
-    id_len : int
-             Maximum length of the filename id
+        tvals : list
+                List of namedtuples
+        filename : str,optional
+                   Name of the micrograph file
+        id_len : int
+                 Maximum length of the filename id
     
     :Returns:
         
@@ -581,17 +581,17 @@ def spider_template(filename, template, idlen=0):
     
     :Parameters:
     
-    filename : str
-               Path and base name for new SPIDER template
-    template : str
-               SPIDER template
-    idlen : int
-            ID length to use
+        filename : str
+                   Path and base name for new SPIDER template
+        template : str
+                   SPIDER template
+        idlen : int
+                ID length to use
     
     :Returns:
-    
-    filename : str
-               New SPIDER template
+        
+        filename : str
+                   New SPIDER template
     '''
     
     if filename.find('.') != -1: filename = os.path.splitext(filename)[0]
@@ -607,16 +607,16 @@ def add_spider_id(filename, idlen):
     'pow_orig/orig_0000.spi'
     
     :Parameters:
-    
-    filename : str
-               Path and base name for new SPIDER template
-    idlen : int
-            ID length to use
+        
+        filename : str
+                   Path and base name for new SPIDER template
+        idlen : int
+                ID length to use
     
     :Returns:
-    
-    filename : str
-               New SPIDER template
+        
+        filename : str
+                   New SPIDER template
     '''
     
     filename,ext = os.path.splitext(filename)
@@ -634,18 +634,18 @@ def spider_filename(filename, id, idlen=0):
     "basename00001.ext"
 
     :Parameters:
-
-    filename : str
-               A file name
-    id : int or string
-         Spider ID
-    idlen : int 
-            Maximum length of ID (default 0)
     
+        filename : str
+                   A file name
+        id : int or string
+             Spider ID
+        idlen : int 
+                Maximum length of ID (default 0)
+        
     :Returns:
-    
-    return_val : str
-                 A new spider file name
+        
+        return_val : str
+                     A new spider file name
     '''
     
     if filename.find('=') != -1:
@@ -677,17 +677,17 @@ def file_map(filename, selection, id_len=0, ensure_exist=False):
     
     :Parameters:
 
-    filename : str
-               A file name
-    id : int or string
-         Spider ID
-    idlen : int 
-            Maximum length of ID (default 0)
+        filename : str
+                   A file name
+        id : int or string
+             Spider ID
+        idlen : int 
+                Maximum length of ID (default 0)
     
     :Returns:
-    
-    filemap : dict
-             Dictionary of SPIDER ID, SPIDER filename pairs
+        
+        filemap : dict
+                 Dictionary of SPIDER ID, SPIDER filename pairs
     '''
     
     try: selection = int(selection)
@@ -712,15 +712,15 @@ def extract_id(filename, id_len=0):
     
     :Parameters:
     
-    filename : str
-               Processed filename
-    id_len : int
-             Maximum length of integer ID
+        filename : str
+                   Processed filename
+        id_len : int
+                 Maximum length of integer ID
     
     :Returns:
-        
-    id : str
-         ID extracted from a filename
+            
+        id : str
+             ID extracted from a filename
     '''
     
     try: return spider_id(filename, id_len, False)
@@ -736,13 +736,13 @@ def test_valid_spider_input(input_files):
     
     :Parameters:
     
-    input_files : list
-                  List of input files
+        input_files : list
+                      List of input files
     
     :Returns:
     
-    valid : bool
-            True if only one file in list or every file as a SPIDER ID
+        valid : bool
+                True if only one file in list or every file as a SPIDER ID
     '''
     
     if len(input_files) > 1:

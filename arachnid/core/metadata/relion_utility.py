@@ -11,16 +11,16 @@ def select_subset(vals, selection):
     ''' Select a subset of data read from a Relion star file
     
     :Parameters:
-    
-    vals : list
-           List of records from a relion star file
-    selection : dict
-                Selection mapping filename/id to particle id
+        
+        vals : list
+               List of records from a relion star file
+        selection : dict
+                    Selection mapping filename/id to particle id
     
     :Returns:
-    
-    vals : list
-           List of selected records from a relion star file
+        
+        vals : list
+               List of selected records from a relion star file
     '''
     
     if isinstance(selection, dict):
@@ -43,17 +43,17 @@ def list_micrograph_names(vals, column="rlnImageName"):
     
     :Parameters:
     
-    vals : list
-           List of records from a relion
-           selection file
-    column : str
-             Column to extract micrograph
-             name. Default: rlnImageName
+        vals : list
+               List of records from a relion
+               selection file
+        column : str
+                 Column to extract micrograph
+                 name. Default: rlnImageName
     
     :Returns:
-    
-    mics : list
-           List of micrograph names
+        
+        mics : list
+               List of micrograph names
     '''
     
     mics = set()
@@ -65,18 +65,18 @@ def replace_relion_identifier(data, newfilename=None, reindex=False):
     ''' Replace the image file name, reindex the stack indices or both
     
     :Parameters:
-    
-    data : list
-           List of namedtuples read from a Relion star file
-    newfilename : str
-                  New filename for the image name column
-    reindex : bool
-              If true, renumber the particles in each stack consecutively
+        
+        data : list
+               List of namedtuples read from a Relion star file
+        newfilename : str
+                      New filename for the image name column
+        reindex : bool
+                  If true, renumber the particles in each stack consecutively
               
     :Returns:
-    
-    out : list
-           List of updated namedtuples
+        
+        out : list
+               List of updated namedtuples
     '''
     
     idmap={} if reindex else None
@@ -103,16 +103,16 @@ def relion_identifier(filename, id):
     "0001@basename00010.ext"
 
     :Parameters:
-    
-    filename : str
-               A file name
-    id : int
-         Slice ID
-    
-    :Returns:
         
-    return_val : str 
-                 New identifier
+        filename : str
+                   A file name
+        id : int
+             Slice ID
+        
+    :Returns:
+            
+        return_val : str 
+                     New identifier
     '''
     
     pid=""
@@ -140,16 +140,16 @@ def relion_file(filename, file_only=False):
         'basename00010.ext'
 
     :Parameters:
-    
-    filename : str
-               A Relion file identifier
-    file_only : bool
-                If true, return only the filename
+        
+        filename : str
+                   A Relion file identifier
+        file_only : bool
+                    If true, return only the filename
     
     :Returns:
-        
-    return_val : str or tuple 
-                 Filename or (Filename, slice id)
+            
+        return_val : str or tuple 
+                     Filename or (Filename, slice id)
     '''
     
     if filename.find('@') != -1:
@@ -172,18 +172,18 @@ def relion_id(filename, idlen=0, use_int=True):
         (None, 1)
 
     :Parameters:
-
-    filename : str
-               A Relion file identifier
-    idlen : int 
-            Maximum length of ID (default 0)
-    use_int : bool
-             Convert to integer, (default True)
+    
+        filename : str
+                   A Relion file identifier
+        idlen : int 
+                Maximum length of ID (default 0)
+        use_int : bool
+                 Convert to integer, (default True)
     
     :Returns:
-    
-    return_val : tuple 
-                 Micrograph ID, particle ID
+        
+        return_val : tuple 
+                     Micrograph ID, particle ID
     '''
     
     if filename.find('@') != -1:
