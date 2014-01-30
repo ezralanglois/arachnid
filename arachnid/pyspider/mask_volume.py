@@ -118,18 +118,18 @@ def process(filename, output, **extra):
     ''' Create a reference from from a given density map
     
     :Parameters:
-    
-    filename : str
-               Input volume file
-    output : str
-             Output reference file
-    extra : dict
-            Unused key word arguments
+        
+        filename : str
+                   Input volume file
+        output : str
+                 Output reference file
+        extra : dict
+                Unused key word arguments
              
     :Returns:
-    
-    filename : str
-               Filename for correct location
+        
+        filename : str
+                   Filename for correct location
     '''
     
     tempfile1 = extra['spi'].replace_ext('tmp1_spi_file')
@@ -145,24 +145,24 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
     ''' Mask a volume
     
     :Parameters:
-    
-    filename : str
-               Filename of the input volume
-    outputfile : str
-                 Filename for output masked volume
-    spi : spider.Session
-          Current SPIDER session
-    volume_mask : str, infile
-                  Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filename for external mask, F for solvent flattening
-    prefix : str
-             Prefix for the mask output file
-    extra : dict
-            Unused keyword arguments
+        
+        filename : str
+                   Filename of the input volume
+        outputfile : str
+                     Filename for output masked volume
+        spi : spider.Session
+              Current SPIDER session
+        volume_mask : str, infile
+                      Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filename for external mask, F for solvent flattening
+        prefix : str
+                 Prefix for the mask output file
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    outputfile : str
-                 Filename for masked volume
+        
+        outputfile : str
+                     Filename for masked volume
     '''
     
     if prefix is not None: outputfile = format_utility.add_prefix(outputfile, prefix)
@@ -174,6 +174,8 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
         flatten(spi, spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
     elif mask_type == 'A':
         tightmask(spi, spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
+    elif mask_type == 'S':
+        smooth(spi, spider.nonspi_file(spi, filename, outputfile), spi.replace_ext(outputfile), **extra)
     elif mask_type in ('C', 'G'):
         spherical_mask(filename, outputfile, spi, mask_type, **extra)
     elif mask_type == 'N':
@@ -189,26 +191,26 @@ def spherical_mask(filename, outputfile, spi, volume_mask, mask_edge_width=10, p
     ''' Create a masked volume with a spherical mask
     
     :Parameters:
-    
-    filename : str
-               Filename of the input volume
-    outputfile : str
-                 Filename for output masked volume
-    spi : spider.Session
-          Current SPIDER session
-    volume_mask : str
-                  Set the type of mask: C for cosine and G for Gaussian smoothed spherical mask
-    mask_edge_width : int
-                      Set edge with of the mask (for Gaussian this is the half-width)
-    pixel_diameter : int
-                     Diameter of the object in pixels
-    extra : dict
-            Unused keyword arguments
+        
+        filename : str
+                   Filename of the input volume
+        outputfile : str
+                     Filename for output masked volume
+        spi : spider.Session
+              Current SPIDER session
+        volume_mask : str
+                      Set the type of mask: C for cosine and G for Gaussian smoothed spherical mask
+        mask_edge_width : int
+                          Set edge with of the mask (for Gaussian this is the half-width)
+        pixel_diameter : int
+                         Diameter of the object in pixels
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    outputfile : str
-                 Filename for masked volume
+        
+        outputfile : str
+                     Filename for masked volume
     '''
     
     if filename == outputfile: filename = spi.cp(filename)
@@ -221,26 +223,26 @@ def flatten(spi, filename, outputfile, threshold=0.0, apix=None, mask_output=Non
     ''' Tight mask the input volume and write to outputfile
     
     :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    filename : str
-               Input volume
-    outputfile : str
-                 Output tight masked volume
-    threshold : str
-                Threshold for density or `A` for auto threshold
-    apix : float
-           Pixel size
-    mask_output : str
-                  Output filename for the mask
-    extra : dict
-            Unused keyword arguments
+        
+        spi : spider.Session
+              Current SPIDER session
+        filename : str
+                   Input volume
+        outputfile : str
+                     Output tight masked volume
+        threshold : str
+                    Threshold for density or `A` for auto threshold
+        apix : float
+               Pixel size
+        mask_output : str
+                      Output filename for the mask
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    outputfile : str
-                 Output tight masked volume
+        
+        outputfile : str
+                     Output tight masked volume
     '''
     
     img = ndimage_file.read_image(filename)
@@ -250,39 +252,87 @@ def flatten(spi, filename, outputfile, threshold=0.0, apix=None, mask_output=Non
     ndimage_file.write_image(outputfile, img*mask)
     return outputfile
 
-def tightmask(spi, filename, outputfile, threshold='A', ndilate=1, gk_size=3, gk_sigma=3.0, pre_filter=0.0, apix=None, mask_output=None, **extra):
+def smooth(spi, filename, outputfile, ndilate=1, gk_size=3, gk_sigma=3.0, mask_output=None, **extra):
     ''' Tight mask the input volume and write to outputfile
     
     :Parameters:
     
-    spi : spider.Session
-          Current SPIDER session
-    filename : str
-               Input volume
-    outputfile : str
-                 Output tight masked volume
-    threshold : str
-                Threshold for density or `A` for auto threshold
-    ndilate : int
-              Number of times to dilate the mask
-    gk_size : int
-              Size of the real space Gaussian kernel (must be odd!)
-    gk_sigma : float
-               Width of the real space Gaussian kernel
-    pre_filter : float
-                 Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
-    apix : float
-           Pixel size
-    mask_output : str
-                  Output filename for the mask
-    extra : dict
-            Unused keyword arguments
+        spi : spider.Session
+              Current SPIDER session
+        filename : str
+                   Input volume
+        outputfile : str
+                     Output tight masked volume
+        ndilate : int
+                  Number of times to dilate the mask
+        gk_size : int
+                  Size of the real space Gaussian kernel (must be odd!)
+        gk_sigma : float
+                   Width of the real space Gaussian kernel
+        mask_output : str
+                      Output filename for the mask
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
+        
+        outputfile : str
+           
+                     Output tight masked volume
+    '''
+    img = ndimage_file.read_image(spi.replace_ext(filename))
     
-    outputfile : str
-       
-                 Output tight masked volume
+    mask = None
+    if mask_output is not None and os.path.exists(spi.replace_ext(mask_output)):
+        mask_output = spi.replace_ext(mask_output)
+        mask = ndimage_file.read_image(mask_output)
+        if mask.shape[0] != img.shape[0] or mask.shape[1] != img.shape[1] or mask.shape[2] != img.shape[2]: mask=None
+    
+    if mask is None:
+        mask = ndimage_utility.dialate_mask(img, ndilate)
+        mask = ndimage_utility.gaussian_smooth(img, gk_size, gk_sigma)
+        if mask_output:
+            mask_output = spi.replace_ext(mask_output)
+            ndimage_file.write_image(mask_output, mask)
+    else:
+        _logger.info("Using pre-generated tight-mask: %s"%(mask_output))
+    
+    ndimage_file.write_image(outputfile, mask)
+    return outputfile
+
+def tightmask(spi, filename, outputfile, threshold='A', ndilate=1, gk_size=3, gk_sigma=3.0, pre_filter=0.0, apix=None, mask_output=None, **extra):
+    ''' Tight mask the input volume and write to outputfile
+    
+    :Parameters:
+        
+        spi : spider.Session
+              Current SPIDER session
+        filename : str
+                   Input volume
+        outputfile : str
+                     Output tight masked volume
+        threshold : str
+                    Threshold for density or `A` for auto threshold
+        ndilate : int
+                  Number of times to dilate the mask
+        gk_size : int
+                  Size of the real space Gaussian kernel (must be odd!)
+        gk_sigma : float
+                   Width of the real space Gaussian kernel
+        pre_filter : float
+                     Resolution to pre-filter the volume before creating a tight mask (if 0, skip)
+        apix : float
+               Pixel size
+        mask_output : str
+                      Output filename for the mask
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+        
+        outputfile : str
+           
+                     Output tight masked volume
     '''
     pref_filename=filename
     if pre_filter > 0.0:
@@ -320,18 +370,18 @@ def apply_mask(filename, outputfile, maskfile):
     ''' Tight mask the input volume and write to outputfile
     
     :Parameters:
-    
-    filename : str
-               Input volume
-    outputfile : str
-                 Output tight masked volume
-    maskfile : str
-               Input file containing the mask
+        
+        filename : str
+                   Input volume
+        outputfile : str
+                     Output tight masked volume
+        maskfile : str
+                   Input file containing the mask
     
     :Returns:
-    
-    outputfile : str
-                 Output tight masked volume
+        
+        outputfile : str
+                     Output tight masked volume
     '''
     
     img = ndimage_file.read_image(filename)
