@@ -153,7 +153,7 @@ def mask_volume(filename, outputfile, spi, volume_mask='N', prefix=None, **extra
         spi : spider.Session
               Current SPIDER session
         volume_mask : str, infile
-                      Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filename for external mask, F for solvent flattening
+                      Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filename for external mask, F for solvent flattening, S to smooth
         prefix : str
                  Prefix for the mask output file
         extra : dict
