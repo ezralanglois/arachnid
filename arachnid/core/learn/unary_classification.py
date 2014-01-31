@@ -295,7 +295,7 @@ def running_variance(x, axis=None):
     # Prepend Inf so we have a variance for x[0]
     return numpy.hstack(([0],var))
 
-def one_class_classification_old(data, nstd_min=3, sel=None):
+def one_class_classification_old(data, nstd_min=3, nstd=4, sel=None):
     ''' Classify a set of data into one-class and outliers
     
     .. deprecated:: 0.1.4
@@ -314,7 +314,7 @@ def one_class_classification_old(data, nstd_min=3, sel=None):
     '''
     
     dist = _one_class_distance(data, nstd_min, sel)
-    dsel = _one_class_selection(dist, 4, sel)
+    dsel = _one_class_selection(dist, int(nstd), sel)
     #th = otsu(dist, len(dist)/16)
     #th = otsu(dist, numpy.sqrt(len(dist)))
     #dsel = dist < th

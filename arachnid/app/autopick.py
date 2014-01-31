@@ -259,8 +259,10 @@ def search_range(img, disk_mult_range, **extra):
     '''
     
     coords_last = None
+    disk_mult_range = numpy.asarray(disk_mult_range)
+    max_mult = disk_mult_range.max()
     for disk_mult in disk_mult_range:
-        coords = search(img, **extra)
+        coords = search(img, mask_mult=float(disk_mult)/max_mult, **extra)
         coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
     coords_last[:, 1:3] *= extra['bin_factor']
     return coords_last
@@ -298,7 +300,7 @@ def merge_coords(coords1, coords2, pixel_diameter, **extra):
     '''
     '''
     
-    coords1[:, 1:3] /= extra['bin_factor']
+    coords2[:, 1:3] /= extra['bin_factor']
     pixel_radius = pixel_diameter/2
     pixel_radius = pixel_radius*pixel_radius
     selected = []
@@ -356,7 +358,7 @@ def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
     _logger.debug("Kept: %d of %d"%(j, len(peaks)))
     return peaks[:j]
 
-def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
+def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, nstd_pw=4.0, mask_mult=1.0, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
     Args:
@@ -395,9 +397,9 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     '''
     
     _logger.debug("Total particles: %d"%len(scoords))
-    radius = pixel_diameter/2
+    radius = pixel_diameter/2*mask_mult
     win_shape = (window, window)
-    dgmask = ndimage_utility.model_disk(radius/2, win_shape)
+    dgmask = ndimage_utility.model_disk(int(radius)/2, win_shape)
     masksm = dgmask
     maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
     vfeat = numpy.zeros((len(scoords)))
@@ -432,7 +434,7 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
-    dsel = unary_classification.one_class_classification_old(feat)
+    dsel = unary_classification.one_class_classification_old(feat, nstd=nstd_pw)
     
 
     feat, idx = dimensionality_reduction.pca(datar, datar, pca_mode)[:2]
@@ -785,6 +787,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
     group.add_option("",   threshold_minimum=25,        help="Minimum number of particles for threshold selection")
     group.add_option("",   disk_mult_range=[],          help="Experimental parameter to search range of template sizes")
+    group.add_option("",   nstd_pw=4.0,                 help="Cutoff for Fourier space PCA")
+    
     
     
     pgroup.add_option_group(group)
