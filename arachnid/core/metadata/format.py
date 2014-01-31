@@ -406,7 +406,9 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
     if ndarray:extra['numeric']=True
     
     _logger.debug("read: "+str(filename))
-    fin, format, header, first_vals = get_format(filename, getformat=False, header=header, **extra)
+    origheader = [] if header is None else list(header)
+    tablename=[]
+    fin, format, header, first_vals = get_format(filename, getformat=False, header=header, tablename=tablename, **extra)
     # TODO: columns not finished
     if columns is not None:
         cols = []
@@ -418,10 +420,28 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
                     cols.append(header.index(c))
                 except:
                     raise ValueError, "Cannot find column "+str(c)+" in header: "+",".join(header)
-    factory = factory.create(header, first_vals, **extra)
+    factory_bldr = factory.create(header, first_vals, **extra)
     try:
-        vals = [factory(first_vals)] if len(first_vals) > 0 else []
-        vals.extend(map(factory, format.reader(fin, header, **extra)))
+        vals = [factory_bldr(first_vals)] if len(first_vals) > 0 else []
+        vals.extend(map(factory_bldr, format.reader(fin, header, **extra)))
+    except format_utility.MultipleEntryException, exp:
+        firstvals = vals
+        vals = {tablename[0]: firstvals}
+        tablename[0] = exp.args[0]
+        while True:
+            currvals=[]
+            try:
+                header = [] if len(origheader) == 0 else list(origheader)
+                header, first_vals = format.read_header(fin, header=header, data_found=True, **extra)
+                factory_bldr = factory.create(header, first_vals, **extra)
+                if len(first_vals) > 0: currvals.append(factory_bldr(first_vals))
+                currvals.extend(map(factory_bldr, format.reader(fin, header, **extra)))
+            except format_utility.MultipleEntryException, exp:
+                tablename[0] = exp.args[0]
+            else: 
+                break
+            finally: 
+                if len(currvals) > 0: vals[tablename[0]]=currvals
     except:
         _logger.debug("header: %s"%str(header))
         _logger.debug("first_vals: %s"%str(first_vals))

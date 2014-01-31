@@ -36,6 +36,11 @@ class FormatUtilityError(StandardError):
     """Exception raised for errors in parsing values in the utility
     """
     pass
+
+class MultipleEntryException(StandardError):
+    """Exception raised when multiple tables are in a file
+    """
+    pass
     
 
 def combine(vals):

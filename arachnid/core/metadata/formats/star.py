@@ -34,7 +34,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
-def read_header(filename, header=[], **extra):
+def read_header(filename, header=[], data_found=False, tablename=None, **extra):
     '''Parses the header on the first line of the Star file
     
     .. sourcecode:: py
@@ -62,27 +62,29 @@ def read_header(filename, header=[], **extra):
     
     :Parameters:
     
-    filename : str or stream
-               Input filename or stream
-    header : list
-             List of strings overriding parsed header
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
-    extra : dict
-            Unused keyword arguments
+        filename : str or stream
+                   Input filename or stream
+        header : list
+                 List of strings overriding parsed header
+        data_found : bool
+                     `data_` line has already been read
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    val : container
-          Container with the given header values
+        
+        val : container
+              Container with the given header values
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
     try:
-        while True: # Remove header comments
-            line = fin.readline()
-            if line == "": raise format_utility.ParseFormatError, "Not a star file or empty"
-            if len(line) >= 5 and line[:5] == "data_": break
+        if not data_found:
+            while True: # Remove header comments
+                line = fin.readline()
+                if line == "": raise format_utility.ParseFormatError, "Not a star file or empty"
+                if len(line) >= 5 and line[:5] == "data_": break
+            if tablename is not None: tablename.append(line.strip())
         while True:
             line = fin.readline()
             if line == "": raise format_utility.ParseFormatError, "Not a star file or empty"
@@ -164,30 +166,37 @@ def reader(filename, header=[], numeric=False, columns=None, **extra):
     
     :Parameters:
     
-    filename : str or stream
-               Input filename or input stream
-    header : list
-             List of strings overriding parsed header
-    numeric : boolean
-              If true then convert string values to numeric
-    columns : list
-              List of columns to read otherwise None (all columns)
-    extra : dict
-            Unused keyword arguments
+        filename : str or stream
+                   Input filename or input stream
+        header : list
+                 List of strings overriding parsed header
+        numeric : boolean
+                  If true then convert string values to numeric
+        columns : list
+                  List of columns to read otherwise None (all columns)
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
     
-    val : iterator
-          Star read iterator
+        val : iterator
+              Star read iterator
     '''
     
     fin = open(filename, 'r') if isinstance(filename, str) else filename
     try:
-        for line in fin:
+        while True:
+            line = fin.readline()
+            if line == "": break
             line = line.strip()
+            if line[:5] == 'data_': raise format_utility.MultipleEntryException, line
             if line == "" or line[0] == ';' or line[0] == '#': continue
             yield parse_line(line, numeric, columns, len(header))
-    finally:
+    except format_utility.MultipleEntryException, exp:
+        raise exp
+    except:
+        fin.close()
+    else:
         fin.close()
         
 def parse_line(line, numeric=False, columns=None, hlen=None):
@@ -198,19 +207,19 @@ def parse_line(line, numeric=False, columns=None, hlen=None):
     
     :Parameters:
     
-    line : str
-           String to parse
-    numeric : boolean
-              If true then convert string values to numeric
-    columns : list
-              List of columns to read otherwise None (all columns)
-    hlen : int
-           Number of elements in the header, optional
+        line : str
+               String to parse
+        numeric : boolean
+                  If true then convert string values to numeric
+        columns : list
+                  List of columns to read otherwise None (all columns)
+        hlen : int
+               Number of elements in the header, optional
     
     :Returns:
-    
-    val : list
-          List of values parsed from input line
+        
+        val : list
+              List of values parsed from input line
     '''
     
     vals = line.split()
@@ -248,25 +257,25 @@ def write_header(filename, values, mode, header, tag="", blockcode="images", **e
     
     :Parameters:
     
-    filename : str or stream
-               Output filename or stream
-    values : container
-             Value container such as a list or an ndarray
-    mode : str
-           Write mode - if 'a', do not write header
-    header : list
-             List of strings describing columns in data
-    tag : str
-          Tag for each header value, e.g. tag=rln
-    blockcode : str
-                Label for the data block
-    extra : dict
-            Unused keyword arguments
+        filename : str or stream
+                   Output filename or stream
+        values : container
+                 Value container such as a list or an ndarray
+        mode : str
+               Write mode - if 'a', do not write header
+        header : list
+                 List of strings describing columns in data
+        tag : str
+              Tag for each header value, e.g. tag=rln
+        blockcode : str
+                    Label for the data block
+        extra : dict
+                Unused keyword arguments
             
     :Returns:
-    
-    header : list
-             List of strings describing columns in data
+        
+        header : list
+                 List of strings describing columns in data
     '''
     if mode != 'a':
         fout = open(filename, 'w') if isinstance(filename, str) else filename
@@ -294,12 +303,12 @@ def write_values(filename, values, star_separtor=' ', **extra):
     
     :Parameters:
     
-    filename : str or stream
-               Output filename or stream
-    values : container
-             Value container such as a list or an ndarray
-    extra : dict
-            Unused keyword arguments
+        filename : str or stream
+                   Output filename or stream
+        values : container
+                 Value container such as a list or an ndarray
+        extra : dict
+                Unused keyword arguments
     '''
     
     fout = open(filename, 'w') if isinstance(filename, str) else filename
@@ -311,9 +320,9 @@ def float_format():
     ''' Format for a floating point number
     
     :Returns:
-    
-    return_val : str
-                 %11g
+        
+        return_val : str
+                     %11g
     '''
     
     return "%11g"
@@ -326,9 +335,9 @@ def extension():
     '''Get extension of Star format
     
     :Returns:
-    
-    val : str
-          File extension - star
+        
+        val : str
+              File extension - star
     '''
     
     return "star"
@@ -337,9 +346,9 @@ def filter():
     '''Get filter of Star format
     
     :Returns:
-    
-    val : str
-          File filter - Star (\*.star)
+        
+        val : str
+              File filter - Star (\*.star)
     '''
     
     return "Star (*.star)"
