@@ -35,6 +35,7 @@ if __name__ == '__main__':
     
     param = numpy.zeros((len(offsets), 3+3+3))
     param[:, :3]=offsets
+    i=1
     for key in aligndict.keys():
         print key, aligndict[key][0]
         off = key.find('_')+1
@@ -46,7 +47,8 @@ if __name__ == '__main__':
         #y = y - ty
         #z = z - tz
         euler = trans.get_rotation('spider')
-        param[id-1, 3:] = (tx, ty, tz, euler['psi'], euler['theta'], euler['phi'])
+        param[id-1, 3:] = (i, 7, tx, ty, tz, euler['psi'], euler['theta'], euler['phi'], 1)
+        i+=1
     numpy.savetxt(output, param, '%.3f', '\t', '\n')#, 'boxer_x, boxer_y, boxer_z, tx, ty, tz, psi, theta, phi')
         
         
