@@ -35,10 +35,11 @@ def select_subset(vals, selection):
         if not isinstance(selection[selection.keys()[0]], dict):
             keys = selection.keys()
             for k in keys:
+                k=int(k)
                 selection[k]=dict([(int(v), 1) for v in selection[k]])
         newvals = []
         for v in vals:
-            filename, id = v.micrograph, v.stack_id
+            filename, id = int(v.micrograph), int(v.stack_id)
             if filename in selection and id in selection[filename]:
                 newvals.append(v)
         return newvals
