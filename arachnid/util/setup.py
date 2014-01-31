@@ -16,4 +16,5 @@ console_scripts = [
  'spi2relion = arachnid.util.spi2relion:main',
  'enumfiles = arachnid.util.enumerate_filenames:main',
  'project = arachnid.util.project:main',
+ 'sumrelion = arachnid.util.relion_info:main',
 ]
