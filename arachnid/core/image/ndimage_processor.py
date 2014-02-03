@@ -1,4 +1,7 @@
-'''
+''' Generate a 2D or 3D matrix of image data processed in parallel
+
+
+
 .. Created on Oct 5, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -17,19 +20,19 @@ def create_matrix_from_file(images, image_processor, dtype=numpy.float, **extra)
     
     :Parameters:
     
-    filename : str
-               Name of the file
-    label : array
-            Array of selected indicies
-    image_processor : function
-                      Extract features from the image 
-    extra : dict
-            Unused keyword arguments
+        filename : str
+                   Name of the file
+        label : array
+                Array of selected indicies
+        image_processor : function
+                          Extract features from the image 
+        extra : dict
+                Unused keyword arguments
             
     :Returns:
     
-    mat : array
-          2D matrix where each row is an image
+        mat : array
+              2D matrix where each row is an image
     '''
     
     openmp.set_thread_count(1)
@@ -48,19 +51,19 @@ def image_array_from_file(images, image_processor, dtype=numpy.float, **extra):
     
     :Parameters:
     
-    filename : str
-               Name of the file
-    label : array
-            Array of selected indicies
-    image_processor : function
-                      Extract features from the image 
-    extra : dict
-            Unused keyword arguments
+        filename : str
+                   Name of the file
+        label : array
+                Array of selected indicies
+        image_processor : function
+                          Extract features from the image 
+        extra : dict
+                Unused keyword arguments
             
     :Returns:
-    
-    mat : array
-          3D matrix where each row is an image
+        
+        mat : array
+              3D matrix where each row is an image
     '''
     
     img1 = ndimage_file.read_image(images[0][0]) if isinstance(images[0], tuple) else ndimage_file.read_image(images[0])
@@ -87,14 +90,14 @@ def read_matrix_from_cache(cache_file):
         #. Data
     
     :Parameters:
-    
-    cache_file : str
-                 Filename for cached matrix
+        
+        cache_file : str
+                     Filename for cached matrix
                  
     :Returns:
-    
-    mat : array
-          Cached matrix or None
+        
+        mat : array
+              Cached matrix or None
     '''
     
     if not os.path.exists(cache_file): return None
@@ -122,11 +125,11 @@ def write_matrix_to_cache(cache_file, mat):
         #. Data
     
     :Parameters:
-    
-    cache_file : str
-                 Filename for cached matrix
-    mat : array
-          Matrix to cache
+        
+        cache_file : str
+                     Filename for cached matrix
+        mat : array
+              Matrix to cache
     '''
     
     pathname = os.path.dirname(cache_file)
@@ -148,6 +151,17 @@ def write_matrix_to_cache(cache_file, mat):
 
 def process_images(input_file, output_file, transform_func, index=None, **extra):
     ''' Apply functor to each image in the list
+    
+    :Parameters:
+    
+        input_file : str
+                     Input file path for an image stack or set of stacks
+        output_file : str
+                      Output file path for an image stack or set of stacks
+        transform_func : functor
+                         Function to apply to each image
+        index : array, optional
+                Indices to process
     '''
     
     for i, img in enumerate(ndimage_file.iter_images(input_file, index)):
