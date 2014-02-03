@@ -7,6 +7,7 @@
     :toctree: api_generated/
     :template: api_module.rst
     
-    reconstruct
+    reconstruct_single
+    reconstruct_stack
     reconstruct3
 '''

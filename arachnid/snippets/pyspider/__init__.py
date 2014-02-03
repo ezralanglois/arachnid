@@ -8,4 +8,6 @@
     :template: api_module.rst
     
     filter_volume
+    mask_volume
+    estimate_resolution
 '''

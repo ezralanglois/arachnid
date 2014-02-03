@@ -1,12 +1,14 @@
-''' This centers particles in the window
+''' Center particles in the window using the translation from a Relion star file
 
-Download to edit and run: :download:`shif.py <../../arachnid/snippets/shift.py>`
+This script assumes the image stack filename has  
+
+Download to edit and run: :download:`shift.py <../../arachnid/snippets/shift.py>`
 
 To run:
 
 .. sourcecode:: sh
     
-    $ python shif.py
+    $ python shift.py
 
 .. literalinclude:: ../../arachnid/snippets/shift.py
    :language: python
@@ -14,8 +16,11 @@ To run:
    :linenos:
 '''
 import sys
-from arachnid.core.metadata import format, spider_utility, relion_utility
-from arachnid.core.image import ndimage_file, ndimage_utility
+from arachnid.core.metadata import format
+from arachnid.core.metadata import spider_utility
+from arachnid.core.metadata import relion_utility
+from arachnid.core.image import ndimage_file
+from arachnid.core.image import ndimage_utility
 
 if __name__ == '__main__':
 
