@@ -1,12 +1,11 @@
 ''' Automated particle selection (AutoPicker)
 
 This script (`ara-autopick`) was designed locate particles on a micrograph using template matching 
-(like LFCPick) but incorporates several post-processing algorithm to reduce the number of noise 
+(like LFCPick), yet incorporates several post-processing algorithms to reduce the number of noise 
 windows and contaminants.
 
 It will not remove all contaminants but experiments have demonstrated that in many cases it removes enough 
-to achieve a descent resolution. To remove more contaminants, use 2D classification (e.g. Relion). Currently,
-I am working on a classification to further reduce contamination, this algorithm will be called AutoClean (`ara-autoclean`).
+to achieve a high-resolution. To further reduce contamination, see ViCer (`ara-vicer`).
 
 The AutoPicker script (`ara-autopick`) takes at minimum as input the micrograph and size of the particle in pixels and
 writes out a set of coordinate files for each selected particle.
@@ -21,9 +20,6 @@ Tips
  #. Decimation - Use the `--bin-factor` parameter to reduce the size of the micrograph for more efficient processing. Your coordinates will be on the full micrograph.
  
  #. Aggregration - Use `--remove-aggregates` to remove aggregation. This will remove all overlapping windows based on the window size controlled by `--window-mult`
- 
- #. Restart - After a crash, you can restart where you left off by specifying restart file (a list of files already processed). One is automatically created in each run called
-    .restart.autopick and can be used as follows: `--restart-file .restart.autopick`
     
  #. Parallel Processing - Several micrographs can be run in parallel (assuming you have the memory and cores available). `-p 8` will run 8 micrographs in parallel. 
 
@@ -31,10 +27,6 @@ Examples
 ========
 
 .. sourcecode :: sh
-
-    # Source AutoPart - FrankLab only
-    
-    $ source /guam.raid.cluster.software/arachnid/arachnid.rc
     
     # Run with a disk as a template on a raw film micrograph
     
@@ -64,9 +56,9 @@ Critical Options
     
     Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)
 
-.. option:: -r <int>, --pixel-radius <int>
+.. option:: -p <FILENAME>, --param-file <FILENAME> 
     
-    Size of your particle in pixels. If you decimate with `--bin-factor` give the undecimated pixel size.
+    Filename for SPIDER parameter file describing a Cryo-EM experiment
 
 Useful Options
 ===============
@@ -82,16 +74,10 @@ These options
 .. option:: --invert
     
     Invert the contrast of CCD micrographs
-    
-.. option:: --bin-factor <int>
-    
-    Decimate the micrograph to speed up computation time
-    
-.. option:: --restart-file <FILENAME>
 
-    If the script crashes, the restart file will allow it to pick up where it left off. If you did not specify one, 
-     then .restart.autopick is automatically created. Just specify that as the filename on the next run and it will restart. If no
-     restart file exists one is created with the name given (or .restart.autopick if none is given).
+.. option:: --bin-factor <FLOAT>
+    
+    Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
 
 .. option:: --template <FILENAME>
     
@@ -135,6 +121,10 @@ selection.
 
     Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
 
+.. option:: --selection-file <str>
+    
+    Selection file for a subset of micrographs
+
 Other Options
 =============
 
@@ -145,125 +135,93 @@ This is not a complete list of options available to this script, for additional 
     #. :ref:`Options shared by file processor scripts... <file-proc-options>`
     #. :ref:`Options shared by SPIDER params scripts... <param-options>`
 
-.. todo:: Test histogram
-
-.. todo:: Test Version control
-
 .. Created on Dec 21, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app import tracing
-from ..core.app.program import run_hybrid_program
-from ..core.image import eman2_utility, ndimage_utility, analysis, ndimage_filter
-from ..core.metadata import format_utility, format, spider_utility
+from ..core.app import program
+from ..core.image import ndimage_utility, ndimage_filter
+from ..core.learn import dimensionality_reduction
+from ..core.learn import unary_classification
+from ..core.metadata import format_utility, format, spider_utility, spider_params
 from ..core.parallel import mpi_utility
-import numpy, scipy, logging, scipy.misc, numpy.linalg
-import lfcpick, os
+from ..core.util import drawing
+import numpy # pylint: disable=W0611
+import numpy.linalg
+import scipy.spatial
+import scipy.stats
+import lfcpick
+import logging, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-try: 
-    from PIL import ImageDraw 
-    ImageDraw;
-except: 
-    try:
-        import ImageDraw
-        ImageDraw;
-    except: 
-        tracing.log_import_error('Failed to load PIL - `--box-image` will not work', _logger)
-        ImageDraw = None
-
-
-def process(filename, id_len=0, confusion=[], **extra):
+def process(filename, disk_mult_range, id_len=0, **extra):
     '''Concatenate files and write to a single output file
         
-    :Parameters:
+    Args:
     
-    filename : str
-               Input filename
-    id_len : int, optional
-             Maximum length of the ID
-    extra : dict
-            Unused key word arguments
+        filename : str
+                   Input filename
+        id_len : int, optional
+                 Maximum length of the ID
+        extra : dict
+                Unused key word arguments
                 
-    :Returns:
+    Returns:
     
-    filename : str
-               Current filename
-    peaks : str
-            Coordinates found
+        filename : str
+                   Current filename
+        peaks : str
+                Coordinates found
     '''
     
-    spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good', 'box_image')  
+    try:
+        spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good', 'box_image')  
+    except:
+        _logger.info("Skipping: %s - invalid SPIDER ID"%filename)
+        return filename, []
     _logger.debug("Read micrograph")
     mic = lfcpick.read_micrograph(filename, **extra)
     _logger.debug("Search micrograph")
     try:
-        peaks = search(mic, **extra)
+        if len(disk_mult_range) > 0:
+            peaks = search_range(mic, disk_mult_range, **extra)
+        else:
+            peaks = search(mic, **extra)
     except numpy.linalg.LinAlgError:
         _logger.info("Skipping: %s"%filename)
         return filename, []
     _logger.debug("Write coordinates")
-    coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y", numpy.arange(1, peaks.shape[0]+1, dtype=numpy.int))
-    write_example(mic, coords, **extra)
+    if len(peaks) == 0:
+        _logger.info("Skipping: %s - no particles found"%filename)
+        return filename, []
+        
+    coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y",numpy.arange(1, len(peaks)+1, dtype=numpy.int)) if peaks.shape[0] > 0 else []
+    write_example(mic, coords, filename, **extra)
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
-def write_example(mic, coords, box_image="", **extra):
-    ''' Write out an image with the particles boxed
-    
-    :Parameters:
-    
-    coords : list
-             List of particle coordinates
-    box_image : str
-                Output filename
-    '''
-    
-    if box_image == "" or ImageDraw is None: return
-    
-    offset, bin_factor = lfcpick.init_param(**extra)[1:3]
-    mic = scipy.misc.toimage(mic).convert("RGB")
-    draw = ImageDraw.Draw(mic)
-    
-    for box in coords:
-        x = box.x / bin_factor
-        y = box.y / bin_factor
-        draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline="#ff4040")
-    mic.save(box_image)
-
-def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=False, **extra):
+def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
     
-    :Parameters:
+    Args:
         
-    img : EMData
-          Micrograph image
-    overlap_mult : float
-                   Amount of allowed overlap
-    disable_prune : bool
-                    Disable the removal of bad particles
-    extra : dict
-            Unused key word arguments
+        img : array
+              Micrograph image
+        disable_prune : bool
+                        Disable the removal of bad particles
+        extra : dict
+                Unused key word arguments
     
-    :Returns:
-        
-    peaks : numpy.ndarray
-            List of peaks and coordinates
+    Returns:
+            
+        peaks : array
+                List of peaks: height and coordinates
     '''
     
     template = lfcpick.create_template(**extra)
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    _logger.debug("Filter micrograph")
-    img = eman2_utility.gaussian_high_pass(img, 0.25/radius, True)
-    _logger.debug("Template-matching")
-    cc_map = ccf_center(img, template)
-    _logger.debug("Find peaks")
-    peaks = lfcpick.search_peaks(cc_map, radius, overlap_mult)
-    if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
+    peaks = template_match(img, template, **extra)
     peaks=cull_boundary(peaks, img.shape, **extra)
-    
     index = numpy.argsort(peaks[:,0])[::-1]
     if index.shape[0] > limit: index = index[:limit]
     index = index[::-1]
@@ -275,15 +233,113 @@ def search(img, overlap_mult=1.2, disable_prune=False, limit=0, experimental=Fal
     if not disable_prune:
         _logger.debug("Classify peaks")
         if experimental:
-            sel = classify_windows_new(img, peaks, **extra)
+            sel = classify_windows_experimental(img, peaks, **extra)
         else:
             sel = classify_windows(img, peaks, **extra)
         peaks = peaks[sel].copy()
-    peaks[:, 1:3] *= bin_factor
+    peaks[:, 1:3] *= extra['bin_factor']
     return peaks[::-1]
 
-def cull_boundary(peaks, shape, boundary, bin_factor, **extra):
+def search_range(img, disk_mult_range, **extra):
+    ''' Search a micrograph for particles using a template
+    
+    Args:
+        
+        img : array
+              Micrograph image
+        disk_mult_range : list
+                          List of disk multipliers
+        extra : dict
+                Unused key word arguments
+    
+    Returns:
+            
+        peaks : array
+                List of peaks: height and coordinates
     '''
+    
+    coords_last = None
+    disk_mult_range = numpy.asarray(disk_mult_range)
+    max_mult = disk_mult_range.max()
+    for disk_mult in disk_mult_range:
+        try:
+            coords = search(img, mask_mult=float(disk_mult)/max_mult, **extra)[::-1]
+        except:
+            _logger.error("Error for disk_mult=%f and mask_mult=%f = %f/%f"%(disk_mult, float(disk_mult)/max_mult, disk_mult, max_mult))
+            raise
+        coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
+    coords_last[:, 1:3] *= extra['bin_factor']
+    return coords_last[::-1]
+
+def template_match(img, template_image, pixel_diameter, **extra):
+    ''' Find peaks using given template in the micrograph
+    
+    Args:
+        
+        img : array
+              Micrograph
+        template_image : array
+                         Template image
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        extra : dict
+                Unused key word arguments
+          
+    Returns:
+        
+        peaks : array
+                List of peaks including peak size, x-coordinate, y-coordinate
+    '''
+    
+    _logger.debug("Filter micrograph")
+    img = ndimage_filter.gaussian_highpass(img, 0.25/(pixel_diameter/2.0), 2)
+    _logger.debug("Template-matching")
+    cc_map = ndimage_utility.cross_correlate(img, template_image)
+    _logger.debug("Find peaks")
+    peaks = lfcpick.search_peaks(cc_map, pixel_diameter, **extra)
+    if peaks.ndim == 1: peaks = numpy.asarray(peaks).reshape((len(peaks)/3, 3))
+    return peaks
+
+def merge_coords(coords1, coords2, pixel_diameter, **extra):
+    '''
+    '''
+    
+    coords2[:, 1:3] /= extra['bin_factor']
+    pixel_radius = pixel_diameter/2
+    pixel_radius = pixel_radius*pixel_radius
+    selected = []
+    for i, f in enumerate(coords2):
+        dist = f[1:3]-coords1[:, 1:3]
+        numpy.square(dist, dist)
+        dist = numpy.sum(dist, axis=1)
+        if not (dist.min() < pixel_radius):
+            selected.append(i)
+    coords3 = numpy.zeros((coords1.shape[0]+len(selected), coords1.shape[1]))
+    coords3[:coords1.shape[0]]=coords1
+    coords3[coords1.shape[0]:]=coords2[selected]
+    return coords3
+
+def cull_boundary(peaks, shape, boundary=[], bin_factor=1.0, **extra):
+    ''' Remove peaks where the window goes outside the boundary of the 
+    micrograph image.
+    
+    Args:
+        
+        peaks : array
+                List of peaks including peak size, x-coordinate, y-coordinate
+        shape : tuple
+                Number of rows, columns in micrograph
+        boundary : list
+                   Margin for particle selection top, bottom, left, right
+        bin_factor : float
+                     Image downsampling factor
+        extra : dict
+                Unused key word arguments
+          
+    Returns:
+    
+        peaks : array
+                List of peaks within the boundary including peak size, x-coordinate, y-coordinate
     '''
     
     if len(boundary) == 0: return peaks
@@ -306,234 +362,93 @@ def cull_boundary(peaks, shape, boundary, bin_factor, **extra):
     _logger.debug("Kept: %d of %d"%(j, len(peaks)))
     return peaks[:j]
 
-def ccf_center(img, template):
-    ''' Noise-cancelling cross-correlation
-    
-    :Parameters:
-        
-    img : EMData
-          Micrograph
-    template : EMData
-          Template
-    
-    :Returns:
-        
-    cc_map : EMData
-             Cross-correlation map
-    '''
-    
-    if eman2_utility.is_em(img):
-        emimg = img
-        img = eman2_utility.em2numpy(emimg)
-    if eman2_utility.is_em(template):
-        emtemplate = template
-        template = eman2_utility.em2numpy(emtemplate)
-    cc_map = ndimage_utility.cross_correlate(img, template)
-    #cc_map = eman2_utility.numpy2em(cc_map)
-    return cc_map
-
-def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, **extra):
+def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, nstd_pw=4.0, mask_mult=1.0, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
-    :Parameters:
+    Args:
         
-    mic : EMData
-          Micrograph
-    scoords : list
-              List of potential particle coordinates
-    dust_sigma : float
-                 Number of standard deviations for removal of outlier dark pixels
-    xray_sigma : float
-                 Number of standard deviations for removal of outlier light pixels
-    disable_threshold : bool
-                        Disable noise removal with threshold selection
-    remove_aggregates : bool
-                        Set True to remove aggregates
-    pca_mode : float
-               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
-    iter_threshold : int
-                     Number of times to repeat thresholding
-    extra : dict
-            Unused key word arguments
-    
-    :Returns:
+        mic : array
+              Micrograph
+        scoords : list
+                  List of potential particle coordinates
+        dust_sigma : float
+                     Number of standard deviations for removal of outlier dark pixels
+        xray_sigma : float
+                     Number of standard deviations for removal of outlier light pixels
+        disable_threshold : bool
+                            Disable noise removal with threshold selection
+        remove_aggregates : bool
+                            Set True to remove aggregates
+        pca_mode : float
+                   Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
+        iter_threshold : int
+                         Number of times to repeat thresholding
+        real_space_nstd : float
+                          Number of standard deviations for real-space PCA rejection
+        window : int
+                 Size of the window in pixels
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        threshold_minimum : int
+                            Minimum number of consider success
+        extra : dict
+                Unused key word arguments
         
-    sel : numpy.ndarray
-          Bool array of selected good windows 
+    Returns:
+
+        sel : numpy.ndarray
+              Bool array of selected good windows 
     '''
     
     _logger.debug("Total particles: %d"%len(scoords))
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    #emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    #npdata = eman2_utility.em2numpy(emdata)
-    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
+    radius = pixel_diameter/2*mask_mult
+    win_shape = (window, window)
+    dgmask = ndimage_utility.model_disk(int(radius)/2, win_shape)
     masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
+    maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    #data = numpy.zeros((len(scoords), masksm.ravel().shape[0]))
-    #data = None #numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    if eman2_utility.is_em(mic):
-        emmic = mic
-        mic = eman2_utility.em2numpy(emmic)
     
-    npmask = eman2_utility.em2numpy(mask)
-    npmask[:] = eman2_utility.model_circle(int(radius*1.2+1), offset*2, offset*2) * (eman2_utility.model_circle(int(radius*0.9), offset*2, offset*2)*-1+1)
+    mask = ndimage_utility.model_disk(int(radius*1.2+1), (window, window)) * (ndimage_utility.model_disk(int(radius*0.9), win_shape)*-1+1)
     datar=None
     
     imgs=[]
-    bin_factor=1.0
     _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
-        #if data is None:
-        #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        #npdata[:, :] = win
-        #eman2_utility.ramp(emdata)
-        #win[:, :] = npdata
-        win=ndimage_filter.ramp(win)
+        #win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), npmask)
-        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, npmask, False), npmask)
+        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, mask, False), mask)
         
         if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
         datar[i, :] = ar
         if vfeat is not None:
             vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
-        #amp = ndimage_utility.fourier_mellin(win)*maskap
         amp=ndimage_utility.fftamp(win)*maskap
-        #amp = ndimage_utility.powerspec1d(win)
-        ndimage_utility.vst(amp, amp)
-        ndimage_utility.normalize_standard(amp, masksm, out=amp)
-        if 1 == 1:
-            ndimage_utility.compress_image(amp, masksm, data[i])
-        else:
-            data[i, :]=amp
-    
-    if 1 == 0:
-        data -= data.mean(0)
-        #eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
-        feat = analysis.pca_fast(data, data, 2)[-1]
-        dsel = outlier_rejection(feat[:, :2], 0.9)
-    else:
-        _logger.debug("Performing PCA")
-        feat, idx = analysis.pca(data, data, 1)[:2]
-        if feat.ndim != 2:
-            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-        assert(idx > 0)
-        assert(feat.shape[0]>1)
-        _logger.debug("Eigen: %d"%idx)
-        dsel = analysis.one_class_classification_old(feat)
-    
-
-    feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
-    if feat.ndim != 2:
-        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-    assert(idx > 0)
-    assert(feat.shape[0]>1)
-    _logger.debug("Eigen: %d"%idx)
-    
-    cent = numpy.median(feat, axis=0)
-    dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-    dsel = numpy.logical_and(dsel, analysis.robust_rejection(dist_cent, real_space_nstd))
-    '''
-    for i in xrange(feat.shape[1]):
-        if dsel is None:
-            dsel = analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5)
-        else:
-            dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
-    '''
-    dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-    
-    #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
-    if vfeat is not None:
-        sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
-        _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
-    else: sel = dsel
-    if not disable_threshold:
-        for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel)
-            dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
-            sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel)
-        _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
-        sel = numpy.logical_and(tsel, sel)
-        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
-        sel = numpy.logical_and(dsel, sel)
-        
-    
-    if remove_aggregates: classify_aggregates(scoords, offset, sel)
-    return sel
-
-def classify_windows_old(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, **extra):
-    ''' Classify particle windows from non-particle windows
-    
-    :Parameters:
-        
-    mic : EMData
-          Micrograph
-    scoords : list
-              List of potential particle coordinates
-    dust_sigma : float
-                 Number of standard deviations for removal of outlier dark pixels
-    xray_sigma : float
-                 Number of standard deviations for removal of outlier light pixels
-    disable_threshold : bool
-                        Disable noise removal with threshold selection
-    remove_aggregates : bool
-                        Set True to remove aggregates
-    pca_mode : float
-               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
-    iter_threshold : int
-                     Number of times to repeat thresholding
-    extra : dict
-            Unused key word arguments
-    
-    :Returns:
-        
-    sel : numpy.ndarray
-          Bool array of selected good windows 
-    '''
-    
-    _logger.debug("Total particles: %d"%len(scoords))
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    npdata = eman2_utility.em2numpy(emdata)
-    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
-    masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
-    vfeat = None #numpy.zeros((len(scoords)))
-    data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    if eman2_utility.is_em(mic):
-        emmic = mic
-        mic = eman2_utility.em2numpy(emmic)
-
-    bin_factor=1.0
-    _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
-        if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        if 1 == 1:
-            npdata[:, :] = win
-            eman2_utility.ramp(emdata)
-            win[:, :] = npdata
-        ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        if vfeat is not None:
-            vfeat[i] = numpy.sum(ndimage_utility.segment(ndimage_utility.dog(win, radius), 1024)*dgmask)
-        amp = ndimage_utility.fourier_mellin(win)*maskap
         ndimage_utility.vst(amp, amp)
         ndimage_utility.normalize_standard(amp, masksm, out=amp)
         ndimage_utility.compress_image(amp, masksm, data[i])
     
     _logger.debug("Performing PCA")
-    feat, idx = analysis.pca(data, data, pca_mode)[:2]
+    feat, idx = dimensionality_reduction.pca(data, data, 1)[:2]
     if feat.ndim != 2:
         _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
-    dsel = analysis.one_class_classification_old(feat)
+    dsel = unary_classification.one_class_classification_old(feat, nstd=nstd_pw)
+    
+
+    feat, idx = dimensionality_reduction.pca(datar, datar, pca_mode)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
+    
+    dsel = numpy.logical_and(dsel, unary_classification.robust_euclidean(feat, real_space_nstd))
     
     _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
@@ -542,82 +457,81 @@ def classify_windows_old(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
     else: sel = dsel
     if not disable_threshold:
         for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel)
+            tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
             dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
             sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel)
+        tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
         _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
-        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))      
-
-    if remove_aggregates: classify_aggregates(scoords, offset, sel)
+        _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
+        sel = numpy.logical_and(dsel, sel)    
+    
+    if remove_aggregates: classify_aggregates(scoords, window/2, sel)
+    #else: remove_overlap(scoords, radius, sel)
     return sel
 
-def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_real=False, pca_mode=0, iter_threshold=1, experimental2=False, real_space_nstd=2.5, **extra):
+def classify_windows_experimental(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_threshold=False, remove_aggregates=False, pca_mode=0, iter_threshold=1, real_space_nstd=2.5, window=None, pixel_diameter=None, threshold_minimum=25, **extra):
     ''' Classify particle windows from non-particle windows
     
-    :Parameters:
+    Args:
         
-    mic : EMData
-          Micrograph
-    scoords : list
-              List of potential particle coordinates
-    dust_sigma : float
-                 Number of standard deviations for removal of outlier dark pixels
-    xray_sigma : float
-                 Number of standard deviations for removal of outlier light pixels
-    disable_threshold : bool
-                        Disable noise removal with threshold selection
-    remove_aggregates : bool
-                        Set True to remove aggregates
-    pca_mode : float
-               Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
-    iter_threshold : int
-                     Number of times to repeat thresholding
-    extra : dict
-            Unused key word arguments
-    
-    :Returns:
+        mic : array
+              Micrograph
+        scoords : list
+                  List of potential particle coordinates
+        dust_sigma : float
+                     Number of standard deviations for removal of outlier dark pixels
+        xray_sigma : float
+                     Number of standard deviations for removal of outlier light pixels
+        disable_threshold : bool
+                            Disable noise removal with threshold selection
+        remove_aggregates : bool
+                            Set True to remove aggregates
+        pca_mode : float
+                   Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors
+        iter_threshold : int
+                         Number of times to repeat thresholding
+        real_space_nstd : float
+                          Number of standard deviations for real-space PCA rejection
+        window : int
+                 Size of the window in pixels
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        threshold_minimum : int
+                            Minimum number of consider success
+        extra : dict
+                Unused key word arguments
         
-    sel : numpy.ndarray
-          Bool array of selected good windows 
+    Returns:
+
+        sel : numpy.ndarray
+              Bool array of selected good windows 
     '''
     
     _logger.debug("Total particles: %d"%len(scoords))
-    radius, offset, bin_factor, mask = lfcpick.init_param(**extra)
-    #emdata = eman2_utility.utilities.model_blank(offset*2, offset*2)
-    #npdata = eman2_utility.em2numpy(emdata)
-    dgmask = ndimage_utility.model_disk(radius/2, offset*2)
+    radius = pixel_diameter/2
+    win_shape = (window, window)
+    dgmask = ndimage_utility.model_disk(radius/2, win_shape)
     masksm = dgmask
-    maskap = ndimage_utility.model_disk(1, offset*2)*-1+1
+    maskap = ndimage_utility.model_disk(1, win_shape)*-1+1
     vfeat = numpy.zeros((len(scoords)))
     data = numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    #data = numpy.zeros((len(scoords), masksm.ravel().shape[0]))
-    #data = None #numpy.zeros((len(scoords), numpy.sum(masksm>0.5)))
-    if eman2_utility.is_em(mic):
-        emmic = mic
-        mic = eman2_utility.em2numpy(emmic)
     
-    npmask = eman2_utility.em2numpy(mask)
-    npmask[:] = eman2_utility.model_circle(int(radius*1.2+1), offset*2, offset*2) * (eman2_utility.model_circle(int(radius*0.9), offset*2, offset*2)*-1+1)
+    mask = ndimage_utility.model_disk(int(radius*1.2+1), (window, window)) * (ndimage_utility.model_disk(int(radius*0.9), win_shape)*-1+1)
     datar=None
     
     imgs=[]
-    bin_factor=1.0
     _logger.debug("Windowing %d particles"%len(scoords))
-    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, offset*2, bin_factor)):
+    for i, win in enumerate(ndimage_utility.for_each_window(mic, scoords, window, 1.0)):
         #if data is None:
         #    data = numpy.zeros((len(scoords), win.shape[0]/2-1))
         if (i%10)==0: _logger.debug("Windowing particle: %d"%i)
-        #npdata[:, :] = win
-        #eman2_utility.ramp(emdata)
-        #win[:, :] = npdata
-        win=ndimage_filter.ramp(win)
+        #win=ndimage_filter.ramp(win)
         imgs.append(win.copy())
         
         ndimage_utility.replace_outlier(win, dust_sigma, xray_sigma, None, win)
-        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), npmask)
-        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, npmask, False), npmask)
+        #ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, normmask, True), mask)
+        ar = ndimage_utility.compress_image(ndimage_utility.normalize_standard(win, mask, False), mask)
         
         if datar is None: datar=numpy.zeros((len(scoords), ar.shape[0])) 
         datar[i, :] = ar
@@ -633,91 +547,43 @@ def classify_windows_new(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_t
         else:
             data[i, :]=amp
     
-    if experimental2:
-        data -= data.mean(0)
-        #eigv, feat=analysis.dhr_pca(data, data, 2, 0.8, True)
-        feat = analysis.pca_fast(data, data, 2)[-1]
-        dsel = outlier_rejection(feat[:, :2], 0.9)
-    else:
-        _logger.debug("Performing PCA")
-        feat, idx = analysis.pca(data, data, 1)[:2]
-        if feat.ndim != 2:
-            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-        assert(idx > 0)
-        assert(feat.shape[0]>1)
-        _logger.debug("Eigen: %d"%idx)
-        dsel = analysis.one_class_classification_old(feat)
+    _logger.debug("Performing PCA")
+    feat, idx = dimensionality_reduction.pca(data, data, 1)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
+    dsel = unary_classification.one_class_classification_old(feat)
     
-    if experimental2:
-        datar -= datar.mean(0)
-        feat = analysis.pca_fast(datar, datar, 2)[-1]
-        #eigv, feat=analysis.dhr_pca(datar, datar, 2, 0.8, True)
-        dsel = numpy.logical_and(dsel, outlier_rejection(feat[:, :2], 0.9))
-    else:
-        feat, idx = analysis.pca(datar, datar, pca_mode)[:2]
-        if feat.ndim != 2:
-            _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
-        assert(idx > 0)
-        assert(feat.shape[0]>1)
-        _logger.debug("Eigen: %d"%idx)
-        
-        cent = numpy.median(feat, axis=0)
-        dist_cent = scipy.spatial.distance.cdist(feat, cent.reshape((1, len(cent))), metric='euclidean').ravel()
-        dsel = numpy.logical_and(dsel, analysis.robust_rejection(dist_cent, real_space_nstd))
-    '''
-    for i in xrange(feat.shape[1]):
-        if dsel is None:
-            dsel = analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5)
-        else:
-            dsel = numpy.logical_and(dsel, analysis.robust_rejection(numpy.abs(feat[:, i]), 2.5))
-    '''
-    dsel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
+
+    feat, idx = dimensionality_reduction.pca(datar, datar, pca_mode)[:2]
+    if feat.ndim != 2:
+        _logger.error("PCA bug: %s -- %s"%(str(feat.shape), str(data.shape)))
+    assert(idx > 0)
+    assert(feat.shape[0]>1)
+    _logger.debug("Eigen: %d"%idx)
     
-    #_logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
+    dsel = numpy.logical_and(dsel, unary_classification.robust_euclidean(feat, real_space_nstd))
+    
+    _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
     if vfeat is not None:
         sel = numpy.logical_and(dsel, vfeat == numpy.max(vfeat))
         _logger.debug("Removed by Dog: %d of %d"%(numpy.sum(vfeat == numpy.max(vfeat)), len(scoords)))
     else: sel = dsel
     if not disable_threshold:
         for i in xrange(1, iter_threshold):
-            tsel = classify_noise(scoords, dsel, sel)
+            tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
             dsel = numpy.logical_and(dsel, numpy.logical_not(tsel))
             sel = numpy.logical_and(sel, numpy.logical_not(tsel))
-        tsel = classify_noise(scoords, dsel, sel)
+        tsel = classify_noise(scoords, dsel, sel, threshold_minimum)
         _logger.debug("Removed by threshold %d of %d"%(numpy.sum(tsel), len(scoords)))
         sel = numpy.logical_and(tsel, sel)
         _logger.debug("Removed by all %d of %d"%(numpy.sum(sel), len(scoords)))
-        sel = numpy.logical_and(dsel, sel)
+        sel = numpy.logical_and(dsel, sel)    
     
-    if experimental2 and 1 == 0: # New untested contaminant removal algorithm - looks at pixel correlation
-        out = numpy.zeros(numpy.sum(sel))
-        #npmask = eman2_utility.em2numpy(mask)
-        j=0
-        for i in numpy.argwhere(sel).squeeze():
-            img = imgs[i]
-            if 1 == 0:
-                if 1 == 0:
-                    d, V = scipy.linalg.svd(img, False)[1:]
-                else:
-                    rimg=ndimage_utility.rolling_window(img, (10,10), (5,5))
-                    rimg = rimg.reshape((rimg.shape[0]*rimg.shape[1], rimg.shape[2]*rimg.shape[3]))
-                    d, V = scipy.linalg.svd(rimg, False)[1:]
-                
-                val = d[:2]*numpy.dot(V[:2], rimg.T).T
-                out[j] = numpy.max(scipy.stats.normaltest(val)[0]) #normaltest
-            else:
-                #img=ndimage_utility.compress_image(img, npmask)
-                out[j] = numpy.max(scipy.stats.normaltest(img)[0]) #normaltest
-            j += 1
-        th = analysis.otsu(out, int(numpy.sqrt(numpy.sum(sel))))
-        tsel = out > th
-        bsel = out < th
-        if numpy.sum(tsel) < numpy.sum(bsel): tsel = bsel
-        sel[numpy.argwhere(sel).squeeze()]=tsel
-        #sel = numpy.logical_and(sel, tsel)
-        
-    
-    if remove_aggregates: classify_aggregates(scoords, offset, sel)
+    if remove_aggregates: classify_aggregates(scoords, window/2, sel)
+    #else: remove_overlap(scoords, radius, sel)
     return sel
 
 def outlier_rejection(feat, prob):
@@ -725,7 +591,6 @@ def outlier_rejection(feat, prob):
     '''
     
     from sklearn.covariance import EmpiricalCovariance #MinCovDet
-    import scipy.stats #, scipy.spatial.distance
     
     #real_cov
     #linalg.inv(real_cov)
@@ -737,51 +602,55 @@ def outlier_rejection(feat, prob):
     cut = scipy.stats.chi2.ppf(prob, feat.shape[1])
     return dist < cut
     
-def classify_noise(scoords, dsel, sel=None):
+def classify_noise(scoords, dsel, sel=None, threshold_minimum=25):
     ''' Classify out the noise windows
     
-    :Parameters:
+    Args:
         
-    scoords : list
-              List of peak and coordinates
-    dsel : numpy.ndarray
-           Good values selected by PCA
-    sel : numpy.ndarray
-           Total good values selected by PCA and DoG
+        scoords : list
+                  List of peak and coordinates
+        dsel : numpy.ndarray
+               Good values selected by PCA
+        sel : numpy.ndarray
+               Total good values selected by PCA and DoG
+        threshold_minimum : int
+                            Minimum number of consider success
     
-    :Returns:
+    Returns:
         
-    tsel : numpy.ndarray
-           Good values selected by Otsu
+        tsel : numpy.ndarray
+               Good values selected by Otsu
                
     '''
     
     if sel is None: sel = dsel
     bcnt = 0 
     tsel=None
-    while bcnt < 25:
+    i=0
+    while bcnt < threshold_minimum and i < 10:
         if tsel is not None: dsel = numpy.logical_and(numpy.logical_not(tsel), dsel)
-        th = analysis.otsu(scoords[dsel, 0], numpy.sum(dsel)/16)
+        th = unary_classification.otsu(scoords[dsel, 0], numpy.sum(dsel)/16)
         tsel = scoords[:, 0] > th
         bcnt = numpy.sum(numpy.logical_and(dsel, numpy.logical_and(tsel, sel)))
+        i+=1
     return tsel
 
 def classify_aggregates(scoords, offset, sel):
-    ''' Classify out the aggregate windows
+    ''' Remove all aggregated windows
     
-    :Parameters:
+    Args:
         
-    scoords : list
-              List of peak and coordinates
-    offset : int
-             Window half-width
-    sel : numpy.ndarray
-          Good values selected by aggerate removal
+        scoords : list
+                  List of peak and coordinates
+        offset : int
+                 Window half-width
+        sel : numpy.ndarray
+              Good values selected by aggerate removal
     
-    :Returns:
-        
-    sel : numpy.ndarray
-          Good values selected by aggregate removal
+    Returns:
+            
+        sel : numpy.ndarray
+              Good values selected by aggregate removal
                
     '''
     
@@ -792,6 +661,74 @@ def classify_aggregates(scoords, offset, sel):
     dist = numpy.unique(numpy.argwhere(numpy.logical_and(dist > 0, dist <= cutoff)).ravel())
     sel[off[dist]] = 0
     return sel
+
+def remove_overlap(scoords, radius, sel):
+    ''' Remove coordinates where the windows overlap by updating
+    the selection array (`sel`)
+    
+    Args:
+     
+        scoords : array
+                  Selected coordinates
+        radius : int
+                 Radius of the particle in pixels 
+        sel : array
+              Output selection array that is modified in place
+    
+    '''
+    
+    coords = scoords[:, 1:3]
+    i=0
+    radius *= 1.1
+    idx = numpy.argwhere(sel).squeeze()
+    while i < len(idx):
+        dist = scipy.spatial.distance.cdist(coords[idx[i+1:]], coords[idx[i]].reshape((1, len(coords[idx[i]]))), metric='euclidean').ravel()
+        osel = dist < radius
+        if numpy.sum(osel) > 0:
+            if numpy.alltrue(scoords[idx[i], 0] > scoords[idx[i+1:], 0]):
+                sel[idx[i+1:][osel]]=0
+                idx = numpy.argwhere(sel).squeeze()
+            else:
+                sel[idx[i]]=0
+        else:
+            i+=1
+
+def write_example(mic, coords, filename, box_image="", bin_factor=1.0, pixel_diameter=None, window=None, **extra):
+    ''' Write out an image with the particles boxed
+    
+    Args:
+    
+        mic : array
+              Micrograph image
+        coords : list
+                 List of particle coordinates
+        filename : str
+                   Current micrograph filename to load benchmark if available
+        box_image : str
+                    Output filename
+        bin_factor : float
+                     Image downsampling factor
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        window : int
+                 Size of window in pixels
+        extra : dict
+                Unused key word arguments
+    '''
+    
+    if box_image == "" or not drawing.is_available(): return
+    
+    radius = pixel_diameter/2.0
+    mic = ndimage_filter.filter_gaussian_highpass(mic, 0.25/radius, 2)
+    ndimage_utility.replace_outlier(mic, 4.0, 4.0, None, mic)
+    
+    bench = lfcpick.benchmark.read_bench_coordinates(filename, **extra)
+    if bench is not None:
+        mic = drawing.draw_particle_boxes(mic, coords, window, bin_factor, ret_draw=True)
+        drawing.draw_particle_boxes_to_file(mic, bench, window, bin_factor, box_image, outline="#40ff40")
+    else:
+        drawing.draw_particle_boxes_to_file(mic, coords, window, bin_factor, box_image)
+    
 
 def initialize(files, param):
     # Initialize global parameters for the script
@@ -806,7 +743,7 @@ def initialize(files, param):
         if param['box_image']!="":
             try:os.makedirs(os.path.dirname(param['box_image']))
             except: pass
-    return lfcpick.initialize(files, param)
+    return sorted(lfcpick.initialize(files, param))
 
 def reduce_all(val, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -817,6 +754,24 @@ def finalize(files, **extra):
     # Finalize global parameters for the script
     
     return lfcpick.finalize(files, **extra)
+
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    Args:
+    
+        files : list
+                List of filenames to test
+        extra : dict
+                Unused keyword arguments
+    
+    Returns:
+    
+        flag : bool
+               True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
@@ -832,60 +787,101 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   iter_threshold=1,            help="Number of times to iterate thresholding")
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
-    group.add_option("",   experimental2=False,          help="Use the latest experimental features, 2nd generation!")
-    group.add_option("",   real_space_nstd=2.5,          help="Cutoff for real space PCA")
+    group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
+    group.add_option("",   threshold_minimum=25,        help="Minimum number of particles for threshold selection")
+    group.add_option("",   disk_mult_range=[],          help="Experimental parameter to search range of template sizes")
+    group.add_option("",   nstd_pw=4.0,                 help="Cutoff for Fourier space PCA")
+    
+    
     
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", "--micrograph-files", input_files=[],     help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
+        pgroup.add_option("-o", "--coordinate-file",      output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("",   ctf_file="-",                             help="Input defocus file - currently ignored", required=True, gui=dict(filetype="open"))
+        pgroup.add_option("-s", selection_file="",                        help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
+        spider_params.setup_options(parser, pgroup, True)
         # move next three options to benchmark
         group = OptionGroup(parser, "Benchmarking", "Options to control benchmark particle selection",  id=__name__)
         group.add_option("-g", good="",        help="Good particles for performance benchmark", gui=dict(filetype="open"))
         group.add_option("",   good_coords="", help="Coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="open"))
-        group.add_option("",   box_image="",   help="Output filename for micrograph image with boxed particles - use `.png` as the extension")
+        group.add_option("",   good_output="", help="Output coordindates for the good particles for performance benchmark", gui=dict(filetype="save"))
+        group.add_option("",   box_image="",   help="Output filename for micrograph image with boxed particles - use `.png` as the extension", gui=dict(filetype="save"))
         pgroup.add_option_group(group)
         parser.change_default(log_level=3)
 
-def setup_main_options(parser, group):
-    ''' 
+def change_option_defaults(parser):
+    ''' Change the values to options specific to the script
     '''
     
     parser.change_default(bin_factor=4, window=1.35)
     
-
 def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
-    if options.pixel_radius == 0:
-        raise OptionValueError, "Pixel radius must be greater than zero"
     if len(options.boundary) > 0:
         try: options.boundary = [int(v) for v in options.boundary]
         except: raise OptionValueError, "Unable to convert boundary margin to list of integers"
+    if len(options.disk_mult_range) > 0:
+        try: options.disk_mult_range = [float(v) for v in options.disk_mult_range]
+        except: raise OptionValueError, "Unable to convert --disk-mult-range to list of floats"
 
-def main():
-    #Main entry point for this script
-    run_hybrid_program(__name__,
-        description = '''Find particles using template-matching with unsupervsied learning algorithm
+def flags():
+    ''' Get flags the define the supported features
+    
+    Returns:
+    
+        flags : dict
+                Supported features
+    '''
+    
+    return dict(description = '''Automated particle selection (AutoPicker)
                         
-                        http://
+                        $ ls input-stack_*.spi
+                        input-stack_0001.spi input-stack_0002.spi input-stack_0003.spi
                         
                         Example: Unprocessed film micrograph
                          
-                        $ ara-autopick input-stack.spi -o coords.dat -r 110
+                        $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110
                         
                         Example: Unprocessed CCD micrograph
                          
-                        $ ara-autopick input-stack.spi -o coords.dat -r 110 --invert
+                        $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110 --invert
                       ''',
-        use_version = True,
-        supports_OMP=True,
-    )
+                supports_MPI=True, 
+                supports_OMP=True,
+                use_version=True)
 
-def dependents(): return [lfcpick]
+def main():
+    '''Main entry point for this script
+    
+    .. seealso:: 
+    
+        arachnid.core.app.program.run_hybrid_program
+    
+    '''
+    program.run_hybrid_program(__name__)
+
+def dependents():
+    ''' List of depenent modules
+    
+    The autopick script depends on lfc for the template-matching 
+    operations and uses many of the same parameters.
+    
+    .. seealso:: 
+        
+        arachnid.app.lfcpick
+    
+    Returns:
+        
+        modules : list
+                  List of modules
+    '''
+    
+    return [lfcpick]
+
 if __name__ == "__main__": main()
 
 
