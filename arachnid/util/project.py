@@ -346,21 +346,21 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
     shrgroup.add_option("", config_path="cfg",                                          help="Location for configuration scripts", gui=dict(filetype="open"))
     shrgroup.add_option("", linked_files="",                                            help="Location for renamed links - name automatically set based on input", gui=dict(filetype="open"))
-    shrgroup.add_option("", micrograph_files="data/local/mics/mic_00000.dat",           help="Location for micrograph files", gui=dict(filetype="open"))
-    shrgroup.add_option("", param_file="data/local/ctf/params.dat",                     help="Location for SPIDER params file", gui=dict(filetype="save"))
-    shrgroup.add_option("", movie_files="data/local/frames/mic_00000.dat",              help="Location for micrograph frame stacks", gui=dict(filetype="open"))
-    shrgroup.add_option("", coordinate_file="data/local/coords/sndc_000000.dat",        help="Location for particle coordinates on micrograph", gui=dict(filetype="open"))
-    shrgroup.add_option("", particle_file="data/cluster/win/win_000000.dat",            help="Location for windowed particle stacks", gui=dict(filetype="open"))
-    shrgroup.add_option("", ctf_file="data/local/ctf/ctf.dat",                          help="Location of estimated CTF parameters per micrograph", gui=dict(filetype="open"))
-    shrgroup.add_option("", pow_file="data/local/ctf/pow/pow_000000.dat",               help="Location of power spectra for each micrograph", gui=dict(filetype="open"))
-    shrgroup.add_option("", reference_file="data/cluster/data/reference.dat",           help="Location of generated reference", gui=dict(filetype="open"))
-    shrgroup.add_option("", align_file="data/cluster/data/data.star",                   help="Location of relion selection file", gui=dict(filetype="open"))
+    shrgroup.add_option("", micrograph_files="local/mics/mic_00000.dat",           help="Location for micrograph files", gui=dict(filetype="open"))
+    shrgroup.add_option("", param_file="local/ctf/params.dat",                     help="Location for SPIDER params file", gui=dict(filetype="save"))
+    shrgroup.add_option("", movie_files="local/frames/mic_00000.dat",              help="Location for micrograph frame stacks", gui=dict(filetype="open"))
+    shrgroup.add_option("", coordinate_file="local/coords/sndc_000000.dat",        help="Location for particle coordinates on micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", particle_file="cluster/win/win_000000.dat",            help="Location for windowed particle stacks", gui=dict(filetype="open"))
+    shrgroup.add_option("", ctf_file="local/ctf/ctf.dat",                          help="Location of estimated CTF parameters per micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", pow_file="local/ctf/pow/pow_000000.dat",               help="Location of power spectra for each micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", reference_file="cluster/data/reference.dat",           help="Location of generated reference", gui=dict(filetype="open"))
+    shrgroup.add_option("", align_file="cluster/data/data.star",                   help="Location of relion selection file", gui=dict(filetype="open"))
     shrgroup.add_option("", good_file="",                                               help="Location of cleaned up particle selection files", gui=dict(filetype="open"))
     #data/local/vicer/good/good_000000.dat
-    shrgroup.add_option("", view_file="data/local/vicer/view/view_000000.dat",          help="Location of images embedded in low-dimensional factor space", gui=dict(filetype="open"))
-    shrgroup.add_option("", selection_file="data/local/screen/select.dat",              help="Location of micrograph selection", gui=dict(filetype="open"))
-    shrgroup.add_option("", small_micrograph_file="data/local/mic_sm/mic_000000.dat",   help="Location of micrograph selection", gui=dict(filetype="open"))
-    shrgroup.add_option("", frame_shift_file="data/local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", view_file="local/vicer/view/view_000000.dat",          help="Location of images embedded in low-dimensional factor space", gui=dict(filetype="open"))
+    shrgroup.add_option("", selection_file="local/screen/select.dat",              help="Location of micrograph selection", gui=dict(filetype="open"))
+    shrgroup.add_option("", small_micrograph_file="local/mic_sm/mic_000000.dat",   help="Location of micrograph selection", gui=dict(filetype="open"))
+    shrgroup.add_option("", frame_shift_file="local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
     #shrgroup.add_option("", local_temp="data/temp/",                                    help="Location for temporary files (on local node for MPI)", gui=dict(filetype="open"))
     pgroup.add_option_group(shrgroup)
     # create suffix system? internal database?
@@ -390,7 +390,7 @@ def change_option_defaults(parser):
     ''' Change the values to options specific to the script
     '''
     
-    parser.change_default(log_file="data/log/project.log")
+    parser.change_default(log_file="local/log/project.log")
 
 def flags():
     ''' Get flags the define the supported features

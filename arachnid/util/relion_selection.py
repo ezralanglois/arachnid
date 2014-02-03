@@ -552,8 +552,8 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     if stack_file != "" and os.path.dirname(stack_file) != "":
         stack_files=glob.glob(os.path.dirname(stack_file))
-        if len(stack_files) == 0: raise ValueError, "Cannot find --stack-file %s"%stack_file
-        if len(stack_files) == 1: stack_files=stack_files[0]
+        if len(stack_files) == 0: stack_files = stack_file #raise ValueError, "Cannot find --stack-file %s"%stack_file
+        elif len(stack_files) == 1: stack_files=stack_files[0]
     else: stack_files=None
     
     if stack_files is not None and isinstance(stack_files, list):
