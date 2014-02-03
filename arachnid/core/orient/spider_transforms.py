@@ -15,6 +15,45 @@ import numpy
 import healpix
 import transforms
 
+def coarse_angles_3D(resolution, align, half=False, out=None):
+    ''' Move project alignment parameters to a coarser grid.
+    
+    This updates the in-plane rotation and translations to ensure the projections have
+    maximum similarity.
+    
+    :Parameters:
+    
+        resolution : int
+                     Healpix order
+        align : array
+                2D array where rows are images and columns are
+                the following alignment parameters: PSI,THETA,PHI,IN-PLANE,x-translation,y-translation 
+                and optionally REF-NUM
+        half : bool
+               Consider only the half-sphere
+        out : array, optional
+              Output array for the coarse-grained alignment parameters
+    
+    :Returns:
+        
+        out : array
+              Coarse-grained alignment parameters:
+              PSI,THETA,PHI,IN-PLANE,x-translation,y-translation 
+              and optionally REF-NUM (note, PSI is 0)
+    '''
+    
+    ang = healpix.angles(resolution)
+    resolution = pow(2, resolution)
+    if out is None: out=numpy.zeros((len(align), len(align[0])))
+    cols = out.shape[1]
+    for i in xrange(len(align)):
+        theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
+        rot = rotate_into_frame(ang[ipix], (-align[i, 3], theta, phi))
+        out[i, 1:4]=( theta, phi, rot)
+        if cols>6: out[i, 6] = ipix
+    return out
+
 def coarse_angles(resolution, align, half=False, out=None): # The bitterness of men who fear the way of human progress
     ''' Move project alignment parameters to a coarser grid.
     
@@ -64,6 +103,14 @@ def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
     rt3d = align_param_2D_to_3D(inplane, dx, dy)
     #return align_param_2D_to_3D(rot, rt3d[1], rt3d[2])
     return align_param_3D_to_2D(rot, rt3d[1], rt3d[2])
+
+def rotate_into_frame(frame, curr):
+    '''
+    '''
+    
+    from ..image import rotate
+    rang = rotate.rotate_euler(frame, curr)
+    return (rang[0]+rang[2])
     
 def euler_geodesic_distance(euler1, euler2):
     ''' Calculate the geodesic distance between two unit quaternions

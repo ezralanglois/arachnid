@@ -66,6 +66,35 @@ def rotate_into_frame_2d(frame, theta, phi, inplane, dx, dy):
     rt3d = align_param_2D_to_3D_simple(inplane, dx, dy)
     return align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
 
+def coarse_angles_3D(resolution, align, half=False, out=None):
+    '''
+    TODO: disable mirror
+    
+    :Parameters:
+    
+    resolution : int
+                 Healpix order
+    align : array
+            2D array where rows are images and columns are
+            the following alignment parameters: psi,theta,phi,inplane,tx,ty,ref
+    '''
+    
+    ang = healpix.angles(resolution)
+    resolution = pow(2, resolution)
+    if out is None: out=numpy.zeros((len(align), len(align[0])))
+    cols = out.shape[1]
+    for i in xrange(len(align)):
+        theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
+        rot = rotate_into_frame(ang[ipix], (-align[i, 3], theta, phi))
+        #rang = rotate.rotate_euler(ang[ipix], (-align[i,3], theta, phi))
+        #rot = (rang[0]+rang[2])
+        #rt3d = align_param_2D_to_3D_simple(align[i, 3], align[i, 4], align[i, 5])
+        #rot, tx, ty = align_param_2D_to_3D_simple(rot, rt3d[1], rt3d[2])
+        out[i, 1:4]=( theta, phi, rot)
+        if cols>6: out[i, 6] = ipix
+    return out
+
 def coarse_angles(resolution, align, half=False, out=None):
     '''
     TODO: disable mirror
