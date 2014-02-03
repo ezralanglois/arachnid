@@ -187,7 +187,7 @@ def transfer_function(out, defocus, cs, ampcont, envelope_half_width=10000, volt
         out = numpy.zeros((out, nsam), dtype=numpy.complex64)
     else:
         if out.dtype != numpy.complex64: raise ValueError, "Requires complex64 for out"
-    env = 1./envelope_half_width**2
+    env = envelope_half_width #1./envelope_half_width**2
     _spider_ctf.transfer_function_phase_flip_2d(out.T, out.shape[0], float(cs), float(defocus), float(maximum_spatial_freq), float(elambda), float(source), float(defocus_spread), float(astigmatism), float(azimuth), float(ampcont), env, int(ctf_sign))
     return out
 
