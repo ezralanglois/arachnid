@@ -282,11 +282,12 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
         filename = filename[1][index]
         index=None
     
+    if ndimage_file.count_images(filename) == 1: index=None
     _logger.debug("Read micrograph")
     mic = ndimage_file.read_image(filename, index, **extra)
     _logger.debug("Convert to 32 bit")
     mic = mic.astype(numpy.float32)
-    if gain is not None: mic *= gain
+    if gain is not None and index is not None: mic *= gain
     if bin_factor > 1.0 and not disable_bin: 
         _logger.debug("Downsample by %f"%bin_factor)
         mic = ndimage_interpolate.downsample(mic, bin_factor)
