@@ -262,10 +262,14 @@ def search_range(img, disk_mult_range, **extra):
     disk_mult_range = numpy.asarray(disk_mult_range)
     max_mult = disk_mult_range.max()
     for disk_mult in disk_mult_range:
-        coords = search(img, mask_mult=float(disk_mult)/max_mult, **extra)
+        try:
+            coords = search(img, mask_mult=float(disk_mult)/max_mult, **extra)[::-1]
+        except:
+            _logger.error("Error for disk_mult=%f and mask_mult=%f = %f/%f"%(disk_mult, float(disk_mult)/max_mult, disk_mult, max_mult))
+            raise
         coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
     coords_last[:, 1:3] *= extra['bin_factor']
-    return coords_last
+    return coords_last[::-1]
 
 def template_match(img, template_image, pixel_diameter, **extra):
     ''' Find peaks using given template in the micrograph
