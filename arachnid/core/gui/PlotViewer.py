@@ -186,6 +186,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
                dict(trans_scale=0.0, help="Value to scale translations (usually pixel size)"),
                dict(center_mask=0, help="Radius of mask for image center"),
+               dict(three_d=False, help="Use TR (3d) rather than RT (2d)"),
                
                #dict(film=False, help="Set true to disable contrast inversion"),
                #dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True)),
@@ -783,7 +784,7 @@ def read_image(filename, index=None):
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
         
 
-def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, trans_scale=0.0, center_mask=0, **extra):
+def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilinear', gaussian_high_pass=0.0, gaussian_low_pass=0.0, trans_scale=0.0, center_mask=0, three_d=False, **extra):
     ''' Wrapper for iterate images that support color PNG files
     
     :Parameters:
@@ -805,9 +806,18 @@ def iter_images(files, index, align=None, bin_factor=1.0, downsample_type='bilin
         if align is not None:
             if trans_scale > 0:
                 print trans_scale, align[i, 0], align[i, 1]/trans_scale, align[i, 2]/trans_scale, align[i,3]
-                img = rotate.rotate_image(img, align[i, 0], align[i, 1]/trans_scale, align[i, 2]/trans_scale)
+                if three_d:
+                    img = rotate.rotate_image(img, align[i, 0], align[i, 1]/trans_scale, align[i, 2]/trans_scale)
+                else:
+                    img = ndimage_utility.fourier_shift(img, align[i, 1]/trans_scale, align[i, 2]/trans_scale)
+                    img = rotate.rotate_image(img, align[i, 0])
             else:
-                img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
+                if three_d:
+                    img = rotate.rotate_image(img, align[i, 0], align[i, 1], align[i, 2])
+                else:
+                    img = ndimage_utility.fourier_shift(img, align[i, 1], align[i, 2])
+                    img = rotate.rotate_image(img, align[i, 0])
+                    
             if len(align[i]) > 3 and align[i,3] > 180: img = ndimage_utility.mirror(img)
             
             i+=1
