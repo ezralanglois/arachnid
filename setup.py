@@ -1,7 +1,4 @@
 '''
-Installation Notes
-==================
-
 Arachnid depends on several packages that cannot or should not be installed
 using easy_install. 
 
@@ -13,12 +10,6 @@ PyQT4 and EMAN2/Sparx have a more extensive set of installation requirements
 and thus must be downloaded from their respective sites.
 
 Matplotlib can use the PyQT4 library if installed after PyQT4.
-
-Prerequisites
-=============
-
-Please look over the list of prerequisites, if you do not have one
-installed then refer to the installation steps below.
 
 Compilers
 ---------
@@ -190,14 +181,15 @@ try:
     import setuptools
     setuptools;
 except: 
-    import ez_setup
+    import ez_setup #@UnresolvedImport
     ez_setup.use_setuptools()
     import setuptools
 from numpy.distutils.core import setup
 from distutils.core import Command
+from distutils import command
 from distutils import log
-import os, fnmatch,sys
-import arachnid, arachnid.setup
+import os, fnmatch, sys, re,subprocess
+import arachnid.setup
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
 
@@ -257,10 +249,76 @@ def rglob(pattern, root=os.curdir):
     '''
     
     filenames = []
-    for path, dirs, files in os.walk(os.path.abspath(root)):
+    for path, _, files in os.walk(os.path.abspath(root)):
         for filename in fnmatch.filter(files, pattern):
             filenames.append( os.path.join(path, filename) )
     return filenames
+
+
+#####
+VERSION_PY = """
+# This file is originally generated from Git information by running 'setup.py
+# sdist'. Distribution tarballs contain a pre-generated copy of this file.
+
+__version__ = '%s'
+"""
+
+def update_version_py():
+    '''
+    Adopted from https://github.com/warner/python-ecdsa
+    '''
+    
+    if not os.path.isdir(".git"):
+        print "This does not appear to be a Git repository."
+        return
+    try:
+        p = subprocess.Popen(["git", "describe",
+                              "--tags"], #, "--dirty", "--always"
+                             stdout=subprocess.PIPE)
+    except EnvironmentError:
+        print "unable to run git, leaving ecdsa/_version.py alone"
+        return
+    stdout = p.communicate()[0]
+    if p.returncode != 0:
+        print "unable to run git, leaving ecdsa/_version.py alone"
+        return
+    # we use tags like "v0.5", so strip the prefix
+    assert stdout.startswith("v")
+    ver = stdout[len("v"):].strip()
+    # Ensure the version number is compatiable with eggs - Robert Langlois
+    ver = ver.replace('-', '_') 
+    f = open("arachnid/_version.py", "w")
+    f.write(VERSION_PY % ver)
+    f.close()
+    print "set arachnid/_version.py to '%s'" % ver
+
+def get_version():
+    '''
+    Adopted from https://github.com/warner/python-ecdsa
+    '''
+    
+    try:
+        f = open("arachnid/_version.py")
+    except EnvironmentError:
+        return None
+    for line in f.readlines():
+        mo = re.match("__version__ = '([^']+)'", line)
+        if mo:
+            ver = mo.group(1)
+            n=ver.find('_')
+            # Do not want to update every git commit
+            if n  != -1:ver = ver[:n]
+            return ver
+    return None
+
+class sdist(command.sdist.sdist):
+    '''Adopted from https://github.com/warner/python-ecdsa
+    '''
+    def run(self):
+        update_version_py()
+        self.distribution.metadata.version = get_version()
+        print 'Update version', self.distribution.metadata.version
+        return command.sdist.sdist.run(self)
 
 class check_dep(Command):
     ''' Check if the dependencies listed in `install_requires` and `extras_require`
@@ -278,7 +336,6 @@ class check_dep(Command):
         ''' Check if dependencies are importable.
         '''
         
-        ret = 0
         packages = self.distribution.install_requires
         for v in self.distribution.extras_require.values():
             if isinstance(v, list): packages.extend(v)
@@ -311,22 +368,27 @@ if __name__ == '__main__':
             'gui_scripts': arachnid.setup.gui_scripts
           },
           long_description = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read(),
-          #test_suite = 'arachnid.testing',
           data_files=[('rst', rglob("*.rst"))],
           install_requires = [
             'numpy>=1.3.0',
             'scipy>=0.7.1',
+            'psutil',
+            'scikit-learn',
+            'scikit-image',
             ],
             extras_require = {
             'MPI': 'mpi4py>=1.2.2',
             'plot': 'matplotlib>=1.1.0',
-            'EMAN2' : ['EMAN2'],#cut
-            'PyQT' : ['PyQt4'], #cut
+            'database': ['sqlalchemy>=0.8.2', 'mysql-python'],
+            'Image': 'PIL>=1.1.7',
+            'Qt4' : ['PySide'],
             },
             setup_requires = [
             'Sphinx>=1.0.4',
+            'nose>=1.0',
             ],
-            cmdclass = {'check': check_dep},
+            cmdclass = {'check': check_dep, 'sdist':sdist},
+            test_suite = 'nose.collector',
             **kwargs
     )
 
