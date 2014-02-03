@@ -477,7 +477,8 @@ def read_alignment(files, alignment="", disable_mirror=False, order=0, random_vi
     if diagnostic != "":
         extra['thread_count']=extra['worker_count']
         print align[0]
-        avg = ndimage_processor.image_array_from_file(files, preprocess_utility.phaseflip_align2d_i, param=align, **extra)
+        #avg = ndimage_processor.image_array_from_file(files, preprocess_utility.phaseflip_align2d_i, param=align, **extra)
+        avg = ndimage_processor.image_array_from_file(files, preprocess_utility.align2d_i, param=align, **extra)
         ref = align[:, 6].astype(numpy.int)
         view = numpy.unique(ref)
         avgs = []
