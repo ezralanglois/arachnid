@@ -6,7 +6,9 @@ This module provides a set of functions to handle selections.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-import spider_utility, format_utility
+import spider_utility
+import relion_utility
+import format_utility
 import numpy
 
 def select_file_subset(files, select, id_len=0, fill=False):
@@ -18,24 +20,48 @@ def select_file_subset(files, select, id_len=0, fill=False):
     .. seealso:: spider_utility.select_file_subset
     
     :Parameters:
-    
-    files : list
-            List of filenames
-    select : array
-             Array of file ids
-    id_len : int
-             Maximum length of SPIDER id
-    fill : bool
-           Fill missing filenames missing from files with those in the selection file
+        
+        files : list
+                List of filenames
+        select : array
+                 Array of file ids
+        id_len : int
+                 Maximum length of SPIDER id
+        fill : bool
+               Fill missing filenames missing from files with those in the selection file
              
     :Returns:
-    
-    out : list
-          List of selected filenames
+        
+        out : list
+              List of selected filenames
     '''
     
     return spider_utility.select_file_subset(files, select, id_len, fill)
 
+def select_stack_subset(vals, sel_by_stack):
+    ''' Create a list of objects based on the given selection
+    
+    .. seealso:: 
+        
+        relion_utility.select_subset
+        spider_utility.select_subset
+    
+    :Parameters:
+        
+        vals : list
+               List of objects
+        sel_by_stack : dict
+                       Selections arranged by stack
+             
+    :Returns:
+        
+        out : list
+              List of selected objects
+    '''
+    
+    if len(vals) > 0 and hasattr(vals[0], 'rlnImageName'):
+        return relion_utility.select_subset(vals, sel_by_stack)
+    return spider_utility.select_subset(vals, sel_by_stack)
 
 def select_subset(vals, select):
     ''' Create a list of objects based on the given selection
@@ -51,16 +77,16 @@ def select_subset(vals, select):
     [(1,2), (2,3)]
     
     :Parameters:
-    
-    vals : list
-           List of objects
-    select : array
-             Array of selected indices where first element is 1 not 0
+        
+        vals : list
+               List of objects
+        select : array
+                 Array of selected indices where first element is 1 not 0
              
     :Returns:
-    
-    out : list
-          List of selected objects
+        
+        out : list
+              List of selected objects
     '''
     
     if len(select) == 0 or len(vals) == 0: return []
@@ -85,19 +111,19 @@ def create_selection_doc(n, start=1, micrograph_id=None):
     [Selection(micrograph=10, particle=1),Selection(micrograph=10, particle=2),Selection(micrograph=10, particle=3)]
     
     :Parameters:
-    
-    n : int
-        Length of the range
-    start : int
-            Starting value for the range, if 0, then all the values are incremented
-            by 1.
-    micrograph_id : int, optional
-                    Micrograph id
+        
+        n : int
+            Length of the range
+        start : int
+                Starting value for the range, if 0, then all the values are incremented
+                by 1.
+        micrograph_id : int, optional
+                        Micrograph id
                     
     :Returns:
-    
-    vals : array
-           List of namedtuples
+        
+        vals : array
+               List of namedtuples
     '''
     
     values = numpy.ones((n, 2))
@@ -123,18 +149,18 @@ def create_selection_map(offset, n, micrograph_id):
     [Selection(id=50, micrograph=10,slice_id=3),Selection(id=51, micrograph=10,slice_id=9)]
 
     :Parameters:
-    
-    offset : int
-             Offset for global range of ids
-    n : int or array
-        List of ids or length (1...n+1)
-    micrograph_id : int
-                    Micrograph id
+        
+        offset : int
+                 Offset for global range of ids
+        n : int or array
+            List of ids or length (1...n+1)
+        micrograph_id : int
+                        Micrograph id
                     
     :Returns:
-    
-    vals : array
-           List of namedtuples
+        
+        vals : array
+               List of namedtuples
     '''
     
     if hasattr(n, '__iter__'):
