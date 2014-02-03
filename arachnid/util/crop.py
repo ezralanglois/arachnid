@@ -490,7 +490,11 @@ def initialize(files, param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Paritcle diameter (in pixels): %d"%(param['pixel_diameter']))
         _logger.info("Mask diameter (in pixels): %d"%(int(param['mask_diameter'])))
-        _logger.info("Window size: %d"%(param['window']))
+        if not param['disable_even'] and (param['window']%2)==1:
+            param['window'] += 1
+            _logger.info("Window size: %d (Forced Even)"%(param['window']))
+        else:
+            _logger.info("Window size: %d"%(param['window']))
         if param['gain_file'] != "":
             _logger.info("Gain correct with %s"%param['gain_file'])
         if param['sigma'] > 0: _logger.info("High pass filter: %f"%(param['sigma'] / float(param['window'])))
@@ -630,6 +634,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", gain_file="",             help="Perform gain correction with given norm image", gui=dict(filetype="open"))
     
     egroup = OptionGroup(parser, "Enhancement", "Enhancement for the windows")
+    egroup.add_option("", disable_even=False,       help="Disable forcing windows to be even")
     egroup.add_option("", disable_enhance=False,    help="Disable window post-processing: ramp, contrast enhancement")
     egroup.add_option("", disable_bin=False,        help="Disable micrograph decimation")
     egroup.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
