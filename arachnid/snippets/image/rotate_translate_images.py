@@ -13,17 +13,20 @@ To run:
    :lines: 16-
    :linenos:
 '''
-from arachnid.core.metadata import format, spider_utility
-from arachnid.core.image import ndimage_file, rotate
+from arachnid.core.metadata import format
+from arachnid.core.metadata import spider_utility
+from arachnid.core.image import ndimage_file
+from arachnid.core.image import rotate
 import itertools
+import sys
 
 if __name__ == '__main__':
 
     # Parameters
     
-    align_file = ""
-    image_file = ""
-    output_file = ""
+    align_file = sys.argv[1]
+    image_file = sys.argv[2]
+    output_file = sys.argv[3]
     
     # Read an alignment file
     align, header = format.read_alignment(align_file, ndarray=True)
