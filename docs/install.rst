@@ -45,6 +45,18 @@ Move to the directory you wish to install Anaconda
 		conda install basemap --yes			# Necessary for ara-cover
 		conda install psutil --yes			# Necessary for all scripts
 		conda install mysql-python --yes	# Necessary for Leginon import in GUI
+
+**Troubleshooting**
+
+If the installation gives the following error:
+
+.. sourcecode::
+	
+	Traceback (most recent call last):
+  	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
+    from conda.cli import main
+
+Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
 	
 #. Install Accelerate
 

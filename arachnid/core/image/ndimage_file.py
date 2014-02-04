@@ -191,10 +191,10 @@ def iter_images(filename, index=None):
         if hasattr(filename, 'find') and count_images(filename) == 1:
             for i in xrange(len(index)):
                 if index.ndim == 2:
-                    filename = spider_utility.spider_filename(filename, int(index[i, 0]))
+                    curr_filename = spider_utility.spider_filename(filename, int(index[i, 0]))
                 else:
-                    filename = spider_utility.spider_filename(filename, int(index[i]))
-                yield read_image(filename)
+                    curr_filename = spider_utility.spider_filename(filename, int(index[i]))
+                yield read_image(curr_filename)
             return
         elif index.ndim == 2 and index.shape[1]>1:
             if index[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
@@ -204,21 +204,21 @@ def iter_images(filename, index=None):
             if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
             for i in xrange(tot):
                 id = index[beg, 0]
-                filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
+                curr_filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
                 sel = numpy.argwhere(id == index[:, 0]).ravel()
                 if beg != sel[0]: raise ValueError, "Array must be sorted by file ids: %d != %d -- %f, %f"%((beg), sel[0], index[beg, 0], beg)
                 try:
-                    filename = readlinkabs(filename)
+                    curr_filename = readlinkabs(curr_filename)
                     if index[sel, 1].min() < 0: raise ValueError, "Cannot have a negative index"
-                    if numpy.any(index[sel, 1]) > count_images(filename):
-                        raise ValueError, "Index exceeds stack size: %s - %d > %d"%(filename, index[sel, 1].max(), count_images(filename))
+                    if numpy.any(index[sel, 1]) > count_images(curr_filename):
+                        raise ValueError, "Index exceeds stack size: %s - %d > %d"%(curr_filename, index[sel, 1].max(), count_images(curr_filename))
                     if len(sel) > 1:
-                        for img in iter_images(filename, index[sel, 1]):
+                        for img in iter_images(curr_filename, index[sel, 1]):
                             yield img
                     else:
-                        yield read_image(filename, int(index[sel[0], 1]))
+                        yield read_image(curr_filename, int(index[sel[0], 1]))
                 except:
-                    _logger.error("stack filename: %s - %d to %d"%(filename, numpy.min(index[sel, 1]), numpy.max(index[sel, 1])))
+                    _logger.error("stack filename: %s - %d to %d"%(curr_filename, numpy.min(index[sel, 1]), numpy.max(index[sel, 1])))
                     raise
                 beg += sel.shape[0]
             return

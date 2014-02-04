@@ -43,3 +43,14 @@ Update Arachnid to a specific version
 	
 	$ scp -r ~/.continuum 156.111.X.XXX:~/
 
+**Troubleshooting**
+
+If the installation gives the following error:
+
+.. sourcecode::
+	
+	Traceback (most recent call last):
+  	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
+    from conda.cli import main
+
+Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
