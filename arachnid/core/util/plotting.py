@@ -5,7 +5,7 @@
 '''
 
 
-from matplotlib_nogui import pylab, matplotlib
+from matplotlib_nogui import pylab
 try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 except:
@@ -14,7 +14,7 @@ from ..metadata import format_utility
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
 import numpy, logging
-import scipy
+import scipy.spatial.distance
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

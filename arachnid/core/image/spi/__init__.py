@@ -31,11 +31,6 @@ try:
     _spider_rotate;
 except:pass
 
-try: 
-    import _spider_align
-    _spider_align;
-except:pass
-
 
 try: 
     import _spider_interpolate

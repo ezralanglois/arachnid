@@ -217,7 +217,7 @@ rst_epilog = '''
 .. |pys| replace:: pySPIDER
 .. |spi| replace:: pySPIDER
 '''
- #"".join(open('docs/include/option_details.inc').readlines())
+#"".join(open('docs/include/option_details.inc').readlines())
 
 
 # -- Options for LaTeX output --------------------------------------------------
