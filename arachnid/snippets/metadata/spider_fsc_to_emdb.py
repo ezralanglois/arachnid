@@ -1,14 +1,14 @@
 ''' Convert a SPIDER resolution file to an EMDB compatible XML file
 
-Download to edit and run: :download:`fsc_spi_to_emdb.py <../../arachnid/snippets/fsc_spi_to_emdb.py>`
+Download to edit and run: :download:`spider_fsc_to_emdb.py <../../arachnid/snippets/spider_fsc_to_emdb.py>`
 
 To run:
 
 .. sourcecode:: sh
     
-    $ python fsc_spi_to_emdb.py
+    $ python spider_fsc_to_emdb.py
 
-.. literalinclude:: ../../arachnid/snippets/fsc_spi_to_emdb.py
+.. literalinclude:: ../../arachnid/snippets/spider_fsc_to_emdb.py
    :language: python
    :lines: 16-
    :linenos:

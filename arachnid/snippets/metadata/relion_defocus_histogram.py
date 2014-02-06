@@ -1,14 +1,14 @@
-''' Create a histogram of particles per defocus
+''' Create a histogram of particles per defocus for a relion selection file
 
-Download to edit and run: :download:`defocus_summary.py <../../arachnid/snippets/defocus_summary.py>`
+Download to edit and run: :download:`relion_defocus_histogram.py <../../arachnid/snippets/relion_defocus_histogram.py>`
 
 To run:
 
 .. sourcecode:: sh
     
-    $ python defocus_summary.py
+    $ python relion_defocus_histogram.py
 
-.. literalinclude:: ../../arachnid/snippets/defocus_summary.py
+.. literalinclude:: ../../arachnid/snippets/relion_defocus_histogram.py
    :language: python
    :lines: 16-
    :linenos:
