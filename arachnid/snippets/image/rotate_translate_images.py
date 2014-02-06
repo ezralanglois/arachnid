@@ -1,14 +1,14 @@
 ''' Center a set of images using parameters from an alignment file
 
-Download to edit and run: :download:`center_images.py <../../arachnid/snippets/center_images.py>`
+Download to edit and run: :download:`rotate_translate_images.py <../../arachnid/snippets/image/rotate_translate_images.py>`
 
 To run:
 
 .. sourcecode:: sh
     
-    $ python center_images.py
+    $ python rotate_translate_images.py
 
-.. literalinclude:: ../../arachnid/snippets/center_images.py
+.. literalinclude:: ../../arachnid/snippets/image/rotate_translate_images.py
    :language: python
    :lines: 16-
    :linenos:

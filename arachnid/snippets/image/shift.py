@@ -2,7 +2,7 @@
 
 This script assumes the image stack filename has  
 
-Download to edit and run: :download:`shift.py <../../arachnid/snippets/shift.py>`
+Download to edit and run: :download:`shift.py <../../arachnid/snippets/image/shift.py>`
 
 To run:
 
@@ -10,7 +10,7 @@ To run:
     
     $ python shift.py
 
-.. literalinclude:: ../../arachnid/snippets/shift.py
+.. literalinclude:: ../../arachnid/snippets/image/shift.py
    :language: python
    :lines: 17-
    :linenos:

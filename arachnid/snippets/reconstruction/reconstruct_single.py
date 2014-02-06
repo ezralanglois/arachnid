@@ -1,6 +1,6 @@
 ''' Reconstruct a volume from a set of single images
 
-Download to edit and run: :download:`reconstruct_single.py <../../arachnid/snippets/reconstruct_single.py>`
+Download to edit and run: :download:`reconstruct_single.py <../../arachnid/snippets/reconstruction/reconstruct_single.py>`
 
 To run:
 
@@ -8,7 +8,7 @@ To run:
     
     $ python reconstruct_single.py
 
-.. literalinclude:: ../../arachnid/snippets/reconstruct_single.py
+.. literalinclude:: ../../arachnid/snippets/reconstruction/reconstruct_single.py
    :language: python
    :lines: 16-
    :linenos:

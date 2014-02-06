@@ -1,6 +1,6 @@
 ''' Test the SPIDER reprojection binding
 
-Download to edit and run: :download:`reproject_test.py <../../arachnid/snippets/reproject_test.py>`
+Download to edit and run: :download:`reproject_test.py <../../arachnid/snippets/image/reproject_test.py>`
 
 To run:
 
@@ -8,7 +8,7 @@ To run:
     
     $ python reproject_test.py vol.spi ref_stack.spi 2
 
-.. literalinclude:: ../../arachnid/snippets/reproject_test.py
+.. literalinclude:: ../../arachnid/snippets/image/reproject_test.py
    :language: python
    :lines: 22-
    :linenos:

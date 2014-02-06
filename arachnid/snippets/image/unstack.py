@@ -2,7 +2,7 @@
 
 The output files are named according to the SPIDER convention: filename_00001.dat.
 
-Download to edit and run: :download:`unstack.py <../../arachnid/snippets/unstack.py>`
+Download to edit and run: :download:`unstack.py <../../arachnid/snippets/image/unstack.py>`
 
 To run:
 
@@ -14,7 +14,7 @@ To run:
     
     You must have Arachnid installed to run this script
 
-.. literalinclude:: ../../arachnid/snippets/unstack.py
+.. literalinclude:: ../../arachnid/snippets/image/unstack.py
    :language: python
    :lines: 20-
    :linenos:

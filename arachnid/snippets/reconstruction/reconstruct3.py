@@ -1,6 +1,6 @@
 ''' Reconstruct a volume from a subset of projections
 
-Download to edit and run: :download:`reconstruct3.py <../../arachnid/snippets/reconstruct3.py>`
+Download to edit and run: :download:`reconstruct3.py <../../arachnid/snippets/reconstruction/reconstruct3.py>`
 
 To run:
 
@@ -8,7 +8,7 @@ To run:
     
     $ python reconstruct3.py
 
-.. literalinclude:: ../../arachnid/snippets/reconstruct3.py
+.. literalinclude:: ../../arachnid/snippets/reconstruction/reconstruct3.py
    :language: python
    :lines: 16-
    :linenos:

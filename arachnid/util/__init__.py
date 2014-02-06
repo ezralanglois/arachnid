@@ -12,6 +12,6 @@
     bench
     enumerate_filenames
     project
-    info
+    image_info
     coverage
 '''

@@ -1,6 +1,6 @@
 ''' Interporate a volume
 
-Download to edit and run: :download:`interpolate_volume.py <../../arachnid/snippets/interpolate_volume.py>`
+Download to edit and run: :download:`interpolate_volume.py <../../arachnid/snippets/image/interpolate_volume.py>`
 
 To run:
 
@@ -8,7 +8,7 @@ To run:
     
     $ python interpolate_volume.py
 
-.. literalinclude:: ../../arachnid/snippets/interpolate_volume.py
+.. literalinclude:: ../../arachnid/snippets/image/interpolate_volume.py
    :language: python
    :lines: 16-
    :linenos:

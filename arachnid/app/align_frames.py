@@ -108,10 +108,6 @@ Diagnostic Options
     
     Padding for the diagnostic power spectra periodogram calculation
 
-.. option:: --pad <INT>
-    
-    Padding for the diagnostic power spectra periodogram calculation
-
 .. option:: --translation-file <FILENAME>
     
     Output filename for the translation coordinates, optional.  The filename should have the correct number of digits (e.g. sndc_0000.spi).

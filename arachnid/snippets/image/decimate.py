@@ -1,6 +1,6 @@
 ''' Decimate images in a stack
 
-Download to edit and run: :download:`decimate.py <../../arachnid/snippets/decimate.py>`
+Download to edit and run: :download:`decimate.py <../../arachnid/snippets/image/decimate.py>`
 
 To run:
 
@@ -8,7 +8,7 @@ To run:
     
     $ python decimate.py
 
-.. literalinclude:: ../../arachnid/snippets/decimate.py
+.. literalinclude:: ../../arachnid/snippets/image/decimate.py
    :language: python
    :lines: 16-
    :linenos:

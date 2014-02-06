@@ -10,7 +10,7 @@ While this script is included with the installed package, it is intended
 to be edited before being run. It is recommended you download it from
 the link below.
 
-:download:`Download script <../../arachnid/snippets/estimate_resolution.py>`
+:download:`Download script <../../arachnid/snippets/pyspider/estimate_resolution.py>`
 
 .. seealso::
 
@@ -20,7 +20,7 @@ the link below.
 
 Requirements
     
-    - :doc:`Installation <install>` of the Arachnid Python package
+    - :doc:`Installation <../../docs/install>` of the Arachnid Python package
     - Installation of the SPIDER package (binary)
         
         - Download: http://www.wadsworth.org/spider_doc/spider/docs/spi-register.html
@@ -32,7 +32,7 @@ To run:
     
     $ python estimate_resolution.py
 
-.. literalinclude:: ../../arachnid/snippets/estimate_resolution.py
+.. literalinclude:: ../../arachnid/snippets/pyspider/estimate_resolution.py
    :language: python
    :lines: 40-
    :linenos:
