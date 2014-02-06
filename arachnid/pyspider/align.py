@@ -179,7 +179,7 @@ This is not a complete list of options available to this script, for additional 
 '''
 from ..core.app import program
 from ..core.metadata import spider_params, format, format_utility
-from ..core.orient import orient_utility
+from ..core.orient import spider_transforms
 from ..core.parallel import mpi_utility, parallel_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, create_align
@@ -374,7 +374,7 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     align[curr_slice, 6:8] *= extra['apix']
     align[curr_slice, 12:14] *= extra['apix']
     if prev is not None:
-        align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
+        align[curr_slice, 9] = spider_transforms.euler_geodesic_distance(prev, align[curr_slice, :3])
     #spi.spider_results(False)
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - started: %d"%mpi_utility.get_rank(**extra))
     spi.flush()

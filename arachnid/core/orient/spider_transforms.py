@@ -49,8 +49,8 @@ def coarse_angles_3D(resolution, align, half=False, out=None):
     for i in xrange(len(align)):
         theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
         ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
-        rot = rotate_into_frame(ang[ipix], (-align[i, 3], theta, phi))
-        out[i, 1:4]=( theta, phi, rot)
+        rot = rotate_into_frame(ang[ipix], (align[i, 0], theta, phi))
+        out[i, :3]=(rot, theta, phi)
         if cols>6: out[i, 6] = ipix
     return out
 
@@ -238,5 +238,39 @@ def align_param_2D_to_3D(rot, tx, ty):
     sx =  tx*ca + ty*sa
     sy = -tx*sa + ty*ca 
     return -rot, sx, sy
+
+def euler_to_vector(phi, theta):
+    ''' Convert Euler angles to a vector
+    
+    .. note::
+        
+        http://xmipp.cnb.csic.es/~xmipp/trunk/xmipp/documentation/html/geometry_8cpp_source.html
+        
+    :Parameters:
+    
+    phi : float
+          Phi angle in degrees (psi,theta,phi = ZYZ) 
+    theta : float
+            Theta angle in degrees (psi,theta,phi = ZYZ)
+    
+    :Returns:
+    
+    sc : float
+         Something
+    ss : float
+         Something
+    ct : float
+         Something
+    '''
+    
+    theta = numpy.deg2rad(theta)
+    phi = numpy.deg2rad(phi)
+    cp = numpy.cos(phi)   # ca
+    ct = numpy.cos(theta) # cb
+    sp = numpy.sin(phi)   # sa
+    st = numpy.sin(theta) # sb
+    sc = st * cp          #sb * ca;
+    ss = st * sp          #sb * sa;
+    return sc, ss, ct
 
 

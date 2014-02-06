@@ -22,10 +22,12 @@ CHIMERA: XYZ rotating frame
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.util.matplotlib_nogui import pylab, matplotlib
+from ..core.util.matplotlib_nogui import pylab
 from ..core.app import program
-from ..core.metadata import format, format_utility
-from ..core.orient import healpix, orient_utility
+from ..core.metadata import format
+from ..core.metadata import format_utility
+from ..core.orient import healpix
+from ..core.orient import spider_transforms
 import scipy.io
 
 from mpl_toolkits import basemap
@@ -85,7 +87,8 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
     if count_mode == 0:
         fout.write('.color 1 0 0\n')
     for i in xrange(len(angs)):
-        v1,v2,v3 = orient_utility.euler_to_vector(angs[i, 1], angs[i, 0])
+        
+        v1,v2,v3 = spider_transforms.euler_to_vector(angs[i, 1], angs[i, 0])
         ncnt = count[i]/float(maxcnt)
         if count_mode != 0:
             r, g, b = cmap(ncnt)[:3]
@@ -94,7 +97,7 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
             
         fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
         if mirror:
-            v1,v2,v3 = orient_utility.euler_to_vector(angs[i, 1], 180+angs[i, 0])
+            v1,v2,v3 = spider_transforms.euler_to_vector(angs[i, 1], 180+angs[i, 0])
             fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
             
     fout.close()
