@@ -8,6 +8,7 @@
     
     pyspider
     metadata
+    image
     reconstruction
     
 :mod:`arachnid.snippets.pyspider`
@@ -15,14 +16,19 @@
 
 .. automodule:: arachnid.snippets.pyspider
 
-:mod:`arachnid.snippets.reconstruction`
-=======================================
-
-.. automodule:: arachnid.snippets.reconstruction
-
 :mod:`arachnid.snippets.metadata`
 =======================================
 
 .. automodule:: arachnid.snippets.metadata
+
+:mod:`arachnid.snippets.image`
+=======================================
+
+.. automodule:: arachnid.snippets.image
+
+:mod:`arachnid.snippets.reconstruction`
+=======================================
+
+.. automodule:: arachnid.snippets.reconstruction
 
 '''
