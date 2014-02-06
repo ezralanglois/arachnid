@@ -839,7 +839,10 @@ def powerspec1d(img):
 
 
 def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, ret_more=False):
-    '''
+    ''' Calculate a power spectra using Welsh's perdiogram method
+    
+    :Parameters:
+    
     '''
     
     if offset > 0 and offset < 1.0: offset = int(offset*mic.shape[0])

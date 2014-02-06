@@ -11,51 +11,13 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 try: 
-    from spi import _spider_rotate, _spider_rotate_dist
+    from spi import _spider_rotate
     _spider_rotate;
-    _spider_rotate_dist;
 except:
     _spider_rotate=None
-    _spider_rotate_dist=None
     _logger.exception("Module failed to load")
     tracing.log_import_error('Failed to load _spider_rotate.so module', _logger)
     
-def rotate_average(img, psi):
-    '''
-    '''
-    
-    avg = img[0].copy().ravel()
-    _logger.error("reshape: %s"%str(img[0].shape))
-    _spider_rotate_dist.rotate_avg(img, psi, avg)
-    return avg.reshape(img[0].shape)
-
-def rotate_error(img, psi, mask=None):
-    '''
-    '''
-    
-    if mask is not None:
-        return _spider_rotate_dist.rotate_error_mask(img, psi, mask)
-    return _spider_rotate_dist.rotate_error(img, psi)
-
-def calc_rotated_distance_mask(samp, Dr, Dc, psi, dist, mask):
-    '''
-    '''
-    
-    psi = numpy.asarray(psi, dtype=dist.dtype)
-    mask = numpy.asarray(mask, dtype=Dc.dtype)
-    _spider_rotate_dist.rotate_distance_mask(samp, Dr, Dc, psi, dist, mask)
-
-def rotate_distance_array(img, ref, psi, dist, mask=None):
-    '''
-    '''
-    
-    psi = numpy.asarray(psi, dtype=dist.dtype)
-    if ref.shape[0] != psi.shape[0]: raise ValueError, "Angle does not match reference"
-    if ref.shape[0] != dist.shape[0]: raise ValueError, "Distance does not match reference"
-    if mask is not None:
-        _spider_rotate_dist.rotate_distance_array_mask(img, ref, psi, dist, mask)
-    else:
-        _spider_rotate_dist.rotate_distance_array(img, ref, psi, dist)
     
 def rotate_image2(img, ang, tx=0.0, ty=0.0, out=None, scale=1.0):
     '''

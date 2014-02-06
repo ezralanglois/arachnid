@@ -38,11 +38,6 @@ try:
 except:pass
 
 try: 
-    import _spider_rotate_dist
-    _spider_rotate_dist;
-except:pass
-
-try: 
     import _spider_filter
     _spider_filter;
 except:pass
