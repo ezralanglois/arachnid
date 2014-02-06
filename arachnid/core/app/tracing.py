@@ -173,7 +173,13 @@ This generates a list of failed imports of optional modules, which will be logge
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-import logging, logging.config, os, socket, time, sys, zipfile
+import logging
+import logging.config
+import os
+import socket
+import time
+import sys
+import zipfile
 
 class Logger(logging.Logger):
     ''' Maintains a list of loggers for this package

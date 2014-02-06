@@ -302,11 +302,11 @@ class Option(optparse.Option):
         """ Create an Option object
         
         :Parameters:
-            
-        args : list
-               Positional arguments
-        kwargs : dict
-                 Keyword arguments
+                
+            args : list
+                   Positional arguments
+            kwargs : dict
+                     Keyword arguments
         """
         
         self._required=False
@@ -359,9 +359,9 @@ class Option(optparse.Option):
         ''' Return the name Sphinx uses to identify an option
         
         :Returns:
-        
-        flag : str
-               Short option if it exists, otherwise long option
+            
+            flag : str
+                   Short option if it exists, otherwise long option
         '''
         
         if len(self._short_opts) > 0: return self._short_opts[0]
@@ -371,9 +371,9 @@ class Option(optparse.Option):
         ''' Test if option should be written to the configuration file
         
         :Returns:
-        
-        val : bool
-              True if should not be written to config file
+            
+            val : bool
+                  True if should not be written to config file
         '''
         
         return self.gui_hint is not None and 'nogui' in self.gui_hint
@@ -382,12 +382,12 @@ class Option(optparse.Option):
         ''' Validate this option
         
         :Parameters:
-            
-        values : object
-                 Option value collection
-        validators : dict
-                     Dictionary of validator objects, based 
-                     on the type of the option value
+                
+            values : object
+                     Option value collection
+            validators : dict
+                         Dictionary of validator objects, based 
+                         on the type of the option value
         '''
         
         if self.gui_hint is not None and 'type' in self.gui_hint and self.gui_hint['type'] in validators:
@@ -417,20 +417,20 @@ class Option(optparse.Option):
         This method adds the proper ATTRS to the optparse.Option keyword arguments
         
         :Parameters:
-            
-        flag : str
-              The name of a flag
-        value : object
-                The value of a flag
-        args : list
-               A list of arguments
-        kwargs : dict
-                 A dictionary of keyword arguments
+                
+            flag : str
+                  The name of a flag
+            value : object
+                    The value of a flag
+            args : list
+                   A list of arguments
+            kwargs : dict
+                     A dictionary of keyword arguments
         
         :Returns:
-        
-        return_val : list
-                     A list of choices to set for the option
+            
+            return_val : list
+                         A list of choices to set for the option
         '''
         
         # Get Validation
@@ -485,9 +485,9 @@ class Option(optparse.Option):
         ''' Test if Option is a choice where the value is an index
         
         :Returns:
-        
-        val : bool
-              True if the callback holds Option.choice_index
+            
+            val : bool
+                  True if the callback holds Option.choice_index
         '''
         
         if self.action == "callback":
@@ -503,16 +503,16 @@ class Option(optparse.Option):
         Override this function, if you wish to add more than types to the type registry.
         
         :Parameters:
-        
-        value : object
-                The value whose type will be tested
-        kwargs : dict
-                 A dictionary of keyword arguments
+            
+            value : object
+                    The value whose type will be tested
+            kwargs : dict
+                     A dictionary of keyword arguments
         
         :Returns:
-        
-        return_val : tuple
-                     The first value holds a dictionary, empty if the type is not found and the second a tuple of choices or None
+            
+            return_val : tuple
+                         The first value holds a dictionary, empty if the type is not found and the second a tuple of choices or None
         '''
         
         TYPE_REGISTRY = {
@@ -535,7 +535,12 @@ class Option(optparse.Option):
         return TYPE_REGISTRY[key] if key in TYPE_REGISTRY else {"default": lambda v: v}, choices
     
     def is_glob_files(self):
-        '''
+        ''' Test if option supports glob files
+        
+        :Returns:
+            
+            flag : bool
+                   True if option has glob_files callback
         '''
         
         if self.action == "callback":
@@ -549,16 +554,16 @@ class Option(optparse.Option):
         that does not match ATTRS in either Option class.
         
         :Parameters:
-            
-        args : list
-               A list of arguments
-        kwargs : dict
-                 A dictionary of keyword arguments
+                
+            args : list
+                   A list of arguments
+            kwargs : dict
+                     A dictionary of keyword arguments
         
         :Returns:
-        
-        return_val : tuple
-                     A tuple holding: return flag, value tuple
+            
+            return_val : tuple
+                         A tuple holding: return flag, value tuple
         '''
         
         # Search for flag in argument list
@@ -582,15 +587,15 @@ class Option(optparse.Option):
         '''Convert dictionary to string
         
         :Parameters:
-            
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+                
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
     
         vals = value.strip().split(',')
@@ -602,15 +607,15 @@ class Option(optparse.Option):
         '''Convert dictionary to string
         
         :Parameters:
-            
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+                
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
         
         vals = value.strip().split(',')
@@ -628,15 +633,15 @@ class Option(optparse.Option):
         '''Convert dictionary to string
         
         :Parameters:
-                
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+                    
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
         
         setattr(parser.values, option.dest+"_compressed", value)
@@ -647,15 +652,15 @@ class Option(optparse.Option):
         '''Convert dictionary to string
         
         :Parameters:
-                
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+                    
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
         
         index = None

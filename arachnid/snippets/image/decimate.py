@@ -19,7 +19,7 @@ import sys
 from arachnid.core.metadata import spider_params
 from arachnid.core.metadata import spider_utility 
 from arachnid.core.image import ndimage_file
-from arachnid.core.image import ndimage_interpolate, ndimage_utility
+from arachnid.core.image import ndimage_interpolate
 from arachnid.core.image import ndimage_utility
 import glob
 

@@ -152,13 +152,13 @@ def main(files, module, **extra):
         >>> file_processor.main(['stack_01.spi'], crop)
     
     :Parameters:
-    
-    files : list
-            List of filenames, tuple groups or lists of filenames
-    module : module
-             Main module containing entry points
-    extra : dict
-            Unused extra keyword arguments
+        
+        files : list
+                List of filenames, tuple groups or lists of filenames
+        module : module
+                 Main module containing entry points
+        extra : dict
+                Unused extra keyword arguments
     '''
     
     
@@ -235,32 +235,32 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
     #. Check if `force` flag was set to True
     
     :Parameters:
-    
-    files : list
-            List of input files
-    infile_deps : list
-                  List of input file dependencies
-    outfile_deps : list
-                   List of output file dependencies
-    opt_changed : bool
-                  If true, then options have changed; restart from beginning
-    force : bool
-            Force the program to restart from the beginning
-    data_ext : str
-               If the dependent file does not have an extension, add this extension
-    id_len : int
-             Max length of SPIDER ID
-    restart_test : bool
-                   Test if program will restart
-    extra : dict
-            Unused extra keyword arguments
+        
+        files : list
+                List of input files
+        infile_deps : list
+                      List of input file dependencies
+        outfile_deps : list
+                       List of output file dependencies
+        opt_changed : bool
+                      If true, then options have changed; restart from beginning
+        force : bool
+                Force the program to restart from the beginning
+        data_ext : str
+                   If the dependent file does not have an extension, add this extension
+        id_len : int
+                 Max length of SPIDER ID
+        restart_test : bool
+                       Test if program will restart
+        extra : dict
+                Unused extra keyword arguments
             
     :Returns:
-    
-    unfinished : list
-                 List of input filenames to process 
-    finished : list
-               List of input filenames that satisfy requirements and will not be processed.
+        
+        unfinished : list
+                     List of input filenames to process 
+        finished : list
+                   List of input filenames that satisfy requirements and will not be processed.
     '''
     
     if opt_changed or force:
@@ -354,14 +354,14 @@ def supports(main_module):
     to support file processing.
     
     :Parameters:
-    
-    main_module : module
-                  Module containing entry points
+        
+        main_module : module
+                      Module containing entry points
     
     :Returns:
-    
-    flag : bool
-           True if module has `process` function
+        
+        flag : bool
+               True if module has `process` function
            
     '''
     
