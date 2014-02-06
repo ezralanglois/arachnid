@@ -12,7 +12,6 @@ from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
 #import eman2_utility
 from ..learn import unary_classification
-import numpy, scipy, scipy.ndimage
 import numpy.fft
 import scipy.fftpack, scipy.signal
 import scipy.linalg
@@ -20,7 +19,6 @@ import scipy.ndimage.filters
 import scipy.ndimage.morphology
 import scipy.sparse
 import scipy.special
-from filters import linear
 import ndimage_filter
 import logging
 import math
@@ -837,12 +835,31 @@ def powerspec1d(img):
     fimg = fimg*fimg.conjugate()
     return mean_azimuthal(numpy.abs(numpy.fft.fftshift(fimg)))[1:fimg.shape[0]/2]
 
+def multitaper_power_spectra(mic, half_nbw=9, low_bias=False, shift=True):
+    '''
+    '''
+    
+    import _multitaper
+    n = min(mic.shape)
+    mic_sq = mic[:n, :n]
+    n_tapers_max = int(2 * half_nbw)
+    dpss2, eigvals = _multitaper.dpss_windows(mic_sq.shape[1], half_nbw, n_tapers_max,low_bias=low_bias)
+    _logger.info("Number of basis functions for %f bandwidth and %d tapers: %d"%(half_nbw, n_tapers_max, dpss2.shape[0]))
+    pow = mic_sq.copy()
+    pow[:]=0
+    mic_sq = mic_sq - numpy.mean(mic_sq)#, axis=-1)[:, numpy.newaxis]
+    weights = numpy.sqrt(eigvals)
+    for i in xrange(dpss2.shape[0]):
+        for j in xrange(dpss2.shape[0]):
+            _logger.error("i: %d < %d - j: %d < %d"%(i, dpss2.shape[0], j, dpss2.shape[0]))
+            tmp = numpy.outer(dpss2[i], dpss2[j])
+            fmic = scipy.fftpack.fft2(mic_sq*tmp)
+            pow += numpy.abs(weights[i]*weights[j]*fmic)**2
+    pow *= 2 / numpy.sum(numpy.abs(weights[:, numpy.newaxis,numpy.newaxis]) ** 2, axis=-3)
+    return numpy.fft.fftshift(pow).copy() if shift else pow.copy()
 
 def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, ret_more=False):
-    ''' Calculate a power spectra using Welsh's perdiogram method
-    
-    :Parameters:
-    
+    '''
     '''
     
     if offset > 0 and offset < 1.0: offset = int(offset*mic.shape[0])
@@ -1179,36 +1196,6 @@ def filter_gaussian_lp(img, sigma, out=None):
     if hasattr(scipy.ndimage.filters, 'fourier_gaussian'):
         return scipy.ndimage.filters.fourier_gaussian(img, sigma, output=out)
     return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect')#, output=out)
-
-def filter_butterworth_lowpass(img, low_cutoff, falloff, pad=1):
-    ''' Apply a Butterworth lowpass filter to an image
-    
-    .. seealso:: :py:func:`linear.butterworth_lowpass`
-    
-    :Parameters:
-    
-    img : array
-          Image
-    low_cutoff : float
-                 Low-frequency cutoff
-    falloff : float
-              Low-frequency fall off
-    pad : int
-          Padding
-    
-    :Returns:
-    
-    out : array
-          Filtered image
-    '''
-    
-    if pad > 1:
-        shape = img.shape
-        ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
-        img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
-    img = filter_image(img, linear.butterworth_lowpass(img.shape, low_cutoff, falloff), pad)
-    if pad > 1: img = depad_image(img, shape)
-    return img
 
 def filter_image(img, kernel, pad=1):
     '''

@@ -339,21 +339,6 @@ def test_filter_gaussian_lowpass_eman():
                                                                                          "cutoff_abs": sigma, "dopad" : 0})
         numpy.testing.assert_allclose(eman2_utility.em2numpy(f2), f1)
     
-def test_filter_butterworth_lowpass():
-    # Fails test: Max diff:  0.797096076993 -0.05879157885
-    rad, width, bins = 13, 78, 128
-    blp_lo, blp_hi = 0.1, 0.01
-    img = numpy.random.normal(8, 4, (width,width)).astype(numpy.float32)
-    
-    f1 = ndimage_utility.filter_butterworth_lowpass(img, blp_lo, blp_hi, 2)
-    if 1 == 0:
-        f2 = eman2_utility.EMAN2.Processor.EMFourierFilter(eman2_utility.numpy2em(img), {"filter_type" : eman2_utility.EMAN2.Processor.fourier_filter_types.BUTTERWORTH_LOW_PASS,    "low_cutoff_frequency": blp_lo, "high_cutoff_frequency": blp_hi, "dopad" : 1})
-        try:
-            numpy.testing.assert_allclose(eman2_utility.em2numpy(f2), f1)
-        except:
-            print "Max diff: ", numpy.max(eman2_utility.em2numpy(f2)-f1), numpy.mean(eman2_utility.em2numpy(f2)-f1)
-            print "Max norm: ", numpy.max(ndimage_utility.normalize_standard(eman2_utility.em2numpy(f2))-ndimage_utility.normalize_standard(f1))
-            raise
     
 def test_filter_gaussian_lp():
     # Fails test: Max diff:  2.51341092368 -5.50568517418e-07
