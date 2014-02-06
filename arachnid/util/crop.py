@@ -407,7 +407,7 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
         ndimage_filter.histogram_match(win, mask, noise_win, out=win)
     if not disable_normalize and norm_mask is not None:
         try:
-            ndimage_utility.normalize_standard(win, norm_mask, out=win)
+            win[:]=ndimage_utility.normalize_standard(win, norm_mask)#, out=win)
         except:
             _logger.error('Normalize: %f, %f'%(norm_mask.sum(), win.mean()))
             raise

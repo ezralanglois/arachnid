@@ -290,11 +290,13 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     
     if test_all:
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
-        for img in ndimage_file.iter_images(files):
-            avg = numpy.mean(img*mask) 
-            std = numpy.std(img*mask)
-            if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f"%(avg, std)
-            if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f"%(avg, std)
+        mask = mask > 0
+        for filename in files:
+            for i, img in enumerate(ndimage_file.iter_images(filename)):
+                avg = numpy.mean(img[mask]) 
+                std = numpy.std(img[mask])
+                if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f -- %d@%s"%(avg, std, i, filename)
+                if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f -- %d@%s"%(avg, std, i, filename)
     
     defocus_dict = read_defocus(**extra)
     if selection_file != "": 
