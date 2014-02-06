@@ -68,7 +68,7 @@ lists each supported extension with its corresponding file format.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from .. import eman2_utility
-from spider import _update_header
+import util
 import logging, struct, os, numpy
 
 _logger = logging.getLogger(__name__)
@@ -76,6 +76,28 @@ _logger.setLevel(logging.DEBUG)
 
 eman2ara={'apix': 'apix_x'}
 ara2eman=dict([(val, key) for key,val in eman2ara.iteritems()])
+
+def cache_data():
+    ''' Get keywords to be added as data cache
+    
+    :Returns:
+    
+    extra : dict
+            Keyword arguments
+    '''
+    
+    return dict(cache=eman2_utility.EMAN2.EMData())
+
+def is_avaliable():
+    ''' Test if EMAN2 can be found
+    
+    :Returns:
+    
+    out : bool
+          True if the EMAN2 library is available
+    '''
+    
+    return eman2_utility.is_avaliable()
 
 def is_readable(filename):
     ''' Test if the input filename of the image is in a recognized
@@ -93,10 +115,11 @@ def is_readable(filename):
     '''
     
     if not os.path.exists(filename): return False
+    filename = str(filename)
     try: 
         type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
-    except: 
+    except:
         return False
     
 def read_header(filename, index=None):
@@ -117,6 +140,8 @@ def read_header(filename, index=None):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    
+    filename = str(filename)
     if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     emdata = eman2_utility.EMAN2.EMData()
@@ -157,12 +182,14 @@ def read_image(filename, index=None, header=None, cache=None):
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
+    
+    filename = str(filename)
     emdata = eman2_utility.EMAN2.EMData() if cache is None else cache
     #_logger.debug("read_image-1: %s"%str(index))
     if index is None: emdata.read_image_c(filename)
     else: emdata.read_image_c(filename, int(index))
     #_logger.debug("read_image-2")
-    if header is not None: _update_header(emdata.todict(), header, eman2ara)
+    if header is not None: util.update_header(emdata.todict(), header, eman2ara)
     type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
     if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
         if emdata.get_attr('MRC.nlabels') > 0:
@@ -196,6 +223,7 @@ def iter_images(filename, index=None, header=None):
     
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    filename = str(filename)
     if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
     if index is None: index = 0
@@ -234,7 +262,7 @@ def count_images(filename):
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
     if not os.path.exists(filename): raise IOError, "File not found: "+filename
     if not is_readable(filename): raise IOError, "Format not supported by EMAN2/Sparx"
-    return eman2_utility.EMAN2.EMUtil.get_image_count(filename)
+    return eman2_utility.EMAN2.EMUtil.get_image_count(str(filename))
 
 def is_writable(filename):
     ''' Test if the image extension of the given filename is understood
@@ -251,9 +279,9 @@ def is_writable(filename):
             True if the format is recognized
     '''
     
-    ext = eman2_utility.EMAN2.Util.get_filename_ext(filename)
+    ext = eman2_utility.EMAN2.Util.get_filename_ext(str(filename))
     try:
-        type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(ext)
+        type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(str(ext))
         return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
 
@@ -263,7 +291,7 @@ def write_spider_image(filename, img, index=None):
     
     write_image(filename, img, index, None, eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN)
 
-def write_image(filename, img, index=None, header=None, type=None):
+def write_image(filename, img, index=None, header=None, inplace=False, type=None):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
@@ -277,16 +305,24 @@ def write_image(filename, img, index=None, header=None, type=None):
             Index image should be written to in the stack
     header : dict, optional
              Dictionary of header values
+    inplace : bool
+              Write new image to stack without removing the stack
     type : eman2_utility.EMAN2.EMUtil.ImageType, optional
            Format in which to write image
     '''
     
+    filename = str(filename)
+    if header is None and hasattr(img, 'header'): header=img.header
     try: "+"+filename
     except: raise ValueError, "EMAN2/Sparx formats do not support file streams"
+    
+    if not inplace and index is not None and index == 0 and os.path.exists(filename):
+        os.unlink(filename)
+    
     if not eman2_utility.is_em(img): 
         img = eman2_utility.numpy2em(img)
     h={'apix_x': 1.0}
-    header=_update_header(h, header, ara2eman)
+    header=util.update_header(h, header, ara2eman)
     for key, val in header.iteritems(): img.set_attr(key, val)
     if type is None:
         type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))

@@ -1,4 +1,6 @@
-''' Esimtate the amount of time left in a task
+''' Estimate the amount of time left in a task
+
+@todo - weight task, total by job size
 
 .. Created on Jan 11, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -10,7 +12,8 @@ class progress(object):
     '''
     
     def __init__(self, total):
-        '''
+        '''Create a progress monitor with the expected
+        number of tasks
         '''
         
         self.history = numpy.zeros((total+1, 2))
@@ -23,9 +26,9 @@ class progress(object):
         ''' Update the monitor
         
         :Parameters:
-        
-        work : int, optional
-               Current work
+            
+            work : int, optional
+                   Current work
         '''
         
         if work is None: work = self.history[self.completed, 0]+1
@@ -46,9 +49,9 @@ class progress(object):
         ''' Predict the work rate for remaining
         
         :Returns:
-        
-        rate : float
-               Work rate
+            
+            rate : float
+                   Work rate
         '''
         
         if self.completed < 2: return None
@@ -77,9 +80,9 @@ class progress(object):
         ''' Predict the remaining time to complete work
         
         :Returns:
-        
-        remaining : float
-                    Seconds remaining
+            
+            remaining : float
+                        Seconds remaining
         '''
         
         rate = self.predicted_rate()
@@ -93,14 +96,14 @@ def elapsed_str(secs):
     ''' Format elasped time in seconds into a string
     
     :Parameters:
-    
-    secs : float
-           Number of seconds
+        
+        secs : float
+               Number of seconds
     
     :Returns:
-    
-    elapse : str
-             Human readable elapsed time
+        
+        elapse : str
+                 Human readable elapsed time
     '''
     
     if secs < 0: return "--"

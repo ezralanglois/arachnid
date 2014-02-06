@@ -63,6 +63,10 @@ C--*********************************************************************
          PARAMETER (QUADPI = 3.1415926535897932384626)
          PARAMETER (DGR_TO_RAD = (QUADPI/180))
 
+         IF ( 1 .EQ. 0 ) THEN
+         LTB=0
+         ENDIF
+
          CPHI = DCOS(DBLE(PHI)  *DGR_TO_RAD)
          SPHI = DSIN(DBLE(PHI)  *DGR_TO_RAD)
          CTHE = DCOS(DBLE(THETA)*DGR_TO_RAD)

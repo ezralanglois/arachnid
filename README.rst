@@ -7,9 +7,11 @@ images collected by cryo-electron microscopy. It is built on top of SciPy and
 is distributed under the `GPL 2.0`_ license. It has the following highlighted applications
 and subpackage:
 
-- AutoPicker: Automated reference-free particle selection
-- ViCer: Automated particle verification
 - pySPIDER: Python batch files designed to better automate the reconstruction protocol
+- Planned future release
+	- AutoPicker: Automated reference-free particle selection
+	- ViCer: Automated particle verification
+	- Other utilities
 
 This project was started in 2009 by Robert Langlois as an internal software package written
 for members of the `Frank Lab`_. This package contains only the published algorithms and
@@ -21,7 +23,7 @@ For more information, see the documents in `build/sphinx/html/`. HTML documentat
 How to cite
 ===========
 
-
+Forthcoming ...
 
 Important links
 ===============
@@ -68,4 +70,4 @@ You can check out the latest source with the command::
 
 .. _`Frank Lab`: http://franklab.cpmc.columbia.edu/franklab/
 .. _`GPL 2.0`: http://www.gnu.org/licenses/gpl-2.0.html
-.. _`Anaconda: https://store.continuum.io/
+.. _`Anaconda`: https://store.continuum.io/

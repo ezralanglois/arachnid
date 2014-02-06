@@ -11,11 +11,13 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 try:
     MPI=None
-    from mpi4py import MPI
+    from mpi4py import MPI #@UnresolvedImport
 except:
-    _logger.addHandler(logging.StreamHandler())
-    logging.exception("mpi4py failed to load")
-    logging.warn("MPI not loaded, please install mpi4py")
+    from ..app import tracing
+    tracing.log_import_error('mpi4py failed to load', _logger)
+    #_logger.addHandler(logging.StreamHandler())
+    #logging.exception("mpi4py failed to load")
+    #logging.warn("MPI not loaded, please install mpi4py")
 
 
 def hostname():
@@ -316,7 +318,11 @@ def mpi_init(params, use_MPI=False, **extra):
     if use_MPI and supports_MPI():
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
-        MPI.COMM_SELF.Set_errhandler(MPI.ERRORS_ARE_FATAL) 
+        h = logging.StreamHandler()
+        _logger.addHandler(h)
+        _logger.info("MPI initialized on node(%d): %s"%(rank, hostname()))
+        _logger.removeHandler(h)
+        MPI.COMM_SELF.Set_errhandler(MPI.ERRORS_ARE_FATAL)
         MPI.COMM_WORLD.Set_errhandler(MPI.ERRORS_ARE_FATAL)
         params['comm'] = comm
         params['rank'] = rank

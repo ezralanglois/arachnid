@@ -11,4 +11,5 @@
     settings
     tracing
     file_processor
+    progress
 '''

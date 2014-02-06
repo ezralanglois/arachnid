@@ -65,7 +65,7 @@ C--*********************************************************************
          REAL            :: SHX,SHY,RY1,RX1,RY2,RX2,COD,SID,XI
          REAL            :: CODDSCLI,SIDDSCLI,FIXCENMSHX,FIYCENMSHY 
          REAL            :: RYE2,RYE1,RXE2,RXE1,YI
-         REAL            :: YCOD,YSID,X1,YOLD,XOLD
+         REAL            :: YCOD,YSID,YOLD,XOLD
          INTEGER         :: IYCEN,IXCEN,IX,IY
 
          REAL            :: quadri
@@ -142,134 +142,6 @@ c$omp    end parallel do
 
          END
 
-C******************************** RTSQ _BACK ********************************
-
-         SUBROUTINE RTSQ_BACK(XIMG,BUFOUT, NX,NY,
-     &                     THETA,SCLI,SHXI,SHYI, 
-     &                     USEBACK,BACK,   IRECOFF,LUN)
-
-         IMPLICIT NONE
-         REAL            :: XIMG(NX,NY)
-         REAL            :: BUFOUT(NX,*)   ! Y MAY BE: 1
-         INTEGER         :: NX,NY 
-         REAL            :: THETA,SCLI,SHXI,SHYI
-         LOGICAL         :: USEBACK
-         REAL            :: BACK
-         INTEGER         :: IRECOFF,LUN
-
-	 REAL, PARAMETER :: QUADPI = 3.14159265358979323846
-	 REAL, PARAMETER :: DGR_TO_RAD = (QUADPI/180)
-
-         REAL            :: SHX,SHY,RY1,RX1,RY2,RX2,COD,SID,XI
-         REAL            :: CODDSCLI,SIDDSCLI,FIXCENMSHX,FIYCENMSHY 
-         REAL            :: RYE2,RYE1,RXE2,RXE1
-         REAL            :: YI,YCOD,YSID,X1,YOLD,XOLD
-         INTEGER         :: IYCEN,IXCEN,IT,IX,IY
-
-         REAL            :: quadri
-
-C        SHIFT WITHIN IMAGE BOUNDARY
-         SHX   = AMOD(SHXI,FLOAT(NX))
-         SHY   = AMOD(SHYI,FLOAT(NY))
-
-C        SPIDER IMAGE CENTER
-         IYCEN = NY/2+1
-         IXCEN = NX/2+1
-
-C        IMAGE DIMENSIONS AROUND ORIGIN
-         RX1   = -NX/2
-         RX2   =  NX/2
-         RY1   = -NY/2
-         RY2   =  NY/2
-
-         IF (MOD(NX,2) == 0) THEN
-            RX2  =  RX2 - 1.0
-            RXE1 = -NX
-            RXE2 =  NX
-         ELSE
-            RXE1 = -NX - 1
-            RXE2 =  NX + 1
-         ENDIF
-
-         IF (MOD(NY,2) == 0) THEN
-            RY2  =  RY2 - 1.0
-            RYE1 = -NY 
-            RYE2 =  NY
-         ELSE
-            RYE1 = -NY - 1
-            RYE2 =  NY + 1
-         ENDIF
-
-C        CREATE TRANSFORMATION MATRIX
-         COD        = COS(THETA * DGR_TO_RAD)
-         SID        = SIN(THETA * DGR_TO_RAD)
-
-C        ADJUST FOR SCALING
-         CODDSCLI   = COD / SCLI
-         SIDDSCLI   = SID / SCLI
-
-C        -(CENTER PLUS SHIFT)
-         FIXCENMSHX = -IXCEN - SHX
-         FIYCENMSHY = -IYCEN - SHY
-
-         IT         = 1   ! IF WRITING TO OUTPUT
-
-         DO IY=1,NY
-            IF (LUN <= 0) IT = IY
-
-            YI = IY + FIYCENMSHY
-
-            IF (YI < RY1) YI = MIN(YI+RYE2, RY2)
-            IF (YI > RY2) YI = MAX(YI+RYE1, RY1)
- 
-            YCOD =  YI * CODDSCLI + IYCEN
-            YSID = -YI * SIDDSCLI + IXCEN
-
-            if (USEBACK) THEN
-c$omp          parallel do private(ix,xi,xold,yold)
-               DO IX=1,NX
-                  XI = IX + FIXCENMSHX  
-                         
-                  IF (XI < RX1) XI = MIN(XI+RXE2, RX2)   
-                  IF (XI > RX2) XI = MAX(XI+RXE1, RX1)  
-
-                  YOLD = XI * SIDDSCLI + YCOD  
-                  XOLD = XI * CODDSCLI + YSID
-
-                  IF (YOLD < 1 .OR. YOLD > NY .OR. 
-     &                XOLD < 1 .OR. XOLD > NX) THEN
-C                    CORNER LOCATION
-                     BUFOUT(IX,IT) = BACK
-
-                  ELSE
-C                    could use quadri_fast?? al
-                     BUFOUT(IX,IT) = QUADRI(XOLD,YOLD, NX,NY, XIMG)
-                  ENDIF
-               ENDDO
-
-            ELSE
-c$omp          parallel do private(ix,xi,xold,yold)
-               DO IX=1,NX
-                  XI = IX + FIXCENMSHX  
-                         
-                  IF (XI < RX1) XI = MIN(XI+RXE2, RX2)   
-                  IF (XI > RX2) XI = MAX(XI+RXE1, RX1)  
-
-                  YOLD         = XI * SIDDSCLI + YCOD  
-                  XOLD         = XI * CODDSCLI + YSID
-
-                  BUFOUT(IX,IT) = QUADRI(XOLD,YOLD, NX,NY, XIMG)
-               ENDDO
-            ENDIF
-
-C            IF (LUN > 0) THEN
-C              WRITE CURRENT LINE TO FILE
-C               CALL WRTLIN(LUN,BUFOUT,NX,IRECOFF+IY)
-C            ENDIF
-         ENDDO
-
-         END
-
 
 C******************************** RTSQ_PAD *****************************
 
@@ -289,7 +161,7 @@ C******************************** RTSQ_PAD *****************************
          REAL            :: SHX,SHY,RY1,RX1,RY2,RX2,COD,SID,XI
          REAL            :: CODDSCLI,SIDDSCLI,FIXCENMSHX,FIYCENMSHY 
          REAL            :: RYE2,RYE1,RXE2,RXE1,YI
-         REAL            :: YCOD,YSID,X1,YOLD,XOLD
+         REAL            :: YCOD,YSID,YOLD,XOLD
          INTEGER         :: IYCEN,IXCEN,IX,IY
 
          REAL            :: quadri

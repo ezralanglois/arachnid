@@ -2,423 +2,279 @@
 Reconstruction Protocol
 =======================
 
-This protocol describes single-particle reconstruction of a biological specimen (e.g. the ribosome) 
-from a collection of electron micrographs.
+.. include:: includes/icons.rst
 
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
+.. toctree::
+	:maxdepth: 0
+	:hidden:
+	
+	reconstruction_cmdline
 
-Getting Started
-===============
+This tutorial covers setting up a workflow for preprocessing images for 3D angular 
+refinement using the Arachnid Graphical User Interface (GUI).  The GUI allows 
+for an effective, easy, interactive wizard for the pre-processing of electron 
+micrograph data. The design, scope, and rationale for this workflow can be found 
+in the :doc:`References <../CITE>` section of the website. The workflow 
+has been benchmarked for a variety of single-particle reconstruction projects.
 
-Now that you have finished collecting your data, you are ready to begin the image processing. At
-this point you should have two things:
-
-	#. A set of micrographs
-	#. Information describing your data collection:
-		- Pixel size, A
-		- Electron energy, KeV
-		- Spherical aberration, mm
-		- Actual size of particle, pixels
-
-There are several ways to proceed after creating your project:
-
-#. Use the `-m All Cluster` option for `spi-project` and everything is run on the cluster (except reference preparation)
-#. Simply run the provided scripts (`run_local` and `run_cluster` to do a fast data processing)
-#. Run the `run_local` script then go to `Improving the Data Treatment`_ and manually 
-   assess the data quality and fix problems before running `run_cluster`.
-#. Run each configuration file independently
+All commands and options in the program can alternatively be accessed and run 
+via the command line. This is covered in the 
+:doc:`Command-line Protocol <reconstruction_cmdline>`. This tutorial 
+also assumes that :doc:`installation <install>` of the program was successful.
 
 .. note::
+
+	While there are advantages to running the command-line version, it does not currently support 
+	certain features such as Leginon database import.
 	
-	For Frank Lab members, you must source Arachnid to get full access to pySpider (EACH time you start a terminal window).
-	
+Quick Start
+===========
+
+The following tutorial will take you step-by-step through the use of the Arachnid GUI. Each section
+is accompanied by a screen shot illustrating what you will see after the GUI has been launched.
+
+To lauch the GUI, run the following on the terminal:
+
 	.. sourcecode:: sh
 	
-		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
+		$ ara-control
 
-Creating a project
-------------------
-
-The `spi-project` script generates an entire pySPIDER project including
+Introduction
+------------
 	
-	- Directories
-	- Configuration files
-
-A list of options (default configuration file) can be obtain by simply running
-the program without arguments.
-
-.. sourcecode:: sh
+The first page in the workflow wizard (illustrated in the screen shot below) 
+gives the user basic information concerning the software including contributions 
+made by people and funding agencies.
 	
-	$ spi-project
-	ERROR:root:Option --input-files requires a value - found empty
-	#  Program:	spi-project
-	#  Version:	0.0.1
-	
-	#  Generate all the scripts and directories for a pySPIDER project
-	#  
-	#  $ spi-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
-	#  
+	.. image:: images/wizard/wizard_screen_shot_0000.png
+		:scale: 60%
 
-	
-	input-files:                            #               (-i)    List of input filenames containing micrographs
-	output:                                 #               (-o)    Output directory with project name
-	raw-reference:                          #               (-r)    Raw reference volume
-	ext:                                    #               (-e)    Extension for SPIDER (three characters)
-	is-ccd:                         False   #	Set true if the micrographs were collected on a CCD (and have not been processed)
-	apix:                           0.0     #       Pixel size, A
-	voltage:                        0.0     #       Electron energy, KeV
-	cs:                             0.0     #       Spherical aberration, mm
-	pixel-diameter:                 0       #       Actual size of particle, pixels
-	...
+Import Prompt
+-------------
 
-The values shown above (for brevity only a partial list covering all required parameters) are all 
-required for this script to run.
+Next, the user is asked whether they wish to automatically import or manually enter information 
+describing the experiment.
 
-The values for each option can be set as follows:
+If the user clicks |accept_icon| "Yes", then the program will attempt to connect to the Leginon Database and retrieve 
+their most recent sessions. The user will then be able to select multiple sessions and this information will 
+be used to fill the next page: **Manual Settings**.
 
-.. sourcecode:: sh
-	
-	$ spi-project ../mic*.tif -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --pixel-diameter 220 --scatter-doc ribosome
+If the user clicks |reject_icon| "No", then the program will show the **Manual Settings** page where the user will be prompted 
+to manually enter information concerning the data.
 
-Let's look at each parameter on the command line above.
-
-The `../mic*.tif` is a list of micrographs. The shell in most operating systems understands that `*` is a wildcard 
-character that allows you to select all files in directory `../` that start with `mic` and end with `.tif`. You do
-not need to convert the micrographs to SPIDER format, that will be taken care of for you. In fact, the micrographs
-are not converted at all, only the output particle projection windows are required to be in SPIDER format for
-pySPIDER.
-
-The `-o ribosome_70s` defines the name of the root output directory, which in this case is `ribosome_70s`. A set of
-directories and configuration files/scripts will be created in this output directory (:ref:`see below <project-directory>`).
-
-The `-r emd_1001.map` defines the raw reference volume. Ideally, this will be in MRC format with the pixel-size in the header. If not,
-then you will need to edit the :py:mod:`reference` script to set the pixel size.
-
-The `-e spi` defines the extension used in the SPIDER project. This is required by SPIDER and should be three characters.
-
-The `-w 4` defines the number of cores to use for parallel processing.
-
-The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--pixel-diameter 220` microscope parameters that define the experiment.
-
-The `--scatter-doc ribosome` will download a ribosome scattering file to 8A, otherwise you should specify an existing scattering file
-or nothing.
-
-.. note::
-
-	When processing unprocessed (i.e. inverted) CCD micrographs `--is-ccd` should be added to the command above.
-	In the configuration file, this should be `is-ccd: True`
-
-.. _project-directory:
-
-The command above will create a directory called `ribosome_70s` with the following structure:
-
-.. sourcecode:: sh
-
-	$ ls -R ribosome_70s
-	ribosome_70s/:
-	cluster  local run_cluster run_local
-	
-	ribosome_70s/cluster:
-	align.cfg  data  refine.cfg  refinement  win
-	
-	ribosome_70s/cluster/data:
-	params.spi
-	
-	ribosome_70s/cluster/refinement:
-	
-	ribosome_70s/cluster/win:
-	
-	ribosome_70s/local:
-	autopick.cfg  coords  crop.cfg  defocus.cfg  pow  reference.cfg
-	
-	ribosome_70s/local/coords:
-	
-	ribosome_70s/local/pow:
-
-In the `ribosome_70s` directory, you will find two scripts: one to invoke all local scripts and one
-to invoke the cluster scripts.
-
-Running Local Scripts
----------------------
-
-To run all the local scripts in the proper order, use the following suggested command:
-
-.. sourcecode:: sh
-
-	$ cd ribosome_70s
-	
-	$ nohup sh run_local  > /dev/null &
+	.. image:: images/wizard/wizard_screen_shot_0010.png
+		:scale: 60%
 
 .. note::
 	
-	All paths are setup relative to you executing a script from the project directory, e.g. `ribosome_70s`.
+	Certain pages have an information button |info_icon|. By clicking this button a separate window is opened, 
+	displaying relevant help information. This window can be left open and will be updated as the user clicks 
+	such buttons on later pages.
 
-Running Cluster Scripts
+Leginon Database Import
 -----------------------
 
-Running scripts on the cluster is slightly more complicated. The `spi-project` script tries to guess the proper command
-under the following assumptions:
+If the user elects to import information from the Leginon database, then they will see one of
+the following pages.
 
- #. Your account is setup to run an MPI job on the cluster
- #. You have a machinefile for MPI
- #. You have SSH-AGENT or some non-password enabled setup
- #. Your cluster does not use a schdueling system like PBS or Torque
+Leginon Account
+~~~~~~~~~~~~~~~
 
-If your files are not accessible to the cluster, then you only need to copy the `cluster` directory and the
-`run_cluster` script to the cluster. 
-
-.. sourcecode:: sh
-
-	$ cd ribosome_70s
+If this is the user's first time using the program on the current machine, then user will be shown
+the following page prompting the user for the following information:
 	
-	$ scp -r cluster run_cluster username@cluster:~/ribosome_70s
-
-To run all cluster scripts in the proper order, use the following suggested command:
-
-.. sourcecode:: sh
-
-	$ cd ribosome_70s
+	- Hostname or IP Address for Leginon Primary Database followed by name of the database
+	- Hostname or IP Address of Leginon Project Database followed by name of the database
+	- Leginon Credentials (Specific to each user)
+	- Database Credentials
 	
-	$ nohup sh run_cluster > /dev/null &
+.. note::
+	
+	Since most of the information, excluding the Leginon Credentials, is universal to the lab,
+	the system administrator should provide this information.
+
+.. image:: images/wizard/wizard_screen_shot_0022.png
+	:scale: 60%
+
+Leginon Sessions
+~~~~~~~~~~~~~~~~
+
+Once you have successfully logged into the Leginon Database, the following page will be displayed:
 
 .. note::
 
-	You will find your refined, amplitude-enhanced volume in `ribosome_70s/cluster/refinement` with the 
-	name (assuming you specified `scattering-doc` with the appropriate file): e.g. after 13 iterations 
-	of refinement, it will be called `enh_align_0013.spi`.
-
-Improving the Data Treatment
-============================
-
-Arachnid is geared toward automated data processing. Algorithms are currently under development to
-handle each the of the steps below. Until such algorithms have been developed, it is recommended
-that you use the SPIDER alternatives listed below. 
-
-.. note:: 
+	If this is not your first time, then you should see this page first.
 	
-	Arachnid was intended to be compatible with SPIDER batch files.
+The |user_icon| `Change User` button displays a settings panel where the user can change their 
+username or information regarding the Leginon database.
 
-Micrograph screening
---------------------
+In the table picture in the screen shot below, the last session for which you collected data should be 
+displayed. More sessions can be viewed by increasing the `Show last` number shown and then clicking 
+the |refresh_icon| `Refresh` button. By default, only the most recent session is shown.
 
-This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
+.. image:: images/wizard/wizard_screen_shot_0020.png
+	:scale: 60%
 
-Power spectra screening
------------------------
+Manual Settings
+---------------
 
-This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
+After selecting a session from Leginon or skipping the database import, the next page asks the user
+to enter the following information:
+
+	- File path for the micrograph exposures (either single images or stacks)
+	- Gain normalization image (only used for movie-mode stacks)
+	- Contrast inversion (generally exposures taken on a CCD or CMOS camera must be inverted)
+	- Microscope parameters (later used for CTF estimation)
+		- Pixel size (Pixel/angstroms)
+		- Acceleration Voltage or High tension (kV)
+		- Spherical Abberation or CS (mm)
 	
-Manual CTF fitting
-------------------
+.. image:: images/wizard/wizard_screen_shot_0030.png
+	:scale: 60%
 
-This can be done with `SPIDER's CTFMatch <http://www.wadsworth.org/spider_doc/spire/doc/guitools/ctfmatch/ctfmatch.html>`_. CTFMatch
-will write out a new defocus file
-
-.. note::
-	
-	It is recommended that you rename the current defocus file first, then save the new defocus file 
-	with the original name of the current defocus file.
-
-Particle screening
-------------------
-
-- This can be done with `SPIDER's Montage Viewer <http://www.wadsworth.org/spider_doc/spire/doc/guitools/montage.html>`_.
-- Alternatively with `Verify By View <http://www.wadsworth.org/spider_doc/spider/docs/techs/verify/batch/instr-apsh.htm#verify>`_
-
-Classification
---------------
-
-#. Supervised Classification
-	
-	See: http://www.wadsworth.org/spider_doc/spider/docs/techs/supclass/supclass.htm
-
-Chimera Tricks
-==============
-
-Chimera is the most common tool to visualize your density map. Here are some tricks
-to viewing SPIDER files.
-
-Open a SPIDER file
-------------------
-
-Chimera command line: open #0 spider:~/Desktop/enh_25_r7_05.ter
-
-.. sourcecode:: sh
-	
-	chimera spider:~/Desktop/enh_25_r7_05.ter
-
-Choose a SPIDER Viewing Angle
------------------------------
-
-To see a specific orientation of your volume when using SPIDER angles,
-the following commands may be used.
-
-.. note::
-
-	- SPIDER:  ZYZ rotating frame
-	- CHIMERA: ZYX static frame
-
-.. sourcecode:: c
-
-	reset
-	turn y theta coordinatesystem #0
-	turn z phi coordinatesystem #0
-	turn x 180
-
-Running Isolated Scripts
-========================
-
-This section covers running Arachnid scripts in isolation, i.e. when you only want to use Arachnid for one
-procedure in the single-particle reconstruction workflow.
-
-.. note::
-	
-	For Frank Lab members, you must source Arachnid to get full access to pySpider (EACH time you start a terminal window).
-	
-	.. sourcecode:: sh
-	
-		$ source /guam.raid.cluster.software/arachnid/arachnid.rc
-		
-Micrograph Selection
---------------------
-
-Using ap-view (or view) (Frank Lab)
-
-1. Create micrograph stacks
-
-Decimate micrographs (on Linux)
-
-.. sourcecode:: sh
-
-	ap-prepare mic* -o mic_000000.ext -w decimate --bin-factor 8
-
-ap-view (also called view on mac and windows) requires a stack of images for 
-selection. After decimating your micrographs, you can stack them into small groups.
-
-To do this: Download :download:`stack_images.py <../arachnid/snippets/stack_images.py>`, edit to
-set your micrograph file names and then run.
-
-.. sourcecode:: sh
-	
-	$ python stack_images.py
-
-If you set the output filename in stack_images.py as micrograph_stack_0001.spi, then you will have
-the following outputs:
-
- -  micrograph_stack_0001.spi,  micrograph_stack_0002.spi ...  micrograph_stack_XXXX.spi
- -  sel_micrograph_stack_0001.spi,  sel_micrograph_stack_0002.spi ...  sel_micrograph_stack_XXXX.spi
- -  selall_micrograph_stack_XXXXb.spi
-
-2. Load data into ap-view (or view)
-
- - Open selall_micrograph_stack_XXXXb.spi
- - Open micrograph_stack_0001.spi
- - Open sel_micrograph_stack_0001.spi
- - Save project!
- - Start selecting
- - When finished Save as ".sdat"
-
-3. Remap selection files
-
-On Linux, run the following command:
-
-To do this: Download :download:`postporcess_mic_select <../arachnid/snippets/postprocess_mic_select.py>`, edit to
-set your micrograph file names and then run.
-
-.. sourcecode:: sh
-	
-	$ python postporcess_mic_select.py
-
-Power Spectra Selection
------------------------
-
-1. Stack all power spectra
-
-.. sourcecode:: sh
-
-	ap-stack pow_* -o pow_stack_01.ext --document pow_select_01.ext
-
-2. Load data into ap-view (or view)
-
- - Open pow_stack_01.ext
- - Open pow_select_01.ext
- - Save project!
- - Start selecting
- - When finished Save as ".sdat"
-
-Particle Selection
-------------------
-
-1. Create a config file
-
-.. sourcecode:: sh
-
-	$ ara-autopick > auto.cfg
-
-2. Edit config file
-
-.. sourcecode:: sh
-
-	$ vi auto.cfg
-	
-	# - or -
-	
-	$ kwrite auto.cfg
-
-	input-files: Micrographs/mic_*.spi
-	output:	coords/sndc_0000.spi
-	param-file: params.spi
-	bin-factor: 2.0
-	worker-count: 4
-	invert: False 	# Set True for unprocessed CCD micrographs
-
-3. Run using config file
-
-.. sourcecode:: sh
-	
-	$ ara-autopick -c auto.cfg
-
-Particle Windowing
-------------------
-
-1. Create a config file
-
-.. sourcecode:: sh
-
-	$ ara-crop > crop.cfg
-
-2. Edit config file
-
-.. sourcecode:: sh
-
-	$ vi crop.cfg
-	
-	# - or -
-	
-	$ kwrite crop.cfg
-
-	input-files: Micrographs/mic_*.spi
-	output:	win/win_0000.spi
-	coordinate-file: coords/sndc_0000.spi
-	param-file: params.spi
-	bin-factor: 1.0
-	worker-count: 4		# Set based on number of available cores and memory limitations
-	invert: False 		# Set True for unprocessed CCD micrographs
-
-3. Run using config file
-
-.. sourcecode:: sh
-	
-	$ ara-crop -c auto.cfg
-
-Creating Relion Selection File
+Reference Preprocessing Prompt
 ------------------------------
 
-.. sourcecode:: sh
+Next the user is asked whether they wish to preprocess a volume to use as a
+reference. The reference generation script will ensure the volume as the 
+proper window size and pixel size as well as inital resolution for filtering.
+
+.. note:: :py:mod:`More information on reference generation <arachnid.pyspider.reference>`
+
+If the user clicks |accept_icon| "Yes", then the user will be asked to either locate
+a local file to use as a reference or download a file from the EMDB.
+
+.. image:: images/wizard/wizard_screen_shot_0040.png
+	:scale: 60%
+
+Reference Map Generation
+-------------------------
+
+The user is given the option of downloading a volume from the EMDB or locating
+a local file containing a volume to be used as a reference.
+
+.. note::
 	
-	$ ara-selrelion -i win/win_* -o relion_input.star -p params.dat -d defocus.dat
+	If you already have a volume, then you can select the `Local File` tab
+
+EMDB Download
+~~~~~~~~~~~~~
+
+The user has the option of selecting one of the curated volumes displayed in the list by double clicking
+on the icon. Otherwise, the user can enter an EMDB accession number into the text box below.
+
+The user then has the option of viewing the EMDB webpage associated with the accession number using
+the |link_icon| `Link` button.
+
+When the user has selected the appropriate volume, the user can then click the |download_icon| `Download` button.
+
+.. note::
+
+	Depending on the pixel size, it can take some time to download the map: don't panic.
+
+.. image:: images/wizard/wizard_screen_shot_0052.png
+	:scale: 60%
+
+Local File
+~~~~~~~~~~
+
+After the user downloads a volume or has gone directly to the local file page and opened a volume file, 
+the following information about the volume will be displayed.
+
+.. warning:: 
+	
+	The user must verify or must enter the current Pixel Size for the volume (not the target pixel size
+	corresponding to your data!).
+	
+.. image:: images/wizard/wizard_screen_shot_0050.png
+	:scale: 60%
+
+Additional Parameters
+---------------------
+
+The user is then prompted to enter information describing both the macromolecule of interest, 
+a qualitative assessment of the particle crowding on the micrograph and the amount of 
+processing power they wish to use.
+
+.. note::
+	
+	The mask diameter should be the same value as will be used in angular refinement,
+	e.g. Relion.
+
+.. image:: images/wizard/wizard_screen_shot_0060.png
+	:scale: 60%
+
+Review Parameters
+-----------------
+
+The user is next asked to review the settings of the individual sub-programs. Generally, this
+will only be used by advanced users that understand how each parameter affects the underlying
+steps in the workflow.
+
+After clicking on a particular parameter and hitting the |link_icon| `Link` button, a brower
+will display the manual page associated with that parameter.
+
+.. image:: images/wizard/wizard_screen_shot_0070.png
+	:scale: 60%
+	
+Run the Workflow
+----------------
+
+Finally, the user is present with the workflow monitor. The user can start
+the preprocessing and monitor the progress from this screen.
+
+.. note::
+
+	The user cannot kill the workflow by closing the window or by clicking
+	the stop button.
+
+Restarting the `ara-control` script in the original directory where it was run 
+allows the user to continue montoring the progress from the same or a 
+different computer.
+
+.. image:: images/wizard/wizard_screen_shot_0080.png
+	:scale: 60%
+
+Tips
+====
+
+1. Check the particle selection in ara-screen
+	
+	By default, ara-screen displays the power spectra
+
+2. Check the reference
+	
+	Use Chimera to visualize the reference
+
+3. Check the contrast inversion of the micrograph.
+	
+	It is assumed that your micrograph requires contrast inversion and the parameter `--is-film` 
+	can keep the current contrast. You want light particles on a dark background.
+
+4. Check normalization when preparing the data for Relion
+
+	For Arachnid=0.1.2 the particle-diameter must match the mask diameter used in Relion.
+	For Arachnid=0.1.3 and later the mask-diamter must match the mask diameter used in Relion.
+
+5. Suggested AutoPicker parameters for various conditions/samples (These parameters are set for you in the GUI)
+
+	1. Crowded micrographs: --overlap-mult 0.8
+	2. Very asymmetric particles (40S subunit of the ribosome) --disk-mult 0.2 
+	3. Very few particles --threshold-minimum 10 (only works for Arachnid 0.1.3 or later)
+
+6. Very Dirty Dataset - Use ara-vicer
+
+	You must first run a short Relion Refinement, suggested on 4x decimated data. It does not have to run to the end, but 
+	the longer you run it the better ara-vicer will work.
+	
+	To run, do the following
+	
+	.. sourcecode:: sh
+		
+		# Determine the good particles
+		
+		$ ara-vicer cluster/win/win_*.dat -a relion_it012_data.star -o output/view_0000000.dat -w8 -p cluster/data/params.dat 
+		
+	Note that this script writes out a relion selection file with the name view.star.
 
 

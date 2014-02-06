@@ -2,24 +2,22 @@
 
 Supported formats:
     
-     - :py:mod:`EMAN2/SPARX <formats.eman_format>`
      - :py:mod:`MRC <formats.mrc>`
      - :py:mod:`SPIDER <formats.spider>`
-     
-.. todo:: mrc format gives nans with direct detector data, disabled until fixed
+     - :py:mod:`EMAN2/SPARX <formats.eman_format>` (Optional, used if available)
+
+.. note:: 
+    
+    Each read function supports soft links or shortcuts
 
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import logging, os
-from ..app import tracing
-from formats import spider, eman_format as spider_writer, mrc, ccp4
+from formats import spider, mrc, eman_format
 from ..metadata import spider_utility, format_utility
-from ..parallel import process_tasks, process_queue, mpi_utility
-import scipy.io
+from ..parallel import mpi_utility
 import numpy
-mrc;
-ccp4;
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -58,122 +56,6 @@ def copy_local(filename, selection, local_file, **extra):
         write_image(local_file, img, i)
     numpy.savetxt(selection_file, selection, delimiter=",")
     return local_file
-    
-def read_image_mat(filename, label, image_processor, shared=False, cache_file=None, force_mat=False, dtype=numpy.float, **extra):
-    '''Create a matrix where each row is an image
-    
-    :Parameters:
-    
-    filename : str
-               Name of the file
-    label : array
-            Array of selected indicies
-    image_processor : function
-                      Extract features from the image 
-    shared : bool
-             If True create a shared memory array
-    extra : dict
-            Unused keyword arguments
-            
-    :Returns:
-    
-    mat : array
-          2D matrix where each row is an image
-    '''
-    
-    if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
-    if hasattr(label, 'ndim') and label.ndim == 2:
-        filename = spider_utility.spider_filename(filename, int(label[0, 0]))
-        index = int(label[0, 1])
-    else: index = int(label[0])
-    img1 = read_image(filename, index)
-    img = image_processor(img1, 0, **extra).ravel()
-    
-    if force_mat:
-        if cache_file is not None and cache_file != "":
-            cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
-            if format_utility.os.path.exists(cache_file):
-                data = scipy.io.loadmat(cache_file)['data']
-                return numpy.ascontiguousarray(data)
-    else:
-        if cache_file is not None and cache_file != "":
-            cache_file = format_utility.new_filename(cache_file, suffix="_read", ext=".mat")
-            cache_dat = format_utility.new_filename(cache_file, suffix="_read_data", ext=".bin")
-            if format_utility.os.path.exists(cache_file):
-                _logger.info("Reading data matrix from %s"%cache_file)
-                mat = scipy.io.loadmat(cache_file)
-                dtype = mat['dtype'][0]
-                if dtype[0] == '[': dtype = dtype[2:len(dtype)-2]
-                n = numpy.prod(mat['coo'])
-                if n == (img.shape[0]*label.shape[0]):
-                    if shared:
-                        mat, shmem_mat = process_queue.create_global_dense_matrix( tuple(mat['coo']) )
-                        mat[:] = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype))
-                        return shmem_mat
-                    else:
-                        mat = numpy.fromfile(cache_dat, dtype=numpy.dtype(dtype)).reshape((len(label), img.shape[0]), order='C')
-                        return mat
-                else:
-                    _logger.info("Data matrix does not match the input: %d != %d (%d*%d)"%(n, img.shape[0]*label.shape[0], img.shape[0], label.shape[0]))
-    
-    if shared:
-        assert(False)
-        mat, shmem_mat = process_queue.create_global_dense_matrix( ( len(label), img.shape[0] )  )
-    else:
-        mat = numpy.zeros((len(label), img.shape[0]), dtype=dtype)
-        shmem_mat = mat
-    for row, data in process_tasks.for_process_mp(iter_images(filename, label), image_processor, img1.shape, queue_limit=100, **extra):
-        mat[row, :] = data.ravel()[:img.shape[0]]
-    if force_mat:
-        scipy.io.savemat(cache_file, dict(data=mat, label=label), oned_as='column', format='5')
-    else:
-        if cache_file is not None and cache_file != "":
-            _logger.info("Caching image matrix")
-            scipy.io.savemat(cache_file, dict(coo=numpy.asarray(mat.shape, dtype=numpy.int), dtype=mat.dtype.name), oned_as='column', format='5')
-            mat.ravel().tofile(cache_dat)
-    return shmem_mat
-
-def is_spider_format(filename):
-    ''' Test if input file is in SPIDER format
-    
-    :Parameters:
-    
-    filename : str
-               Input filename to test
-    
-    :Returns:
-    
-    is_spider : bool
-                True if file is in SPIDER format
-    '''
-    
-    return spider.is_readable(filename)
-
-def copy_to_spider(filename, tempfile, index=None):
-    ''' Test if input file is in SPIDER format, if not copy to tempfile
-    
-    :Parameters:
-    
-    filename : str
-               Input filename to test
-    tempfile : str
-               Output filename (if input file not SPIDER format)
-    index : int, optional
-            Index of image in stack
-    
-    :Returns:
-    
-    spider_file : str
-                  Name of a file containing the image in SPIDER format
-    '''
-    
-    if is_spider_format(filename) and os.path.splitext(filename)[1] == os.path.splitext(tempfile)[1]: return filename
-    
-    img = read_image(filename, index)
-    spider_writer.write_spider_image(tempfile, img)
-    #for index, img in enumerate(iter_images(filename)):
-    #    spider_writer.write_image(tempfile, img, index)
-    return tempfile
 
 def is_readable(filename):
     ''' Test if the input filename of the image is in a recognized
@@ -186,11 +68,11 @@ def is_readable(filename):
     
     :Returns:
     
-    read : bool
+    out : bool
            True if the format is recognized
     '''
     
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+    filename = readlinkabs(filename)
     return get_read_format(filename) is not None
 
 def read_header(filename, index=None):
@@ -209,6 +91,7 @@ def read_header(filename, index=None):
           Array with header information in the file
     '''
     
+    filename = readlinkabs(filename)
     format = get_read_format_except(filename)
     return format.read_header(filename, index)
 
@@ -221,6 +104,8 @@ def read_image(filename, index=None, **extra):
                Input filename to read
     index : int, optional
             Index of image to get, if None, first image (Default: None)
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
         
@@ -228,40 +113,46 @@ def read_image(filename, index=None, **extra):
           Array with header information in the file
     '''
     
-    try:
-        filename = readlinkabs(filename)
-    except:
-        _logger.error("Problem with: %s"%str(filename))
-        raise
+    if isinstance(filename, tuple): filename,index=filename
+    filename = readlinkabs(filename)
     format = get_read_format_except(filename)
-    return format.read_image(filename, index, **extra)
+    cache_keys = format.cache_data().keys()
+    param = {}
+    for key in cache_keys:
+        if key not in extra: continue
+        param[key] = extra[key]
+    try:
+        return format.read_image(filename, index, **param)
+    except:
+        if index is not None:
+            _logger.error("Error reading: %d@%s"%(index, filename))
+        else:
+            _logger.error("Error reading: %s"%filename)
+        raise
 
-def readlinkabs(link):
-    ''' Get the absolute path for the given symlink
+def read_stack(filename):
+    ''' Read an entire stack into a multi-dimensional array
     
     :Parameters:
     
-    link : str
-           Link filename
+    filename : str
+               Input filename to read
     
     :Returns:
-    
-    filename : str
-               Absolute path of file link points
+        
+    out : array
+          Array nxm1xm2xm3 where n is the 
+          number of images and m1-m3 are
+          the dimensions of an individual
+          image
     '''
     
-    if not os.path.islink(link):  return link
-    p = os.readlink(link)
-    if os.path.isabs(p): return p
-    return os.path.join(os.path.dirname(link), p)
-
-def process_images(input_file, output_file, transform_func, index=None, **extra):
-    ''' Apply functor to each image in the list
-    '''
-    
-    for i, img in enumerate(iter_images(input_file, index)):
-        img = transform_func((i, img), **extra)
-        write_image(output_file, img, i)
+    img = read_image(filename)
+    count = count_images(filename)
+    stack = numpy.zeros((count, )+img.shape)
+    for i, img in enumerate(iter_images(filename)):
+        stack[i, :] = img
+    return stack
 
 def iter_images(filename, index=None):
     ''' Read a set of images from the given file
@@ -271,7 +162,12 @@ def iter_images(filename, index=None):
     filename : str
                Input filename to read
     index : int or array, optional
-            Index of image to start or array of selected images, if None, start with the first image (Default: None)
+            Image index: 
+                - if int, then index of image to start 
+                - if array, then an array of selected images
+                - if list of strs, then iterate over each stack for each filename in list
+                - if list of tuples, then assumes each is a filename and an index
+                - if None, start with the first image (Default: None)
     
     :Returns:
         
@@ -281,6 +177,7 @@ def iter_images(filename, index=None):
     .. todo:: iter single images
     '''
     
+    if isinstance(filename, tuple): filename, index = filename
     if index is None and isinstance(filename, list):
         if isinstance(filename[0], tuple):
             for f, id in filename:
@@ -294,41 +191,41 @@ def iter_images(filename, index=None):
         if hasattr(filename, 'find') and count_images(filename) == 1:
             for i in xrange(len(index)):
                 if index.ndim == 2:
-                    filename = spider_utility.spider_filename(filename, int(index[i, 0]))
+                    curr_filename = spider_utility.spider_filename(filename, int(index[i, 0]))
                 else:
-                    filename = spider_utility.spider_filename(filename, int(index[i]))
-                yield read_image(filename)
+                    curr_filename = spider_utility.spider_filename(filename, int(index[i]))
+                yield read_image(curr_filename)
             return
         elif index.ndim == 2 and index.shape[1]>1:
+            if index[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+            
             beg = 0
             tot = len(numpy.unique(index[:, 0].astype(numpy.int)))
             if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
             for i in xrange(tot):
                 id = index[beg, 0]
-                filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
+                curr_filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
                 sel = numpy.argwhere(id == index[:, 0]).ravel()
                 if beg != sel[0]: raise ValueError, "Array must be sorted by file ids: %d != %d -- %f, %f"%((beg), sel[0], index[beg, 0], beg)
                 try:
-                    for img in iter_images(filename, index[sel, 1]):
-                        yield img
+                    curr_filename = readlinkabs(curr_filename)
+                    if index[sel, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+                    if numpy.any(index[sel, 1]) > count_images(curr_filename):
+                        raise ValueError, "Index exceeds stack size: %s - %d > %d"%(curr_filename, index[sel, 1].max(), count_images(curr_filename))
+                    if len(sel) > 1:
+                        for img in iter_images(curr_filename, index[sel, 1]):
+                            yield img
+                    else:
+                        yield read_image(curr_filename, int(index[sel[0], 1]))
                 except:
-                    _logger.error("stack filename: %s - %d to %d"%(filename, numpy.min(index[sel, 1]), numpy.max(index[sel, 1])))
+                    _logger.error("stack filename: %s - %d to %d"%(curr_filename, numpy.min(index[sel, 1]), numpy.max(index[sel, 1])))
                     raise
                 beg += sel.shape[0]
-            
-            '''
-            fileid = index[:, 0].astype(numpy.int)
-            ids = numpy.unique(fileid)
-            if not isinstance(filename, dict) and not hasattr(filename, 'find'): filename=filename[0]
-            for id in ids:
-                filename = spider_utility.spider_filename(filename, int(id)) if not isinstance(filename, dict) else filename[int(id)]
-                for img in iter_images(filename, index[id == fileid, 1]):
-                    yield img
-            '''
             return
         
         
     if index is not None and hasattr(index, '__iter__') and not hasattr(index, 'ndim'): index = numpy.asarray(index)
+    filename = readlinkabs(filename)
     format = get_read_format_except(filename)
     for img in format.iter_images(filename, index):
         yield img
@@ -348,13 +245,13 @@ def count_images(filename):
     '''
     
     if isinstance(filename, list):
-    
-        format = get_read_format_except(filename[0])
+        format = get_read_format_except(readlinkabs(filename[0]))
         total = 0
         for f in filename:
             total += format.count_images(f)
         return total
     else:
+        filename = readlinkabs(filename)
         format = get_read_format_except(filename)
     return format.count_images(filename)
 
@@ -375,7 +272,7 @@ def is_writable(filename):
     
     return get_write_format(filename) is not None
 
-def write_image(filename, img, index=None, header=None):
+def write_image(filename, img, index=None, header=None, inplace=False):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
@@ -389,15 +286,15 @@ def write_image(filename, img, index=None, header=None):
             Index image should be written to in the stack
     header : dict
             Header dictionary
+    inplace : bool
+              Write new image to stack without removing the stack
     '''
     
-    if index is not None and index == 0 and os.path.exists(filename):
-        os.unlink(filename)
     
     format = get_write_format(filename)
     if format is None: 
         raise IOError, "Could not find format for extension of %s"%filename
-    format.write_image(filename, img, index, header)
+    format.write_image(filename, img, index, header, inplace)
     
 def write_stack(filename, imgs):
     ''' Write the given image to the given filename using a format
@@ -429,10 +326,14 @@ def get_write_format(filename):
     
     :Returns:
     
-    write : format
+    out : format
             Write format for given file extension
     '''
     
+    try:
+        if mrc.is_writable(filename):
+            return mrc
+    except: pass
     for f in _formats:
         if f.is_writable(filename): return f
     return _default_write_format
@@ -447,16 +348,19 @@ def get_read_format_except(filename):
     
     :Returns:
     
-    write : format
+    out : format
             Read format for given file
     '''
     
-    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%filename
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%(filename)
     f = get_read_format(filename)
     if f is not None: 
         #_logger.debug("Using format: %s"%str(f))
         return f
-    raise IOError, "Could not find format for %s\n\n Installing EMAN2 adds addtional formats to Arachnid"%filename
+    if eman_format.is_avaliable():
+        raise IOError, "Could not find format for '%s'"%filename
+    else:
+        raise IOError, "Could not find format for %s\n\n Installing EMAN2 adds addtional formats to Arachnid"%filename
 
 def get_read_format(filename):
     ''' Get the write format for the image
@@ -468,29 +372,62 @@ def get_read_format(filename):
     
     :Returns:
     
-    write : format
+    out : format
             Read format for given file
     '''
     
-    try:
-        if mrc.is_readable(filename) and mrc.count_images(filename) > 1 and not mrc.is_volume(filename):
-            return mrc
-    except: pass
+    if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%(filename)
+    
     for f in _formats:
         if f.is_readable(filename): return f
     return None
+
+def cache_data():
+    ''' Get keywords to be added as data cache
+    
+    :Returns:
+    
+    extra : dict
+            Keyword arguments
+    '''
+    
+    extra={}
+    for f in _formats:
+        if not hasattr(f, 'cache_data'): continue
+        extra.update(f.cache_data())
+    return extra
+
+def readlinkabs(link):
+    ''' Get the absolute path for the given symlink
+    
+    :Parameters:
+    
+    link : str
+           Link filename
+    
+    :Returns:
+    
+    filename : str
+               Absolute path of file link points
+    '''
+    
+    if not os.path.exists(link): raise IOError, "Cannot find file: %s"%(link)
+    if not os.path.islink(link):  return link
+    p = os.readlink(link)
+    if not os.path.isabs(p) and os.path.isabs(link):
+        # linked file is a relative filename -> use path of shortcut
+        p = os.path.join(os.path.dirname(link), p)
+    if not os.path.exists(p): raise IOError, "Cannot find file: %s pointed to by link: %s"%(p, link)
+    return p
 
 def _load():
     ''' Import available formats
     '''
     
-    #from formats import mrc
-    formats = []#mrc]
-    try: from formats import eman_format
-    except: tracing.log_import_error("Cannot load EMAN2 - supported image formats will not be available - see documentation for more details")
-    else: formats.append(eman_format)
-    if len(formats) == 0: raise ImportError, "No image format modules loaded!"
-    return formats, eman_format
+    image_formats = [mrc, spider]
+    default_format=spider
+    if eman_format.is_avaliable(): image_formats.append(eman_format)
+    return image_formats, default_format
 
 _formats, _default_write_format = _load()
 

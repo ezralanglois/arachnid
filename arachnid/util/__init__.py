@@ -10,6 +10,8 @@
     crop
     relion_selection
     bench
-    spider_prep
-    mic_select
+    enumerate_filenames
+    project
+    info
+    coverage
 '''

@@ -7,7 +7,7 @@ utilization with a queue.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import multiprocessing
-import logging, sys, traceback, numpy, ctypes, scipy, scipy.sparse
+import logging, sys, traceback, numpy
 import functools
 
 _logger = logging.getLogger(__name__)
@@ -23,198 +23,6 @@ def current_id():
     '''
     
     return multiprocessing.current_process().pid
-
-def shmem_as_ndarray(raw_array):
-    ''' Create a numpy.ndarray view of a multiprocessing.RawArray
-        
-    :Parameters:
-    
-    raw_array : multiprocessing.RawArray
-                Raw shared memory array
-    
-    :Returns:
-    
-    data : numpy.ndarray
-           Interface to a RawArray
-    
-    .. note::
-        
-        Original code:
-        http://pyresample.googlecode.com/svn-history/r2/trunk/pyresample/_multi_proc.py
-    
-    '''
-    _ctypes_to_numpy = {
-                        ctypes.c_char : numpy.int8,
-                        ctypes.c_wchar : numpy.int16,
-                        ctypes.c_byte : numpy.int8,
-                        ctypes.c_ubyte : numpy.uint8,
-                        ctypes.c_short : numpy.int16,
-                        ctypes.c_ushort : numpy.uint16,
-                        ctypes.c_int : numpy.int32,
-                        ctypes.c_uint : numpy.int32,
-                        ctypes.c_long : numpy.int32,
-                        ctypes.c_ulong : numpy.int32,
-                        ctypes.c_longlong : numpy.longlong,
-                        ctypes.c_float : numpy.float32,
-                        ctypes.c_double : numpy.float64
-                        }
-    if isinstance(raw_array, tuple): raw_array = raw_array[0]
-    address = raw_array._wrapper.get_address()
-    size = raw_array._wrapper.get_size()
-    dtype = _ctypes_to_numpy[raw_array._type_]
-    class Dummy(object): pass
-    d = Dummy()
-    d.__array_interface__ = {
-                             'data' : (address, False),
-                             'typestr' : numpy.dtype(numpy.uint8).str,
-                             'descr' : numpy.dtype(numpy.uint8).descr,
-                             'shape' : (size,),
-                             'strides' : None,
-                             'version' : 3
-                             }                            
-    return numpy.asarray(d).view(dtype=dtype)
-
-def create_global_dense_matrix(shape, dtype=numpy.float, shared=True):
-    ''' Create a special shared memory array that keeps its shape
-    
-    :Parameters:
-    
-    shape : tuple
-            Shape of the shared memory array
-    dtype : numpy.dtype
-            Type of the array
-    use_local : bool
-                If True create an numpy.ndarray
-    
-    :Returns:
-    
-    data : numpy.ndarray
-           ndarray view of the shared memory
-    shmem : multiprocessing.RawArray
-            shared memory array
-    '''
-    
-    if 1 == 1:
-        import shmarray
-        data = shmarray.zeros(shape, dtype=dtype)
-        return data, data
-
-    _numpy_to_ctypes = {
-                        #numpy.int8: ctypes.c_char,
-                        numpy.int16 : ctypes.c_wchar,
-                        numpy.int8 : ctypes.c_byte,
-                        numpy.uint8 : ctypes.c_ubyte,
-                        numpy.int16 : ctypes.c_short,
-                        numpy.uint16 : ctypes.c_ushort,
-                        numpy.int32 : ctypes.c_int,
-                        numpy.int64 : ctypes.c_longlong,
-                        numpy.longlong : ctypes.c_longlong,
-                        #numpy.int32 : ctypes.c_uint,
-                        #numpy.int32 : ctypes.c_long,
-                        #numpy.int32 : ctypes.c_ulong,
-                        numpy.float32 : ctypes.c_float,
-                        numpy.float64 : ctypes.c_double,
-                        numpy.float : ctypes.c_double
-                        }
-    if not isinstance(shape, tuple): shape = (shape, )
-    if hasattr(dtype, 'type'): dtype = dtype.type
-    if shared:
-        tot = numpy.prod(shape)
-        shmem_data = multiprocessing.RawArray(_numpy_to_ctypes[dtype], tot)
-        data = shmem_as_ndarray(shmem_data)
-        try:
-            data = data.reshape(shape)
-        except:
-            _logger.error("n=%d, data.shape=%s --- shape: %s"%(tot, str(data.shape), str(shape)))
-            raise
-        shmem = (shmem_data, shape)
-    else:
-        data = numpy.empty(shape, dtype)
-        shmem = data
-    return data, shmem
-
-def create_global_sparse_matrix(n, neighbors, use_local=False):
-    ''' Create a special shared memory array that keeps its shape
-    
-    :Parameters:
-    
-    n : int
-        Number of rows in the sparse array
-    neighbors : int
-                Number of columns in the sparse array
-    use_local : bool
-                If True create an numpy.ndarray
-    
-    :Returns:
-    
-    mat : scipy.sparse.coo_matrix
-          Sparse matrix with shared memory view
-    '''
-    
-    tot = n*(neighbors+1)
-    if 1 == 1:
-        import shmarray
-        data = shmarray.zeros(tot)
-        row = shmarray.zeros(tot, dtype=numpy.longlong)
-        col = shmarray.zeros(tot, dtype=numpy.longlong)
-        return scipy.sparse.coo_matrix( (data,(row, col)), shape=(n, n) )
-    
-    if not use_local:
-        shmem_data = multiprocessing.RawArray(ctypes.c_double, tot)
-        shmem_row = multiprocessing.RawArray(ctypes.c_int, tot)
-        shmem_col = multiprocessing.RawArray(ctypes.c_int, tot)
-        data = shmem_as_ndarray(shmem_data)
-        row = shmem_as_ndarray(shmem_row)
-        col = shmem_as_ndarray(shmem_col)
-        mat = scipy.sparse.coo_matrix( (data,(row, col)), shape=(n, n) )
-        mat.shmem = (shmem_data, shmem_row, shmem_col, (n, n))
-    else:
-        data = numpy.empty(tot, dtype=numpy.float)
-        row  = numpy.empty(tot, dtype=numpy.longlong)
-        col  = numpy.empty(tot, dtype=numpy.longlong)
-        mat = scipy.sparse.coo_matrix( (data,(row, col)), shape=(n, n) )
-    return mat
-
-def recreate_global_dense_matrix(shmem):
-    ''' Create an ndarray from a shared memory array with the correct shape
-    
-    :Parameters:
-    
-    shmem : multiprocessing.RawArray
-            shared memory array
-    
-    :Returns:
-    
-    data : numpy.ndarray
-           ndarray view of the shared memory
-    '''
-    
-    if hasattr(shmem, 'ndim'): return shmem
-    return shmem_as_ndarray(shmem[0]).reshape(shmem[1])
-
-def recreate_global_sparse_matrix(shmem, shape=None):
-    ''' Create a scipy.sparse.coo_matrix from a shared memory array with the correct shape
-    
-    :Parameters:
-    
-    shmem : multiprocessing.RawArray
-            shared memory array
-    shape : tuple
-            Subset shape of the matrix
-    
-    :Returns:
-    
-    mat : scipy.sparse.coo_matrix
-          Sparse matrix
-    '''
-    
-    if hasattr(shmem, 'shape'): return shmem
-    data = shmem_as_ndarray(shmem[0])
-    row = shmem_as_ndarray(shmem[1])
-    col = shmem_as_ndarray(shmem[2])
-    if shape is not None:
-        return scipy.sparse.coo_matrix( (data[:shape[1]],(row[:shape[1]], col[:shape[1]])), shape=shape[0] )
-    return scipy.sparse.coo_matrix( (data,(row, col)), shape=shmem[3] )
 
 def for_mapped(worker_callback, thread_count, size, *args, **extra):
     '''
@@ -309,8 +117,6 @@ def map_array(worker_callback, thread_count, data, *args, **extra):
             Unused keyword arguments
     '''
     if isinstance(data, int): size = data
-    elif isinstance(data, tuple) and len(data) == 2:
-        size = len(recreate_global_dense_matrix(data))
     else: size = len(data)
     
     if thread_count > 1:
@@ -682,13 +488,8 @@ def err_msg():
           Returns a ProcessException, which stores the original exception
     '''
     
-    trace = sys.exc_info()[2]
-    try:
-        exc_value=str(sys.exc_value)
-    except:
-        exc_value=''
-    
-    return ProcessException(str(traceback.format_tb(trace)),str(sys.exc_type),exc_value)
+    exc_type, exc_value, trace = sys.exc_info()[:3]
+    return ProcessException(str(traceback.format_tb(trace)),str(exc_type),exc_value)
 
 class ProcessException(Exception):
     '''Defines an exception wrapper returned by processes

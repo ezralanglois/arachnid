@@ -3,8 +3,8 @@
 .. Created on Dec 11, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..dialogs.WorkflowDialog import Dialog as WorkflowDialog
-from PyQt4 import QtGui, QtCore
+#from ..dialogs.WorkflowDialog import Dialog as WorkflowDialog
+from ..util.qt4_loader import QtGui,QtCore, qtSignal
 import os, logging
 
 _logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class DialogWidget(QtGui.QWidget):
                   Keep the text editor
     '''
     
-    editFinished = QtCore.pyqtSignal()
+    editFinished = qtSignal()
     
     def __init__(self, parent=None, icon=None, keep_editor=False):
         "Initialize a font dialog"
@@ -88,7 +88,7 @@ class DialogWidget(QtGui.QWidget):
         '''
         
         pass
-
+"""
 class WorkflowWidget(DialogWidget):
     ''' Create a button and display a workflow dialog on press
         
@@ -100,7 +100,7 @@ class WorkflowWidget(DialogWidget):
              Parent of the checkbox widget
     '''
     
-    operationsUpdated = QtCore.pyqtSignal('PyQt_PyObject')
+    operationsUpdated = qtSignal('PyQt_PyObject')
     
     def __init__(self, operations, parent=None):
         "Initialize a font dialog"
@@ -150,7 +150,7 @@ class WorkflowWidget(DialogWidget):
         '''
         
         return self.workflow_ops
-
+"""
 class FontDialogWidget(DialogWidget):
     ''' Create a button and display font dialog on press
         
@@ -160,7 +160,7 @@ class FontDialogWidget(DialogWidget):
              Parent of the checkbox widget
     '''
     
-    fontChanged = QtCore.pyqtSignal(QtGui.QFont)
+    fontChanged = qtSignal(QtGui.QFont)
     
     def __init__(self, parent=None):
         "Initialize a font dialog"
@@ -206,17 +206,17 @@ class FileDialogWidget(DialogWidget):
         
     :Parameters:
     
-    type : QString
+    type : str
            Type of file dialog: open or save
-    filter : QString
+    filter : str
              Semi-colon separated list of file filters
-    path : QString
+    path : str
            Starting directory for file dialog
     parent : QObject
              Parent of the checkbox widget
     '''
     
-    fileChanged = QtCore.pyqtSignal(QtCore.QString)
+    fileChanged = qtSignal(object)
     
     def __init__(self, type, filter="", path="", parent=None):
         "Initialize a font dialog"
@@ -227,7 +227,8 @@ class FileDialogWidget(DialogWidget):
         self.path = path
         self.filetype = type
         self.field.setText(self.filename)
-        self.connect(self.field, QtCore.SIGNAL('editingFinished()'), self.updateFilename)
+        self.field_text = None
+        self.field.editingFinished.connect(self.updateFilename)
     
     def showDialog(self):
         ''' Display a file dialog
@@ -236,11 +237,17 @@ class FileDialogWidget(DialogWidget):
         _logger.debug("Show dialog %s"%self.filetype)
         if self.filetype == 'file-list':
             filenames = QtGui.QFileDialog.getOpenFileNames(None, 'Open files', self.path, self.filter)
-            filename = ",".join([str(f) for f in filenames])
+            if isinstance(filenames, tuple): filenames = filenames[0]
+            if hasattr(self.filename, 'make'):
+                filename = self.filename.make(filenames)
+            else:
+                filename = self.filename.__class__(filenames)
         elif self.filetype == 'open':
             filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', self.path, self.filter)
+            if isinstance(filename, tuple): filename = filename[0]
         else:
             filename = QtGui.QFileDialog.getSaveFileName(None, 'Save file', self.path, self.filter)
+            if isinstance(filename, tuple): filename = filename[0]
         if filename:
             self.filename = filename
             self.fileChanged.emit(self.filename)
@@ -250,17 +257,25 @@ class FileDialogWidget(DialogWidget):
         ''' Update the filename from the line edit
         '''
         
-        filename = str(self.field.text())
+        filename = self.field.text()
+        if filename == self.field_text: return
+        
         if self.filetype == 'file-list' and filename.find(',') != -1:
             filename = filename.split(",")[0]
         if not os.path.isdir(filename):
             self.path = os.path.dirname(str(filename))
         else: self.path = filename
-        if self.filetype == 'open' and not os.path.exists(filename) and filename != "":
+        if self.filetype == 'open' and not os.path.exists(filename) and filename != "" and 1 == 0:
             self.field.setText("")
             self.showDialog()
-        else:
-            self.filename = str(self.field.text())
+        elif self.field.text() != "":
+            filename = self.field.text()
+            if hasattr(self.filename, 'make'):
+                filename = self.filename.make(filename)
+            else:
+                filename = self.filename.__class__(filename)
+            self.filename = filename
+            self.fileChanged.emit(self.filename)
             self.editFinished.emit()
     
     def setCurrentFilename(self, filename):
@@ -268,22 +283,24 @@ class FileDialogWidget(DialogWidget):
         
         :Parameters:
         
-        filename : QString
+        filename : str
                    Filename to display
         '''
         
-        self.filename = str(filename)
-        if not os.path.isdir(self.filename):
-            self.path = os.path.dirname(str(self.filename))
-        else: self.path = self.filename
-        self.field.setText(filename)
+        self.filename = filename
+        single_file = filename[0] if isinstance(filename, list) else filename
+        if not os.path.isdir(single_file):
+            self.path = os.path.dirname(single_file)
+        else: self.path = single_file
+        self.field.setText(single_file)
+        self.field_text = single_file
     
     def selectedFilename(self):
         ''' Get the current filename
         
         :Returns:
         
-        filename : QString
+        filename : str
                    Selected filename
         '''
         

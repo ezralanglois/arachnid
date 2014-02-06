@@ -90,10 +90,11 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from ..core.app.program import run_hybrid_program
-from ..core.metadata import format, spider_utility, format_utility
+from ..core.app import program
+from ..core.metadata import format, spider_utility, format_utility, relion_utility
 from ..core.image import ndimage_file
-from ..core.orient import orient_utility, healpix
+from ..core.orient import healpix
+from ..core.orient import spider_transforms
 from ..core.util import numpy_ext
 import numpy, logging, glob, os
 
@@ -138,8 +139,8 @@ def create_alignment_from_relion(star_file, apix, **extra):
     align = numpy.zeros((len(projections), 18))
     for i in xrange(len(projections)):
         projection = projections[i]
-        stack_file, stack_id = spider_utility.relion_file(projection.rlnImageName)
-        psi, dx, dy = orient_utility.align_param_3D_to_2D_simple(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
+        stack_file, stack_id = relion_utility.relion_file(projection.rlnImageName)
+        psi, dx, dy = spider_transforms.align_param_3D_to_2D(projection.rlnAnglePsi, projection.rlnOriginX, projection.rlnOriginY)
         align[i, 1] = projection.rlnAngleTilt
         align[i, 2] = projection.rlnAngleRot
         align[i, 3] = healpix.ang2pix(3, numpy.deg2rad(projection.rlnAngleTilt), numpy.deg2rad(projection.rlnAngleRot))
@@ -241,10 +242,9 @@ def select_subset(files, label, select_file, select_header="", **extra):
                 k+=1
         label = label[:k]
         '''
-    elif len(files) == 1:
+    elif len(files) > 1:
         _logger.info("Assuming micrograph selection file: --select-file %s"%select_file)
-        select = format.read(select_file, header=select_header, numeric=True)
-        select, header = format_utility.tuple2numpy(select)
+        select, header = format.read(select_file, header=select_header, ndarray=True)
         try: id = header.index('id')
         except: raise ValueError, "Cannot find column labelled as `id` in `--select-file` %s, please use `--select-header` to label this column"%select_file
         else: select = set(select[:, id])
@@ -257,8 +257,7 @@ def select_subset(files, label, select_file, select_header="", **extra):
         _logger.info("Selected %d micrographs"%(len(numpy.unique(label[:, 1]))))
     else:
         _logger.info("Assuming full stack selection file: --select-file %s"%select_file)
-        select = format.read(select_file, header=select_header, numeric=True)
-        select, header = format_utility.tuple2numpy(select)
+        select, header = format.read(select_file, header=select_header, ndarray=True)
         try: select = select[:, header.index('id')]-1
         except: raise ValueError, "Cannot find column labelled as `id` in `--select-file` %s, please use `--select-header` to label this column"%select_file
         label = label[select].squeeze()
@@ -294,8 +293,7 @@ def create_stack_label(files, stack_select, stack_header, **extra):
         label[beg:end, 2] = numpy.arange(1, cnt+1)
         beg = end
     if len(files) == 1 and stack_select != "":
-        sel = format.read(stack_select, header=stack_header, numeric=True)
-        sel, header = format_utility.tuple2numpy(sel)
+        sel, header = format.read(stack_select, header=stack_header, ndarray=True)
         try:
             label[:, 0] = sel[:, header.index('id')]
         except:
@@ -384,7 +382,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Create an initial alignment file
                         
                         $ %prog image_stack_*.ter -d defocus_file.ter -o align.ter

@@ -5,11 +5,6 @@ Manual
 This manual covers the usage of every available script. It provides a list of
 options and corresponding example usage.
 
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
-
 Scripts
 =======
 

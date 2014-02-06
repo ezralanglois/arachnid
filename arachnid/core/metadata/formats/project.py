@@ -11,8 +11,8 @@ It supports the following attributes:
 .. Created on Apr 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from csv import read_iterator, read_header, reader, logging, write_header, write_values, write
-if read_iterator or read_header or reader or write_header or write_values or write: pass # Hack for pyflakes
+from csv import parse_line, read_header, reader, logging, write_header, write_values
+if parse_line or read_header or reader or write_header or write_values: pass # Hack for pyflakes
 import os
 
 _logger = logging.getLogger(__name__)

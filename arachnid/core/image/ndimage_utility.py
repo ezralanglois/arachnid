@@ -10,15 +10,18 @@ custom wrapped fortran functions (taken from SPIDER).
 '''
 from ..app import tracing
 from eman2_utility import em2numpy2em as _em2numpy2em, em2numpy2res as _em2numpy2res
-import eman2_utility
-import analysis
-import numpy, scipy, math, logging, scipy.ndimage
+#import eman2_utility
+from ..learn import unary_classification
+import numpy.fft
 import scipy.fftpack, scipy.signal
+import scipy.linalg
 import scipy.ndimage.filters
 import scipy.ndimage.morphology
 import scipy.sparse
-from filters import linear
-#import eman2_utility
+import scipy.special
+import ndimage_filter
+import logging
+import math
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -29,34 +32,6 @@ try:
 except:
     tracing.log_import_error('Failed to load _image_utility.so module - certain functions will not be available', _logger)
     _image_utility=None
-
-'''
- img         = double(img);
-   [rows,cols] = size(img);
-   cy          = round(rows/2);
-   cx          = round(cols/2);
-   
-   if exist('radius','var') == 0
-      radius = min(round(rows/2),round(cols/2))-1;
-   end
-   
-   if exist('angle','var') == 0
-      angle = 360;
-   end
-  
-   pcimg = [];
-   i     = 1;
-   
-   for r=0:radius
-      j = 1;
-      for a=0:2*pi/angle:2*pi-2*pi/angle
-         pcimg(i,j) = img(cy+round(r*sin(a)),cx+round(r*cos(a)));
-         j = j + 1;
-      end
-      i = i + 1;
-   end
-end
-'''
 
 def mirror(img, out=None):
     ''' Mirror projection (SPIDER convention)
@@ -80,7 +55,63 @@ def mirror(img, out=None):
     out[:, yoff:] = numpy.fliplr(img[:, yoff:])
     return out
 
-def fourier_shift(img, dx, dy, dz=0, pad=1):
+def mirror_ud(img, out=None):
+    ''' Mirror projection (SPIDER convention)
+    
+    :Parameters:
+    
+    img : array
+          Image
+    
+    :Returns:
+    
+    out : array
+          Mirrored image
+    '''
+    
+    if img.ndim != 2: raise ValueError, "Mirroring only works with 2D images"
+    xoff = 1 if numpy.mod(img.shape[0], 2) == 0 else 0
+    #yoff = 1 if numpy.mod(img.shape[1], 2) == 0 else 0
+    if out is None: out = img.copy()
+    else: out[:]=img[:]
+    out[xoff:, :] = numpy.flipud(img[xoff:, :])
+    return out
+
+def fourier_space_shift(fimg, dx, dy):
+    ''' Shift an image in Fourier space
+    
+    .. note::
+        
+        Take from http://www.mathworks.com/matlabcentral/fileexchange/23440-2d-fourier-shift
+    
+    :Parameters:
+    
+    img : array
+          2D complex array, Fourier transform of image
+    dx : float
+         Shift in x-direction
+    dy : float
+         Shift in y-direction
+    
+    :Returns:
+    
+    out : array
+          2D complex array, shifted Fourier transform of image
+    '''
+    
+    N,M = fimg.shape
+    x_shift = numpy.exp(-1j * 2 * numpy.pi * dx * numpy.hstack((numpy.arange(numpy.floor(N/2.0), dtype=numpy.float), numpy.arange(numpy.floor(-N/2.0), 0, dtype=numpy.float))) / N)
+    print N, x_shift.shape
+    y_shift = numpy.exp(-1j * 2 * numpy.pi * dy * numpy.hstack((numpy.arange(numpy.floor(M/2.0), dtype=numpy.float), numpy.arange(numpy.floor(-M/2.0), 0, dtype=numpy.float))) / M)
+    #if numpy.mod(N,2): x_shift[N/2+1] = x_shift[N/2+1].real
+    #if numpy.mod(M,2): y_shift[M/2+1] = y_shift[M/2+1].real    
+    if numpy.mod(N,2): x_shift[N/2] = x_shift[N/2].real
+    if numpy.mod(M,2): y_shift[M/2] = y_shift[M/2].real
+    shift = numpy.outer(x_shift, y_shift)
+    assert(shift.ndim==fimg.ndim)
+    return fimg*shift
+
+def fourier_shift2(img, dx, dy, dz=0, pad=1):
     ''' Shift using sinc interpolation
     
     :Parameters:
@@ -107,12 +138,64 @@ def fourier_shift(img, dx, dy, dz=0, pad=1):
     if pad > 1:
         shape = img.shape
         img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
-    fimg = scipy.fftpack.fftn(img)
-    if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
-    else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy))
-    img = scipy.fftpack.ifftn(fimg).real
+    if img.ndim == 2:
+        fimg = scipy.fftpack.fft2(img)
+        fimg = fourier_space_shift(fimg, (dy, dx))
+        img = scipy.fftpack.ifftn(fimg).real
+    else:
+        fimg = scipy.fftpack.fftn(img)
+        if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
+        else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy), -1)
+        img = scipy.fftpack.ifftn(fimg).real
     if pad > 1: img = depad_image(img, shape)
     return img
+
+def fourier_shift(img, dx, dy, dz=0, pad=1):
+    ''' Shift using sinc interpolation
+    
+    .. note:: Returns non-contiguous array!
+    
+    :Parameters:
+    
+    img : array
+          2D or 3D array of pixels
+    dx : float
+         Shift in x-direction
+    dy : float
+         Shift in y-direction
+    dz : float
+         Shift in z-direction
+    pad : float
+          Amount of padding
+    
+    :Returns:
+    
+    out : array
+          2D or 3D array of pixel shift (according to input)
+    '''
+    
+    if img.ndim != 2 and img.ndim != 3: raise ValueError, "Only works with 2 or 3D images"
+    if dx == 0 and dy == 0 and dz == 0: return img
+    if pad > 1:
+        shape = img.shape
+        img = pad_image(img.astype(numpy.complex64), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'm')
+    if img.ndim == 2:
+        fimg = scipy.fftpack.fft2(img)
+        fimg = scipy.ndimage.fourier_shift(fimg, (dy, dx), -1, 0)
+        img = scipy.fftpack.ifft2(fimg).real
+    else:
+        fimg = scipy.fftpack.fftn(img)
+        if img.ndim == 3: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy, dz))
+        else: fimg = scipy.ndimage.fourier_shift(fimg, (dx, dy), -1)
+        img = scipy.fftpack.ifftn(fimg).real
+    if pad > 1: img = depad_image(img, shape)
+    return img
+
+def integral_image(img):
+    '''
+    '''
+    
+    return img.cumsum(1).cumsum(0)
 
 #r/2-1,360
 def polar_simple(img, radius=None, angle=360.0):
@@ -249,7 +332,7 @@ def rotavg(img, out=None):
     img = numpy.asanyarray(img)
     if img.ndim != 2: raise ValueError, "Input array must be 2D"
     if out is None: out = img.copy()
-    avg = mean_azimuthal(img)
+    avg = (img)
     rmax = min(img.shape[0]/2 + img.shape[0]%2, img.shape[1]/2 + img.shape[1]%2)
     if img.ndim > 2: rmax = min(rmax, img.shape[2]/2 + img.shape[2]%2)
     if out.ndim==2: out=out.reshape((out.shape[0], out.shape[1], 1))
@@ -259,28 +342,12 @@ def rotavg(img, out=None):
     if out.shape[2] == 1: out = out.reshape((out.shape[0], out.shape[1]))
     return out
 
-'''
-radial_average(
-%% Compute radially average power spectrum
-[X Y] = meshgrid(-dimMax/2:dimMax/2-1, -dimMax/2:dimMax/2-1);
-    % Make Cartesian grid
-[theta rho] = cart2pol(X, Y);
-    % Convert to polar coordinate axes
-rho = round(rho);
-i = cell(floor(dimMax/2) + 1, 1);
-for r = 0:floor(dimMax/2)
-   i{r + 1} = find(rho == r);
-end
-Pf = zeros(1, floor(dimMax/2)+1);
-for r = 0:floor(dimMax/2)
-   Pf(1, r + 1) = nanmean( imgfp( i{r+1} ) );
-end
-
-#numpy.nansum(dat, axis=1) / numpy.sum(numpy.isfinite(dat), axis=1)
-'''
-
-def mean_azimuthal(img, center=None):
+def mean_azimuthal(img, center=None, ret_n=False):
     ''' Calculate the sum of a 2D array along the azimuthal
+    
+    .. note::
+    
+        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
     
     :Parameters:
     
@@ -293,10 +360,6 @@ def mean_azimuthal(img, center=None):
     
     out : array
           Sum over the radial lines of the image
-    
-    .. note::
-    
-        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
     '''
     
     img = numpy.asanyarray(img)
@@ -307,10 +370,44 @@ def mean_azimuthal(img, center=None):
     i, j = i-center[0], j-center[1]
     k = (j**2+i**2)**.5
     k = k.astype(int)
+    if ret_n:
+        return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel()), numpy.bincount(k.ravel())
     return numpy.bincount(k.ravel(), img.ravel())/numpy.bincount(k.ravel())
 
+def std_azimuthal(img, center=None):
+    ''' Calculate the sum of a 2D array along the azimuthal
+    
+    .. note::
+    
+        Adopted from https://github.com/numpy/numpy/pull/230/files#r851142
+    
+    :Parameters:
+    
+    img : array-like
+          Image array
+    center : tuple, optional
+              Coordaintes of the image center
+    
+    :Returns:
+    
+    out : array
+          Sum over the radial lines of the image
+    '''
+    
+    img = numpy.asanyarray(img)
+    if img.ndim != 2: raise ValueError, "Input array must be 2D: %s"%str(img.shape)
+    
+    avg, cnt_n = mean_azimuthal(img, center, ret_n=True)
+    
+    avg2d = numpy.zeros(img.shape)
+    avg2d[len(avg), len(avg):] = avg
+    avg2d=rotavg(avg2d)
+    img -= avg2d
+    
+    return (mean_azimuthal(img**2, center) - mean_azimuthal(img, center)**2/cnt_n)/cnt_n
+
 @_em2numpy2res
-def find_peaks_fast(cc, width):
+def find_peaks_fast(cc, width, fwidth=None):
     ''' Find peaks in a cross-correlation map
     
     :Parameters:
@@ -326,6 +423,8 @@ def find_peaks_fast(cc, width):
             Array of peaks (peak, x, y)
     '''
     
+    if fwidth is None or fwidth < 0: fwidth = width/2.0
+    if fwidth > 0.0: cc=scipy.ndimage.filters.gaussian_filter(cc, sigma=fwidth, mode='constant')
     neighborhood = numpy.ones((int(width),int(width)))
     cc_peaks = (scipy.ndimage.filters.maximum_filter(cc, footprint=neighborhood)==cc) - \
                 scipy.ndimage.morphology.binary_erosion((cc==0), structure=neighborhood, border_value=1)
@@ -340,6 +439,44 @@ def find_peaks_fast(cc, width):
     y,x = numpy.unravel_index(offsets, cc.shape)
     cc = cc.ravel()[offsets].copy().squeeze()
     return numpy.hstack((cc[:, numpy.newaxis], x[:, numpy.newaxis], y[:, numpy.newaxis]))
+
+def grid_image(shape, center=None):
+    '''
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    if center is None: cx, cy = shape[0]/2, shape[1]/2
+    elif not hasattr(center, '__iter__'): cx, cy = center, center
+    else: cx, cy = center
+    #radius2 = radius+1
+    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
+    return x, y
+
+def radial_image(shape, center=None):
+    '''
+    '''
+    
+    x, y = grid_image(shape, center)
+    return x**2+y**2
+
+def snr_correction_factor(img, ref):
+    ''' Calculate an SNR correction factor between a high signal image and
+    a noise image. 
+    
+    :Parameters:
+    
+    img : array
+          2D array of image data for noisy image
+    ref : array
+          2D array of image data for reference image
+    
+    :Returns:
+    
+    factor : float
+             Factor for reference image
+    '''
+    
+    return numpy.inner(ref.ravel(), img.ravel())/numpy.linalg.norm(ref, 2)
 
 #@numpy2em_d
 def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
@@ -367,14 +504,69 @@ def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     
     if not hasattr(shape, '__iter__'): shape = (shape, shape)
     a = numpy.zeros(shape, dtype, order)
-    if center is None: cx, cy = shape[0]/2, shape[1]/2
-    elif not hasattr(center, '__iter__'): cx, cy = center, center
-    else: cx, cy = center
-    #radius2 = radius+1
-    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
-    index = x**2 + y**2 <= radius**2
-    a[index]=1
+    irad = radial_image(shape, center)
+    a[irad <= radius**2]=1
     return a
+
+def model_ring(rmin, rmax, shape, center=None, dtype=numpy.int, order='C'):
+    ''' Create a disk of given radius with background zero and foreground 1
+    
+    :Parameters:
+    
+    shape : int or sequence of two ints
+            Shape of the new array, e.g., (2, 2) or 2
+    center : int or sequence of two ints, optional
+             Center of the disk, if not specified then use the center of the image
+    dtype : data-type, optional
+            The desired data-type for the array. Default is numpy.int
+    order : {'C', 'F'}, optional
+            Whether to store multidimensional data in C- or Fortran-contiguous (row- or column-wise) order in memory
+    
+    :Returns:
+    
+    img : numpy.ndarray
+          Disk image
+    
+    .. todo:: create numpy2em_d decorator
+    
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    a = numpy.zeros(shape, dtype, order)
+    irad = radial_image(shape, center)
+    rmin = rmin**2
+    rmax = rmax**2
+    a[numpy.logical_and(irad > rmin, irad < rmax)]=1
+    return a
+
+def acf(img, out=None):
+    ''' Autocorrelate an image with itself
+    
+    :Parameters:
+    
+    img : array
+          Large image to match
+    out : array
+          Cross-correlation map (same dim as large image)
+    
+    .. todo:: 
+          
+        def fft_correlate(A,B,*args,**kwargs):
+        return S.signal.fftconvolve(A,B[::-1,::-1,...],*args,**kwargs)
+    
+    .. todo:: optimize fft
+    
+    :Returns:
+    
+    out : array
+         Cross-correlation map (same dim as large image)
+    '''
+    
+    if out is None: out = numpy.empty_like(img)
+    fp1 = scipy.fftpack.fft2(img)
+    numpy.multiply(fp1, fp1.conj(), fp1)
+    out[:,:] = numpy.absolute(scipy.fftpack.ifft2(fp1)).real
+    return scipy.fftpack.fftshift(out)
 
 def cross_correlate_raw(img, template, phase=False, out=None):
     ''' Cross-correlate an image with a template
@@ -466,6 +658,10 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
     `array`, and as no padding is done the arrays first dimensions are smaller
     then before. It is possible to extend only earlier dimensions by giving
     window a 0 sized dimension.
+    
+    .. note::
+    
+        Taken from: https://github.com/numpy/numpy/pull/31
 
     :Parameters:
     
@@ -537,10 +733,6 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
                [3, 5, 7],
                [4, 6, 8],
                [5, 7, 9]])
-    
-    .. note::
-    
-        Taken from: https://github.com/numpy/numpy/pull/31
     """
     array = numpy.asarray(array)
     orig_shape = numpy.asarray(array.shape)
@@ -565,7 +757,7 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
         _asteps[-len(asteps):] = asteps
 
         if numpy.any(asteps < 1):
-             raise ValueError("All elements of `asteps` must be larger then 1.")
+            raise ValueError("All elements of `asteps` must be larger then 1.")
     asteps = _asteps
 
     _wsteps = numpy.ones_like(window)
@@ -574,7 +766,7 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
         if wsteps.shape != window.shape:
             raise ValueError("`wsteps` must have the same shape as `window`.")
         if numpy.any(wsteps < 0):
-             raise ValueError("All elements of `wsteps` must be larger then 0.")
+            raise ValueError("All elements of `wsteps` must be larger then 0.")
 
         _wsteps[:] = wsteps
         _wsteps[window == 0] = 1 # make sure that steps are 1 for non-existing dims.
@@ -643,16 +835,38 @@ def powerspec1d(img):
     fimg = fimg*fimg.conjugate()
     return mean_azimuthal(numpy.abs(numpy.fft.fftshift(fimg)))[1:fimg.shape[0]/2]
 
-def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1):
+def multitaper_power_spectra(mic, half_nbw=9, low_bias=False, shift=True):
+    '''
+    '''
+    
+    import _multitaper
+    n = min(mic.shape)
+    mic_sq = mic[:n, :n]
+    n_tapers_max = int(2 * half_nbw)
+    dpss2, eigvals = _multitaper.dpss_windows(mic_sq.shape[1], half_nbw, n_tapers_max,low_bias=low_bias)
+    _logger.info("Number of basis functions for %f bandwidth and %d tapers: %d"%(half_nbw, n_tapers_max, dpss2.shape[0]))
+    pow = mic_sq.copy()
+    pow[:]=0
+    mic_sq = mic_sq - numpy.mean(mic_sq)#, axis=-1)[:, numpy.newaxis]
+    weights = numpy.sqrt(eigvals)
+    for i in xrange(dpss2.shape[0]):
+        for j in xrange(dpss2.shape[0]):
+            _logger.error("i: %d < %d - j: %d < %d"%(i, dpss2.shape[0], j, dpss2.shape[0]))
+            tmp = numpy.outer(dpss2[i], dpss2[j])
+            fmic = scipy.fftpack.fft2(mic_sq*tmp)
+            pow += numpy.abs(weights[i]*weights[j]*fmic)**2
+    pow *= 2 / numpy.sum(numpy.abs(weights[:, numpy.newaxis,numpy.newaxis]) ** 2, axis=-3)
+    return numpy.fft.fftshift(pow).copy() if shift else pow.copy()
+
+def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, ret_more=False):
     '''
     '''
     
     if offset > 0 and offset < 1.0: offset = int(offset*mic.shape[0])
-    overlap_norm = 1.0 / (1.0-overlap)
-    step = max(1, window_size*overlap_norm)
+    step = max(1, window_size*overlap)
     rwin = rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
     rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
-    return powerspec_avg(rwin, pad)
+    return powerspec_avg(rwin, pad, shift) if not ret_more else (powerspec_avg(rwin, pad, shift), rwin.shape[0])
 
 def dct_avg(imgs, pad):
     ''' Calculate an averaged power specra from a set of images
@@ -675,13 +889,6 @@ def dct_avg(imgs, pad):
     total = 0.0
     for img in imgs:
         #pad_width = img.shape[0]*pad
-        if 1 == 0:
-            img = eman2_utility.ramp(img)
-            img = img.copy()
-            img -= img.min()
-            img /= img.max()
-            img -= img.mean()
-            img /= img.std()
         
         fimg=scipy.fftpack.dct(scipy.fftpack.dct(img.T, axis=-1, norm='ortho').T, axis=-2, norm='ortho')
         
@@ -692,7 +899,52 @@ def dct_avg(imgs, pad):
     numpy.divide(avg, total, avg)
     return avg #scipy.fftpack.fftshift(avg).real
 
-def powerspec_avg(imgs, pad):
+def powerspec_sum(imgs, pad, avg=None, total=0.0, do_ramp=False):
+    ''' Calculate an averaged power specra from a set of images
+    
+    :Parameters:
+    
+    imgs : iterable
+           Iterator of images
+    pad : int
+          Number of times to pad an image
+    
+    :Returns:
+    
+    avg_powspec : array
+                  Averaged power spectra
+    '''
+    if pad is None or pad <= 0: pad = 1
+    for img in imgs:
+        pad_width = img.shape[0]*pad
+        #if eman2_utility.EMAN2 is not None:
+        img = img.copy()
+        if do_ramp:
+            ndimage_filter.ramp(img, img)
+        img -= img.min()
+        img /= img.max()
+        img -= img.mean()
+        img /= img.std()
+        if img.ndim == 2:
+            fimg = numpy.fft.fft2(pad_image(img, (pad_width, pad_width), 'e'))
+        else:
+            fimg = numpy.fft.fftn(pad_image(img, (pad_width, pad_width), 'e'))
+        fimg = fimg*fimg.conjugate()
+        if avg is None: avg = fimg.copy()
+        else: avg += fimg
+        total += 1.0
+    return avg, total
+
+def powerspec_fin(avg, total, shift=True):
+    '''
+    '''
+    
+    avg = numpy.abs(numpy.fft.fftshift(avg).copy()) if shift else numpy.abs(avg)
+    numpy.sqrt(avg, avg)
+    numpy.divide(avg, total, avg)
+    return avg
+
+def powerspec_avg(imgs, pad, shift=True):
     ''' Calculate an averaged power specra from a set of images
     
     :Parameters:
@@ -708,26 +960,8 @@ def powerspec_avg(imgs, pad):
                   Averaged power spectra
     '''
     
-    if pad is None or pad <= 0: pad = 1
-    avg = None
-    total = 0.0
-    for img in imgs:
-        pad_width = img.shape[0]*pad
-        img = eman2_utility.ramp(img)
-        img = img.copy()
-        img -= img.min()
-        img /= img.max()
-        img -= img.mean()
-        img /= img.std()
-        fimg = numpy.fft.fftn(pad_image(img, (pad_width, pad_width), 'e'))
-        fimg = fimg*fimg.conjugate()
-        if avg is None: avg = fimg.copy()
-        else: avg += fimg
-        total += 1.0
-    avg = numpy.abs(numpy.fft.fftshift(avg))
-    numpy.sqrt(avg, avg)
-    numpy.divide(avg, total, avg)
-    return avg #scipy.fftpack.fftshift(avg).real
+    avg, total = powerspec_sum(imgs, pad)
+    return powerspec_fin(avg, total, shift)
 
 def moving_average(img, window=3, out=None):
     ''' Estimate a moving average with a uniform distribution and given window size
@@ -895,6 +1129,51 @@ def pad_image(img, shape, fill=0.0, out=None):
     out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
     return out
 
+def filter_annular_bp(img, freq1, freq2):
+    ''' Filter an image with a Gaussian low pass filter
+    
+    Todo: optimize kernel
+    
+    :Parameters:
+    
+    img : array
+          Image to filter
+    sigma : float
+            Cutoff frequency
+    out : array
+          Filtered image
+    
+    :Returns:
+    
+    out : array
+          Filtered image
+    '''
+    
+    img = img.astype(numpy.complex64) # todo percison based on input
+    kernel = numpy.zeros(img.shape, dtype=img.dtype)
+    irad = radial_image(img.shape)
+    val =  (1.0/(1.0+numpy.exp(((numpy.sqrt(irad)-freq1))/(10.0))))*(1.0-(numpy.exp(-irad /(2*freq2*freq2))))
+    kernel[:, :].real = val
+    kernel[:, :].imag = val
+    return filter_image(img, kernel)
+
+
+def spiral_transform(img):
+    '''
+    Todo: optimize kernel
+    '''
+    
+    cx, cy = img.shape[0]/2, img.shape[1]/2
+    img = img.astype(numpy.complex64) # todo percison based on input
+    kernel = numpy.zeros(img.shape, dtype=img.dtype)
+    for i in xrange(kernel.shape[0]):
+        for j in xrange(kernel.shape[1]):
+            v1, v2 = i-cx, j-cy
+            if v1 == 0 and v2 == 0: continue
+            kernel[i,j] = numpy.complex(v2,v1)/numpy.sqrt( numpy.power(float(v1), 2)+numpy.power(float(v2), 2) )
+    return filter_image(img, kernel)
+    
+
 def filter_gaussian_lp(img, sigma, out=None):
     ''' Filter an image with a Gaussian low pass filter
     
@@ -918,44 +1197,19 @@ def filter_gaussian_lp(img, sigma, out=None):
         return scipy.ndimage.filters.fourier_gaussian(img, sigma, output=out)
     return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect')#, output=out)
 
-def filter_butterworth_lowpass(img, low_cutoff, falloff, pad=1):
-    ''' Apply a Butterworth lowpass filter to an image
-    
-    .. seealso:: :py:func:`linear.butterworth_lowpass`
-    
-    :Parameters:
-    
-    img : array
-          Image
-    low_cutoff : float
-                 Low-frequency cutoff
-    falloff : float
-              Low-frequency fall off
-    pad : int
-          Padding
-    
-    :Returns:
-    
-    out : array
-          Filtered image
-    '''
-    
-    if pad > 1:
-        shape = img.shape
-        ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
-        img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
-    img = filter_image(img, linear.butterworth_lowpass(img.shape, low_cutoff, falloff), pad)
-    if pad > 1: img = depad_image(img, shape)
-    return img
-
 def filter_image(img, kernel, pad=1):
     '''
     .. todo:: filter padding
     '''
         
+    #fimg = scipy.fftpack.fftn(img)
+    #kernel = scipy.fftpack.ifftshift(kernel)
+    #numpy.multiply(fimg, kernel, fimg)
+    #return scipy.fftpack.ifftn(fimg).real
+
     fimg = scipy.fftpack.fftshift(scipy.fftpack.fftn(img))
     numpy.multiply(fimg, kernel, fimg)
-    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real
+    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy()
 
 @_em2numpy2em
 def compress_image(img, mask, out=None):
@@ -980,6 +1234,29 @@ def compress_image(img, mask, out=None):
         out = img.ravel()[mask.ravel()>0.5].copy()
     else:
         out[:] = img.ravel()[mask.ravel()>0.5]
+    return out
+
+def uncompress_image(img, mask, out=None):
+    ''' Compress the valid region of an image with the given mask into 1D array
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    mask : numpy.ndarray
+           Binary mask of valid pixesl
+    out : numpy.ndarray
+          Output 1D-array
+    
+    :Returns:
+        
+    out : numpy.ndarray
+          Output 1D-array
+    '''
+    
+    if out is None:
+        out = numpy.zeros(mask.shape, img.dtype)
+    out.ravel()[mask.ravel()>0.5] = img
     return out
 
 @_em2numpy2em
@@ -1008,8 +1285,10 @@ def fftamp(img, s=None, out=None):
     out = numpy.abs(fimg, out)
     return out
 
-def polar(image, center=None, out=None):
+def polar(image, center=None, out=None, rng=None):
     '''Transform image into log-polar representation
+    
+    @todo - add radius range
     
     :Parameters:
     
@@ -1023,7 +1302,7 @@ def polar(image, center=None, out=None):
     :Returns:
     
     out : numpy.ndarray
-          Image in log polar space
+          Image in polar space (radius, angle)
     '''
     
     ny, nx = image.shape[:2]
@@ -1031,7 +1310,8 @@ def polar(image, center=None, out=None):
     x, y = index_coords(image, center)
     r, theta = cart2polar(x, y)
     
-    r_i = numpy.linspace(r.min(), r.max(), nx)
+    if rng is None: rng = (r.min(), r.max())
+    r_i = numpy.linspace(rng[0], rng[1], nx)
     theta_i = numpy.linspace(theta.min(), theta.max(), ny)
     theta_grid, r_grid = numpy.meshgrid(theta_i, r_i)
     
@@ -1040,10 +1320,45 @@ def polar(image, center=None, out=None):
     yi += center[1] # back to the lower-left corner...
     xi, yi = xi.flatten(), yi.flatten()
     coords = numpy.vstack((xi, yi))
-    
-    #if out is None: out = numpy.empty(xi.shape[0]*yi.shape[0]).reshape((xi.shape[0],yi.shape[0]))
-    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny))#, output=out)
+
+    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny)).T
     #return out
+
+def polar_to_cart(image, center=None, out=None, rng=None, order=0):
+    '''Transform image into log-polar representation
+    
+    Does not work!
+    
+    :Parameters:
+    
+    image : numpy.ndarray
+            Input image
+    angles : int, optional
+             Size of angle dimension
+    out : numpy.ndarray, optional
+          Image in log polar space
+    
+    :Returns:
+    
+    out : numpy.ndarray
+          Image in polar space (radius, angle)
+    '''
+    
+    ny, nx = image.shape[:2]
+    if center is None: center = (nx // 2, ny // 2)
+    x, y = index_coords(image, center)
+    r, theta = cart2polar(x, y)
+    
+    if rng is None: rng = (r.min(), r.max())
+    r_i = numpy.linspace(rng[0], rng[1], nx)
+    theta_i = numpy.linspace(theta.min(), theta.max(), ny)
+    theta_grid, r_grid = numpy.meshgrid(theta_i, r_i)
+    xi, yi = polar2cart(r_grid, theta_grid)
+    r, theta = cart2polar(xi, yi)
+    xi, yi = r.flatten(), theta.flatten()
+    coords = numpy.vstack((xi, yi))
+
+    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny)).T
 
 def cart2polar(x, y):
     r = numpy.sqrt(x**2 + y**2)
@@ -1149,9 +1464,9 @@ def segment(img, bins=0, mask=None, out=None):
     '''
     
     if mask is not None:
-        th = analysis.otsu(compress_image(img, mask).ravel(), bins)
+        th = unary_classification.otsu(compress_image(img, mask).ravel(), bins)
     else:
-        th = analysis.otsu(img.ravel(), bins)
+        th = unary_classification.otsu(img.ravel(), bins)
     return numpy.greater(img, th, out)
 
 @_em2numpy2em
@@ -1213,10 +1528,9 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
     '''
     
     mdata = img[mask>0.5] if mask is not None else img
+    std = numpy.std(mdata) if var_one else 0.0
     out = numpy.subtract(img, numpy.mean(mdata), out)
-    if var_one:
-        std = numpy.std(mdata)
-        if std != 0.0: numpy.divide(out, std, out)
+    if std != 0.0: numpy.divide(out, std, out)
     return out
 
 @_em2numpy2em
@@ -1360,7 +1674,7 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
     vmin = numpy.min(img)
     vmax = numpy.max(img)
     if vmin == vmax: 
-        print "*****", vmin, '==', vmax
+        #print "*****", vmin, '==', vmax
         return out
 
     
@@ -1401,6 +1715,8 @@ def replace_outlier(img, dust_sigma, xray_sigma=None, replace=None, out=None):
 def crop_window(img, x, y, offset, out=None):
     ''' Extract a square window from an image
     
+    .. todo:: requires testing for wrap around!
+    
     :Parameters:
     
     img : numpy.ndarray
@@ -1420,6 +1736,67 @@ def crop_window(img, x, y, offset, out=None):
           Output window
     '''
     
+    offset=int(offset)
+    xb = int(x)-offset
+    yb = int(y)-offset
+    width = offset*2
+    xe = xb+width
+    ye = yb+width
+    assert(width>0)
+    
+    if (x-width) > img.shape[1]: raise ValueError, "x-coordinate out of bounds: %d > %d"%(x, img.shape[1])
+    if (y-width) > img.shape[0]: raise ValueError, "y-coordinate out of bounds: %d > %d"%(y, img.shape[0])
+        
+    if out is None: out = numpy.zeros((width, width), dtype=img.dtype)
+    dxb, dyb, dxe, dye = 0, 0, out.shape[1], out.shape[0]
+    #dx, dy = dxe, dye
+    
+    if xb < 0:
+        dxb = -xb
+        xb = 0
+    if yb < 0:
+        dyb = -yb
+        yb = 0
+    if img.shape[1] < xe: xe = img.shape[1]
+    if img.shape[0] < ye: ye = img.shape[0]
+    dxe = dxb+(xe-xb)
+    dye = dyb+(ye-yb)
+    assert(dxe > dxb)
+    assert(dye > dyb)
+
+    out[dyb:dye, dxb:dxe] = img[yb:ye, xb:xe]
+    if dxb > 0: out[dyb:dye, :dxb] = img[yb:ye, img.shape[1]-dxb:]
+    if dyb > 0: out[:dyb, dxb:dxe] = img[img.shape[0]-dyb:, xb:xe]
+    if dxe < out.shape[1]: out[dyb:dye, dxe:] = img[yb:ye, :out.shape[1]-dxe]
+    if dye < out.shape[0]: out[dye:, dxb:dxe] = img[:out.shape[0]-dye, xb:xe]
+    return out
+
+@_em2numpy2em
+def crop_window_old(img, x, y, offset, out=None):
+    ''' Extract a square window from an image
+    
+    .. todo:: requires testing for wrap around!
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    x : int
+        Center of window on x-axis
+    y : int
+        Center of window on y-axis
+    offset : int
+             Half-width of the window
+    out : numpy.ndarray
+          Output window
+                     
+    :Returns:
+    
+    out : numpy.ndarray
+          Output window
+    '''
+
+    
     xb = x-offset
     yb = y-offset
     width = offset*2
@@ -1427,6 +1804,99 @@ def crop_window(img, x, y, offset, out=None):
     ye = yb+width
     
     if out is None: out = numpy.zeros((width, width), dtype=img.dtype)
+    dxb, dyb, dxe, dye = 0, 0, 0, 0
+    if xb < 0:
+        dxb = -xb
+        xb = 0
+    if yb < 0:
+        dyb = -yb
+        yb = 0
+    if img.shape[1] < xe: 
+        dxe = xe-img.shape[1]
+        xe = img.shape[1]
+    if img.shape[0] < ye:
+        #img.shape[0]-yb
+        dye = ye-img.shape[0]
+        ye = img.shape[0]
+    
+    try:
+        out[dyb:width-dye, dxb:width-dxe] = img[yb:ye, xb:xe]
+        '''
+        xb: 894, xe:1009 - yb: 3994, ye: 4096 | dxb:0, dxe:0 - dyb:0, dye:13
+        (102,115) into shape (101,115)
+        4096x4096
+        
+        '''
+    except:
+        _logger.error("Error in window1 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
+        if dxe > 0: out[dyb:width-dye, width-dxe:] = img[yb:ye, xb-dxe:xb]
+        #if dxe > 0: out[dyb:width-dye, width-dxe:] = img[yb:ye, xb-dxe-1:xb]
+        # (78,6) xb-dxe:xb = 856-7:856
+        # into shape 
+        # (78,7) width-dxe = 78 - 7:78  71:78
+        
+        #1773,2091 - 3433,3710 | 0,0 - 0,41 - width: 318
+    except:
+        _logger.error("Error in window2 xb:%d,%d - yb:%d,%d | dxb:%d,%d - dyb:%d,%d - width: %d -- out: %d -- img: %d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye, width, out.shape[0], img.shape[0]))
+        raise
+    try:
+        # ValueError: could not broadcast input array from shape (3,74) into shape (2,74)
+        # 2013-11-22 09:00:00,812 ERROR Error in window3 344,418 - 856,927 | 0,0 - 0,3
+        #yb=856
+        #ye=927
+        #dyb=0
+        #dye=3
+        #if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye-1:yb, xb:xe]
+        if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye:yb, xb:xe]
+    except:
+        _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d - width: %d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye, width))
+        raise
+    try:
+        if dyb > 0: out[:dyb, dxb:width-dxe] = img[ye:ye+dyb, xb:xe]
+    except:
+        _logger.error("Error in window4 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    try:
+        if dxb > 0: out[dyb:width-dye, :dxb] = img[yb:ye, xe:xe+dxb]
+    except:
+        _logger.error("Error in window5 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
+        raise
+    return out
+
+@_em2numpy2em
+def crop_window2(img, x, y, offset, out=None):
+    ''' Extract a square window from an image
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    x : int
+        Center of window on x-axis
+    y : int
+        Center of window on y-axis
+    offset : int
+             Half-width of the window
+    out : numpy.ndarray
+          Output window
+                     
+    :Returns:
+    
+    out : numpy.ndarray
+          Output window
+    '''
+    
+    if not hasattr(offset, '__iter__'):
+        offset = (offset, offset)
+    
+    xb = x-offset[0]/2
+    yb = y-offset[1]/2
+    xe = xb+offset[0]
+    ye = yb+offset[1]
+    
+    if out is None: out = numpy.zeros(offset, dtype=img.dtype)
     dxb, dyb, dxe, dye = 0, 0, 0, 0
     if img.shape[1] < xe: 
         dxe = xe-img.shape[1]
@@ -1442,27 +1912,27 @@ def crop_window(img, x, y, offset, out=None):
         yb = 0
     
     try:
-        out[dyb:width-dye, dxb:width-dxe] = img[yb:ye, xb:xe]
+        out[dyb:offset[0]-dye, dxb:offset[1]-dxe] = img[yb:ye, xb:xe]
     except:
         _logger.error("Error in window1 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
     try:
-        if dxe > 0: out[dyb:width-dye, width-dxe:] = img[yb:ye, xb-dxe:xb]
+        if dxe > 0: out[dyb:offset[0]-dye, offset[1]-dxe:] = img[yb:ye, xb-dxe:xb]
     except:
         _logger.error("Error in window2 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
     try:
-        if dye > 0: out[width-dye:, dxb:width-dxe] = img[yb-dye:yb, xb:xe]
+        if dye > 0: out[offset[0]-dye:, dxb:offset[1]-dxe] = img[yb-dye:yb, xb:xe]
     except:
         _logger.error("Error in window3 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
     try:
-        if dyb > 0: out[:dyb, dxb:width-dxe] = img[ye:ye+dyb, xb:xe]
+        if dyb > 0: out[:dyb, dxb:offset[1]-dxe] = img[ye:ye+dyb, xb:xe]
     except:
         _logger.error("Error in window4 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
     try:
-        if dxb > 0: out[dyb:width-dye, :dxb] = img[yb:ye, xe:xe+dxb]
+        if dxb > 0: out[dyb:offset[0]-dye, :dxb] = img[yb:ye, xe:xe+dxb]
     except:
         _logger.error("Error in window5 %d,%d - %d,%d | %d,%d - %d,%d"%(xb, xe, yb, ye, dxb, dxe, dyb, dye))
         raise
@@ -1521,7 +1991,7 @@ def flatten_solvent(img, threshold=None, out=None):
     _logger.debug("Tight mask - started")
     if threshold is None or threshold == 'A': 
         _logger.debug("Finding threshold")
-        threshold = analysis.otsu(img.ravel())
+        threshold = unary_classification.otsu(img.ravel())
     else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")
@@ -1565,7 +2035,7 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     _logger.debug("Tight mask - started")
     if threshold is None or threshold == 'A': 
         _logger.debug("Finding threshold")
-        threshold = analysis.otsu(img.ravel())
+        threshold = unary_classification.otsu(img.ravel())
     else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")
@@ -1579,17 +2049,53 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
         elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
         out[:]=scipy.ndimage.binary_dilation(out, elem, ndilate)
     
-    # Smooth the image with a Gausian kernel of size `kernel_size`, and smoothness `gauss_standard_dev`
-    #return scipy.ndimage.filters.gaussian_filter(out, sigma, mode='reflect', output=out)
     
     if gk_size > 0 and gk_sigma > 0:
         _logger.debug("Smoothing in real space")
-        K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
-        K /= (numpy.mean(K)*numpy.prod(K.shape))
-        _logger.debug("Smoothing in real space - convolution")
-        out[:]=scipy.ndimage.convolve(out, K)#, mode='mirror')
+        out = gaussian_smooth(out, gk_size, gk_sigma, out)
     _logger.debug("Tight mask - finished")
     return out, threshold
+
+def gaussian_smooth(img, gk_size=3, gk_sigma=3.0, out=None):#, mode='reflect', cval=0.0):
+    ''' Perform real space smoothing with a Gaussian kernel on an image
+    
+    :Parameters:
+    
+    img : numpy.ndarray
+          Input image
+    gk_size : int, optional
+              Size of Gaussian kernel used for real space smoothing
+    gk_sigma : float, optional
+               Sigma value for Gaussian kernel
+    out : numpy.ndarray, optional
+          Output image
+                     
+    :Returns:
+
+    out : numpy.ndarray
+          Output image
+    '''
+    
+    if out is None: out = numpy.empty_like(img)
+    # Smooth the image with a Gausian kernel of size `kernel_size`, and smoothness `gauss_standard_dev`
+    #return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect', output=out)
+    K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
+    
+    K  /= (K.mean()*numpy.prod(K.shape))
+    if img.ndim == 2:
+        out[:] = scipy.signal.convolve2d(img, K, mode='same', boundary='wrap') #symm
+    else:
+        out[:]=scipy.ndimage.convolve(img, K, mode='mirror')#, mode=mode, cval=cval)#, mode='mirror')
+    return out
+
+def dialate_mask(img, ndialate, out=None):
+    '''
+    '''
+    
+    if out is None: out = numpy.empty_like(img)
+    elem = scipy.ndimage.generate_binary_structure(out.ndim, 2)
+    out[:]=scipy.ndimage.binary_dilation(out, elem, ndialate)
+    return out
 
 def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
     ''' Create a centered Gaussian kernel
@@ -1611,18 +2117,20 @@ def gaussian_kernel(shape, sigma, dtype=numpy.float, out=None):
           Output image
     '''
     
-    from util._new_numpy import meshgrid
-    shape = numpy.asarray(shape)/2
+    #from ..util.numpy_ext import meshgrid
+    shape = numpy.asarray(shape)
+    center = numpy.asarray(shape, dtype=numpy.int)//2
     sigma2 = 2*sigma*sigma
     sr2pi = numpy.sqrt(2.0*numpy.pi)
     rng=[]
-    for s in shape: rng.append(numpy.arange(-s, s+1, dtype=numpy.float))
-    rng = meshgrid(*rng, indexing='xy')
+    norm = 1.0
+    for s,c in zip(shape,center): 
+        rng.append(numpy.arange(0, s, dtype=numpy.float)-c)
+        norm *= 1.0/(sigma*sr2pi)
+    rng = numpy.meshgrid(*rng, indexing='xy')
     val = (rng[0].astype(numpy.float)**2)/sigma2
-    norm = 1.0/(sigma*sr2pi)
     for i in xrange(1, len(rng)):
         val += (rng[i].astype(numpy.float)**2)/sigma2
-        norm *= 1.0/(sigma*sr2pi)
     out = numpy.exp(-val, out)
     return numpy.multiply(out, norm, out)
 
@@ -1654,6 +2162,60 @@ def biggest_object(img, out=None):
     out[label == biggest] = 1
     return out
 
+def histeq(img, hist_bins=256, **extra):
+    ''' Equalize the histogram of an image
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    hist_bins : int
+                Number of bins for the histogram
+    
+    :Returns:
+    
+    img : array
+          Histogram equalized image
+          
+    .. note::
+    
+        http://www.janeriksolem.net/2009/06/histogram-equalization-with-python-and.html
+    '''
+    
+    imhist,bins = numpy.histogram(img.flatten(),hist_bins,normed=True)
+    cdf = imhist.cumsum() #cumulative distribution function
+    cdf = 255 * cdf / cdf[-1] #normalize
+    im2 = numpy.interp(img.flatten(), bins[:-1], cdf)#use linear interpolation of cdf to find new pixel values
+    img = im2.reshape(img.shape)
+    return img
+
+def hist_match(img, ref, hist_bins=256, **extra):
+    ''' Equalize the histogram of an image
+    
+    :Parameters:
+    
+    img : array
+          Image data
+    hist_bins : int
+                Number of bins for the histogram
+    
+    :Returns:
+    
+    img : array
+          Histogram equalized image
+          
+    .. note::
+    
+        http://www.janeriksolem.net/2009/06/histogram-equalization-with-python-and.html
+    '''
+    
+    imhist,bins = numpy.histogram(ref.flatten(),hist_bins,normed=True)
+    cdf = imhist.cumsum() #cumulative distribution function
+    cdf = 255 * cdf / cdf[-1] #normalize
+    im2 = numpy.interp(img.flatten(), bins[:-1], cdf)#use linear interpolation of cdf to find new pixel values
+    img = im2.reshape(img.shape)
+    return img
+
 def biggest_object_select(img):
     ''' Get the biggest object in a binary image
     
@@ -1682,7 +2244,7 @@ def biggest_object_select(img):
     biggest += 1
     return label == biggest
 
-def bispectrum(signal, maxlag=0.0081, window='gaussian', scale='unbiased'):
+def bispectrum(signal, maxlag=0.0081, window='uniform', scale='unbiased'):
     ''' Compute the bispectrum of a 1 or 2 dimensional array
     
     :Parameters:
@@ -1868,7 +2430,7 @@ def major_axis_angle(ellipse):
     '''
     
     _logger.error("%s"%(str(ellipse)))
-    a, b, c, d, e, f = ellipse
+    a, b, c, _, _, _ = ellipse
     
     _logger.error("%s"%(str(a)))
     
@@ -1881,37 +2443,164 @@ def major_axis_angle(ellipse):
     raise ValueError, "Invalid ellipse parameters: %f, %f"%(a, c)
 
 def fit_ellipse(x, y):
-  '''fit an ellipse to the points.
-
-  INPUT: 
-    xy -- N x 2 -- points in 2D
+    '''fit an ellipse to the points.
     
-  OUTPUT:
-    A,B,C,D,E,F -- real numbers such that:
-      A * x**2 + B * x * y + C * y**2 + D * x + E * y + F =~= 0
+    INPUT: 
+      xy -- N x 2 -- points in 2D
+      
+    OUTPUT:
+      A,B,C,D,E,F -- real numbers such that:
+        A * x**2 + B * x * y + C * y**2 + D * x + E * y + F =~= 0
+    
+    This is an implementation of:
+    
+    "Direct Least Square Fitting of Ellipses"
+    by Andrew Fitzgibbon, Maurizio Pilu, and Robert B. Fisher
+    IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE, 
+    VOL. 21, NO. 5, MAY 1999
+    
+    Shai Revzen, U Penn, 2010  
+    '''
+    
+    D = numpy.c_[ x*x, x*y, y*y, x, y, numpy.ones_like(x) ]
+    S = numpy.dot(D.T,D)
+    C = numpy.zeros((6,6),D.dtype)
+    C[0,2]=-2
+    C[1,1]=1
+    C[2,0]=-2
+    geval,gevec = scipy.linalg.eig( S, C )
+    idx = numpy.nonzero( geval<0 & ~ numpy.isinf(geval) )
+    _logger.info("idx: %s"%str(idx))
+    _logger.info("geval: %s"%str(geval))
+    _logger.info("gevec: %s"%str(gevec))
+    return tuple(gevec[:,idx].real)
 
-  This is an implementation of:
+def fourier_shell_correlation(img1, img2, center=None, pad=1, out=None):
+    ''' Estimate the resolution using the Fourier Shell/Ring correlation. 
+    Works for both 2D and 3D images.
+    
+    :Parameters:
+    
+    img1 : array
+           Image data in 2D or 3D
+    img2 : array
+           Image data in 2D or 3D
+    
+    :Returns:
+    
+    out : array
+          1d radial profile
+    '''
+    
+    if img1.dim != img2.dim: raise ValueError, "Dimensions of array must match"
+    if img1.dim not in (2,3): raise ValueError, "Must be either 2 or 3D array"
+    if img1.shape != img2.shape: raise ValueError, "Shape of both arrays must match"
+    if pad > 1: 
+        img1 = pad_image(img1.astype(numpy.complex64), (int(img1.shape[0]*pad), int(img1.shape[1]*pad)), 'm')
+        img2 = pad_image(img2.astype(numpy.complex64), (int(img2.shape[0]*pad), int(img2.shape[1]*pad)), 'm')
+    if out is None: out = numpy.zeros(img1.shape)
+    
+    if img1.ndim == 2:
+        fimg1 = scipy.fftpack.fftshift(scipy.fftpack.fft2(img1))
+        fimg2 = scipy.fftpack.fftshift(scipy.fftpack.fft2(img2))
+    else:
+        fimg1 = scipy.fftpack.fftshift(scipy.fftpack.fftn(img1))
+        fimg2 = scipy.fftpack.fftshift(scipy.fftpack.fftn(img2))
+    
+        out[:] = numpy.multiply(fimg1, fimg2.conjugate()).real
+        numpy.abs(fimg1, fimg1)
+        numpy.square(fimg1.real, fimg1.real)
+        numpy.abs(fimg2, fimg2)
+        numpy.square(fimg2.real, fimg2.real)
+        numpy.multiply(fimg1.real, fimg2.real, fimg1.real)
+        numpy.sqrt(fimg1.real, fimg1.real)
+        numpy.divide(out, fimg1.real)
+    if img1.ndim == 2:
+        return mean_azimuthal(out, center)
+    else:
+        return mean_azimuthal_3d(out, center)
 
-  "Direct Least Square Fitting of Ellipses"
-  by Andrew Fitzgibbon, Maurizio Pilu, and Robert B. Fisher
-  IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE, 
-  VOL. 21, NO. 5, MAY 1999
+def sum_by_group(values, groups):
+    ''' Sum values by group labels
+    
+    :Parameters:
+    
+    values : array
+             Array of values to sum
+    groups : array
+             Array containing group membership for each value in `values` array
+             
+    :Returns:
+    
+    out : array
+          Size corresponding to the number of groups where each element
+          is the sum values in that group
+    
+    .. note::
+    
+        Taken from ResMap:  http://sourceforge.net/projects/resmap/
+        Originally from http://stackoverflow.com/questions/4373631/sum-array-by-number-in-numpy
+    '''
+    
+    order             = numpy.argsort(groups)
+    groups            = groups[order]
+    values            = values[order]
+    values.cumsum(out =values)
+    index             = numpy.ones(len(groups), dtype=numpy.bool)
+    index[:-1]        = groups[1:] != groups[:-1]
+    values            = values[index]
+    groups            = groups[index]
+    values[1:]        = values[1:] - values[:-1]
+    return values
 
-  Shai Revzen, U Penn, 2010  
-  '''
-  
-  D = numpy.c_[ x*x, x*y, y*y, x, y, numpy.ones_like(x) ]
-  S = numpy.dot(D.T,D)
-  C = numpy.zeros((6,6),D.dtype)
-  C[0,2]=-2
-  C[1,1]=1
-  C[2,0]=-2
-  geval,gevec = scipy.linalg.eig( S, C )
-  idx = numpy.nonzero( geval<0 & ~ numpy.isinf(geval) )
-  _logger.info("idx: %s"%str(idx))
-  _logger.info("geval: %s"%str(geval))
-  _logger.info("gevec: %s"%str(gevec))
-  return tuple(gevec[:,idx].real)
+def mean_azimuthal_3d(image, center=None, binsize=1.0):
+    '''Calculate the spherically averaged profile.
+
+    :Parameters:
+    
+    image : array
+            3D image
+    center : tuple
+             The [x,y,z] pixel coordinates used as the center. The default is 
+             None, which then uses the center of the image (including 
+             fractional pixels).
+    binsize : float
+              Size of the averaging bin.  Can lead to strange results if
+              non-binsize factors are used to specify the center and the binsize is too large
+
+    :Returns:
+    
+    out : array
+          1D array containing mean radial average
+    
+    .. note::
+        
+        Taken from ResMap: http://sourceforge.net/projects/resmap/
+    
+    '''
+
+    n         = image.shape[0]
+
+    [x,y,z] = numpy.mgrid[ -n/2:n/2:numpy.complex(0,n),
+                        -n/2:n/2:numpy.complex(0,n),
+                        -n/2:n/2:numpy.complex(0,n) ]
+    r       = numpy.array(numpy.sqrt(x**2 + y**2 + z**2), dtype=numpy.float32)
+
+    nbins  = int(numpy.round( ((n/2.0) - 1) / binsize))
+    maxbin = nbins * binsize
+    bins   = numpy.linspace(0,maxbin,nbins)
+
+    # Find out which radial bin each point in the map belongs to
+    whichbin = numpy.digitize(r.flat,bins)
+
+    # how many per bin (i.e., histogram)?
+    # there are never any in bin 0, because the lowest index returned by digitize is 1
+    nr = numpy.bincount(whichbin)[1:]
+
+    # recall that bins are from 1 to nbins (which is expressed in array terms by xrange(1,nbins+1) )
+    radial_prof = sum_by_group(image.flat,whichbin)/nr
+
+    return radial_prof
 
 
-  
+

@@ -1,4 +1,6 @@
-''' Unstacks a SPIDER stack into individual images
+''' Unstacks an image stack into individual images
+
+The output files are named according to the SPIDER convention: filename_00001.dat.
 
 Download to edit and run: :download:`unstack.py <../../arachnid/snippets/unstack.py>`
 
@@ -17,6 +19,8 @@ To run:
    :lines: 20-
    :linenos:
 '''
+from arachnid.core.metadata import spider_utility
+from arachnid.core.image import ndimage_file
 
 if __name__ == '__main__':
     
@@ -28,8 +32,6 @@ if __name__ == '__main__':
     # Script
     
     
-    from arachnid.core.metadata import spider_utility
-    from arachnid.core.image import ndimage_file
     
     for i, img in enumerate(ndimage_file.iter_images(input_stack)):
         output_image = spider_utility.spider_filename(output_image, i+1)

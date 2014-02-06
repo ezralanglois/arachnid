@@ -127,12 +127,12 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 12, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
-from ..core.image.ndplot import pylab
+from ..core.app import program
+from ..core.util.matplotlib_nogui import pylab
 from ..core.image import ndimage_file
 from ..core.metadata import format, format_utility, spider_utility, spider_params
 from ..core.util import fitting
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import mask_volume
 import logging, os, numpy
 
@@ -160,8 +160,8 @@ def process(filename, output, **extra):
     spi = extra['spi']
     tempfile1 = spi.replace_ext('tmp1_spi_file')
     tempfile2 = spi.replace_ext('tmp2_spi_file')
-    filename1 = ndimage_file.copy_to_spider(filename[0], tempfile1)
-    filename2 = ndimage_file.copy_to_spider(filename[1], tempfile2)
+    filename1 = spider_file.copy_to_spider(filename[0], tempfile1)
+    filename2 = spider_file.copy_to_spider(filename[1], tempfile2)
     filename = (filename1, filename2)
     if spider_utility.is_spider_filename(filename[0]):
         output = spider_utility.spider_filename(output, filename[0])
@@ -171,10 +171,10 @@ def process(filename, output, **extra):
     res2 = fitting.fit_linear_interp(fsc, 0.143)
     res1 = apix/res1 if res1 > 0 else 0
     res2 = apix/res2 if res2 > 0 else 0
-    _logger.info("Resolution = %f - between %s and %s --- (0.5) = %f | (0.143) = %f"%(res, filename[0], filename[1], res1, res2))
+    _logger.info(" - Resolution = %f - between %s and %s --- (0.5) = %f | (0.143) = %f"%(res, filename[0], filename[1], res1, res2))
     return filename, fsc, apix
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
@@ -235,7 +235,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
     write_xml(os.path.splitext(outputfile)[0]+'.xml', vals[:, 1], vals[:, 3])
     if pylab is not None:
-        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid)
+        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid, 0.5, disable_scale)
     return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T, extra['apix']
 
 def write_xml(output, x, y):
@@ -286,7 +286,7 @@ def ensure_pixel_size(spi, filename, **extra):
         _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f (%f)"%(bin_factor, extra['window'], w, extra['apix'], params['apix'], extra['dec_level']))
     return params
 
-def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5):
+def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5, disable_scale=False):
     '''Write a resolution image plot to a file
     
     :Parameters:
@@ -308,7 +308,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     '''
     
     if pylab is None: return 
-    pylab.switch_backend('cairo.png')
+    pylab.switch_backend('Agg')#cairo.png')
     coeff = None
     if not disable_sigmoid:
         try: coeff = fitting.fit_sigmoid(x, y)
@@ -316,6 +316,9 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     pylab.clf()
     if coeff is not None:
         pylab.plot(x, fitting.sigmoid(coeff, x), 'g.')
+    if disable_scale:
+        y -= y.min()
+        y /= y.max()
     markers=['r--', 'b--']
     for i, yp in enumerate([0.5, 0.143]):
         if coeff is not None:
@@ -331,13 +334,16 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
             pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.2f \AA (%.2f-criterion)$'%(xp, res, yp))
     
     pylab.plot(x, y)
-    pylab.axis([0.0,freq_rng, 0.0,1.0])
+    if not disable_scale:
+        pylab.axis([0.0,freq_rng, 0.0,1.0])
+    else:
+        pylab.axis([0.0,freq_rng, numpy.min(y), numpy.max(y)])
     pylab.xlabel('Normalized Spatial Frequency')# ($\AA^{-1}$)
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", dpi=dpi)
 
-def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
+def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False):
     '''Write a resolution image plot to a file comparing multiple FSC curves
     
     :Parameters:
@@ -379,7 +385,8 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
     lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
     #pylab.legend(loc=1)
     # detect drop below some number, stop range there?
-    pylab.axis([0.0,0.5,0.0,1.0])
+    if not disable_scale:
+        pylab.axis([0.0,0.5,0.0,1.0])
     pylab.xlabel('Normalized Spatial Frequency')# ($\AA^{-1}$)
     pylab.ylabel('Fourier Shell Correlation')
     #pylab.title('Fourier Shell Correlation')
@@ -399,7 +406,11 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    param['spi'] = spider.open_session(files, **param)
+    if param['param_file'] != "" and os.path.splitext(param['param_file'])[1] != "":
+        _logger.warn("Using extension from SPIDER params file: %s"%param['param_file'])
+        sfiles=[param['param_file']]
+    else: sfiles=files
+    param['spi'] = spider.open_session(sfiles, **param)
     spider_params.read(param['spi'].replace_ext(param['param_file']), param)    
     param['fsc_curves'] = []
     pfiles = []
@@ -452,6 +463,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("",   dpi=72,         help="Resolution of the output plot in dots per inch (DPI)")
         pgroup.add_option("",   disable_sigmoid=False, help="Disable the sigmoid model fitting")
         pgroup.add_option("",   ova=False,      help="One-versus-all, the last one versus all other listed volumes")
+        pgroup.add_option("",   disable_scale=False,      help="Scale y-axis automatically")
         
         spider_params.setup_options(parser, pgroup, True)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
@@ -475,7 +487,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Calculate the resolution from volume pairs
                         
                         http://

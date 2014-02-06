@@ -177,9 +177,9 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import spider_params, format, format_utility
-from ..core.orient import orient_utility
+from ..core.orient import spider_transforms
 from ..core.parallel import mpi_utility, parallel_utility
 from ..core.spider import spider
 import reconstruct, prepare_volume, create_align
@@ -374,11 +374,12 @@ def align_to_reference(spi, align, curr_slice, reference, use_flip, use_apsh, sh
     align[curr_slice, 6:8] *= extra['apix']
     align[curr_slice, 12:14] *= extra['apix']
     if prev is not None:
-        align[curr_slice, 9] = orient_utility.euler_geodesic_distance(prev, align[curr_slice, :3])
+        align[curr_slice, 9] = spider_transforms.euler_geodesic_distance(prev, align[curr_slice, :3])
     #spi.spider_results(False)
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - started: %d"%mpi_utility.get_rank(**extra))
     spi.flush()
-    mpi_utility.gather_all(align, align[curr_slice], **extra)
+    tmp=align[curr_slice].copy()
+    mpi_utility.gather_all(align, tmp, **extra) # fix gatherall with INPLACE
     if mpi_utility.is_root(**extra) or 1 == 1: _logger.info("Garther alignment to root - finished: %d"%mpi_utility.get_rank(**extra))
 
 def align_projections_sm(spi, ap_sel, align, reference, angle_doc, angle_num, offset=0, cache_file=None, input_stack=None, reference_stack=None, **extra):
@@ -706,7 +707,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Align a set of particle windows to a reference
                         
                         $ %prog image_stack_*.ter -p params.ter -r reference.ter -o align_0001.ter

@@ -1,14 +1,14 @@
 import app.setup
 import util.setup
 import pyspider.setup
-import core.gui.setup
+import gui.setup
 
 gui_scripts = []
 console_scripts = []
 console_scripts.extend(["ara-"+script for script in app.setup.console_scripts])
 console_scripts.extend(["ara-"+script for script in util.setup.console_scripts])
 console_scripts.extend(["sp-"+script for script in pyspider.setup.console_scripts])
-gui_scripts.extend(["ara-"+script for script in core.gui.setup.gui_scripts])
+gui_scripts.extend(["ara-"+script for script in gui.setup.gui_scripts])
 
 _compiler_options=None
 
@@ -16,18 +16,21 @@ def ccompiler_options():
     '''
     '''
     
-    from numpy.distutils.ccompiler import new_compiler
+    #from numpy.distutils.ccompiler import new_compiler
     #from numpy.distutils.fcompiler.pg import PGroupFCompiler
     #from numpy.distutils.fcompiler.gnu import GnuFCompiler
-    ccompiler = new_compiler()
     
-    print '*****************', ccompiler.__class__.__name__, ccompiler.compiler_so, ccompiler.ranlib, ccompiler.compiler_type, ccompiler.compiler_cxx, ccompiler.linker_exe, ccompiler.linker_so
-    
-    openmp_enabled, needs_gomp = detect_openmp()
-    compiler_args = ['-O3', '-funroll-loops'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
+    #ccompiler = new_compiler()
+    # Todo test for PGI compiler
+        
+    #openmp_enabled, needs_gomp = detect_openmp()
+    openmp_enabled = detect_openmp()[0]
+    #'-march=k8', '-mfpmath=sse', '-m64', '-ffast-math', '-pipe'
+    #'-O3', '-march=athlon-xp', '-mfpmath=sse', '-msse', '-funroll-loops', '-pipe'
+    compiler_args = ['-O2', '-funroll-loops', '-msse2', '-mfpmath=sse']#, '-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION'] #, '-mssse3' #, '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
     if openmp_enabled:
         compiler_args.append('-fopenmp')
-    compiler_libraries = ['gomp'] if needs_gomp else []
+    compiler_libraries = [] #['gomp'] if needs_gomp else []
     compiler_defs = [('USE_OPENMP', None)] if openmp_enabled else []
     return compiler_args, compiler_libraries, compiler_defs
 
@@ -42,14 +45,14 @@ def fcompiler_options():
     
     if issubclass(fcompiler.__class__, PGroupFCompiler):
         openmp_enabled, needs_gomp = detect_openmp()
-        compiler_args = ['-fastsse', '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse']#, '-tp=nehalem-64']
+        compiler_args = ['-fastsse', '-fast', '-Minfo=all', '-Mscalarsse', '-Mvect=sse', '-Wtabs']#, '-tp=nehalem-64']
         if openmp_enabled:
             compiler_args.append('-mp=nonuma')
         compiler_libraries = [] if needs_gomp else []
         compiler_defs = [('USE_OPENMP', None)] if openmp_enabled else []
     elif issubclass(fcompiler.__class__, GnuFCompiler):
         openmp_enabled, needs_gomp = detect_openmp()
-        compiler_args = ['-mssse3', '-O3', '-funroll-loops'] #, '--std=gnu99'
+        compiler_args = ['-O3', '-funroll-loops'] #, '--std=gnu99'
         if openmp_enabled:
             compiler_args.append('-fopenmp')
         compiler_libraries = [] if needs_gomp else []
@@ -61,18 +64,19 @@ def fcompiler_options():
 def compiler_options():
     '''
     '''
-    import setup, numpy
+    import numpy
     from distutils.version import LooseVersion
+    global _compiler_options
     
     if _compiler_options is None:
         foptions = fcompiler_options()
         coptions = ccompiler_options()
-        setup._compiler_options = foptions + coptions
+        _compiler_options = foptions + coptions
         if LooseVersion(numpy.__version__) < LooseVersion('1.6.2'):
             import sys
             sys.argv.extend(['config_fc', '--f77flags="%s"'%" ".join(foptions[0]), '--f90flags="%s"'%" ".join(foptions[0])])
         
-    return setup._compiler_options
+    return _compiler_options
     
 
 def hasfunction(cc, funcname, add_opts=False, includes=[]):

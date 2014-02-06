@@ -115,10 +115,10 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program, tracing
-from ..core.metadata import spider_params, format, format_utility, spider_utility
+from ..core.app import program, tracing
+from ..core.metadata import spider_params, format_utility, spider_utility
 from ..core.parallel import mpi_utility
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import reconstruct, prepare_volume, align
 import logging, numpy, os
 
@@ -147,7 +147,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     alignment, refine_index = get_refinement_start(spi.replace_ext(alignment), refine_index, spi.replace_ext(output))
     #  1     2    3    4     5   6  7  8   9    10        11    12   13 14 15      16          17       18
     #"epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus"
-    alignvals = format.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
+    alignvals = spider_file.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
     assert(alignvals.shape[1]==18)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
     extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))
@@ -540,7 +540,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Refine the orientational assignment of a set of projections
                         
                         $ %prog image_stack_*.ter -p params.ter -r reference.ter -a align.ter -o align_0001.ter --refine-step 15,10,8,5,2

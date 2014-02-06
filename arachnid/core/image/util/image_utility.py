@@ -51,8 +51,15 @@ del types
 radon_count = _image_utility.radon_count
 
 
+def sine_psd(*args):
+    """
+    This SWIG wrapper for multitaper with a sine function
+    	
+    """
+    return _image_utility.sine_psd(*args)
+
 def rotavg(*args):
-  """
+    """
     This SWIG wrapper function creates a 2D rotational average from a 1D average.
 
     	:Parameters:
@@ -65,12 +72,12 @@ def rotavg(*args):
     		   Maximum radius
     	
     """
-  return _image_utility.rotavg(*args)
+    return _image_utility.rotavg(*args)
 
 def radon_transform(*args):
-  """
+    """
     This SWIG wrapper function creates a 2D rotational average from a 1D average.
     	
     """
-  return _image_utility.radon_transform(*args)
+    return _image_utility.radon_transform(*args)
 

@@ -1,69 +1,9 @@
-===================
-Developer's Guide
-===================
 
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
-	
-	
-------------
-Custom Code
-------------
-
-Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
-that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
-a way to test new ideas, perform a simple task quickly or customize objects such as plots.
-
-The Snippets below cover a set of examples for writing fast-prototype code. These
-examples range from unstacking a SPIDER image stack to customizing the FSC plot.
-
-.. currentmodule:: arachnid.snippets
-
-.. autosummary::
-    :nosignatures:
-    :toctree: api_generated/
-    :template: api_module.rst
-    
-    plot_fsc
-    unstack
-    filter_volume
-    mask_volume
-    reconstruct
-    reconstruct3
-    postprocess_volume
-    estimate_resolution
-    center_images
-    plot_angles
-    scale_align
-    corrupt_particles
-    phase_flip
-    stack_images
-    postprocess_mic_select
-    merge_select
-    fsc_spi_to_emdb
-    defocus_group
-    normalize
-    uniform_view_subset
-    relion_traceback
-    box_micrograph
-    transform_image
- 
--------------------------------
-Application Programs Interface
--------------------------------
-
-See :doc:`api` for a full list of available modules
-
------------
+===========
 Development
------------
+===========
 
-.. contents:: 
-	:depth: 1
-	:local:
-	:backlinks: none
+See :doc:`api` for code documentation.
 
 Getting Source
 ==============
@@ -88,17 +28,14 @@ Every time you add a new script or the first time you get the source, you may ru
 
 .. _contribute:
 
-Contributing
-=============
-
-Bug Report
-----------
+Reporting Bugs
+==============
 
 As a user or developer, you can report bugs or request features on the `Google Issues Tab <http://code.google.com/p/arachnid/issues/entry>`_. Please,
 search for your issue before submitting it.
 
-Source Code
------------
+Contributing Code
+=================
 
 The preferred way to contribute to Arachnid is to create your own local version or fork on code.google.com.
 
@@ -152,8 +89,8 @@ proper standards.
 		$ easy_install nose coverage
 		$ nosetests --with-coverage path/to/tests_for_package
 
-Debugging C/C++-code
----------------------
+Debugging C/C++ code
+====================
 
 Memory errors are the bain of every C/C++ developers existence. One important tool to finding these 
 errors is `valgrind <http://valgrind.org/>`_.
@@ -169,6 +106,39 @@ errors is `valgrind <http://valgrind.org/>`_.
 .. sourcecode:: sh
 
 	$ valgrind -v --suppressions=valgrind-python.supp python my_test_script.py
+	
+
+Testing compilation of code
+===========================
+
+To test whether your code has any problems such as uninitalized variable, use the following flags in the environment for GCC type compilers.
+
+.. sourcecode:: sh
+
+	$ export CFLAGS="-Werror -Wno-unused-function -Wno-unknown-pragmas -Wno-format" CXXFLAGS="-Werror -Wno-format -Wno-unknown-pragmas -Wno-unused-function"
+	$ export FFLAGS="-Werror -Wno-unused-function -Wtabs" F90FLAGS="-Werror -Wno-unused-function -Wtabs" F77FLAGS="-Werror -Wno-unused-function -Wtabs"
+
+Packaging for Anaconda
+======================
+
+.. sourcecode:: sh
+	
+	# Clean out all non-package code
+	$ conda package -r
+	
+	# Install non-package arachnid code
+	$ cd %arachnid$
+	$ python setup.py install 
+	
+	# Create distribution directory  
+	$ mkdir dist				
+	$ cd dist
+	
+	# Create Package
+	$ conda package --pkg-name=arachnid --pkg-version=$version 
+	
+	# Create index (Optional, used for local respository)
+	$ conda index				
 
 Documentation Hack
 ==================
@@ -199,6 +169,17 @@ Create a Program Script
 .. example file processor program
 
 Under construction
+
+------------
+Custom Code
+------------
+
+Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
+that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
+a way to test new ideas, perform a simple task quickly or customize objects such as plots.
+
+The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
+examples range from unstacking a SPIDER image stack to customizing the FSC plot.
 
 ------
 TODO

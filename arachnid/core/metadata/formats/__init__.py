@@ -9,7 +9,6 @@
     
     csv
     prediction
-    project
     spiderdoc
     spidersel
     star

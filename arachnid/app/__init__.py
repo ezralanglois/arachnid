@@ -9,5 +9,8 @@
     
     autopick
     lfcpick
+    vicer
+    reconstruct
+    align_frames
 '''
 

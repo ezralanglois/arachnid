@@ -8,12 +8,12 @@
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from PyQt4 import QtGui, QtCore
+from ..util.qt4_loader import QtGui, QtCore, qtProperty, qtSignal
 from Property import Property
-import logging
+import logging, types
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.INFO)
+_logger.setLevel(logging.DEBUG)
 
 class PropertyModel(QtCore.QAbstractItemModel):
     ''' Defines the property data maintained by a QTreeView
@@ -24,11 +24,13 @@ class PropertyModel(QtCore.QAbstractItemModel):
              Parent of the Property Model
     '''
     
+    propertyValidity = qtSignal(object, object, bool)
+    
     def __init__(self, parent=None):
         "Initialize the Property Model"
         
         QtCore.QAbstractItemModel.__init__(self, parent)
-        self.rootItem = Property("Root", None, None, None, self)
+        self.rootItem = Property("Root", parent=self)
         self.userCallbacks = []
         self.background_colors = [QtGui.QColor.fromRgb(250, 191, 143), 
                                   QtGui.QColor.fromRgb(146, 205, 220),
@@ -38,6 +40,60 @@ class PropertyModel(QtCore.QAbstractItemModel):
                                   QtGui.QColor.fromRgb(217, 149, 148),
                                   QtGui.QColor.fromRgb(84, 141, 212),
                                   QtGui.QColor.fromRgb(148, 138, 84)]
+        
+    def addOptionList(self, option_list):
+        ''' Add options from list/dict format
+        '''
+        
+        from arachnid.core.app import settings
+        parser = settings.OptionParser('', version='0.0.1', description="")
+        for option in option_list:
+            parser.add_option("", **option)
+        values = parser.get_default_values()
+        names = vars(values).keys()
+        self.addOptions(parser.get_config_options(), parser.option_groups, values)
+        return values, names
+    
+    def addOptions(self, option_list, option_groups, option_values, parent=None, rindex=0):
+        ''' Add command line options to the Property Tree Model
+        
+        :Parameters:
+        
+        option_list, option_groups, option_values
+        '''
+        
+        if parent is None: parent = self.rootItem
+        self.beginInsertRows(QtCore.QModelIndex(), self.rowCount(), self.rowCount()+len(option_list)+len(option_groups))
+        
+        if not hasattr(option_values, 'setProperty'):
+            def setProperty(obj, key, val): setattr(obj, key, val)
+            option_values.setProperty = types.MethodType( setProperty, option_values )
+        if not hasattr(option_values, 'property'):
+            def property(obj, key): return getattr(obj, key)
+            option_values.property = types.MethodType( property, option_values )
+        
+        for option in option_list:
+            for propertyClass in Property.PROPERTIES:
+                p = propertyClass.create(option, rindex, option_values, parent=parent)
+                if p is not None: break
+            if p is None: print 'Error', option.dest, getattr(option_values, option.dest)
+            assert(p is not None)
+            #if p.required: 
+            p.propertyValidity.connect(self.firePropertyValidity)
+        
+        for group in option_groups:
+            if group.is_child() and len(group.get_config_options()) > 0:
+                current = Property(group.title, rindex, parent=parent)
+                self.addOptions(group.get_config_options(), group.option_groups, option_values, current)
+        
+        # groups
+        self.endInsertRows()
+    
+    def firePropertyValidity(self, prop, valid):
+        '''
+        '''
+        
+        self.propertyValidity.emit(self, prop, valid)
     
     def _addItems(self, properties, parentItem, rindex=0):
         '''Recursively add external properties to the model
@@ -51,16 +107,6 @@ class PropertyModel(QtCore.QAbstractItemModel):
         rindex : int
                 Current row index for grouping
         '''
-        
-        if 1 == 0:
-            oproperties = list(properties)
-            for p in oproperties: 
-                try:
-                    properties[p.order_index]=p
-                except: 
-                    _logger.error("%s - %d"%(p.__class__.__name__, p.order_index))
-                    raise
-            del oproperties
             
         for propertyObject in properties:
             #name = getattr(propertyObject.__class__, 'DisplayName', propertyObject.__class__.__name__) #.replace('_', '-'))
@@ -68,12 +114,19 @@ class PropertyModel(QtCore.QAbstractItemModel):
             _logger.debug("Add item %s - %d - child: %d"%(name, rindex, len(propertyObject._children)))
             currentItem = Property(name, rindex, None, None, parentItem)
             
+            props=[]
+            for propName in dir(propertyObject.__class__):
+                metaProperty = getattr(propertyObject.__class__, propName)
+                if not issubclass(metaProperty.__class__, qtProperty): continue
+                props.append(propName)
+            
+            '''
             props = dir(propertyObject.__class__)
             oprops = list(props)
             last = -1
             for propName in oprops:
                 metaProperty = getattr(propertyObject.__class__, propName)
-                if not hasattr(metaProperty, 'order_index'): continue
+                if not issubclass(metaProperty.__class__, qtProperty): continue
                 try:
                     props[metaProperty.order_index]=propName
                     if metaProperty.order_index > last: last = metaProperty.order_index
@@ -81,9 +134,10 @@ class PropertyModel(QtCore.QAbstractItemModel):
                     _logger.error("%s - %d < %d"%(propName, metaProperty.order_index, len(oprops)))
                     raise
             props = props[:last+1]
+            '''
             
-            props = [prop for prop in props if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
-            #props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ]
+            props = [prop for prop in props if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ]
+            #props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ]
             
             
             
@@ -92,6 +146,8 @@ class PropertyModel(QtCore.QAbstractItemModel):
                 for propertyClass in Property.PROPERTIES:
                     p = propertyClass.create(propName, rindex, propertyObject, metaProperty, currentItem)
                     if p is not None: break
+                if p is not None:
+                    p.propertyValidity.connect(self.firePropertyValidity)
                 row = p.row() if p is not None else -1
                 _logger.debug("Add property %s - %d"%(propName,row))
             self._addItems(propertyObject._children, currentItem, rindex)
@@ -110,7 +166,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         if hasattr(propertyObject, 'todict') or hasattr(propertyObject, '_children'):
             #if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
             
-            props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty)]
+            props = [prop for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty)]
             if len(props) != 0:
                 _logger.debug("Tab as root")
                 if hasattr(propertyObject, '_children'): propertyObject = [propertyObject]
@@ -128,7 +184,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             # Create property/class hierarchy
             propertyMap = {}
             classList = []
-            pypropertyMap = dict([(prop, getattr(propertyObject.__class__, prop)) for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), QtCore.pyqtProperty) ])
+            pypropertyMap = dict([(prop, getattr(propertyObject.__class__, prop)) for prop in dir(propertyObject.__class__) if isinstance(getattr(propertyObject.__class__, prop), qtProperty) ])
             classMap = {}
             classObject = propertyObject.__class__
             metaObject = propertyObject.metaObject()
@@ -170,12 +226,14 @@ class PropertyModel(QtCore.QAbstractItemModel):
                     try:
                         extProperty = pypropertyMap[prop.name()]
                     except:
-                        print prop.name(), "-->", pypropertyMap
+                        print 'Error', prop.name(), "-->", pypropertyMap
                         raise
                     p = None
                     for propertyClass in Property.PROPERTIES:
                         p = propertyClass.create(metaProperty.name(), rindex, propertyObject, extProperty, propertyItem)
                         if p is not None: break
+                    if p is not None:
+                        p.propertyValidity.connect(self.firePropertyValidity)
             self.endInsertRows()
             if propertyItem: self.addDynamicProperties(propertyItem, propertyObject)
     
@@ -203,7 +261,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
             removed = 0
             for i in xrange(len(children)):
                 obj = children[i]
-                if obj.property("__Dynamic").toBool() or dynamicProperties.contains(obj.objectName().toLocal8Bit()): continue
+                if obj.property("__Dynamic").toBool() or dynamicProperties.contains(obj.objectName()): continue
                 self.beginRemoveRows(itemIndex.parent(), i - removed, i - removed)
                 removed += 1
                 self.endRemoveRows()
@@ -223,7 +281,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         dynamicProperties = propertyObject.dynamicPropertyNames()
         for child in parent.children():
             if not child.property("__Dynamic").toBool() : continue
-            index = dynamicProperties.indexOf( child.objectName().toLocal8Bit() )
+            index = dynamicProperties.indexOf( child.objectName() )
             if index != -1:
                 dynamicProperties.removeAt(index)
                 continue
@@ -239,9 +297,9 @@ class PropertyModel(QtCore.QAbstractItemModel):
         self.beginInsertRows(parentIndex, rows, rows + dynamicProperties.count() - 1 )
         
         for dynProp in dynamicProperties:
-            v = propertyObject.property(dynProp)
+            #v = propertyObject.property(dynProp)
             p = None
-            if v.type() == QtCore.QVariant.UserType and len(self.userCallbacks) > 0:
+            if len(self.userCallbacks) > 0:
                 for callback in self.userCallbacks:
                     p = callback(property.name(), propertyObject, parent)
                     if p is not None: break
@@ -301,7 +359,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         if (orientation, role) == (QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole):
             if section == 0: return self.tr("Name")
             if section == 1: return self.tr("Value")
-        return QtCore.QVariant()
+        return None
     
     def flags(self, index):
         '''Returns the item flags for the given index
@@ -333,7 +391,7 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         index : QModelIndex
                 Index of a model item
-        value : QVariant
+        value : object
                 New value for item at index with role
         role : enum
                Data role
@@ -364,32 +422,35 @@ class PropertyModel(QtCore.QAbstractItemModel):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data object
         '''
         
-        if not index.isValid(): return QtCore.QVariant()
+        if not index.isValid(): return None
         item = index.internalPointer()
         
         if role == QtCore.Qt.ForegroundRole and index.column() == 0 and 'required' in item.hints and item.hints['required']:
-            return QtCore.QVariant(QtGui.QColor(QtCore.Qt.blue))
+            return QtGui.QColor(QtCore.Qt.blue)
+        if role == QtCore.Qt.BackgroundRole and index.column() == 1 and 'required' in item.hints and item.hints['required']:
+            if not item.isValid():
+                return QtGui.QColor('#F0E68C')
         
         if (role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.StatusTipRole) and item.doc is not None:
-            return item.doc
+            return "<FONT COLOR=black>"+item.doc+"<FONT>"
         elif role == QtCore.Qt.ToolTipRole or role == QtCore.Qt.DecorationRole or role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0: return item.displayName
-            if index.column() == 1: return item.value(role)
+            if index.column() == 1: return str(item.value(role))
         #if role == QtCore.Qt.BackgroundRole:
         #    if item.isRoot(): return QtGui.QApplication.palette("QTreeView").brush(QtGui.QPalette.Normal, QtGui.QPalette.Button).color()
             '''
                 group = item.group
                 while group > len(self.background_colors): group -= len(self.background_colors)
                 color = self.background_colors[group]
-                return QtCore.QVariant(QtGui.QBrush(color))
+                return QtGui.QBrush(color)
             '''
         if role == QtCore.Qt.CheckStateRole:
             if index.column() == 1 and item.isBool(): return item.value(role)
-        return QtCore.QVariant()
+        return None
     
     def rowCount(self, parent = QtCore.QModelIndex()):
         ''' Get the number of rows for the parent item
@@ -488,8 +549,10 @@ class PropertyModel(QtCore.QAbstractItemModel):
         '''
         
         parentItem = self.rootItem
-        if parent.isValid(): parentItem = parent.internalPointer()
-        if row >= len(parentItem.children()) or row < 0: return QtCore.QModelIndex()
+        if parent.isValid(): 
+            parentItem = parent.internalPointer()
+        if row >= len(parentItem.children()) or row < 0: 
+            return QtCore.QModelIndex()
         return self.createIndex(row, column, parentItem.children()[row])
     
     def saveState(self, settings, parent = QtCore.QModelIndex()):
@@ -521,4 +584,16 @@ class PropertyModel(QtCore.QAbstractItemModel):
         parentItem = self.rootItem
         if parent.isValid(): parentItem = parent.internalPointer()
         parentItem.restoreState(settings)
+    
+    def totalInvalid(self):
+        ''' Count the total number of children under this node.
+        
+        :Returns:
+        
+        total : int
+                Total number of invalid, but required children
+        '''
+        
+        return self.rootItem.totalInvalid()
+    
 

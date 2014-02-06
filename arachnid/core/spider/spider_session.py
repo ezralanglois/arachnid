@@ -44,21 +44,6 @@ _logger.setLevel(logging.INFO)
 
 class Session(object):
     ''' Create an interactive session with Spider
-    
-    :Parameters:
-        
-        filepath : str
-                   Filename for the spider executable (Default: None) if None, a search is performed
-        ext : str
-              File extension for data files (Default: dat)
-        thread_count : int
-                       Number of threads to use (Default: 0) if 0, all cores are used
-        enable_results : bool
-                         Should the results file be enabled for the entire run
-        rank : int
-               Current rank if MPI job
-        tmp_path : str
-                   Current working directory of SPIDER
     '''
     
     EXTERNAL_PIPENAME = 'TMP_SPIDER_PIPE.pipe'
@@ -66,7 +51,23 @@ class Session(object):
     PROCESSES=[]
     
     def __init__(self, filepath=None, ext='dat', thread_count=0, enable_results=False, rank=None, tmp_path=None):
-        #Invoke Spider and open a pipe
+        '''Invoke Spider and open a pipe
+    
+        :Parameters:
+            
+            filepath : str
+                       Filename for the spider executable (Default: None) if None, a search is performed
+            ext : str
+                  File extension for data files (Default: dat)
+            thread_count : int
+                           Number of threads to use (Default: 0) if 0, all cores are used
+            enable_results : bool
+                             Should the results file be enabled for the entire run
+            rank : int
+                   Current rank if MPI job
+            tmp_path : str
+                       Current working directory of SPIDER
+        '''
         
         self.spider = None
         self.registers = None
@@ -108,9 +109,8 @@ class Session(object):
         if not os.path.exists(self.spiderexec): raise ValueError, "Cannot find spider executable: "+self.spiderexec
         self.get_version(tmp_path)
         assert(len(self.dataext)==3)
-        if rank == 0:
-            _logger.info("SPIDER Version = %d.%d"%self.version)
-        _logger.warn("Using command: %s"%self.spiderexec)
+        if rank == 0 or rank is None:
+            _logger.info("SPIDER Version = %d.%d - %s"%(self.version[0], self.version[1], self.spiderexec))
         if os.path.exists(os.path.join(os.path.dirname(self.spiderexec), 'Nextresults')):
             os.environ['SPBIN_DIR'] = os.path.dirname(self.spiderexec) + os.sep
             _logger.debug("SPBIN_DIR = %s"%os.environ['SPBIN_DIR'])
@@ -123,12 +123,17 @@ class Session(object):
             self.pipename = base+("_%d"%rank)+ext
         else: rank=0
         if tmp_path is not None and tmp_path != "": 
-            self.pipename = os.path.join(tmp_path, self.pipename)
-        if os.path.exists(self.pipename):
-            try: os.remove(self.pipename)
+            self.pipename_file = os.path.join(tmp_path, self.pipename)
+        else: self.pipename_file = self.pipename
+        if os.path.exists(self.pipename_file):
+            try: os.remove(self.pipename_file)
             except: pass
         _logger.debug("Using PIPE = %s"%self.pipename)
-        os.mkfifo(self.pipename)
+        try:
+            os.mkfifo(self.pipename_file)
+        except: 
+            _logger.error("Pipe exists: %s"%self.pipename_file)
+            raise
         if tmp_path == "": tmp_path = None
         self.tmp_path = tmp_path
         if 1 == 0:
@@ -136,7 +141,9 @@ class Session(object):
             self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=self.spider_err.fileno()) #stdout=subprocess.PIPE
         else:
             #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-            self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            #self.devnull = open(os.devnull, 'w')
+            self.spider = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)#, stdout=self.devnull)
             self.spider_err = self.spider.stderr
         self.spider_proc = len(Session.PROCESSES)
         Session.PROCESSES.append(self.spider)
@@ -144,13 +151,18 @@ class Session(object):
         self.spider_poll.register(self.spider_err.fileno())
         self._invoke(self.dataext)
         if enable_results: #_logger.getEffectiveLevel() == logging.DEBUG and enable_results: 
-            if 1 == 1:
+            if 1 == 0:
                 self._invoke('MD', 'TERM OFF')
                 self._invoke('MD', 'RESULTS ON')
             else:
-                self._invoke('MD', 'RESULTS ON')
-                self._invoke('MD', 'TERM ON') 
-                
+                if rank == 0:
+                    _logger.critical('Results enabled')
+                    self._invoke('MD', 'RESULTS ON')
+                    self._invoke('MD', 'TERM ON') 
+                else:
+                    self._invoke('MD', 'RESULTS OFF')
+                    self._invoke('MD', 'TERM OFF') 
+                    
             if rank == 0: _logger.warn("Result enabled")
         else: 
             self._invoke('MD', 'RESULTS OFF')
@@ -159,7 +171,7 @@ class Session(object):
         self._invoke('MD', 'PIPE', self.pipename)
         self._invoke('MD', 'SET MP', thread_count)
         
-        self.registers = open(self.pipename, 'r')
+        self.registers = open(self.pipename_file, 'r')
         self.register_poll = io_select.poll()
         self.register_poll.register(self.registers.fileno())
         self.incore_imgs = spider_var.spider_var_pool()
@@ -168,14 +180,24 @@ class Session(object):
         if is_linux():
             try:
                 self._invoke("[i] = 3.241","PI REG", "[i]") #, skip=True)
-            except: pass
+            except: 
+                try:
+                    self._invoke("[i] = 3.241","PI REG", "[i]") #, skip=True)
+                except: raise "Cannot invoke test command"
             response = ''
             while len(response) < 9:
                 response += self.registers.readline()
             struct.unpack('ffc',response)
     
     def spider_results(self, enable=True, terminal=False):
-        '''
+        ''' Control the SPIDER results files
+        
+        :Parameters:
+        
+            enable : bool
+                     Turn on logging
+            terminal : bool
+                       Direct logging to terminal
         '''
         
         if enable:
@@ -189,7 +211,7 @@ class Session(object):
             self._invoke('MD', 'TERM OFF')
             
     def relaunch(self):
-        '''
+        ''' Launch a new SPIDER executable (usually after a crash)
         '''
         
         _logger.warn("Using command: %s"%self.spiderexec)
@@ -198,10 +220,10 @@ class Session(object):
         try: self.close()
         except: pass
         
-        if os.path.exists(self.pipename):
-            try: os.remove(self.pipename)
+        if os.path.exists(self.pipename_file):
+            try: os.remove(self.pipename_file)
             except: pass
-        os.mkfifo(self.pipename)
+        os.mkfifo(self.pipename_file)
         self.spider = subprocess.Popen(self.spiderexec, cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         #self.spider = subprocess.Popen([self.spiderexec, " spi/%s"%self.dataext], cwd=self.tmp_path, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         self.spider_err = self.spider.stderr
@@ -223,7 +245,7 @@ class Session(object):
         self._invoke('MD', 'PIPE', self.pipename)
         self._invoke('MD', 'SET MP', self.thread_count)
         
-        self.registers = open(self.pipename, 'r')
+        self.registers = open(self.pipename_file, 'r')
         self.register_poll = io_select.poll()
         self.register_poll.register(self.registers.fileno())
         
@@ -240,14 +262,14 @@ class Session(object):
         ''' Get the current version of SPIDER
         
         :Parameters:
-        
-        tmp_path : str, optional
-                   Current working directory for SPIDER
+            
+            tmp_path : str, optional
+                       Current working directory for SPIDER
         
         :Returns:
-        
-        version : tuple of ints
-                  Version tuple 
+            
+            version : tuple of ints
+                      Version tuple 
         '''
         
         if self.version is None:
@@ -264,7 +286,7 @@ class Session(object):
                 n = line.find('VERSION:')
                 if n != -1: break
             if n == -1:
-                raise ValueError, "Error invoking SPIDER executable on path: %s - This could mean your tmp_path flag is not write accessible"%self.spiderexec
+                raise ValueError, "Error invoking SPIDER executable on path: %s - This could mean your tmp_path flag is not write accessible: %s"%(self.spiderexec, str(tmp_path))
             line = line[(n+len('VERSION:')+1):]
             line = line.strip().split()
             self.version = tuple([int(v) for v in line[1].split('.')])
@@ -277,18 +299,18 @@ class Session(object):
         ''' Create a unique incore file integer
         
         :Parameters:
-            
-        force_new : bool
-                    If true, ensure the new variable as never been used
-        hook : function
-               Called when the variable is deleted
-        is_stack : bool
-                   True if temp file is a stack
+                
+            force_new : bool
+                        If true, ensure the new variable as never been used
+            hook : function
+                   Called when the variable is deleted
+            is_stack : bool
+                       True if temp file is a stack
         
         :Returns:
-            
-        var : int
-              Integer referring to an incore spider variable
+                
+            var : int
+                  Integer referring to an incore spider variable
         '''
         
         return self.incore_imgs.get(force_new, hook, is_stack)
@@ -297,16 +319,16 @@ class Session(object):
         ''' Create a unique incore file integer
         
         :Parameters:
-            
-        force_new : bool
-                    If true, ensure the new variable as never been used
-        hook : function
-               Called when the variable is deleted
+                
+            force_new : bool
+                        If true, ensure the new variable as never been used
+            hook : function
+                   Called when the variable is deleted
         
         :Returns:
-            
-        var : int
-              Integer referring to an incore spider variable
+                
+            var : int
+                  Integer referring to an incore spider variable
         '''
         
         return self.incore_docs.get(force_new, hook)
@@ -315,9 +337,9 @@ class Session(object):
         '''Get the current data extension for spider
         
         :Returns:
-            
-        ext : str
-              Current data extension for images and doc files
+                
+            ext : str
+                  Current data extension for images and doc files
         '''
         
         return self.dataext
@@ -326,14 +348,14 @@ class Session(object):
         '''Replace the extension of the given filename with the appropriate spider extension
         
         :Parameters:
-            
-        filename : str
-                   Filename with possibly offending extension
+                
+            filename : str
+                       Filename with possibly offending extension
                        
         :Returns:
-            
-        filename : str
-                   Filename with proper SPIDER extension
+                
+            filename : str
+                       Filename with proper SPIDER extension
         '''
         
         if is_incore_filename(filename) or isinstance(filename, tuple): return filename
@@ -363,9 +385,12 @@ class Session(object):
         ''' Close the Spider session
         '''
         
-        _logger.debug("Attempting to close SPIDER")
+        try:self.devnull.close()
+        except: pass
+        
+        _logger.info("Attempting to close SPIDER", extra=dict(tofile=True))
         if hasattr(self, 'spider') and self.spider is not None:
-            _logger.debug("Closing SPIDER")
+            _logger.info("Closing SPIDER", extra=dict(tofile=True))
             if _logger.getEffectiveLevel() > logging.DEBUG:
                 self.spider.stdin.write('en d\n')
             else:
@@ -377,8 +402,8 @@ class Session(object):
             self.registers.close()
             self.registers = None
         
-        if hasattr(self, 'pipename') and self.pipename is not None:
-            try: os.remove(self.pipename)
+        if hasattr(self, 'pipename_file') and self.pipename_file is not None:
+            try: os.remove(self.pipename_file)
             except: pass
         tmp_files = ['jnkASSIGN1', 'LOG.%s'%self.dataext, 'LOG.tmp']
         #if not self._results:
@@ -395,11 +420,11 @@ class Session(object):
         ''' Send a command to Spider
         
         :Parameters:
-            
-        args : list
-               List of arguments
-        kwargs : dict
-                 Keyword arguments
+                
+            args : list
+                   List of arguments
+            kwargs : dict
+                     Keyword arguments
         '''
         
         if self.spider is None: raise ValueError, "No pipe to Spider process"
@@ -441,9 +466,9 @@ class Session(object):
         and run the command again.
         
         :Parameters:
-            
-        args : list
-               List of arguments
+                
+            args : list
+                   List of arguments
         
         '''
         
@@ -460,11 +485,11 @@ class Session(object):
     
     def _invoke_with_results(self, *args):
         ''' Invoke a SPIDER command with the results file on
-        
-        :Parameters:
             
-        args : list
-               List of arguments
+        :Parameters:
+                
+            args : list
+                   List of arguments
         '''
         
         if not self._results:
@@ -481,9 +506,9 @@ class Session(object):
         ''' Set the spider register with given name and value
         
         :Parameters:
-            
-        kwargs : dict
-                 (Name,Value) pairs of register
+                
+            kwargs : dict
+                     (Name,Value) pairs of register
         '''
         
         if self.registers is None: raise ValueError, "No pipe from Spider process"
@@ -495,14 +520,14 @@ class Session(object):
         ''' Get the value of the given variable name
         
         :Parameters:
-            
-        varname : str
-                  Name of variable
+                
+            varname : str
+                      Name of variable
         
         :Returns:
-            
-        val : object
-              Value of variable
+                
+            val : object
+                  Value of variable
         '''
         
         if self.registers is None: raise ValueError, "No pipe from Spider process"
@@ -526,14 +551,14 @@ class Session(object):
         ''' Get the value of the given variable name
         
         :Parameters:
-            
-        varname : str
-                  Name of variable
+                
+            varname : str
+                      Name of variable
         
         :Returns:
-            
-        val : object
-              Value of variable
+                
+            val : object
+                  Value of variable
         '''
         
         return self.get(varname)
@@ -542,11 +567,11 @@ class Session(object):
         ''' Set the value of the given variable name
         
         :Parameters:
-            
-        varname : str
-                  Name of variable
-        value : object
-                Value of variable
+                
+            varname : str
+                      Name of variable
+            value : object
+                    Value of variable
         '''
         
         self.set(**{spider_register_name(varname): value})
@@ -586,24 +611,24 @@ def spider_command_multi_input(session, command, message, inputfile, *otherfiles
     '''Template function for a spider command that works on a varying number of input files
     
     :Parameters:
-        
-    session : Session
-              Current spider session
-    command : str
-              Command name
-    message : str
-              Message to be written to the log file
-    inputfile : str
-                Input filename
-    otherfiles : str
-                 Other filenames listed on the as function parameters
-    extra : dict
-            Unused key word arguments (outputfile hidden here and used)
+            
+        session : Session
+                  Current spider session
+        command : str
+                  Command name
+        message : str
+                  Message to be written to the log file
+        inputfile : str
+                    Input filename
+        otherfiles : str
+                     Other filenames listed on the as function parameters
+        extra : dict
+                Unused key word arguments (outputfile hidden here and used)
     
     :Returns:
-    
-    outputfile : str
-                 Output filename
+        
+        outputfile : str
+                     Output filename
     '''
     
     _logger.debug(message)
@@ -619,44 +644,44 @@ def generate_ctf_param(defocus, cs=None, window=None, source=None, defocus_sprea
     ''' Generate CTF parameters for SPIDER CTF functions
     
     :Parameters:
-    
-    defocus : float
-              Amount of defocus, in Angstroems
-    cs : object
-         Spherical aberration constant
-    window : int
-             Dimension of the 2D array
-    source : float
-             Size of the illumination source in reciprocal Angstroems
-    defocus_spread : float
-                     Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
-    ampcont : float
-              Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
-    envelope_half_width : float
-                          Envelope parameter specifies the 2 sigma level of the Gaussian
-    astigmatism : float
-                  Defocus difference due to axial astigmatism (Defaut: 0)
-    azimuth : float
-              Angle, in degrees, that characterizes the direction of astigmatism (Defaut: 0)
-    maximum_spatial_freq : float
-                           Spatial frequency radius corresponding to the maximum radius (Defaut: None)
-    pad : int
-          Number of times to pad image and CTF
-    apix : float
-           Size of pixel in angstroms  (Defaut: None)
-    elambda : float
-              Wavelength of the electrons (Defaut: None)
-    voltage : float
-              Voltage of microscope (Defaut: None)
-    ctf_sign : float
-               Application of the transfer function results in contrast reversal if underfocus (Defaut: -1)
-    extra : dict
-            Unused key word arguments
+        
+        defocus : float
+                  Amount of defocus, in Angstroems
+        cs : object
+             Spherical aberration constant
+        window : int
+                 Dimension of the 2D array
+        source : float
+                 Size of the illumination source in reciprocal Angstroems
+        defocus_spread : float
+                         Estimated magnitude of the defocus variations corresponding to energy spread and lens current fluctuations
+        ampcont : float
+                  Amplitude constant for envelope parameter specifies the 2 sigma level of the Gaussian
+        envelope_half_width : float
+                              Envelope parameter specifies the 2 sigma level of the Gaussian
+        astigmatism : float
+                      Defocus difference due to axial astigmatism (Defaut: 0)
+        azimuth : float
+                  Angle, in degrees, that characterizes the direction of astigmatism (Defaut: 0)
+        maximum_spatial_freq : float
+                               Spatial frequency radius corresponding to the maximum radius (Defaut: None)
+        pad : int
+              Number of times to pad image and CTF
+        apix : float
+               Size of pixel in angstroms  (Defaut: None)
+        elambda : float
+                  Wavelength of the electrons (Defaut: None)
+        voltage : float
+                  Voltage of microscope (Defaut: None)
+        ctf_sign : float
+                   Application of the transfer function results in contrast reversal if underfocus (Defaut: -1)
+        extra : dict
+                Unused key word arguments
             
     :Returns:
-    
-    param : tuple
-            Properly formated parameters
+        
+        param : tuple
+                Properly formated parameters
     '''
     
     if isinstance(cs, dict):
@@ -670,7 +695,7 @@ def generate_ctf_param(defocus, cs=None, window=None, source=None, defocus_sprea
         maximum_spatial_freq = 0.5/apix
     if pad is None or pad < 1: pad = 1
     if isinstance(window, tuple): window = (window[0]*pad, window[1]*pad)
-    else: window = (window*pad, )
+    else: window = (window*pad, window*pad)
     return spider_tuple(cs), spider_tuple(defocus, elambda), spider_tuple(*window), spider_tuple(maximum_spatial_freq), spider_tuple(source, defocus_spread), spider_tuple(astigmatism, azimuth), spider_tuple(ampcont, envelope_half_width), spider_tuple(ctf_sign)
 
 def ensure_output_recon3(session, outputfile):
@@ -678,27 +703,27 @@ def ensure_output_recon3(session, outputfile):
     SPIDER reconstruction engine, e.g. bp 32f
     
     :Parameters:
+            
+        session : Session
+                  Current spider session
+        outputfile : tuple
+                     Tuple of 3 filenames
+            
+        :Returns:
         
-    session : Session
-              Current spider session
-    outputfile : tuple
-                 Tuple of 3 filenames
-        
-    :Returns:
-    
-    outputfile : str
-                 Output full volume
-    outputfile1 : str
-                  Output half volume
-    outputfile2 : str
-                  Output half volume
+        outputfile : str
+                     Output full volume
+        outputfile1 : str
+                      Output half volume
+        outputfile2 : str
+                      Output half volume
     '''
     
     if outputfile is None: 
         outputfile = (session.temp_incore_image(hook=session.de), session.temp_incore_image(hook=session.de), session.temp_incore_image(hook=session.de))
     elif isinstance(outputfile, str):
         outputfile = (outputfile, prefix(outputfile, 'h1'), prefix(outputfile, 'h2'))
-    elif not isinstance(outputfile, tuple) or len(outputfile) != 3:
+    elif (not isinstance(outputfile, tuple) and not isinstance(outputfile, list)) or len(outputfile) != 3:
         raise ValueError, "outputfile must be None (default), a string or a tuple of 3 strings"
     else:
         if outputfile[0] is None: outputfile = (session.temp_incore_image(hook=session.de), outputfile[1], outputfile[2])
@@ -710,22 +735,22 @@ def ensure_stack_select(session, stack, select=None):
     ''' Ensure a proper selection file and maximum stack count
     
     :Parameters:
-    
-    session : Session
-              Current spider session
-    stack : str
-            Name of the stack
-    select : str, optional
-             Name of the selection file
-    
-    :Returns:
-    
-    select : str
-             New selection file (if select None, empty or '*')
-    stack_count : int
-                  Maximum offset in stack
-    stack_size : int
-                 Number of slices in the stack
+        
+        session : Session
+                  Current spider session
+        stack : str
+                Name of the stack
+        select : str, optional
+                 Name of the selection file
+        
+        :Returns:
+        
+        select : str
+                 New selection file (if select None, empty or '*')
+        stack_count : int
+                      Maximum offset in stack
+        stack_size : int
+                     Number of slices in the stack
     '''
     
     if select is None or select == "" or select == "*":
@@ -741,9 +766,9 @@ def is_linux():
     ''' Test if the current OS is linux
     
     :Returns:
-        
-    val : bool
-          True if platform is linux
+            
+        val : bool
+              True if platform is linux
     '''
     
     return sys.platform.startswith('linux')
@@ -752,14 +777,14 @@ def spider_register_name(varname):
     ''' Get the name of a spider register
         
     :Parameters:
-            
-    varname : str
-              Name of variable
+                
+        varname : str
+                  Name of variable
         
     :Returns:
-            
-    val : str
-          Name of Spider register
+                
+        val : str
+              Name of Spider register
     '''
     
     if isinstance(varname, int):
@@ -773,14 +798,14 @@ def is_spider_register(val):
     ''' Test if string value holds spider register
     
     :Parameters:
-        
-    val : str
-          String possibly containing spider register
+            
+        val : str
+              String possibly containing spider register
     
     :Returns:
-        
-    val : bool
-          True if it contains a spider register
+            
+        val : bool
+              True if it contains a spider register
     '''
     
     return _is_spider_regiser.match(val)
@@ -789,16 +814,16 @@ def prefix(filename, tag):
     '''Prefix a filename with the given tag
     
     :Parameters:
-
-    filename : str
-               File path name
-    tag : str
-          Prefix for name of the file
+    
+        filename : str
+                   File path name
+        tag : str
+              Prefix for name of the file
     
     :Returns:
-    
-    out : str
-         File path name where name of the file has a prefix
+        
+        out : str
+             File path name where name of the file has a prefix
     '''
     
     path, name = os.path.dirname(filename), os.path.basename(filename)
@@ -808,14 +833,14 @@ def unpack_register_linux(data):
     ''' Unpack values from a register
     
     :Paramters:
-        
-    data : str
-           Message from spider program
+            
+        data : str
+               Message from spider program
     
     :Returns:
-    
-    val : tuple
-          Registry value
+        
+        val : tuple
+              Registry value
     '''
     
     #a,b,regval,c
@@ -825,14 +850,14 @@ def unpack_register_other(data):
     ''' Unpack values from a register
     
     :Paramters:
-        
-    data : str
-           Message from spider program
+            
+        data : str
+               Message from spider program
     
     :Returns:
-    
-    val : tuple
-          Registry value
+        
+        val : tuple
+              Registry value
     '''
     
     return struct.unpack('fc',data)[0]

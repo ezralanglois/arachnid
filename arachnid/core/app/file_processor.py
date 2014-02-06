@@ -1,21 +1,91 @@
-''' Framework for independent processing of files in serial, in parallel on a workstation or on a cluster using MPI
+''' Framework for independent processing of files or groups of objects in serial, in parallel 
+on a workstation or in parallel on a cluster using MPI.
 
-The file processor module provides basic functionality to any program that processes a
-set of files independently.
+The file processor module provides basic functionality to any program 
+that processes a set of files or a set of object groups independently. It can 
+distribute processing to multiple cores using the multiprocessing package as 
+well as to multiple nodes on a cluster using mpi2py.
+
+Usage
+-----
+
+The target module must define the following functions:
+
+.. py:function:: process(filename, **extra)
+
+   Process a single file. During parallel processing this is invoked by a worker process.
+
+   :param filename: Input filename to process
+   :param extra: Unused keyword arguments (Options from the command line or config file, plus additional options)
+   :returns: At minimum filename, however a tuple of additional arguments can be returned for processing by :py:func:`reduce_all`
+
+The target module may include any of the following functions:
+
+.. py:function:: initialize(files, extra)
+
+   Initialize the input data before processing. During parallel processing this is invoked by all processes.
+
+   :param files: List of input files to process
+   :param extra: Dictionary of unused keyword arguments (Options from the command line or config file, plus additional options)
+   :returns: None or a new list of files or objects to be processed by other routines
+   
+.. py:function:: finalize(files, **extra)
+
+   Finalize data after processing. During parallel processing this is invoked by all processes.
+
+   :param files: List of input files to process (possibly modified by :py:func:`initialize`)
+   :param extra: Unused keyword arguments (Options from the command line or config file, plus additional options)
+
+.. py:function:: reduce_all(filename, file_index=<int>, file_count=<int>, file_completed=<int>, **extra)
+
+   Reduce data from worker to root process. During parallel processing this is invoked by the root process. Note that
+   only filename is a positional argument.
+
+   :param filename: Input filename that was processed. May be a tuple containing data resulting from :py:func:`process`.
+   :param file_index: Current index in the list of input filenames
+   :param file_count: Number of input filenames
+   :param file_completed: Current count of finished files
+   :param extra: Unused keyword arguments (Options from the command line or config file, plus additional options)
+   :returns: Only the filename that was processed
+
+.. py:function:: init_process(**extra)
+
+    Initialize the input data before processing. During parallel processing this is invoked by all processes only
+    once before processing except the root.
+
+   :param extra: Keyword arguments (Options from the command line or config file, plus additional options)
+   :returns: A dictionary of keywords to add or update.
+
+.. py:function:: init_root(files, extra)
+
+   Initialize the input data before processing (first init to be called). During parallel processing this is invoked only
+   by the root process.
+   
+   .. note::
+       
+       This runs before dependency checking, so this is the place to generate groups. The first element of the
+       group tuple must be an integer ID.
+
+   :param files: List of input files to process
+   :param extra: Dictionary of unused keyword arguments (Options from the command line or config file, plus additional options)
+   :returns: None or a new list of files or objects to be processed by other routines
+
+Each function also has access to the following keyword arguments:
+
+    - finished: List of input files that have been processed and thus will not be processed this round
+    - id_len: Maximum number of digits in the SPIDER ID
 
 Parameters
-++++++++++
+----------
 
-The bench script has the following inheritable parameters:
+The following parameters are added to a script using the file/group processing module in the 
+program architecture. 
+
+.. program:: shared
 
 .. option:: --id-len <int>
     
     Set the expected length of the document file ID
-
-.. option:: -b <str>, --restart-file <str>
-    
-    Set the restart file to keep track of which processes have finished. If this is empty, then a restart file is 
-    written to .restart.$script_name You must set this to restart (otherwise it will overwrite the automatic restart file).
 
 .. option:: -w <int>, --work-count <int>
     
@@ -25,10 +95,26 @@ The bench script has the following inheritable parameters:
     
     Force the program to run from the start
 
+.. option:: --restart-test <bool>
+    
+    Test if the program will restart
+
 ..todo:: 
     
     - add new version of check dependencies for update to align and refine
-    - test and implement check_dependencies
+
+.. seealso:: 
+
+    Module :py:mod:`arachnid.core.app.program`
+        Main entry point for the Arachnid Program Architecture
+    Module :py:mod:`arachnid.core.app.progress`
+        Progress monitor for file processing
+    Module :py:mod:`arachnid.core.app.settings`
+        Program options parsing for command line and configuration file
+    Module :py:mod:`arachnid.core.app.tracing`
+        Logging controls
+    Module :py:mod:`arachnid.core.parallel.mpi_utility`
+        Handels parallizing both single node and multi-node processing
 
 .. Created on Oct 16, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -37,58 +123,49 @@ from ..parallel import mpi_utility
 from ..metadata import spider_utility
 import os, logging, sys, numpy
 from progress import progress
+import multiprocessing
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def main(files, module, restart_file="", **extra):
+def main(files, module, **extra):
     '''Main driver for a generic file processor
     
-    .. sourcecode:: py
+    The workflow proceeds as follows.
     
-        >>> import os
-        >>> os.system('more data.csv')
-        id,select,peak
-        1,1,0.5
-        2,0,0.1
-        3,0,0.6
-        4,1,0.7
-        5,0,0.2
+    #. For the root process, call :py:func:`init_root` and update any input files
+    #. Test if a subset of files have already been processed and remove these
+    #. Broadcast new set of files to be processed to all nodes (if necessary)
+    #. Broadcast files already processed to all nodes (if necessary)
+    #. ??
+    #. Initialize data for each process including root
+    #. If no files, finalize and return
+    #. Initialize data for each worker process
+    #. Process files
+    #. Reduce data to root worker
+    #. Finalize data on root worker
+    
+    .. sourcecode:: py
 
-        >>> from core.app.file_processor.file_processor import *
-        >>> from arachnid.util import bench
-        >>> main(['data.csv'], bench, metrics=['positive'], pcol=['peak'])
-        peak
-        ====
-        
-        +------+----------+
-        |  id  | positive |
-        +======+==========+
-        | data |  5.000   |
-        +------+----------+
-        
-        Average
-        =======
-        
-        +--------+----------+
-        | column | positive |
-        +========+==========+
-        |  peak  |  5.000   |
-        +--------+----------+
+        >>> from core.app import file_processor
+        >>> from arachnid.util import crop
+        >>> file_processor.main(['stack_01.spi'], crop)
     
     :Parameters:
-    
-    files : list
-            List of filenames, tuple groups or lists of filenames
-    module : module
-             Main module containing entry points
-    restart_file : string
-                  Restart filename
-    extra : dict
-            Unused extra keyword arguments
+        
+        files : list
+                List of filenames, tuple groups or lists of filenames
+        module : module
+                 Main module containing entry points
+        extra : dict
+                Unused extra keyword arguments
     '''
     
-    extra['restart_file']=restart_file # require restart_file=restart_file?
+    
+    if extra['worker_count'] > multiprocessing.cpu_count():
+        _logger.warn("Number of workers exceeds number of cores: %d > %d"%(extra['worker_count'], multiprocessing.cpu_count()))
+    
+    _logger.debug("File processer - begin")
     process, initialize, finalize, reduce_all, init_process, init_root = getattr(module, "process"), getattr(module, "initialize", None), getattr(module, "finalize", None), getattr(module, "reduce_all", None), getattr(module, "init_process", None), getattr(module, "init_root", None)
     monitor=None
     if mpi_utility.is_root(**extra):
@@ -99,31 +176,19 @@ def main(files, module, restart_file="", **extra):
         _logger.debug("Test dependencies1: %d"%len(files))
         files, finished = check_dependencies(files, **extra)
         extra['finished'] = finished
-        #extra['input_files']=files
         _logger.debug("Test dependencies2: %d"%len(files))
-        #if len(files) > 1: files = restart(restart_file, files)
     else: extra['finished']=None
     _logger.debug("Start processing1")
     tfiles = mpi_utility.broadcast(files, **extra)
+    
+    # Why?
     if not mpi_utility.is_root(**extra):
         tfiles = set([os.path.basename(f) for f in tfiles])
         files = [f for f in files if f in tfiles]
     _logger.debug("Start processing2")
-        
-    
-    '''
-    if mpi_utility.is_root(**extra):
-        if restart_file == "": restart_file = ".restart.%s"%module.__name__
-        try: 
-            fout = file(restart_file, "a") if len(files) > 1 and restart_file != "" else None
-        except: fout = None
-        #if fout is not None:
-        #    write_dependencies(fout, files, **extras)
-    '''
     
     extra['finished'] = mpi_utility.broadcast(extra['finished'], **extra)
     if initialize is not None:
-        #if mpi_utility.is_root(**extra):
         _logger.debug("Init")
         f = initialize(files, extra)
         _logger.debug("Init-2")
@@ -144,7 +209,6 @@ def main(files, module, restart_file="", **extra):
     _logger.debug("Start processing")
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
         if mpi_utility.is_root(**extra):
-            #_logger.critical("progress-report: %d,%d"%(current, len(files)))
             try:
                 monitor.update()
                 if reduce_all is not None:
@@ -153,13 +217,6 @@ def main(files, module, restart_file="", **extra):
                     _logger.info("Finished: %d,%d - Time left: %s - %s"%(current, len(files), monitor.time_remaining(True), str(filename)))
                 else:
                     _logger.info("Finished: %d,%d - Time left: %s"%(current, len(files), monitor.time_remaining(True)))
-                '''
-                if fout is not None:
-                    if not isinstance(filename, list) and not isinstance(filename, tuple): filename = [filename]
-                    #for f in filename: fout.write("%s:%d\n"%(str(f), os.path.getctime(f)))
-                    for f in filename: fout.write("%s\n"%(str(f)))
-                    fout.flush()
-                '''
             except:
                 _logger.exception("Error in root process")
                 del files[:]
@@ -167,82 +224,43 @@ def main(files, module, restart_file="", **extra):
         raise ValueError, "Error in root process"
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
-    '''
-    if mpi_utility.is_root(**extra) and fout is not None:
-        fout.close()
-        if restart_file != "" and os.path.exists(restart_file): os.unlink(restart_file)
-    '''
-
-def restart(filename, files):
-    '''Test if script can restart and update file list appropriately
-    
-    .. sourcecode:: py
-
-        >>> import os
-        >>> os.system('more restart.txt')
-        win_00001.spi
-        
-        >>> from core.app.file_processor.file_processor import *
-        >>> restart('restart.txt', ['win_00001.spi','win_00002.spi','win_15644.spi','win_15646.spi'])
-        ['win_00002.spi','win_15644.spi','win_15646.spi']
-    
-    Restart will not occur if:
-    
-    #. No restart file is given
-    #. Most options are changed
-    #. Input files have been modified
-    #. Output files are missing
-    
-    :Parameters:
-    
-    filename : string
-               Restart file
-    files : list
-            List of files to test for completion
-    
-    :Returns:
-
-    val : list
-          List of files left to processed
-    '''
-    
-    if os.path.exists(filename):
-        _logger.debug("Found restart file: %s"%filename)
-        fin = open(filename, 'r')
-        last = [line.strip() for line in fin]
-        fin.close()
-        
-        last = set(last)
-        if len(files) > 0 and isinstance(files[0], tuple):
-            return [f for f in files if str(f[0]) not in last]
-        return [f for f in files if f not in last]
-    return files
 
 def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
-    output files.
+    output files. Note that this dependency checking is similar to the program `make`.
     
     #. Check if output files exist
     #. Check modification times of output against input
+    #. Check if `opt_changed` flag was set to True
+    #. Check if `force` flag was set to True
     
     :Parameters:
-    
-    files : list
-            List of input files
-    infile_deps : list
-                  List of input file dependencies
-    outfile_deps : list
-                   List of output file dependencies
-    opt_changed : bool
-                  If true, then options have changed; restart from beginning
-    force : bool
-            Force the program to restart from the beginning
-    id_len : int
-             Max length of SPIDER ID
-    restart_test : bool
-                   Test if program will restart
-    extra : dict
-            Unused extra keyword arguments
+        
+        files : list
+                List of input files
+        infile_deps : list
+                      List of input file dependencies
+        outfile_deps : list
+                       List of output file dependencies
+        opt_changed : bool
+                      If true, then options have changed; restart from beginning
+        force : bool
+                Force the program to restart from the beginning
+        data_ext : str
+                   If the dependent file does not have an extension, add this extension
+        id_len : int
+                 Max length of SPIDER ID
+        restart_test : bool
+                       Test if program will restart
+        extra : dict
+                Unused extra keyword arguments
+            
+    :Returns:
+        
+        unfinished : list
+                     List of input filenames to process 
+        finished : list
+                   List of input filenames that satisfy requirements and will not be processed.
     '''
     
     if opt_changed or force:
@@ -289,14 +307,14 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
             
             deps = [f] if not isinstance(f, int) else []
             for input in infile_deps:
-                if input == "": continue
+                if input == "" or isinstance(extra[input], list): continue
                 if spider_utility.is_spider_filename(extra[input]) and spider_utility.is_spider_filename(f):
                     deps.append(spider_utility.spider_filename(extra[input], f, id_len))
                 else: 
                     deps.append(extra[input])
         else:
             deps = [f] if not isinstance(f, int) else []
-            deps.extend([spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and spider_utility.is_spider_filename(extra[input])])
+            deps.extend([spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and not isinstance(extra[input], list) and spider_utility.is_spider_filename(extra[input])])
         if data_ext is not None:
             for i in xrange(len(deps)):
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
@@ -319,9 +337,8 @@ def setup_options(parser, pgroup=None):
     # Options added to OptionParser by core.app.program
     from settings import OptionGroup
     group = OptionGroup(parser, "Processor", "Options to control the state of the file processor",  id=__name__)
-    group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(maximum=sys.maxint, minimum=0))
-    group.add_option("",   restart_file="",   help="Set the restart file backing up processed files",     gui=dict(filetype="open"), dependent=False)
-    group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(maximum=sys.maxint, minimum=0), dependent=False)
+    group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(minimum=0))
+    group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
     group.add_option("",   force=False,       help="Force the program to run from the start", dependent=False)
     group.add_option("",   restart_test=False,help="Test if the program will restart", dependent=False)
     pgroup.add_option_group(group)
@@ -333,7 +350,19 @@ def check_options(options):
     if len(options.input_files) < 1: raise OptionValueError, "Requires at least one file"
     
 def supports(main_module):
-    '''
+    ''' Test if module has the minimum required entry points
+    to support file processing.
+    
+    :Parameters:
+        
+        main_module : module
+                      Module containing entry points
+    
+    :Returns:
+        
+        flag : bool
+               True if module has `process` function
+           
     '''
     
     return hasattr(main_module, "process")

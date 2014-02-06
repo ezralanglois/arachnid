@@ -147,12 +147,12 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 15, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 
 from ..core.metadata import spider_params, spider_utility, format, format_utility
 from ..core.parallel import mpi_utility
 from ..core.image import reconstruct as reconstruct_engine, ndimage_file
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 import resolution, classify
 #import prepare_volume
 import logging, os, numpy, glob, itertools, functools
@@ -188,7 +188,7 @@ def batch(files, output, alignment, **extra):
         if 'format' in extra: 
             format1=extra['format']
             del extra['format']
-        align = format.read_array_mpi(spi.replace_ext(alignment_file), **extra)
+        align = spider_file.read_array_mpi(spi.replace_ext(alignment_file), **extra)
         if i == 0:
             curr_slice = mpi_utility.mpi_slice(len(align), **extra)
             extra.update(initalize(spi, files, align[curr_slice], **extra))
@@ -206,31 +206,31 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     
     :Parameters:
     
-    spi : spider.Session
-          Current SPIDER session
-    files : list
-            List of input stack filenames
-    align : array
-            Array of alignment parameters
-    param_file : str
-                SPIDER params file
-    phase_flip : bool
-                 Set to True if your data stack(s) has already been phase flipped or CTF corrected
-    local_scratch : str
-                    File directory on local node to copy files (optional but recommended for MPI jobs)
-    home_prefix : str
-                  File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
-    shared_scratch : str
-                     File directory on local node to copy files (optional but recommended for MPI jobs)
-    incore : bool
-             Should the processed data stacks be held in in-core memory
-    extra : dict
-            Unused keyword arguments
+        spi : spider.Session
+              Current SPIDER session
+        files : list
+                List of input stack filenames
+        align : array
+                Array of alignment parameters
+        param_file : str
+                    SPIDER params file
+        phase_flip : bool
+                     Set to True if your data stack(s) has already been phase flipped or CTF corrected
+        local_scratch : str
+                        File directory on local node to copy files (optional but recommended for MPI jobs)
+        home_prefix : str
+                      File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
+        shared_scratch : str
+                         File directory on local node to copy files (optional but recommended for MPI jobs)
+        incore : bool
+                 Should the processed data stacks be held in in-core memory
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    param : dict
-            Dictionary of updated parameters 
+        
+        param : dict
+                Dictionary of updated parameters 
     '''
     
     param = spider_params.read(spi.replace_ext(param_file), extra)
@@ -244,14 +244,14 @@ def initalize(spi, files, align, param_file, phase_flip=False, local_scratch="",
     if local_scratch =="": 
         local_scratch = os.path.join(home_prefix, 'scratch')
     if mpi_utility.is_root(**extra):
-       try: os.makedirs(os.path.dirname(param['shared_scratch']))
-       except: pass
+        try: os.makedirs(os.path.dirname(param['shared_scratch']))
+        except: pass
     local_scratch = os.path.join(local_scratch, cache)
     param['local_scratch'] = local_scratch
     param['cache_file'] = local_scratch
     if mpi_utility.is_root(**extra):
-       try: os.makedirs(os.path.dirname(param['local_scratch']))
-       except: pass
+        try: os.makedirs(os.path.dirname(param['local_scratch']))
+        except: pass
     param['flip_stack'] = None
     if not phase_flip: param['flip_stack'] = format_utility.add_prefix(local_scratch, 'flip_recon_')
     param['input_stack'] = spi.ms(len(align), window) if incore else format_utility.add_prefix(local_scratch, 'stack')
@@ -266,26 +266,30 @@ def create_selection(files, align):
     
     :Parameters:
     
-    files : list
-            List of stack filenames
-    align : array
-            Aligment parameters
+        files : list
+                List of stack filenames
+        align : array
+                Aligment parameters
     
     :Returns:
     
-    filename : dict or str
-               Stack template filename
-    select : array
-             Labels for the stacks and images
+        filename : dict or str
+                   Stack template filename
+        select : array
+                 Labels for the stacks and images
     '''
     
     if len(files) == 1:
+        _logger.warn("Single Input file - testing mulitple")
         if align.shape[1] > 16:
             try:
                 filename = spider_utility.file_map(files[0], align[:, 15], 0, True)
                 select = align[:, 15:17]
             except IOError: filename = None
+            else:
+                _logger.warn("Single Input file - found mulitple")
         if filename is None:
+            _logger.warn("Single Input file - this could be unusual")
             filename = files[0]
             select = align[:, 4]
     else:
@@ -301,24 +305,24 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
     
     :Parameters:
     
-    spi : spider.Session
-          Current SPIDER session
-    align : array
-            Array of alignment parameters
-    master_filename : str or dict
-                      Filename or map for the input stack
-    master_select : str
-                    Selection array for the input stack
-    window : int
-             Size of the projection window
-    input_stack : str
-                  Input file containing of data projections
-    flip_stack : str
-                  Input file containing of phase-flipped data projections
-    rank : int
-           Rank of the executing node
-    extra : dict
-            Unused keyword arguments
+        spi : spider.Session
+              Current SPIDER session
+        align : array
+                Array of alignment parameters
+        master_filename : str or dict
+                          Filename or map for the input stack
+        master_select : str
+                        Selection array for the input stack
+        window : int
+                 Size of the projection window
+        input_stack : str
+                      Input file containing of data projections
+        flip_stack : str
+                      Input file containing of phase-flipped data projections
+        rank : int
+               Rank of the executing node
+        extra : dict
+                Unused keyword arguments
     '''
     
     update = spider.cache_data(spi, master_filename, master_select, input_stack, window, rank)
@@ -326,8 +330,7 @@ def cache_local(spi, align, master_filename, master_select, window, input_stack=
         #_logger.error("cache_local: %s - %d"%(spi.replace_ext(flip_stack), os.path.exists(spi.replace_ext(flip_stack))))
         if align.shape[1] < 18: raise ValueError, "17th column of alignment file must contain defocus"
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
-    
-    if flip_stack is not None and spider.count_images(spi, flip_stack) != len(align):
+    elif flip_stack is not None and spider.count_images(spi, flip_stack) != len(align):
         _logger.warn("Rerunning phase flip: %s"%mpi_utility.hostname())
         spider.phase_flip(spi, input_stack, align[:, 17], flip_stack, window=window, **extra)
     
@@ -344,23 +347,23 @@ def reconstruct_classify(spi, align, curr_slice, output, selection=None, target_
     
     :Parameters:
     
-    spi : spider.Session
-          Current SPIDER session
-    align : array
-            Array of alignment parameters
-    curr_slice : slice
-                 Slice of align or selection arrays on current node
-    output : str
-             Output filename
-    target_bin : float, optional
-                 Target decimation factor
-    extra : dict
-            Unused keyword arguments
+        spi : spider.Session
+              Current SPIDER session
+        align : array
+                Array of alignment parameters
+        curr_slice : slice
+                     Slice of align or selection arrays on current node
+        output : str
+                 Output filename
+        target_bin : float, optional
+                     Target decimation factor
+        extra : dict
+                Unused keyword arguments
                  
     :Returns:
-    
-    vol_output : str
-                 Output file tuple for two half volumes and full volume
+        
+        vol_output : str
+                     Output file tuple for two half volumes and full volume
     '''
     
     if target_bin is not None:
@@ -392,30 +395,30 @@ def reconstruct(spi, align, selection, curr_slice, output, engine=0, input_stack
     ''' Reconstruct a volume with the given alignment values
     
     :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    align : array
-            Array of alignment parameters
-    selection : array
-                Array of selections or None
-    curr_slice : slice
-                 Slice of align or selection arrays on current node
-    output : str
-             Output filename
-    engine : int
-             Type of reconstruction engine: (0) MPI Nearest Neighbor (1) Conjugate gradient SIRT (3) Fourier Backprojection
-    input_stack : str
-                  Input file containing of data projections
-    flip_stack : str
-                  Input file containing of phase-flipped data projections
-    extra : dict
-            Unused keyword arguments
+        
+        spi : spider.Session
+              Current SPIDER session
+        align : array
+                Array of alignment parameters
+        selection : array
+                    Array of selections or None
+        curr_slice : slice
+                     Slice of align or selection arrays on current node
+        output : str
+                 Output filename
+        engine : int
+                 Type of reconstruction engine: (0) MPI Nearest Neighbor (1) Conjugate gradient SIRT (3) Fourier Backprojection
+        input_stack : str
+                      Input file containing of data projections
+        flip_stack : str
+                      Input file containing of phase-flipped data projections
+        extra : dict
+                Unused keyword arguments
                  
     :Returns:
-    
-    vol_output : str
-                 Output file tuple for two half volumes and full volume
+        
+        vol_output : str
+                     Output file tuple for two half volumes and full volume
     '''
     
     if flip_stack is None: flip_stack = input_stack
@@ -435,34 +438,34 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
     Todo: 1) split reconstructions to seprate nodes, 2) copy full stack to each node
     
     :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    engine : int
-             Type of reconstruction engine
-    input_stack : str
-                  Input file containing of data projections
-    align : array
-            Array of alignment parameters
-    selection : array
-                Array of selections or None
-    curr_slice : slice
-                 Slice of align or selection arrays on current node
-    shared_scratch : str
-                  Filename used to construct cache files accessible to all nodes
-    local_scratch : str
-                   Filename used to construct cache files accessible only to the current node
-    extra : dict
-            Unused keyword arguments
-    vol_output : str
-                 Output file tuple for two half volumes and full volume
-    extra : dict
-            Unused keyword arguments
+        
+        spi : spider.Session
+              Current SPIDER session
+        engine : int
+                 Type of reconstruction engine
+        input_stack : str
+                      Input file containing of data projections
+        align : array
+                Array of alignment parameters
+        selection : array
+                    Array of selections or None
+        curr_slice : slice
+                     Slice of align or selection arrays on current node
+        shared_scratch : str
+                      Filename used to construct cache files accessible to all nodes
+        local_scratch : str
+                       Filename used to construct cache files accessible only to the current node
+        extra : dict
+                Unused keyword arguments
+        vol_output : str
+                     Output file tuple for two half volumes and full volume
+        extra : dict
+                Unused keyword arguments
                  
     :Returns:
-    
-    vol_output : str
-                 Output file tuple for two half volumes and full volume
+        
+        vol_output : str
+                     Output file tuple for two half volumes and full volume
     '''
 
     selectfile = format_utility.add_prefix(local_scratch, "select_recon_")
@@ -474,16 +477,17 @@ def reconstruct_SNI(spi, engine, input_stack, align, selection, curr_slice, vol_
         format.write(spi.replace_ext(selectfile), selection, header=('id', ))
     else: selectfile = None
     
-    format.write(spi.replace_ext(align_file), align[curr_slice], format=format.spiderdoc)
+    header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(',')
+    format.write(spi.replace_ext(align_file), align[curr_slice], format=format.spiderdoc, header=header)
     spider.release_mp(spi, **extra)
     spi.rt_sq(input_stack, align_file, outputfile=dala_stack)
     spider.throttle_mp(spi, **extra)
     mpi_utility.barrier(**extra)
     if mpi_utility.is_root(**extra):
         dalamap = spider_utility.file_map(dala_stack, mpi_utility.get_size(**extra))
-        dala_stack = spider.stack(spi, dalamap, mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))
+        dala_stack = spider.stack(spi, dalamap, mpi_utility.get_size(**extra), format_utility.add_prefix(local_scratch, "dala_full_"))[0]
         #if selection is not None: align = align[selection]
-        format.write(spi.replace_ext(align_file), align, format=format.spiderdoc)
+        format.write(spi.replace_ext(align_file), align, format=format.spiderdoc, header=header)
         spider.release_mp(spi, **extra)
         if engine == 1:
             spi.bp_cg_3(dala_stack, align_file, input_select=selectfile, outputfile=vol_output, **extra)
@@ -497,32 +501,32 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     ''' Reconstruct a volume on multiple nodes using MPI
     
     :Parameters:
-    
-    spi : spider.Session
-          Current SPIDER session
-    input_stack : str
-                  Input file containing of data projections
-    align : array
-            Array of alignment parameters
-    selection : array
-                Array of selections or None
-    curr_slice : slice
-                 Slice of align or selection arrays on current node
-    local_scratch : str
-                   Filename used to construct cache files accessible only to the current node
-    thread_count : int
-                   Number of threads used in SPIDER
-    extra : dict
-            Unused keyword arguments
-    vol_output : str
-                 Output file tuple for two half volumes and full volume
-    extra : dict
-            Unused keyword arguments
+        
+        spi : spider.Session
+              Current SPIDER session
+        input_stack : str
+                      Input file containing of data projections
+        align : array
+                Array of alignment parameters
+        selection : array
+                    Array of selections or None
+        curr_slice : slice
+                     Slice of align or selection arrays on current node
+        local_scratch : str
+                       Filename used to construct cache files accessible only to the current node
+        thread_count : int
+                       Number of threads used in SPIDER
+        extra : dict
+                Unused keyword arguments
+        vol_output : str
+                     Output file tuple for two half volumes and full volume
+        extra : dict
+                Unused keyword arguments
                  
     :Returns:
-    
-    vol_output : str
-                 Output file tuple for two half volumes and full volume
+        
+        vol_output : str
+                     Output file tuple for two half volumes and full volume
     '''
     
     if mpi_utility.is_root(**extra): _logger.info("Reconstruction on multiple nodes - started")
@@ -552,27 +556,25 @@ def reconstruct_MPI(spi, input_stack, align, selection, curr_slice, vol_output, 
     gen1 = ndimage_file.iter_images(dala_stack, even)
     gen2 = ndimage_file.iter_images(dala_stack, odd)
     #vol = reconstruct_engine.reconstruct3_nn4_mp(image_size, gen1, gen2, align1, align2)
-    if 1 == 1:
-        if boost:
-            weights = reweight(align)[curr_slice]
-            gen1 = itertools.imap(functools.partial(reweight_image, weights=weights[even]), enumerate(gen1))
-            gen2 = itertools.imap(functools.partial(reweight_image, weights=weights[odd]), enumerate(gen2))
-        else: weights=None
-        # boost
-        # exp weight based on -cc
-        # try different modes - defocus based - view based
-        align = align[curr_slice]
-        image_size = ndimage_file.read_image(dala_stack).shape[0]
-        vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
-        #vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, **extra)
-    else:
-        vol = reconstruct_engine.reconstruct_nn4_3(gen1, gen2, align[even], align[odd], **extra)
+    
+    if boost:
+        weights = reweight(align)[curr_slice]
+        gen1 = itertools.imap(functools.partial(reweight_image, weights=weights[even]), enumerate(gen1))
+        gen2 = itertools.imap(functools.partial(reweight_image, weights=weights[odd]), enumerate(gen2))
+    else: weights=None
+    # boost
+    # exp weight based on -cc
+    # try different modes - defocus based - view based
+    align = align[curr_slice]
+    image_size = ndimage_file.read_image(dala_stack).shape[0]
+    vol = reconstruct_engine.reconstruct3_bp3f_mp(image_size, gen1, gen2, align[even], align[odd], thread_count=1, shared=False, **extra)
+
     header={'apix':extra['apix']}
     if isinstance(vol, tuple):
         for i in xrange(len(vol)):
-            ndimage_file.write_image(spi.replace_ext(vol_output[i]), vol[i], header=header)
+            ndimage_file.write_image(spi.replace_ext(vol_output[i]), vol[i].T.copy(), header=header)
     elif vol is not None:
-        ndimage_file.write_image(spi.replace_ext(vol_output[mpi_utility.get_rank(**extra)]), vol, header=header)
+        ndimage_file.write_image(spi.replace_ext(vol_output[mpi_utility.get_rank(**extra)]), vol.T.copy(), header=header)
     
     mpi_utility.barrier(**extra)
     if thread_count > 1 or thread_count == 0: spi.md('SET MP', thread_count) 
@@ -636,7 +638,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Reconstruction of aligned particles into a volume
                         
                         $ %prog image_stack_*.ter -p params.ter -a alignment_0001.ter -o vol_0001.ter

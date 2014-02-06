@@ -36,7 +36,9 @@ C--*********************************************************************
 C Returns R, the subpixel amount of shift for the 3 values: QA,QMAX,QC
 
         SUBROUTINE  PKSR3_SUB(QMAX,QA,QC,SGN,R)
-
+		 QF=0.0
+		 QMID=0.0
+		 QMIN=0.0
          IF (SGN.GT.0) THEN
             IF(QA.LT.QC) THEN
                QMIN = QA

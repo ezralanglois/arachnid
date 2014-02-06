@@ -7,9 +7,9 @@ Original Author: Volker Wiendl with Enhancements by Roman alias banal
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ButtonDelegate import FontDialogWidget, FileDialogWidget, WorkflowWidget #, CheckboxWidget
-from PyQt4 import QtGui, QtCore
-import re, logging
+from ButtonDelegate import FontDialogWidget, FileDialogWidget #, WorkflowWidget #, CheckboxWidget
+from ..util.qt4_loader import QtGui, QtCore, qtSlot, qtSignal 
+import re, logging, glob, os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -25,25 +25,31 @@ class Property(QtCore.QObject):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
              Parent object
     '''
     
     PROPERTIES = []
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    propertyValidity = qtSignal(object, bool)
+    
+    def __init__(self, name, group=0, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Property"
         
         QtCore.QObject.__init__(self, parent)
         self.setObjectName(name)
         self.property_obj = property
         self.group = group
-        #self.property_ext = extended
-        assert(property is None or hasattr(property, "dynamicPropertyNames"))
-        self.hints = extended.editorHints if extended is not None else {}
-        self.doc = extended.doc if extended is not None else None
+        self.doc = doc
+        self.hints = hints
+        self._flag = flag
+        self.required = 'required' in hints and hints['required']
         
         if 'label' in self.hints:
             self.displayName = self.hints['label']
@@ -54,6 +60,29 @@ class Property(QtCore.QObject):
             else:
                 vals = name.replace('_', ' ').split()
             self.displayName = " ".join([v.capitalize() for v in vals]) if len(vals) > 0 else name.capitalize()
+    
+    def flag(self):
+        ''' Get the name of the flag if property correspondes 
+        to a command-line option.
+        
+        :Returns:
+        
+        flag : str
+               Name of the flag
+        '''
+        
+        return self._flag
+    
+    def isValid(self):
+        ''' Test if the property holds a valid value
+        
+        :Returns:
+        
+        val : bool
+              True by default for most properties
+        '''
+        
+        return True
     
     def createEditor(self, parent, option):
         '''Returns the widget used to edit the item for editing. The parent 
@@ -94,7 +123,7 @@ class Property(QtCore.QObject):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
                 
         :Returns:
@@ -115,11 +144,11 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor (empty)
         '''
         
-        return QtCore.QVariant()
+        return None
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
@@ -131,13 +160,13 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        value : QVariant
+        value : object
                 Stored value
         '''
         
         if self.property_obj is not None:
             return self.property_obj.property(self.objectName())
-        return QtCore.QVariant()
+        return None
     
     def __cmp__(self, other):
         ''' Compare two properties
@@ -159,10 +188,10 @@ class Property(QtCore.QObject):
             return cmp(self.objectName(), other)
         return False
     
-    @QtCore.pyqtSlot(int)
-    @QtCore.pyqtSlot('float')
-    @QtCore.pyqtSlot('double')
-    def setValue(self, value):
+    @qtSlot(int)
+    @qtSlot('float')
+    @qtSlot('double')
+    def setValue(self, value, valid=True):
         '''Set the value for the property
         
         :Parameters:
@@ -172,6 +201,9 @@ class Property(QtCore.QObject):
         '''
         
         if self.property_obj is not None:
+            #if self.required: 
+            if self.property_obj.property(self.objectName()) != value:
+                self.propertyValidity.emit(self, valid)
             return self.property_obj.setProperty(self.objectName(), value)
     
     def isReadOnly(self):
@@ -184,9 +216,13 @@ class Property(QtCore.QObject):
         '''
         
         if self.property_obj is not None:
-            if self.property_obj.dynamicPropertyNames().count(self.objectName().toLocal8Bit()) > 0: return False
-            prop = self.property_obj.metaObject().property(self.property_obj.metaObject().indexOfProperty(self.objectName()))
-            if prop.isWritable() and not prop.isConstant(): return False
+            if hasattr(self.property_obj, 'dynamicPropertyNames') and self.property_obj.dynamicPropertyNames().count(self.objectName()) > 0: return False
+            if hasattr(self.property_obj, 'metaObject'):
+                prop = self.property_obj.metaObject().property(self.property_obj.metaObject().indexOfProperty(self.objectName()))
+                if prop.isWritable() and not prop.isConstant(): return False
+            else: 
+                if 'readonly' in self.hints and self.hints['readonly']: return True
+                return False
         return True
     
     def setEditorHints(self, hints):
@@ -205,7 +241,7 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        val : QString
+        val : str
               Editor Hints
         '''
         
@@ -277,6 +313,22 @@ class Property(QtCore.QObject):
         for c in self.children():
             total += c.totalChildren()
         return total+1
+    
+    def totalInvalid(self):
+        ''' Count the total number of children under this node.
+        
+        :Returns:
+        
+        total : int
+                Total number of invalid, but required children
+        '''
+        
+        total = 0
+        for c in self.children():
+            total += c.totalInvalid()
+        if self.required and not self.isValid(): 
+            total += 1
+        return total
     
     def maximumNameWidth(self, fontMetric, indent, depth=1):
         '''Get the maximum width of the property name using the given Font Metrics
@@ -363,6 +415,41 @@ def register_property(name, bases, dict):
     Property.PROPERTIES.append(classType)
     return classType
 
+def parseHints(name, obj):
+    ''' Get editor hints from documentation
+    
+    :Parameters:
+    
+    obj : object
+          Input property object, 
+    
+    :Returns:
+    
+    hints : dict
+            Editor hint map
+    '''
+    
+    hints={}
+    doc = ""
+    if obj is not None:
+        if hasattr(obj, 'doc'): doc = obj.doc
+        if hasattr(obj, 'editorHints'): return name, obj.editorHints, doc
+        doc = obj if isinstance(obj, str) else obj.__doc__
+        if doc is not None:
+            beg = doc.find('{')
+            end = doc.find('}')
+            if beg != -1 and end != -1:
+                return name, dict(doc[beg:end]), doc, ""
+    else:
+        obj = name
+        name = obj.dest
+        doc = obj.help
+        if hasattr(obj, 'gui_hint') and obj.gui_hint is not None:
+            hints = obj.gui_hint
+        flag = obj.sphinx_name()
+        
+    return name, hints, doc, flag
+
 class ChoiceProperty(Property):
     '''Connect a choice property to a QComboBox
         
@@ -374,20 +461,24 @@ class ChoiceProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
-        self.choices = extended.editorHints["choices"]
-        self.use_int = property.property(name).type() == QtCore.QVariant.Int
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        self.choices = self.hints["choices"]
+        self.use_int = isinstance( property.property(name), ( int, long ) )
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -401,8 +492,8 @@ class ChoiceProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -412,9 +503,11 @@ class ChoiceProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property.property(name).type()), str(extended.editorHints)))
-        if (property.property(name).type() == QtCore.QVariant.Int or property.property(name).type() == QtCore.QVariant.String) and "choices" in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
+        val = property.property(name)
+        if( isinstance( val, ( int, long ) ) or isinstance( val, basestring )  ) and "choices" in hints:
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -451,13 +544,6 @@ class ChoiceProperty(Property):
         value : QObject
                Value to store
         '''
-        
-        if isinstance(value, QtCore.QVariant):
-            if value.type() == QtCore.QVariant.String:
-                value = value.toString()
-            elif value.type() == QtCore.QVariant.Int:
-                val, check = value.toInt()
-                if check: value = val
 
         if is_int(value):
             if self.use_int:
@@ -468,10 +554,7 @@ class ChoiceProperty(Property):
         else:
             try: value+"ddd"
             except:
-                if isinstance(value, QtCore.QVariant):
-                    _logger.warn("QVariant not supported - %s"%(str(value.type())))
-                else:
-                    _logger.warn("Value not supported - %s"%(str(value.__class__.__name__)))
+                _logger.warn("Value not supported - %s"%(str(value.__class__.__name__)))
             else:
                 choices = self.choices(self.property_obj) if callable(self.choices) else self.choices
                 try:
@@ -495,7 +578,7 @@ class ChoiceProperty(Property):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
         
         :Returns:
@@ -504,7 +587,6 @@ class ChoiceProperty(Property):
               True if new value was set
         '''
         
-        if isinstance(data, QtCore.QVariant): data = data.toString()
         index = editor.findText(data)
         if index == -1: return False
         editor.blockSignals(True)
@@ -522,12 +604,12 @@ class ChoiceProperty(Property):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor
         '''
         
-        #return QtCore.QVariant(editor.currentIndex())
-        return QtCore.QVariant(editor.currentText())
+        #return editor.currentIndex()
+        return editor.currentText()
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
@@ -539,25 +621,27 @@ class ChoiceProperty(Property):
         
         :Returns:
         
-        value : QVariant
+        value : object
                 Stored value
         '''
         
         if self.property_obj is not None:
             val = self.property_obj.property(self.objectName())
-            index, check = val.toInt()
-            if check:
+            try:
+                index = int(val)
+            except:
+                if isinstance( val, basestring ):
+                    return val
+                else:
+                    _logger.debug("Value type not supported as an index - %s"%(str(val.__class__)))
+            else:
                 choices = self.choices(self.property_obj) if callable(self.choices) else self.choices
                 try:
-                    return QtCore.QVariant(choices[index].replace('_', ' '))
+                    return choices[index].replace('_', ' ')
                 except:
                     _logger.exception("Index out of bounds %d > %d -> %s -- %s"%(index, len(choices), str(choices), str(self.displayName)))
-                    return QtCore.QVariant()
-            elif val.type() == QtCore.QVariant.String:
-                return val
-            else:
-                _logger.debug("Value type not supported as an index - %s"%(str(val.type())))
-        return QtCore.QVariant()
+                    return None
+        return None
 
 class NumericProperty(Property):
     '''Connect a Numeric property to a QSpinBox
@@ -570,30 +654,43 @@ class NumericProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
-    NUMERIC_TYPES = (QtCore.QVariant.Int, QtCore.QMetaType.Float, QtCore.QVariant.Double)
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Numeric Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
         #editorHints
-        self.minimum = extended.editorHints["minimum"] if hasattr(extended, 'editorHints') and "minimum" in extended.editorHints else -32767
-        self.maximum = extended.editorHints["maximum"] if hasattr(extended, 'editorHints') and "maximum" in extended.editorHints else 32767
+        self.minimum = self.hints["minimum"] if "minimum" in self.hints else -32767
+        self.maximum = self.hints["maximum"] if "maximum" in self.hints else 32767
         
-        _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.minimum)))
-        _logger.debug("NumericProperty::minimum %d, %s, %s"%(hasattr(extended, 'editorHints'), name, str(self.maximum)))
-        if self.value().type() == QtCore.QVariant.Int:
-            self.singleStep = extended.editorHints["singleStep"] if hasattr(extended, 'editorHints') and "singleStep" in extended.editorHints else 1
+        _logger.debug("NumericProperty::minimum %s, %s"%(name, str(self.minimum)))
+        _logger.debug("NumericProperty::minimum %s, %s"%(name, str(self.maximum)))
+        if isinstance( self.value(), ( int, long ) ):
+            self.singleStep = self.hints["singleStep"] if "singleStep" in self.hints else 1
         else:
-            self.singleStep = extended.editorHints["singleStep"] if hasattr(extended, 'editorHints') and "singleStep" in extended.editorHints else 0.1
-            self.decimals = extended.editorHints["decimals"] if hasattr(extended, 'editorHints') and "decimals" in extended.editorHints else 2
+            self.singleStep = self.hints["singleStep"] if "singleStep" in self.hints else 0.1
+            self.decimals = self.hints["decimals"] if "decimals" in self.hints else 2
+    
+    def setValue(self, val):
+        '''
+        '''
+        
+        if isinstance( self.value(), ( int, long ) ):
+            val = int(val)
+        else:
+            val = float(val)
+        Property.setValue(self, val)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -607,8 +704,8 @@ class NumericProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -618,9 +715,10 @@ class NumericProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create NumericProperty: %s - %s - %s"%(name, str(property.property(name).type()), str(extended.editorHints)))
-        if property.property(name).type() in NumericProperty.NUMERIC_TYPES:# and "minimum" in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create NumericProperty: %s - %s - %s | %d"%(name, str(property.property(name).__class__), str(hints), isinstance( property.property(name), ( int, long, float ) )))
+        if isinstance( property.property(name), ( int, long, float ) ) and not isinstance(property.property(name), bool):
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -641,18 +739,19 @@ class NumericProperty(Property):
         '''
         
         editor = None
-        type = self.value().type()
+        val = self.value()
         minimum = self.minimum(self.property_obj) if callable(self.minimum) else self.minimum
         maximum = self.maximum(self.property_obj) if callable(self.maximum) else self.maximum
         singleStep = self.singleStep(self.property_obj) if callable(self.singleStep) else self.singleStep
         _logger.debug("SpinBox(%d,%d,%d)"%(minimum, maximum, singleStep))
-        if type == QtCore.QVariant.Int:
+        
+        if isinstance( val, ( int, long ) ):
             editor = QtGui.QSpinBox(parent)
             editor.setProperty("minimum", minimum)
             editor.setProperty("maximum",  maximum)
             editor.setProperty("singleStep",  singleStep)
             self.connect(editor, QtCore.SIGNAL("valueChanged(int)"), self, QtCore.SLOT("setValue(int)"))
-        elif type == QtCore.QMetaType.Float or type == QtCore.QVariant.Double:
+        elif isinstance(val, float):
             decimals = self.decimals(self.property_obj) if callable(self.decimals) else self.decimals
             editor = QtGui.QDoubleSpinBox(parent)
             editor.setProperty("minimum", minimum)
@@ -670,7 +769,7 @@ class NumericProperty(Property):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
         
         :Returns:
@@ -679,19 +778,18 @@ class NumericProperty(Property):
               True if new value was set
         '''
         
-        type = self.value().type()
-        if type == QtCore.QVariant.Int:
+        val = self.value()
+        
+        if isinstance( val, ( int, long ) ):
             editor.blockSignals(True)
-            val, check = data.toInt()
-            if check: editor.setValue(val)
+            editor.setValue(val)
             editor.blockSignals(False)
-            return check
-        elif type == QtCore.QMetaType.Float or type == QtCore.QVariant.Double:
+            return True
+        elif isinstance(val, float):
             editor.blockSignals(True)
-            val, check = data.toDouble()
-            if check: editor.setValue(val)
+            editor.setValue(val)
             editor.blockSignals(False)
-            return check
+            return True
         return False
     
     def editorData(self, editor):
@@ -704,14 +802,13 @@ class NumericProperty(Property):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor
         '''
         
-        type = self.value().type()
-        if type in NumericProperty.NUMERIC_TYPES:
-            return QtCore.QVariant(editor.value())
-        return QtCore.QVariant()
+        if isinstance( self.value(), ( int, long, float ) ):
+            return editor.value()
+        return None
 
 class BoolProperty(Property):
     '''Connect a bool property to a QCheckBox
@@ -724,18 +821,22 @@ class BoolProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Boolean Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -749,8 +850,8 @@ class BoolProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                  Parent object
         
@@ -760,10 +861,22 @@ class BoolProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create BoolProperty: %s - %s"%(name, str(property.property(name).type()), ))
-        if property.property(name).type() == QtCore.QVariant.Bool:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create BoolProperty: %s - %s"%(name, str(property.property(name).__class__), ))
+        
+        if isinstance(property.property(name), bool):
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
+    
+    def setValue(self, val):
+        '''
+        '''
+        
+        try: ""+val
+        except:
+            Property.setValue(self, val)
+        else:
+            Property.setValue(self, val.lower()=='true')
     
     def isBool(self):
         '''Test if property defines a Bool
@@ -786,19 +899,18 @@ class BoolProperty(Property):
         
         :Returns:
         
-        value : QVariant
+        value : object
                 Stored value
         '''
         
         
         if role == QtCore.Qt.CheckStateRole:
             val = self.property_obj.property(self.objectName())
-            if isinstance(val, QtCore.QVariant): val = val.toBool()
             return QtCore.Qt.Checked if val else QtCore.Qt.Unchecked
-        if role == QtCore.Qt.DisplayRole: return QtCore.QVariant("")
+        if role == QtCore.Qt.DisplayRole: return ""
         if self.property_obj is not None:
             return self.property_obj.property(self.objectName())
-        return QtCore.QVariant()
+        return None
     
     def createEditor(self, parent, option):
         '''Returns the widget used to edit the item for editing. The parent 
@@ -831,7 +943,7 @@ class BoolProperty(Property):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
         
         :Returns:
@@ -842,7 +954,7 @@ class BoolProperty(Property):
         
         #editor = editor.button
         editor.blockSignals(True)
-        if data.toBool(): editor.setCheckState(QtCore.Qt.Checked)
+        if data: editor.setCheckState(QtCore.Qt.Checked)
         else: editor.setCheckState(QtCore.Qt.Unchecked)
         editor.blockSignals(False)
         return True
@@ -857,12 +969,12 @@ class BoolProperty(Property):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor
         '''
         
-        #return QtCore.QVariant(editor.button.checkState() == QtCore.Qt.Checked)
-        return QtCore.QVariant(editor.checkState() == QtCore.Qt.Checked)
+        #return editor.button.checkState() == QtCore.Qt.Checked
+        return editor.checkState() == QtCore.Qt.Checked
 
 class FontProperty(Property):
     '''Connect a font property to a QFontDialog
@@ -875,18 +987,22 @@ class FontProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -900,8 +1016,8 @@ class FontProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -911,9 +1027,10 @@ class FontProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create FontProperty: %s - %s"%(name, str(property.property(name).type())))
-        if property.property(name).type() == QtCore.QVariant.Font:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create FontProperty: %s - %s"%(name, str(property.property(name).__class__)))
+        if isinstance(property.property(name), QtGui.QFont):
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -947,7 +1064,7 @@ class FontProperty(Property):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
         
         :Returns:
@@ -969,14 +1086,14 @@ class FontProperty(Property):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor
         '''
         
-        #return QtCore.QVariant(editor.currentIndex())
-        return QtCore.QVariant(editor.selectedFont())
+        #return editor.currentIndex()
+        return editor.selectedFont()
     
-    @QtCore.pyqtSlot('const QFont&')
+    @qtSlot('const QFont&')
     def setValue(self, value):
         '''Set the value for the property
         
@@ -999,15 +1116,15 @@ class FontProperty(Property):
         
         :Returns:
         
-        value : QVariant
+        value : object
                 Stored value
         '''
         
         if self.property_obj is not None:
             val = QtGui.QFont(self.property_obj.property(self.objectName()))
             if role == QtCore.Qt.FontRole or role == QtCore.Qt.EditRole: return val
-            return QtCore.QVariant(val.family()+" (%d)"%val.pointSize())
-        return QtCore.QVariant()
+            return val.family()+" (%d)"%val.pointSize()
+        return None
 
 class FilenameProperty(Property):
     '''Connect a font property to a file dialog
@@ -1020,21 +1137,44 @@ class FilenameProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
-        self.filter = extended.editorHints["filter"] if 'filter' in extended.editorHints else ""
-        self.path = extended.editorHints["path"]if 'path' in extended.editorHints else ""
-        self.filetype = extended.editorHints["filetype"]
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        self.filter = self.hints["filter"] if 'filter' in self.hints else ""
+        self.path = self.hints["path"]if 'path' in self.hints else ""
+        self.filetype = self.hints["filetype"]
+        self.classtype = property.property(name).__class__
+        #print 'here1', name, self.classtype
+        if isinstance(property.property(name), list) and self.filetype=='open':
+            #print 'here2', name, self.classtype
+            self.filetype = 'file-list'
+    
+    def isValid(self):
+        ''' Test if the property holds a valid value
+        
+        :Returns:
+        
+        val : bool
+              True by default for most properties
+        '''
+        
+        if not self.required: return True
+        if self.filetype == 'file-list':
+            return len(self.value()) > 0
+        return self.value() != ""
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1048,8 +1188,8 @@ class FilenameProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -1059,9 +1199,10 @@ class FilenameProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property.property(name).type()), str(extended.editorHints)))
-        if property.property(name).type() == QtCore.QVariant.String and 'filetype' in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
+        if (isinstance(property.property(name), basestring) or isinstance(property.property(name), list)) and 'filetype' in hints:
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1082,7 +1223,7 @@ class FilenameProperty(Property):
         '''
         
         editor = FileDialogWidget(self.filetype, self.filter, self.path, parent)
-        self.connect(editor, QtCore.SIGNAL("fileChanged(const QString&)"), self, QtCore.SLOT("setValue(const QString&)"))
+        editor.fileChanged.connect(self.setValue)
         return editor
     
     def setEditorData(self, editor, data):
@@ -1093,7 +1234,7 @@ class FilenameProperty(Property):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
         
         :Returns:
@@ -1103,11 +1244,24 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("FilenameProperty type %s"%(data.__class__))
-        if data.type() == QtCore.QVariant.String:
-            editor.setCurrentFilename(data.toString())
-            return True
-        else:
-            return False
+        editor.setCurrentFilename(data)
+    
+    def testValid(self, data):
+        '''
+        '''
+        
+        if self.filetype == 'file-list':
+            for f in data:
+                if len(glob.glob(f)) == 0: return False
+        elif self.filetype == 'open':
+            if data.find(',') != -1: return False
+            if len(glob.glob(data)) == 0: return False
+            if glob.glob(data)[0] != data: return False
+        else:# self.filetype == 'save':
+            if data.find(',') != -1: return False
+            if os.path.dirname(data) != "" and len(glob.glob(os.path.dirname(data))) == 0: return False
+            if os.path.dirname(data) != "" and glob.glob(os.path.dirname(data))[0] != os.path.dirname(data): return False
+        return True
     
     def editorData(self, editor):
         ''' Get the data from a finished editor.
@@ -1119,14 +1273,14 @@ class FilenameProperty(Property):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor
         '''
         
-        #return QtCore.QVariant(editor.currentIndex())
-        return QtCore.QVariant(editor.selectedFilename())
+        #return editor.currentIndex()
+        return editor.selectedFilename()
     
-    @QtCore.pyqtSlot('const QString&')
+    @qtSlot('const QString&')
     def setValue(self, value):
         '''Set the value for the property
         
@@ -1137,16 +1291,11 @@ class FilenameProperty(Property):
         '''
         
         _logger.debug("setValue Qstring")
-        if not hasattr(value, 'isValid'):
-            Property.setValue(self, str(value))
-        elif value.isValid():
-            if value.type() == QtCore.QVariant.String:
-                Property.setValue(self, str(value.toString()))
-            elif value.type() == QtCore.QVariant.StringList:
-                value = [str(s) for s in value]
-                Property.setValue(self, value)
-            else:
-                raise ValueError, "bug: %s -- %"%(str(value.typeName()), str(value))
+        if value is not None: 
+            #if value and not self.testValid(value): 
+            #    return False
+            valid = True if value else False
+            Property.setValue(self, value, valid)
     
     def value(self, role = QtCore.Qt.UserRole):
         ''' Get the value for the given role
@@ -1158,12 +1307,15 @@ class FilenameProperty(Property):
         
         :Returns:
         
-        value : QVariant
+        value : object
                 Stored value
         '''
         
         return Property.value(self, role)
 
+
+
+"""
 class WorkflowProperty(Property):
     '''Connect a font property to a Workflow dialog
         
@@ -1175,19 +1327,21 @@ class WorkflowProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-               Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", parent=None):
         "Initialize a Choice Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
-        self.operations = extended.editorHints["operations"]
+        Property.__init__(self, name, group, property, hints, doc, parent)
+        self.operations = self.hints["operations"]
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1201,8 +1355,8 @@ class WorkflowProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -1212,9 +1366,10 @@ class WorkflowProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create WorkflowProperty: %s - %s - %s"%(name, str(property.property(name).type()), str(extended.editorHints)))
-        if property.property(name).type() == QtCore.QVariant.String and 'operations' in extended.editorHints:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create WorkflowProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
+        if isinstance(property.property(name), basestring) and 'operations' in hints:
+            return cls(name, group, property, hints, doc, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1246,7 +1401,7 @@ class WorkflowProperty(Property):
     
         editor : QWidget
                  Editor widget to display data
-        data : QVariant
+        data : object
                 Data to set in the editor
         
         :Returns:
@@ -1256,8 +1411,8 @@ class WorkflowProperty(Property):
         '''
         
         _logger.debug("FilenameProperty type %s"%(data.__class__))
-        if data.type() == QtCore.QVariant.String:
-            editor.setWorkflow(str(data.toString()).split(','))
+        if isinstance(data, basestring):
+            editor.setWorkflow(str(data).split(','))
             return True
         else:
             return False
@@ -1272,15 +1427,14 @@ class WorkflowProperty(Property):
         
         :Returns:
         
-        val : QVariant
+        val : object
               Data from the editor
         '''
         
-        #return QtCore.QVariant(editor.currentIndex())
-        print "editor=", editor
-        return QtCore.QVariant(",".join(editor.workflow()))
+        return ",".join(editor.workflow())
     
-    @QtCore.pyqtSlot('PyQt_PyObject')
+    @qtSlot(list)
+    @qtSlot(str) #PyQt_PyObject
     def setValue(self, value):
         '''Set the value for the property
         
@@ -1305,11 +1459,12 @@ class WorkflowProperty(Property):
         
         :Returns:
         
-        value : QVariant
+        value : object
                 Stored value
         '''
         
         return Property.value(self, role)
+"""
 
 class StringProperty(Property):
     '''Connect a String property to a QLineEdit
@@ -1322,18 +1477,34 @@ class StringProperty(Property):
             Group index
     property : QObject
                Property object
-    extended : property
-              Extended Python property
+    hints : dict
+            GUI hints
+    doc : str
+          GUI help string
+    flag : str
+           Flag identifier if property corresponds to an option
     parent : QObject
            Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, extended=None, parent=None):
+    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
         "Initialize a String Property"
         
-        Property.__init__(self, name, group, property, extended, parent)
+        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+    
+    def isValid(self):
+        ''' Test if the property holds a valid value
+        
+        :Returns:
+        
+        val : bool
+              True by default for most properties
+        '''
+        
+        if not self.required: return True
+        return self.value() != ""
     
     @classmethod
     def create(cls, name, group, property=None, extended=None, parent=None):
@@ -1347,8 +1518,8 @@ class StringProperty(Property):
                 Group index
         property : QObject
                    Property object
-        extended : property
-                  Extended Python property
+        extended : object
+                   Additional meta information
         parent : QObject
                Parent object
         
@@ -1358,10 +1529,31 @@ class StringProperty(Property):
               Property object
         '''
         
-        _logger.debug("Create StringProperty: %s - %s"%(name, str(property.property(name).type())))
-        if property.property(name).type() == QtCore.QVariant.String:
-            return cls(name, group, property, extended, parent)
+        name, hints, doc, flag = parseHints(name, extended)
+        _logger.debug("Create StringProperty: %s - %s"%(name, str(property.property(name).__class__)))
+        if isinstance(property.property(name), basestring) or isinstance(property.property(name), list):
+            return cls(name, group, property, hints, doc, flag, parent)
         return None
+    
+    def setValue(self, value):
+        '''Set the value for the property
+        
+        :Parameters:
+        
+        value : QObject
+               Value to store
+        '''
+        
+        if value is not None:
+            valid = True if value else False
+            #if self.required: 
+            '''
+            if value:
+                self.propertyValidity.emit(self, True)
+            else:
+                self.propertyValidity.emit(self, False)
+            '''
+            Property.setValue(self, str(value), valid)
     
 def is_int(f):
     '''Test if the float value is an integer

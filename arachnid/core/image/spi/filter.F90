@@ -103,6 +103,13 @@
 	    X1     = FLOAT(N2S/2)**2
 	    Y1     = FLOAT(NR2)  **2
 
+	   	!omega = params["cutoff_abs"];
+		!omega = 0.5f/omega/omega;
+		!argx = argy + float(jx*jx)*dx2;
+		!1.0f-exp(-argx*omega);
+		!dx = 1.0f/float(nxp);
+		!float dx2 = dx*dx
+
 		IRTFLG=0
 		IF (N2S .NE. NX .AND. N2R .NE. NY)  THEN
 	   		AVE = (SUM(B(1:NX,1))   + SUM(B(1:NX,NY)) + &
@@ -319,7 +326,7 @@
 		 REAL             		:: LCUT,HCUT
          REAL             		:: B(LSD,N2R)
 		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
-         REAL, PARAMETER  :: PI = 3.14159265358979323846
+         REAL,PARAMETER  		:: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -391,8 +398,8 @@
 		 REAL             		:: LCUT,HCUT
          REAL             		:: B(LSD,N2R)
 		 INTEGER          		:: LSD,N2S,N2R,NX,NY,IRTFLG
-		 DOUBLE PRECISION :: AVE
-         REAL, PARAMETER  :: PI = 3.14159265358979323846
+		 DOUBLE PRECISION 		:: AVE
+         REAL,PARAMETER  		:: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -480,6 +487,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,SIGMA
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -588,6 +596,7 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,SIGMA
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -696,6 +705,7 @@
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2
 	REAL             :: LCUT,HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -817,6 +827,7 @@
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2
 	REAL             :: LCUT, HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -938,7 +949,9 @@
 	DOUBLE PRECISION :: AVE
 	REAL             :: F,F2
 	REAL             :: FP, FS
-	REAL             :: FP2, FS2,LCUT,HCUT
+	REAL             :: FP2,FS2,LCUT,HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
+    REAL, PARAMETER	 :: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -998,8 +1011,8 @@
 
 	EPS   =  0.882
 	AA    = 10.624
-	FP2=LCUT
-	FS2=HCUT
+	FP=LCUT
+	FS=HCUT
 	IF (FP > 0.5) THEN
         FP2 = FP / NX
     ELSE
@@ -1078,6 +1091,8 @@
 	REAL             :: F,F2
 	REAL             :: FP, FS
 	REAL             :: FP2, FS2,LCUT,HCUT
+	INTEGER			 :: LSD,N2R,N2L,N2S,NX,NY,NZ,IRTFLG
+    REAL, PARAMETER  :: PI = 3.14159265358979323846
 
 !f2py threadsafe
 !f2py intent(inplace) :: B
@@ -1137,8 +1152,8 @@
 
 	EPS   =  0.882
 	AA    = 10.624
-	FP2=LCUT
-	FS2=HCUT
+	FP=LCUT
+	FS=HCUT
 	IF (FP > 0.5) THEN
         FP2 = FP / NX
     ELSE
@@ -1213,99 +1228,12 @@
 
 	!--*********************************************************************
 
-		 SUBROUTINE  RAMP(IMG,NSAM,NROW,RETVAL)
-
-         DOUBLE PRECISION IMG(NSAM,NROW)
-         DOUBLE PRECISION BETAI
-         DOUBLE PRECISION C,D,EPS,B1,B2,A,F,R2,DN1,DN2
-         DOUBLE PRECISION Q(6),S(9),QYX1,QYX2,QX1X2 &
-                            ,QX1,QX2,QY,SYX1,SYX2,SX1X2,SX1 &
-                            ,SX2,SY,SX1Q,SX2Q,SYQ
-         EQUIVALENCE (Q(1),QYX1),(Q(2),QYX2),(Q(3),QX1X2),(Q(4),QX1), &
-                    (Q(5),QX2),(Q(6),QY)
-         EQUIVALENCE (S(1),SYX1),(S(2),SYX2),(S(3),SX1X2),(S(4),SX1), &
-                    (S(5),SX2),(S(6),SY),(S(7),SX1Q), &
-                    (S(8),SX2Q),(S(9),SYQ)
-
-         DATA  EPS/1.0D-5/
-
-!f2py intent(in) :: NSAM,NROW
-!f2py intent(inout) :: IMG
-!f2py intent(out) :: RETVAL
-!f2py intent(hide) :: NSAM,NROW
-
-!        ZERO ARRAY S
-         S   = 0
-         N1  = NSAM / 2
-         N2  = NROW / 2
-         SX1 = FLOAT(N1) * FLOAT(NSAM + 1)
-         IF(MOD(NSAM,2) .EQ. 1)   SX1 = SX1 + 1 + N1
-         SX2 = FLOAT(N2) * FLOAT(NROW + 1)
-         IF(MOD(NROW,2) .EQ. 1)   SX2 = SX2 + 1 + N2
-         SX1   = SX1 * NROW
-         SX2   = SX2 * NSAM
-         SX1X2 = 0.0D0
-         DO  J = 1, NROW
-           DO I = 1, NSAM
-             SYX1 = SYX1 + IMG(I, J) * I
-             SYX2 = SYX2 + IMG(I, J) * J
-             SY   = SY   + IMG(I, J)
-             SX1Q = SX1Q + I * I
-             SX2Q = SX2Q + J * J
-             SYQ  = SYQ  + IMG(I, J) * DBLE(IMG(I, J))
-           END DO
-         END DO
-         DN    = FLOAT(NSAM) * FLOAT(NROW)
-         QYX1  = SYX1 - SX1 * SY / DN
-         QYX2  = SYX2 - SX2 * SY / DN
-         QX1X2 = 0.0
-         QX1   = SX1Q - SX1 * SX1 / DN
-         QX2   = SX2Q - SX2 * SX2 / DN
-         QY    = SYQ  - SY  * SY  / DN
-         C     = QX1  * QX2 - QX1X2 * QX1X2
-         IF (C .GT. EPS) THEN
-           B1  = (QYX1 * QX2 - QYX2 * QX1X2) / C
-           B2  = (QYX2 * QX1 - QYX1 * QX1X2) / C
-           A   = (SY - B1 * SX1 - B2 * SX2)  / DN
-           D   = B1 * QYX1 + B2 * QYX2
-           R2  = D / QY
-           DN1 = 2
-           DN2 = DN - 3
-
-           IF (DABS(QY - D) .LT. EPS / 100.0) THEN
-              F = 0.0
-              P = 0.0
-           ELSE
-              F = D * (DN - 3.0) / 2 /(QY - D)
-              P = 2.0*BETAI(0.5D0 * DN2, 0.5D0 * DN1, DN2 / &
-                  (DN2 + DN1 * F))
-              IF (P.GT.1.0)  P = 2.0 - P
-! +
-!     &    (1.0D0-BETAI(0.5D0 * DN1, 0.5D0 * DN2, DN1 / (DN1 + DN2 / F)))
-           END IF
-
-           D = A + B1 + B2
-           DO I = 1, NROW
-             QY = D
-             DO  K = 1, NSAM
-                IMG(I, K) = IMG(I, K) - QY
-                QY   = QY + B1
-             END DO
-             D = D + B2
-           END DO
-           RETVAL = 0
-         ELSE
-           RETVAL = 1
-         END IF
-         END
-
-	!--*********************************************************************
-
 
          SUBROUTINE  HISTEQ(QK2,NSR1,QK6,NSR2,QK1,N,LENH,ITRMAX)
 
          REAL       ::  QK1(N),QK2(NSR1)
-         LOGICAL   ::  QK6(NSR2)
+         LOGICAL    ::  QK6(NSR2)
+         INTEGER    ::	NSR1,NSR2,N,LENH,ITRMAX
 
 !f2py intent(in) :: NSR1,NSR2,N,LENH,ITRMAX
 !f2py intent(inout) :: QK2, QK2, QK1
@@ -1314,4 +1242,138 @@
 
 
          END
+
+
+
+
+! **********************************************************************
+!
+!  RAMP(X,NX,NY,NOUT)
+!
+!--*********************************************************************
+
+         SUBROUTINE RAMP(X,NX,NY,NOUT)
+
+         IMPLICIT NONE
+
+         INTEGER          :: NX,NY,NOUT
+         REAL             :: X(NX,NY)
+
+         EXTERNAL         :: BETAI
+         DOUBLE PRECISION :: BETAI
+         INTEGER          :: N1,N2,J,I,K,IX,IY
+         REAL             :: DN
+
+         DOUBLE PRECISION :: C,D,B1,B2,A,R2,DN1,DN2
+         DOUBLE PRECISION :: Q(6),S(9),QYX1,QYX2,QX1X2 &
+                                ,QX1,QX2,QY,SYX1,SYX2,SX1X2,SX1 &
+                                ,SX2,SY,SX1Q,SX2Q,SYQ
+
+         EQUIVALENCE (Q(1),QYX1),(Q(2),QYX2),(Q(3),QX1X2),(Q(4),QX1), &
+                    (Q(5),QX2),(Q(6),QY)
+         EQUIVALENCE (S(1),SYX1),(S(2),SYX2),(S(3),SX1X2),(S(4),SX1), &
+                    (S(5),SX2),(S(6),SY),(S(7),SX1Q), &
+                    (S(8),SX2Q),(S(9),SYQ)
+
+         DOUBLE PRECISION, PARAMETER  :: EPS = 1.0D-5
+
+!f2py intent(in) :: NX,NY
+!f2py intent(inplace) :: X
+!f2py intent(out) :: NOUT
+!f2py intent(hide) :: NX,NY
+
+!        ZERO ARRAY S
+         S   = 0
+
+         N1  = NX / 2
+         N2  = NY / 2
+
+         SX1 = FLOAT(N1) * FLOAT(NX + 1)
+         IF (MOD(NX,2) ==  1)   SX1 = SX1 + 1 + N1
+
+         SX2 = FLOAT(N2) * FLOAT(NY + 1)
+         IF (MOD(NY,2) ==  1)   SX2 = SX2 + 1 + N2
+
+         SX1   = SX1 * NY
+         SX2   = SX2 * NX
+         SX1X2 = 0.0D0
+
+         DO  J = 1, NY
+           DO I = 1, NX
+             SYX1 = SYX1 + X(I,J) * I
+             SYX2 = SYX2 + X(I,J) * J
+             SY   = SY   + X(I,J)
+             SX1Q = SX1Q + I * I
+             SX2Q = SX2Q + J * J
+             SYQ  = SYQ  + X(I,J) * DBLE(X(I,J))
+           ENDDO
+         ENDDO
+
+         DN    = FLOAT(NX) * FLOAT(NY)
+         QYX1  = SYX1 - SX1 * SY / DN
+         QYX2  = SYX2 - SX2 * SY / DN
+         QX1X2 = 0.0
+         QX1   = SX1Q - SX1 * SX1 / DN
+         QX2   = SX2Q - SX2 * SX2 / DN
+         QY    = SYQ  - SY  * SY  / DN
+         C     = QX1  * QX2 - QX1X2 * QX1X2
+		 NOUT=0
+         IF (C <= EPS) THEN
+         	NOUT=1
+            RETURN
+         ENDIF
+
+         B1  = (QYX1 * QX2 - QYX2 * QX1X2) / C
+         B2  = (QYX2 * QX1 - QYX1 * QX1X2) / C
+         A   = (SY - B1 * SX1 - B2 * SX2)  / DN
+         D   = B1 * QYX1 + B2 * QYX2
+         R2  = D / QY
+         DN1 = 2
+         DN2 = DN - 3
+
+         D = A + B1 + B2
+
+         DO IY = 1, NY
+           QY = D
+
+           DO IX = 1,NX
+              X(IX,IY) = X(IX,IY) - QY
+              QY     = QY + B1
+           ENDDO
+
+           D = D + B2
+         ENDDO
+
+         END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

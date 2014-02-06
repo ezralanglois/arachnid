@@ -6,40 +6,36 @@
     :nosignatures:
     :template: api_module.rst
     
-    dialogs
-    icons
+    model
     property
+    icons
+    util
 
 .. autosummary::
     :nosignatures:
     :toctree: api_generated/
     :template: api_module.rst
     
-    settings_editor
+    arachnid.core.gui.HelpUI
 
-:mod:`arachnid.core.gui.dialogs`
-================================
+:mod:`arachnid.core.gui.model`
+==============================
 
-.. automodule:: arachnid.core.gui.dialogs
+.. automodule:: arachnid.core.gui.model
 
 :mod:`arachnid.core.gui.icons`
-================================
+==============================
 
 .. automodule:: arachnid.core.gui.icons
 
-:mod:`arachnid.core.property`
-=============================
+:mod:`arachnid.core.gui.property`
+=================================
 
 .. automodule:: arachnid.core.gui.property
 
-'''
+:mod:`arachnid.core.gui.util`
+=============================
 
-from ..metadata import format, format_utility, spider_utility
-format;
-format_utility;
-spider_utility;
-from ..image import analysis, ndimage_file, ndimage_utility, eman2_utility
-analysis;
-ndimage_file;
-ndimage_utility;
-eman2_utility;
+.. automodule:: arachnid.core.gui.util
+
+'''

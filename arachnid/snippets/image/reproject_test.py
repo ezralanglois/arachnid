@@ -14,9 +14,8 @@ To run:
    :linenos:
 '''
 import sys
-#sys.path.append('~/workspace/arachnida/src')
-#sys.path.append('/guam.raid.home/robertl/tmp/arachnid-0.0.1')
-from arachnid.core.image import ndimage_file, reproject
+from arachnid.core.image import ndimage_file
+from arachnid.core.image import reproject
 from arachnid.core.orient import healpix
 
 if __name__ == '__main__':

@@ -1,3 +1,57 @@
+//#include <complex>
+
+template<class T>
+inline void sine_psd(std::complex<T>* img, int cr, int cc, T* out, int nox, int noc, int klim, int npad)
+{
+	int nf = cr/npad;
+	int np2 = cr;
+	T ck = 1.0/T(klim*klim);
+	for(int mr=0;mr<nf;++mr)
+	{
+		int mr2 = mr*2;
+		for(int mc=0;mc<nf;++mc)
+		{
+			int mc2 = mc*2;
+			for(int kr=0;kr<klim;++kr)
+			{
+				int jr1 = (mr2+np2-(kr+1))%np2;
+				int jr2 = (mr2+(kr+1))%np2;
+				for(int kc=0;kc<klim;++kc)
+				{
+					int jc1 = (mc2+np2-(kc+1))%np2;
+					int jc2 = (mc2+(kc+1))%np2;
+					std::complex<T> zz = img[jc1+jr1*cc]-img[jc2+jr2*cc];
+					T wk = (1.0 - ck*T(kr)*T(kr))* (1.0 - ck*T(kc)*T(kc));
+					out[mr*cc+mc] += ( std::real(zz)*std::real(zz) + std::imag(zz)*std::imag(zz) )*wk;
+				}
+			}
+			out[mr*cc+mc] *= (6.0*T(klim)/T(4*klim*klim+3*klim-1));
+		}
+	}
+}
+
+template<class T>
+inline void sine_psd_1D(std::complex<T>* roo, int nrx, T* out1, int nox1, int klim, int npad)
+{
+	int nf = nrx/npad;
+	int np2 = nrx;
+	T ck = 1.0/T(klim*klim);
+	for(int m=0;m<nf;++m)
+	{
+		int m2 = m*2;
+		for(int k=0;k<klim;++k)
+		{
+			int j1 = (m2+np2-(k+1))%np2;
+			int j2 = (m2+(k+1))%np2;
+			std::complex<T> zz = roo[j1]-roo[j2];
+			T wk = (1.0 - ck*T(k)*T(k));
+			out1[m] += ( std::real(zz)*std::real(zz) + std::imag(zz)*std::imag(zz) )*wk;
+		}
+		out1[m] *= (6.0*T(klim)/T(4*klim*klim+3*klim-1));
+	}
+}
+
+
 /** Calculate a radon transform matrix.
  *
  *
@@ -25,7 +79,7 @@ inline int radon_transform(T * sdist, int ns, I* Dr, int nr, I* Dc, int nc, int 
     int rLast, rFirst, rSize;
     int area = irow*icol;
     double *image, *angles, *rad;
-    double *thetaPtr, *ySinTable, *xCosTable;
+    double *ySinTable, *xCosTable;
     double deg2rad = 3.14159265358979 / 180.0;
 
     rLast = (int)ceil(sqrt((double) (temp1*temp1+temp2*temp2))) + 1;
@@ -97,7 +151,7 @@ inline int radon_count(int nang, int irow, int icol)
     int rLast, rFirst, rSize;
     int area = irow*icol;
     double *image, *angles, *rad;
-    double *thetaPtr, *ySinTable, *xCosTable;
+    double *ySinTable, *xCosTable;
     double deg2rad = 3.14159265358979 / 180.0;
 
     rLast = (int)ceil(sqrt((double) (temp1*temp1+temp2*temp2))) + 1;

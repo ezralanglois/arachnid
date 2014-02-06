@@ -145,23 +145,17 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Jul 15, 2011
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app import program, tracing
+from ..core.app import program
 from ..core.metadata import format, spider_params, spider_utility, format_utility
-from ..core.image import ndimage_file, eman2_utility, ndimage_utility, analysis
+from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility
+from ..core.learn import unary_classification
 from ..core.parallel import mpi_utility
-from ..core.spider import spider
+from ..core.spider import spider, spider_file
 from ..core.util import plotting
 import os, numpy, logging, itertools #, scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
-
-try: 
-    import pylab
-    pylab;
-except:
-    tracing.log_import_error("Cannot import plotting libraries - plotting disabled", _logger)
-    pylab=None
 
 def process(filename, output, id_len=0, **extra):
     ''' Esimate the defocus of the given micrograph
@@ -242,7 +236,7 @@ def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     format.write(spi.replace_ext(output_roo), ro_arr[:, :3], default_format=format.spiderdoc, header="index,spatial_freq,amplitude".split(','))
     return ro_arr[:, 1:3]
 
-def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], du_type=3, window_size=256, x_overlap=50, offset=50, output_pow=None, bin_factor=None, invert=None, output_mic=None, bin_micrograph=None, **extra):
+def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2, du_nstd=[], du_type=3, window_size=256, x_overlap=50, offset=50, output_pow=None, bin_factor=None, invert=None, output_mic=None, bin_micrograph=None, **extra):
     ''' Calculate the power spectra from the given file
     
     :Parameters:
@@ -291,17 +285,24 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
             _logger.error("Host: %s"%mpi_utility.hostname())
             raise
         if image_count > 1:
+            if image_count > 1: raise ValueError, "Frames not supported - %s"%filename
             rwin = ndimage_file.iter_images(filename)
             rwin = itertools.imap(prepare_micrograph, rwin, bin_factor, invert)
         else:
             mic = prepare_micrograph(ndimage_file.read_image(filename), bin_factor, invert)
             if output_mic != "" and bin_micrograph > 0:
                 fac = bin_micrograph/bin_factor
-                if fac > 1: img = eman2_utility.decimate(mic, fac)
-                ndimage_file.spider_writer.write_image(output_mic, img)
+                if fac > 1: img = ndimage_interpolate.downsample(mic, fac)
+                if use_8bit:
+                    img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
+                    img = ndimage_utility.normalize_min_max(img)*255
+                    img = img.astype(numpy.uint8)
+                    ndimage_file.mrc.write_image(os.path.splitext(output_mic)[0]+".mrc", img)
+                else:
+                    ndimage_file._default_write_format.write_image(output_mic, img)
             #window_size /= bin_factor
             x_overlap_norm = 100.0 / (100-x_overlap)
-            step = max(1, window_size*x_overlap_norm)
+            step = max(1, window_size/x_overlap_norm)
             rwin = ndimage_utility.rolling_window(mic[offset:mic.shape[0]-offset, offset:mic.shape[1]-offset], (window_size, window_size), (step, step))
             try:
                 rwin = rwin.reshape((rwin.shape[0]*rwin.shape[1], rwin.shape[2], rwin.shape[3]))
@@ -313,16 +314,11 @@ def create_powerspectra(filename, spi, use_powerspec=False, pad=2, du_nstd=[], d
         
         
         #remove_line(npowerspec)
-        if 1 == 0:
-            mask = eman2_utility.model_circle(npowerspec.shape[0]*(4.0/extra['pixel_diameter']), npowerspec.shape[0], npowerspec.shape[1])
-            sel = mask*-1+1
-            npowerspec[mask.astype(numpy.bool)] = numpy.mean(npowerspec[sel.astype(numpy.bool)])
-            ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
-            power_spec = spi.cp(output_pow)
-        else:
-            ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
-            power_spec = spi.cp(output_pow)
-            spi.du(power_spec, 3, 3)
+        _logger.debug("Writing power spectra to %s"%spi.replace_ext(output_pow))
+        ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
+        if not os.path.exists(spi.replace_ext(output_pow)): raise ValueError, "Bug in code: cannot find power spectra at %s"%spi.replace_ext(output_pow)
+        power_spec = spi.cp(output_pow)
+        spi.du(power_spec, 3, 3)
         
         
         assert(output_pow != "" and output_pow is not None)
@@ -351,7 +347,7 @@ def prepare_micrograph(mic, bin_factor, invert):
           Preprocessed micrograph
     '''
     
-    if bin_factor > 1: mic = eman2_utility.decimate(mic, bin_factor)
+    if bin_factor > 1: mic = ndimage_interpolate.downsample(mic, bin_factor)
     if invert: ndimage_utility.invert(mic, mic)
     return mic
 
@@ -380,9 +376,9 @@ def default_path(filename, output):
 def initialize(files, param):
     # Initialize global parameters for the script
     
-    if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_00000")
-    if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_00000")
-    if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_00000")
+    if param['output_pow'] == "": param['output_pow']=os.path.join("pow", "pow_000000")
+    if param['output_roo'] == "": param['output_roo']=os.path.join("roo", "roo_000000")
+    if param['output_ctf'] == "": param['output_ctf']=os.path.join("ctf", "ctf_000000")
     
     if os.path.dirname(param['output_pow']) == 'pow':
         param['output_pow'] = default_path(param['output_pow'], param['output'])
@@ -396,10 +392,16 @@ def initialize(files, param):
         except: pass
         try: os.makedirs(os.path.dirname(param['output_ctf'])) 
         except: pass
+        try: os.makedirs(os.path.dirname(param['output_mic'])) 
+        except: pass
     mpi_utility.barrier(**param)
     param['spi'] = spider.open_session(files, **param)
-    spider_params.read(param['spi'].replace_ext(param['param_file']), param)
-    param['output'] = param['spi'].replace_ext(param['output'])
+    if not os.path.exists(param['spi'].replace_ext(param['param_file'])):
+        spider_params.read(param['param_file'], param)
+    else:
+        spider_params.read(param['spi'].replace_ext(param['param_file']), param)
+    if os.path.splitext(param['output'])[1]!='.emx':
+        param['output'] = param['spi'].replace_ext(param['output'])
     param['output_pow'] = param['spi'].replace_ext(param['output_pow'])
     param['output_roo'] = param['spi'].replace_ext(param['output_roo'])
     param['output_ctf'] = param['spi'].replace_ext(param['output_ctf'])
@@ -416,16 +418,17 @@ def initialize(files, param):
             param['output_offset']=0
         else:
             _logger.info("Restarting from defocus file")
-            newvals = []
-            if param['use_powerspec']:
-                newvals = defvals
-                defvals = format_utility.map_object_list(defvals)
-                oldfiles = list(files)
-                files = []
-                for f in oldfiles:
-                    if spider_utility.spider_id(f, param['id_len']) not in defvals:
-                        files.append(f)
-                _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
+            #newvals = []
+            #if param['use_powerspec']:
+            #newvals = defvals
+            defvals = format_utility.map_object_list(defvals)
+            oldfiles = list(files)
+            files = []
+            for f in oldfiles:
+                if spider_utility.spider_id(f, param['id_len']) not in defvals:
+                    files.append(f)
+            _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
+            '''
             else:
                 ids = set([spider_utility.spider_id(f, param['id_len']) for f in files])
                 for d in defvals:
@@ -433,7 +436,14 @@ def initialize(files, param):
                         newvals.append(d)
             if len(newvals) > 0:
                 format.write(param['output'], newvals, default_format=format.spiderdoc)
+            _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
             param['output_offset']=len(newvals)
+            '''
+            param['output_offset']=len(defvals)
+        if os.path.splitext(param['output'])[1] == '.emx':
+            fout = open(param['output'], 'w')
+            fout.write('<EMX version="1.0">\n')
+            fout.close()
     
     if mpi_utility.is_root(**param):
         param['defocus_arr'] = numpy.zeros((len(files), 5))
@@ -464,22 +474,60 @@ def init_process(input_files, rank=0, **extra):
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
 
+'''
+
+df1 = defocus + astig/2
+df2 = defocus - astig/2
+if astig < 0
+ang = astig + 45
+
+
+defocus = (DFMID1 + DFMID2)/2;
+astig = (DFMID2 - DFMID1);
+angle_astig = ANGAST - 45;
+if (astig < 0) {
+astig = -astig;
+angle_astig = angle_astig + 90;
+}
+'''
+
 def reduce_all(filename, file_completed, file_count, output, defocus_arr, output_offset=0, **extra):
     # Process each input file in the main thread (for multi-threaded code) 38.25 - 3:45
     
     filename, defocus_vals = filename
-    try:
-        defocus_arr[file_completed-1, :]=defocus_vals
-    except:
-        _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
-        raise
-    format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
-                 header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode='a' if (file_completed+output_offset) > 1 else 'w', write_offset=file_completed+output_offset)
+    
+    if os.path.splitext(output)[1] == '.emx':
+        fout = open(output, 'a')
+        defocusU = defocus_vals[1] + defocus_vals[3]/2
+        defocusV = defocus_vals[1] - defocus_vals[3]/2
+        defocusUAngle = numpy.mod(defocus_vals[2]-45.0, 180.0)
+        fout.write(
+        '''
+        <micrograph fileName="%s">
+        <defocusU unit="nm">%f</defocusU>
+        <defocusV unit="nm">%f</defocusV>
+        <defocusUAngle unit="deg">%f</defocusUAngle>
+        </micrograph>
+        '''%(os.path.basename(filename), defocusU/10.0, defocusV/10.0, defocusUAngle))
+        fout.close()
+    else:
+        try:
+            defocus_arr[file_completed-1, :]=defocus_vals
+        except:
+            _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
+            raise
+        mode = 'a' if (file_completed+output_offset) > 1 else 'w'
+        format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
+                     header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode=mode, write_offset=file_completed+output_offset)
     return filename
 
 def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, summary=False, **extra):
     # Finalize global parameters for the script
     
+    if os.path.splitext(output)[1] == '.emx':
+        fout = open(output, 'a')
+        fout.write('</EMX>\n')
+        fout.close()
     if len(files) > 0:
         plot_histogram(output, defocus_arr[:, 1], 'Defocus')
         plot_histogram(output, defocus_arr[:, 3], 'Astigmatism')
@@ -515,6 +563,7 @@ def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     ''' Create a labeled power spectra for display
     '''
     
+    pylab = plotting.pylab
     if pylab is None: return img
     fig = pylab.figure(dpi=dpi, facecolor='white')
     ax = pylab.axes(frameon=False)
@@ -522,7 +571,7 @@ def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     
     start = img.shape[0]*(8.0/pixel_diameter)
     start = min_freq(ctf[start:])+start
-    mask = eman2_utility.model_circle(start, img.shape[0], img.shape[1])
+    mask = ndimage_utility.model_disk(start, img.shape)
     sel = mask*-1+1
     img[mask.astype(numpy.bool)] = numpy.mean(img[sel.astype(numpy.bool)])
     ax.imshow(img, cmap=pylab.cm.gray)
@@ -550,7 +599,7 @@ def min_freq(roo):
     '''
     '''
     
-    cut = numpy.median(numpy.abs(roo)) + analysis.robust_sigma(numpy.abs(roo))*2
+    cut = numpy.median(numpy.abs(roo)) + unary_classification.robust_sigma(numpy.abs(roo))*2
     sel = numpy.abs(roo) < cut
     off = numpy.argwhere(sel).squeeze()[0]
     return off
@@ -559,6 +608,7 @@ def plot_scatter(output, x, x_label, y, y_label, dpi=72):
     ''' Plot a histogram of the distribution
     '''
     
+    pylab=plotting.pylab
     if pylab is None: return
     
     fig = pylab.figure(dpi=dpi)
@@ -579,6 +629,7 @@ def plot_histogram(output, vals, x_label, th=None, dpi=72):
     ''' Plot a histogram of the distribution
     '''
     
+    pylab=plotting.pylab
     if pylab is None: return
     
     fig = pylab.figure(dpi=dpi)
@@ -597,25 +648,44 @@ def plot_histogram(output, vals, x_label, th=None, dpi=72):
     '''
     
     fig.savefig(format_utility.new_filename(output, x_label.lower().replace(' ', '_')+"_", ext="png"), dpi=dpi)
+    
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import setup_options_from_doc, OptionGroup
     
-    pgroup.add_option("-i", input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra", required_file=True, gui=dict(filetype="file-list"))
-    pgroup.add_option("-o", output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+    pgroup.add_option("-i", '--micrograph-files', input_files=[], help="List of input filenames containing micrographs, window stacks or power spectra, e.g. mic_*.mrc ", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
+    pgroup.add_option("-o", '--ctf-file',         output="",      help="Output filename for defocus file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
     spider_params.setup_options(parser, pgroup, True)
     
     group = OptionGroup(parser, "Additional", "Options to customize defocus estimation", group_order=0,  id=__name__)
     group.add_option("",   disable_bin=False,                              help="Disable micrograph decimation")
-    group.add_option("",   output_pow=os.path.join("pow", "pow_00000"),    help="Filename for output power spectra", gui=dict(filetype="save"))
-    group.add_option("",   output_roo=os.path.join("roo", "roo_00000"),    help="Filename for output rotational average", gui=dict(filetype="save"), dependent=False)
-    group.add_option("",   output_ctf=os.path.join("ctf", "ctf_00000"),    help="Filename for output CTF curve", gui=dict(filetype="save"), dependent=False)
-    group.add_option("",   output_mic="",                                  help="Filename for output for decimated micrograph", gui=dict(filetype="save"), dependent=False)
+    group.add_option("",   '--pow-file', output_pow="",                    help="Filename for output power spectra", gui=dict(filetype="save"))
+    group.add_option("",   output_roo="",                                  help="Filename for output rotational average", gui=dict(filetype="save"), dependent=False)
+    group.add_option("",   output_ctf="",                                  help="Filename for output CTF curve", gui=dict(filetype="save"), dependent=False)
+    group.add_option("",   '--small-micrograph-file', output_mic="",       help="Filename for output for decimated micrograph", gui=dict(filetype="save"), dependent=False)
     group.add_option("",   inner_radius=5,                                 help="Inner mask size for power spectra enhancement")
     group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
-    group.add_option("",   bin_micrograph=8.0,                             help="Number of times to decimate the micrograph - for micrograph selection (not used for defocus estimation)")
+    group.add_option("",   bin_micrograph=6.0,                             help="Number of times to decimate the micrograph - for micrograph selection (not used for defocus estimation)")
     group.add_option("",   summary=False,                                  help="Write out a summary for the power spectra")
+    group.add_option("",  use_8bit=False,                                   help="Write decimate micrograph as 8-bit mrc")
     pgroup.add_option_group(group)
     
     setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, for_window_in_micrograph
@@ -632,34 +702,46 @@ def check_options(options, main_option=False):
     if main_option:
         if not spider_utility.test_valid_spider_input(options.input_files):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
+        if 1 == 0:
+            i=0
+            while i < len(options.input_files):
+                if not ndimage_file.is_readable(options.input_files[i]): 
+                    del options.input_files[i]
+                    _logger.warn("Cannot read: %s"%options.input_files[i])
+                else:
+                    i+=1
+        """
         for f in options.input_files:
             if not ndimage_file.is_readable(f): 
                 raise OptionValueError, "Unrecognized image format for input-file: %s \n Check if you have permission to access this file and this file is in an acceptable format"%f
-        if ndimage_file.is_spider_format(options.input_files[0]) and options.data_ext == "":
+        """
+        if spider_file.is_spider_image(options.input_files[0]) and options.data_ext == "":
             raise OptionValueError, "You must set --data-ext when the input file is not in SPIDER format"
+
+def flags():
+    ''' Get flags the define the supported features
+    
+    :Returns:
+    
+    flags : dict
+            Supported features
+    '''
+    
+    return dict(description = '''Estimate the defocus of a set of micrographs or particle stacks
+                        
+                        Note: If this script crashes or hangs, try increasing the padding and or window size.
+                        
+                        $ %prog mic_*.ter -p params.ter -o defocus.ter
+                      ''',
+                supports_MPI=True, 
+                supports_OMP=False,
+                use_version=True,
+                max_filename_len=78)
 
 def main():
     #Main entry point for this script
     
-    program.run_hybrid_program(__name__,
-        description = '''Estimate the defocus of a set of micrographs or particle stacks
-                        
-                        http://guam/vispider/vispider/manual.html#module-vispider.batch.defocus
-                        
-                        Note: If this script crashes or hangs, try increasing the padding and or window size.
-                        
-                        $ spi-defocus mic_*.ter -p params.ter -o defocus.ter
-                        
-                        Uncomment (but leave a space before) the following lines to run current configuration file on
-                        
-                        source /guam.raid.cluster.software/arachnid/arachnid.rc
-                        nohup %prog -c $PWD/$0 > `basename $0 cfg`log &
-                        exit 0
-                      ''',
-        supports_MPI=True,
-        use_version = True,
-        max_filename_len = 78,
-    )
+    program.run_hybrid_program(__name__)
 if __name__ == "__main__": main()
 
 

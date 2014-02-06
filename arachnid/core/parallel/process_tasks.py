@@ -7,7 +7,8 @@ This module defines a set of common tasks that can be performed in parallel or s
 '''
 
 import process_queue
-import logging, numpy
+import logging
+import numpy.ctypeslib
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -75,8 +76,8 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
                 val = qin.get()
                 if val is None: break
                 yield val
-        finally:
-            _logger.error("queue-done")
+        finally: pass
+        #_logger.error("queue-done")
     
     def iterate_map_worker(qin, qout, process_number, process_limit, extra):
         val = None
@@ -110,7 +111,7 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
         if val is None: raise ValueError, "Exception in child process"
         yield val
 
-def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
+def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array_info=None, **extra):
     ''' Iterate over the input value and reduce after finished processing
     '''
     
@@ -118,6 +119,26 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
         yield worker(enumerate(for_func), process_number=0, **extra)
         return
     
+    shmem_map=None
+    if shmem_array_info is not None:
+        shmem_map=[]
+        shmem_map_base=[]
+        for i in xrange(thread_count):
+            base = {}
+            arr = {}
+            for key in shmem_array_info.iterkeys():
+                ar = shmem_array_info[key]
+                if ar.dtype.str[1]=='c':
+                    typestr = ar.dtype.str[0]+'f'+str(int(ar.dtype.str[2:])/2)
+                    print ar.dtype.itemsize, ar.shape
+                    ar = ar.view(numpy.dtype(typestr))
+                    print ar.dtype.itemsize, ar.shape
+                base[key] = numpy.ctypeslib.as_ctypes(ar)
+                arr[key] = numpy.ctypeslib.as_array(base[key])
+                arr[key] = arr[key].view(shmem_array_info[key].dtype).reshape(shmem_array_info[key].shape)
+            shmem_map.append(arr)                                  
+            shmem_map_base.append(base)
+        del shmem_array_info
     
     def queue_iterator(qin, process_number):
         try:
@@ -125,12 +146,14 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
                 val = qin.get()
                 if val is None: break
                 yield val
-        finally:
-            _logger.error("queue-done")
+        finally: pass
+        #_logger.error("queue-done")
     
-    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra):
+    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra, shmem_arr=shmem_map):
         val = None
         try:
+            if shmem_arr is not None:
+                extra.update(shmem_arr[process_number])
             val = worker(queue_iterator(qin, process_number), process_number=process_number, **extra)
         except:
             _logger.exception("Error in child process")
@@ -138,8 +161,10 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
                 val = qin.get()
                 if val is None: break
         finally:
-            qout.put(val)
-            #qin.get()
+            if shmem_arr is not None:
+                qout.put(process_number)
+            else:
+                qout.put(val)
     
     if queue_limit is None: queue_limit = thread_count*8
     else: queue_limit *= thread_count
@@ -156,169 +181,11 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, **extra):
     
     for i in xrange(thread_count):
         val = qout.get()
+        if shmem_map is not None:
+            val = shmem_map[val]
         #qin.put(None)
         if val is None: raise ValueError, "Exception in child process"
         yield val
-    
-
-def map_reduce(for_func, worker, shape, max_length, thread_count=0, **extra):
-    ''' Generator to process collection of arrays in parallel
-    
-    :Parameters:
-    
-    for_func : func
-               Generate a list of data
-    worker : function
-           Function to preprocess the images
-    thread_count : int
-                   Number of threads
-    shape : int
-            Shape of worker result array
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-    
-    index : int
-            Yields index of output array
-    out : array
-          Yields output array of worker
-    '''
-    
-    if thread_count < 2:
-        for i, val in enumerate(for_func):
-            res = worker(val, i, **extra)
-            yield i, res
-    else:
-        lock = process_queue.multiprocessing.Lock()
-        length = numpy.prod(shape)*thread_count
-        res, shmem_res = process_queue.create_global_dense_matrix( ( max(length, max_length), 1 )  )
-        qin, qout = process_queue.start_raw_enum_workers(map_reduce_worker, thread_count, thread_count, worker, shmem_res, shape, lock, extra)
-        res1 = res[:length].reshape((thread_count, numpy.prod(shape)))
-        try:
-            total = 0
-            lock.acquire()
-            for i, val in enumerate(for_func):
-                if i >= (thread_count):
-                    pos = qout.get() #if i > thread_count else i
-                    if pos is None or pos == -1: raise ValueError, "Error occured in process1: %s"%str(pos)
-                    pos, idx = pos
-                else: 
-                    pos = i
-                    total += 1
-                res1[pos, :] = val.ravel()
-                qin.put((pos,i))
-            for i in xrange(thread_count):
-                pos = qout.get()
-                if pos is None: raise ValueError, "Error occured in process2: %s - %d"%(str(pos), i)
-                if isinstance(pos, tuple) and pos[0] is None: raise pos[1]
-                qin.put((-1,-1))
-            for i in xrange(thread_count):
-                pos = qout.get()
-                if pos is None: raise ValueError, "Error occured in process2: %s - %d"%(str(pos), i)
-                if isinstance(pos, tuple) and pos[0] is None: raise pos[1]
-            lock.release()
-            done = 0
-            type = 2
-            while done < thread_count: # reduce
-                #_logger.error("Get: %d"%done)
-                qin.put(type)
-                type = qout.get()
-                if type is None:
-                    raise ValueError, "Exception in process"
-                if type == -1:
-                    done += 1
-                    #qin.put(3)
-                    type=2
-                else:
-                    if isinstance(type, tuple):
-                        _logger.error("type=%s"%str(type))
-                        raise ValueError, "problem"
-                    yield type, res.ravel()
-        except:
-            for i in xrange(thread_count): 
-                qin.put((-1, -1))
-                #pos = qout.get()
-            raise
-    raise StopIteration
-
-def map_reduce_worker(qin, qout, process_number, process_limit, worker, shmem_val, shape, lock, extra):
-    ''' Worker in each process that preprocesses the images
-    
-    :Parameters:
-    
-    qin : multiprocessing.Queue
-          Queue with index for input images in shared array
-    qout : multiprocessing.Queue
-           Queue with index and offset for the output images in shared array
-    process_number : int
-                     Process number
-    process_limit : int
-                    Number of processes
-    worker : function
-             Function to preprocess the images
-    shmem_img : multiprocessing.RawArray
-                Shared memory image array
-    shape : tuple
-            Dimensions of the shared memory array
-    extra : dict
-            Keyword arguments
-    '''
-    
-    val = process_queue.recreate_global_dense_matrix(shmem_val)
-    n = numpy.prod(shape)
-    shmem = val[:n*process_limit].reshape((process_limit, n))
-    try:
-        #for tmp in queue_iterator(qin, qout, shmem, shape):
-        #    pass
-        #results = []
-        #results = worker(queue_iterator(qin, qout, shmem, shape), **extra)
-        results = worker(qin, qout, shmem, shape, process_limit, process_number, **extra)
-    except Exception, ex:
-        _logger.exception("Problem in iterator")
-        qout.put((None, ex))
-        raise
-    finally:
-        qout.put(-1)
-    
-    lock.acquire()
-    _logger.error("Have lock: %d"%process_number)
-    try:
-        val = val.ravel()
-        i = 0
-        for res in results:
-            if not hasattr(res, 'ndim'): continue
-            pos = qin.get()
-            if pos < 0: raise ValueError, "Terminated"
-            res = res.ravel()
-            _logger.error("send: %d - %s"%(len(res), str(pos)))
-            val[:res.shape[0]] = res
-            if hasattr(qin, "task_done"):  qin.task_done()
-            qout.put(i)
-            i += 1
-        qout.put(-1)
-        pos = qin.get()
-    except:
-        _logger.exception("Worker terminated with exception")
-        qout.put(None)
-        raise
-    finally:
-        _logger.error("Release lock: %d - %s"%(process_number, str(pos)))
-        lock.release()
-        #qout.put(-1)
-
-def queue_iterator(qin, qout, shmem, shape):
-    '''
-    '''
-    
-    while True:
-        pos = qin.get()
-        if pos is None or pos[0] == -1: 
-            if hasattr(qin, "task_done"):  qin.task_done()
-            break
-        pos, idx = pos
-        yield idx, shmem[pos].reshape(shape)
-        qout.put((pos, idx))
         
 def for_process_mp(for_func, worker, shape, thread_count=0, queue_limit=None, **extra):
     ''' Generator to process collection of arrays in parallel
@@ -419,107 +286,3 @@ def process_worker2(qin, qout, process_number, process_limit, worker, extra):
     else:
         _logger.debug("Worker %d of %d - finished"%(process_number, process_limit))
 
-def for_process_mp_shmem(for_func, worker, shape, thread_count=0, **extra):
-    ''' Generator to process collection of arrays in parallel
-    
-    :Parameters:
-    
-    for_func : func
-               Generate a list of data
-    work : function
-           Function to preprocess the images
-    thread_count : int
-                   Number of threads
-    shape : int
-            Shape of worker result array
-    extra : dict
-            Unused keyword arguments
-    
-    :Returns:
-    
-    index : int
-            Yields index of output array
-    out : array
-          Yields output array of worker
-    '''
-    
-    if thread_count < 2:
-        for i, val in enumerate(for_func):
-            res = worker(val, i, **extra)
-            yield i, res
-    else:
-        length = numpy.prod(shape)
-        res, shmem_res = process_queue.create_global_dense_matrix( ( thread_count, length )  )
-        qin, qout = process_queue.start_raw_enum_workers(process_worker, thread_count, thread_count, worker, shmem_res, shape, extra)
-        
-        try:
-            total = 0
-            for i, val in enumerate(for_func):
-                if i >= thread_count:
-                    pos = qout.get() #if i > thread_count else i
-                    if pos is None or pos == -1: raise ValueError, "Error occured in process: %d"%pos
-                    pos, idx = pos
-                    yield idx, res[pos]
-                else: 
-                    pos = i
-                    total += 1
-                res[pos, :] = val.ravel()
-                qin.put((pos,i))
-            for i in xrange(total):
-                pos = qout.get()
-                if pos is None or pos == -1: raise ValueError, "Error occured in process: %d"%pos
-                pos, idx = pos
-                yield idx, res[pos].reshape(shape)
-        finally:
-            #_logger.error("Terminating %d workers"%(thread_count))
-            for i in xrange(thread_count): 
-                qin.put((-1, -1))
-                pos = qout.get()
-                if pos != -1:
-                    _logger.error("Wrong return value: %s"%str(pos))
-                assert(pos==-1)
-    raise StopIteration
-
-def process_worker(qin, qout, process_number, process_limit, worker, shmem_res, shape, extra):
-    ''' Worker in each process that preprocesses the images
-    
-    :Parameters:
-    
-    qin : multiprocessing.Queue
-          Queue with index for input images in shared array
-    qout : multiprocessing.Queue
-           Queue with index and offset for the output images in shared array
-    process_number : int
-                     Process number
-    process_limit : int
-                    Number of processes
-    worker : function
-             Function to preprocess the images
-    shmem_img : multiprocessing.RawArray
-                Shared memory image array
-    shape : tuple
-            Dimensions of the shared memory array
-    extra : dict
-            Keyword arguments
-    '''
-    
-    res = process_queue.recreate_global_dense_matrix(shmem_res)
-    _logger.debug("Worker %d of %d - started"%(process_number, process_limit))
-    try:
-        while True:
-            pos = qin.get()
-            if pos is None or pos[0] == -1: break
-            pos, idx = pos
-            val = worker(res[pos, :].reshape(shape), idx, **extra)
-            res[pos, :val.ravel().shape[0]] = val.ravel()
-            qout.put((pos, idx))
-        _logger.debug("Worker %d of %d - ending ..."%(process_number, process_limit))
-        qout.put(-1)
-    except:
-        _logger.exception("Finished with error")
-        qout.put(None)
-    else:
-        _logger.debug("Worker %d of %d - finished"%(process_number, process_limit))
-
-
-    

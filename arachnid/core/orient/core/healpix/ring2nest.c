@@ -44,7 +44,7 @@ void ring2nest( long nside, long ipring, long *ipnest) {
   
   double fihip, hip;
   int npix, nl2, nl4, ncap, ip, iphi, ipt, ipring1;
-  int     kshift, face_num, nr;
+  int     kshift, face_num=-1, nr;
   int irn, ire, irm, irs, irt, ifm , ifp;
   int ix, iy, ix_low, ix_hi, iy_low, iy_hi, ipf;
   int ns_max=8192;

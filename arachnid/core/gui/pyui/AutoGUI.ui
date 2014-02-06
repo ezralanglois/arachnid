@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="widget_5" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="tabPosition">
+         <enum>QTabWidget::South</enum>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <widget class="QWidget" name="configTab">
+         <attribute name="icon">
+          <iconset resource="../icons/icons.qrc">
+           <normaloff>:/mini/mini/application_view_list.png</normaloff>:/mini/mini/application_view_list.png</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Config</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="runTab">
+         <attribute name="icon">
+          <iconset resource="../icons/icons.qrc">
+           <normaloff>:/mini/mini/monitor_go.png</normaloff>
+           <disabledoff>:/mini/mini/monitor_delete.png</disabledoff>
+           <disabledon>:/mini/mini/monitor_delete.png</disabledon>:/mini/mini/monitor_go.png</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Run</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>

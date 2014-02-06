@@ -63,7 +63,7 @@ C--*******************************************************************
 	REAL             :: PARM1,PARM2,TEMP,PARM,PARM22,X1,Y1
 	REAL             :: F,F2,FPE,FSE,ORDT
 	DOUBLE PRECISION :: AVE
-	REAL             :: ORD,IPS,AA,PARMT,EPS,AVG
+	REAL             :: ORD,AA,PARMT,EPS,AVG
         INTEGER          :: IOPT,J,I,INV,IX,IY,NR2
 	
         REAL, PARAMETER  :: PI = 3.14159265358979323846

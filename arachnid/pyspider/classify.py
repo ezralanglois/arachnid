@@ -97,9 +97,9 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Aug 15, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app.program import run_hybrid_program
+from ..core.app import program
 from ..core.metadata import format, spider_utility
-from ..core.image import analysis
+from ..core.learn import unary_classification
 from ..core.orient import healpix
 import logging, numpy
 
@@ -110,18 +110,18 @@ def process(filename, output, **extra):
     ''' Create a reference from from a given density map
     
     :Parameters:
-    
-    filename : str
-               Input alignment file
-    output : str
-             Output selection file
-    extra : dict
-            Unused key word arguments
+        
+        filename : str
+                   Input alignment file
+        output : str
+                 Output selection file
+        extra : dict
+                Unused key word arguments
              
     :Returns:
-    
-    filename : str
-               Filename for correct location
+        
+        filename : str
+                   Filename for correct location
     '''
     
     if spider_utility.is_spider_filename(filename):
@@ -137,33 +137,33 @@ def classify_projections(alignvals, threshold_type=('None', 'Auto', 'CC', 'Total
     
     :Parameters:
     
-    alignvals : numpy.ndarray
-                Alignment values
-    threshold_type : int
-                     Type of thresholding to perform
-    cc_threshold : float
-                   Cross-correlation threshold value (used with `--threshold-type CC`)
-    cc_total : float
-               Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)
-    threshold_by_view : bool
-                        Apply threshold within each view (determined with `view_resolution`)
-    view_resolution : int
-                      Resolution (or angular increment) to consider, e.g. 1 ~ 30 deg (theta-delta), 2 ~ 15 deg, 3 ~ 7 deg (used when `--threshold-by-view` is set True)
-    threshold_bins : int
-                     Number of bins to use in Otzu`s method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)
-    keep_low_cc : bool
-                  Set to True if you want to keep the low cross-correlation particles instead
-    cull_overrep : bool
-                   Set to True if you want to ensure each view has roughly the same number of particles (used when `--threshold-by-view` is set True)
-    cc_nstd : int
-              Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean
-    extra : dict
-            Unused keyword arguments
+        alignvals : numpy.ndarray
+                    Alignment values
+        threshold_type : int
+                         Type of thresholding to perform
+        cc_threshold : float
+                       Cross-correlation threshold value (used with `--threshold-type CC`)
+        cc_total : float
+                   Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)
+        threshold_by_view : bool
+                            Apply threshold within each view (determined with `view_resolution`)
+        view_resolution : int
+                          Resolution (or angular increment) to consider, e.g. 1 ~ 30 deg (theta-delta), 2 ~ 15 deg, 3 ~ 7 deg (used when `--threshold-by-view` is set True)
+        threshold_bins : int
+                         Number of bins to use in Otzu`s method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)
+        keep_low_cc : bool
+                      Set to True if you want to keep the low cross-correlation particles instead
+        cull_overrep : bool
+                       Set to True if you want to ensure each view has roughly the same number of particles (used when `--threshold-by-view` is set True)
+        cc_nstd : int
+                  Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    selected : numpy.ndarray
-               Boolean array of selected projections
+        
+        selected : numpy.ndarray
+                   Boolean array of selected projections
     
     '''
     
@@ -177,39 +177,39 @@ def classify_projections_overall(alignvals, threshold_type=('None', 'Auto', 'CC'
     ''' Classify projections based on alignment parameters by view
     
     :Parameters:
-    
-    alignvals : numpy.ndarray
-                Alignment values
-    threshold_type : int
-                     Type of thresholding to perform
-    cc_threshold : float
-                   Cross-correlation threshold value (used with `--threshold-type CC`)
-    cc_total: float
-              Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)
-    threshold_bins : int
-                     Number of bins to use in Otzu's method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)
-    keep_low_cc : bool
-                  Set to True if you want to keep the low cross-correlation particles instead
-    cc_nstd : int
-              Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean
-    extra : dict
-            Unused keyword arguments
+        
+        alignvals : numpy.ndarray
+                    Alignment values
+        threshold_type : int
+                         Type of thresholding to perform
+        cc_threshold : float
+                       Cross-correlation threshold value (used with `--threshold-type CC`)
+        cc_total: float
+                  Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)
+        threshold_bins : int
+                         Number of bins to use in Otzu's method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)
+        keep_low_cc : bool
+                      Set to True if you want to keep the low cross-correlation particles instead
+        cc_nstd : int
+                  Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    selected : numpy.ndarray
-               Boolean array of selected projections
+        
+        selected : numpy.ndarray
+                   Boolean array of selected projections
     '''
     
     
     if threshold_type == 0: return None
-    sel = analysis.one_class_selection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
+    sel = unary_classification.robust_rejection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
     cmp = numpy.less if keep_low_cc else numpy.greater
     cc = alignvals[sel, 10]
     if threshold_type == 1:
-        cc_threshold = analysis.otsu(cc, threshold_bins)
+        cc_threshold = unary_classification.otsu(cc, threshold_bins)
     elif threshold_type == 3:
-        cc_threshold = analysis.threshold_from_total(cc, cc_total, keep_low_cc)
+        cc_threshold = threshold_from_total(cc, cc_total, keep_low_cc)
     sel = numpy.logical_and(sel, cmp(alignvals[:, 10], cc_threshold))
     _logger.info("Overall Threshold: %f -> %d of %d"%(cc_threshold, numpy.sum(sel), len(alignvals)))
     return sel
@@ -218,38 +218,38 @@ def classify_projections_by_view(alignvals, threshold_type=('None', 'Auto', 'CC'
     ''' Classify projections based on alignment parameters by view
     
     :Parameters:
-    
-    alignvals : numpy.ndarray
-                Alignment values
-    threshold_type : int
-                     Type of thresholding to perform
-    cc_threshold : float
-                   Cross-correlation threshold value (used with `--threshold-type CC`)
-    cc_total: float
-              Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)
-    view_resolution : int
-                      Resolution (or angular increment) to consider, e.g. 1 ~ 30 deg (theta-delta), 2 ~ 15 deg, 3 ~ 7 deg (used when `--threshold-by-view` is set True)
-    threshold_bins : int
-                     Number of bins to use in Otzu's method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)
-    keep_low_cc : bool
-                  Set to True if you want to keep the low cross-correlation particles instead
-    cull_overrep : bool
-                   Set to True if you want to ensure each view has roughly the same number of particles (used when `--threshold-by-view` is set True)
-    cc_nstd : int
-              Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean
-    extra : dict
-            Unused keyword arguments
+        
+        alignvals : numpy.ndarray
+                    Alignment values
+        threshold_type : int
+                         Type of thresholding to perform
+        cc_threshold : float
+                       Cross-correlation threshold value (used with `--threshold-type CC`)
+        cc_total: float
+                  Total number of high cross-correlation projections to keep, if < 1.0, assumes a fraction, otherwise total number (used with `--threshold-type Total`)
+        view_resolution : int
+                          Resolution (or angular increment) to consider, e.g. 1 ~ 30 deg (theta-delta), 2 ~ 15 deg, 3 ~ 7 deg (used when `--threshold-by-view` is set True)
+        threshold_bins : int
+                         Number of bins to use in Otzu's method: 0 = SQRT(total), -1 = total/16, otherwise use the number given (used with `--threshold-type Auto`)
+        keep_low_cc : bool
+                      Set to True if you want to keep the low cross-correlation particles instead
+        cull_overrep : bool
+                       Set to True if you want to ensure each view has roughly the same number of particles (used when `--threshold-by-view` is set True)
+        cc_nstd : int
+                  Remove low cross-correlation particles whose cross-correlation score is less than cc_nstd times the standard deviation outside the mean
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    selected : numpy.ndarray
-               Boolean array of selected projections
+        
+        selected : numpy.ndarray
+                   Boolean array of selected projections
     '''
       
     
     if threshold_type == 0: return None
     cmp = numpy.less if keep_low_cc else numpy.greater
-    sel = analysis.robust_rejection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
+    sel = unary_classification.robust_rejection(alignvals[:, 10], cc_nstd) if cc_nstd > 0 else numpy.ones(alignvals.shape[0], dtype=numpy.bool)
     view = healpix.ang2pix(view_resolution, numpy.deg2rad(alignvals[:, 1:3]))
     views = numpy.unique(view)
     _logger.error("# views: %d -- %s"%(len(views), str(view[:5])))
@@ -265,16 +265,74 @@ def classify_projections_by_view(alignvals, threshold_type=('None', 'Auto', 'CC'
         cc = alignvals[vidx, 10]
         if cc.shape[0] == 0: continue
         if threshold_type == 1:
-            cc_threshold = analysis.otsu(cc, threshold_bins)
+            cc_threshold = unary_classification.otsu(cc, threshold_bins)
         elif threshold_type == 3:
-            cc_threshold = analysis.threshold_from_total(cc, cc_total, keep_low_cc)
+            cc_threshold = threshold_from_total(cc, cc_total, keep_low_cc)
         if maximum_views > 0:
-            cc_threshold = analysis.threshold_max(cc, cc_threshold, maximum_views, keep_low_cc)
+            cc_threshold = threshold_max(cc, cc_threshold, maximum_views, keep_low_cc)
         csel = cmp(alignvals[:, 10], cc_threshold)
         vsel = numpy.logical_and(vsel, csel)
         sel[numpy.argwhere(numpy.logical_not(vsel)).squeeze()] = 0
         _logger.info("View: %d -> Kept %d of %d"%(v, numpy.sum(sel[vidx]), cc.shape[0]))
     return sel
+
+def threshold_max(data, threshold, max_num, reverse=False):
+    ''' Ensure no more than `max_num` data points are selected by
+    the given threshold.
+    
+    :Parameters:
+        
+        data : array
+               Array of values to select
+        threshold : float
+                    Values greater than thresold are selected
+        max_num : int
+                  Only the `max_num` highest are selected
+        reverse : bool
+                  Reverse the order of selection
+    
+    :Returns:
+        
+        threshold : float
+                    New threshold to use
+    '''
+    
+    idx = numpy.argsort(data)
+    if not reverse: idx = idx[::-1]
+    threshold = numpy.searchsorted(data[idx], threshold)
+    if threshold > max_num: threshold = max_num
+    try:
+        return data[idx[threshold]]
+    except:
+        _logger.error("%d > %d -> %d"%(threshold, idx.shape[0], max_num))
+        raise
+
+def threshold_from_total(data, total, reverse=False):
+    ''' Find the threshold given the total number of elements kept.
+    
+    :Parameters:
+        
+        data : array
+               Array of values to select
+        total : int or float
+                Number of elements to keep (if float and less than 1.0, then fraction)
+        reverse : bool
+                  Reverse the order of selection
+    
+    :Returns:
+    
+        threshold : float
+                    New threshold to use
+    '''
+    
+    if total < 1.0: total = int(total*data.shape[0])
+    idx = numpy.argsort(data)
+    if not reverse: idx = idx[::-1]
+    try:
+        return data[idx[total]]
+    except:
+        _logger.error("%d > %d"%(total, idx.shape[0]))
+        raise
 
 def initialize(files, param):
     # Initialize global parameters for the script
@@ -327,7 +385,7 @@ def check_options(options, main_option=False):
 def main():
     #Main entry point for this script
     
-    run_hybrid_program(__name__,
+    program.run_hybrid_program(__name__,
         description = '''Classify projections based on an alignment
                         
                         http://

@@ -5,6 +5,12 @@
 #include <omp.h>
 #endif
 
+#ifdef SCIPY_MKL_H_SKIP
+//#include "mkl_service.h"
+void mkl_set_num_threads( int nt );
+#endif
+
+#include <stdio.h>
 
 char py_set_num_threads_doc[] =
     "Set the number of threads for OpenMP to use";
@@ -15,6 +21,9 @@ static PyObject* py_set_num_threads(PyObject *obj, PyObject *args)
 #	ifdef _OPENMP
     if (thread_count < 1) thread_count = 1;
 	omp_set_num_threads(thread_count);
+#		ifdef SCIPY_MKL_H_SKIP
+		mkl_set_num_threads(thread_count);
+#		endif
 #	endif
 	Py_RETURN_NONE;
 }
@@ -26,9 +35,22 @@ static PyObject* py_get_max_threads(PyObject *obj)
 #	ifdef _OPENMP
     return PyInt_FromLong(omp_get_max_threads());
 #   else
-    return PyInt_FromLong(-1);
+    return PyInt_FromLong(0);
 #	endif
 }
+
+char py_get_num_procs_doc[] =
+    "Get maximum number of available processors";
+static PyObject* py_get_num_procs(PyObject *obj)
+{
+#	ifdef _OPENMP
+    return PyInt_FromLong(omp_get_num_procs());
+#   else
+    return PyInt_FromLong(0);
+#	endif
+}
+
+
 
 
 /*****************************************************************************/
@@ -42,6 +64,7 @@ char module_doc[] =
 static PyMethodDef module_methods[] = {
     {"set_num_threads", (PyCFunction)py_set_num_threads, METH_VARARGS, py_set_num_threads_doc},
     {"get_max_threads", (PyCFunction)py_get_max_threads, 0, py_get_max_threads_doc},
+    {"get_num_procs", (PyCFunction)py_get_num_procs, 0, py_get_num_procs_doc},
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 

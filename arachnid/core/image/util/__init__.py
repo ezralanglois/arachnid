@@ -1,20 +1,17 @@
-''' Shared library optimized code from SPIDER and rmeasure
-
-.. currentmodule:: arachnid.core.image.util
-
-
-Spider Utility (_spider_util)
-=============================
-
-.. function:: ramp(img)
-
-   Remove change in illumination across an image
-    
-   :param img: Input/output image
-   :type img: array
-   :return: Tuple of image and exit code (0 means success)
-   :rtype: array, int
+''' Shared library optimized code
    
 .. todo:: setup shared library modules and organize functions
 
 '''
+
+
+try: 
+    import _image_utility
+    _image_utility;
+except: pass
+
+
+try: 
+    import _resample
+    _resample;
+except: pass

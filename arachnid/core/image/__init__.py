@@ -10,6 +10,7 @@
     formats
     tests
     util
+    ctf
 
 .. autosummary::
     :nosignatures:
@@ -24,6 +25,9 @@
     reconstruct
     reproject
     rotate
+    alignment
+    affine_transform
+    enhance
 
 :mod:`arachnid.core.image.formats`
 ===================================
@@ -39,5 +43,10 @@
 ===============================
 
 .. automodule:: arachnid.core.image.util
+
+:mod:`arachnid.core.image.ctf`
+==============================
+
+.. automodule:: arachnid.core.image.ctf
 
 '''

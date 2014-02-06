@@ -1,12 +1,14 @@
-''' This centers particles in the window
+''' Center particles in the window using the translation from a Relion star file
 
-Download to edit and run: :download:`shif.py <../../arachnid/snippets/shift.py>`
+This script assumes the image stack filename has  
+
+Download to edit and run: :download:`shift.py <../../arachnid/snippets/shift.py>`
 
 To run:
 
 .. sourcecode:: sh
     
-    $ python shif.py
+    $ python shift.py
 
 .. literalinclude:: ../../arachnid/snippets/shift.py
    :language: python
@@ -14,8 +16,11 @@ To run:
    :linenos:
 '''
 import sys
-from arachnid.core.metadata import format, spider_utility
-from arachnid.core.image import ndimage_file, eman2_utility
+from arachnid.core.metadata import format
+from arachnid.core.metadata import spider_utility
+from arachnid.core.metadata import relion_utility
+from arachnid.core.image import ndimage_file
+from arachnid.core.image import ndimage_utility
 
 if __name__ == '__main__':
 
@@ -30,8 +35,8 @@ if __name__ == '__main__':
     align = format.read(input_file, numeric=True)
     
     for i in xrange(len(align)):
-        filename, id = spider_utility.relion_file(align[i].rlnImageName)
+        filename, id = relion_utility.relion_file(align[i].rlnImageName)
         img = ndimage_file.read_image(filename, id-1)
-        img = eman2_utility.fshift(img, align[i].rlnOriginX, align[i].rlnOriginY)
+        img = ndimage_utility.fourier_shift(img, align[i].rlnOriginX, align[i].rlnOriginY)
         ndimage_file.write_image(spider_utility.spider_filename(output_file, filename), img, id-1)
     
