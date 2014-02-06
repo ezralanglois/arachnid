@@ -49,7 +49,10 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('_spider_interpolate', sources=['interpolate.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
     config.add_extension('_spider_ctf', sources=['ctf.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
 
+    #config.add_extension('_spider_interpolate', sources=['interpolate.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
+    #-fdefault-real-8
     config.add_extension('_spider_rotate', sources=['rotate.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
+    #config.add_extension('_spider_align', sources=['align.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
     config.add_extension('_spider_filter', sources=['filter.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
     config.add_include_dirs(os.path.dirname(__file__))
     config.add_include_dirs(os.path.join(os.path.dirname(__file__), 'spider'))
