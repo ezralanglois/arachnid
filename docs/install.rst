@@ -50,7 +50,9 @@ Move to the directory you wish to install Anaconda
 
 If the installation gives the following error:
 
-.. sourcecode::
+.. sourcecode:: sh
+	
+	$ conda install basemap --yes
 	
 	Traceback (most recent call last):
   	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
