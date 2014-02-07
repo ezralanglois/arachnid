@@ -1,0 +1,207 @@
+refine
+========================
+
+.. automodule:: arachnid.pyspider.refine
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#effective-resolution">effective_resolution</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: effective-resolution
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: effective_resolution
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-refinement-start">get_refinement_start</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-refinement-start
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_refinement_start
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#halfset-slice">halfset_slice</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: halfset-slice
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: halfset_slice
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#recover-volume">recover_volume</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: recover-volume
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: recover_volume
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#refine-volume">refine_volume</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: refine-volume
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: refine_volume
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#refinement-step">refinement_step</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: refinement-step
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: refinement_step
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#refinement-step-gs">refinement_step_gs</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: refinement-step-gs
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: refinement_step_gs
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-log">setup_log</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-log
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_log
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

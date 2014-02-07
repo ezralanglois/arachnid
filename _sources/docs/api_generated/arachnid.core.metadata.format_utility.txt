@@ -1,0 +1,401 @@
+format_utility
+=====================================
+
+.. automodule:: arachnid.core.metadata.format_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#add-file-id">add_file_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: add-file-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: add_file_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#add-prefix">add_prefix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: add-prefix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: add_prefix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#add-suffix">add_suffix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: add-suffix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: add_suffix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#column-offsets">column_offsets</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: column-offsets
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: column_offsets
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#combine">combine</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: combine
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: combine
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#concat-tuple">concat_tuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: concat-tuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: concat_tuple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#convert">convert</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: convert
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: convert
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-id">create_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-namedtuple-list">create_namedtuple_list</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-namedtuple-list
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_namedtuple_list
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#file-id">file_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: file-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: file_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fileid">fileid</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fileid
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fileid
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flatten">flatten</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flatten
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flatten
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-header">get_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#has-field">has_field</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: has-field
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: has_field
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#has-file-id">has_file_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: has-file-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: has_file_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-float-int">is_float_int</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-float-int
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_float_int
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-file-list">map_file_list</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-file-list
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_file_list
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-list">map_list</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-list
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_list
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-object-list">map_object_list</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-object-list
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_object_list
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#new-filename">new_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: new-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: new_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#object-id">object_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: object-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: object_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#order">order</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: order
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: order
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parse-header">parse_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parse-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parse_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#renumber">renumber</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: renumber
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: renumber
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#split-id">split_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: split-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: split_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#stack">stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: stack
+
+   
+   
+
+   
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      FormatError
+      FormatUtilityError
+      MultipleEntryException
+      ParseFormatError
+      WriteFormatError
+   
+   

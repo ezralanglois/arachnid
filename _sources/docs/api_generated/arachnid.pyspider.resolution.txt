@@ -1,0 +1,193 @@
+resolution
+============================
+
+.. automodule:: arachnid.pyspider.resolution
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-pixel-size">ensure_pixel_size</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-pixel-size
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_pixel_size
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#estimate-resolution">estimate_resolution</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: estimate-resolution
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: estimate_resolution
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize">finalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#plot-cmp-fsc">plot_cmp_fsc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: plot-cmp-fsc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: plot_cmp_fsc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#plot-fsc">plot_fsc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: plot-fsc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: plot_fsc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reduce-all">reduce_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reduce-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reduce_all
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-xml">write_xml</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-xml
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_xml
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

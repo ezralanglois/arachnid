@@ -1,0 +1,27 @@
+spider_var
+===============================
+
+.. automodule:: arachnid.core.spider.spider_var
+
+   
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      spider_var
+      spider_var_pool
+   
+   
+
+   
+   
+   

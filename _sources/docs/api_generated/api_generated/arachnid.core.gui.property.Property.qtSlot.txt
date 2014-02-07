@@ -1,0 +1,10 @@
+arachnid.core.gui.property.Property.qtSlot
+==========================================
+
+.. currentmodule:: arachnid.core.gui.property.Property
+
+.. autoclass:: qtSlot
+
+   
+   
+   

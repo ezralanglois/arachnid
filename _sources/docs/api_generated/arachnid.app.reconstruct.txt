@@ -1,0 +1,81 @@
+reconstruct
+========================
+
+.. automodule:: arachnid.app.reconstruct
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

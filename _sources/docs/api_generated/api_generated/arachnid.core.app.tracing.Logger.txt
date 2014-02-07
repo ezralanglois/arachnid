@@ -1,0 +1,61 @@
+arachnid.core.app.tracing.Logger
+================================
+
+.. currentmodule:: arachnid.core.app.tracing
+
+.. autoclass:: Logger
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      addFilter
+      addHandler
+      callHandlers
+      critical
+      debug
+      error
+      exception
+      fatal
+      filter
+      findCaller
+      getEffectiveLevel
+      handle
+      info
+      isEnabledFor
+      log
+      makeRecord
+      removeFilter
+      removeHandler
+      setLevel
+      warn
+      warning
+   
+   .. automethod:: __init__
+   .. automethod:: addFilter
+   .. automethod:: addHandler
+   .. automethod:: callHandlers
+   .. automethod:: critical
+   .. automethod:: debug
+   .. automethod:: error
+   .. automethod:: exception
+   .. automethod:: fatal
+   .. automethod:: filter
+   .. automethod:: findCaller
+   .. automethod:: getEffectiveLevel
+   .. automethod:: handle
+   .. automethod:: info
+   .. automethod:: isEnabledFor
+   .. automethod:: log
+   .. automethod:: makeRecord
+   .. automethod:: removeFilter
+   .. automethod:: removeHandler
+   .. automethod:: setLevel
+   .. automethod:: warn
+   .. automethod:: warning
+   
+   

@@ -1,0 +1,333 @@
+relion_selection
+==============================
+
+.. automodule:: arachnid.util.relion_selection
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#build-group">build_group</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: build-group
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: build_group
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-movie">create_movie</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-movie
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_movie
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-movie-old">create_movie_old</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-movie-old
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_movie_old
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#downsample-images">downsample_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: downsample-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: downsample_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#generate-relion-selection-file">generate_relion_selection_file</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: generate-relion-selection-file
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: generate_relion_selection_file
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#generate-selection">generate_selection</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: generate-selection
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: generate_selection
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#print-stats">print_stats</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: print-stats
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: print_stats
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-defocus">read_defocus</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-defocus
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_defocus
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-tilt-pair">read_tilt_pair</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-tilt-pair
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_tilt_pair
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#regroup">regroup</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: regroup
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: regroup
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reindex-stacks">reindex_stacks</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reindex-stacks
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reindex_stacks
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#renormalize-images">renormalize_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: renormalize-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: renormalize_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-class-subset">select_class_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-class-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_class_subset
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-good">select_good</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-good
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_good
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports">supports</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#update-parameters">update_parameters</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: update-parameters
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: update_parameters
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

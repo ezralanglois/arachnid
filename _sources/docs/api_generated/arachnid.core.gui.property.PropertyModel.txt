@@ -1,0 +1,29 @@
+PropertyModel
+========================================
+
+.. automodule:: arachnid.core.gui.property.PropertyModel
+
+   
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      Property
+      PropertyModel
+      qtProperty
+      qtSignal
+   
+   
+
+   
+   
+   

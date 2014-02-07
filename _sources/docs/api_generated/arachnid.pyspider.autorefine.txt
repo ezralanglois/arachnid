@@ -1,0 +1,263 @@
+autorefine
+============================
+
+.. automodule:: arachnid.pyspider.autorefine
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#angular-restriction">angular_restriction</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: angular-restriction
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: angular_restriction
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#auto-update-param">auto_update_param</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: auto-update-param
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: auto_update_param
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#count-unchanged">count_unchanged</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: count-unchanged
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: count_unchanged
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#decimation-level">decimation_level</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: decimation-level
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: decimation_level
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-min-bin">ensure_min_bin</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-min-bin
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_min_bin
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-translation-range">ensure_translation_range</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-translation-range
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_translation_range
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-resolution">filter_resolution</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-resolution
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_resolution
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#load-state">load_state</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: load-state
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: load_state
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#refine-volume">refine_volume</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: refine-volume
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: refine_volume
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#theta-delta-est">theta_delta_est</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: theta-delta-est
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: theta_delta_est
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#translation-range">translation_range</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: translation-range
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: translation_range
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#update-resolution">update_resolution</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: update-resolution
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: update_resolution
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

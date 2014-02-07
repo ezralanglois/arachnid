@@ -1,0 +1,49 @@
+progress
+==========================
+
+.. automodule:: arachnid.core.app.progress
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#elapsed-str">elapsed_str</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: elapsed-str
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: elapsed_str
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      progress
+   
+   
+
+   
+   
+   

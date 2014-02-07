@@ -1,0 +1,333 @@
+estimate1d
+==================================
+
+.. automodule:: arachnid.core.image.ctf.estimate1d
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#background">background</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: background
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: background
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model">ctf_model</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-2d">ctf_model_2d</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-2d
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_2d
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-calc">ctf_model_calc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-calc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_calc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-full">ctf_model_full</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-full
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_full
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-orig">ctf_model_orig</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-orig
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_orig
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-orig-2d">ctf_model_orig_2d</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-orig-2d
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_orig_2d
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-precalc">ctf_model_precalc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-precalc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_precalc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-spi">ctf_model_spi</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-spi
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_spi
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ctf-model-spi-2d">ctf_model_spi_2d</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ctf-model-spi-2d
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ctf_model_spi_2d
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#energy-cutoff">energy_cutoff</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: energy-cutoff
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: energy_cutoff
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#estimate-background">estimate_background</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: estimate-background
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: estimate_background
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#estimate-defocus">estimate_defocus</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: estimate-defocus
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: estimate_defocus
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#estimate-defocus-orig">estimate_defocus_orig</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: estimate-defocus-orig
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: estimate_defocus_orig
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#estimate-defocus-spi">estimate_defocus_spi</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: estimate-defocus-spi
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: estimate_defocus_spi
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#first-zero">first_zero</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: first-zero
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: first_zero
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#frequency">frequency</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: frequency
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: frequency
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initial-guess">initial_guess</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initial-guess
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initial_guess
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#model-1D-to-2D">model_1D_to_2D</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: model-1D-to-2D
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: model_1D_to_2D
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#refine-defocus">refine_defocus</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: refine-defocus
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: refine_defocus
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#resolution">resolution</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: resolution
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: resolution
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#subtract-background">subtract_background</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: subtract-background
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: subtract_background
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

@@ -1,0 +1,177 @@
+arachnid.core.spider.spider.Session
+===================================
+
+.. currentmodule:: arachnid.core.spider.spider
+
+.. autoclass:: Session
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      ac
+      ac_n
+      ad
+      ap_ref
+      ap_sh
+      ar
+      bl
+      bp_32f
+      bp_cg
+      bp_cg_3
+      ce_fit
+      cg_ph
+      close
+      cp
+      cp_from_mrc
+      cp_to_mrc
+      cp_to_tiff
+      dc_s
+      de
+      du
+      ext
+      fd
+      fi_h
+      flush
+      fq
+      fs
+      ft
+      get
+      get_version
+      gp
+      invoke
+      ip
+      ip_fs
+      ip_ft
+      iq_fi
+      iq_sync
+      li_d
+      ma
+      md
+      mo
+      mr
+      ms
+      mu
+      neg_a
+      or_sh
+      pd
+      pj_3q
+      pw
+      ra
+      rb_32f
+      relaunch
+      replace_ext
+      rf_3
+      ro
+      rt_sq
+      rtd_sq
+      sd_e
+      sd_ic
+      sd_ic_new
+      set
+      sh_f
+      spider_results
+      sq
+      temp_incore_doc
+      temp_incore_image
+      tf_c
+      tf_c3
+      tf_cor
+      tf_ct
+      tf_ed
+      ud
+      ud_e
+      ud_ic
+      ud_ice
+      ud_n
+      vo_ea
+      vo_ras
+      wi
+      wu
+   
+   .. automethod:: __init__
+   .. automethod:: ac
+   .. automethod:: ac_n
+   .. automethod:: ad
+   .. automethod:: ap_ref
+   .. automethod:: ap_sh
+   .. automethod:: ar
+   .. automethod:: bl
+   .. automethod:: bp_32f
+   .. automethod:: bp_cg
+   .. automethod:: bp_cg_3
+   .. automethod:: ce_fit
+   .. automethod:: cg_ph
+   .. automethod:: close
+   .. automethod:: cp
+   .. automethod:: cp_from_mrc
+   .. automethod:: cp_to_mrc
+   .. automethod:: cp_to_tiff
+   .. automethod:: dc_s
+   .. automethod:: de
+   .. automethod:: du
+   .. automethod:: ext
+   .. automethod:: fd
+   .. automethod:: fi_h
+   .. automethod:: flush
+   .. automethod:: fq
+   .. automethod:: fs
+   .. automethod:: ft
+   .. automethod:: get
+   .. automethod:: get_version
+   .. automethod:: gp
+   .. automethod:: invoke
+   .. automethod:: ip
+   .. automethod:: ip_fs
+   .. automethod:: ip_ft
+   .. automethod:: iq_fi
+   .. automethod:: iq_sync
+   .. automethod:: li_d
+   .. automethod:: ma
+   .. automethod:: md
+   .. automethod:: mo
+   .. automethod:: mr
+   .. automethod:: ms
+   .. automethod:: mu
+   .. automethod:: neg_a
+   .. automethod:: or_sh
+   .. automethod:: pd
+   .. automethod:: pj_3q
+   .. automethod:: pw
+   .. automethod:: ra
+   .. automethod:: rb_32f
+   .. automethod:: relaunch
+   .. automethod:: replace_ext
+   .. automethod:: rf_3
+   .. automethod:: ro
+   .. automethod:: rt_sq
+   .. automethod:: rtd_sq
+   .. automethod:: sd_e
+   .. automethod:: sd_ic
+   .. automethod:: sd_ic_new
+   .. automethod:: set
+   .. automethod:: sh_f
+   .. automethod:: spider_results
+   .. automethod:: sq
+   .. automethod:: temp_incore_doc
+   .. automethod:: temp_incore_image
+   .. automethod:: tf_c
+   .. automethod:: tf_c3
+   .. automethod:: tf_cor
+   .. automethod:: tf_ct
+   .. automethod:: tf_ed
+   .. automethod:: ud
+   .. automethod:: ud_e
+   .. automethod:: ud_ic
+   .. automethod:: ud_ice
+   .. automethod:: ud_n
+   .. automethod:: vo_ea
+   .. automethod:: vo_ras
+   .. automethod:: wi
+   .. automethod:: wu
+   
+   

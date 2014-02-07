@@ -1,0 +1,25 @@
+arachnid.core.gui.property.PropertyModel.qtProperty
+===================================================
+
+.. currentmodule:: arachnid.core.gui.property.PropertyModel
+
+.. autoclass:: qtProperty
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      getter
+      read
+      setter
+      write
+   
+   .. automethod:: getter
+   .. automethod:: read
+   .. automethod:: setter
+   .. automethod:: write
+   
+   

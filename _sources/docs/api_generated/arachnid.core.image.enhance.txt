@@ -1,0 +1,137 @@
+enhance
+===========================
+
+.. automodule:: arachnid.core.image.enhance
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#hist-match">hist_match</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: hist-match
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: hist_match
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#histeq">histeq</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: histeq
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: histeq
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#invert">invert</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: invert
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: invert
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#normalize-min-max">normalize_min_max</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: normalize-min-max
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: normalize_min_max
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#normalize-standard">normalize_standard</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: normalize-standard
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: normalize_standard
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#normalize-standard-norm">normalize_standard_norm</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: normalize-standard-norm
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: normalize_standard_norm
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#replace-outlier">replace_outlier</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: replace-outlier
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: replace_outlier
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#vst">vst</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: vst
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: vst
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

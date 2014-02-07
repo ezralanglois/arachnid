@@ -1,0 +1,347 @@
+autopick
+=====================
+
+.. automodule:: arachnid.app.autopick
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#change-option-defaults">change_option_defaults</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: change-option-defaults
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: change_option_defaults
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-aggregates">classify_aggregates</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-aggregates
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_aggregates
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-noise">classify_noise</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-noise
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_noise
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-windows">classify_windows</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-windows
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_windows
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-windows-experimental">classify_windows_experimental</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-windows-experimental
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_windows_experimental
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cull-boundary">cull_boundary</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cull-boundary
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cull_boundary
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize">finalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#merge-coords">merge_coords</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: merge-coords
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: merge_coords
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#outlier-rejection">outlier_rejection</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: outlier-rejection
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: outlier_rejection
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reduce-all">reduce_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reduce-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reduce_all
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#remove-overlap">remove_overlap</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: remove-overlap
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: remove_overlap
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#search">search</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: search
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: search
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#search-range">search_range</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: search-range
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: search_range
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports">supports</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#template-match">template_match</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: template-match
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: template_match
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-example">write_example</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-example
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_example
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

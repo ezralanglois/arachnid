@@ -1,0 +1,10 @@
+arachnid.core.gui.model.DocumentModel.qtSignal
+==============================================
+
+.. currentmodule:: arachnid.core.gui.model.DocumentModel
+
+.. autoclass:: qtSignal
+
+   
+   
+   

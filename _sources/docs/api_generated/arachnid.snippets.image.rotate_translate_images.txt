@@ -1,0 +1,16 @@
+rotate_translate_images
+===============================================
+
+.. automodule:: arachnid.snippets.image.rotate_translate_images
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   

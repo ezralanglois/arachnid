@@ -1,0 +1,193 @@
+reconstruct
+===============================
+
+.. automodule:: arachnid.core.image.reconstruct
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#backproject-bp3f">backproject_bp3f</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: backproject-bp3f
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: backproject_bp3f
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#backproject-bp3f-array">backproject_bp3f_array</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: backproject-bp3f-array
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: backproject_bp3f_array
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#backproject-bp3n">backproject_bp3n</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: backproject-bp3n
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: backproject_bp3n
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#backproject-bp3n-array">backproject_bp3n_array</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: backproject-bp3n-array
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: backproject_bp3n_array
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize-bp3f">finalize_bp3f</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize-bp3f
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize_bp3f
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize-bp3n">finalize_bp3n</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize-bp3n
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize_bp3n
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reconstruct3-bp3f-mp">reconstruct3_bp3f_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reconstruct3-bp3f-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reconstruct3_bp3f_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reconstruct3-bp3n-mp">reconstruct3_bp3n_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reconstruct3-bp3n-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reconstruct3_bp3n_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reconstruct3-mp">reconstruct3_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reconstruct3-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reconstruct3_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reconstruct-bp3f-mp">reconstruct_bp3f_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reconstruct-bp3f-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reconstruct_bp3f_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reconstruct-bp3n-mp">reconstruct_bp3n_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reconstruct-bp3n-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reconstruct_bp3n_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reconstruct-fft">reconstruct_fft</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reconstruct-fft
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reconstruct_fft
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

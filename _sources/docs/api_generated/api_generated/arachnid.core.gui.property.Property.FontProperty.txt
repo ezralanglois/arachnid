@@ -1,0 +1,139 @@
+arachnid.core.gui.property.Property.FontProperty
+================================================
+
+.. currentmodule:: arachnid.core.gui.property.Property
+
+.. autoclass:: FontProperty
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      blockSignals
+      childEvent
+      children
+      connect
+      connectNotify
+      create
+      createEditor
+      customEvent
+      deleteLater
+      disconnect
+      disconnectNotify
+      dumpObjectInfo
+      dumpObjectTree
+      dynamicPropertyNames
+      editorData
+      editorHints
+      emit
+      event
+      eventFilter
+      findChild
+      findChildren
+      findPropertyObject
+      flag
+      inherits
+      installEventFilter
+      isBool
+      isReadOnly
+      isRoot
+      isValid
+      isWidgetType
+      killTimer
+      maximumNameWidth
+      metaObject
+      moveToThread
+      objectName
+      parent
+      property
+      property_object
+      receivers
+      registerUserData
+      removeEventFilter
+      restoreState
+      row
+      saveState
+      sender
+      setEditorData
+      setEditorHints
+      setObjectName
+      setParent
+      setProperty
+      setValue
+      signalsBlocked
+      startTimer
+      thread
+      timerEvent
+      totalChildren
+      totalInvalid
+      tr
+      trUtf8
+      value
+   
+   .. automethod:: __init__
+   .. automethod:: blockSignals
+   .. automethod:: childEvent
+   .. automethod:: children
+   .. automethod:: connect
+   .. automethod:: connectNotify
+   .. automethod:: create
+   .. automethod:: createEditor
+   .. automethod:: customEvent
+   .. automethod:: deleteLater
+   .. automethod:: disconnect
+   .. automethod:: disconnectNotify
+   .. automethod:: dumpObjectInfo
+   .. automethod:: dumpObjectTree
+   .. automethod:: dynamicPropertyNames
+   .. automethod:: editorData
+   .. automethod:: editorHints
+   .. automethod:: emit
+   .. automethod:: event
+   .. automethod:: eventFilter
+   .. automethod:: findChild
+   .. automethod:: findChildren
+   .. automethod:: findPropertyObject
+   .. automethod:: flag
+   .. automethod:: inherits
+   .. automethod:: installEventFilter
+   .. automethod:: isBool
+   .. automethod:: isReadOnly
+   .. automethod:: isRoot
+   .. automethod:: isValid
+   .. automethod:: isWidgetType
+   .. automethod:: killTimer
+   .. automethod:: maximumNameWidth
+   .. automethod:: metaObject
+   .. automethod:: moveToThread
+   .. automethod:: objectName
+   .. automethod:: parent
+   .. automethod:: property
+   .. automethod:: property_object
+   .. automethod:: receivers
+   .. automethod:: registerUserData
+   .. automethod:: removeEventFilter
+   .. automethod:: restoreState
+   .. automethod:: row
+   .. automethod:: saveState
+   .. automethod:: sender
+   .. automethod:: setEditorData
+   .. automethod:: setEditorHints
+   .. automethod:: setObjectName
+   .. automethod:: setParent
+   .. automethod:: setProperty
+   .. automethod:: setValue
+   .. automethod:: signalsBlocked
+   .. automethod:: startTimer
+   .. automethod:: thread
+   .. automethod:: timerEvent
+   .. automethod:: totalChildren
+   .. automethod:: totalInvalid
+   .. automethod:: tr
+   .. automethod:: trUtf8
+   .. automethod:: value
+   
+   

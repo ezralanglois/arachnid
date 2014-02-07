@@ -1,0 +1,10 @@
+arachnid.core.gui.property.ButtonDelegate.qtSignal
+==================================================
+
+.. currentmodule:: arachnid.core.gui.property.ButtonDelegate
+
+.. autoclass:: qtSignal
+
+   
+   
+   

@@ -1,0 +1,95 @@
+process_tasks
+====================================
+
+.. automodule:: arachnid.core.parallel.process_tasks
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#for-process-mp">for_process_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: for-process-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: for_process_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#iterate-map">iterate_map</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: iterate-map
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: iterate_map
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#iterate-reduce">iterate_reduce</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: iterate-reduce
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: iterate_reduce
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process-mp">process_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process-worker2">process_worker2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process-worker2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process_worker2
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

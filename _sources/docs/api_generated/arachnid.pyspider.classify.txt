@@ -1,0 +1,193 @@
+classify
+==========================
+
+.. automodule:: arachnid.pyspider.classify
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-projections">classify_projections</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-projections
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_projections
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-projections-by-view">classify_projections_by_view</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-projections-by-view
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_projections_by_view
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#classify-projections-overall">classify_projections_overall</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: classify-projections-overall
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: classify_projections_overall
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize">finalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#threshold-from-total">threshold_from_total</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: threshold-from-total
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: threshold_from_total
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#threshold-max">threshold_max</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: threshold-max
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: threshold_max
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

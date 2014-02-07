@@ -1,0 +1,291 @@
+ndimage_filter
+==================================
+
+.. automodule:: arachnid.core.image.ndimage_filter
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#depad-image">depad_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: depad-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: depad_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-annular-bp">filter_annular_bp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-annular-bp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_annular_bp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-annular-bp-kernel">filter_annular_bp_kernel</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-annular-bp-kernel
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_annular_bp_kernel
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-butterworth-highpass">filter_butterworth_highpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-butterworth-highpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_butterworth_highpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-butterworth-lowpass">filter_butterworth_lowpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-butterworth-lowpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_butterworth_lowpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-gaussian-highpass">filter_gaussian_highpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-gaussian-highpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_gaussian_highpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-gaussian-lowpass">filter_gaussian_lowpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-gaussian-lowpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_gaussian_lowpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-image">filter_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-raised-cosine-highpass">filter_raised_cosine_highpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-raised-cosine-highpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_raised_cosine_highpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-raised-cosine-lowpass">filter_raised_cosine_lowpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-raised-cosine-lowpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_raised_cosine_lowpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gaussian-highpass">gaussian_highpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gaussian-highpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gaussian_highpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gaussian-highpass-kernel">gaussian_highpass_kernel</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gaussian-highpass-kernel
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gaussian_highpass_kernel
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gaussian-lowpass">gaussian_lowpass</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gaussian-lowpass
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gaussian_lowpass
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gaussian-lowpass-kernel">gaussian_lowpass_kernel</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gaussian-lowpass-kernel
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gaussian_lowpass_kernel
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#grid-image">grid_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: grid-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: grid_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#histogram-match">histogram_match</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: histogram-match
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: histogram_match
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#pad-image">pad_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: pad-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: pad_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#radial-image">radial_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: radial-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: radial_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ramp">ramp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ramp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ramp
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

@@ -1,0 +1,131 @@
+spider_parameter
+=====================================
+
+.. automodule:: arachnid.core.spider.spider_parameter
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-incore-filename">is_incore_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-incore-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_incore_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-coord-tuple">spider_coord_tuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-coord-tuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_coord_tuple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-doc">spider_doc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-doc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_doc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-image">spider_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-select">spider_select</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-select
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_select
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-stack">spider_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-tuple">spider_tuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-tuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_tuple
+
+   
+   
+
+   
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      SpiderParameterError
+   
+   

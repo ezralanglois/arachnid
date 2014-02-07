@@ -1,0 +1,81 @@
+rotate
+==========================
+
+.. automodule:: arachnid.core.image.rotate
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#optimal-inplane">optimal_inplane</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: optimal-inplane
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: optimal_inplane
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotate-euler">rotate_euler</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotate-euler
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotate_euler
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotate-image">rotate_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotate-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotate_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotate-image2">rotate_image2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotate-image2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotate_image2
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

@@ -1,0 +1,165 @@
+coverage
+======================
+
+.. automodule:: arachnid.util.coverage
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#chimera-balls">chimera_balls</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: chimera-balls
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: chimera_balls
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#count-angles">count_angles</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: count-angles
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: count_angles
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#plot-angles">plot_angles</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: plot-angles
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: plot_angles
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#projection-args">projection_args</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: projection-args
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: projection_args
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-angles">read_angles</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-angles
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_angles
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

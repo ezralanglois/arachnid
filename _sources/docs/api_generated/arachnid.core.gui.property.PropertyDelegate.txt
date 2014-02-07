@@ -1,0 +1,26 @@
+PropertyDelegate
+===========================================
+
+.. automodule:: arachnid.core.gui.property.PropertyDelegate
+
+   
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      PropertyDelegate
+   
+   
+
+   
+   
+   

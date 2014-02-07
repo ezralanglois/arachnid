@@ -1,0 +1,21 @@
+arachnid.core.app.settings.VersionControl
+=========================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: VersionControl
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      archive
+   
+   .. automethod:: __init__
+   .. automethod:: archive
+   
+   

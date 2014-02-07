@@ -1,0 +1,49 @@
+arachnid.core.app.settings.optdict
+==================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: optdict
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      clear
+      copy
+      fromkeys
+      get
+      has_key
+      items
+      iteritems
+      iterkeys
+      itervalues
+      keys
+      pop
+      popitem
+      setdefault
+      update
+      values
+   
+   .. automethod:: __init__
+   .. automethod:: clear
+   .. automethod:: copy
+   .. automethod:: fromkeys
+   .. automethod:: get
+   .. automethod:: has_key
+   .. automethod:: items
+   .. automethod:: iteritems
+   .. automethod:: iterkeys
+   .. automethod:: itervalues
+   .. automethod:: keys
+   .. automethod:: pop
+   .. automethod:: popitem
+   .. automethod:: setdefault
+   .. automethod:: update
+   .. automethod:: values
+   
+   

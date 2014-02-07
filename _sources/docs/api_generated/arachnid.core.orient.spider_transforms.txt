@@ -1,0 +1,151 @@
+spider_transforms
+======================================
+
+.. automodule:: arachnid.core.orient.spider_transforms
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-param-2D-to-3D">align_param_2D_to_3D</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-param-2D-to-3D
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_param_2D_to_3D
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-param-3D-to-2D">align_param_3D_to_2D</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-param-3D-to-2D
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_param_3D_to_2D
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#coarse-angles">coarse_angles</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: coarse-angles
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: coarse_angles
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#coarse-angles-3D">coarse_angles_3D</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: coarse-angles-3D
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: coarse_angles_3D
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#euler-geodesic-distance">euler_geodesic_distance</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: euler-geodesic-distance
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: euler_geodesic_distance
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#euler-to-vector">euler_to_vector</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: euler-to-vector
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: euler_to_vector
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-geodesic-distance">quaternion_geodesic_distance</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-geodesic-distance
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_geodesic_distance
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotate-into-frame">rotate_into_frame</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotate-into-frame
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotate_into_frame
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotate-into-frame-2d">rotate_into_frame_2d</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotate-into-frame-2d
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotate_into_frame_2d
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

@@ -1,0 +1,235 @@
+crop
+==================
+
+.. automodule:: arachnid.util.crop
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#enhance-window">enhance_window</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: enhance-window
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: enhance_window
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize">finalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#generate-noise">generate_noise</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: generate-noise
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: generate_noise
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#init-root">init_root</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: init-root
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: init_root
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-coordinates">read_coordinates</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-coordinates
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_coordinates
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-micrograph">read_micrograph</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-micrograph
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_micrograph
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reduce-all">reduce_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reduce-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reduce_all
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports">supports</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

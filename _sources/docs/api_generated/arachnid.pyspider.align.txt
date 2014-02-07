@@ -1,0 +1,235 @@
+align
+=======================
+
+.. automodule:: arachnid.pyspider.align
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-projections">align_projections</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-projections
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_projections
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-projections-by-defocus">align_projections_by_defocus</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-projections-by-defocus
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_projections_by_defocus
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-projections-by-defocus-sm">align_projections_by_defocus_sm</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-projections-by-defocus-sm
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_projections_by_defocus_sm
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-projections-sm">align_projections_sm</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-projections-sm
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_projections_sm
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-to-reference">align_to_reference</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-to-reference
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_to_reference
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fast-projection-search-test">fast_projection_search_test</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fast-projection-search-test
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fast_projection_search_test
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initalize">initalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#prealign-input">prealign_input</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: prealign-input
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: prealign_input
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#use-small-angle-alignment">use_small_angle_alignment</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: use-small-angle-alignment
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: use_small_angle_alignment
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-alignment">write_alignment</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-alignment
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_alignment
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

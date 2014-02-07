@@ -1,0 +1,35 @@
+arachnid.core.app.settings.optlist
+==================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: optlist
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      append
+      count
+      extend
+      index
+      insert
+      pop
+      remove
+      reverse
+      sort
+   
+   .. automethod:: append
+   .. automethod:: count
+   .. automethod:: extend
+   .. automethod:: index
+   .. automethod:: insert
+   .. automethod:: pop
+   .. automethod:: remove
+   .. automethod:: reverse
+   .. automethod:: sort
+   
+   

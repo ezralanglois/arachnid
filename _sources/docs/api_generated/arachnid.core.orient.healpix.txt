@@ -1,0 +1,193 @@
+healpix
+============================
+
+.. automodule:: arachnid.core.orient.healpix
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ang2pix">ang2pix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ang2pix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ang2pix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#angles">angles</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: angles
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: angles
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#angles-gen">angles_gen</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: angles-gen
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: angles_gen
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#coarse">coarse</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: coarse
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: coarse
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-valid-deg">ensure_valid_deg</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-valid-deg
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_valid_deg
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mirror-so2">mirror_so2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mirror-so2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mirror_so2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mirror-so2-deg">mirror_so2_deg</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mirror-so2-deg
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mirror_so2_deg
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#nside2pixarea">nside2pixarea</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: nside2pixarea
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: nside2pixarea
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#pix2ang">pix2ang</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: pix2ang
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: pix2ang
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#pmod">pmod</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: pmod
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: pmod
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#res2npix">res2npix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: res2npix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: res2npix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#theta2nside">theta2nside</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: theta2nside
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: theta2nside
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

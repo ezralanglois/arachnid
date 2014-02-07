@@ -1,0 +1,1117 @@
+ndimage_utility
+===================================
+
+.. automodule:: arachnid.core.image.ndimage_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#acf">acf</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: acf
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: acf
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#biggest-object">biggest_object</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: biggest-object
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: biggest_object
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#biggest-object-select">biggest_object_select</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: biggest-object-select
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: biggest_object_select
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#bispectrum">bispectrum</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: bispectrum
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: bispectrum
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cart2polar">cart2polar</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cart2polar
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cart2polar
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#compress-image">compress_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: compress-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: compress_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#crop-window">crop_window</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: crop-window
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: crop_window
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#crop-window2">crop_window2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: crop-window2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: crop_window2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#crop-window-old">crop_window_old</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: crop-window-old
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: crop_window_old
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cross-correlate">cross_correlate</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cross-correlate
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cross_correlate
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cross-correlate-raw">cross_correlate_raw</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cross-correlate-raw
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cross_correlate_raw
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dct-avg">dct_avg</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dct-avg
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dct_avg
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#depad-image">depad_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: depad-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: depad_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dialate-mask">dialate_mask</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dialate-mask
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dialate_mask
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dog">dog</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dog
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dog
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fftamp">fftamp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fftamp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fftamp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-annular-bp">filter_annular_bp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-annular-bp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_annular_bp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-gaussian-lp">filter_gaussian_lp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-gaussian-lp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_gaussian_lp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter-image">filter_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#find-peaks-fast">find_peaks_fast</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: find-peaks-fast
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: find_peaks_fast
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fit-ellipse">fit_ellipse</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fit-ellipse
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fit_ellipse
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flatten-solvent">flatten_solvent</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flatten-solvent
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flatten_solvent
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#for-each-window">for_each_window</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: for-each-window
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: for_each_window
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fourier-mellin">fourier_mellin</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fourier-mellin
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fourier_mellin
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fourier-shell-correlation">fourier_shell_correlation</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fourier-shell-correlation
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fourier_shell_correlation
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fourier-shift">fourier_shift</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fourier-shift
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fourier_shift
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fourier-shift2">fourier_shift2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fourier-shift2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fourier_shift2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fourier-space-shift">fourier_space_shift</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fourier-space-shift
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fourier_space_shift
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#frt2">frt2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: frt2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: frt2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gaussian-kernel">gaussian_kernel</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gaussian-kernel
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gaussian_kernel
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gaussian-smooth">gaussian_smooth</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gaussian-smooth
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gaussian_smooth
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#grid-image">grid_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: grid-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: grid_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#hist-match">hist_match</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: hist-match
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: hist_match
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#histeq">histeq</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: histeq
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: histeq
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#index-coords">index_coords</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: index-coords
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: index_coords
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#integral-image">integral_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: integral-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: integral_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#invert">invert</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: invert
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: invert
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#lagwind">lagwind</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: lagwind
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: lagwind
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#local-variance">local_variance</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: local-variance
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: local_variance
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#local-variance2">local_variance2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: local-variance2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: local_variance2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#logpolar">logpolar</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: logpolar
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: logpolar
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#major-axis-angle">major_axis_angle</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: major-axis-angle
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: major_axis_angle
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mean-azimuthal">mean_azimuthal</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mean-azimuthal
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mean_azimuthal
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mean-azimuthal-3d">mean_azimuthal_3d</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mean-azimuthal-3d
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mean_azimuthal_3d
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mirror">mirror</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mirror
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mirror
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mirror-ud">mirror_ud</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mirror-ud
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mirror_ud
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#model-disk">model_disk</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: model-disk
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: model_disk
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#model-ring">model_ring</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: model-ring
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: model_ring
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#moving-average">moving_average</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: moving-average
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: moving_average
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#moving-minimum">moving_minimum</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: moving-minimum
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: moving_minimum
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#multitaper-power-spectra">multitaper_power_spectra</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: multitaper-power-spectra
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: multitaper_power_spectra
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#normalize-min-max">normalize_min_max</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: normalize-min-max
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: normalize_min_max
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#normalize-standard">normalize_standard</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: normalize-standard
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: normalize_standard
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#normalize-standard-norm">normalize_standard_norm</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: normalize-standard-norm
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: normalize_standard_norm
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#pad-image">pad_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: pad-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: pad_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#perdiogram">perdiogram</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: perdiogram
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: perdiogram
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#polar">polar</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: polar
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: polar
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#polar2cart">polar2cart</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: polar2cart
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: polar2cart
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#polar-simple">polar_simple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: polar-simple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: polar_simple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#polar-to-cart">polar_to_cart</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: polar-to-cart
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: polar_to_cart
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#powerspec1d">powerspec1d</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: powerspec1d
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: powerspec1d
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#powerspec-avg">powerspec_avg</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: powerspec-avg
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: powerspec_avg
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#powerspec-fin">powerspec_fin</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: powerspec-fin
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: powerspec_fin
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#powerspec-sum">powerspec_sum</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: powerspec-sum
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: powerspec_sum
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#radial-image">radial_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: radial-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: radial_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#radon-transform">radon_transform</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: radon-transform
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: radon_transform
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#replace-outlier">replace_outlier</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: replace-outlier
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: replace_outlier
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rolling-window">rolling_window</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rolling-window
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rolling_window
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotavg">rotavg</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotavg
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotavg
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#segment">segment</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: segment
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: segment
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#sinogram">sinogram</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: sinogram
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: sinogram
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#snr-correction-factor">snr_correction_factor</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: snr-correction-factor
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: snr_correction_factor
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spiral-transform">spiral_transform</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spiral-transform
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spiral_transform
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#std-azimuthal">std_azimuthal</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: std-azimuthal
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: std_azimuthal
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#sum-by-group">sum_by_group</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: sum-by-group
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: sum_by_group
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#tight-mask">tight_mask</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: tight-mask
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: tight_mask
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#uncompress-image">uncompress_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: uncompress-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: uncompress_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#vst">vst</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: vst
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: vst
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

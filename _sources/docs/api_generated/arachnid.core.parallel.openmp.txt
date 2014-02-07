@@ -1,0 +1,81 @@
+openmp
+=============================
+
+.. automodule:: arachnid.core.parallel.openmp
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-max-threads">get_max_threads</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-max-threads
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_max_threads
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-num-procs">get_num_procs</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-num-procs
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_num_procs
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-openmp-enabled">is_openmp_enabled</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-openmp-enabled
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_openmp_enabled
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#set-thread-count">set_thread_count</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: set-thread-count
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: set_thread_count
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

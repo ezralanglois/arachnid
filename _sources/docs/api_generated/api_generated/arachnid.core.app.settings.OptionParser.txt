@@ -1,0 +1,121 @@
+arachnid.core.app.settings.OptionParser
+=======================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: OptionParser
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      add_option
+      add_option_group
+      add_options
+      add_validator
+      change_default
+      check_values
+      collect_dependent_file_options
+      collect_dependent_options
+      collect_file_options
+      collect_options
+      collect_unset_options
+      default_config_filename
+      destroy
+      disable_interspersed_args
+      enable_interspersed_args
+      error
+      exit
+      expand_prog_name
+      format_description
+      format_epilog
+      format_help
+      format_option_help
+      get_config_options
+      get_default_values
+      get_description
+      get_option
+      get_option_group
+      get_prog_name
+      get_usage
+      get_version
+      has_option
+      maximum_flag_length
+      option_for_flag
+      parse_all
+      parse_args
+      parse_args_with_config
+      parse_file
+      print_help
+      print_usage
+      print_version
+      program_name
+      remove_option
+      set_conflict_handler
+      set_default
+      set_defaults
+      set_description
+      set_process_default_values
+      set_usage
+      validate
+      version_control
+      write
+   
+   .. automethod:: __init__
+   .. automethod:: add_option
+   .. automethod:: add_option_group
+   .. automethod:: add_options
+   .. automethod:: add_validator
+   .. automethod:: change_default
+   .. automethod:: check_values
+   .. automethod:: collect_dependent_file_options
+   .. automethod:: collect_dependent_options
+   .. automethod:: collect_file_options
+   .. automethod:: collect_options
+   .. automethod:: collect_unset_options
+   .. automethod:: default_config_filename
+   .. automethod:: destroy
+   .. automethod:: disable_interspersed_args
+   .. automethod:: enable_interspersed_args
+   .. automethod:: error
+   .. automethod:: exit
+   .. automethod:: expand_prog_name
+   .. automethod:: format_description
+   .. automethod:: format_epilog
+   .. automethod:: format_help
+   .. automethod:: format_option_help
+   .. automethod:: get_config_options
+   .. automethod:: get_default_values
+   .. automethod:: get_description
+   .. automethod:: get_option
+   .. automethod:: get_option_group
+   .. automethod:: get_prog_name
+   .. automethod:: get_usage
+   .. automethod:: get_version
+   .. automethod:: has_option
+   .. automethod:: maximum_flag_length
+   .. automethod:: option_for_flag
+   .. automethod:: parse_all
+   .. automethod:: parse_args
+   .. automethod:: parse_args_with_config
+   .. automethod:: parse_file
+   .. automethod:: print_help
+   .. automethod:: print_usage
+   .. automethod:: print_version
+   .. automethod:: program_name
+   .. automethod:: remove_option
+   .. automethod:: set_conflict_handler
+   .. automethod:: set_default
+   .. automethod:: set_defaults
+   .. automethod:: set_description
+   .. automethod:: set_process_default_values
+   .. automethod:: set_usage
+   .. automethod:: validate
+   .. automethod:: version_control
+   .. automethod:: write
+   
+   

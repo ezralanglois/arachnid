@@ -1,0 +1,57 @@
+arachnid.core.app.settings.Option
+=================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: Option
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      check_value
+      choice_index
+      choice_type
+      convert_value
+      determine_flag
+      get_opt_string
+      get_registry
+      glob_files
+      is_choice_index
+      is_glob_files
+      is_not_config
+      process
+      setup_auto_flag
+      sphinx_name
+      str_to_dict
+      str_to_list
+      take_action
+      takes_value
+      validate
+   
+   .. automethod:: __init__
+   .. automethod:: check_value
+   .. automethod:: choice_index
+   .. automethod:: choice_type
+   .. automethod:: convert_value
+   .. automethod:: determine_flag
+   .. automethod:: get_opt_string
+   .. automethod:: get_registry
+   .. automethod:: glob_files
+   .. automethod:: is_choice_index
+   .. automethod:: is_glob_files
+   .. automethod:: is_not_config
+   .. automethod:: process
+   .. automethod:: setup_auto_flag
+   .. automethod:: sphinx_name
+   .. automethod:: str_to_dict
+   .. automethod:: str_to_list
+   .. automethod:: take_action
+   .. automethod:: takes_value
+   .. automethod:: validate
+   
+   

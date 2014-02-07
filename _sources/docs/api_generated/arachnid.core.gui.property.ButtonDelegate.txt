@@ -1,0 +1,30 @@
+ButtonDelegate
+=========================================
+
+.. automodule:: arachnid.core.gui.property.ButtonDelegate
+
+   
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      CheckboxWidget
+      DialogWidget
+      FileDialogWidget
+      FontDialogWidget
+      qtSignal
+   
+   
+
+   
+   
+   

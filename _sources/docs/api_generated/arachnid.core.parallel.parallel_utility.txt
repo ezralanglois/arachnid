@@ -1,0 +1,81 @@
+parallel_utility
+=======================================
+
+.. automodule:: arachnid.core.parallel.parallel_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#partition-array">partition_array</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: partition-array
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: partition_array
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#partition-list">partition_list</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: partition-list
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: partition_list
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#partition-offsets">partition_offsets</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: partition-offsets
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: partition_offsets
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#partition-size">partition_size</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: partition-size
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: partition_size
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

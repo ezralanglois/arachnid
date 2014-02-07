@@ -1,0 +1,19 @@
+arachnid.core.spider.spider_var.spider_var
+==========================================
+
+.. currentmodule:: arachnid.core.spider.spider_var
+
+.. autoclass:: spider_var
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      conjugate
+   
+   .. automethod:: conjugate
+   
+   

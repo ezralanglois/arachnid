@@ -1,0 +1,87 @@
+Property
+===================================
+
+.. automodule:: arachnid.core.gui.property.Property
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-int">is_int</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-int
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_int
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parseHints">parseHints</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parseHints
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parseHints
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#register-property">register_property</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: register-property
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: register_property
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      BoolProperty
+      ChoiceProperty
+      FileDialogWidget
+      FilenameProperty
+      FontDialogWidget
+      FontProperty
+      NumericProperty
+      Property
+      StringProperty
+      qtSignal
+      qtSlot
+   
+   
+
+   
+   
+   

@@ -1,0 +1,39 @@
+arachnid.core.app.settings.optfilelist
+======================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: optfilelist
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      append
+      count
+      extend
+      index
+      insert
+      make
+      pop
+      remove
+      reverse
+      sort
+   
+   .. automethod:: __init__
+   .. automethod:: append
+   .. automethod:: count
+   .. automethod:: extend
+   .. automethod:: index
+   .. automethod:: insert
+   .. automethod:: make
+   .. automethod:: pop
+   .. automethod:: remove
+   .. automethod:: reverse
+   .. automethod:: sort
+   
+   

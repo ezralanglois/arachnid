@@ -1,0 +1,165 @@
+spiderdoc
+========================================
+
+.. automodule:: arachnid.core.metadata.formats.spiderdoc
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#extension">extension</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: extension
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: extension
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#filter">filter</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: filter
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: filter
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#float-format">float_format</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: float-format
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: float_format
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parse-line">parse_line</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parse-line
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parse_line
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-header">read_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reader">reader</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reader
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reader
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-header-vars">spider_header_vars</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-header-vars
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_header_vars
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#test">test</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: test
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: test
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-header">write_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-values">write_values</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-values
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_values
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

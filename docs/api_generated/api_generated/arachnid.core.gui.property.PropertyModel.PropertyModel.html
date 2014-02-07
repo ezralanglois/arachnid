@@ -1,0 +1,2169 @@
+
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>arachnid.core.gui.property.PropertyModel.PropertyModel &mdash; arachnid 0.1.4_123_gf8282d4 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-3.0.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-3.0.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.4_123_gf8282d4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="arachnid 0.1.4_123_gf8282d4 documentation" href="../../../index.html" />
+    <link rel="up" title="PropertyModel" href="../arachnid.core.gui.property.PropertyModel.html" />
+    <link rel="next" title="arachnid.core.gui.property.PropertyModel.qtProperty" href="arachnid.core.gui.property.PropertyModel.qtProperty.html" />
+    <link rel="prev" title="arachnid.core.gui.property.PropertyModel.Property" href="arachnid.core.gui.property.PropertyModel.Property.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+
+  <div id="navbar" class="navbar navbar-default ">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html"><img src="../../../_static/icon16x16.png">
+          arachnid</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_123_gf8282d4</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+              
+              
+                <li><a href="http://code.google.com/p/arachnid/issues/list">Issues</a></li>
+              
+              
+              
+                <li><a href="http://groups.google.com/group/arachnid-general">Mailing List</a></li>
+              
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a href="../../../index.html"
+     class="dropdown-toggle"
+     data-toggle="dropdown">Site Map <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+    ><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../license.html#version-2-june-1991">Version 2, June 1991</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../license.html#preamble">Preamble</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../license.html#terms-and-conditions-for-copying-distribution-and-modification">Terms and Conditions For Copying, Distribution and Modification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../license.html#no-warranty">No Warranty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../license.html#end-of-terms-and-conditions">End of Terms and Conditions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../users_guide.html">User&#8217;s Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html">Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../install_franklab.html">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../install_franklab.html#franklab">FrankLab</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../install.html#anaconda">Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../install.html#easy-install">Easy install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../install.html#from-source">From Source</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../install.html#compilers">Compilers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../install.html#checking">Checking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../install.html#packages-to-download">Packages to Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../install.html#installation-of-prerequisites">Installation of Prerequisites</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../reconstruction.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reconstruction_cmdline.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction_cmdline.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction_cmdline.html#tips">Tips</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction_cmdline.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#creating-a-project">Creating a project</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#running-scripts">Running Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction_cmdline.html#improving-the-data-treatment">Improving the Data Treatment</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#screening">Screening</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#additional-processing">Additional processing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#manual-ctf-fitting">Manual CTF fitting</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#classification">Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction_cmdline.html#chimera-tricks">Chimera Tricks</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#open-a-spider-file">Open a SPIDER file</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#choose-a-spider-viewing-angle">Choose a SPIDER Viewing Angle</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction_cmdline.html#running-isolated-scripts">Running Isolated Scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#particle-selection">Particle Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#particle-windowing">Particle Windowing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reconstruction.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#import-prompt">Import Prompt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#leginon-database-import">Leginon Database Import</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction.html#leginon-account">Leginon Account</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction.html#leginon-sessions">Leginon Sessions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#manual-settings">Manual Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#reference-preprocessing-prompt">Reference Preprocessing Prompt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#reference-map-generation">Reference Map Generation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction.html#emdb-download">EMDB Download</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../reconstruction.html#local-file">Local File</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#additional-parameters">Additional Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#review-parameters">Review Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reconstruction.html#run-the-workflow">Run the Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reconstruction.html#tips">Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../manual.html">Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../manual.html#scripts">Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#applications">Applications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#utilities">Utilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#pyspider">pySPIDER</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#local-machine">Local Machine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#cluster">Cluster</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../manual.html#version-control">Version Control</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#versioning-the-script">Versioning the Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../manual.html#logging">Logging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#terminal">Terminal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#log-file">Log File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#crash-report">Crash Report</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../manual.html#common-options">Common Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#all-scripts">All Scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../manual.html#critical-options">Critical Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../manual.html#logging-options">Logging Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../manual.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#cryo-em-experiments">Cryo-EM Experiments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#mpi-enabled-scripts">MPI-Enabled Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#openmp-enabled-scripts">OpenMP-Enabled Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#spi-scripts">pySPIDER Scripts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../users_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../developer_guide.html">Developer&#8217;s Corner</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../development.html">Developer&#8217;s Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#getting-source">Getting Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#reporting-bugs">Reporting Bugs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#contributing-code">Contributing Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#documentation-hack">Documentation Hack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#create-a-program-script">Create a Program Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#custom-code">Custom Code</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#todo">TODO</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../api.html">API</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../api.html#module-arachnid"><tt class="docutils literal"><span class="pre">arachnid</span></tt></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../../api.html#module-arachnid.core"><tt class="docutils literal"><span class="pre">arachnid.core</span></tt></a><ul class="current">
+<li class="toctree-l5 current"><a class="reference internal" href="../../api.html#module-arachnid.core.gui"><tt class="docutils literal"><span class="pre">arachnid.core.gui</span></tt></a><ul class="current">
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.gui.HelpUI.html">HelpUI</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.gui.HelpUI.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.HelpUI.Dialog.html">arachnid.core.gui.HelpUI.Dialog</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.HelpUI.Ui_Dialog.html">arachnid.core.gui.HelpUI.Ui_Dialog</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.gui.model"><tt class="docutils literal"><span class="pre">arachnid.core.gui.model</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.model.DocumentModel.html">DocumentModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.model.DocumentModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.model.DocumentModel.DocumentModel.html">arachnid.core.gui.model.DocumentModel.DocumentModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.model.DocumentModel.qtSignal.html">arachnid.core.gui.model.DocumentModel.qtSignal</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.model.ListTableModel.html">ListTableModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.model.ListTableModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.model.ListTableModel.CheckListTableModel.html">arachnid.core.gui.model.ListTableModel.CheckListTableModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.model.ListTableModel.ListTableModel.html">arachnid.core.gui.model.ListTableModel.ListTableModel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.gui.icons"><tt class="docutils literal"><span class="pre">arachnid.core.gui.icons</span></tt></a></li>
+<li class="toctree-l6 current"><a class="reference internal" href="../../api.html#module-arachnid.core.gui.property"><tt class="docutils literal"><span class="pre">arachnid.core.gui.property</span></tt></a><ul class="current">
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.ButtonDelegate.html">ButtonDelegate</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.ButtonDelegate.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.CheckboxWidget.html">arachnid.core.gui.property.ButtonDelegate.CheckboxWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.DialogWidget.html">arachnid.core.gui.property.ButtonDelegate.DialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.FileDialogWidget.html">arachnid.core.gui.property.ButtonDelegate.FileDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.FontDialogWidget.html">arachnid.core.gui.property.ButtonDelegate.FontDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.qtSignal.html">arachnid.core.gui.property.ButtonDelegate.qtSignal</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.Property.html">Property</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.Property.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.Property.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.BoolProperty.html">arachnid.core.gui.property.Property.BoolProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.ChoiceProperty.html">arachnid.core.gui.property.Property.ChoiceProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.FileDialogWidget.html">arachnid.core.gui.property.Property.FileDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.FilenameProperty.html">arachnid.core.gui.property.Property.FilenameProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.FontDialogWidget.html">arachnid.core.gui.property.Property.FontDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.FontProperty.html">arachnid.core.gui.property.Property.FontProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.NumericProperty.html">arachnid.core.gui.property.Property.NumericProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.Property.html">arachnid.core.gui.property.Property.Property</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.StringProperty.html">arachnid.core.gui.property.Property.StringProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.qtSignal.html">arachnid.core.gui.property.Property.qtSignal</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.Property.qtSlot.html">arachnid.core.gui.property.Property.qtSlot</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.PropertyDelegate.html">PropertyDelegate</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.PropertyDelegate.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.PropertyDelegate.PropertyDelegate.html">arachnid.core.gui.property.PropertyDelegate.PropertyDelegate</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.gui.property.PropertyModel.html">PropertyModel</a></li>
+<li class="toctree-l7 current"><a class="reference internal" href="../arachnid.core.gui.property.PropertyModel.html#classes">Classes</a><ul class="current">
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.PropertyModel.Property.html">arachnid.core.gui.property.PropertyModel.Property</a></li>
+<li class="toctree-l8 current"><a class="current reference internal" href="">arachnid.core.gui.property.PropertyModel.PropertyModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.PropertyModel.qtProperty.html">arachnid.core.gui.property.PropertyModel.qtProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.gui.property.PropertyModel.qtSignal.html">arachnid.core.gui.property.PropertyModel.qtSignal</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.gui.util"><tt class="docutils literal"><span class="pre">arachnid.core.gui.util</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.image"><tt class="docutils literal"><span class="pre">arachnid.core.image</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.analysis.html">analysis</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.analysis.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_utility.html">ndimage_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_file.html">ndimage_file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_file.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_filter.html">ndimage_filter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_filter.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_interpolate.html">ndimage_interpolate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.ndimage_interpolate.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.reconstruct.html">reconstruct</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.reproject.html">reproject</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.reproject.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.rotate.html">rotate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.rotate.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.alignment.html">alignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.alignment.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.affine_transform.html">affine_transform</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.affine_transform.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.enhance.html">enhance</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.image.enhance.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.image.formats"><tt class="docutils literal"><span class="pre">arachnid.core.image.formats</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.formats.eman_format.html">eman_format</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.formats.eman_format.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.image.tests"><tt class="docutils literal"><span class="pre">arachnid.core.image.tests</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.tests.test_ndimage_utility.html">test_ndimage_utility</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.tests.test_ndimage_utility.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.image.util"><tt class="docutils literal"><span class="pre">arachnid.core.image.util</span></tt></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.image.ctf"><tt class="docutils literal"><span class="pre">arachnid.core.image.ctf</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.ctf.estimate1d.html">estimate1d</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.ctf.estimate1d.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.ctf.correct.html">correct</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.image.ctf.correct.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.metadata"><tt class="docutils literal"><span class="pre">arachnid.core.metadata</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format.html">format</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.spider_utility.html">spider_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.spider_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.spider_utility.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.spider_utility.defaultdict.html">arachnid.core.metadata.spider_utility.defaultdict</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.spider_utility.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.relion_utility.html">relion_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.relion_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.type_utility.html">type_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.type_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.selection_utility.html">selection_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.selection_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.spider_params.html">spider_params</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.spider_params.html#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.spider_params.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.spider_params.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format_utility.html">format_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format_utility.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.namedtuple_utility.html">namedtuple_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.namedtuple_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format_alignment.html">format_alignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.metadata.format_alignment.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.metadata.factories"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.factories</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.factories.namedtuple_factory.html">namedtuple_factory</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.factories.namedtuple_factory.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.metadata.formats"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.formats</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.csv.html">csv</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.csv.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.prediction.html">prediction</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.prediction.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.spiderdoc.html">spiderdoc</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.spiderdoc.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.spidersel.html">spidersel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.spidersel.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.star.html">star</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.metadata.formats.star.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.program.html">program</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.program.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.program.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.program.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.program.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.program.html">arachnid.core.app.program.program</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.program.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.settings.html">settings</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#usage">Usage</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#available-options">Available Options</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#module">Module</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.settings.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.settings.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.Option.html">arachnid.core.app.settings.Option</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.OptionGroup.html">arachnid.core.app.settings.OptionGroup</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.OptionParser.html">arachnid.core.app.settings.OptionParser</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.Validation.html">arachnid.core.app.settings.Validation</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.VersionControl.html">arachnid.core.app.settings.VersionControl</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.optdict.html">arachnid.core.app.settings.optdict</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.optfilelist.html">arachnid.core.app.settings.optfilelist</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.optlist.html">arachnid.core.app.settings.optlist</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.tracing.html">tracing</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#usage">Usage</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#parameters">Parameters</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#command-line">Command-line</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#colors">Colors</a></li>
+<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#module">Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.tracing.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.tracing.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.ColoredFormatter.html">arachnid.core.app.tracing.ColoredFormatter</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.ExceptionFilter.html">arachnid.core.app.tracing.ExceptionFilter</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.Logger.html">arachnid.core.app.tracing.Logger</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.NullHandler.html">arachnid.core.app.tracing.NullHandler</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.file_processor.html">file_processor</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.file_processor.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.file_processor.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.file_processor.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.file_processor.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.file_processor.progress.html">arachnid.core.app.file_processor.progress</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.progress.html">progress</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.progress.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.progress.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.progress.progress.html">arachnid.core.app.progress.progress</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.orient"><tt class="docutils literal"><span class="pre">arachnid.core.orient</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.healpix.html">healpix</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.healpix.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.transforms.html">transforms</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.orient.transforms.html#requirements">Requirements</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.orient.transforms.html#notes">Notes</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.orient.transforms.html#references">References</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.orient.transforms.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.transforms.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.transforms.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.orient.transforms.Arcball.html">arachnid.core.orient.transforms.Arcball</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.spider_transforms.html">spider_transforms</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.orient.spider_transforms.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../api.html#module-arachnid.core.orient.core"><tt class="docutils literal"><span class="pre">arachnid.core.orient.core</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.parallel"><tt class="docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.parallel_utility.html">parallel_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.parallel_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.process_queue.html">process_queue</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.process_queue.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.process_queue.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.process_tasks.html">process_tasks</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.process_tasks.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.mpi_utility.html">mpi_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.mpi_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.openmp.html">openmp</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.parallel.openmp.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.spider"><tt class="docutils literal"><span class="pre">arachnid.core.spider</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider.html">spider</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.Session.html">arachnid.core.spider.spider.Session</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_session.html">spider_session</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.spider.spider_session.html#example-usage">Example usage</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_session.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_session.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider_session.Session.html">arachnid.core.spider.spider_session.Session</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_session.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_parameter.html">spider_parameter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_parameter.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_parameter.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_var.html">spider_var</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider_var.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider_var.spider_var.html">arachnid.core.spider.spider_var.spider_var</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider_var.spider_var_pool.html">arachnid.core.spider.spider_var.spider_var_pool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.util"><tt class="docutils literal"><span class="pre">arachnid.core.util</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.util.fitting.html">fitting</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.core.util.fitting.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../api.html#module-arachnid.snippets"><tt class="docutils literal"><span class="pre">arachnid.snippets</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.snippets.pyspider"><tt class="docutils literal"><span class="pre">arachnid.snippets.pyspider</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.pyspider.filter_volume.html">filter_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.pyspider.mask_volume.html">mask_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.pyspider.estimate_resolution.html">estimate_resolution</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.snippets.metadata"><tt class="docutils literal"><span class="pre">arachnid.snippets.metadata</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.metadata.relion_defocus_histogram.html">relion_defocus_histogram</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.metadata.spider_fsc_to_emdb.html">spider_fsc_to_emdb</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.metadata.spider_fsc_to_emdb.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.snippets.image"><tt class="docutils literal"><span class="pre">arachnid.snippets.image</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.image.decimate.html">decimate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.image.interpolate_volume.html">interpolate_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.image.reproject_test.html">reproject_test</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.image.rotate_translate_images.html">rotate_translate_images</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.image.shift.html">shift</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.image.unstack.html">unstack</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.snippets.reconstruction"><tt class="docutils literal"><span class="pre">arachnid.snippets.reconstruction</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.reconstruction.reconstruct_single.html">reconstruct_single</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.reconstruction.reconstruct_stack.html">reconstruct_stack</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.reconstruction.reconstruct_stack.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.reconstruction.reconstruct3.html">reconstruct3</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.snippets.reconstruction.reconstruct3.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../api.html#module-arachnid.app"><tt class="docutils literal"><span class="pre">arachnid.app</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.autopick.html">autopick</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.autopick.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.autopick.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.autopick.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.autopick.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.autopick.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.autopick.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.autopick.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.lfcpick.html">lfcpick</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.lfcpick.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.lfcpick.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.lfcpick.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.lfcpick.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.lfcpick.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.lfcpick.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.lfcpick.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.vicer.html">vicer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#customization-options">Customization Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#testing-options">Testing Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.vicer.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.vicer.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.reconstruct.html">reconstruct</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.align_frames.html">align_frames</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#diagnostic-options">Diagnostic Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.app.align_frames.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.app.align_frames.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../api.html#module-arachnid.util"><tt class="docutils literal"><span class="pre">arachnid.util</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.crop.html">crop</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#movie-mode-options">Movie-mode Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.crop.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.crop.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.relion_selection.html">relion_selection</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#running-script">Running Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#selection-options">Selection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#movie-mode-options">Movie-mode Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.relion_selection.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.relion_selection.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.bench.html">bench</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.bench.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.bench.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.bench.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.bench.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.bench.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.bench.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html">enumerate_filenames</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.enumerate_filenames.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.project.html">project</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.project.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.project.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.image_info.html">image_info</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.image_info.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.image_info.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.image_info.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.util.image_info.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.image_info.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.coverage.html">coverage</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.util.coverage.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.align.html">align</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#volume-projection-options">Volume Projection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#angular-sampling-options">Angular Sampling Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#alignment-options">Alignment Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.align.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.align.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.defocus.html">defocus</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#periodogram-options">Periodogram Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#advanced-options">Advanced Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.defocus.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.defocus.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.classify.html">classify</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.classify.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.classify.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.classify.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.classify.html#advanced-options">Advanced Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.classify.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.classify.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.create_align.html">create_align</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.create_align.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.create_align.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.create_align.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.create_align.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.create_align.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.create_align.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html">enhance_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html#tight-masking-options">Tight Masking Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.enhance_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html">filter_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#high-pass-filter-options">High-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.filter_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html">mask_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#spherical-mask-options">Spherical Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#adaptive-tight-mask-options">Adaptive Tight Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.mask_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html">prepare_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#high-pass-filter-options">High-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#spherical-mask-options">Spherical Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#adaptive-tight-mask-options">Adaptive Tight Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#resolution-mask-options">Resolution Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#resolution-options">Resolution Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.prepare_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html">reconstruct</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#reconstruction-options">Reconstruction Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#sirt-options">SIRT Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.refine.html">refine</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.refine.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.refine.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.refine.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.refine.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.refine.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.refine.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.resolution.html">resolution</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.resolution.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.resolution.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.resolution.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.resolution.html#mask-options">Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.resolution.html#resolution-options">Resolution Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.resolution.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.resolution.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.reference.html">reference</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reference.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reference.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reference.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reference.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.reference.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.reference.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.autorefine.html">autorefine</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.autorefine.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.autorefine.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.autorefine.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.autorefine.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../arachnid.pyspider.autorefine.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../arachnid.pyspider.autorefine.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../attribution.html">Attribution</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../attribution.html#documentation">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#tool">Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#theme">Theme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#framework">Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#icons">Icons</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../attribution.html#art-work">Art Work</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#silk-icon-set-1-3">Silk icon set 1.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#logo">Logo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../attribution.html#open-source-software">Open source software</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#python-modules-by-christoph-gohlke">Python Modules by Christoph Gohlke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#healpix">HealPix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#appion">Appion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../attribution.html#spider">SPIDER</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../README.html">Arachnid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../README.html#how-to-cite">How to cite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../README.html#important-links">Important links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../README.html#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../README.html#install">Install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../README.html#development">Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../CITE.html">How to cite</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../overview.html#how-to-cite">How to cite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../overview.html#important-links">Important links</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../overview.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../overview.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../overview.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12" role="main">
+      
+  <div class="section" id="arachnid-core-gui-property-propertymodel-propertymodel">
+<h1>arachnid.core.gui.property.PropertyModel.PropertyModel<a class="headerlink" href="#arachnid-core-gui-property-propertymodel-propertymodel" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel">
+<em class="property">class </em><tt class="descname">PropertyModel</tt><big>(</big><em>parent=None</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the property data maintained by a QTreeView</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QObject</span></dt>
+<dd>Parent of the Property Model</dd>
+</dl>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.__init__" title="arachnid.core.gui.property.PropertyModel.PropertyModel.__init__"><tt class="xref py py-obj docutils literal"><span class="pre">__init__</span></tt></a>([parent])</td>
+<td>Initialize the Property Model</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addDynamicProperties" title="arachnid.core.gui.property.PropertyModel.PropertyModel.addDynamicProperties"><tt class="xref py py-obj docutils literal"><span class="pre">addDynamicProperties</span></tt></a>(parent,&nbsp;propertyObject)</td>
+<td>Add dynamic properties to the tree</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addItem" title="arachnid.core.gui.property.PropertyModel.PropertyModel.addItem"><tt class="xref py py-obj docutils literal"><span class="pre">addItem</span></tt></a>(propertyObject)</td>
+<td>Add a property object to the tree</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addOptionList" title="arachnid.core.gui.property.PropertyModel.PropertyModel.addOptionList"><tt class="xref py py-obj docutils literal"><span class="pre">addOptionList</span></tt></a>(option_list)</td>
+<td>Add options from list/dict format</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addOptions" title="arachnid.core.gui.property.PropertyModel.PropertyModel.addOptions"><tt class="xref py py-obj docutils literal"><span class="pre">addOptions</span></tt></a>(option_list,&nbsp;option_groups,&nbsp;...)</td>
+<td>Add command line options to the Property Tree Model</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertColumns"><tt class="xref py py-obj docutils literal"><span class="pre">beginInsertColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertRows"><tt class="xref py py-obj docutils literal"><span class="pre">beginInsertRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveColumns"><tt class="xref py py-obj docutils literal"><span class="pre">beginMoveColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveRows"><tt class="xref py py-obj docutils literal"><span class="pre">beginMoveRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveColumns"><tt class="xref py py-obj docutils literal"><span class="pre">beginRemoveColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveRows"><tt class="xref py py-obj docutils literal"><span class="pre">beginRemoveRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginResetModel" title="arachnid.core.gui.property.PropertyModel.PropertyModel.beginResetModel"><tt class="xref py py-obj docutils literal"><span class="pre">beginResetModel</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.blockSignals" title="arachnid.core.gui.property.PropertyModel.PropertyModel.blockSignals"><tt class="xref py py-obj docutils literal"><span class="pre">blockSignals</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.buddy" title="arachnid.core.gui.property.PropertyModel.PropertyModel.buddy"><tt class="xref py py-obj docutils literal"><span class="pre">buddy</span></tt></a>(index)</td>
+<td>Returns a model index for the buddy of the item represented by index.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.canFetchMore" title="arachnid.core.gui.property.PropertyModel.PropertyModel.canFetchMore"><tt class="xref py py-obj docutils literal"><span class="pre">canFetchMore</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndex" title="arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndex"><tt class="xref py py-obj docutils literal"><span class="pre">changePersistentIndex</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndexList" title="arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndexList"><tt class="xref py py-obj docutils literal"><span class="pre">changePersistentIndexList</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.childEvent" title="arachnid.core.gui.property.PropertyModel.PropertyModel.childEvent"><tt class="xref py py-obj docutils literal"><span class="pre">childEvent</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.children" title="arachnid.core.gui.property.PropertyModel.PropertyModel.children"><tt class="xref py py-obj docutils literal"><span class="pre">children</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.clear" title="arachnid.core.gui.property.PropertyModel.PropertyModel.clear"><tt class="xref py py-obj docutils literal"><span class="pre">clear</span></tt></a>()</td>
+<td>Clear the property tree and remove from model</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount" title="arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount"><tt class="xref py py-obj docutils literal"><span class="pre">columnCount</span></tt></a>([parent])</td>
+<td>Get the number of columns - 2</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.connect" title="arachnid.core.gui.property.PropertyModel.PropertyModel.connect"><tt class="xref py py-obj docutils literal"><span class="pre">connect</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.connectNotify" title="arachnid.core.gui.property.PropertyModel.PropertyModel.connectNotify"><tt class="xref py py-obj docutils literal"><span class="pre">connectNotify</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.createIndex" title="arachnid.core.gui.property.PropertyModel.PropertyModel.createIndex"><tt class="xref py py-obj docutils literal"><span class="pre">createIndex</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.customEvent" title="arachnid.core.gui.property.PropertyModel.PropertyModel.customEvent"><tt class="xref py py-obj docutils literal"><span class="pre">customEvent</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.data" title="arachnid.core.gui.property.PropertyModel.PropertyModel.data"><tt class="xref py py-obj docutils literal"><span class="pre">data</span></tt></a>(index[,&nbsp;role])</td>
+<td>Returns the data stored under the given role for the item referred to by the index</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.decodeData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.decodeData"><tt class="xref py py-obj docutils literal"><span class="pre">decodeData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.deleteLater" title="arachnid.core.gui.property.PropertyModel.PropertyModel.deleteLater"><tt class="xref py py-obj docutils literal"><span class="pre">deleteLater</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.disconnect" title="arachnid.core.gui.property.PropertyModel.PropertyModel.disconnect"><tt class="xref py py-obj docutils literal"><span class="pre">disconnect</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.disconnectNotify" title="arachnid.core.gui.property.PropertyModel.PropertyModel.disconnectNotify"><tt class="xref py py-obj docutils literal"><span class="pre">disconnectNotify</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dropMimeData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.dropMimeData"><tt class="xref py py-obj docutils literal"><span class="pre">dropMimeData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectInfo" title="arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectInfo"><tt class="xref py py-obj docutils literal"><span class="pre">dumpObjectInfo</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectTree" title="arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectTree"><tt class="xref py py-obj docutils literal"><span class="pre">dumpObjectTree</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dynamicPropertyNames" title="arachnid.core.gui.property.PropertyModel.PropertyModel.dynamicPropertyNames"><tt class="xref py py-obj docutils literal"><span class="pre">dynamicPropertyNames</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.emit" title="arachnid.core.gui.property.PropertyModel.PropertyModel.emit"><tt class="xref py py-obj docutils literal"><span class="pre">emit</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.encodeData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.encodeData"><tt class="xref py py-obj docutils literal"><span class="pre">encodeData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertColumns"><tt class="xref py py-obj docutils literal"><span class="pre">endInsertColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertRows"><tt class="xref py py-obj docutils literal"><span class="pre">endInsertRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveColumns"><tt class="xref py py-obj docutils literal"><span class="pre">endMoveColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveRows"><tt class="xref py py-obj docutils literal"><span class="pre">endMoveRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveColumns"><tt class="xref py py-obj docutils literal"><span class="pre">endRemoveColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveRows"><tt class="xref py py-obj docutils literal"><span class="pre">endRemoveRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endResetModel" title="arachnid.core.gui.property.PropertyModel.PropertyModel.endResetModel"><tt class="xref py py-obj docutils literal"><span class="pre">endResetModel</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.event" title="arachnid.core.gui.property.PropertyModel.PropertyModel.event"><tt class="xref py py-obj docutils literal"><span class="pre">event</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.eventFilter" title="arachnid.core.gui.property.PropertyModel.PropertyModel.eventFilter"><tt class="xref py py-obj docutils literal"><span class="pre">eventFilter</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.fetchMore" title="arachnid.core.gui.property.PropertyModel.PropertyModel.fetchMore"><tt class="xref py py-obj docutils literal"><span class="pre">fetchMore</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.findChild" title="arachnid.core.gui.property.PropertyModel.PropertyModel.findChild"><tt class="xref py py-obj docutils literal"><span class="pre">findChild</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.findChildren" title="arachnid.core.gui.property.PropertyModel.PropertyModel.findChildren"><tt class="xref py py-obj docutils literal"><span class="pre">findChildren</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.firePropertyValidity" title="arachnid.core.gui.property.PropertyModel.PropertyModel.firePropertyValidity"><tt class="xref py py-obj docutils literal"><span class="pre">firePropertyValidity</span></tt></a>(prop,&nbsp;valid)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.flags" title="arachnid.core.gui.property.PropertyModel.PropertyModel.flags"><tt class="xref py py-obj docutils literal"><span class="pre">flags</span></tt></a>(index)</td>
+<td>Returns the item flags for the given index</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.hasChildren" title="arachnid.core.gui.property.PropertyModel.PropertyModel.hasChildren"><tt class="xref py py-obj docutils literal"><span class="pre">hasChildren</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.hasIndex" title="arachnid.core.gui.property.PropertyModel.PropertyModel.hasIndex"><tt class="xref py py-obj docutils literal"><span class="pre">hasIndex</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.headerData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.headerData"><tt class="xref py py-obj docutils literal"><span class="pre">headerData</span></tt></a>(section,&nbsp;orientation[,&nbsp;role])</td>
+<td>Returns the data for the given role and section in the header with the specified orientation</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.index" title="arachnid.core.gui.property.PropertyModel.PropertyModel.index"><tt class="xref py py-obj docutils literal"><span class="pre">index</span></tt></a>(row,&nbsp;column[,&nbsp;parent])</td>
+<td>Returns the index of the item in the model specified by the given row, column and parent index</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.inherits" title="arachnid.core.gui.property.PropertyModel.PropertyModel.inherits"><tt class="xref py py-obj docutils literal"><span class="pre">inherits</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumn" title="arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumn"><tt class="xref py py-obj docutils literal"><span class="pre">insertColumn</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumns"><tt class="xref py py-obj docutils literal"><span class="pre">insertColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertRow" title="arachnid.core.gui.property.PropertyModel.PropertyModel.insertRow"><tt class="xref py py-obj docutils literal"><span class="pre">insertRow</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.insertRows"><tt class="xref py py-obj docutils literal"><span class="pre">insertRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.installEventFilter" title="arachnid.core.gui.property.PropertyModel.PropertyModel.installEventFilter"><tt class="xref py py-obj docutils literal"><span class="pre">installEventFilter</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.isWidgetType" title="arachnid.core.gui.property.PropertyModel.PropertyModel.isWidgetType"><tt class="xref py py-obj docutils literal"><span class="pre">isWidgetType</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.itemData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.itemData"><tt class="xref py py-obj docutils literal"><span class="pre">itemData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.killTimer" title="arachnid.core.gui.property.PropertyModel.PropertyModel.killTimer"><tt class="xref py py-obj docutils literal"><span class="pre">killTimer</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.match" title="arachnid.core.gui.property.PropertyModel.PropertyModel.match"><tt class="xref py py-obj docutils literal"><span class="pre">match</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth" title="arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth"><tt class="xref py py-obj docutils literal"><span class="pre">maximumTextWidth</span></tt></a>(fontMetric,&nbsp;indent[,&nbsp;...])</td>
+<td>Get the maximum text with of a table column</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.metaObject" title="arachnid.core.gui.property.PropertyModel.PropertyModel.metaObject"><tt class="xref py py-obj docutils literal"><span class="pre">metaObject</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.mimeData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.mimeData"><tt class="xref py py-obj docutils literal"><span class="pre">mimeData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.mimeTypes" title="arachnid.core.gui.property.PropertyModel.PropertyModel.mimeTypes"><tt class="xref py py-obj docutils literal"><span class="pre">mimeTypes</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.moveToThread" title="arachnid.core.gui.property.PropertyModel.PropertyModel.moveToThread"><tt class="xref py py-obj docutils literal"><span class="pre">moveToThread</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.objectName" title="arachnid.core.gui.property.PropertyModel.PropertyModel.objectName"><tt class="xref py py-obj docutils literal"><span class="pre">objectName</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.parent" title="arachnid.core.gui.property.PropertyModel.PropertyModel.parent"><tt class="xref py py-obj docutils literal"><span class="pre">parent</span></tt></a>(index)</td>
+<td>Returns the parent of the model item with the given index.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.persistentIndexList" title="arachnid.core.gui.property.PropertyModel.PropertyModel.persistentIndexList"><tt class="xref py py-obj docutils literal"><span class="pre">persistentIndexList</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.property" title="arachnid.core.gui.property.PropertyModel.PropertyModel.property"><tt class="xref py py-obj docutils literal"><span class="pre">property</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.receivers" title="arachnid.core.gui.property.PropertyModel.PropertyModel.receivers"><tt class="xref py py-obj docutils literal"><span class="pre">receivers</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.registerUserData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.registerUserData"><tt class="xref py py-obj docutils literal"><span class="pre">registerUserData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumn" title="arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumn"><tt class="xref py py-obj docutils literal"><span class="pre">removeColumn</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumns" title="arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumns"><tt class="xref py py-obj docutils literal"><span class="pre">removeColumns</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeEventFilter" title="arachnid.core.gui.property.PropertyModel.PropertyModel.removeEventFilter"><tt class="xref py py-obj docutils literal"><span class="pre">removeEventFilter</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeRow" title="arachnid.core.gui.property.PropertyModel.PropertyModel.removeRow"><tt class="xref py py-obj docutils literal"><span class="pre">removeRow</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeRows" title="arachnid.core.gui.property.PropertyModel.PropertyModel.removeRows"><tt class="xref py py-obj docutils literal"><span class="pre">removeRows</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.reset" title="arachnid.core.gui.property.PropertyModel.PropertyModel.reset"><tt class="xref py py-obj docutils literal"><span class="pre">reset</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState" title="arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState"><tt class="xref py py-obj docutils literal"><span class="pre">restoreState</span></tt></a>(settings[,&nbsp;parent])</td>
+<td>Restore the state of the properties in the tree</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.revert" title="arachnid.core.gui.property.PropertyModel.PropertyModel.revert"><tt class="xref py py-obj docutils literal"><span class="pre">revert</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.roleNames" title="arachnid.core.gui.property.PropertyModel.PropertyModel.roleNames"><tt class="xref py py-obj docutils literal"><span class="pre">roleNames</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount" title="arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount"><tt class="xref py py-obj docutils literal"><span class="pre">rowCount</span></tt></a>([parent])</td>
+<td>Get the number of rows for the parent item</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.saveState" title="arachnid.core.gui.property.PropertyModel.PropertyModel.saveState"><tt class="xref py py-obj docutils literal"><span class="pre">saveState</span></tt></a>(settings[,&nbsp;parent])</td>
+<td>Save the state of the properties in the tree</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.sender" title="arachnid.core.gui.property.PropertyModel.PropertyModel.sender"><tt class="xref py py-obj docutils literal"><span class="pre">sender</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setData"><tt class="xref py py-obj docutils literal"><span class="pre">setData</span></tt></a>(index,&nbsp;value[,&nbsp;role])</td>
+<td>Sets the role data for the item at index to value</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setHeaderData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setHeaderData"><tt class="xref py py-obj docutils literal"><span class="pre">setHeaderData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setItemData" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setItemData"><tt class="xref py py-obj docutils literal"><span class="pre">setItemData</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setObjectName" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setObjectName"><tt class="xref py py-obj docutils literal"><span class="pre">setObjectName</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setParent" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setParent"><tt class="xref py py-obj docutils literal"><span class="pre">setParent</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setProperty" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setProperty"><tt class="xref py py-obj docutils literal"><span class="pre">setProperty</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setRoleNames" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setRoleNames"><tt class="xref py py-obj docutils literal"><span class="pre">setRoleNames</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setSupportedDragActions" title="arachnid.core.gui.property.PropertyModel.PropertyModel.setSupportedDragActions"><tt class="xref py py-obj docutils literal"><span class="pre">setSupportedDragActions</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.sibling" title="arachnid.core.gui.property.PropertyModel.PropertyModel.sibling"><tt class="xref py py-obj docutils literal"><span class="pre">sibling</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.signalsBlocked" title="arachnid.core.gui.property.PropertyModel.PropertyModel.signalsBlocked"><tt class="xref py py-obj docutils literal"><span class="pre">signalsBlocked</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.sort" title="arachnid.core.gui.property.PropertyModel.PropertyModel.sort"><tt class="xref py py-obj docutils literal"><span class="pre">sort</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.span" title="arachnid.core.gui.property.PropertyModel.PropertyModel.span"><tt class="xref py py-obj docutils literal"><span class="pre">span</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.startTimer" title="arachnid.core.gui.property.PropertyModel.PropertyModel.startTimer"><tt class="xref py py-obj docutils literal"><span class="pre">startTimer</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.submit" title="arachnid.core.gui.property.PropertyModel.PropertyModel.submit"><tt class="xref py py-obj docutils literal"><span class="pre">submit</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDragActions" title="arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDragActions"><tt class="xref py py-obj docutils literal"><span class="pre">supportedDragActions</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDropActions" title="arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDropActions"><tt class="xref py py-obj docutils literal"><span class="pre">supportedDropActions</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.thread" title="arachnid.core.gui.property.PropertyModel.PropertyModel.thread"><tt class="xref py py-obj docutils literal"><span class="pre">thread</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.timerEvent" title="arachnid.core.gui.property.PropertyModel.PropertyModel.timerEvent"><tt class="xref py py-obj docutils literal"><span class="pre">timerEvent</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.totalInvalid" title="arachnid.core.gui.property.PropertyModel.PropertyModel.totalInvalid"><tt class="xref py py-obj docutils literal"><span class="pre">totalInvalid</span></tt></a>()</td>
+<td>Count the total number of children under this node.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.tr" title="arachnid.core.gui.property.PropertyModel.PropertyModel.tr"><tt class="xref py py-obj docutils literal"><span class="pre">tr</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.trUtf8" title="arachnid.core.gui.property.PropertyModel.PropertyModel.trUtf8"><tt class="xref py py-obj docutils literal"><span class="pre">trUtf8</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem" title="arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem"><tt class="xref py py-obj docutils literal"><span class="pre">updateItem</span></tt></a>(propertyObject[,&nbsp;parent])</td>
+<td>Update a property object in the tree</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>parent=None</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Property Model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.addDynamicProperties">
+<tt class="descname">addDynamicProperties</tt><big>(</big><em>parent</em>, <em>propertyObject</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addDynamicProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add dynamic properties to the tree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">Property</span></dt>
+<dd>Parent of the Property object to monitor</dd>
+<dt>propertyObject <span class="classifier-delimiter">:</span> <span class="classifier">QObject</span></dt>
+<dd>Property object to maintain</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.addItem">
+<tt class="descname">addItem</tt><big>(</big><em>propertyObject</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a property object to the tree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>propertyObject <span class="classifier-delimiter">:</span> <span class="classifier">QObject</span></dt>
+<dd>Property object to monitor</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.addOptionList">
+<tt class="descname">addOptionList</tt><big>(</big><em>option_list</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addOptionList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add options from list/dict format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.addOptions">
+<tt class="descname">addOptions</tt><big>(</big><em>option_list</em>, <em>option_groups</em>, <em>option_values</em>, <em>parent=None</em>, <em>rindex=0</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.addOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add command line options to the Property Tree Model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<p>option_list, option_groups, option_values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertColumns">
+<tt class="descname">beginInsertColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertRows">
+<tt class="descname">beginInsertRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginInsertRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveColumns">
+<tt class="descname">beginMoveColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveRows">
+<tt class="descname">beginMoveRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginMoveRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveColumns">
+<tt class="descname">beginRemoveColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveRows">
+<tt class="descname">beginRemoveRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginRemoveRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.beginResetModel">
+<tt class="descname">beginResetModel</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.beginResetModel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.blockSignals">
+<tt class="descname">blockSignals</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.blockSignals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.buddy">
+<tt class="descname">buddy</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.buddy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a model index for the buddy of the item represented by index. When the user wants 
+to edit an item, the view will call this function to check whether another item in the model 
+should be edited instead. Then, the view will construct a delegate using the model index returned 
+by the buddy item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of the buddy</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.canFetchMore">
+<tt class="descname">canFetchMore</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.canFetchMore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndex">
+<tt class="descname">changePersistentIndex</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndexList">
+<tt class="descname">changePersistentIndexList</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.changePersistentIndexList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.childEvent">
+<tt class="descname">childEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.childEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.children">
+<tt class="descname">children</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.children" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the property tree and remove from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount">
+<tt class="descname">columnCount</tt><big>(</big><em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfdfda0&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of columns - 2</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Return value: 2</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.connectNotify">
+<tt class="descname">connectNotify</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.connectNotify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.createIndex">
+<tt class="descname">createIndex</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.createIndex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.customEvent">
+<tt class="descname">customEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.customEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.data">
+<tt class="descname">data</tt><big>(</big><em>index</em>, <em>role=PySide.QtCore.Qt.ItemDataRole.DisplayRole</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data stored under the given role for the item referred to by the index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+<dt>role <span class="classifier-delimiter">:</span> <span class="classifier">enum</span></dt>
+<dd>Data role</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd>Data object</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.decodeData">
+<tt class="descname">decodeData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.decodeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.deleteLater">
+<tt class="descname">deleteLater</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.deleteLater" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.disconnect">
+<tt class="descname">disconnect</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.disconnectNotify">
+<tt class="descname">disconnectNotify</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.disconnectNotify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.dropMimeData">
+<tt class="descname">dropMimeData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dropMimeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectInfo">
+<tt class="descname">dumpObjectInfo</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectInfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectTree">
+<tt class="descname">dumpObjectTree</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dumpObjectTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.dynamicPropertyNames">
+<tt class="descname">dynamicPropertyNames</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.dynamicPropertyNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.emit">
+<tt class="descname">emit</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.emit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.encodeData">
+<tt class="descname">encodeData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.encodeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertColumns">
+<tt class="descname">endInsertColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertRows">
+<tt class="descname">endInsertRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endInsertRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveColumns">
+<tt class="descname">endMoveColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveRows">
+<tt class="descname">endMoveRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endMoveRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveColumns">
+<tt class="descname">endRemoveColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveRows">
+<tt class="descname">endRemoveRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endRemoveRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.endResetModel">
+<tt class="descname">endResetModel</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.endResetModel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.event">
+<tt class="descname">event</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.event" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.eventFilter">
+<tt class="descname">eventFilter</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.eventFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.fetchMore">
+<tt class="descname">fetchMore</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.fetchMore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.findChild">
+<tt class="descname">findChild</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.findChild" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.findChildren">
+<tt class="descname">findChildren</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.findChildren" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.firePropertyValidity">
+<tt class="descname">firePropertyValidity</tt><big>(</big><em>prop</em>, <em>valid</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.firePropertyValidity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.flags">
+<tt class="descname">flags</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the item flags for the given index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">ItemFlags</span></dt>
+<dd>Flags for item at index</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.hasChildren">
+<tt class="descname">hasChildren</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.hasChildren" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.hasIndex">
+<tt class="descname">hasIndex</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.hasIndex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.headerData">
+<tt class="descname">headerData</tt><big>(</big><em>section</em>, <em>orientation</em>, <em>role=PySide.QtCore.Qt.ItemDataRole.DisplayRole</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.headerData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data for the given role and section in the header with the specified orientation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>section <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+<dt>orientation <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+<dt>role <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Role of data to return</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">ItemFlags</span></dt>
+<dd>Flags for item at index</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.index">
+<tt class="descname">index</tt><big>(</big><em>row</em>, <em>column</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfdfdc8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the index of the item in the model specified by the given row, column and parent index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>row <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Row of item</dd>
+<dt>column <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Column of item</dd>
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Current index of item</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.inherits">
+<tt class="descname">inherits</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.inherits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumn">
+<tt class="descname">insertColumn</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumns">
+<tt class="descname">insertColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.insertRow">
+<tt class="descname">insertRow</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.insertRows">
+<tt class="descname">insertRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.insertRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.installEventFilter">
+<tt class="descname">installEventFilter</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.installEventFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.isWidgetType">
+<tt class="descname">isWidgetType</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.isWidgetType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.itemData">
+<tt class="descname">itemData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.itemData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.killTimer">
+<tt class="descname">killTimer</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.killTimer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.match">
+<tt class="descname">match</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth">
+<tt class="descname">maximumTextWidth</tt><big>(</big><em>fontMetric</em>, <em>indent</em>, <em>column=0</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfdfd78&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the maximum text with of a table column</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>fontMetric <span class="classifier-delimiter">:</span> <span class="classifier">QFontMetrics</span></dt>
+<dd>Font metric used to measure text width</dd>
+<dt>indent <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Width of indent</dd>
+<dt>column <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Column index</dd>
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Maximum width of text in a column</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.metaObject">
+<tt class="descname">metaObject</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.metaObject" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.mimeData">
+<tt class="descname">mimeData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.mimeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.mimeTypes">
+<tt class="descname">mimeTypes</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.mimeTypes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.moveToThread">
+<tt class="descname">moveToThread</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.moveToThread" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.objectName">
+<tt class="descname">objectName</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.objectName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.parent">
+<tt class="descname">parent</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the parent of the model item with the given index. If the item has no parent, an invalid QModelIndex is returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of the model item</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.persistentIndexList">
+<tt class="descname">persistentIndexList</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.persistentIndexList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.property">
+<tt class="descname">property</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.receivers">
+<tt class="descname">receivers</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.receivers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.registerUserData">
+<tt class="descname">registerUserData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.registerUserData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumn">
+<tt class="descname">removeColumn</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumns">
+<tt class="descname">removeColumns</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeColumns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.removeEventFilter">
+<tt class="descname">removeEventFilter</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeEventFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.removeRow">
+<tt class="descname">removeRow</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.removeRows">
+<tt class="descname">removeRows</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.removeRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState">
+<tt class="descname">restoreState</tt><big>(</big><em>settings</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfdfe18&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restore the state of the properties in the tree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>settings <span class="classifier-delimiter">:</span> <span class="classifier">QSettings</span></dt>
+<dd>Load settings from platform specific location</dd>
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of item</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.revert">
+<tt class="descname">revert</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.revert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.roleNames">
+<tt class="descname">roleNames</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.roleNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount">
+<tt class="descname">rowCount</tt><big>(</big><em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfdf0f8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of rows for the parent item</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of item</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of rows</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.saveState">
+<tt class="descname">saveState</tt><big>(</big><em>settings</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfdfdf0&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.saveState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the state of the properties in the tree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>settings <span class="classifier-delimiter">:</span> <span class="classifier">QSettings</span></dt>
+<dd>Save settings to platform specific location</dd>
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Parent of item</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.sender">
+<tt class="descname">sender</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.sender" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setData">
+<tt class="descname">setData</tt><big>(</big><em>index</em>, <em>value</em>, <em>role=PySide.QtCore.Qt.ItemDataRole.EditRole</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the role data for the item at index to value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of a model item</dd>
+<dt>value <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd>New value for item at index with role</dd>
+<dt>role <span class="classifier-delimiter">:</span> <span class="classifier">enum</span></dt>
+<dd>Data role</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>True if successful</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setHeaderData">
+<tt class="descname">setHeaderData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setHeaderData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setItemData">
+<tt class="descname">setItemData</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setItemData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setObjectName">
+<tt class="descname">setObjectName</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setObjectName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setParent">
+<tt class="descname">setParent</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setParent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setProperty">
+<tt class="descname">setProperty</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setProperty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setRoleNames">
+<tt class="descname">setRoleNames</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setRoleNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.setSupportedDragActions">
+<tt class="descname">setSupportedDragActions</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.setSupportedDragActions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.sibling">
+<tt class="descname">sibling</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.sibling" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.signalsBlocked">
+<tt class="descname">signalsBlocked</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.signalsBlocked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.sort">
+<tt class="descname">sort</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.sort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.span">
+<tt class="descname">span</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.span" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.startTimer">
+<tt class="descname">startTimer</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.startTimer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.submit">
+<tt class="descname">submit</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.submit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDragActions">
+<tt class="descname">supportedDragActions</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDragActions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDropActions">
+<tt class="descname">supportedDropActions</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.supportedDropActions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.thread">
+<tt class="descname">thread</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.thread" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.timerEvent">
+<tt class="descname">timerEvent</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.timerEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.totalInvalid">
+<tt class="descname">totalInvalid</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.totalInvalid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the total number of children under this node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>total <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Total number of invalid, but required children</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.tr">
+<tt class="descname">tr</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.tr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.trUtf8">
+<tt class="descname">trUtf8</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.trUtf8" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem">
+<tt class="descname">updateItem</tt><big>(</big><em>propertyObject</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xbfd5e40&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update a property object in the tree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>propertyObject <span class="classifier-delimiter">:</span> <span class="classifier">QObject</span></dt>
+<dd>Property object to monitor</dd>
+<dt>parent <span class="classifier-delimiter">:</span> <span class="classifier">QModelIndex</span></dt>
+<dd>Index of parent in the tree</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2009-2014, Robert Langlois.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

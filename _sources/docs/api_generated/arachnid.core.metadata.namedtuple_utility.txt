@@ -1,0 +1,39 @@
+namedtuple_utility
+=========================================
+
+.. automodule:: arachnid.core.metadata.namedtuple_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#tuple2numpy">tuple2numpy</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: tuple2numpy
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: tuple2numpy
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

@@ -1,0 +1,1942 @@
+
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>program &mdash; arachnid 0.1.4_123_gf8282d4 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.0.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.0.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.4_123_gf8282d4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="arachnid 0.1.4_123_gf8282d4 documentation" href="../../index.html" />
+    <link rel="up" title="Arachnid API" href="../api.html" />
+    <link rel="next" title="arachnid.core.app.program.program" href="api_generated/arachnid.core.app.program.program.html" />
+    <link rel="prev" title="star" href="arachnid.core.metadata.formats.star.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+
+  <div id="navbar" class="navbar navbar-default ">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
+          arachnid</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_123_gf8282d4</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+              
+              
+                <li><a href="http://code.google.com/p/arachnid/issues/list">Issues</a></li>
+              
+              
+              
+                <li><a href="http://groups.google.com/group/arachnid-general">Mailing List</a></li>
+              
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a href="../../index.html"
+     class="dropdown-toggle"
+     data-toggle="dropdown">Site Map <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+    ><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../license.html#version-2-june-1991">Version 2, June 1991</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../license.html#preamble">Preamble</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../license.html#terms-and-conditions-for-copying-distribution-and-modification">Terms and Conditions For Copying, Distribution and Modification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../license.html#no-warranty">No Warranty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../license.html#end-of-terms-and-conditions">End of Terms and Conditions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../users_guide.html">User&#8217;s Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html">Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../install_franklab.html">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../install_franklab.html#franklab">FrankLab</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../install.html#easy-install">Easy install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../install.html#from-source">From Source</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#compilers">Compilers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#checking">Checking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#packages-to-download">Packages to Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#installation-of-prerequisites">Installation of Prerequisites</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reconstruction_cmdline.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_cmdline.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_cmdline.html#tips">Tips</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_cmdline.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#creating-a-project">Creating a project</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#running-scripts">Running Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_cmdline.html#improving-the-data-treatment">Improving the Data Treatment</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#screening">Screening</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#additional-processing">Additional processing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#manual-ctf-fitting">Manual CTF fitting</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#classification">Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_cmdline.html#chimera-tricks">Chimera Tricks</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#open-a-spider-file">Open a SPIDER file</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#choose-a-spider-viewing-angle">Choose a SPIDER Viewing Angle</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_cmdline.html#running-isolated-scripts">Running Isolated Scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#particle-selection">Particle Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#particle-windowing">Particle Windowing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reconstruction.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#import-prompt">Import Prompt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#leginon-database-import">Leginon Database Import</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction.html#leginon-account">Leginon Account</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction.html#leginon-sessions">Leginon Sessions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#manual-settings">Manual Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#reference-preprocessing-prompt">Reference Preprocessing Prompt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#reference-map-generation">Reference Map Generation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction.html#emdb-download">EMDB Download</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction.html#local-file">Local File</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#additional-parameters">Additional Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#review-parameters">Review Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction.html#run-the-workflow">Run the Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reconstruction.html#tips">Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../manual.html">Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../manual.html#scripts">Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#applications">Applications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#utilities">Utilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#pyspider">pySPIDER</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#local-machine">Local Machine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#cluster">Cluster</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../manual.html#version-control">Version Control</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#versioning-the-script">Versioning the Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../manual.html#logging">Logging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#terminal">Terminal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#log-file">Log File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#crash-report">Crash Report</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../manual.html#common-options">Common Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#all-scripts">All Scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../manual.html#critical-options">Critical Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../manual.html#logging-options">Logging Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../manual.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#cryo-em-experiments">Cryo-EM Experiments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#mpi-enabled-scripts">MPI-Enabled Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#openmp-enabled-scripts">OpenMP-Enabled Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#spi-scripts">pySPIDER Scripts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../users_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../developer_guide.html">Developer&#8217;s Corner</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../development.html">Developer&#8217;s Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#getting-source">Getting Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#reporting-bugs">Reporting Bugs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#contributing-code">Contributing Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#documentation-hack">Documentation Hack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#create-a-program-script">Create a Program Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#custom-code">Custom Code</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#todo">TODO</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../api.html#module-arachnid"><tt class="docutils literal"><span class="pre">arachnid</span></tt></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../api.html#module-arachnid.core"><tt class="docutils literal"><span class="pre">arachnid.core</span></tt></a><ul class="current">
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.gui"><tt class="docutils literal"><span class="pre">arachnid.core.gui</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.gui.HelpUI.html">HelpUI</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.gui.HelpUI.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.HelpUI.Dialog.html">arachnid.core.gui.HelpUI.Dialog</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.HelpUI.Ui_Dialog.html">arachnid.core.gui.HelpUI.Ui_Dialog</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.gui.model"><tt class="docutils literal"><span class="pre">arachnid.core.gui.model</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.model.DocumentModel.html">DocumentModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.model.DocumentModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.model.DocumentModel.DocumentModel.html">arachnid.core.gui.model.DocumentModel.DocumentModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.model.DocumentModel.qtSignal.html">arachnid.core.gui.model.DocumentModel.qtSignal</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.model.ListTableModel.html">ListTableModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.model.ListTableModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.model.ListTableModel.CheckListTableModel.html">arachnid.core.gui.model.ListTableModel.CheckListTableModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.model.ListTableModel.ListTableModel.html">arachnid.core.gui.model.ListTableModel.ListTableModel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.gui.icons"><tt class="docutils literal"><span class="pre">arachnid.core.gui.icons</span></tt></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.gui.property"><tt class="docutils literal"><span class="pre">arachnid.core.gui.property</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.html">ButtonDelegate</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.ButtonDelegate.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.CheckboxWidget.html">arachnid.core.gui.property.ButtonDelegate.CheckboxWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.DialogWidget.html">arachnid.core.gui.property.ButtonDelegate.DialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.FileDialogWidget.html">arachnid.core.gui.property.ButtonDelegate.FileDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.FontDialogWidget.html">arachnid.core.gui.property.ButtonDelegate.FontDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.qtSignal.html">arachnid.core.gui.property.ButtonDelegate.qtSignal</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.Property.html">Property</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.Property.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.Property.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.BoolProperty.html">arachnid.core.gui.property.Property.BoolProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.ChoiceProperty.html">arachnid.core.gui.property.Property.ChoiceProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.FileDialogWidget.html">arachnid.core.gui.property.Property.FileDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.FilenameProperty.html">arachnid.core.gui.property.Property.FilenameProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.FontDialogWidget.html">arachnid.core.gui.property.Property.FontDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.FontProperty.html">arachnid.core.gui.property.Property.FontProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.NumericProperty.html">arachnid.core.gui.property.Property.NumericProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.Property.html">arachnid.core.gui.property.Property.Property</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.StringProperty.html">arachnid.core.gui.property.Property.StringProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.qtSignal.html">arachnid.core.gui.property.Property.qtSignal</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.qtSlot.html">arachnid.core.gui.property.Property.qtSlot</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.PropertyDelegate.html">PropertyDelegate</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.PropertyDelegate.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyDelegate.PropertyDelegate.html">arachnid.core.gui.property.PropertyDelegate.PropertyDelegate</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.PropertyModel.html">PropertyModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.gui.property.PropertyModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.Property.html">arachnid.core.gui.property.PropertyModel.Property</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.PropertyModel.html">arachnid.core.gui.property.PropertyModel.PropertyModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.qtProperty.html">arachnid.core.gui.property.PropertyModel.qtProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.qtSignal.html">arachnid.core.gui.property.PropertyModel.qtSignal</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.gui.util"><tt class="docutils literal"><span class="pre">arachnid.core.gui.util</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.image"><tt class="docutils literal"><span class="pre">arachnid.core.image</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.analysis.html">analysis</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.analysis.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_utility.html">ndimage_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_file.html">ndimage_file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_file.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_filter.html">ndimage_filter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_filter.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_interpolate.html">ndimage_interpolate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.ndimage_interpolate.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.reconstruct.html">reconstruct</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.reproject.html">reproject</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.reproject.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.rotate.html">rotate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.rotate.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.alignment.html">alignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.alignment.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.affine_transform.html">affine_transform</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.affine_transform.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.enhance.html">enhance</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.image.enhance.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.image.formats"><tt class="docutils literal"><span class="pre">arachnid.core.image.formats</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.formats.eman_format.html">eman_format</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.formats.eman_format.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.image.tests"><tt class="docutils literal"><span class="pre">arachnid.core.image.tests</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.tests.test_ndimage_utility.html">test_ndimage_utility</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.tests.test_ndimage_utility.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.image.util"><tt class="docutils literal"><span class="pre">arachnid.core.image.util</span></tt></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.image.ctf"><tt class="docutils literal"><span class="pre">arachnid.core.image.ctf</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.ctf.estimate1d.html">estimate1d</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.ctf.estimate1d.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.ctf.correct.html">correct</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.image.ctf.correct.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.metadata"><tt class="docutils literal"><span class="pre">arachnid.core.metadata</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format.html">format</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.spider_utility.html">spider_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.spider_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.spider_utility.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_utility.defaultdict.html">arachnid.core.metadata.spider_utility.defaultdict</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.spider_utility.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.relion_utility.html">relion_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.relion_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.type_utility.html">type_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.type_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.selection_utility.html">selection_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.selection_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.spider_params.html">spider_params</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.spider_params.html#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.spider_params.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.spider_params.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format_utility.html">format_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format_utility.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.namedtuple_utility.html">namedtuple_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.namedtuple_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format_alignment.html">format_alignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.metadata.format_alignment.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.metadata.factories"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.factories</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.factories.namedtuple_factory.html">namedtuple_factory</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.factories.namedtuple_factory.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.metadata.formats"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.formats</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.csv.html">csv</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.csv.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.prediction.html">prediction</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.prediction.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.spiderdoc.html">spiderdoc</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.spiderdoc.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.spidersel.html">spidersel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.spidersel.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.star.html">star</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.metadata.formats.star.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5 current"><a class="reference internal" href="../api.html#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul class="current">
+<li class="toctree-l6 current"><a class="current reference internal" href="">program</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.program.program.html">arachnid.core.app.program.program</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html">settings</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#usage">Usage</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#available-options">Available Options</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#module">Module</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.Option.html">arachnid.core.app.settings.Option</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.OptionGroup.html">arachnid.core.app.settings.OptionGroup</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.OptionParser.html">arachnid.core.app.settings.OptionParser</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.Validation.html">arachnid.core.app.settings.Validation</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.VersionControl.html">arachnid.core.app.settings.VersionControl</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.optdict.html">arachnid.core.app.settings.optdict</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.optfilelist.html">arachnid.core.app.settings.optfilelist</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.optlist.html">arachnid.core.app.settings.optlist</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.tracing.html">tracing</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#usage">Usage</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#parameters">Parameters</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#command-line">Command-line</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#colors">Colors</a></li>
+<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#module">Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.tracing.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.tracing.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.ColoredFormatter.html">arachnid.core.app.tracing.ColoredFormatter</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.ExceptionFilter.html">arachnid.core.app.tracing.ExceptionFilter</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.Logger.html">arachnid.core.app.tracing.Logger</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.NullHandler.html">arachnid.core.app.tracing.NullHandler</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.file_processor.html">file_processor</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.file_processor.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.file_processor.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.file_processor.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.file_processor.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.progress.html">arachnid.core.app.file_processor.progress</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.progress.html">progress</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.progress.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.progress.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.progress.progress.html">arachnid.core.app.progress.progress</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.orient"><tt class="docutils literal"><span class="pre">arachnid.core.orient</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.healpix.html">healpix</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.healpix.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.transforms.html">transforms</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.orient.transforms.html#requirements">Requirements</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.orient.transforms.html#notes">Notes</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.orient.transforms.html#references">References</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.orient.transforms.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.transforms.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.transforms.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.Arcball.html">arachnid.core.orient.transforms.Arcball</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.spider_transforms.html">spider_transforms</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.orient.spider_transforms.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.orient.core"><tt class="docutils literal"><span class="pre">arachnid.core.orient.core</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.parallel"><tt class="docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.parallel_utility.html">parallel_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.parallel_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_queue.html">process_queue</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_queue.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_queue.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_tasks.html">process_tasks</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_tasks.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.mpi_utility.html">mpi_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.mpi_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.openmp.html">openmp</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.openmp.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.spider"><tt class="docutils literal"><span class="pre">arachnid.core.spider</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html">spider</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.Session.html">arachnid.core.spider.spider.Session</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_session.html">spider_session</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider_session.html#example-usage">Example usage</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_session.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_session.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.Session.html">arachnid.core.spider.spider_session.Session</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_session.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_parameter.html">spider_parameter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_parameter.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_parameter.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_var.html">spider_var</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider_var.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_var.spider_var.html">arachnid.core.spider.spider_var.spider_var</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_var.spider_var_pool.html">arachnid.core.spider.spider_var.spider_var_pool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.util"><tt class="docutils literal"><span class="pre">arachnid.core.util</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.util.fitting.html">fitting</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.util.fitting.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.snippets"><tt class="docutils literal"><span class="pre">arachnid.snippets</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.snippets.pyspider"><tt class="docutils literal"><span class="pre">arachnid.snippets.pyspider</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.pyspider.filter_volume.html">filter_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.pyspider.mask_volume.html">mask_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.pyspider.estimate_resolution.html">estimate_resolution</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.snippets.metadata"><tt class="docutils literal"><span class="pre">arachnid.snippets.metadata</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.metadata.relion_defocus_histogram.html">relion_defocus_histogram</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.metadata.spider_fsc_to_emdb.html">spider_fsc_to_emdb</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.metadata.spider_fsc_to_emdb.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.snippets.image"><tt class="docutils literal"><span class="pre">arachnid.snippets.image</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.image.decimate.html">decimate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.image.interpolate_volume.html">interpolate_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.image.reproject_test.html">reproject_test</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.image.rotate_translate_images.html">rotate_translate_images</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.image.shift.html">shift</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.image.unstack.html">unstack</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.snippets.reconstruction"><tt class="docutils literal"><span class="pre">arachnid.snippets.reconstruction</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.reconstruction.reconstruct_single.html">reconstruct_single</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.reconstruction.reconstruct_stack.html">reconstruct_stack</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.reconstruction.reconstruct_stack.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.reconstruction.reconstruct3.html">reconstruct3</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.snippets.reconstruction.reconstruct3.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.app"><tt class="docutils literal"><span class="pre">arachnid.app</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.autopick.html">autopick</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.autopick.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.autopick.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.autopick.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.autopick.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.autopick.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.autopick.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.autopick.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.lfcpick.html">lfcpick</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.lfcpick.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.lfcpick.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.lfcpick.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.lfcpick.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.lfcpick.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.lfcpick.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.lfcpick.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.vicer.html">vicer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#customization-options">Customization Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#testing-options">Testing Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.vicer.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.vicer.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.reconstruct.html">reconstruct</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.align_frames.html">align_frames</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#diagnostic-options">Diagnostic Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.app.align_frames.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.app.align_frames.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.util"><tt class="docutils literal"><span class="pre">arachnid.util</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.crop.html">crop</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#movie-mode-options">Movie-mode Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.crop.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.relion_selection.html">relion_selection</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#running-script">Running Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#selection-options">Selection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#movie-mode-options">Movie-mode Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.relion_selection.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.relion_selection.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.bench.html">bench</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.bench.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.bench.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.bench.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.bench.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.bench.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.bench.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.enumerate_filenames.html">enumerate_filenames</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.enumerate_filenames.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.enumerate_filenames.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.enumerate_filenames.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.enumerate_filenames.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.enumerate_filenames.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.enumerate_filenames.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.project.html">project</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.project.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.project.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html">image_info</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.image_info.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.image_info.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.image_info.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.image_info.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.align.html">align</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#volume-projection-options">Volume Projection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#angular-sampling-options">Angular Sampling Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#alignment-options">Alignment Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.align.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.align.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.defocus.html">defocus</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#periodogram-options">Periodogram Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#advanced-options">Advanced Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.defocus.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.defocus.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.classify.html">classify</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.classify.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.classify.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.classify.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.classify.html#advanced-options">Advanced Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.classify.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.classify.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.create_align.html">create_align</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.create_align.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.create_align.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.create_align.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.create_align.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.create_align.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.create_align.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html">enhance_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html#tight-masking-options">Tight Masking Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.enhance_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.filter_volume.html">filter_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#high-pass-filter-options">High-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.filter_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.mask_volume.html">mask_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#spherical-mask-options">Spherical Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#adaptive-tight-mask-options">Adaptive Tight Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.mask_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html">prepare_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#high-pass-filter-options">High-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#spherical-mask-options">Spherical Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#adaptive-tight-mask-options">Adaptive Tight Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#resolution-mask-options">Resolution Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#resolution-options">Resolution Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.prepare_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.reconstruct.html">reconstruct</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#reconstruction-options">Reconstruction Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#sirt-options">SIRT Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.refine.html">refine</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.refine.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.refine.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.refine.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.refine.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.refine.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.refine.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.resolution.html">resolution</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.resolution.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.resolution.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.resolution.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.resolution.html#mask-options">Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.resolution.html#resolution-options">Resolution Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.resolution.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.resolution.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.reference.html">reference</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reference.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reference.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reference.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reference.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.reference.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.reference.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.autorefine.html">autorefine</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.autorefine.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.autorefine.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.autorefine.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.autorefine.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.pyspider.autorefine.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.pyspider.autorefine.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../attribution.html">Attribution</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attribution.html#documentation">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#tool">Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#theme">Theme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#framework">Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#icons">Icons</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../attribution.html#art-work">Art Work</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#silk-icon-set-1-3">Silk icon set 1.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#logo">Logo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../attribution.html#open-source-software">Open source software</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#python-modules-by-christoph-gohlke">Python Modules by Christoph Gohlke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#healpix">HealPix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#appion">Appion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../attribution.html#spider">SPIDER</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../README.html">Arachnid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../README.html#how-to-cite">How to cite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../README.html#important-links">Important links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../README.html#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../README.html#install">Install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../README.html#development">Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../CITE.html">How to cite</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#how-to-cite">How to cite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#important-links">Important links</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidebar hidden-print" role="complementary">
+
+
+<div class="collapse navbar-collapse nav-collapse">
+<ul class="nav navbar-nav">
+<li class="dropdown">
+  <a href="../../index.html"
+     class="dropdown-toggle"
+     data-toggle="dropdown"> Contents <b class="caret"></b></a>
+  <ul class="dropdown-menu"
+    ><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../users_guide.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../developer_guide.html">Developer&#8217;s Corner</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../development.html">Developer&#8217;s Guide</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../attribution.html">Attribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+</ul>
+</ul>
+</li>
+</ul>
+</div>
+<ul>
+<li><a class="reference internal" href="#">program</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+
+
+       </div>
+      </div>
+    <div class="col-md-9" role="main">
+      
+  <div class="section" id="module-arachnid.core.app.program">
+<span id="program"></span><h1>program<a class="headerlink" href="#module-arachnid.core.app.program" title="Permalink to this headline">¶</a></h1>
+<p>Defines the program architecture for every application</p>
+<p>This module defines a generic architecture shared among many scripts as well as providing
+shared utilities such as option parsing, option checking, option updating, MPI setup, 
+multi-threading control, input filename updates, configuration file creation, logging setup,
+file processing and version control.</p>
+<p>Essentially a script can utilize one of two program architectures:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Batch processing</li>
+<li>Group or file processing</li>
+</ol>
+</div></blockquote>
+<p>This is determined by whether the script defines a <a class="reference internal" href="#arachnid.core.app.program.process" title="arachnid.core.app.program.process"><tt class="xref py py-func docutils literal"><span class="pre">process()</span></tt></a> or <a class="reference internal" href="#arachnid.core.app.program.batch" title="arachnid.core.app.program.batch"><tt class="xref py py-func docutils literal"><span class="pre">batch()</span></tt></a>
+entry point.</p>
+<p>By convention, a program should define a main entry point for execution from outside the
+script as follows:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c">#Main entry point for this script</span>
+    <span class="kn">from</span> <span class="nn">arachnid.core.app</span> <span class="kn">import</span> <span class="n">program</span> 
+    <span class="n">program</span><span class="o">.</span><span class="n">run_hybrid_program</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;Description of the script&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Basically, it should define a <cite>main</cite> function that can serve as an entry point for
+<cite>setup.py</cite>. And, in case the script is executed from the command line, it should contain
+the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>The target module must define one of the following functions:</p>
+<dl class="function">
+<dt id="arachnid.core.app.program.process">
+<tt class="descname">process</tt><big>(</big><em>filename</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single file. During parallel processing this is invoked by a worker process.</p>
+<p>See <a class="reference internal" href="arachnid.core.app.file_processor.html#module-arachnid.core.app.file_processor" title="arachnid.core.app.file_processor"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.app.file_processor</span></tt></a> for more information on the file or group processing 
+architecture.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; Input filename to process</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">At minimum filename, however a tuple of additional arguments can be returned for processing by <tt class="xref py py-func docutils literal"><span class="pre">reduce_all()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="arachnid.core.app.program.batch">
+<tt class="descname">batch</tt><big>(</big><em>files</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process all input files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>files</strong> &#8211; List of input filenames to process</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The target module must define all the the following:</p>
+<dl class="function">
+<dt id="arachnid.core.app.program.setup_options">
+<tt class="descname">setup_options</tt><big>(</big><em>parser</em>, <em>pgroup=None</em>, <em>main_option=False</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.setup_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup program options for command-line and configuration file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parser</strong> &#8211; OptionParser</li>
+<li><strong>pgroup</strong> &#8211; Root OptionGroup</li>
+<li><strong>main_option</strong> &#8211; If true, add the options specific to running this script</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The target module may include any of the following functions:</p>
+<dl class="function">
+<dt id="arachnid.core.app.program.change_option_defaults">
+<tt class="descname">change_option_defaults</tt><big>(</big><em>parser</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.change_option_defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Customize default options in other modules for this specific script.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parser</strong> &#8211; OptionParser</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="arachnid.core.app.program.dependents">
+<tt class="descname">dependents</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.app.program.dependents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of dependent modules and add their options. Dependents of a dependent will also be
+recursively found and added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of dependent modules</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="arachnid.core.app.program.update_options">
+<tt class="descname">update_options</tt><big>(</big><em>options</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.update_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilize parsed options and add additional option values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>options</strong> &#8211; object containing options as fields</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="arachnid.core.app.program.check_options">
+<tt class="descname">check_options</tt><big>(</big><em>options</em>, <em>main_option=False</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.check_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the validity of each option value and throw OptionValueError if
+an invalid value is found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>options</strong> &#8211; object containing options as fields</li>
+<li><strong>main_option</strong> &#8211; If true, add the options specific to running this script</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="arachnid.core.app.program.flags">
+<tt class="descname">flags</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.core.app.program.flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary of support properties</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of supported properties</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<p>The following parameters are added to a script using the program architecture.</p>
+<dl class="option">
+<dt id="cmdoption-shared--use-MPI">
+<tt class="descname">--use-MPI</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-shared--use-MPI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set this flag True when using mpirun or mpiexec (Only available for MPI-enabled programs)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared-z">
+<tt class="descname">-z</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--create-cfg</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared-z" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a configuration file (if the value is 1, true, y, t, then write to standard output)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--prog-version">
+<tt class="descname">--prog-version</tt><tt class="descclassname"> &lt;version&gt;</tt><a class="headerlink" href="#cmdoption-shared--prog-version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Version of the program to use, use <cite>latest</cite> to always use the latest version</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--shared-scratch">
+<tt class="descname">--shared-scratch</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--shared-scratch" title="Permalink to this definition">¶</a></dt>
+<dd><p>File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--home-prefix">
+<tt class="descname">--home-prefix</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--home-prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--local-scratch">
+<tt class="descname">--local-scratch</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--local-scratch" title="Permalink to this definition">¶</a></dt>
+<dd><p>File directory on local node to copy files (optional but recommended for MPI jobs)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--local-temp">
+<tt class="descname">--local-temp</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--local-temp" title="Permalink to this definition">¶</a></dt>
+<dd><p>File directory on local node for temporary files (optional but recommended for MPI jobs)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared-t">
+<tt class="descname">-t</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--thread-count</tt><tt class="descclassname"> &lt;INT&gt;</tt><a class="headerlink" href="#cmdoption-shared-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of threads per machine, 0 means determine from environment (Default: 0)</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Module <a class="reference internal" href="arachnid.core.app.file_processor.html#module-arachnid.core.app.file_processor" title="arachnid.core.app.file_processor"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.app.file_processor</span></tt></a></dt>
+<dd>File processing program architecture</dd>
+<dt>Module <a class="reference internal" href="arachnid.core.app.settings.html#module-arachnid.core.app.settings" title="arachnid.core.app.settings"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.app.settings</span></tt></a></dt>
+<dd>Program options parsing for command line and configuration file</dd>
+<dt>Module <a class="reference internal" href="arachnid.core.app.tracing.html#module-arachnid.core.app.tracing" title="arachnid.core.app.tracing"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.app.tracing</span></tt></a></dt>
+<dd>Logging controls</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="section" id="functions">
+<h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><div class="panel-group container" id="function-parent">
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a></div>
+<div class="panel-collapse collapse container" id="check-options">
+<div class="panel-body container">
+<dl class="function">
+<dt>
+<tt class="descname">check_options</tt><big>(</big><em>main_module</em>, <em>main_template</em>, <em>dependents</em>, <em>options</em>, <em>parser=None</em><big>)</big></dt>
+<dd><p>Check the validity of the options</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Main module</p>
+</dd>
+<dt>main_template <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Main module wrapper</p>
+</dd>
+<dt>dependents <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of dependent modules</p>
+</dd>
+<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><p class="first last">Dictionary of parameters and their corresponding values</p>
+</dd>
+<dt>parser <span class="classifier-delimiter">:</span> <span class="classifier">OptionParser</span></dt>
+<dd><p class="first last">OptionParser</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">OptionValueError</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#collect-dependents">collect_dependents</a></div>
+<div class="panel-collapse collapse container" id="collect-dependents">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.collect_dependents">
+<tt class="descname">collect_dependents</tt><big>(</big><em>dependents</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.collect_dependents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively search for additional dependents and add to current list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>dependents <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of dependents to search</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of dependents with no repeats</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#collect-file-dependents">collect_file_dependents</a></div>
+<div class="panel-collapse collapse container" id="collect-file-dependents">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.collect_file_dependents">
+<tt class="descname">collect_file_dependents</tt><big>(</big><em>main_module</em>, <em>config_path=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.collect_file_dependents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect all filename options into input and output dependents</p>
+<p>This function collects all filename options and divides them
+into two groups: input and output.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.setup_parser" title="arachnid.core.app.program.setup_parser"><tt class="xref py py-func docutils literal"><span class="pre">setup_parser()</span></tt></a></dt>
+<dd>Peforms option collection</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Reference to main module</p>
+</dd>
+<dt>config_path <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Path to write configuration file</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">New default values for the options</p>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="last docutils">
+<dt>config_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the configuration file</p>
+</dd>
+<dt>input_files <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of options that do not belong to a group</p>
+</dd>
+<dt>output_files <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of option groups</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#determine-main">determine_main</a></div>
+<div class="panel-collapse collapse container" id="determine-main">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.determine_main">
+<tt class="descname">determine_main</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.determine_main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the calling main module</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the calling module</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>module <span class="classifier-delimiter">:</span> <span class="classifier">Module</span></dt>
+<dd><p class="first last">Calling main module</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#generate-settings-tree">generate_settings_tree</a></div>
+<div class="panel-collapse collapse container" id="generate-settings-tree">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.generate_settings_tree">
+<tt class="descname">generate_settings_tree</tt><big>(</big><em>main_module</em>, <em>config_path=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.generate_settings_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect options, groups and values</p>
+<p>This function collects all options and option groups then updates their default 
+values, and then returns the options, groups and values.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.setup_parser" title="arachnid.core.app.program.setup_parser"><tt class="xref py py-func docutils literal"><span class="pre">setup_parser()</span></tt></a></dt>
+<dd>Peforms option collection</dd>
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.map_module_to_program" title="arachnid.core.app.program.map_module_to_program"><tt class="xref py py-func docutils literal"><span class="pre">map_module_to_program()</span></tt></a></dt>
+<dd>Determines script name for module</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Reference to main module</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">New default values for the options</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of options that do not belong to a group</p>
+</dd>
+<dt>option_groups <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of option groups</p>
+</dd>
+<dt>values <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><p class="first last">Object where each field is named for an option 
+and holds is corresponding value</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#launch-program">launch_program</a></div>
+<div class="panel-collapse collapse container" id="launch-program">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.launch_program">
+<tt class="descname">launch_program</tt><big>(</big><em>main_module</em>, <em>main_template</em>, <em>args</em>, <em>options</em>, <em>parser</em>, <em>supports_OMP=False</em>, <em>supports_MPI=False</em>, <em>use_version=False</em>, <em>max_filename_len=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.launch_program" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#map-module-to-program">map_module_to_program</a></div>
+<div class="panel-collapse collapse container" id="map-module-to-program">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.map_module_to_program">
+<tt class="descname">map_module_to_program</tt><big>(</big><em>key=None</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.map_module_to_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a dictionary that maps each module name to 
+its program name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>key <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of the module to select</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>map <span class="classifier-delimiter">:</span> <span class="classifier">dict or value</span></dt>
+<dd><p class="first last">If key is None then it returns a dictionary 
+mapping each module name to its program, otherwise
+the value for the corresponding key is returned.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#on-error">on_error</a></div>
+<div class="panel-collapse collapse container" id="on-error">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.on_error">
+<tt class="descname">on_error</tt><big>(</big><em>parser</em>, <em>inst</em>, <em>options</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.on_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when an OptionValueError has been thrown</p>
+<p>This function logs the current error and then prints
+usage information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>parser <span class="classifier-delimiter">:</span> <span class="classifier">OptionParser</span></dt>
+<dd><p class="first last">OptionParser</p>
+</dd>
+<dt>inst <span class="classifier-delimiter">:</span> <span class="classifier">Exception</span></dt>
+<dd><p class="first last">Exception object with message</p>
+</dd>
+<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><p class="first last">Object where each field is named for an option 
+and holds is corresponding value</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#parse-and-check-options">parse_and_check_options</a></div>
+<div class="panel-collapse collapse container" id="parse-and-check-options">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.parse_and_check_options">
+<tt class="descname">parse_and_check_options</tt><big>(</big><em>main_module</em>, <em>main_template</em>, <em>description=''</em>, <em>usage=None</em>, <em>supports_MPI=False</em>, <em>supports_OMP=False</em>, <em>use_version=False</em>, <em>max_filename_len=0</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.parse_and_check_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the collected options and check option validity</p>
+<p>The function also does the following:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>configures MPI (if necessary)</li>
+<li>configures the logging utility</li>
+<li>performs option version control</li>
+<li>handles config file creation</li>
+<li>displays autogui</li>
+</ol>
+</div></blockquote>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.setup_parser" title="arachnid.core.app.program.setup_parser"><tt class="xref py py-func docutils literal"><span class="pre">setup_parser()</span></tt></a></dt>
+<dd>Collects options from the module and its dependents</dd>
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.on_error" title="arachnid.core.app.program.on_error"><tt class="xref py py-func docutils literal"><span class="pre">on_error()</span></tt></a></dt>
+<dd>Logs errors and prints usage</dd>
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.update_file_param" title="arachnid.core.app.program.update_file_param"><tt class="xref py py-func docutils literal"><span class="pre">update_file_param()</span></tt></a></dt>
+<dd>Updates all filenames with <cite>home_prefix</cite> and/or <cite>local_temp</cite></dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Main module</p>
+</dd>
+<dt>main_template <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Main module wrapper</p>
+</dd>
+<dt>description <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Description of the program</p>
+</dd>
+<dt>usage <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Current usage of the program</p>
+</dd>
+<dt>supports_MPI <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, add MPI capability</p>
+</dd>
+<dt>supports_OMP <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, add OpenMP capability</p>
+</dd>
+<dt>use_version <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, add version control capability</p>
+</dd>
+<dt>max_filename_len <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maximum length allowd for filename</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>args <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of files to process</p>
+</dd>
+<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><p class="first last">Dictionary of parameters and their corresponding values</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#read-config">read_config</a></div>
+<div class="panel-collapse collapse container" id="read-config">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.read_config">
+<tt class="descname">read_config</tt><big>(</big><em>main_module</em>, <em>config_path=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.read_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in option values from a configuration file</p>
+<p>This function collects all options and option groups, and then reads in their values from a configuration file</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.setup_parser" title="arachnid.core.app.program.setup_parser"><tt class="xref py py-func docutils literal"><span class="pre">setup_parser()</span></tt></a></dt>
+<dd>Peforms option collection</dd>
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.map_module_to_program" title="arachnid.core.app.program.map_module_to_program"><tt class="xref py py-func docutils literal"><span class="pre">map_module_to_program()</span></tt></a></dt>
+<dd>Determines script name for module</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Reference to main module</p>
+</dd>
+<dt>config_path <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Path to write configuration file</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Option/value pairs</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#run-hybrid-program">run_hybrid_program</a></div>
+<div class="panel-collapse collapse container" id="run-hybrid-program">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.run_hybrid_program">
+<tt class="descname">run_hybrid_program</tt><big>(</big><em>name</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.run_hybrid_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main entry point for the program architecture</p>
+<p>This function proceeds as follows:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p class="first">Determine module from name</p>
+</li>
+<li><dl class="first docutils">
+<dt>Determine if module supports file/group </dt>
+<dd><p class="first last">or batch processing</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">Collect options, match to values and test validity
+using <a class="reference internal" href="#arachnid.core.app.program.parse_and_check_options" title="arachnid.core.app.program.parse_and_check_options"><tt class="xref py py-func docutils literal"><span class="pre">parse_and_check_options()</span></tt></a></p>
+</li>
+<li><p class="first">Set number of threads for OpenMP (optional)</p>
+</li>
+<li><p class="first">Invoke entry point to file/group or batch processor</p>
+</li>
+</ol>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of calling module (usually __main__)</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Pass on keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#setup-parser">setup_parser</a></div>
+<div class="panel-collapse collapse container" id="setup-parser">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.setup_parser">
+<tt class="descname">setup_parser</tt><big>(</big><em>main_module</em>, <em>main_template</em>, <em>description=''</em>, <em>usage=None</em>, <em>supports_MPI=False</em>, <em>supports_OMP=False</em>, <em>external_prog=None</em>, <em>doc_url=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.setup_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect all the options from the main module, its dependents, the main template and those shared by all programs</p>
+<p>This function also collects all the dependent modules and updates the default values of the options.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.setup_program_options" title="arachnid.core.app.program.setup_program_options"><tt class="xref py py-func docutils literal"><span class="pre">setup_program_options()</span></tt></a></dt>
+<dd>Adds additional options to the OptionParser</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Main module</p>
+</dd>
+<dt>main_template <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Main module wrapper</p>
+</dd>
+<dt>description <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Description of the program</p>
+</dd>
+<dt>usage <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Current usage of the program</p>
+</dd>
+<dt>supports_MPI <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, add MPI capability</p>
+</dd>
+<dt>supports_OMP <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, add OpenMP capability</p>
+</dd>
+<dt>external_prog <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of external program to launch script</p>
+</dd>
+<dt>doc_url <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">URL for the documentation, if not specified, then it uses __doc_url__ from the root_module (e.g., arachnid)</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>parser <span class="classifier-delimiter">:</span> <span class="classifier">OptionParser</span></dt>
+<dd><p class="first last">OptionParser</p>
+</dd>
+<dt>dependents <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of dependent modules</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#setup-program-options">setup_program_options</a></div>
+<div class="panel-collapse collapse container" id="setup-program-options">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.setup_program_options">
+<tt class="descname">setup_program_options</tt><big>(</big><em>parser</em>, <em>main_template</em>, <em>supports_MPI=False</em>, <em>supports_OMP=False</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.setup_program_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#update-config">update_config</a></div>
+<div class="panel-collapse collapse container" id="update-config">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.update_config">
+<tt class="descname">update_config</tt><big>(</big><em>main_module</em>, <em>config_path=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.update_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test whether a configuration file needs to be updated with new values</p>
+<p>This function collects all options and option groups, then reads in their values from a configuration 
+file and then, tests whether a configuration file needs to be updated with new values.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.read_config" title="arachnid.core.app.program.read_config"><tt class="xref py py-func docutils literal"><span class="pre">read_config()</span></tt></a></dt>
+<dd>Peforms option collection and read values from a config file</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Reference to main module</p>
+</dd>
+<dt>config_path <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Path to write configuration file</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>output <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output filename of the configuration file if it should
+be updated otherwise empty string</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#update-file-param">update_file_param</a></div>
+<div class="panel-collapse collapse container" id="update-file-param">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.update_file_param">
+<tt class="descname">update_file_param</tt><big>(</big><em>max_filename_len=0</em>, <em>warning=False</em>, <em>file_options=0</em>, <em>home_prefix=None</em>, <em>local_temp=''</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.update_file_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a soft link to the home_prefix and change all filenames to
+reflect this short cut.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is only necessary for pySPIDER - should probably be moved there.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>max_filename_len <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maximum length allowed for filename (0 disables test)</p>
+</dd>
+<dt>warning <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Print warning if cannot update</p>
+</dd>
+<dt>file_options <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of <cite>dest</cite> for the file options</p>
+</dd>
+<dt>home_prefix <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File path to input files on master node</p>
+</dd>
+<dt>local_temp <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File path to temporary directory on each slave node</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>param <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Updated keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#write-config">write_config</a></div>
+<div class="panel-collapse collapse container" id="write-config">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.core.app.program.write_config">
+<tt class="descname">write_config</tt><big>(</big><em>main_module</em>, <em>config_path=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.program.write_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a configuration file</p>
+<p>This function collects all options and option groups then updates their default 
+values, and then write a configuration file</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.setup_parser" title="arachnid.core.app.program.setup_parser"><tt class="xref py py-func docutils literal"><span class="pre">setup_parser()</span></tt></a></dt>
+<dd>Peforms option collection</dd>
+<dt>Function <a class="reference internal" href="#arachnid.core.app.program.map_module_to_program" title="arachnid.core.app.program.map_module_to_program"><tt class="xref py py-func docutils literal"><span class="pre">map_module_to_program()</span></tt></a></dt>
+<dd>Determines script name for module</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>main_module <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Reference to main module</p>
+</dd>
+<dt>config_path <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Path to write configuration file</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">New default values for the options</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>output <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output filename of the configuration file</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="classes">
+<h1>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.app.program.program.html#arachnid.core.app.program.program" title="arachnid.core.app.program.program"><tt class="xref py py-obj docutils literal"><span class="pre">program</span></tt></a>(main_module,&nbsp;main_template,&nbsp;...[,&nbsp;...])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="exceptions">
+<h1>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h1>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">VersionChange</span></tt></td>
+<td>Thrown when the application has to make a version change.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2009-2014, Robert Langlois.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

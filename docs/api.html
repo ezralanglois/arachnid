@@ -1,0 +1,1736 @@
+
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Arachnid API &mdash; arachnid 0.1.4_123_gf8282d4 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-3.0.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-3.0.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.4_123_gf8282d4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="arachnid 0.1.4_123_gf8282d4 documentation" href="../index.html" />
+    <link rel="up" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
+    <link rel="next" title="HelpUI" href="api_generated/arachnid.core.gui.HelpUI.html" />
+    <link rel="prev" title="Development" href="development.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+
+  <div id="navbar" class="navbar navbar-default ">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
+          arachnid</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_123_gf8282d4</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+              
+              
+                <li><a href="http://code.google.com/p/arachnid/issues/list">Issues</a></li>
+              
+              
+              
+                <li><a href="http://groups.google.com/group/arachnid-general">Mailing List</a></li>
+              
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a href="../index.html"
+     class="dropdown-toggle"
+     data-toggle="dropdown">Site Map <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+    ><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#version-2-june-1991">Version 2, June 1991</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../license.html#preamble">Preamble</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../license.html#terms-and-conditions-for-copying-distribution-and-modification">Terms and Conditions For Copying, Distribution and Modification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../license.html#no-warranty">No Warranty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../license.html#end-of-terms-and-conditions">End of Terms and Conditions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../users_guide.html">User&#8217;s Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html">Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="install_franklab.html">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="install_franklab.html#franklab">FrankLab</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#anaconda">Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#easy-install">Easy install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#from-source">From Source</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="install.html#compilers">Compilers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="install.html#checking">Checking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="install.html#packages-to-download">Packages to Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="install.html#installation-of-prerequisites">Installation of Prerequisites</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reconstruction.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reconstruction_cmdline.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#tips">Tips</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#creating-a-project">Creating a project</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#running-scripts">Running Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#improving-the-data-treatment">Improving the Data Treatment</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#screening">Screening</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#additional-processing">Additional processing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#manual-ctf-fitting">Manual CTF fitting</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#classification">Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#chimera-tricks">Chimera Tricks</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#open-a-spider-file">Open a SPIDER file</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#choose-a-spider-viewing-angle">Choose a SPIDER Viewing Angle</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#running-isolated-scripts">Running Isolated Scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#particle-selection">Particle Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#particle-windowing">Particle Windowing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reconstruction.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#import-prompt">Import Prompt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#leginon-database-import">Leginon Database Import</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction.html#leginon-account">Leginon Account</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction.html#leginon-sessions">Leginon Sessions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#manual-settings">Manual Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#reference-preprocessing-prompt">Reference Preprocessing Prompt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#reference-map-generation">Reference Map Generation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction.html#emdb-download">EMDB Download</a></li>
+<li class="toctree-l5"><a class="reference internal" href="reconstruction.html#local-file">Local File</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#additional-parameters">Additional Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#review-parameters">Review Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reconstruction.html#run-the-workflow">Run the Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reconstruction.html#tips">Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="manual.html">Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="manual.html#scripts">Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#applications">Applications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#utilities">Utilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#pyspider">pySPIDER</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#local-machine">Local Machine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#cluster">Cluster</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="manual.html#version-control">Version Control</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#versioning-the-script">Versioning the Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="manual.html#logging">Logging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#terminal">Terminal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#log-file">Log File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#crash-report">Crash Report</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="manual.html#common-options">Common Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#all-scripts">All Scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="manual.html#critical-options">Critical Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="manual.html#logging-options">Logging Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="manual.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#cryo-em-experiments">Cryo-EM Experiments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#mpi-enabled-scripts">MPI-Enabled Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#openmp-enabled-scripts">OpenMP-Enabled Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#spi-scripts">pySPIDER Scripts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../users_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../developer_guide.html">Developer&#8217;s Corner</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="development.html">Developer&#8217;s Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="development.html#getting-source">Getting Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#reporting-bugs">Reporting Bugs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#contributing-code">Contributing Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#testing-compilation-of-code">Testing compilation of code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#documentation-hack">Documentation Hack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#create-a-program-script">Create a Program Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="development.html#custom-code">Custom Code</a></li>
+<li class="toctree-l4"><a class="reference internal" href="development.html#todo">TODO</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-arachnid"><tt class="docutils literal"><span class="pre">arachnid</span></tt></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-arachnid.core"><tt class="docutils literal"><span class="pre">arachnid.core</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.gui"><tt class="docutils literal"><span class="pre">arachnid.core.gui</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.gui.HelpUI.html">HelpUI</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.gui.HelpUI.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.HelpUI.Dialog.html">arachnid.core.gui.HelpUI.Dialog</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.HelpUI.Ui_Dialog.html">arachnid.core.gui.HelpUI.Ui_Dialog</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.gui.model"><tt class="docutils literal"><span class="pre">arachnid.core.gui.model</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.model.DocumentModel.html">DocumentModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.model.DocumentModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.model.DocumentModel.DocumentModel.html">arachnid.core.gui.model.DocumentModel.DocumentModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.model.DocumentModel.qtSignal.html">arachnid.core.gui.model.DocumentModel.qtSignal</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.model.ListTableModel.html">ListTableModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.model.ListTableModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.model.ListTableModel.CheckListTableModel.html">arachnid.core.gui.model.ListTableModel.CheckListTableModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.model.ListTableModel.ListTableModel.html">arachnid.core.gui.model.ListTableModel.ListTableModel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.gui.icons"><tt class="docutils literal"><span class="pre">arachnid.core.gui.icons</span></tt></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.gui.property"><tt class="docutils literal"><span class="pre">arachnid.core.gui.property</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.html">ButtonDelegate</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.ButtonDelegate.CheckboxWidget.html">arachnid.core.gui.property.ButtonDelegate.CheckboxWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.ButtonDelegate.DialogWidget.html">arachnid.core.gui.property.ButtonDelegate.DialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.ButtonDelegate.FileDialogWidget.html">arachnid.core.gui.property.ButtonDelegate.FileDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.ButtonDelegate.FontDialogWidget.html">arachnid.core.gui.property.ButtonDelegate.FontDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.ButtonDelegate.qtSignal.html">arachnid.core.gui.property.ButtonDelegate.qtSignal</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.html">Property</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.BoolProperty.html">arachnid.core.gui.property.Property.BoolProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.ChoiceProperty.html">arachnid.core.gui.property.Property.ChoiceProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.FileDialogWidget.html">arachnid.core.gui.property.Property.FileDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.FilenameProperty.html">arachnid.core.gui.property.Property.FilenameProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.FontDialogWidget.html">arachnid.core.gui.property.Property.FontDialogWidget</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.FontProperty.html">arachnid.core.gui.property.Property.FontProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.NumericProperty.html">arachnid.core.gui.property.Property.NumericProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.Property.html">arachnid.core.gui.property.Property.Property</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.StringProperty.html">arachnid.core.gui.property.Property.StringProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.qtSignal.html">arachnid.core.gui.property.Property.qtSignal</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.Property.qtSlot.html">arachnid.core.gui.property.Property.qtSlot</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyDelegate.html">PropertyDelegate</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyDelegate.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.PropertyDelegate.PropertyDelegate.html">arachnid.core.gui.property.PropertyDelegate.PropertyDelegate</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.html">PropertyModel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.html#classes">Classes</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.PropertyModel.Property.html">arachnid.core.gui.property.PropertyModel.Property</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.PropertyModel.PropertyModel.html">arachnid.core.gui.property.PropertyModel.PropertyModel</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.PropertyModel.qtProperty.html">arachnid.core.gui.property.PropertyModel.qtProperty</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/api_generated/arachnid.core.gui.property.PropertyModel.qtSignal.html">arachnid.core.gui.property.PropertyModel.qtSignal</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.gui.util"><tt class="docutils literal"><span class="pre">arachnid.core.gui.util</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.image"><tt class="docutils literal"><span class="pre">arachnid.core.image</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.analysis.html">analysis</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.analysis.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_utility.html">ndimage_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_file.html">ndimage_file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_file.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_filter.html">ndimage_filter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_filter.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_interpolate.html">ndimage_interpolate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_interpolate.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.reconstruct.html">reconstruct</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.reproject.html">reproject</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.reproject.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.rotate.html">rotate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.rotate.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.alignment.html">alignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.alignment.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.affine_transform.html">affine_transform</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.affine_transform.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.enhance.html">enhance</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.image.enhance.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.image.formats"><tt class="docutils literal"><span class="pre">arachnid.core.image.formats</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.formats.eman_format.html">eman_format</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.formats.eman_format.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.image.tests"><tt class="docutils literal"><span class="pre">arachnid.core.image.tests</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.tests.test_ndimage_utility.html">test_ndimage_utility</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.tests.test_ndimage_utility.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.image.util"><tt class="docutils literal"><span class="pre">arachnid.core.image.util</span></tt></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.image.ctf"><tt class="docutils literal"><span class="pre">arachnid.core.image.ctf</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.ctf.estimate1d.html">estimate1d</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.ctf.estimate1d.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.ctf.correct.html">correct</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.image.ctf.correct.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.metadata"><tt class="docutils literal"><span class="pre">arachnid.core.metadata</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format.html">format</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_utility.html">spider_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_utility.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.metadata.spider_utility.defaultdict.html">arachnid.core.metadata.spider_utility.defaultdict</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_utility.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.relion_utility.html">relion_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.relion_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.type_utility.html">type_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.type_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.selection_utility.html">selection_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.selection_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_params.html">spider_params</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_params.html#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_params.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_params.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format_utility.html">format_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format_utility.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.namedtuple_utility.html">namedtuple_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.namedtuple_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format_alignment.html">format_alignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.metadata.format_alignment.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.metadata.factories"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.factories</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.factories.namedtuple_factory.html">namedtuple_factory</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.factories.namedtuple_factory.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.metadata.formats"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.formats</span></tt></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.csv.html">csv</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.csv.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.prediction.html">prediction</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.prediction.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spiderdoc.html">spiderdoc</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spiderdoc.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spidersel.html">spidersel</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spidersel.html#functions">Functions</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.star.html">star</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.star.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.program.html">program</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.program.program.html">arachnid.core.app.program.program</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html">settings</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#usage">Usage</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#available-options">Available Options</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#module">Module</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.Option.html">arachnid.core.app.settings.Option</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.OptionGroup.html">arachnid.core.app.settings.OptionGroup</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.OptionParser.html">arachnid.core.app.settings.OptionParser</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.Validation.html">arachnid.core.app.settings.Validation</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.VersionControl.html">arachnid.core.app.settings.VersionControl</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.optdict.html">arachnid.core.app.settings.optdict</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.optfilelist.html">arachnid.core.app.settings.optfilelist</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.settings.optlist.html">arachnid.core.app.settings.optlist</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html">tracing</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#usage">Usage</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#parameters">Parameters</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#command-line">Command-line</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#colors">Colors</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#module">Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.tracing.ColoredFormatter.html">arachnid.core.app.tracing.ColoredFormatter</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.tracing.ExceptionFilter.html">arachnid.core.app.tracing.ExceptionFilter</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.tracing.Logger.html">arachnid.core.app.tracing.Logger</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.tracing.NullHandler.html">arachnid.core.app.tracing.NullHandler</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html">file_processor</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.file_processor.progress.html">arachnid.core.app.file_processor.progress</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.progress.html">progress</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.progress.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.progress.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.app.progress.progress.html">arachnid.core.app.progress.progress</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.orient"><tt class="docutils literal"><span class="pre">arachnid.core.orient</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.healpix.html">healpix</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.healpix.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html">transforms</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#requirements">Requirements</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#notes">Notes</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#references">References</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.orient.transforms.Arcball.html">arachnid.core.orient.transforms.Arcball</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.spider_transforms.html">spider_transforms</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.orient.spider_transforms.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#module-arachnid.core.orient.core"><tt class="docutils literal"><span class="pre">arachnid.core.orient.core</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.parallel"><tt class="docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.parallel_utility.html">parallel_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.parallel_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.process_queue.html">process_queue</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.process_queue.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.process_queue.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.process_tasks.html">process_tasks</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.process_tasks.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.mpi_utility.html">mpi_utility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.mpi_utility.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.openmp.html">openmp</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.parallel.openmp.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.spider"><tt class="docutils literal"><span class="pre">arachnid.core.spider</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html">spider</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.spider.spider.Session.html">arachnid.core.spider.spider.Session</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.html">spider_session</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.html#example-usage">Example usage</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.spider.spider_session.Session.html">arachnid.core.spider.spider_session.Session</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_parameter.html">spider_parameter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_parameter.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_parameter.html#exceptions">Exceptions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_var.html">spider_var</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider_var.html#classes">Classes</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.spider.spider_var.spider_var.html">arachnid.core.spider.spider_var.spider_var</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/api_generated/arachnid.core.spider.spider_var.spider_var_pool.html">arachnid.core.spider.spider_var.spider_var_pool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.core.util"><tt class="docutils literal"><span class="pre">arachnid.core.util</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.util.fitting.html">fitting</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.util.fitting.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#module-arachnid.snippets"><tt class="docutils literal"><span class="pre">arachnid.snippets</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.snippets.pyspider"><tt class="docutils literal"><span class="pre">arachnid.snippets.pyspider</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.pyspider.filter_volume.html">filter_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.pyspider.mask_volume.html">mask_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.pyspider.estimate_resolution.html">estimate_resolution</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.snippets.metadata"><tt class="docutils literal"><span class="pre">arachnid.snippets.metadata</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.metadata.relion_defocus_histogram.html">relion_defocus_histogram</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.metadata.spider_fsc_to_emdb.html">spider_fsc_to_emdb</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.metadata.spider_fsc_to_emdb.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.snippets.image"><tt class="docutils literal"><span class="pre">arachnid.snippets.image</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.image.decimate.html">decimate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.image.interpolate_volume.html">interpolate_volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.image.reproject_test.html">reproject_test</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.image.rotate_translate_images.html">rotate_translate_images</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.image.shift.html">shift</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.image.unstack.html">unstack</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#module-arachnid.snippets.reconstruction"><tt class="docutils literal"><span class="pre">arachnid.snippets.reconstruction</span></tt></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct_single.html">reconstruct_single</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct_stack.html">reconstruct_stack</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct_stack.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct3.html">reconstruct3</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct3.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#module-arachnid.app"><tt class="docutils literal"><span class="pre">arachnid.app</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.autopick.html">autopick</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.autopick.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html">lfcpick</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.vicer.html">vicer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#customization-options">Customization Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#testing-options">Testing Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.vicer.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.reconstruct.html">reconstruct</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html">align_frames</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#tunable-options">Tunable Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#diagnostic-options">Diagnostic Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#module-arachnid.util"><tt class="docutils literal"><span class="pre">arachnid.util</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.crop.html">crop</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#movie-mode-options">Movie-mode Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.crop.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.crop.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html">relion_selection</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#running-script">Running Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#selection-options">Selection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#movie-mode-options">Movie-mode Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.bench.html">bench</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.bench.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.bench.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.bench.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.bench.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.bench.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.bench.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html">enumerate_filenames</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.project.html">project</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.project.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.project.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.image_info.html">image_info</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.image_info.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.image_info.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.image_info.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.image_info.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.image_info.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.coverage.html">coverage</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.coverage.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html">align</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#volume-projection-options">Volume Projection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#angular-sampling-options">Angular Sampling Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#alignment-options">Alignment Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html">defocus</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#periodogram-options">Periodogram Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#advanced-options">Advanced Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html">classify</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#advanced-options">Advanced Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html">create_align</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html">enhance_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#tight-masking-options">Tight Masking Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html">filter_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#high-pass-filter-options">High-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html">mask_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#spherical-mask-options">Spherical Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#adaptive-tight-mask-options">Adaptive Tight Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html">prepare_volume</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#high-pass-filter-options">High-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#spherical-mask-options">Spherical Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#adaptive-tight-mask-options">Adaptive Tight Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#resolution-mask-options">Resolution Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#resolution-options">Resolution Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html">reconstruct</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#reconstruction-options">Reconstruction Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#sirt-options">SIRT Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html">refine</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html">resolution</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#mask-options">Mask Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#resolution-options">Resolution Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html">reference</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#low-pass-filter-options">Low-pass Filter Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html">autorefine</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#tips">Tips</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#useful-options">Useful Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../developer_guide.html#contents">Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="attribution.html">Attribution</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="attribution.html#documentation">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#tool">Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#theme">Theme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#framework">Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#icons">Icons</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="attribution.html#art-work">Art Work</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#silk-icon-set-1-3">Silk icon set 1.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#logo">Logo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="attribution.html#open-source-software">Open source software</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#python-modules-by-christoph-gohlke">Python Modules by Christoph Gohlke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#healpix">HealPix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#appion">Appion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="attribution.html#spider">SPIDER</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../README.html">Arachnid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../README.html#how-to-cite">How to cite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../README.html#important-links">Important links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../README.html#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../README.html#install">Install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../README.html#development">Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../CITE.html">How to cite</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#how-to-cite">How to cite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#important-links">Important links</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidebar hidden-print" role="complementary">
+<ul>
+<li><a class="reference internal" href="#">Arachnid API</a><ul>
+<li><a class="reference internal" href="#module-arachnid"><tt class="docutils literal"><span class="pre">arachnid</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.core"><tt class="docutils literal"><span class="pre">arachnid.core</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.core.gui"><tt class="docutils literal"><span class="pre">arachnid.core.gui</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.core.gui.model"><tt class="docutils literal"><span class="pre">arachnid.core.gui.model</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.gui.icons"><tt class="docutils literal"><span class="pre">arachnid.core.gui.icons</span></tt></a></li>
+<li><a class="reference internal" href="#module-arachnid.core.gui.property"><tt class="docutils literal"><span class="pre">arachnid.core.gui.property</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.gui.util"><tt class="docutils literal"><span class="pre">arachnid.core.gui.util</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.image"><tt class="docutils literal"><span class="pre">arachnid.core.image</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.core.image.formats"><tt class="docutils literal"><span class="pre">arachnid.core.image.formats</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.image.tests"><tt class="docutils literal"><span class="pre">arachnid.core.image.tests</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.image.util"><tt class="docutils literal"><span class="pre">arachnid.core.image.util</span></tt></a></li>
+<li><a class="reference internal" href="#module-arachnid.core.image.ctf"><tt class="docutils literal"><span class="pre">arachnid.core.image.ctf</span></tt></a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.metadata"><tt class="docutils literal"><span class="pre">arachnid.core.metadata</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.core.metadata.factories"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.factories</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.metadata.formats"><tt class="docutils literal"><span class="pre">arachnid.core.metadata.formats</span></tt></a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.orient"><tt class="docutils literal"><span class="pre">arachnid.core.orient</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.core.orient.core"><tt class="docutils literal"><span class="pre">arachnid.core.orient.core</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.parallel"><tt class="docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.spider"><tt class="docutils literal"><span class="pre">arachnid.core.spider</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.core.util"><tt class="docutils literal"><span class="pre">arachnid.core.util</span></tt></a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.snippets"><tt class="docutils literal"><span class="pre">arachnid.snippets</span></tt></a><ul>
+<li><a class="reference internal" href="#module-arachnid.snippets.pyspider"><tt class="docutils literal"><span class="pre">arachnid.snippets.pyspider</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.snippets.metadata"><tt class="docutils literal"><span class="pre">arachnid.snippets.metadata</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.snippets.image"><tt class="docutils literal"><span class="pre">arachnid.snippets.image</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.snippets.reconstruction"><tt class="docutils literal"><span class="pre">arachnid.snippets.reconstruction</span></tt></a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.app"><tt class="docutils literal"><span class="pre">arachnid.app</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.util"><tt class="docutils literal"><span class="pre">arachnid.util</span></tt></a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+       </div>
+      </div>
+    <div class="col-md-9" role="main">
+      
+  <div class="section" id="arachnid-api">
+<h1>Arachnid API<a class="headerlink" href="#arachnid-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-arachnid">
+<span id="arachnid"></span><h2><a class="reference internal" href="#module-arachnid" title="arachnid"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid</span></tt></a><a class="headerlink" href="#module-arachnid" title="Permalink to this headline">¶</a></h2>
+<p>Arachnid Cryo-EM Image Processing package</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.app" title="arachnid.app"><tt class="xref py py-obj docutils literal"><span class="pre">app</span></tt></a></td>
+<td>Arachnid Applications</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core" title="arachnid.core"><tt class="xref py py-obj docutils literal"><span class="pre">core</span></tt></a></td>
+<td>Core library for arachnid   ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.pyspider" title="arachnid.pyspider"><tt class="xref py py-obj docutils literal"><span class="pre">pyspider</span></tt></a></td>
+<td>pySPIDER Applications</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.util" title="arachnid.util"><tt class="xref py py-obj docutils literal"><span class="pre">util</span></tt></a></td>
+<td>Arachnid Utilities</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.snippets" title="arachnid.snippets"><tt class="xref py py-obj docutils literal"><span class="pre">snippets</span></tt></a></td>
+<td>Arachnid Snippets - Example code you can download and edit to customize for simple tasks</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.core">
+<span id="arachnid-core"></span><h3><a class="reference internal" href="#module-arachnid.core" title="arachnid.core"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core</span></tt></a><a class="headerlink" href="#module-arachnid.core" title="Permalink to this headline">¶</a></h3>
+<p>Core library for arachnid</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.app" title="arachnid.core.app"><tt class="xref py py-obj docutils literal"><span class="pre">app</span></tt></a></td>
+<td>Basic framework for an Arachnid application</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.gui" title="arachnid.core.gui"><tt class="xref py py-obj docutils literal"><span class="pre">gui</span></tt></a></td>
+<td>Settings editor  ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.image" title="arachnid.core.image"><tt class="xref py py-obj docutils literal"><span class="pre">image</span></tt></a></td>
+<td>Utilities to work with images   ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.metadata" title="arachnid.core.metadata"><tt class="xref py py-obj docutils literal"><span class="pre">metadata</span></tt></a></td>
+<td>Utilities to handle metadata  ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.orient" title="arachnid.core.orient"><tt class="xref py py-obj docutils literal"><span class="pre">orient</span></tt></a></td>
+<td>Utilities to handle orientation in 2D and 3D</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.parallel" title="arachnid.core.parallel"><tt class="xref py py-obj docutils literal"><span class="pre">parallel</span></tt></a></td>
+<td>Utilities to parallelize code using processes or MPI</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.spider" title="arachnid.core.spider"><tt class="xref py py-obj docutils literal"><span class="pre">spider</span></tt></a></td>
+<td>Utilities to interface with SPIDER through the command-line</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.util" title="arachnid.core.util"><tt class="xref py py-obj docutils literal"><span class="pre">util</span></tt></a></td>
+<td>General utilities  ..</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.core.gui">
+<span id="arachnid-core-gui"></span><h4><a class="reference internal" href="#module-arachnid.core.gui" title="arachnid.core.gui"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.gui</span></tt></a><a class="headerlink" href="#module-arachnid.core.gui" title="Permalink to this headline">¶</a></h4>
+<p>Settings editor</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.gui.model" title="arachnid.core.gui.model"><tt class="xref py py-obj docutils literal"><span class="pre">model</span></tt></a></td>
+<td>Propery tree/table editor  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.gui.property" title="arachnid.core.gui.property"><tt class="xref py py-obj docutils literal"><span class="pre">property</span></tt></a></td>
+<td>Propery tree/table editor  ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.gui.icons" title="arachnid.core.gui.icons"><tt class="xref py py-obj docutils literal"><span class="pre">icons</span></tt></a></td>
+<td>Precompiled icon libraries  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.gui.util" title="arachnid.core.gui.util"><tt class="xref py py-obj docutils literal"><span class="pre">util</span></tt></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.gui.HelpUI.html#module-arachnid.core.gui.HelpUI" title="arachnid.core.gui.HelpUI"><tt class="xref py py-obj docutils literal"><span class="pre">arachnid.core.gui.HelpUI</span></tt></a></td>
+<td>Help Dialog</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.core.gui.model">
+<span id="arachnid-core-gui-model"></span><h5><a class="reference internal" href="#module-arachnid.core.gui.model" title="arachnid.core.gui.model"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.gui.model</span></tt></a><a class="headerlink" href="#module-arachnid.core.gui.model" title="Permalink to this headline">¶</a></h5>
+<p>Propery tree/table editor</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.gui.model.DocumentModel.html#module-arachnid.core.gui.model.DocumentModel" title="arachnid.core.gui.model.DocumentModel"><tt class="xref py py-obj docutils literal"><span class="pre">DocumentModel</span></tt></a></td>
+<td>Defines a document item model for List, Table or Tree view</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.gui.model.ListTableModel.html#module-arachnid.core.gui.model.ListTableModel" title="arachnid.core.gui.model.ListTableModel"><tt class="xref py py-obj docutils literal"><span class="pre">ListTableModel</span></tt></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.gui.icons">
+<span id="arachnid-core-gui-icons"></span><h5><a class="reference internal" href="#module-arachnid.core.gui.icons" title="arachnid.core.gui.icons"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.gui.icons</span></tt></a><a class="headerlink" href="#module-arachnid.core.gui.icons" title="Permalink to this headline">¶</a></h5>
+<p>Precompiled icon libraries</p>
+</div>
+<div class="section" id="module-arachnid.core.gui.property">
+<span id="arachnid-core-gui-property"></span><h5><a class="reference internal" href="#module-arachnid.core.gui.property" title="arachnid.core.gui.property"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.gui.property</span></tt></a><a class="headerlink" href="#module-arachnid.core.gui.property" title="Permalink to this headline">¶</a></h5>
+<p>Propery tree/table editor</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.gui.property.ButtonDelegate.html#module-arachnid.core.gui.property.ButtonDelegate" title="arachnid.core.gui.property.ButtonDelegate"><tt class="xref py py-obj docutils literal"><span class="pre">ButtonDelegate</span></tt></a></td>
+<td>Defines a set of delegates to display widgets in a table/tree cell  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.gui.property.Property.html#module-arachnid.core.gui.property.Property" title="arachnid.core.gui.property.Property"><tt class="xref py py-obj docutils literal"><span class="pre">Property</span></tt></a></td>
+<td>This class defines a tree model.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyDelegate.html#module-arachnid.core.gui.property.PropertyDelegate" title="arachnid.core.gui.property.PropertyDelegate"><tt class="xref py py-obj docutils literal"><span class="pre">PropertyDelegate</span></tt></a></td>
+<td>Delegates the editor for a table/tree cell.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.gui.property.PropertyModel.html#module-arachnid.core.gui.property.PropertyModel" title="arachnid.core.gui.property.PropertyModel"><tt class="xref py py-obj docutils literal"><span class="pre">PropertyModel</span></tt></a></td>
+<td>Model for a QTreeView.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.gui.util">
+<span id="arachnid-core-gui-util"></span><h5><a class="reference internal" href="#module-arachnid.core.gui.util" title="arachnid.core.gui.util"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.gui.util</span></tt></a><a class="headerlink" href="#module-arachnid.core.gui.util" title="Permalink to this headline">¶</a></h5>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">BackgroundTask</span></tt></td>
+<td>Launch tasks in the background  ..</td>
+</tr>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">messagebox</span></tt></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">qimage_utility</span></tt></td>
+<td>Utilities for QImages</td>
+</tr>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">qt4_loader</span></tt></td>
+<td>Load QT Python binding either PyQt or PySide</td>
+</tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">qtapp</span></tt></td>
+<td>Utilities for Qt Applications</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-arachnid.core.image">
+<span id="arachnid-core-image"></span><h4><a class="reference internal" href="#module-arachnid.core.image" title="arachnid.core.image"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image</span></tt></a><a class="headerlink" href="#module-arachnid.core.image" title="Permalink to this headline">¶</a></h4>
+<p>Utilities to work with images</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.image.formats" title="arachnid.core.image.formats"><tt class="xref py py-obj docutils literal"><span class="pre">formats</span></tt></a></td>
+<td>Reading and writing in various image formats  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.image.tests" title="arachnid.core.image.tests"><tt class="xref py py-obj docutils literal"><span class="pre">tests</span></tt></a></td>
+<td>Unit testing for each module in <a class="reference internal" href="#module-arachnid.core.image" title="arachnid.core.image"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image</span></tt></a>  ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.image.util" title="arachnid.core.image.util"><tt class="xref py py-obj docutils literal"><span class="pre">util</span></tt></a></td>
+<td>Shared library optimized code     ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.image.ctf" title="arachnid.core.image.ctf"><tt class="xref py py-obj docutils literal"><span class="pre">ctf</span></tt></a></td>
+<td>Modules to estimate and apply the contrast transfer function to an image   ..</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.analysis.html#module-arachnid.core.image.analysis" title="arachnid.core.image.analysis"><tt class="xref py py-obj docutils literal"><span class="pre">analysis</span></tt></a></td>
+<td>Data analysis functions  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_utility.html#module-arachnid.core.image.ndimage_utility" title="arachnid.core.image.ndimage_utility"><tt class="xref py py-obj docutils literal"><span class="pre">ndimage_utility</span></tt></a></td>
+<td>Image enhancement functions</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_file.html#module-arachnid.core.image.ndimage_file" title="arachnid.core.image.ndimage_file"><tt class="xref py py-obj docutils literal"><span class="pre">ndimage_file</span></tt></a></td>
+<td>Reading and writing NumPY arrays in various image formats</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_filter.html#module-arachnid.core.image.ndimage_filter" title="arachnid.core.image.ndimage_filter"><tt class="xref py py-obj docutils literal"><span class="pre">ndimage_filter</span></tt></a></td>
+<td>Filter 2D or 3D images</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.ndimage_interpolate.html#module-arachnid.core.image.ndimage_interpolate" title="arachnid.core.image.ndimage_interpolate"><tt class="xref py py-obj docutils literal"><span class="pre">ndimage_interpolate</span></tt></a></td>
+<td>Resize images</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.image.reconstruct.html#module-arachnid.core.image.reconstruct" title="arachnid.core.image.reconstruct"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruct</span></tt></a></td>
+<td>Reconstruct a set of 2D projections into 3D volume</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.reproject.html#module-arachnid.core.image.reproject" title="arachnid.core.image.reproject"><tt class="xref py py-obj docutils literal"><span class="pre">reproject</span></tt></a></td>
+<td>Reproject a 2D slice from a 3D volume</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.image.rotate.html#module-arachnid.core.image.rotate" title="arachnid.core.image.rotate"><tt class="xref py py-obj docutils literal"><span class="pre">rotate</span></tt></a></td>
+<td>Rotate a 2D projection</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.alignment.html#module-arachnid.core.image.alignment" title="arachnid.core.image.alignment"><tt class="xref py py-obj docutils literal"><span class="pre">alignment</span></tt></a></td>
+<td>Alignment using cross-correlation  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.image.affine_transform.html#module-arachnid.core.image.affine_transform" title="arachnid.core.image.affine_transform"><tt class="xref py py-obj docutils literal"><span class="pre">affine_transform</span></tt></a></td>
+<td>Affine transforms for an image  ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.enhance.html#module-arachnid.core.image.enhance" title="arachnid.core.image.enhance"><tt class="xref py py-obj docutils literal"><span class="pre">enhance</span></tt></a></td>
+<td>Image enhancement routines  ..</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.core.image.formats">
+<span id="arachnid-core-image-formats"></span><h5><a class="reference internal" href="#module-arachnid.core.image.formats" title="arachnid.core.image.formats"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image.formats</span></tt></a><a class="headerlink" href="#module-arachnid.core.image.formats" title="Permalink to this headline">¶</a></h5>
+<p>Reading and writing in various image formats</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.formats.eman_format.html#module-arachnid.core.image.formats.eman_format" title="arachnid.core.image.formats.eman_format"><tt class="xref py py-obj docutils literal"><span class="pre">eman_format</span></tt></a></td>
+<td>Use EMAN2/Sparx to read or write to a file</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.image.tests">
+<span id="arachnid-core-image-tests"></span><h5><a class="reference internal" href="#module-arachnid.core.image.tests" title="arachnid.core.image.tests"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image.tests</span></tt></a><a class="headerlink" href="#module-arachnid.core.image.tests" title="Permalink to this headline">¶</a></h5>
+<p>Unit testing for each module in <a class="reference internal" href="#module-arachnid.core.image" title="arachnid.core.image"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image</span></tt></a></p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.tests.test_ndimage_utility.html#module-arachnid.core.image.tests.test_ndimage_utility" title="arachnid.core.image.tests.test_ndimage_utility"><tt class="xref py py-obj docutils literal"><span class="pre">test_ndimage_utility</span></tt></a></td>
+<td>Unit tests for the ndimage_utility module  ..</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.image.util">
+<span id="arachnid-core-image-util"></span><h5><a class="reference internal" href="#module-arachnid.core.image.util" title="arachnid.core.image.util"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image.util</span></tt></a><a class="headerlink" href="#module-arachnid.core.image.util" title="Permalink to this headline">¶</a></h5>
+<p>Shared library optimized code</p>
+</div>
+<div class="section" id="module-arachnid.core.image.ctf">
+<span id="arachnid-core-image-ctf"></span><h5><a class="reference internal" href="#module-arachnid.core.image.ctf" title="arachnid.core.image.ctf"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.image.ctf</span></tt></a><a class="headerlink" href="#module-arachnid.core.image.ctf" title="Permalink to this headline">¶</a></h5>
+<p>Modules to estimate and apply the contrast transfer function to an image</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.image.ctf.estimate1d.html#module-arachnid.core.image.ctf.estimate1d" title="arachnid.core.image.ctf.estimate1d"><tt class="xref py py-obj docutils literal"><span class="pre">estimate1d</span></tt></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.image.ctf.correct.html#module-arachnid.core.image.ctf.correct" title="arachnid.core.image.ctf.correct"><tt class="xref py py-obj docutils literal"><span class="pre">correct</span></tt></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-arachnid.core.metadata">
+<span id="arachnid-core-metadata"></span><h4><a class="reference internal" href="#module-arachnid.core.metadata" title="arachnid.core.metadata"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata</span></tt></a><a class="headerlink" href="#module-arachnid.core.metadata" title="Permalink to this headline">¶</a></h4>
+<p>Utilities to handle metadata</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.metadata.factories" title="arachnid.core.metadata.factories"><tt class="xref py py-obj docutils literal"><span class="pre">factories</span></tt></a></td>
+<td>Factories to generate data structures to hold the metadata  ..</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.core.metadata.formats" title="arachnid.core.metadata.formats"><tt class="xref py py-obj docutils literal"><span class="pre">formats</span></tt></a></td>
+<td>Modules to read and write meta data in various text file formats  ..</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.format.html#module-arachnid.core.metadata.format" title="arachnid.core.metadata.format"><tt class="xref py py-obj docutils literal"><span class="pre">format</span></tt></a></td>
+<td>Read and write into a number of supported document formats</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_utility.html#module-arachnid.core.metadata.spider_utility" title="arachnid.core.metadata.spider_utility"><tt class="xref py py-obj docutils literal"><span class="pre">spider_utility</span></tt></a></td>
+<td>Set of utilities to deal with the SPIDER file naming convention</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.relion_utility.html#module-arachnid.core.metadata.relion_utility" title="arachnid.core.metadata.relion_utility"><tt class="xref py py-obj docutils literal"><span class="pre">relion_utility</span></tt></a></td>
+<td>Set of utilities to deal with RELION star files</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.type_utility.html#module-arachnid.core.metadata.type_utility" title="arachnid.core.metadata.type_utility"><tt class="xref py py-obj docutils literal"><span class="pre">type_utility</span></tt></a></td>
+<td>Set of utilities to deal with Python types</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.selection_utility.html#module-arachnid.core.metadata.selection_utility" title="arachnid.core.metadata.selection_utility"><tt class="xref py py-obj docutils literal"><span class="pre">selection_utility</span></tt></a></td>
+<td>Selection utilities</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.spider_params.html#module-arachnid.core.metadata.spider_params" title="arachnid.core.metadata.spider_params"><tt class="xref py py-obj docutils literal"><span class="pre">spider_params</span></tt></a></td>
+<td>Read, write and update SPIDER Parameters</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.format_utility.html#module-arachnid.core.metadata.format_utility" title="arachnid.core.metadata.format_utility"><tt class="xref py py-obj docutils literal"><span class="pre">format_utility</span></tt></a></td>
+<td>Various utilities when dealing with files, ndarrays</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.namedtuple_utility.html#module-arachnid.core.metadata.namedtuple_utility" title="arachnid.core.metadata.namedtuple_utility"><tt class="xref py py-obj docutils literal"><span class="pre">namedtuple_utility</span></tt></a></td>
+<td>Defines a set of utility functions to deal with namedtuples    ..</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.format_alignment.html#module-arachnid.core.metadata.format_alignment" title="arachnid.core.metadata.format_alignment"><tt class="xref py py-obj docutils literal"><span class="pre">format_alignment</span></tt></a></td>
+<td>Read a set of alignment parameters and organize images  ..</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.core.metadata.factories">
+<span id="arachnid-core-metadata-factories"></span><h5><a class="reference internal" href="#module-arachnid.core.metadata.factories" title="arachnid.core.metadata.factories"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.factories</span></tt></a><a class="headerlink" href="#module-arachnid.core.metadata.factories" title="Permalink to this headline">¶</a></h5>
+<p>Factories to generate data structures to hold the metadata</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.factories.namedtuple_factory.html#module-arachnid.core.metadata.factories.namedtuple_factory" title="arachnid.core.metadata.factories.namedtuple_factory"><tt class="xref py py-obj docutils literal"><span class="pre">namedtuple_factory</span></tt></a></td>
+<td>Generate a table using namedtuple and lists</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.metadata.formats">
+<span id="arachnid-core-metadata-formats"></span><h5><a class="reference internal" href="#module-arachnid.core.metadata.formats" title="arachnid.core.metadata.formats"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.formats</span></tt></a><a class="headerlink" href="#module-arachnid.core.metadata.formats" title="Permalink to this headline">¶</a></h5>
+<p>Modules to read and write meta data in various text file formats</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.csv.html#module-arachnid.core.metadata.formats.csv" title="arachnid.core.metadata.formats.csv"><tt class="xref py py-obj docutils literal"><span class="pre">csv</span></tt></a></td>
+<td>Read/Write a table in the comma separated format (CSV)</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.prediction.html#module-arachnid.core.metadata.formats.prediction" title="arachnid.core.metadata.formats.prediction"><tt class="xref py py-obj docutils literal"><span class="pre">prediction</span></tt></a></td>
+<td>Read/Write a table in the malibu prediction format (PRED)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spiderdoc.html#module-arachnid.core.metadata.formats.spiderdoc" title="arachnid.core.metadata.formats.spiderdoc"><tt class="xref py py-obj docutils literal"><span class="pre">spiderdoc</span></tt></a></td>
+<td>Read/Write a table in the SPIDER document format (DAT)</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spidersel.html#module-arachnid.core.metadata.formats.spidersel" title="arachnid.core.metadata.formats.spidersel"><tt class="xref py py-obj docutils literal"><span class="pre">spidersel</span></tt></a></td>
+<td>Read/Write a table in the SPIDER selection format (SDAT)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.star.html#module-arachnid.core.metadata.formats.star" title="arachnid.core.metadata.formats.star"><tt class="xref py py-obj docutils literal"><span class="pre">star</span></tt></a></td>
+<td>Read/Write a table in the STAR format</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-arachnid.core.app">
+<span id="arachnid-core-app"></span><h4><a class="reference internal" href="#module-arachnid.core.app" title="arachnid.core.app"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.app</span></tt></a><a class="headerlink" href="#module-arachnid.core.app" title="Permalink to this headline">¶</a></h4>
+<p>Basic framework for an Arachnid application</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.app.program.html#module-arachnid.core.app.program" title="arachnid.core.app.program"><tt class="xref py py-obj docutils literal"><span class="pre">program</span></tt></a></td>
+<td>Defines the program architecture for every application</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#module-arachnid.core.app.settings" title="arachnid.core.app.settings"><tt class="xref py py-obj docutils literal"><span class="pre">settings</span></tt></a></td>
+<td>Parse options on the command line or in a configuration file</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#module-arachnid.core.app.tracing" title="arachnid.core.app.tracing"><tt class="xref py py-obj docutils literal"><span class="pre">tracing</span></tt></a></td>
+<td>Common logging utilities and setup for all scripts</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#module-arachnid.core.app.file_processor" title="arachnid.core.app.file_processor"><tt class="xref py py-obj docutils literal"><span class="pre">file_processor</span></tt></a></td>
+<td>Framework for independent processing of files or groups of objects in serial, in parallel</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.app.progress.html#module-arachnid.core.app.progress" title="arachnid.core.app.progress"><tt class="xref py py-obj docutils literal"><span class="pre">progress</span></tt></a></td>
+<td>Estimate the amount of time left in a task  &#64;todo - weight task, total by job size  ..</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.orient">
+<span id="arachnid-core-orient"></span><h4><a class="reference internal" href="#module-arachnid.core.orient" title="arachnid.core.orient"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.orient</span></tt></a><a class="headerlink" href="#module-arachnid.core.orient" title="Permalink to this headline">¶</a></h4>
+<p>Utilities to handle orientation in 2D and 3D</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.core.orient.core" title="arachnid.core.orient.core"><tt class="xref py py-obj docutils literal"><span class="pre">core</span></tt></a></td>
+<td>Shared library optimized code  ..</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.orient.healpix.html#module-arachnid.core.orient.healpix" title="arachnid.core.orient.healpix"><tt class="xref py py-obj docutils literal"><span class="pre">healpix</span></tt></a></td>
+<td>pyHEALPix Library</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.orient.transforms.html#module-arachnid.core.orient.transforms" title="arachnid.core.orient.transforms"><tt class="xref py py-obj docutils literal"><span class="pre">transforms</span></tt></a></td>
+<td>Homogeneous Transformation Matrices and Quaternions.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.orient.spider_transforms.html#module-arachnid.core.orient.spider_transforms" title="arachnid.core.orient.spider_transforms"><tt class="xref py py-obj docutils literal"><span class="pre">spider_transforms</span></tt></a></td>
+<td>Transforms for the SPIDER convention</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.core.orient.core">
+<span id="arachnid-core-orient-core"></span><h5><a class="reference internal" href="#module-arachnid.core.orient.core" title="arachnid.core.orient.core"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.orient.core</span></tt></a><a class="headerlink" href="#module-arachnid.core.orient.core" title="Permalink to this headline">¶</a></h5>
+<p>Shared library optimized code</p>
+</div>
+</div>
+<div class="section" id="module-arachnid.core.parallel">
+<span id="arachnid-core-parallel"></span><h4><a class="reference internal" href="#module-arachnid.core.parallel" title="arachnid.core.parallel"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><a class="headerlink" href="#module-arachnid.core.parallel" title="Permalink to this headline">¶</a></h4>
+<p>Utilities to parallelize code using processes or MPI</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">core</span></tt></td>
+<td>OpenMP Library functions</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.parallel.parallel_utility.html#module-arachnid.core.parallel.parallel_utility" title="arachnid.core.parallel.parallel_utility"><tt class="xref py py-obj docutils literal"><span class="pre">parallel_utility</span></tt></a></td>
+<td>Utilities for general parallel code</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.parallel.process_queue.html#module-arachnid.core.parallel.process_queue" title="arachnid.core.parallel.process_queue"><tt class="xref py py-obj docutils literal"><span class="pre">process_queue</span></tt></a></td>
+<td>Utilities to distribute computation in parallel processes</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.parallel.process_tasks.html#module-arachnid.core.parallel.process_tasks" title="arachnid.core.parallel.process_tasks"><tt class="xref py py-obj docutils literal"><span class="pre">process_tasks</span></tt></a></td>
+<td>Common parallel/serial design patterns</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.parallel.mpi_utility.html#module-arachnid.core.parallel.mpi_utility" title="arachnid.core.parallel.mpi_utility"><tt class="xref py py-obj docutils literal"><span class="pre">mpi_utility</span></tt></a></td>
+<td>MPI utility functions</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.parallel.openmp.html#module-arachnid.core.parallel.openmp" title="arachnid.core.parallel.openmp"><tt class="xref py py-obj docutils literal"><span class="pre">openmp</span></tt></a></td>
+<td>Utilities to manipulate OpenMP functions</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.spider">
+<span id="arachnid-core-spider"></span><h4><a class="reference internal" href="#module-arachnid.core.spider" title="arachnid.core.spider"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.spider</span></tt></a><a class="headerlink" href="#module-arachnid.core.spider" title="Permalink to this headline">¶</a></h4>
+<p>Utilities to interface with SPIDER through the command-line</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#module-arachnid.core.spider.spider" title="arachnid.core.spider.spider"><tt class="xref py py-obj docutils literal"><span class="pre">spider</span></tt></a></td>
+<td>This module defines all the commands available in SPIDER as Python functions</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.spider.spider_session.html#module-arachnid.core.spider.spider_session" title="arachnid.core.spider.spider_session"><tt class="xref py py-obj docutils literal"><span class="pre">spider_session</span></tt></a></td>
+<td>This defines a bridge between Python and Spider.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.spider.spider_parameter.html#module-arachnid.core.spider.spider_parameter" title="arachnid.core.spider.spider_parameter"><tt class="xref py py-obj docutils literal"><span class="pre">spider_parameter</span></tt></a></td>
+<td>Convert a Python variable to the proper format for a SPIDER parameter</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.core.spider.spider_var.html#module-arachnid.core.spider.spider_var" title="arachnid.core.spider.spider_var"><tt class="xref py py-obj docutils literal"><span class="pre">spider_var</span></tt></a></td>
+<td>Defines a pool of SPIDER varibles</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.core.util">
+<span id="arachnid-core-util"></span><h4><a class="reference internal" href="#module-arachnid.core.util" title="arachnid.core.util"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.util</span></tt></a><a class="headerlink" href="#module-arachnid.core.util" title="Permalink to this headline">¶</a></h4>
+<p>General utilities</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.core.util.fitting.html#module-arachnid.core.util.fitting" title="arachnid.core.util.fitting"><tt class="xref py py-obj docutils literal"><span class="pre">fitting</span></tt></a></td>
+<td>Utilities to fit a curve to a set of data  ..</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-arachnid.snippets">
+<span id="arachnid-snippets"></span><h3><a class="reference internal" href="#module-arachnid.snippets" title="arachnid.snippets"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.snippets</span></tt></a><a class="headerlink" href="#module-arachnid.snippets" title="Permalink to this headline">¶</a></h3>
+<p>Arachnid Snippets - Example code you can download and edit to customize for simple tasks</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.snippets.pyspider" title="arachnid.snippets.pyspider"><tt class="xref py py-obj docutils literal"><span class="pre">pyspider</span></tt></a></td>
+<td>Arachnid PySPIDER Snippets - Example code you can download and edit to customize for simple tasks</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.snippets.metadata" title="arachnid.snippets.metadata"><tt class="xref py py-obj docutils literal"><span class="pre">metadata</span></tt></a></td>
+<td>Arachnid Metadata Snippets - Example code you can download and edit to customize for simple tasks</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#module-arachnid.snippets.image" title="arachnid.snippets.image"><tt class="xref py py-obj docutils literal"><span class="pre">image</span></tt></a></td>
+<td>Arachnid Image Snippets - Example code you can download and edit to customize for simple tasks</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#module-arachnid.snippets.reconstruction" title="arachnid.snippets.reconstruction"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruction</span></tt></a></td>
+<td>Arachnid Reconstruction Snippets - Example code you can download and edit to customize for simple tasks</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-arachnid.snippets.pyspider">
+<span id="arachnid-snippets-pyspider"></span><h4><a class="reference internal" href="#module-arachnid.snippets.pyspider" title="arachnid.snippets.pyspider"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.snippets.pyspider</span></tt></a><a class="headerlink" href="#module-arachnid.snippets.pyspider" title="Permalink to this headline">¶</a></h4>
+<p>Arachnid PySPIDER Snippets - Example code you can download and edit to customize for simple tasks</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.pyspider.filter_volume.html#module-arachnid.snippets.pyspider.filter_volume" title="arachnid.snippets.pyspider.filter_volume"><tt class="xref py py-obj docutils literal"><span class="pre">filter_volume</span></tt></a></td>
+<td>Volume filter</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.snippets.pyspider.mask_volume.html#module-arachnid.snippets.pyspider.mask_volume" title="arachnid.snippets.pyspider.mask_volume"><tt class="xref py py-obj docutils literal"><span class="pre">mask_volume</span></tt></a></td>
+<td>Volume mask</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.pyspider.estimate_resolution.html#module-arachnid.snippets.pyspider.estimate_resolution" title="arachnid.snippets.pyspider.estimate_resolution"><tt class="xref py py-obj docutils literal"><span class="pre">estimate_resolution</span></tt></a></td>
+<td>Estimate the resolution between two half volumes</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.snippets.metadata">
+<span id="arachnid-snippets-metadata"></span><h4><a class="reference internal" href="#module-arachnid.snippets.metadata" title="arachnid.snippets.metadata"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.snippets.metadata</span></tt></a><a class="headerlink" href="#module-arachnid.snippets.metadata" title="Permalink to this headline">¶</a></h4>
+<p>Arachnid Metadata Snippets - Example code you can download and edit to customize for simple tasks</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.metadata.relion_defocus_histogram.html#module-arachnid.snippets.metadata.relion_defocus_histogram" title="arachnid.snippets.metadata.relion_defocus_histogram"><tt class="xref py py-obj docutils literal"><span class="pre">relion_defocus_histogram</span></tt></a></td>
+<td>Create a histogram of particles per defocus for a relion selection file</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.snippets.metadata.spider_fsc_to_emdb.html#module-arachnid.snippets.metadata.spider_fsc_to_emdb" title="arachnid.snippets.metadata.spider_fsc_to_emdb"><tt class="xref py py-obj docutils literal"><span class="pre">spider_fsc_to_emdb</span></tt></a></td>
+<td>Convert a SPIDER resolution file to an EMDB compatible XML file</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.snippets.image">
+<span id="arachnid-snippets-image"></span><h4><a class="reference internal" href="#module-arachnid.snippets.image" title="arachnid.snippets.image"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.snippets.image</span></tt></a><a class="headerlink" href="#module-arachnid.snippets.image" title="Permalink to this headline">¶</a></h4>
+<p>Arachnid Image Snippets - Example code you can download and edit to customize for simple tasks</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.image.decimate.html#module-arachnid.snippets.image.decimate" title="arachnid.snippets.image.decimate"><tt class="xref py py-obj docutils literal"><span class="pre">decimate</span></tt></a></td>
+<td>Decimate images in a stack</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.snippets.image.interpolate_volume.html#module-arachnid.snippets.image.interpolate_volume" title="arachnid.snippets.image.interpolate_volume"><tt class="xref py py-obj docutils literal"><span class="pre">interpolate_volume</span></tt></a></td>
+<td>Interporate a volume</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.image.reproject_test.html#module-arachnid.snippets.image.reproject_test" title="arachnid.snippets.image.reproject_test"><tt class="xref py py-obj docutils literal"><span class="pre">reproject_test</span></tt></a></td>
+<td>Test the SPIDER reprojection binding</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.snippets.image.rotate_translate_images.html#module-arachnid.snippets.image.rotate_translate_images" title="arachnid.snippets.image.rotate_translate_images"><tt class="xref py py-obj docutils literal"><span class="pre">rotate_translate_images</span></tt></a></td>
+<td>Center a set of images using parameters from an alignment file</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.image.shift.html#module-arachnid.snippets.image.shift" title="arachnid.snippets.image.shift"><tt class="xref py py-obj docutils literal"><span class="pre">shift</span></tt></a></td>
+<td>Center particles in the window using the translation from a Relion star file</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.snippets.image.unstack.html#module-arachnid.snippets.image.unstack" title="arachnid.snippets.image.unstack"><tt class="xref py py-obj docutils literal"><span class="pre">unstack</span></tt></a></td>
+<td>Unstacks an image stack into individual images</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.snippets.reconstruction">
+<span id="arachnid-snippets-reconstruction"></span><h4><a class="reference internal" href="#module-arachnid.snippets.reconstruction" title="arachnid.snippets.reconstruction"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.snippets.reconstruction</span></tt></a><a class="headerlink" href="#module-arachnid.snippets.reconstruction" title="Permalink to this headline">¶</a></h4>
+<p>Arachnid Reconstruction Snippets - Example code you can download and edit to customize for simple tasks</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct_single.html#module-arachnid.snippets.reconstruction.reconstruct_single" title="arachnid.snippets.reconstruction.reconstruct_single"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruct_single</span></tt></a></td>
+<td>Reconstruct a volume from a set of single images</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct_stack.html#module-arachnid.snippets.reconstruction.reconstruct_stack" title="arachnid.snippets.reconstruction.reconstruct_stack"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruct_stack</span></tt></a></td>
+<td>Reconstruct a volume from a subset of projections</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.snippets.reconstruction.reconstruct3.html#module-arachnid.snippets.reconstruction.reconstruct3" title="arachnid.snippets.reconstruction.reconstruct3"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruct3</span></tt></a></td>
+<td>Reconstruct a volume from a subset of projections</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-arachnid.app">
+<span id="arachnid-app"></span><h3><a class="reference internal" href="#module-arachnid.app" title="arachnid.app"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.app</span></tt></a><a class="headerlink" href="#module-arachnid.app" title="Permalink to this headline">¶</a></h3>
+<p>Arachnid Applications</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.app.autopick.html#module-arachnid.app.autopick" title="arachnid.app.autopick"><tt class="xref py py-obj docutils literal"><span class="pre">autopick</span></tt></a></td>
+<td>Automated particle selection (AutoPicker)</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.app.lfcpick.html#module-arachnid.app.lfcpick" title="arachnid.app.lfcpick"><tt class="xref py py-obj docutils literal"><span class="pre">lfcpick</span></tt></a></td>
+<td>Semi-automated particle selection (LFCPick)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.app.vicer.html#module-arachnid.app.vicer" title="arachnid.app.vicer"><tt class="xref py py-obj docutils literal"><span class="pre">vicer</span></tt></a></td>
+<td>Clean particle selection with the view classifier or ViCer</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.app.reconstruct.html#module-arachnid.app.reconstruct" title="arachnid.app.reconstruct"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruct</span></tt></a></td>
+<td>Reconstruct a 3D volume from a set of windowed projection images</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.app.align_frames.html#module-arachnid.app.align_frames" title="arachnid.app.align_frames"><tt class="xref py py-obj docutils literal"><span class="pre">align_frames</span></tt></a></td>
+<td>Micrograph alignment for tilt, defocus, or dose fractionated series</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.util">
+<span id="arachnid-util"></span><h3><a class="reference internal" href="#module-arachnid.util" title="arachnid.util"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.util</span></tt></a><a class="headerlink" href="#module-arachnid.util" title="Permalink to this headline">¶</a></h3>
+<p>Arachnid Utilities</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.util.crop.html#module-arachnid.util.crop" title="arachnid.util.crop"><tt class="xref py py-obj docutils literal"><span class="pre">crop</span></tt></a></td>
+<td>Crops windowed particles from a micrograph</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.util.relion_selection.html#module-arachnid.util.relion_selection" title="arachnid.util.relion_selection"><tt class="xref py py-obj docutils literal"><span class="pre">relion_selection</span></tt></a></td>
+<td>Generate RELION selection files from SPIDER selection files</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.util.bench.html#module-arachnid.util.bench" title="arachnid.util.bench"><tt class="xref py py-obj docutils literal"><span class="pre">bench</span></tt></a></td>
+<td>Benchmark particle selection</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.util.enumerate_filenames.html#module-arachnid.util.enumerate_filenames" title="arachnid.util.enumerate_filenames"><tt class="xref py py-obj docutils literal"><span class="pre">enumerate_filenames</span></tt></a></td>
+<td>Test if files contain enumeration, if not generate a set of enumerating soft links</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.util.project.html#module-arachnid.util.project" title="arachnid.util.project"><tt class="xref py py-obj docutils literal"><span class="pre">project</span></tt></a></td>
+<td>Create a project workflow</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.util.image_info.html#module-arachnid.util.image_info" title="arachnid.util.image_info"><tt class="xref py py-obj docutils literal"><span class="pre">image_info</span></tt></a></td>
+<td>Retrieve information from the header of an image</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.util.coverage.html#module-arachnid.util.coverage" title="arachnid.util.coverage"><tt class="xref py py-obj docutils literal"><span class="pre">coverage</span></tt></a></td>
+<td>Plot angular coverage</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="module-arachnid.pyspider">
+<span id="arachnid-pyspider"></span><h3><a class="reference internal" href="#module-arachnid.pyspider" title="arachnid.pyspider"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><a class="headerlink" href="#module-arachnid.pyspider" title="Permalink to this headline">¶</a></h3>
+<p>pySPIDER Applications</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.align.html#module-arachnid.pyspider.align" title="arachnid.pyspider.align"><tt class="xref py py-obj docutils literal"><span class="pre">align</span></tt></a></td>
+<td>Align a set of particle windows to a reference and reconstruct the windows into a new volume</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.pyspider.defocus.html#module-arachnid.pyspider.defocus" title="arachnid.pyspider.defocus"><tt class="xref py py-obj docutils literal"><span class="pre">defocus</span></tt></a></td>
+<td>Estimate the defocus of a micrograph or a stack of particles</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.classify.html#module-arachnid.pyspider.classify" title="arachnid.pyspider.classify"><tt class="xref py py-obj docutils literal"><span class="pre">classify</span></tt></a></td>
+<td>Classify projections based on an alignment</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.pyspider.create_align.html#module-arachnid.pyspider.create_align" title="arachnid.pyspider.create_align"><tt class="xref py py-obj docutils literal"><span class="pre">create_align</span></tt></a></td>
+<td>Create an initial alignment file</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.enhance_volume.html#module-arachnid.pyspider.enhance_volume" title="arachnid.pyspider.enhance_volume"><tt class="xref py py-obj docutils literal"><span class="pre">enhance_volume</span></tt></a></td>
+<td>Volume filtering and amplitude enhancement</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.pyspider.filter_volume.html#module-arachnid.pyspider.filter_volume" title="arachnid.pyspider.filter_volume"><tt class="xref py py-obj docutils literal"><span class="pre">filter_volume</span></tt></a></td>
+<td>Filter a volume</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.mask_volume.html#module-arachnid.pyspider.mask_volume" title="arachnid.pyspider.mask_volume"><tt class="xref py py-obj docutils literal"><span class="pre">mask_volume</span></tt></a></td>
+<td>Mask a volume</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.pyspider.prepare_volume.html#module-arachnid.pyspider.prepare_volume" title="arachnid.pyspider.prepare_volume"><tt class="xref py py-obj docutils literal"><span class="pre">prepare_volume</span></tt></a></td>
+<td>Volume processing for next round of refinement.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.reconstruct.html#module-arachnid.pyspider.reconstruct" title="arachnid.pyspider.reconstruct"><tt class="xref py py-obj docutils literal"><span class="pre">reconstruct</span></tt></a></td>
+<td>Reconstruction of aligned particles into a volume</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.pyspider.refine.html#module-arachnid.pyspider.refine" title="arachnid.pyspider.refine"><tt class="xref py py-obj docutils literal"><span class="pre">refine</span></tt></a></td>
+<td>Refine the orientational assignment of a set of projections</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.resolution.html#module-arachnid.pyspider.resolution" title="arachnid.pyspider.resolution"><tt class="xref py py-obj docutils literal"><span class="pre">resolution</span></tt></a></td>
+<td>Calculate the resolution from half-volumes</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_generated/arachnid.pyspider.reference.html#module-arachnid.pyspider.reference" title="arachnid.pyspider.reference"><tt class="xref py py-obj docutils literal"><span class="pre">reference</span></tt></a></td>
+<td>Generate a reference for alignment</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_generated/arachnid.pyspider.autorefine.html#module-arachnid.pyspider.autorefine" title="arachnid.pyspider.autorefine"><tt class="xref py py-obj docutils literal"><span class="pre">autorefine</span></tt></a></td>
+<td>Automated passive-aggressive angular refinement</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2009-2014, Robert Langlois.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

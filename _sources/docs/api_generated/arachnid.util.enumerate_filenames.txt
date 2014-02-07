@@ -1,0 +1,165 @@
+enumerate_filenames
+=================================
+
+.. automodule:: arachnid.util.enumerate_filenames
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#generate-enum-links">generate_enum_links</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: generate-enum-links
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: generate_enum_links
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-enum-filename">is_enum_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-enum-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_enum_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-enum-files">map_enum_files</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-enum-files
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_enum_files
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#remap-enum-files">remap_enum_files</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: remap-enum-files
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: remap_enum_files
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports">supports</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

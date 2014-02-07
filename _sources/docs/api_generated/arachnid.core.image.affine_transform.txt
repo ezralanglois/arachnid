@@ -1,0 +1,53 @@
+affine_transform
+====================================
+
+.. automodule:: arachnid.core.image.affine_transform
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fourier-shift">fourier_shift</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fourier-shift
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fourier_shift
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotate-translate-image">rotate_translate_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotate-translate-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotate_translate_image
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

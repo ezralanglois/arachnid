@@ -1,0 +1,25 @@
+arachnid.core.app.settings.Validation
+=====================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: Validation
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      empty_filename
+      empty_string
+      empty_values
+   
+   .. automethod:: __init__
+   .. automethod:: empty_filename
+   .. automethod:: empty_string
+   .. automethod:: empty_values
+   
+   

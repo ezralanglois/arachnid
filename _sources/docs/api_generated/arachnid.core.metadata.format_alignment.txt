@@ -1,0 +1,67 @@
+format_alignment
+=======================================
+
+.. automodule:: arachnid.core.metadata.format_alignment
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-relion-star">is_relion_star</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-relion-star
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_relion_star
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-alignment">read_alignment</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-alignment
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_alignment
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-spider-alignment">read_spider_alignment</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-spider-alignment
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_spider_alignment
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

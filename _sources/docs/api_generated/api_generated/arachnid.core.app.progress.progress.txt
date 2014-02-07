@@ -1,0 +1,25 @@
+arachnid.core.app.progress.progress
+===================================
+
+.. currentmodule:: arachnid.core.app.progress
+
+.. autoclass:: progress
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      predicted_rate
+      time_remaining
+      update
+   
+   .. automethod:: __init__
+   .. automethod:: predicted_rate
+   .. automethod:: time_remaining
+   .. automethod:: update
+   
+   

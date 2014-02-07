@@ -1,0 +1,67 @@
+type_utility
+===================================
+
+.. automodule:: arachnid.core.metadata.type_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-float-int">is_float_int</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-float-int
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_float_int
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-int">is_int</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-int
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_int
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-string">is_string</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-string
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_string
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

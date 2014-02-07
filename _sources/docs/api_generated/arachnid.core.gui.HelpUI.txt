@@ -1,0 +1,27 @@
+HelpUI
+========================
+
+.. automodule:: arachnid.core.gui.HelpUI
+
+   
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      Dialog
+      Ui_Dialog
+   
+   
+
+   
+   
+   

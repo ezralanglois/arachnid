@@ -1,0 +1,178 @@
+tracing
+=========================
+
+.. automodule:: arachnid.core.app.tracing
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#backup">backup</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: backup
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: backup
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#backup-name">backup_name</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: backup-name
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: backup_name
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#configure-logging">configure_logging</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: configure-logging
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: configure_logging
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#configure-mp-logging">configure_mp_logging</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: configure-mp-logging
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: configure_mp_logging
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#default-logfile">default_logfile</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: default-logfile
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: default_logfile
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#log-import-error">log_import_error</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: log-import-error
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: log_import_error
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#print-import-warnings">print_import_warnings</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: print-import-warnings
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: print_import_warnings
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports-colors">supports_colors</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports-colors
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports_colors
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      ColoredFormatter
+      ExceptionFilter
+      Logger
+      NullHandler
+   
+   
+
+   
+   
+   

@@ -1,0 +1,53 @@
+arachnid.core.app.settings.OptionGroup
+======================================
+
+.. currentmodule:: arachnid.core.app.settings
+
+.. autoclass:: OptionGroup
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      add_option
+      add_option_group
+      add_options
+      destroy
+      format_description
+      format_help
+      format_option_help
+      get_config_options
+      get_description
+      get_option
+      group_titles
+      has_option
+      is_child
+      remove_option
+      set_conflict_handler
+      set_description
+      set_title
+   
+   .. automethod:: __init__
+   .. automethod:: add_option
+   .. automethod:: add_option_group
+   .. automethod:: add_options
+   .. automethod:: destroy
+   .. automethod:: format_description
+   .. automethod:: format_help
+   .. automethod:: format_option_help
+   .. automethod:: get_config_options
+   .. automethod:: get_description
+   .. automethod:: get_option
+   .. automethod:: group_titles
+   .. automethod:: has_option
+   .. automethod:: is_child
+   .. automethod:: remove_option
+   .. automethod:: set_conflict_handler
+   .. automethod:: set_description
+   .. automethod:: set_title
+   
+   

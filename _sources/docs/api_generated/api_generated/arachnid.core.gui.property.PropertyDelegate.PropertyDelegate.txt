@@ -1,0 +1,143 @@
+arachnid.core.gui.property.PropertyDelegate.PropertyDelegate
+============================================================
+
+.. currentmodule:: arachnid.core.gui.property.PropertyDelegate
+
+.. autoclass:: PropertyDelegate
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      blockSignals
+      check
+      childEvent
+      children
+      connect
+      connectNotify
+      createEditor
+      customEvent
+      decoration
+      deleteLater
+      disconnect
+      disconnectNotify
+      drawBackground
+      drawCheck
+      drawDecoration
+      drawDisplay
+      drawFocus
+      dumpObjectInfo
+      dumpObjectTree
+      dynamicPropertyNames
+      editorEvent
+      emit
+      event
+      eventFilter
+      findChild
+      findChildren
+      hasClipping
+      helpEvent
+      inherits
+      installEventFilter
+      isWidgetType
+      itemEditorFactory
+      killTimer
+      metaObject
+      moveToThread
+      objectName
+      paint
+      parent
+      parseEditorHints
+      property
+      receivers
+      rect
+      registerUserData
+      removeEventFilter
+      sender
+      setClipping
+      setEditorData
+      setItemEditorFactory
+      setModelData
+      setObjectName
+      setOptions
+      setParent
+      setProperty
+      signalsBlocked
+      sizeHint
+      startTimer
+      textRectangle
+      thread
+      timerEvent
+      tr
+      trUtf8
+      updateEditorGeometry
+   
+   .. automethod:: __init__
+   .. automethod:: blockSignals
+   .. automethod:: check
+   .. automethod:: childEvent
+   .. automethod:: children
+   .. automethod:: connect
+   .. automethod:: connectNotify
+   .. automethod:: createEditor
+   .. automethod:: customEvent
+   .. automethod:: decoration
+   .. automethod:: deleteLater
+   .. automethod:: disconnect
+   .. automethod:: disconnectNotify
+   .. automethod:: drawBackground
+   .. automethod:: drawCheck
+   .. automethod:: drawDecoration
+   .. automethod:: drawDisplay
+   .. automethod:: drawFocus
+   .. automethod:: dumpObjectInfo
+   .. automethod:: dumpObjectTree
+   .. automethod:: dynamicPropertyNames
+   .. automethod:: editorEvent
+   .. automethod:: emit
+   .. automethod:: event
+   .. automethod:: eventFilter
+   .. automethod:: findChild
+   .. automethod:: findChildren
+   .. automethod:: hasClipping
+   .. automethod:: helpEvent
+   .. automethod:: inherits
+   .. automethod:: installEventFilter
+   .. automethod:: isWidgetType
+   .. automethod:: itemEditorFactory
+   .. automethod:: killTimer
+   .. automethod:: metaObject
+   .. automethod:: moveToThread
+   .. automethod:: objectName
+   .. automethod:: paint
+   .. automethod:: parent
+   .. automethod:: parseEditorHints
+   .. automethod:: property
+   .. automethod:: receivers
+   .. automethod:: rect
+   .. automethod:: registerUserData
+   .. automethod:: removeEventFilter
+   .. automethod:: sender
+   .. automethod:: setClipping
+   .. automethod:: setEditorData
+   .. automethod:: setItemEditorFactory
+   .. automethod:: setModelData
+   .. automethod:: setObjectName
+   .. automethod:: setOptions
+   .. automethod:: setParent
+   .. automethod:: setProperty
+   .. automethod:: signalsBlocked
+   .. automethod:: sizeHint
+   .. automethod:: startTimer
+   .. automethod:: textRectangle
+   .. automethod:: thread
+   .. automethod:: timerEvent
+   .. automethod:: tr
+   .. automethod:: trUtf8
+   .. automethod:: updateEditorGeometry
+   
+   

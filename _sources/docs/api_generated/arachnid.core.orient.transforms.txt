@@ -1,0 +1,665 @@
+transforms
+===============================
+
+.. automodule:: arachnid.core.orient.transforms
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#affine-matrix-from-points">affine_matrix_from_points</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: affine-matrix-from-points
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: affine_matrix_from_points
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#angle-between-vectors">angle_between_vectors</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: angle-between-vectors
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: angle_between_vectors
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#arcball-constrain-to-axis">arcball_constrain_to_axis</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: arcball-constrain-to-axis
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: arcball_constrain_to_axis
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#arcball-map-to-sphere">arcball_map_to_sphere</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: arcball-map-to-sphere
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: arcball_map_to_sphere
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#arcball-nearest-axis">arcball_nearest_axis</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: arcball-nearest-axis
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: arcball_nearest_axis
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#clip-matrix">clip_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: clip-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: clip_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#compose-matrix">compose_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: compose-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: compose_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#concatenate-matrices">concatenate_matrices</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: concatenate-matrices
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: concatenate_matrices
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#decompose-matrix">decompose_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: decompose-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: decompose_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#euler-from-matrix">euler_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: euler-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: euler_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#euler-from-quaternion">euler_from_quaternion</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: euler-from-quaternion
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: euler_from_quaternion
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#euler-matrix">euler_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: euler-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: euler_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#identity-matrix">identity_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: identity-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: identity_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#inverse-matrix">inverse_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: inverse-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: inverse_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-same-transform">is_same_transform</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-same-transform
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_same_transform
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#orthogonalization-matrix">orthogonalization_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: orthogonalization-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: orthogonalization_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#projection-from-matrix">projection_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: projection-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: projection_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#projection-matrix">projection_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: projection-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: projection_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-about-axis">quaternion_about_axis</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-about-axis
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_about_axis
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-conjugate">quaternion_conjugate</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-conjugate
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_conjugate
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-from-euler">quaternion_from_euler</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-from-euler
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_from_euler
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-from-matrix">quaternion_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-imag">quaternion_imag</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-imag
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_imag
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-inverse">quaternion_inverse</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-inverse
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_inverse
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-matrix">quaternion_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-multiply">quaternion_multiply</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-multiply
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_multiply
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-real">quaternion_real</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-real
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_real
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#quaternion-slerp">quaternion_slerp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: quaternion-slerp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: quaternion_slerp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#random-quaternion">random_quaternion</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: random-quaternion
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: random_quaternion
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#random-rotation-matrix">random_rotation_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: random-rotation-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: random_rotation_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#random-vector">random_vector</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: random-vector
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: random_vector
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reflection-from-matrix">reflection_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reflection-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reflection_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reflection-matrix">reflection_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reflection-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reflection_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotation-from-matrix">rotation_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotation-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotation_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotation-matrix">rotation_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotation-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotation_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#scale-from-matrix">scale_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: scale-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: scale_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#scale-matrix">scale_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: scale-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: scale_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#shear-from-matrix">shear_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: shear-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: shear_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#shear-matrix">shear_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: shear-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: shear_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#superimposition-matrix">superimposition_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: superimposition-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: superimposition_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#translation-from-matrix">translation_from_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: translation-from-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: translation_from_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#translation-matrix">translation_matrix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: translation-matrix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: translation_matrix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#unit-vector">unit_vector</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: unit-vector
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: unit_vector
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#vector-norm">vector_norm</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: vector-norm
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: vector_norm
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#vector-product">vector_product</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: vector-product
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: vector_product
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      Arcball
+   
+   
+
+   
+   
+   

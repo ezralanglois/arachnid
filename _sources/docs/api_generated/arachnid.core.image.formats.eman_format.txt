@@ -1,0 +1,165 @@
+eman_format
+=======================================
+
+.. automodule:: arachnid.core.image.formats.eman_format
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cache-data">cache_data</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cache-data
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cache_data
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#count-images">count_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: count-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: count_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-avaliable">is_avaliable</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-avaliable
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_avaliable
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-readable">is_readable</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-readable
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_readable
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-writable">is_writable</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-writable
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_writable
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#iter-images">iter_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: iter-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: iter_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-header">read_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-image">read_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-image">write_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-spider-image">write_spider_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-spider-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_spider_image
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

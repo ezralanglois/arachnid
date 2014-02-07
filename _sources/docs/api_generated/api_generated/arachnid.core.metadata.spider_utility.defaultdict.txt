@@ -1,0 +1,47 @@
+arachnid.core.metadata.spider_utility.defaultdict
+=================================================
+
+.. currentmodule:: arachnid.core.metadata.spider_utility
+
+.. autoclass:: defaultdict
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      clear
+      copy
+      fromkeys
+      get
+      has_key
+      items
+      iteritems
+      iterkeys
+      itervalues
+      keys
+      pop
+      popitem
+      setdefault
+      update
+      values
+   
+   .. automethod:: clear
+   .. automethod:: copy
+   .. automethod:: fromkeys
+   .. automethod:: get
+   .. automethod:: has_key
+   .. automethod:: items
+   .. automethod:: iteritems
+   .. automethod:: iterkeys
+   .. automethod:: itervalues
+   .. automethod:: keys
+   .. automethod:: pop
+   .. automethod:: popitem
+   .. automethod:: setdefault
+   .. automethod:: update
+   .. automethod:: values
+   
+   

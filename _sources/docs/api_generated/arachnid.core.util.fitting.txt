@@ -1,0 +1,95 @@
+fitting
+==========================
+
+.. automodule:: arachnid.core.util.fitting
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fit-linear-interp">fit_linear_interp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fit-linear-interp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fit_linear_interp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fit-sigmoid">fit_sigmoid</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fit-sigmoid
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fit_sigmoid
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fit-sigmoid-interp">fit_sigmoid_interp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fit-sigmoid-interp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fit_sigmoid_interp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#sigmoid">sigmoid</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: sigmoid
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: sigmoid
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#sigmoid-inv">sigmoid_inv</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: sigmoid-inv
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: sigmoid_inv
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

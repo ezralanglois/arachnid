@@ -1,0 +1,333 @@
+align_frames
+=========================
+
+.. automodule:: arachnid.app.align_frames
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-in-memory">align_in_memory</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-in-memory
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_in_memory
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-l2">align_l2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-l2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_l2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#align-sequential">align_sequential</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: align-sequential
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: align_sequential
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#average-fft">average_fft</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: average-fft
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: average_fft
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#benchmark-in-memory">benchmark_in_memory</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: benchmark-in-memory
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: benchmark_in_memory
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#change-option-defaults">change_option_defaults</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: change-option-defaults
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: change_option_defaults
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize">finalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#perdiogram">perdiogram</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: perdiogram
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: perdiogram
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#powerspectra">powerspectra</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: powerspectra
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: powerspectra
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reduce-all">reduce_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reduce-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reduce_all
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports">supports</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-average">write_average</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-average
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_average
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-average-with-path">write_average_with_path</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-average-with-path
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_average_with_path
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-coordinates">write_coordinates</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-coordinates
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_coordinates
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-perdiogram">write_perdiogram</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-perdiogram
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_perdiogram
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-pow">write_pow</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-pow
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_pow
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

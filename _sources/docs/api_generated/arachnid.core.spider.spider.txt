@@ -1,0 +1,450 @@
+spider
+===========================
+
+.. automodule:: arachnid.core.spider.spider
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#angle-count">angle_count</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: angle-count
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: angle_count
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cache-data">cache_data</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cache-data
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cache_data
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cache-interpolate">cache_interpolate</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cache-interpolate
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cache_interpolate
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#copy">copy</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: copy
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: copy
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#copy-interpolate">copy_interpolate</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: copy-interpolate
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: copy_interpolate
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#copy-safe">copy_safe</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: copy-safe
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: copy_safe
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#count-images">count_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: count-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: count_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-proper-parameters">ensure_proper_parameters</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-proper-parameters
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_proper_parameters
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#enumerate-stack">enumerate_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: enumerate-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: enumerate_stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#for-image">for_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: for-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: for_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#image-size">image_size</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: image-size
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: image_size
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#interpolate-stack">interpolate_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: interpolate-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: interpolate_stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-incore-filename">is_incore_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-incore-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_incore_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#max-translation-range">max_translation_range</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: max-translation-range
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: max_translation_range
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#nonspi-file">nonspi_file</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: nonspi-file
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: nonspi_file
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#open-session">open_session</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: open-session
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: open_session
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#phase-flip">phase_flip</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: phase-flip
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: phase_flip
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#release-mp">release_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: release-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: release_mp
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rt-sq-single">rt_sq_single</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rt-sq-single
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rt_sq_single
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#scale-parameters">scale_parameters</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: scale-parameters
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: scale_parameters
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-coord-tuple">spider_coord_tuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-coord-tuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_coord_tuple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-doc">spider_doc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-doc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_doc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-image">spider_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-select">spider_select</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-select
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_select
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-stack">spider_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-tuple">spider_tuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-tuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_tuple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#stack">stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports-internal-rtsq">supports_internal_rtsq</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports-internal-rtsq
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports_internal_rtsq
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#throttle-mp">throttle_mp</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: throttle-mp
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: throttle_mp
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      Session
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      SpiderCrashed
+      SpiderParameterError
+   
+   

@@ -1,0 +1,39 @@
+arachnid.core.spider.spider_var.spider_var_pool
+===============================================
+
+.. currentmodule:: arachnid.core.spider.spider_var
+
+.. autoclass:: spider_var_pool
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      append
+      count
+      extend
+      get
+      index
+      insert
+      pop
+      remove
+      reverse
+      sort
+   
+   .. automethod:: __init__
+   .. automethod:: append
+   .. automethod:: count
+   .. automethod:: extend
+   .. automethod:: get
+   .. automethod:: index
+   .. automethod:: insert
+   .. automethod:: pop
+   .. automethod:: remove
+   .. automethod:: reverse
+   .. automethod:: sort
+   
+   

@@ -1,0 +1,27 @@
+DocumentModel
+=====================================
+
+.. automodule:: arachnid.core.gui.model.DocumentModel
+
+   
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      DocumentModel
+      qtSignal
+   
+   
+
+   
+   
+   

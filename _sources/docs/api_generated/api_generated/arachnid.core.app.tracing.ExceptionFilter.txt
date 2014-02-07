@@ -1,0 +1,21 @@
+arachnid.core.app.tracing.ExceptionFilter
+=========================================
+
+.. currentmodule:: arachnid.core.app.tracing
+
+.. autoclass:: ExceptionFilter
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      filter
+   
+   .. automethod:: __init__
+   .. automethod:: filter
+   
+   

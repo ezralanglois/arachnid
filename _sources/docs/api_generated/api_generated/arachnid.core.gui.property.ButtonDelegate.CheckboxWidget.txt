@@ -1,0 +1,607 @@
+arachnid.core.gui.property.ButtonDelegate.CheckboxWidget
+========================================================
+
+.. currentmodule:: arachnid.core.gui.property.ButtonDelegate
+
+.. autoclass:: CheckboxWidget
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      acceptDrops
+      accessibleDescription
+      accessibleName
+      actionEvent
+      actions
+      activateWindow
+      addAction
+      addActions
+      adjustSize
+      autoFillBackground
+      backgroundRole
+      baseSize
+      blockSignals
+      changeEvent
+      childAt
+      childEvent
+      children
+      childrenRect
+      childrenRegion
+      clearFocus
+      clearMask
+      close
+      closeEvent
+      colorCount
+      connect
+      connectNotify
+      contentsMargins
+      contentsRect
+      contextMenuEvent
+      contextMenuPolicy
+      createWinId
+      cursor
+      customEvent
+      deleteLater
+      depth
+      destroy
+      devType
+      disconnect
+      disconnectNotify
+      dragEnterEvent
+      dragLeaveEvent
+      dragMoveEvent
+      dropEvent
+      dumpObjectInfo
+      dumpObjectTree
+      dynamicPropertyNames
+      effectiveWinId
+      emit
+      ensurePolished
+      enterEvent
+      event
+      eventFilter
+      findChild
+      findChildren
+      focusInEvent
+      focusNextChild
+      focusNextPrevChild
+      focusOutEvent
+      focusPolicy
+      focusPreviousChild
+      focusProxy
+      focusWidget
+      font
+      fontInfo
+      fontMetrics
+      foregroundRole
+      frameGeometry
+      frameSize
+      geometry
+      getContentsMargins
+      grabGesture
+      grabKeyboard
+      grabMouse
+      grabShortcut
+      graphicsEffect
+      graphicsProxyWidget
+      hasFocus
+      hasMouseTracking
+      height
+      heightForWidth
+      heightMM
+      hide
+      hideEvent
+      inherits
+      inputContext
+      inputMethodEvent
+      inputMethodHints
+      inputMethodQuery
+      insertAction
+      insertActions
+      installEventFilter
+      isActiveWindow
+      isAncestorOf
+      isEnabled
+      isEnabledTo
+      isFullScreen
+      isHidden
+      isLeftToRight
+      isMaximized
+      isMinimized
+      isModal
+      isRightToLeft
+      isVisible
+      isVisibleTo
+      isWidgetType
+      isWindow
+      isWindowModified
+      keyPressEvent
+      keyReleaseEvent
+      keyboardGrabber
+      killTimer
+      languageChange
+      layout
+      layoutDirection
+      leaveEvent
+      locale
+      logicalDpiX
+      logicalDpiY
+      lower
+      macCGHandle
+      macQDHandle
+      mapFrom
+      mapFromGlobal
+      mapFromParent
+      mapTo
+      mapToGlobal
+      mapToParent
+      mask
+      maximumHeight
+      maximumSize
+      maximumWidth
+      metaObject
+      metric
+      minimumHeight
+      minimumSize
+      minimumSizeHint
+      minimumWidth
+      mouseDoubleClickEvent
+      mouseGrabber
+      mouseMoveEvent
+      mousePressEvent
+      mouseReleaseEvent
+      move
+      moveEvent
+      moveToThread
+      nativeParentWidget
+      nextInFocusChain
+      normalGeometry
+      numColors
+      objectName
+      overrideWindowFlags
+      overrideWindowState
+      paintEngine
+      paintEvent
+      paintingActive
+      palette
+      parent
+      parentWidget
+      physicalDpiX
+      physicalDpiY
+      pos
+      previousInFocusChain
+      property
+      raise_
+      receivers
+      rect
+      registerUserData
+      releaseKeyboard
+      releaseMouse
+      releaseShortcut
+      removeAction
+      removeEventFilter
+      render
+      repaint
+      resetInputContext
+      resize
+      resizeEvent
+      restoreGeometry
+      saveGeometry
+      scroll
+      sender
+      setAcceptDrops
+      setAccessibleDescription
+      setAccessibleName
+      setAttribute
+      setAutoFillBackground
+      setBackgroundRole
+      setBaseSize
+      setContentsMargins
+      setContextMenuPolicy
+      setCursor
+      setDisabled
+      setEnabled
+      setFixedHeight
+      setFixedSize
+      setFixedWidth
+      setFocus
+      setFocusPolicy
+      setFocusProxy
+      setFont
+      setForegroundRole
+      setGeometry
+      setGraphicsEffect
+      setHidden
+      setInputContext
+      setInputMethodHints
+      setLayout
+      setLayoutDirection
+      setLocale
+      setMask
+      setMaximumHeight
+      setMaximumSize
+      setMaximumWidth
+      setMinimumHeight
+      setMinimumSize
+      setMinimumWidth
+      setMouseTracking
+      setObjectName
+      setPalette
+      setParent
+      setProperty
+      setShortcutAutoRepeat
+      setShortcutEnabled
+      setSizeIncrement
+      setSizePolicy
+      setStatusTip
+      setStyle
+      setStyleSheet
+      setTabOrder
+      setToolTip
+      setUpdatesEnabled
+      setVisible
+      setWhatsThis
+      setWindowFilePath
+      setWindowFlags
+      setWindowIcon
+      setWindowIconText
+      setWindowModality
+      setWindowModified
+      setWindowOpacity
+      setWindowRole
+      setWindowState
+      setWindowTitle
+      show
+      showEvent
+      showFullScreen
+      showMaximized
+      showMinimized
+      showNormal
+      signalsBlocked
+      size
+      sizeHint
+      sizeIncrement
+      sizePolicy
+      stackUnder
+      startTimer
+      statusTip
+      style
+      styleSheet
+      tabletEvent
+      testAttribute
+      thread
+      timerEvent
+      toolTip
+      tr
+      trUtf8
+      underMouse
+      ungrabGesture
+      unsetCursor
+      unsetLayoutDirection
+      unsetLocale
+      update
+      updateGeometry
+      updateMicroFocus
+      updatesEnabled
+      visibleRegion
+      whatsThis
+      wheelEvent
+      width
+      widthMM
+      winId
+      window
+      windowFilePath
+      windowFlags
+      windowIcon
+      windowIconText
+      windowModality
+      windowOpacity
+      windowRole
+      windowState
+      windowTitle
+      windowType
+      x
+      y
+   
+   .. automethod:: __init__
+   .. automethod:: acceptDrops
+   .. automethod:: accessibleDescription
+   .. automethod:: accessibleName
+   .. automethod:: actionEvent
+   .. automethod:: actions
+   .. automethod:: activateWindow
+   .. automethod:: addAction
+   .. automethod:: addActions
+   .. automethod:: adjustSize
+   .. automethod:: autoFillBackground
+   .. automethod:: backgroundRole
+   .. automethod:: baseSize
+   .. automethod:: blockSignals
+   .. automethod:: changeEvent
+   .. automethod:: childAt
+   .. automethod:: childEvent
+   .. automethod:: children
+   .. automethod:: childrenRect
+   .. automethod:: childrenRegion
+   .. automethod:: clearFocus
+   .. automethod:: clearMask
+   .. automethod:: close
+   .. automethod:: closeEvent
+   .. automethod:: colorCount
+   .. automethod:: connect
+   .. automethod:: connectNotify
+   .. automethod:: contentsMargins
+   .. automethod:: contentsRect
+   .. automethod:: contextMenuEvent
+   .. automethod:: contextMenuPolicy
+   .. automethod:: createWinId
+   .. automethod:: cursor
+   .. automethod:: customEvent
+   .. automethod:: deleteLater
+   .. automethod:: depth
+   .. automethod:: destroy
+   .. automethod:: devType
+   .. automethod:: disconnect
+   .. automethod:: disconnectNotify
+   .. automethod:: dragEnterEvent
+   .. automethod:: dragLeaveEvent
+   .. automethod:: dragMoveEvent
+   .. automethod:: dropEvent
+   .. automethod:: dumpObjectInfo
+   .. automethod:: dumpObjectTree
+   .. automethod:: dynamicPropertyNames
+   .. automethod:: effectiveWinId
+   .. automethod:: emit
+   .. automethod:: ensurePolished
+   .. automethod:: enterEvent
+   .. automethod:: event
+   .. automethod:: eventFilter
+   .. automethod:: findChild
+   .. automethod:: findChildren
+   .. automethod:: focusInEvent
+   .. automethod:: focusNextChild
+   .. automethod:: focusNextPrevChild
+   .. automethod:: focusOutEvent
+   .. automethod:: focusPolicy
+   .. automethod:: focusPreviousChild
+   .. automethod:: focusProxy
+   .. automethod:: focusWidget
+   .. automethod:: font
+   .. automethod:: fontInfo
+   .. automethod:: fontMetrics
+   .. automethod:: foregroundRole
+   .. automethod:: frameGeometry
+   .. automethod:: frameSize
+   .. automethod:: geometry
+   .. automethod:: getContentsMargins
+   .. automethod:: grabGesture
+   .. automethod:: grabKeyboard
+   .. automethod:: grabMouse
+   .. automethod:: grabShortcut
+   .. automethod:: graphicsEffect
+   .. automethod:: graphicsProxyWidget
+   .. automethod:: hasFocus
+   .. automethod:: hasMouseTracking
+   .. automethod:: height
+   .. automethod:: heightForWidth
+   .. automethod:: heightMM
+   .. automethod:: hide
+   .. automethod:: hideEvent
+   .. automethod:: inherits
+   .. automethod:: inputContext
+   .. automethod:: inputMethodEvent
+   .. automethod:: inputMethodHints
+   .. automethod:: inputMethodQuery
+   .. automethod:: insertAction
+   .. automethod:: insertActions
+   .. automethod:: installEventFilter
+   .. automethod:: isActiveWindow
+   .. automethod:: isAncestorOf
+   .. automethod:: isEnabled
+   .. automethod:: isEnabledTo
+   .. automethod:: isFullScreen
+   .. automethod:: isHidden
+   .. automethod:: isLeftToRight
+   .. automethod:: isMaximized
+   .. automethod:: isMinimized
+   .. automethod:: isModal
+   .. automethod:: isRightToLeft
+   .. automethod:: isVisible
+   .. automethod:: isVisibleTo
+   .. automethod:: isWidgetType
+   .. automethod:: isWindow
+   .. automethod:: isWindowModified
+   .. automethod:: keyPressEvent
+   .. automethod:: keyReleaseEvent
+   .. automethod:: keyboardGrabber
+   .. automethod:: killTimer
+   .. automethod:: languageChange
+   .. automethod:: layout
+   .. automethod:: layoutDirection
+   .. automethod:: leaveEvent
+   .. automethod:: locale
+   .. automethod:: logicalDpiX
+   .. automethod:: logicalDpiY
+   .. automethod:: lower
+   .. automethod:: macCGHandle
+   .. automethod:: macQDHandle
+   .. automethod:: mapFrom
+   .. automethod:: mapFromGlobal
+   .. automethod:: mapFromParent
+   .. automethod:: mapTo
+   .. automethod:: mapToGlobal
+   .. automethod:: mapToParent
+   .. automethod:: mask
+   .. automethod:: maximumHeight
+   .. automethod:: maximumSize
+   .. automethod:: maximumWidth
+   .. automethod:: metaObject
+   .. automethod:: metric
+   .. automethod:: minimumHeight
+   .. automethod:: minimumSize
+   .. automethod:: minimumSizeHint
+   .. automethod:: minimumWidth
+   .. automethod:: mouseDoubleClickEvent
+   .. automethod:: mouseGrabber
+   .. automethod:: mouseMoveEvent
+   .. automethod:: mousePressEvent
+   .. automethod:: mouseReleaseEvent
+   .. automethod:: move
+   .. automethod:: moveEvent
+   .. automethod:: moveToThread
+   .. automethod:: nativeParentWidget
+   .. automethod:: nextInFocusChain
+   .. automethod:: normalGeometry
+   .. automethod:: numColors
+   .. automethod:: objectName
+   .. automethod:: overrideWindowFlags
+   .. automethod:: overrideWindowState
+   .. automethod:: paintEngine
+   .. automethod:: paintEvent
+   .. automethod:: paintingActive
+   .. automethod:: palette
+   .. automethod:: parent
+   .. automethod:: parentWidget
+   .. automethod:: physicalDpiX
+   .. automethod:: physicalDpiY
+   .. automethod:: pos
+   .. automethod:: previousInFocusChain
+   .. automethod:: property
+   .. automethod:: raise_
+   .. automethod:: receivers
+   .. automethod:: rect
+   .. automethod:: registerUserData
+   .. automethod:: releaseKeyboard
+   .. automethod:: releaseMouse
+   .. automethod:: releaseShortcut
+   .. automethod:: removeAction
+   .. automethod:: removeEventFilter
+   .. automethod:: render
+   .. automethod:: repaint
+   .. automethod:: resetInputContext
+   .. automethod:: resize
+   .. automethod:: resizeEvent
+   .. automethod:: restoreGeometry
+   .. automethod:: saveGeometry
+   .. automethod:: scroll
+   .. automethod:: sender
+   .. automethod:: setAcceptDrops
+   .. automethod:: setAccessibleDescription
+   .. automethod:: setAccessibleName
+   .. automethod:: setAttribute
+   .. automethod:: setAutoFillBackground
+   .. automethod:: setBackgroundRole
+   .. automethod:: setBaseSize
+   .. automethod:: setContentsMargins
+   .. automethod:: setContextMenuPolicy
+   .. automethod:: setCursor
+   .. automethod:: setDisabled
+   .. automethod:: setEnabled
+   .. automethod:: setFixedHeight
+   .. automethod:: setFixedSize
+   .. automethod:: setFixedWidth
+   .. automethod:: setFocus
+   .. automethod:: setFocusPolicy
+   .. automethod:: setFocusProxy
+   .. automethod:: setFont
+   .. automethod:: setForegroundRole
+   .. automethod:: setGeometry
+   .. automethod:: setGraphicsEffect
+   .. automethod:: setHidden
+   .. automethod:: setInputContext
+   .. automethod:: setInputMethodHints
+   .. automethod:: setLayout
+   .. automethod:: setLayoutDirection
+   .. automethod:: setLocale
+   .. automethod:: setMask
+   .. automethod:: setMaximumHeight
+   .. automethod:: setMaximumSize
+   .. automethod:: setMaximumWidth
+   .. automethod:: setMinimumHeight
+   .. automethod:: setMinimumSize
+   .. automethod:: setMinimumWidth
+   .. automethod:: setMouseTracking
+   .. automethod:: setObjectName
+   .. automethod:: setPalette
+   .. automethod:: setParent
+   .. automethod:: setProperty
+   .. automethod:: setShortcutAutoRepeat
+   .. automethod:: setShortcutEnabled
+   .. automethod:: setSizeIncrement
+   .. automethod:: setSizePolicy
+   .. automethod:: setStatusTip
+   .. automethod:: setStyle
+   .. automethod:: setStyleSheet
+   .. automethod:: setTabOrder
+   .. automethod:: setToolTip
+   .. automethod:: setUpdatesEnabled
+   .. automethod:: setVisible
+   .. automethod:: setWhatsThis
+   .. automethod:: setWindowFilePath
+   .. automethod:: setWindowFlags
+   .. automethod:: setWindowIcon
+   .. automethod:: setWindowIconText
+   .. automethod:: setWindowModality
+   .. automethod:: setWindowModified
+   .. automethod:: setWindowOpacity
+   .. automethod:: setWindowRole
+   .. automethod:: setWindowState
+   .. automethod:: setWindowTitle
+   .. automethod:: show
+   .. automethod:: showEvent
+   .. automethod:: showFullScreen
+   .. automethod:: showMaximized
+   .. automethod:: showMinimized
+   .. automethod:: showNormal
+   .. automethod:: signalsBlocked
+   .. automethod:: size
+   .. automethod:: sizeHint
+   .. automethod:: sizeIncrement
+   .. automethod:: sizePolicy
+   .. automethod:: stackUnder
+   .. automethod:: startTimer
+   .. automethod:: statusTip
+   .. automethod:: style
+   .. automethod:: styleSheet
+   .. automethod:: tabletEvent
+   .. automethod:: testAttribute
+   .. automethod:: thread
+   .. automethod:: timerEvent
+   .. automethod:: toolTip
+   .. automethod:: tr
+   .. automethod:: trUtf8
+   .. automethod:: underMouse
+   .. automethod:: ungrabGesture
+   .. automethod:: unsetCursor
+   .. automethod:: unsetLayoutDirection
+   .. automethod:: unsetLocale
+   .. automethod:: update
+   .. automethod:: updateGeometry
+   .. automethod:: updateMicroFocus
+   .. automethod:: updatesEnabled
+   .. automethod:: visibleRegion
+   .. automethod:: whatsThis
+   .. automethod:: wheelEvent
+   .. automethod:: width
+   .. automethod:: widthMM
+   .. automethod:: winId
+   .. automethod:: window
+   .. automethod:: windowFilePath
+   .. automethod:: windowFlags
+   .. automethod:: windowIcon
+   .. automethod:: windowIconText
+   .. automethod:: windowModality
+   .. automethod:: windowOpacity
+   .. automethod:: windowRole
+   .. automethod:: windowState
+   .. automethod:: windowTitle
+   .. automethod:: windowType
+   .. automethod:: x
+   .. automethod:: y
+   
+   

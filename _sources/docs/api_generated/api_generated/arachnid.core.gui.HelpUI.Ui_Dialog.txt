@@ -1,0 +1,21 @@
+arachnid.core.gui.HelpUI.Ui_Dialog
+==================================
+
+.. currentmodule:: arachnid.core.gui.HelpUI
+
+.. autoclass:: Ui_Dialog
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      retranslateUi
+      setupUi
+   
+   .. automethod:: retranslateUi
+   .. automethod:: setupUi
+   
+   

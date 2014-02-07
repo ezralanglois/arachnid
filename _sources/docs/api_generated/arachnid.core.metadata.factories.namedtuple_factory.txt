@@ -1,0 +1,123 @@
+namedtuple_factory
+===================================================
+
+.. automodule:: arachnid.core.metadata.factories.namedtuple_factory
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create">create</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-named-list">create_named_list</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-named-list
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_named_list
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-container">ensure_container</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-container
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_container
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#format-iter">format_iter</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: format-iter
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: format_iter
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-header">get_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-values">get_values</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-values
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_values
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#namedtuple">namedtuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: namedtuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: namedtuple
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

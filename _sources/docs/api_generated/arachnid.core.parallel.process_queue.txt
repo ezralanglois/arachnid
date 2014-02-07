@@ -1,0 +1,229 @@
+process_queue
+====================================
+
+.. automodule:: arachnid.core.parallel.process_queue
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#current-id">current_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: current-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: current_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#err-msg">err_msg</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: err-msg
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: err_msg
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#for-mapped">for_mapped</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: for-mapped
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: for_mapped
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-array">map_array</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-array
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_array
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-array-out">map_array_out</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-array-out
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_array_out
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-reduce-array">map_reduce_array</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-reduce-array
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_reduce_array
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-reduce-ndarray">map_reduce_ndarray</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-reduce-ndarray
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_reduce_ndarray
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#start-raw-enum-workers">start_raw_enum_workers</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: start-raw-enum-workers
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: start_raw_enum_workers
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#start-raw-workers">start_raw_workers</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: start-raw-workers
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: start_raw_workers
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#start-reduce">start_reduce</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: start-reduce
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: start_reduce
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#start-workers">start_workers</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: start-workers
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: start_workers
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#start-workers-with-output">start_workers_with_output</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: start-workers-with-output
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: start_workers_with_output
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#stop-workers">stop_workers</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: stop-workers
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: stop_workers
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#worker-all">worker_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: worker-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: worker_all
+
+   
+   
+
+   
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      ProcessException
+   
+   

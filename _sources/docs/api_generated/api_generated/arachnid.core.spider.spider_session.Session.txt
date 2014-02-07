@@ -1,0 +1,43 @@
+arachnid.core.spider.spider_session.Session
+===========================================
+
+.. currentmodule:: arachnid.core.spider.spider_session
+
+.. autoclass:: Session
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      close
+      ext
+      flush
+      get
+      get_version
+      invoke
+      relaunch
+      replace_ext
+      set
+      spider_results
+      temp_incore_doc
+      temp_incore_image
+   
+   .. automethod:: __init__
+   .. automethod:: close
+   .. automethod:: ext
+   .. automethod:: flush
+   .. automethod:: get
+   .. automethod:: get_version
+   .. automethod:: invoke
+   .. automethod:: relaunch
+   .. automethod:: replace_ext
+   .. automethod:: set
+   .. automethod:: spider_results
+   .. automethod:: temp_incore_doc
+   .. automethod:: temp_incore_image
+   
+   

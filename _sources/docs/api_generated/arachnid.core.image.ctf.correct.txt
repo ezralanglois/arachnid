@@ -1,0 +1,95 @@
+correct
+===============================
+
+.. automodule:: arachnid.core.image.ctf.correct
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#correct">correct</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: correct
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: correct
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#correct-model">correct_model</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: correct-model
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: correct_model
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#phase-flip-transfer-function">phase_flip_transfer_function</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: phase-flip-transfer-function
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: phase_flip_transfer_function
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-fft2">spider_fft2</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-fft2
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_fft2
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#transfer-function">transfer_function</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: transfer-function
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: transfer_function
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

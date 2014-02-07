@@ -1,0 +1,39 @@
+arachnid.core.app.program.program
+=================================
+
+.. currentmodule:: arachnid.core.app.program
+
+.. autoclass:: program
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      check_options_validity
+      configFile
+      ensure_log_file
+      id
+      launch
+      name
+      program_name
+      settings
+      update
+      write_config
+   
+   .. automethod:: __init__
+   .. automethod:: check_options_validity
+   .. automethod:: configFile
+   .. automethod:: ensure_log_file
+   .. automethod:: id
+   .. automethod:: launch
+   .. automethod:: name
+   .. automethod:: program_name
+   .. automethod:: settings
+   .. automethod:: update
+   .. automethod:: write_config
+   
+   

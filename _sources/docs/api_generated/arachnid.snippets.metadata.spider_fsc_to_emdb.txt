@@ -1,0 +1,39 @@
+spider_fsc_to_emdb
+=============================================
+
+.. automodule:: arachnid.snippets.metadata.spider_fsc_to_emdb
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-xml">write_xml</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-xml
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_xml
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

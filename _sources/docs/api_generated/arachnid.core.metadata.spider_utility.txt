@@ -1,0 +1,435 @@
+spider_utility
+=====================================
+
+.. automodule:: arachnid.core.metadata.spider_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#add-spider-id">add_spider_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: add-spider-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: add_spider_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#extract-id">extract_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: extract-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: extract_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#file-map">file_map</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: file-map
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: file_map
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#fileid">fileid</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: fileid
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: fileid
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#frame-filename">frame_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: frame-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: frame_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#frame-id">frame_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: frame-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: frame_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#has-file-id">has_file_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: has-file-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: has_file_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-int">is_int</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-int
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_int
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-spider-filename">is_spider_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-spider-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_spider_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#namedtuple">namedtuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: namedtuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: namedtuple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#object-id">object_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: object-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: object_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-file-subset">select_file_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-file-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_file_subset
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-subset">select_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_subset
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#single-images">single_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: single-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: single_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-basename">spider_basename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-basename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_basename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-filename">spider_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-filepath">spider_filepath</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-filepath
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_filepath
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-header-vals">spider_header_vals</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-header-vals
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_header_vals
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-header-vars">spider_header_vars</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-header-vars
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_header_vars
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-id">spider_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-id-length">spider_id_length</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-id-length
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_id_length
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-searchpath">spider_searchpath</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-searchpath
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_searchpath
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-template">spider_template</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-template
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_template
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#split-id">split_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: split-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: split_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#split-spider-id">split_spider_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: split-spider-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: split_spider_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#test-valid-spider-input">test_valid_spider_input</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: test-valid-spider-input
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: test_valid_spider_input
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#tuple2id">tuple2id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: tuple2id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: tuple2id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#update-spider-files">update_spider_files</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: update-spider-files
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: update_spider_files
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      defaultdict
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      SpiderError
+   
+   

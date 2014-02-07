@@ -1,0 +1,282 @@
+spider_session
+===================================
+
+.. automodule:: arachnid.core.spider.spider_session
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cleanup">cleanup</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cleanup
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cleanup
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-output-recon3">ensure_output_recon3</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-output-recon3
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_output_recon3
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-stack-select">ensure_stack_select</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: ensure-stack-select
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: ensure_stack_select
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#generate-ctf-param">generate_ctf_param</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: generate-ctf-param
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: generate_ctf_param
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-incore-filename">is_incore_filename</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-incore-filename
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_incore_filename
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-linux">is_linux</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-linux
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_linux
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-spider-register">is_spider_register</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-spider-register
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_spider_register
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#prefix">prefix</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: prefix
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: prefix
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-command-fifo">spider_command_fifo</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-command-fifo
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_command_fifo
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-command-multi-input">spider_command_multi_input</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-command-multi-input
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_command_multi_input
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-image">spider_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-register-name">spider_register_name</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-register-name
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_register_name
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-stack">spider_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#spider-tuple">spider_tuple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: spider-tuple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: spider_tuple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#unpack-register">unpack_register</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: unpack-register
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: unpack_register
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#unpack-register-linux">unpack_register_linux</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: unpack-register-linux
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: unpack_register_linux
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#unpack-register-other">unpack_register_other</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: unpack-register-other
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: unpack_register_other
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      Session
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      SpiderCommandError
+      SpiderCrashed
+   
+   

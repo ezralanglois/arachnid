@@ -1,0 +1,27 @@
+arachnid.core.app.tracing.ColoredFormatter
+==========================================
+
+.. currentmodule:: arachnid.core.app.tracing
+
+.. autoclass:: ColoredFormatter
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      converter
+      format
+      formatException
+      formatTime
+   
+   .. automethod:: __init__
+   .. automethod:: converter
+   .. automethod:: format
+   .. automethod:: formatException
+   .. automethod:: formatTime
+   
+   

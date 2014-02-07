@@ -1,0 +1,148 @@
+settings
+==========================
+
+.. automodule:: arachnid.core.app.settings
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#compress-filenames">compress_filenames</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: compress-filenames
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: compress_filenames
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#convert">convert</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: convert
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: convert
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parameter-help">parameter_help</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parameter-help
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parameter_help
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parameter-type">parameter_type</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parameter-type
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parameter_type
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parse-config-simple">parse_config_simple</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parse-config-simple
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parse_config_simple
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options-from-doc">setup_options_from_doc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options-from-doc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options_from_doc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#uncompress-filenames">uncompress_filenames</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: uncompress-filenames
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: uncompress_filenames
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      Option
+      OptionGroup
+      OptionParser
+      Validation
+      VersionControl
+      optdict
+      optfilelist
+      optlist
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      OptionValueError
+   
+   

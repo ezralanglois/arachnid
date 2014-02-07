@@ -1,0 +1,207 @@
+project
+=====================
+
+.. automodule:: arachnid.util.project
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#batch">batch</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: batch
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: batch
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#build-dependency-tree">build_dependency_tree</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: build-dependency-tree
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: build_dependency_tree
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#build-workflow">build_workflow</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: build-workflow
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: build_workflow
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#change-option-defaults">change_option_defaults</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: change-option-defaults
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: change_option_defaults
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#default-settings">default_settings</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: default-settings
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: default_settings
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#find-root">find_root</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: find-root
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: find_root
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#workflow-settings">workflow_settings</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: workflow-settings
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: workflow_settings
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-config">write_config</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-config
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_config
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-workflow">write_workflow</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-workflow
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_workflow
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

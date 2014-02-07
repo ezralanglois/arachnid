@@ -1,0 +1,165 @@
+ndimage_interpolate
+=======================================
+
+.. automodule:: arachnid.core.image.ndimage_interpolate
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#downsample">downsample</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: downsample
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: downsample
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#interpolate">interpolate</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: interpolate
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: interpolate
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#interpolate-bilinear">interpolate_bilinear</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: interpolate-bilinear
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: interpolate_bilinear
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#interpolate-fs">interpolate_fs</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: interpolate-fs
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: interpolate_fs
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#interpolate-ft">interpolate_ft</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: interpolate-ft
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: interpolate_ft
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#interpolate-sblack">interpolate_sblack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: interpolate-sblack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: interpolate_sblack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#resample-fft">resample_fft</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: resample-fft
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: resample_fft
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#resample-fft-fast">resample_fft_fast</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: resample-fft-fast
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: resample_fft_fast
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#resample-offsets">resample_offsets</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: resample-offsets
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: resample_offsets
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#sincblackman">sincblackman</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: sincblackman
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: sincblackman
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

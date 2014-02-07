@@ -1,0 +1,39 @@
+reconstruct_stack
+==================================================
+
+.. automodule:: arachnid.snippets.reconstruction.reconstruct_stack
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process-image">process_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process_image
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

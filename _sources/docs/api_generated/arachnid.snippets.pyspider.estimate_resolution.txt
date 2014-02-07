@@ -1,0 +1,16 @@
+estimate_resolution
+==============================================
+
+.. automodule:: arachnid.snippets.pyspider.estimate_resolution
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   

@@ -1,0 +1,95 @@
+selection_utility
+========================================
+
+.. automodule:: arachnid.core.metadata.selection_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-selection-doc">create_selection_doc</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-selection-doc
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_selection_doc
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-selection-map">create_selection_map</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-selection-map
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_selection_map
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-file-subset">select_file_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-file-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_file_subset
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-stack-subset">select_stack_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-stack-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_stack_subset
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-subset">select_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_subset
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

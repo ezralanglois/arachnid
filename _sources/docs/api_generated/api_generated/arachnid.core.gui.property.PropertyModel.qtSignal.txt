@@ -1,0 +1,10 @@
+arachnid.core.gui.property.PropertyModel.qtSignal
+=================================================
+
+.. currentmodule:: arachnid.core.gui.property.PropertyModel
+
+.. autoclass:: qtSignal
+
+   
+   
+   

@@ -1,0 +1,305 @@
+vicer
+==================
+
+.. automodule:: arachnid.app.vicer
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#create-mask">create_mask</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: create-mask
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: create_mask
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#decimation-level">decimation_level</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: decimation-level
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: decimation_level
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#embed-sample">embed_sample</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: embed-sample
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: embed_sample
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#finalize">finalize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: finalize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: finalize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#group-by-reference">group_by_reference</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: group-by-reference
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: group_by_reference
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#image-transform">image_transform</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: image-transform
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: image_transform
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#init-root">init_root</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: init-root
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: init_root
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#one-class-classification">one_class_classification</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: one-class-classification
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: one_class_classification
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#order-from-resolution">order_from_resolution</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: order-from-resolution
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: order_from_resolution
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-alignment">read_alignment</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-alignment
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_alignment
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#reduce-all">reduce_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: reduce-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: reduce_all
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#resolution-from-order">resolution_from_order</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: resolution-from-order
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: resolution_from_order
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#rotational-sample">rotational_sample</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: rotational-sample
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: rotational_sample
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#update-selection-dict">update_selection_dict</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: update-selection-dict
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: update_selection_dict
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

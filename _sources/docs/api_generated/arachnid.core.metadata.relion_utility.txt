@@ -1,0 +1,109 @@
+relion_utility
+=====================================
+
+.. automodule:: arachnid.core.metadata.relion_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#list-micrograph-names">list_micrograph_names</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: list-micrograph-names
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: list_micrograph_names
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#relion-file">relion_file</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: relion-file
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: relion_file
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#relion-id">relion_id</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: relion-id
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: relion_id
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#relion-identifier">relion_identifier</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: relion-identifier
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: relion_identifier
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#replace-relion-identifier">replace_relion_identifier</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: replace-relion-identifier
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: replace_relion_identifier
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#select-subset">select_subset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: select-subset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: select_subset
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

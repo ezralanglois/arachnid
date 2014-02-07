@@ -1,0 +1,47 @@
+arachnid.core.app.tracing.NullHandler
+=====================================
+
+.. currentmodule:: arachnid.core.app.tracing
+
+.. autoclass:: NullHandler
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      acquire
+      addFilter
+      close
+      createLock
+      emit
+      filter
+      flush
+      format
+      handle
+      handleError
+      release
+      removeFilter
+      setFormatter
+      setLevel
+   
+   .. automethod:: __init__
+   .. automethod:: acquire
+   .. automethod:: addFilter
+   .. automethod:: close
+   .. automethod:: createLock
+   .. automethod:: emit
+   .. automethod:: filter
+   .. automethod:: flush
+   .. automethod:: format
+   .. automethod:: handle
+   .. automethod:: handleError
+   .. automethod:: release
+   .. automethod:: removeFilter
+   .. automethod:: setFormatter
+   .. automethod:: setLevel
+   
+   

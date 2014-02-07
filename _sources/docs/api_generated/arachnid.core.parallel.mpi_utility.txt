@@ -1,0 +1,319 @@
+mpi_utility
+==================================
+
+.. automodule:: arachnid.core.parallel.mpi_utility
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#barrier">barrier</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: barrier
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: barrier
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#block-reduce">block_reduce</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: block-reduce
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: block_reduce
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#block-reduce-root">block_reduce_root</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: block-reduce-root
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: block_reduce_root
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#broadcast">broadcast</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: broadcast
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: broadcast
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gather-all">gather_all</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gather-all
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gather_all
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#gather-array">gather_array</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: gather-array
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: gather_array
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-offset">get_offset</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-offset
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_offset
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-rank">get_rank</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-rank
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_rank
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-size">get_size</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-size
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_size
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#hostname">hostname</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: hostname
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: hostname
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-client">is_client</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-client
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_client
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-client-strict">is_client_strict</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-client-strict
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_client_strict
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-root">is_root</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-root
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_root
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#iterate-reduce">iterate_reduce</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: iterate-reduce
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: iterate_reduce
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mpi-init">mpi_init</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mpi-init
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mpi_init
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mpi-range">mpi_range</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mpi-range
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mpi_range
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mpi-reduce">mpi_reduce</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mpi-reduce
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mpi_reduce
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#mpi-slice">mpi_slice</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: mpi-slice
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: mpi_slice
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#safe-tempfile">safe_tempfile</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: safe-tempfile
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: safe_tempfile
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#send-to-root">send_to_root</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: send-to-root
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: send_to_root
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#supports-MPI">supports_MPI</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: supports-MPI
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: supports_MPI
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

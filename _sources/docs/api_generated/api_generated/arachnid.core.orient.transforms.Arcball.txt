@@ -1,0 +1,35 @@
+arachnid.core.orient.transforms.Arcball
+=======================================
+
+.. currentmodule:: arachnid.core.orient.transforms
+
+.. autoclass:: Arcball
+
+   
+   
+
+   .. autosummary::
+	:nosignatures:
+	
+   
+      __init__
+      down
+      drag
+      getconstrain
+      matrix
+      next
+      place
+      setaxes
+      setconstrain
+   
+   .. automethod:: __init__
+   .. automethod:: down
+   .. automethod:: drag
+   .. automethod:: getconstrain
+   .. automethod:: matrix
+   .. automethod:: next
+   .. automethod:: place
+   .. automethod:: setaxes
+   .. automethod:: setconstrain
+   
+   

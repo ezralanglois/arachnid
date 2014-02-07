@@ -1,0 +1,235 @@
+ndimage_file
+================================
+
+.. automodule:: arachnid.core.image.ndimage_file
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#cache-data">cache_data</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: cache-data
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: cache_data
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#copy-local">copy_local</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: copy-local
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: copy_local
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#count-images">count_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: count-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: count_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-read-format">get_read_format</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-read-format
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_read_format
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-read-format-except">get_read_format_except</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-read-format-except
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_read_format_except
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#get-write-format">get_write_format</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: get-write-format
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: get_write_format
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-readable">is_readable</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-readable
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_readable
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#is-writable">is_writable</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: is-writable
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: is_writable
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#iter-images">iter_images</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: iter-images
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: iter_images
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-header">read_header</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-header
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_header
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-image">read_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-stack">read_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_stack
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#readlinkabs">readlinkabs</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: readlinkabs
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: readlinkabs
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-image">write_image</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-image
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_image
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-stack">write_stack</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-stack
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_stack
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

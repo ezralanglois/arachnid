@@ -1,0 +1,267 @@
+program
+=========================
+
+.. automodule:: arachnid.core.app.program
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#check-options">check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#collect-dependents">collect_dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: collect-dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: collect_dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#collect-file-dependents">collect_file_dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: collect-file-dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: collect_file_dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#determine-main">determine_main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: determine-main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: determine_main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#generate-settings-tree">generate_settings_tree</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: generate-settings-tree
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: generate_settings_tree
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#launch-program">launch_program</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: launch-program
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: launch_program
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#map-module-to-program">map_module_to_program</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: map-module-to-program
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: map_module_to_program
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#on-error">on_error</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: on-error
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: on_error
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#parse-and-check-options">parse_and_check_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: parse-and-check-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: parse_and_check_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#read-config">read_config</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: read-config
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: read_config
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#run-hybrid-program">run_hybrid_program</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: run-hybrid-program
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: run_hybrid_program
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-parser">setup_parser</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-parser
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_parser
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-program-options">setup_program_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-program-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_program_options
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#update-config">update_config</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: update-config
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: update_config
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#update-file-param">update_file_param</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: update-file-param
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: update_file_param
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#write-config">write_config</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: write-config
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: write_config
+
+   
+   
+
+   
+   
+Classes
+=======
+
+   .. autosummary::
+    :toctree: api_generated/
+    :template: api_class.rst
+    
+   
+      program
+   
+   
+
+   
+   
+Exceptions
+==========
+
+.. autosummary::
+   
+   
+      VersionChange
+   
+   

@@ -1,0 +1,39 @@
+alignment
+=============================
+
+.. automodule:: arachnid.core.image.alignment
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#xcorr-dft-peak">xcorr_dft_peak</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: xcorr-dft-peak
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: xcorr_dft_peak
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   
