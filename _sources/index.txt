@@ -15,7 +15,7 @@ Arachnid Single-particle Reconstruction
 	
 		<center>
 		<a class="btn btn-success" href="docs/install.html" role="button">Get it!</a>
-		<a class="btn btn-success" href="#" role="button">Cite</a>
+		<a class="btn btn-success" href="CITE.html" role="button">Cite</a>
 		</center>
 
 .. toctree::
