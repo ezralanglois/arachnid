@@ -55,7 +55,7 @@ Move to the directory you wish to install Anaconda
 
 If the installation gives the following error:
 
-.. sourcecode::
+.. sourcecode:: sh
 	
 	Traceback (most recent call last):
   	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
@@ -80,27 +80,27 @@ Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH. This is normally not neces
 
 #. Installing Arachnid
 
-	Download a prepared .condarc file to your $HOME path.
-	
-	:download:`../.condarc`
-	
-	Alternatively
+	#. Add the Arachnid channel to your $HOME/.condarc
 
-	Add the Arachnid channel to your $HOME/.condarc
+		Download a prepared .condarc file to your $HOME path.
 	
-	.. sourcecode:: sh
+		:download:`../.condarc`
 	
-		$ echo "channels:" > $HOME/.condarc
-		$ echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
-		$ echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
-		$ echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
-		$ echo "  - http://guam/arachnid/dist" >> $HOME/.condarc
+		**Alternative**: create on on the command line
 	
-	Install Arachnid
+		.. sourcecode:: sh
+		
+			$ echo "channels:" > $HOME/.condarc
+			$ echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
+			$ echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
+			$ echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
+			$ echo "  - http://guam/arachnid/dist" >> $HOME/.condarc
 	
-	.. sourcecode:: sh
+	#. Install Arachnid
 	
-		$ conda install arachnid --yes
+		.. sourcecode:: sh
+		
+			$ conda install arachnid --yes
 
 Easy install
 ============
