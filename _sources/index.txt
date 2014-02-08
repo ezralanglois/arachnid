@@ -14,7 +14,7 @@ Arachnid Single-particle Reconstruction
 	.. raw:: html
 	
 		<center>
-		<a class="btn btn-success" href="#" role="button">Get it!</a>
+		<a class="btn btn-success" href="docs/install.html" role="button">Get it!</a>
 		<a class="btn btn-success" href="#" role="button">Cite</a>
 		</center>
 

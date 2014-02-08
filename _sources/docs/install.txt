@@ -8,6 +8,7 @@ Installation
 	:hidden:
 	
 	install_franklab
+	Attribution <attribution>
 
 .. note::
 	
@@ -17,6 +18,10 @@ Anaconda
 ========
 
 Move to the directory you wish to install Anaconda
+
+#. Download Anaconda
+
+	`http://continuum.io/downloads <http://continuum.io/downloads>`_
 
 #. Install Anaconda
 	
@@ -52,13 +57,11 @@ If the installation gives the following error:
 
 .. sourcecode:: sh
 	
-	$ conda install basemap --yes
-	
 	Traceback (most recent call last):
   	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
     from conda.cli import main
 
-Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
+Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH. This is normally not necessary.
 	
 #. Install Accelerate
 
@@ -77,21 +80,27 @@ Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
 
 #. Installing Arachnid
 
-	Add the Arachnid channel to your $HOME/.condarc
+	- Add the Arachnid channel to your $HOME/.condarc
+
+		Download a prepared .condarc file to your $HOME path.
 	
-	.. sourcecode:: sh
+		:download:`../.condarc`
 	
-		$ echo "channels:" > $HOME/.condarc
-		$ echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
-		$ echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
-		$ echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
-		$ echo "  - http://guam/arachnid/dist" >> $HOME/.condarc
+		**Alternative**: create on on the command line
 	
-	Install Arachnid
+		.. sourcecode:: sh
+		
+			$ echo "channels:" > $HOME/.condarc
+			$ echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
+			$ echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
+			$ echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
+			$ echo "  - http://guam/arachnid/dist" >> $HOME/.condarc
 	
-	.. sourcecode:: sh
+	- Install Arachnid
 	
-		$ conda install arachnid --yes
+		.. sourcecode:: sh
+		
+			$ conda install arachnid --yes
 
 Easy install
 ============
@@ -112,7 +121,7 @@ for easy_install.
 From Source
 ===========
 
-Download the package from https://code.google.com/p/arachnid/downloads/list
+Download the package from https://
 , unpack the sources and cd into archive.
 
 This packages uses distutils, which is the default way of installing

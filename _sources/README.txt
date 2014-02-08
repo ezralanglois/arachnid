@@ -7,11 +7,10 @@ images collected by cryo-electron microscopy. It is built on top of SciPy and
 is distributed under the `GPL 2.0`_ license. It has the following highlighted applications
 and subpackage:
 
+- AutoPicker: Automated reference-free particle selection
+- ViCer: Automated particle verification
 - pySPIDER: Python batch files designed to better automate the reconstruction protocol
-- Planned future release
-	- AutoPicker: Automated reference-free particle selection
-	- ViCer: Automated particle verification
-	- Other utilities
+- Other utilities
 
 This project was started in 2009 by Robert Langlois as an internal software package written
 for members of the `Frank Lab`_. This package contains only the published algorithms and
@@ -28,10 +27,10 @@ Forthcoming ...
 Important links
 ===============
 
-- Official source code repo: https://code.google.com/p/arachnid/
-- HTML documentation (stable release): https://code.google.com/p/arachnid/w/list
-- Download releases: https://code.google.com/p/arachnid/downloads/list
-- Issue tracker: https://code.google.com/p/arachnid/issues/list
+- Official source code repo: https://github.com/ezralanglois/arachnid
+- HTML documentation (stable release): http://ezralanglois.github.io/arachnid/
+- Download releases: https://binstar.org/
+- Issue tracker: https://github.com/ezralanglois/arachnid/issues
 - Mailing list: http://groups.google.com/group/arachnid-general
 
 Dependencies
@@ -66,7 +65,7 @@ Development
 
 You can check out the latest source with the command::
 	
-	git clone https://code.google.com/p/arachnid/
+	git clone https://github.com/ezralanglois/arachnid/arachnid.git
 
 .. _`Frank Lab`: http://franklab.cpmc.columbia.edu/franklab/
 .. _`GPL 2.0`: http://www.gnu.org/licenses/gpl-2.0.html
