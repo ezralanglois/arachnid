@@ -16,7 +16,7 @@ Arachnid Developer's Guide
 	
 		<center>
 		<a class="btn btn-warning btn-big" href="https://github.com/ezralanglois/arachnid" role="button">Get Source</a>
-		<a class="btn btn-warning btn-big" href="#" role="button">Cite</a>
+		<a class="btn btn-warning btn-big" href="CITE.html" role="button">Cite</a>
 		</center>
 
 .. toctree::

@@ -13,7 +13,7 @@ Arachnid User's Guide
 	
 		<center>
 		<a class="btn btn-warning btn-big" href="docs/install.html" role="button">Download</a>
-		<a class="btn btn-warning btn-big" href="#" role="button">Cite</a>
+		<a class="btn btn-warning btn-big" href="CITE.html" role="button">Cite</a>
 		</center>
 
 .. toctree::
