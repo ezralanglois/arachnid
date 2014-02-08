@@ -1,10 +1,3 @@
-
-.. toctree::
-	:maxdepth: 0
-	:hidden:
-	
-	Attribution <attribution>
-
 ========
 Overview
 ========
@@ -38,10 +31,10 @@ Coming soon ...
 Important links
 ===============
 
-- Official source code repo: https://code.google.com/p/arachnid/
-- HTML documentation (stable release): https://code.google.com/p/arachnid/w/list
-- Download releases: TODO
-- Issue tracker: https://code.google.com/p/arachnid/issues/list
+- Official source code repo: https://github.com/ezralanglois/arachnid
+- HTML documentation (stable release): http://ezralanglois.github.io/arachnid/
+- Download releases: https://binstar.org/
+- Issue tracker: https://github.com/ezralanglois/arachnid/issues
 - Mailing list: http://groups.google.com/group/arachnid-general
 
 Background
