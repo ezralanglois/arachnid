@@ -183,11 +183,11 @@ def run_hybrid_program(name, **extra):
         #. Invoke entry point to file/group or batch processor
     
     :Parameters:
-            
-        name : str
-               Name of calling module (usually __main__)
-        extra : dict
-                Pass on keyword arguments
+        
+    name : str
+           Name of calling module (usually __main__)
+    extra : dict
+            Pass on keyword arguments
     '''
     
     #_logger.addHandler(logging.StreamHandler())
@@ -305,22 +305,22 @@ def collect_file_dependents(main_module, config_path=None, **extra):
             Peforms option collection
     
     :Parameters:
-        
-        main_module : module
-                       Reference to main module
-        config_path : str, optional
-                      Path to write configuration file
-        extra : dict
-                New default values for the options
-                       
-        :Returns:
-        
-        config_file : str
-                      Name of the configuration file
-        input_files : list
-                     List of options that do not belong to a group
-        output_files : list
-                        List of option groups
+    
+    main_module : module
+                   Reference to main module
+    config_path : str, optional
+                  Path to write configuration file
+    extra : dict
+            New default values for the options
+                   
+    :Returns:
+    
+    config_file : str
+                  Name of the configuration file
+    input_files : list
+                 List of options that do not belong to a group
+    output_files : list
+                    List of option groups
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
@@ -444,21 +444,21 @@ def generate_settings_tree(main_module, config_path=None, **extra):
             Determines script name for module
     
     :Parameters:
-        
-        main_module : module
-                       Reference to main module
-        extra : dict
-                New default values for the options
+    
+    main_module : module
+                   Reference to main module
+    extra : dict
+            New default values for the options
                    
     :Returns:
-        
-        options : list
-                  List of options that do not belong to a group
-        option_groups : list
-                        List of option groups
-        values : object
-                 Object where each field is named for an option 
-                 and holds is corresponding value
+    
+    options : list
+              List of options that do not belong to a group
+    option_groups : list
+                    List of option groups
+    values : object
+             Object where each field is named for an option 
+             and holds is corresponding value
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
@@ -494,18 +494,18 @@ def write_config(main_module, config_path=None, **extra):
             Determines script name for module
     
     :Parameters:
-        
-        main_module : module
-                       Reference to main module
-        config_path : str, optional
-                      Path to write configuration file
-        extra : dict
-                New default values for the options
+    
+    main_module : module
+                   Reference to main module
+    config_path : str, optional
+                  Path to write configuration file
+    extra : dict
+            New default values for the options
                    
     :Returns:
-        
-        output : str
-                 Output filename of the configuration file
+    
+    output : str
+             Output filename of the configuration file
     '''
     
     
@@ -546,18 +546,18 @@ def read_config(main_module, config_path=None, **extra):
             Determines script name for module
     
     :Parameters:
-        
-        main_module : module
-                       Reference to main module
-        config_path : str, optional
-                      Path to write configuration file
-        extra : dict
-                Unused keyword arguments
+    
+    main_module : module
+                   Reference to main module
+    config_path : str, optional
+                  Path to write configuration file
+    extra : dict
+            Unused keyword arguments
                    
     :Returns:
-        
-        out : dict
-              Option/value pairs
+    
+    out : dict
+          Option/value pairs
     '''
     
     main_template = file_processor if file_processor.supports(main_module) else None
@@ -591,19 +591,19 @@ def update_config(main_module, config_path=None, **extra):
             Peforms option collection and read values from a config file
     
     :Parameters:
-        
-        main_module : module
-                       Reference to main module
-        config_path : str, optional
-                      Path to write configuration file
-        extra : dict
-                Unused keyword arguments
+    
+    main_module : module
+                   Reference to main module
+    config_path : str, optional
+                  Path to write configuration file
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
-        
-        output : str
-                 Output filename of the configuration file if it should
-                 be updated otherwise empty string
+    
+    output : str
+             Output filename of the configuration file if it should
+             be updated otherwise empty string
     '''
     
     name = main_module.__name__
@@ -632,16 +632,16 @@ def map_module_to_program(key=None):
     its program name
     
     :Parameters:
-        
-        key : str, optional
-              Name of the module to select
+    
+    key : str, optional
+          Name of the module to select
     
     :Returns:
-        
-        map : dict or value
-              If key is None then it returns a dictionary 
-              mapping each module name to its program, otherwise
-              the value for the corresponding key is returned.
+    
+    map : dict or value
+          If key is None then it returns a dictionary 
+          mapping each module name to its program, otherwise
+          the value for the corresponding key is returned.
     '''
     
     import arachnid.setup
@@ -668,32 +668,32 @@ def setup_parser(main_module, main_template, description="", usage=None, support
             Adds additional options to the OptionParser
     
     :Parameters:
-            
-        main_module : module
-                      Main module
-        main_template : module
-                        Main module wrapper
-        description : str
-                      Description of the program
-        usage : str
-                Current usage of the program
-        supports_MPI : bool
-                       If True, add MPI capability
-        supports_OMP : bool
-                       If True, add OpenMP capability
-        external_prog : str, optional
-                        Name of external program to launch script
-        doc_url : str, optional
-                  URL for the documentation, if not specified, then it uses __doc_url__ from the root_module (e.g., arachnid)
-        extra : dict
-                Unused keyword arguments
+        
+    main_module : module
+                  Main module
+    main_template : module
+                    Main module wrapper
+    description : str
+                  Description of the program
+    usage : str
+            Current usage of the program
+    supports_MPI : bool
+                   If True, add MPI capability
+    supports_OMP : bool
+                   If True, add OpenMP capability
+    external_prog : str, optional
+                    Name of external program to launch script
+    doc_url : str, optional
+              URL for the documentation, if not specified, then it uses __doc_url__ from the root_module (e.g., arachnid)
+    extra : dict
+            Unused keyword arguments
     
     :Returns:
-        
-        parser : OptionParser
-                 OptionParser
-        dependents : list
-                     List of dependent modules
+    
+    parser : OptionParser
+             OptionParser
+    dependents : list
+                 List of dependent modules
     '''
     
     
@@ -705,7 +705,9 @@ def setup_parser(main_module, main_template, description="", usage=None, support
     if doc_url is None:
         url = root_module.__doc_url__%main_module.__name__ if hasattr(root_module, '__doc_url__') else None
     else: url = doc_url%main_module.__name__
-    parser = settings.OptionParser(usage, version=root_module.__version__, description=description, url=url, external_prog=external_prog)
+    site_url = None
+    if hasattr(root_module, '__url__'): site_url = root_module.__url__
+    parser = settings.OptionParser(usage, version=root_module.__version__, description=description, url=url, site_url=site_url, external_prog=external_prog)
     try:
         mgroup = settings.OptionGroup(parser, "Primary", "Options that must be set to run the program", group_order=-20,  id=__name__) 
         main_module.setup_options(parser, mgroup, True)
@@ -744,30 +746,30 @@ def parse_and_check_options(main_module, main_template, description="", usage=No
             Updates all filenames with `home_prefix` and/or `local_temp` 
     
     :Parameters:
-            
-        main_module : module
-                      Main module
-        main_template : module
-                        Main module wrapper
-        description : string
-                      Description of the program
-        usage : string
-                Current usage of the program
-        supports_MPI : bool
-                       If True, add MPI capability
-        supports_OMP : bool
-                       If True, add OpenMP capability
-        use_version : bool
-                      If True, add version control capability
-        max_filename_len : int
-                           Maximum length allowd for filename
+        
+    main_module : module
+                  Main module
+    main_template : module
+                    Main module wrapper
+    description : string
+                  Description of the program
+    usage : string
+            Current usage of the program
+    supports_MPI : bool
+                   If True, add MPI capability
+    supports_OMP : bool
+                   If True, add OpenMP capability
+    use_version : bool
+                  If True, add version control capability
+    max_filename_len : int
+                       Maximum length allowd for filename
     
     :Returns:
-        
-        args : list
-               List of files to process
-        options : object
-                  Dictionary of parameters and their corresponding values
+    
+    args : list
+           List of files to process
+    options : object
+              Dictionary of parameters and their corresponding values
     '''
     
     name = main_module.__name__
@@ -824,17 +826,17 @@ def check_options(main_module, main_template, dependents, options, parser=None):
     ''' Check the validity of the options
     
     :Parameters:
-            
-        main_module : module
-                      Main module
-        main_template : module
-                        Main module wrapper
-        dependents : list
-                     List of dependent modules
-        options : object
-                  Dictionary of parameters and their corresponding values
-        parser : OptionParser
-                 OptionParser
+        
+    main_module : module
+                  Main module
+    main_template : module
+                    Main module wrapper
+    dependents : list
+                 List of dependent modules
+    options : object
+              Dictionary of parameters and their corresponding values
+    parser : OptionParser
+             OptionParser
     
     :raises: OptionValueError
     '''
@@ -863,14 +865,14 @@ def on_error(parser, inst, options):
     usage information.
     
     :Parameters:
-        
-        parser : OptionParser
-                 OptionParser
-        inst : Exception
-               Exception object with message
-        options : object
-                  Object where each field is named for an option 
-                  and holds is corresponding value
+    
+    parser : OptionParser
+             OptionParser
+    inst : Exception
+           Exception object with message
+    options : object
+              Object where each field is named for an option 
+              and holds is corresponding value
     '''
     
     param = vars(options)
@@ -890,23 +892,23 @@ def update_file_param(max_filename_len=0, warning=False, file_options=0, home_pr
     
     :Parameters:
     
-        max_filename_len : int
-                           Maximum length allowed for filename (0 disables test)
-        warning : bool
-                  Print warning if cannot update
-        file_options : list
-                       List of `dest` for the file options
-        home_prefix : str
-                      File path to input files on master node
-        local_temp : str
-                      File path to temporary directory on each slave node
-        extra : dict
-                Unused keyword arguments
+    max_filename_len : int
+                       Maximum length allowed for filename (0 disables test)
+    warning : bool
+              Print warning if cannot update
+    file_options : list
+                   List of `dest` for the file options
+    home_prefix : str
+                  File path to input files on master node
+    local_temp : str
+                  File path to temporary directory on each slave node
+    extra : dict
+            Unused keyword arguments
             
     :Returns:
-        
-        param : dict
-                Updated keyword arguments
+    
+    param : dict
+            Updated keyword arguments
     '''
     
     param = {}
@@ -1056,14 +1058,14 @@ def determine_main(name):
     ''' Find the calling main module
     
     :Parameters:
-    
-        name : str
-               Name of the calling module
+
+    name : str
+           Name of the calling module
     
     :Returns:
-        
-        module : Module
-                 Calling main module
+    
+    module : Module
+             Calling main module
     '''
     
     if name == '__main__':
@@ -1092,14 +1094,14 @@ def collect_dependents(dependents):
     ''' Recursively search for additional dependents and add to current list
     
     :Parameters:
-        
-        dependents : list
-                     List of dependents to search
+    
+    dependents : list
+                 List of dependents to search
     
     :Returns:
-        
-        out : list
-              List of dependents with no repeats
+    
+    out : list
+          List of dependents with no repeats
     '''
     
     deps = list(dependents)

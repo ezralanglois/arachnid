@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ProjectUI.ui'
 #
-# Created: Fri Jan 10 14:23:37 2014
+# Created: Sat Feb  8 13:06:09 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from ..util.qt4_loader import QtCore, QtGui
 class Ui_ProjectWizard(object):
     def setupUi(self, ProjectWizard):
         ProjectWizard.setObjectName("ProjectWizard")
-        ProjectWizard.resize(719, 512)
+        ProjectWizard.resize(726, 562)
         ProjectWizard.setWizardStyle(QtGui.QWizard.MacStyle)
         ProjectWizard.setOptions(QtGui.QWizard.IndependentPages|QtGui.QWizard.NoCancelButton|QtGui.QWizard.NoDefaultButton)
         self.introductionPage = QtGui.QWizardPage()
@@ -20,17 +20,15 @@ class Ui_ProjectWizard(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.introductionPage)
         self.gridLayout_2.setContentsMargins(0, -1, 0, -1)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_2.addItem(spacerItem, 0, 0, 1, 1)
         self.label_4 = QtGui.QLabel(self.introductionPage)
         self.label_4.setMinimumSize(QtCore.QSize(281, 0))
         self.label_4.setText("")
         self.label_4.setPixmap(QtGui.QPixmap(":/icons/icons/ColumbiaLogo.png"))
         self.label_4.setObjectName("label_4")
-        self.gridLayout_2.addWidget(self.label_4, 7, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.label_4, 6, 0, 1, 2)
         self.screenShotCheckBox = QtGui.QCheckBox(self.introductionPage)
         self.screenShotCheckBox.setObjectName("screenShotCheckBox")
-        self.gridLayout_2.addWidget(self.screenShotCheckBox, 9, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.screenShotCheckBox, 8, 1, 1, 1)
         self.label_14 = QtGui.QLabel(self.introductionPage)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
@@ -176,7 +174,7 @@ class Ui_ProjectWizard(object):
 "")
         self.label_14.setWordWrap(True)
         self.label_14.setObjectName("label_14")
-        self.gridLayout_2.addWidget(self.label_14, 1, 0, 2, 2)
+        self.gridLayout_2.addWidget(self.label_14, 0, 0, 2, 2)
         self.widget_5 = QtGui.QWidget(self.introductionPage)
         self.widget_5.setObjectName("widget_5")
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.widget_5)
@@ -195,14 +193,14 @@ class Ui_ProjectWizard(object):
         self.label_5.setPixmap(QtGui.QPixmap(":/icons/icons/HHMIlogo.png"))
         self.label_5.setObjectName("label_5")
         self.verticalLayout_5.addWidget(self.label_5)
-        self.gridLayout_2.addWidget(self.widget_5, 5, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.widget_5, 4, 0, 1, 1)
         self.label_7 = QtGui.QLabel(self.introductionPage)
         self.label_7.setMaximumSize(QtCore.QSize(110, 110))
         self.label_7.setText("")
         self.label_7.setPixmap(QtGui.QPixmap(":/icons/icons/220px-NIH_Master_Logo_Vertical_2Color.png"))
         self.label_7.setScaledContents(True)
         self.label_7.setObjectName("label_7")
-        self.gridLayout_2.addWidget(self.label_7, 5, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.label_7, 4, 1, 1, 1)
         ProjectWizard.addPage(self.introductionPage)
         self.settingsQuestionPage = QtGui.QWizardPage()
         self.settingsQuestionPage.setObjectName("settingsQuestionPage")
@@ -245,8 +243,8 @@ class Ui_ProjectWizard(object):
         self.selectLeginonInformationLabel.setWordWrap(True)
         self.selectLeginonInformationLabel.setObjectName("selectLeginonInformationLabel")
         self.verticalLayout.addWidget(self.selectLeginonInformationLabel)
-        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem1)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem)
         ProjectWizard.addPage(self.settingsQuestionPage)
         self.leginonDBPage = QtGui.QWizardPage()
         self.leginonDBPage.setObjectName("leginonDBPage")
@@ -542,8 +540,8 @@ class Ui_ProjectWizard(object):
         self.maskDiameterUnitComboBox.addItem("")
         self.maskDiameterUnitComboBox.addItem("")
         self.gridLayout.addWidget(self.maskDiameterUnitComboBox, 2, 2, 1, 1)
-        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem2, 5, 1, 1, 1)
+        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem1, 5, 1, 1, 1)
         self.dimensionInformationToolButton = QtGui.QToolButton(self.groupBox_4)
         self.dimensionInformationToolButton.setText("")
         self.dimensionInformationToolButton.setIcon(icon2)
@@ -596,8 +594,8 @@ class Ui_ProjectWizard(object):
         self.threadCountSpinBox.setProperty("value", 1)
         self.threadCountSpinBox.setObjectName("threadCountSpinBox")
         self.gridLayout_3.addWidget(self.threadCountSpinBox, 1, 1, 1, 1)
-        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem3, 0, 3, 1, 1)
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout_3.addItem(spacerItem2, 0, 3, 1, 1)
         self.parallelInformationToolButton = QtGui.QToolButton(self.groupBox_3)
         self.parallelInformationToolButton.setText("")
         self.parallelInformationToolButton.setIcon(icon2)
@@ -615,8 +613,8 @@ class Ui_ProjectWizard(object):
         self.enableStderrCheckBox.setText("")
         self.enableStderrCheckBox.setObjectName("enableStderrCheckBox")
         self.gridLayout_4.addWidget(self.enableStderrCheckBox, 0, 1, 1, 1)
-        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_4.addItem(spacerItem4, 0, 3, 1, 1)
+        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout_4.addItem(spacerItem3, 0, 3, 1, 1)
         self.logInformationToolButton = QtGui.QToolButton(self.groupBox_5)
         self.logInformationToolButton.setText("")
         self.logInformationToolButton.setIcon(icon2)
@@ -650,8 +648,8 @@ class Ui_ProjectWizard(object):
         self.horizontalLayout_9 = QtGui.QHBoxLayout(self.widget_7)
         self.horizontalLayout_9.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
-        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_9.addItem(spacerItem5)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_9.addItem(spacerItem4)
         self.documentationURLToolButton = QtGui.QToolButton(self.widget_7)
         icon6 = QtGui.QIcon()
         icon6.addPixmap(QtGui.QPixmap(":/mini/mini/world_link.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -696,7 +694,13 @@ class Ui_ProjectWizard(object):
 "</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" text-decoration: underline;\">Credits</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600; color:#000000;\">Robert Langlois</span> (Lead developer), <span style=\" font-weight:600;\">Nam Ho</span> (Graphics and Ergonomics), <span style=\" font-weight:600;\">Melissa Thomas </span>(Graphics), <span style=\" font-weight:600;\">Johnathan Ginsburg</span> (pySPIDER), <span style=\" font-weight:600;\">Jordan T. Ash</span> (ViCer), <span style=\" font-weight:600;\">Ryan H. Smith</span> (Movie-mode Alignment) and <span style=\" font-weight:600;\">Hstau Liao</span> (Movie-mode Alignment)</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600; color:#000000;\">Robert Langlois</span> (Lead developer), <span style=\" font-weight:600;\">Nam Ho</span> (Graphics and Ergonomics), <span style=\" font-weight:600;\">Melissa Thomas </span>(Graphics), <span style=\" font-weight:600;\">Johnathan Ginsburg</span> (pySPIDER), <span style=\" font-weight:600;\">Jordan T. Ash</span> (ViCer), <span style=\" font-weight:600;\">Ryan H. Smith</span> (Movie-mode Alignment) and <span style=\" font-weight:600;\">Hstau Liao</span> (Movie-mode Alignment)</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" text-decoration: underline;\">Cite</span></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">For more information, see:</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">http://ezralanglois.github.io/arachnid/CITE.html</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.settingsQuestionPage.setTitle(QtGui.QApplication.translate("ProjectWizard", "Leginon Settings Import", None, QtGui.QApplication.UnicodeUTF8))
         self.settingsQuestionPage.setSubTitle(QtGui.QApplication.translate("ProjectWizard", "Would you like to import your experimental settings from a Leginon database?", None, QtGui.QApplication.UnicodeUTF8))
         self.yesLeginonPushButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -863,4 +867,5 @@ class Ui_ProjectWizard(object):
         self.documentationURLToolButton.setText(QtGui.QApplication.translate("ProjectWizard", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.settingsInformatToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Information concerning the current page", None, QtGui.QApplication.UnicodeUTF8))
 
+from ..icons import icons_rc;icons_rc;
 from ..icons import icons_rc;icons_rc;

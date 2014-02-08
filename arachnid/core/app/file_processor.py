@@ -121,9 +121,12 @@ program architecture.
 '''
 from ..parallel import mpi_utility
 from ..metadata import spider_utility
-import os, logging, sys, numpy
 from progress import progress
 import multiprocessing
+import os
+import logging
+import sys
+import numpy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -235,7 +238,7 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
     #. Check if `force` flag was set to True
     
     :Parameters:
-        
+    
         files : list
                 List of input files
         infile_deps : list
@@ -246,10 +249,10 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
                       If true, then options have changed; restart from beginning
         force : bool
                 Force the program to restart from the beginning
-        data_ext : str
-                   If the dependent file does not have an extension, add this extension
         id_len : int
                  Max length of SPIDER ID
+        data_ext : str
+                   If the dependent file does not have an extension, add this extension
         restart_test : bool
                        Test if program will restart
         extra : dict
@@ -334,7 +337,23 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
     return unfinished, finished
 
 def setup_options(parser, pgroup=None):
-    # Options added to OptionParser by core.app.program
+    ''' Add options to an Arachnid application script
+    
+    This function adds options and option groups to an option parser.
+    
+    .. seealso:: 
+        
+        arachnid.core.app.program
+        arachnid.core.app.settings
+    
+    :Parameters:
+        
+        parser : arachnid.core.app.settings.OptionParser
+                 Option parser for the command line and configuration files
+        pgroup : arachnid.core.app.settings.OptionGroup, optional
+                 Parent option group
+    '''
+    
     from settings import OptionGroup
     group = OptionGroup(parser, "Processor", "Options to control the state of the file processor",  id=__name__)
     group.add_option("",   id_len=0,          help="Set the expected length of the document file ID",     gui=dict(minimum=0))
@@ -344,7 +363,17 @@ def setup_options(parser, pgroup=None):
     pgroup.add_option_group(group)
 
 def check_options(options):
-    # Options tested by core.app.program before the program is run
+    ''' Test whether the option values are valid for the application
+    
+    :Parameters:
+    
+         options : object
+                   Option Values object where each field is an option
+                   name and its value is the the option value
+    
+    :raises: arachnid.core.app.settings.OptionValueError
+    '''
+    
     from settings import OptionValueError
     
     if len(options.input_files) < 1: raise OptionValueError, "Requires at least one file"
@@ -354,14 +383,14 @@ def supports(main_module):
     to support file processing.
     
     :Parameters:
-        
-        main_module : module
-                      Module containing entry points
+    
+    main_module : module
+                  Module containing entry points
     
     :Returns:
-        
-        flag : bool
-               True if module has `process` function
+    
+    flag : bool
+           True if module has `process` function
            
     '''
     

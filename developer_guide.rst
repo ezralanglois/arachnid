@@ -15,7 +15,7 @@ Arachnid Developer's Guide
 	.. raw:: html
 	
 		<center>
-		<a class="btn btn-warning btn-big" href="#" role="button">Get Source</a>
+		<a class="btn btn-warning btn-big" href="https://github.com/ezralanglois/arachnid" role="button">Get Source</a>
 		<a class="btn btn-warning btn-big" href="#" role="button">Cite</a>
 		</center>
 

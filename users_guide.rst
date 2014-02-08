@@ -12,7 +12,7 @@ Arachnid User's Guide
 	.. raw:: html
 	
 		<center>
-		<a class="btn btn-warning btn-big" href="#" role="button">Download</a>
+		<a class="btn btn-warning btn-big" href="docs/install.html" role="button">Download</a>
 		<a class="btn btn-warning btn-big" href="#" role="button">Cite</a>
 		</center>
 

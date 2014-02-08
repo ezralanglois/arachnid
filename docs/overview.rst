@@ -22,21 +22,6 @@ is given in :doc:`attribution<attribution>`.
 This software is under development by the `Frank Lab`_ and is licensed under 
 :doc:`GPL 2.0 <../license>` or later.
 
-
-How to cite
-===========
-
-Coming soon ...
-
-Important links
-===============
-
-- Official source code repo: https://github.com/ezralanglois/arachnid
-- HTML documentation (stable release): http://ezralanglois.github.io/arachnid/
-- Download releases: https://binstar.org/
-- Issue tracker: https://github.com/ezralanglois/arachnid/issues
-- Mailing list: http://groups.google.com/group/arachnid-general
-
 Background
 ==========
 
@@ -45,8 +30,16 @@ for members of the `Frank Lab`_. It grew from a few machine learning scripts int
 package. The released version of this package contains only a subset of the available scripts,
 which have been published as well as their corresponding utilities.
 
+Jonathan Ginsburg developed the initial code for pySPIDER, which replaced the archaic SPIDER 
+scripting language with Python. Jordan T. Ash helped to develop a particle verification 
+algorithm that makes it possible to automatically process datasets with high levels of 
+contamination. Ryan H. Smith and Hstau Liao developed a more robust algorithm to align frames 
+of movies captured on cutting-edge direct detectors.
+
 This will be a very active project and we look forward to the continual release of new scripts
 as well as new features to the core library.
+
+.. include:: ../CITE.rst
 
 Support
 =======
