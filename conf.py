@@ -133,7 +133,7 @@ html_theme_options = {
     "globaltoc_includehidden": True,
     "navbar_fixed_top": True,
     "globaltoc_depth": 0,
-    "navbar_links": [('Issues', 'http://code.google.com/p/arachnid/issues/list'), ('Mailing List', 'http://groups.google.com/group/arachnid-general')]
+    "navbar_links": [('Issues', 'https://github.com/ezralanglois/arachnid/issues'), ('Mailing List', 'http://groups.google.com/group/arachnid-general')]
 }
 html_sidebars = {'docs/*': ['localtoc.html'], 'docs/api_generated/*': ['apitoc.html', 'localtoc.html']} #, 'docs/api_generated/api_generated/*': ['localtoc.html']}
 
@@ -217,6 +217,7 @@ rst_epilog = '''
 .. |pys| replace:: pySPIDER
 .. |spi| replace:: pySPIDER
 '''
+#"".join(open('docs/include/option_details.inc').readlines())
 
 
 # -- Options for LaTeX output --------------------------------------------------

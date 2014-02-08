@@ -1,0 +1,5 @@
+channels:
+  - http://repo.continuum.io/pkgs/pro
+  - http://repo.continuum.io/pkgs/free
+  - http://repo.continuum.io/pkgs/gpl
+  - http://156.111.6.243/arachnid/dist

@@ -8,6 +8,7 @@ Installation
 	:hidden:
 	
 	install_franklab
+	Attribution <attribution>
 
 .. note::
 	
@@ -17,6 +18,10 @@ Anaconda
 ========
 
 Move to the directory you wish to install Anaconda
+
+#. Download Anaconda
+
+	`http://continuum.io/downloads <http://continuum.io/downloads>`_
 
 #. Install Anaconda
 	
@@ -50,15 +55,13 @@ Move to the directory you wish to install Anaconda
 
 If the installation gives the following error:
 
-.. sourcecode:: sh
-	
-	$ conda install basemap --yes
+.. sourcecode::
 	
 	Traceback (most recent call last):
   	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
     from conda.cli import main
 
-Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
+Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH. This is normally not necessary.
 	
 #. Install Accelerate
 
@@ -76,6 +79,12 @@ Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
 		$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
 #. Installing Arachnid
+
+	Download a prepared .condarc file to your $HOME path.
+	
+	:download:`../.condarc`
+	
+	Alternatively
 
 	Add the Arachnid channel to your $HOME/.condarc
 	
@@ -112,7 +121,7 @@ for easy_install.
 From Source
 ===========
 
-Download the package from https://code.google.com/p/arachnid/downloads/list
+Download the package from https://
 , unpack the sources and cd into archive.
 
 This packages uses distutils, which is the default way of installing
