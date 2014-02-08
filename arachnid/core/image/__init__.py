@@ -17,7 +17,6 @@
     :toctree: api_generated/
     :template: api_module.rst
     
-    analysis
     ndimage_utility
     ndimage_file
     ndimage_filter
