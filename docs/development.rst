@@ -14,6 +14,13 @@ To get the latest version of the source, use the following `git <http://git-scm.
 	
 	$ git clone https://code.google.com/p/arachnid/
 
+Alternatively, you can download a zip file of the latest development release:
+
+.. raw:: html
+
+	<a class="btn btn-primary" href="https://github.com/ezralanglois/arachnid/archive/master.zip" role="button">Download</a>
+
+
 Every time you update C or Cython code, you may run the following command (rather that reinstall)
 
 .. sourcecode:: sh
