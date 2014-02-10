@@ -7,7 +7,7 @@ Langlois, R., Ash, Ho N., Frank, J., 2014. Arachnid: Automated
 Image-processing for Electron Microscopy. In Preparation.
 
 Additional Papers
-=================
+-----------------
 
 Langlois, R. E. Jordan, A. T., Pallesen, J., Ho, D. N., Rubinstein, J. L. 
 and Frank, J. 2014. Automated particle picking for low-contrast macromolecules 
@@ -35,8 +35,8 @@ reconstruction of biological macromolecules from electron micrographs.
 Nature Protocols 3 (12), 1941-1974.
 URL http://www.nature.com/doifinder/10.1038/nprot.2008.156
 
-Downloadable Libraries
-======================
+For Citation Managers
+----------------------
 
 .. list-table::
    :class: contentstable
