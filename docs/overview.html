@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Overview &mdash; arachnid 0.1.4_131_g3b9b2d3 documentation</title>
+    <title>Overview &mdash; arachnid 0.1.4_139_g4dd1f82 documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.4_131_g3b9b2d3',
+        VERSION:     '0.1.4_139_g4dd1f82',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_131_g3b9b2d3 documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.4_139_g4dd1f82 documentation" href="../index.html" />
     <link rel="prev" title="autorefine" href="api_generated/arachnid.pyspider.autorefine.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -53,7 +53,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_131_g3b9b2d3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_139_g4dd1f82</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -893,36 +893,86 @@
       
   <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
-<p>Arachnid is an open source software package written primarily in Python to perform
-single-particle reconstruction of macromolecules imaged by cryo-electron microscopy
-(cryo-EM). Arachnid is largely an image-processing suite focused on tasks unique to
-cryo-EM, such as locating and recognizing macromolecules in the image.</p>
-<p>Arachnid has the following highlighted applications and subpackage:</p>
+<p>Arachnid is an open source software package written primarily in Python that processes
+images of macromolecules captured by cryo-electron microscopy (cryo-EM). Arachnid is
+focused on automating the single-particle reconstruction workflow and can be thought
+of as two subpackages:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><dl class="first docutils">
+<dt>Arachnid Prime</dt>
+<dd><p class="first last">A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
+reconstruction workflow up to orientation assignment and classification.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>pySPIDER</dt>
+<dd><p class="first last">A library that allows one to write SPIDER batch files in Python along with
+a set of Python scripts for nearly every step in the single-particle
+reconstruction protocol.</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The pySPIDER package requires the installation of the SPIDER software package as an
+external dependency whereas the Arachnid Prime package is self-contained. The scripts
+that require SPIDER to function are prefixed with <cite>sp-</cite> while the Arachnid Prime scripts
+that have no external dependency are prefixed with <cite>ara-</cite>.</p>
+</div>
+<p>Arachnid has the following highlighted applications:</p>
 <blockquote>
 <div><ul class="simple">
 <li>AutoPicker: Automated reference-free particle selection</li>
 <li>ViCer: Automated particle verification</li>
-<li>pySPIDER: Python batch files designed to better automate the reconstruction protocol</li>
 </ul>
 </div></blockquote>
+<p>The user has several options when interfacing with Arachnid including but Graphical User
+Interfaces (GUIs) and command line scripts:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><dl class="first docutils">
+<dt>Overall</dt>
+<dd><ol class="first last loweralpha simple">
+<li>Wizard GUI for the preprocessing workflow</li>
+<li>Visualzation tools GUI to validate processing</li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>For individual scripts</dt>
+<dd><ol class="first last loweralpha simple">
+<li>Simple Options Editor GUI</li>
+<li>Configuration files</li>
+<li>Command line options</li>
+</ol>
+</dd>
+</dl>
+</li>
+</ol>
+</div></blockquote>
 <p>The algorithms and tools provided are rooted in image processing and object recognition as well as
-machine learning (see the <a class="reference external" href="http://code.google.com/p/exegete">malibu</a> package). Critical, time-intensive sections of the code have
-been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package
-is also utilizes several third-party packages, namely <a class="reference external" href="http://www.wadsworth.org/spider_doc/spider/docs/">SPIDER</a>:, a full list
-is given in <a class="reference internal" href="attribution.html"><em>attribution</em></a>.</p>
+machine learning (see the <a class="reference external" href="http://code.google.com/p/exegete">malibu</a> package). Critical, time-intensive sections of the Arachnid Prime
+code have been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package
+is also utilizes several third-party packages, which are highlighted in <a class="reference internal" href="attribution.html"><em>attribution</em></a>.</p>
 <p>This software is under development by the <a class="reference external" href="http://www.columbia.edu/cu/franklab/index.html">Frank Lab</a> and is licensed under
 <a class="reference internal" href="../license.html"><em>GPL 2.0</em></a> or later.</p>
 <div class="section" id="background">
 <h2>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
 <p>This project was started in 2009 by Robert Langlois as an internal software package written
 for members of the <a class="reference external" href="http://www.columbia.edu/cu/franklab/index.html">Frank Lab</a>. It grew from a few machine learning scripts into a substantial
-package. The released version of this package contains only a subset of the available scripts,
-which have been published as well as their corresponding utilities.</p>
-<p>Jonathan Ginsburg developed the initial code for pySPIDER, which replaced the archaic SPIDER
-scripting language with Python. Jordan T. Ash helped to develop a particle verification
+software package. The released version of this package contains only a subset of the available
+scripts, which have been published as well as their corresponding utilities.</p>
+<p>Several summer students have contributed to this project. Jonathan Ginsburg (Yeshiva University)
+developed the initial code for pySPIDER, which replaced the archaic SPIDER scripting language
+with Python. Jordan T. Ash (Rutgers University) helped to develop a particle verification
 algorithm that makes it possible to automatically process datasets with high levels of
-contamination. Ryan H. Smith and Hstau Liao developed a more robust algorithm to align frames
-of movies captured on cutting-edge direct detectors.</p>
+contamination. Ryan H. Smith (Columbia University) under the additiona mentorship of Dr. Hstau Liao
+developed a more robust algorithm to align frames of movies captured on cutting-edge direct detectors.</p>
 <p>This will be a very active project and we look forward to the continual release of new scripts
 as well as new features to the core library.</p>
 </div>
