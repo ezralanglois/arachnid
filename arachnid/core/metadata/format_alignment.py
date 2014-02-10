@@ -147,7 +147,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
     else:
         if ctf_params: 
             ctf_param=spider_params.read(extra['param_file'])
-            if not apix: apix=ctf_param['apix']
+            if apix == 0: apix=ctf_param['apix']
         if 'ndarray' not in extra or not extra['ndarray']: extra['ndarray']=True
         if isinstance(filename, list):
             align=filename
@@ -158,11 +158,9 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
         if align.shape[1] > 17: 
             param[:, 6] = align[:, 17]
         if use_3d:
-            _logger.critical("Using 3D")
             if numpy.sum(align[:, 5]) != 0.0:
                 _logger.info("Standard SPIDER alignment file - convert to 3D")
                 if numpy.all(align[:,5]==0): 
-                    _logger.critical("Align: %s"%(str(align[0])))
                     _logger.info("Detected non-standard SPIDER alignment file with no 2D parameters")
                     param[:, :3] = align[:, :3]
                 else:
@@ -213,13 +211,6 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             files = (image_file, label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
         _logger.critical("Check: %d - %f"%(scale_spi, apix))
-        if scale_spi and apix > 0:
-            _logger.critical("Align: %s"%(str(align[0])))
-            _logger.critical("Label: %s"%(str(label[0])))
-            _logger.critical("1Scale trans: %s"%(str(param[0])))
-            _logger.critical("1Scale trans: %f,%f"%(param[0, 4], param[0, 5]))
-            param[:, 4:6] /= apix
-            _logger.critical("2Scale trans: %f,%f"%(param[0, 4], param[0, 5]))
     if ctf_params: return files, param, ctf_param
     return files, param
 
