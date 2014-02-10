@@ -840,7 +840,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#additional-papers">Additional Papers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#downloadable-libraries">Downloadable Libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support">Support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>
@@ -881,7 +880,6 @@
 <li><a class="reference internal" href="#additional-papers">Additional Papers</a></li>
 <li><a class="reference internal" href="#downloadable-libraries">Downloadable Libraries</a></li>
 <li><a class="reference internal" href="#support">Support</a></li>
-<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>
@@ -908,14 +906,29 @@ reconstruction workflow up to orientation assignment and classification.</p>
 </li>
 <li><dl class="first docutils">
 <dt>pySPIDER</dt>
-<dd><p class="first last">A library that allows one to write SPIDER batch files in Python along with
-a set of Python scripts for nearly every step in the single-particle
-reconstruction protocol.</p>
+<dd><p class="first last">A library that allows one to write SPIDER batch files in Python. It also
+includes scripts for every step of single-particle reconstruction including
+orientation assignment but not classification.</p>
 </dd>
 </dl>
 </li>
 </ol>
 </div></blockquote>
+<p>So far, Arachnid Prime has focused on automating the pre-processing of the image
+data. That is, Arachnid has the following highlighted applications that focus on
+particle-picking:</p>
+<blockquote>
+<div><ul class="simple">
+<li>AutoPicker: Automated reference-free particle selection</li>
+<li>ViCer: Automated unsupervised particle verification</li>
+</ul>
+</div></blockquote>
+<p>The user has several options when interfacing with Arachnid including but Graphical User
+Interfaces (GUIs) and command line scripts. The primary interface is a simple wizard GUI
+that walks the user through setting up a preprocessing workflow. The end result of the
+workflow is a set of particle images and a selection file for either pySPIDER orientation
+assignment or RELION classification/orientation assignment. The user can also use the
+individual scripts on the command line.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The pySPIDER package requires the installation of the SPIDER software package as an
@@ -923,38 +936,6 @@ external dependency whereas the Arachnid Prime package is self-contained. The sc
 that require SPIDER to function are prefixed with <cite>sp-</cite> while the Arachnid Prime scripts
 that have no external dependency are prefixed with <cite>ara-</cite>.</p>
 </div>
-<p>Arachnid has the following highlighted applications:</p>
-<blockquote>
-<div><ul class="simple">
-<li>AutoPicker: Automated reference-free particle selection</li>
-<li>ViCer: Automated particle verification</li>
-</ul>
-</div></blockquote>
-<p>The user has several options when interfacing with Arachnid including but Graphical User
-Interfaces (GUIs) and command line scripts:</p>
-<blockquote>
-<div><ol class="arabic">
-<li><dl class="first docutils">
-<dt>Overall</dt>
-<dd><ol class="first last loweralpha simple">
-<li>Wizard GUI for the preprocessing workflow</li>
-<li>Visualzation tools GUI to validate processing</li>
-</ol>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>For individual scripts</dt>
-<dd><ol class="first last loweralpha simple">
-<li>Simple Options Editor GUI</li>
-<li>Configuration files</li>
-<li>Command line options</li>
-</ol>
-</dd>
-</dl>
-</li>
-</ol>
-</div></blockquote>
 <p>The algorithms and tools provided are rooted in image processing and object recognition as well as
 machine learning (see the <a class="reference external" href="http://code.google.com/p/exegete">malibu</a> package). Critical, time-intensive sections of the Arachnid Prime
 code have been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package
@@ -983,10 +964,13 @@ Image-processing for Electron Microscopy. In Preparation.</p>
 </div>
 <div class="section" id="additional-papers">
 <h2>Additional Papers<a class="headerlink" href="#additional-papers" title="Permalink to this headline">¶</a></h2>
+<p>Langlois, R. E. Jordan, A. T., Pallesen, J., Ho, D. N., Rubinstein, J. L.
+and Frank, J. 2014. Automated particle picking for low-contrast macromolecules
+in cryo-electron microscopy. In review.</p>
 <p>Langlois, R., Ash, J. T., Pallesen, J., Frank, J., 2014. Fully Automated
 Particle Selection and Verification in Single-Particle Cryo-EM. In: Herman,
 G. T., Frank, J. (Eds.), Computational Methods for Three-Dimensional
-Microscopy Reconstruction. Springer, New York, pp. 97–132.
+Microscopy Reconstruction. Springer, New York, pp. 97-132.
 URL <a class="reference external" href="http://dx.doi.org/10.1007/978-1-4614-9521-53">http://dx.doi.org/10.1007/978-1-4614-9521-53</a></p>
 <p>Langlois, R., Frank, J., Mar. 2011. A clarification of the terms used in
 comparing semi-automated particle selection algorithms in Cryo-EM.
@@ -996,6 +980,11 @@ URL <a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/21420
 enhanced with semi-supervised machine learning for cryo-electron
 microscopy. Journal of Structural Biology.
 URL <a class="reference external" href="http://dx.doi.org/10.1016/j.jsb.2011.06.004">http://dx.doi.org/10.1016/j.jsb.2011.06.004</a></p>
+<p>Shaikh, T. R., Gao, H., Baxter, W. T., Asturias, F. J., Boisset, N., Leith, A.,
+Frank, J., 2008. SPIDER image processing for single-particle
+reconstruction of biological macromolecules from electron micrographs.
+Nature Protocols 3 (12), 1941-1974.
+URL <a class="reference external" href="http://www.nature.com/doifinder/10.1038/nprot.2008.156">http://www.nature.com/doifinder/10.1038/nprot.2008.156</a></p>
 </div>
 <div class="section" id="downloadable-libraries">
 <h2>Downloadable Libraries<a class="headerlink" href="#downloadable-libraries" title="Permalink to this headline">¶</a></h2>
@@ -1028,34 +1017,6 @@ URL <a class="reference external" href="http://dx.doi.org/10.1016/j.jsb.2011.06.
 Medical Institute (HHMI) and NIH grants R37 GM 29169 and R01 GM 55440 to Prof. Joachim Frank.</p>
 <p>We can use your support too! See the <a class="reference internal" href="development.html#contribute"><em>Developer&#8217;s Guide</em></a> for ways you may
 contribute. This can be just as easy as reporting a bug or you can even add your own scripts.</p>
-</div>
-<div class="section" id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<table class="docutils citation" frame="void" id="langlois2014" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[Langlois2014]</td><td>Langlois, R. E., Ash, J. T.,  Pallesen, J., and Frank, J. (2014).
-Fully Automated Particle Selection and Verification in Single-Particle Cryo-EM.
-In the proceedings of Minisymposium on Computational Methods in Three-Dimensional Microscopy Reconstruction.
-Birkhauser Springer (In press)</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="langlois2011b" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[Langlois2011b]</td><td><a class="reference external" href="http://view.ncbi.nlm.nih.gov/pubmed/21708269">Langlois, R., Pallesen, J., and Frank, J. (2011).
-Reference-free segmentation enhanced with data-driven template matching for particle selection in cryo-electron microscopy.
-Journal of structural biology 175 (3) 353-361</a></td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="langlois2011a" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[Langlois2011a]</td><td><a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/21420497">Langlois, R., and Frank, J. (2011).
-A clarification of the terms used in comparing semi-automated particle selection algorithms in Cryo-EM.
-Journal of structural biology 175 (3) 348-352</a></td></tr>
-</tbody>
-</table>
 </div>
 </div>
 

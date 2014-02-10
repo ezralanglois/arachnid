@@ -9,10 +9,14 @@ Image-processing for Electron Microscopy. In Preparation.
 Additional Papers
 =================
 
+Langlois, R. E. Jordan, A. T., Pallesen, J., Ho, D. N., Rubinstein, J. L. 
+and Frank, J. 2014. Automated particle picking for low-contrast macromolecules 
+in cryo-electron microscopy. In review.
+
 Langlois, R., Ash, J. T., Pallesen, J., Frank, J., 2014. Fully Automated
 Particle Selection and Verification in Single-Particle Cryo-EM. In: Herman,
 G. T., Frank, J. (Eds.), Computational Methods for Three-Dimensional
-Microscopy Reconstruction. Springer, New York, pp. 97–132.
+Microscopy Reconstruction. Springer, New York, pp. 97-132.
 URL http://dx.doi.org/10.1007/978-1-4614-9521-53
   
 Langlois, R., Frank, J., Mar. 2011. A clarification of the terms used in
@@ -24,6 +28,12 @@ Langlois, R., Pallesen, J., Frank, J., 2011. Reference-free particle selection
 enhanced with semi-supervised machine learning for cryo-electron
 microscopy. Journal of Structural Biology.
 URL http://dx.doi.org/10.1016/j.jsb.2011.06.004
+
+Shaikh, T. R., Gao, H., Baxter, W. T., Asturias, F. J., Boisset, N., Leith, A.,
+Frank, J., 2008. SPIDER image processing for single-particle
+reconstruction of biological macromolecules from electron micrographs.
+Nature Protocols 3 (12), 1941-1974.
+URL http://www.nature.com/doifinder/10.1038/nprot.2008.156
 
 Downloadable Libraries
 ======================

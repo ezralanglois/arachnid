@@ -7,13 +7,27 @@ images of macromolecules captured by cryo-electron microscopy (cryo-EM). Arachni
 focused on automating the single-particle reconstruction workflow and can be thought 
 of as two subpackages:
 	
-	1. Arachnid Prime
+	#. Arachnid Prime
 		A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
 		reconstruction workflow up to orientation assignment and classification.
-	2. pySPIDER
-		A library that allows one to write SPIDER batch files in Python along with
-		a set of Python scripts for nearly every step in the single-particle
-		reconstruction protocol.
+	#. pySPIDER
+		A library that allows one to write SPIDER batch files in Python. It also
+		includes scripts for every step of single-particle reconstruction including
+		orientation assignment but not classification.
+
+So far, Arachnid Prime has focused on automating the pre-processing of the image 
+data. That is, Arachnid has the following highlighted applications that focus on 
+particle-picking:
+
+	- AutoPicker: Automated reference-free particle selection
+	- ViCer: Automated unsupervised particle verification
+
+The user has several options when interfacing with Arachnid including but Graphical User
+Interfaces (GUIs) and command line scripts. The primary interface is a simple wizard GUI
+that walks the user through setting up a preprocessing workflow. The end result of the
+workflow is a set of particle images and a selection file for either pySPIDER orientation 
+assignment or RELION classification/orientation assignment. The user can also use the 
+individual scripts on the command line.
 
 .. note::
 
@@ -22,22 +36,6 @@ of as two subpackages:
 	that require SPIDER to function are prefixed with `sp-` while the Arachnid Prime scripts
 	that have no external dependency are prefixed with `ara-`.
 
-Arachnid has the following highlighted applications:
-
-	- AutoPicker: Automated reference-free particle selection
-	- ViCer: Automated particle verification
-	
-The user has several options when interfacing with Arachnid including but Graphical User
-Interfaces (GUIs) and command line scripts:
-
-	1. Overall 
-		a) Wizard GUI for the preprocessing workflow
-		b) Visualzation tools GUI to validate processing
-	2. For individual scripts
-		a) Simple Options Editor GUI
-		b) Configuration files
-		c) Command line options
-	
 The algorithms and tools provided are rooted in image processing and object recognition as well as 
 machine learning (see the `malibu`_ package). Critical, time-intensive sections of the Arachnid Prime
 code have been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package 
@@ -74,20 +72,6 @@ Medical Institute (HHMI) and NIH grants R37 GM 29169 and R01 GM 55440 to Prof. J
 
 We can use your support too! See the :ref:`Developer's Guide <contribute>` for ways you may 
 contribute. This can be just as easy as reporting a bug or you can even add your own scripts.
-
-References
-==========
-
-.. [Langlois2014]  Langlois, R. E., Ash, J. T.,  Pallesen, J., and Frank, J. (2014).
-                   Fully Automated Particle Selection and Verification in Single-Particle Cryo-EM.
-                   In the proceedings of Minisymposium on Computational Methods in Three-Dimensional Microscopy Reconstruction. 
-                   Birkhauser Springer (In press)
-.. [Langlois2011b] `Langlois, R., Pallesen, J., and Frank, J. (2011).
-                   Reference-free segmentation enhanced with data-driven template matching for particle selection in cryo-electron microscopy.
-                   Journal of structural biology 175 (3) 353-361 <http://view.ncbi.nlm.nih.gov/pubmed/21708269>`_
-.. [Langlois2011a] `Langlois, R., and Frank, J. (2011).
-                   A clarification of the terms used in comparing semi-automated particle selection algorithms in Cryo-EM.
-                   Journal of structural biology 175 (3) 348-352 <http://www.ncbi.nlm.nih.gov/pubmed/21420497>`_
 
 
 .. _`Frank Lab`: http://www.columbia.edu/cu/franklab/index.html
