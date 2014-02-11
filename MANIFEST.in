@@ -2,3 +2,4 @@ global-include resources/*
 global-include docs/*
 global-include git-hooks/*
 global-include *.i *.h *.INC *.rst
+global-include conda/*
