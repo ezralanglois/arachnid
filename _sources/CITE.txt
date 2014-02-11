@@ -7,7 +7,7 @@ How to cite
 The main reference to cite is:
 
 
-	Langlois, R., Ash, Ho N., Frank, J., 2014. Arachnid: Automated 
+	Langlois, R. E., Ho D. N., Frank, J., 2014. Arachnid: Automated 
 	Image-processing for Electron Microscopy. In Preparation.
 
 You can find this reference along with other references to specific
