@@ -29,7 +29,7 @@ handle the particle-picking problem:
 This software is under development by the `Frank Lab`_ and is licensed under 
 :doc:`GPL 2.0 <../license>` or later.
 
-For more information, see `http://www.arachnid.us <http://www.arachnid.us>`.
+For more information, see `http://www.arachnid.us <http://www.arachnid.us>`_.
 
 Alternatively, HTML documentation can be built locally using 
 `python setup.py build_sphinx`, which assumes you have the prerequisite 
