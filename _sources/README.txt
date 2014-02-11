@@ -2,27 +2,49 @@
 Arachnid
 ========
 
-Arachnid is Python software package for image processing in single particle reconstruction of
-images collected by cryo-electron microscopy. It is built on top of SciPy and
-is distributed under the `GPL 2.0`_ license. It has the following highlighted applications
-and subpackage:
+Arachnid is an open source software package written primarily in Python that processes
+images of macromolecules captured by cryo-electron microscopy (cryo-EM). Arachnid is
+focused on automating the single-particle reconstruction workflow and can be thought 
+of as two subpackages:
+	
+#. Arachnid Prime
+	A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
+	reconstruction workflow up to orientation assignment and classification. This
+	toolkit also includes a set of application scripts and a workflow manager.
+
+#. pySPIDER
+	This subpackage functions as an interface to the SPIDER package. It includes
+	both a library of SPIDER commands and a set of application scripts to run
+	a set of procedures for every step of single-particle reconstruction including
+	orientation assignment but not classification.
+
+Arachnid Prime currently focuses on automating the pre-processing of the image 
+data captured by cryo-EM. For example, Arachnid has the following highlighted applications 
+handle the particle-picking problem:
 
 - AutoPicker: Automated reference-free particle selection
-- ViCer: Automated particle verification
-- pySPIDER: Python batch files designed to better automate the reconstruction protocol
-- Other utilities
 
-This project was started in 2009 by Robert Langlois as an internal software package written
-for members of the `Frank Lab`_. This package contains only the published algorithms and
-corresponding utilities.
+- ViCer: Automated unsupervised particle verification
 
-For more information, see the documents in `build/sphinx/html/`. HTML documentation can be built using
-`python setup.py build_sphinx`, which assumes you have the prerequisite Python libraries.
+This software is under development by the `Frank Lab`_ and is licensed under 
+:doc:`GPL 2.0 <../license>` or later.
+
+For more information, see `http://www.arachnid.us <http://www.arachnid.us>`.
+
+Alternatively, HTML documentation can be built locally using 
+`python setup.py build_sphinx`, which assumes you have the prerequisite 
+Python libraries. The documents can be found in `build/sphinx/html/`.
 
 How to cite
 ===========
 
-Forthcoming ...
+The main reference to cite is:
+
+
+	Langlois, R. E., Ho D. N., Frank, J., 2014. Arachnid: Automated 
+	Image-processing for Electron Microscopy. In Preparation.
+
+See :doc:`CITE` for more information and downloadable citations.
 
 Important links
 ===============
@@ -32,6 +54,7 @@ Important links
 - Download releases: https://binstar.org/
 - Issue tracker: https://github.com/ezralanglois/arachnid/issues
 - Mailing list: http://groups.google.com/group/arachnid-general
+- Cite: http://www.arachnid.us/CITE.html
 
 Dependencies
 ============

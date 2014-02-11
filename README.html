@@ -881,25 +881,50 @@
       
   <div class="section" id="arachnid">
 <h1>Arachnid<a class="headerlink" href="#arachnid" title="Permalink to this headline">¶</a></h1>
-<p>Arachnid is Python software package for image processing in single particle reconstruction of
-images collected by cryo-electron microscopy. It is built on top of SciPy and
-is distributed under the <a class="reference external" href="http://www.gnu.org/licenses/gpl-2.0.html">GPL 2.0</a> license. It has the following highlighted applications
-and subpackage:</p>
+<p>Arachnid is an open source software package written primarily in Python that processes
+images of macromolecules captured by cryo-electron microscopy (cryo-EM). Arachnid is
+focused on automating the single-particle reconstruction workflow and can be thought
+of as two subpackages:</p>
+<ol class="arabic">
+<li><dl class="first docutils">
+<dt>Arachnid Prime</dt>
+<dd><p class="first last">A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
+reconstruction workflow up to orientation assignment and classification. This
+toolkit also includes a set of application scripts and a workflow manager.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>pySPIDER</dt>
+<dd><p class="first last">This subpackage functions as an interface to the SPIDER package. It includes
+both a library of SPIDER commands and a set of application scripts to run
+a set of procedures for every step of single-particle reconstruction including
+orientation assignment but not classification.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>Arachnid Prime currently focuses on automating the pre-processing of the image
+data captured by cryo-EM. For example, Arachnid has the following highlighted applications
+handle the particle-picking problem:</p>
 <ul class="simple">
 <li>AutoPicker: Automated reference-free particle selection</li>
-<li>ViCer: Automated particle verification</li>
-<li>pySPIDER: Python batch files designed to better automate the reconstruction protocol</li>
-<li>Other utilities</li>
+<li>ViCer: Automated unsupervised particle verification</li>
 </ul>
-<p>This project was started in 2009 by Robert Langlois as an internal software package written
-for members of the <a class="reference external" href="http://franklab.cpmc.columbia.edu/franklab/">Frank Lab</a>. This package contains only the published algorithms and
-corresponding utilities.</p>
-<p>For more information, see the documents in <cite>build/sphinx/html/</cite>. HTML documentation can be built using
-<cite>python setup.py build_sphinx</cite>, which assumes you have the prerequisite Python libraries.</p>
+<p>This software is under development by the <a class="reference external" href="http://franklab.cpmc.columbia.edu/franklab/">Frank Lab</a> and is licensed under
+<a class="reference internal" href="license.html"><em>GPL 2.0</em></a> or later.</p>
+<p>For more information, see <cite>http://www.arachnid.us &lt;http://www.arachnid.us&gt;</cite>.</p>
+<p>Alternatively, HTML documentation can be built locally using
+<cite>python setup.py build_sphinx</cite>, which assumes you have the prerequisite
+Python libraries. The documents can be found in <cite>build/sphinx/html/</cite>.</p>
 </div>
 <div class="section" id="how-to-cite">
 <h1>How to cite<a class="headerlink" href="#how-to-cite" title="Permalink to this headline">¶</a></h1>
-<p>Forthcoming ...</p>
+<p>The main reference to cite is:</p>
+<blockquote>
+<div>Langlois, R. E., Ho D. N., Frank, J., 2014. Arachnid: Automated
+Image-processing for Electron Microscopy. In Preparation.</div></blockquote>
+<p>See <a class="reference internal" href="CITE.html"><em>How to cite</em></a> for more information and downloadable citations.</p>
 </div>
 <div class="section" id="important-links">
 <h1>Important links<a class="headerlink" href="#important-links" title="Permalink to this headline">¶</a></h1>
@@ -909,6 +934,7 @@ corresponding utilities.</p>
 <li>Download releases: <a class="reference external" href="https://binstar.org/">https://binstar.org/</a></li>
 <li>Issue tracker: <a class="reference external" href="https://github.com/ezralanglois/arachnid/issues">https://github.com/ezralanglois/arachnid/issues</a></li>
 <li>Mailing list: <a class="reference external" href="http://groups.google.com/group/arachnid-general">http://groups.google.com/group/arachnid-general</a></li>
+<li>Cite: <a class="reference external" href="http://www.arachnid.us/CITE.html">http://www.arachnid.us/CITE.html</a></li>
 </ul>
 </div>
 <div class="section" id="dependencies">
