@@ -9,24 +9,27 @@ of as two subpackages:
 	
 	#. Arachnid Prime
 		A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
-		reconstruction workflow up to orientation assignment and classification.
+		reconstruction workflow up to orientation assignment and classification. This
+		toolkit also includes a set of application scripts and a workflow manager.
+	
 	#. pySPIDER
-		A library that allows one to write SPIDER batch files in Python. It also
-		includes scripts for every step of single-particle reconstruction including
+		This subpackage functions as an interface to the SPIDER package. It includes
+		both a library of SPIDER commands and a set of application scripts to run
+		a set of procedures for every step of single-particle reconstruction including
 		orientation assignment but not classification.
 
-So far, Arachnid Prime has focused on automating the pre-processing of the image 
-data. That is, Arachnid has the following highlighted applications that focus on 
-particle-picking:
+Arachnid Prime currently focuses on automating the pre-processing of the image 
+data captured by cryo-EM. For example, Arachnid has the following highlighted applications 
+handle the particle-picking problem:
 
 	- AutoPicker: Automated reference-free particle selection
 	- ViCer: Automated unsupervised particle verification
 
-The user has several options when interfacing with Arachnid including but Graphical User
+The user has several options when interfacing with Arachnid including both Graphical User
 Interfaces (GUIs) and command line scripts. The primary interface is a simple wizard GUI
 that walks the user through setting up a preprocessing workflow. The end result of the
 workflow is a set of particle images and a selection file for either pySPIDER orientation 
-assignment or RELION classification/orientation assignment. The user can also use the 
+assignment or RELION classification/orientation assignment. The user may also run the 
 individual scripts on the command line.
 
 .. note::
@@ -38,7 +41,7 @@ individual scripts on the command line.
 
 The algorithms and tools provided are rooted in image processing and object recognition as well as 
 machine learning (see the `malibu`_ package). Critical, time-intensive sections of the Arachnid Prime
-code have been optimized in C/C++ with a SWIG interface to Python and Fortran (using f2py). This package 
+code have been optimized in C/C++ using a SWIG interface to Python and using f2py to Fortran. Arachnid
 is also utilizes several third-party packages, which are highlighted in :doc:`attribution<attribution>`.
 
 This software is under development by the `Frank Lab`_ and is licensed under 
@@ -56,7 +59,7 @@ Several summer students have contributed to this project. Jonathan Ginsburg (Yes
 developed the initial code for pySPIDER, which replaced the archaic SPIDER scripting language 
 with Python. Jordan T. Ash (Rutgers University) helped to develop a particle verification 
 algorithm that makes it possible to automatically process datasets with high levels of 
-contamination. Ryan H. Smith (Columbia University) under the additiona mentorship of Dr. Hstau Liao 
+contamination. Ryan H. Smith (Columbia University) under the additional mentorship of Dr. Hstau Liao 
 developed a more robust algorithm to align frames of movies captured on cutting-edge direct detectors.
 
 This will be a very active project and we look forward to the continual release of new scripts
