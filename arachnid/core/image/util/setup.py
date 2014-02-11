@@ -9,21 +9,22 @@ This setup file defines a build script for C/C++ or Fortran extensions.
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
-    from numpy.distutils.system_info import get_info
+    #from numpy.distutils.system_info import get_info
     from arachnid.setup import compiler_options
     import os
     
+    '''
     try:
         blas_opt = get_info('blas_opt',notfound_action=2)
     except:
         try:
             blas_opt = get_info('mkl',notfound_action=2)  
         except: blas_opt = get_info('blas')
-    
+    '''
     config = Configuration('util', parent_package, top_path)
     
         
-    fcompiler_args = compiler_options()[0]
+    #fcompiler_args = compiler_options()[0]
     compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
     
     
