@@ -53,8 +53,8 @@ Background
 
 This project was started in 2009 by Robert Langlois as an internal software package written
 for members of the `Frank Lab`_. It grew from a few machine learning scripts into a substantial
-software package. The released version of this package contains only a subset of the available 
-scripts, which have been published as well as their corresponding utilities.
+software package. The released version of this package contains only a subset of the scripts, which 
+either have associate publications or are utilities.
 
 Several summer students have contributed to this project. Jonathan Ginsburg (Yeshiva University) 
 developed the initial code for pySPIDER, which replaced the archaic SPIDER scripting language 
