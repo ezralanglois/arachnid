@@ -7,23 +7,24 @@ images of macromolecules captured by cryo-electron microscopy (cryo-EM). Arachni
 focused on automating the single-particle reconstruction workflow and can be thought 
 of as two subpackages:
 	
-	#. Arachnid Prime
-		A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
-		reconstruction workflow up to orientation assignment and classification. This
-		toolkit also includes a set of application scripts and a workflow manager.
-	
-	#. pySPIDER
-		This subpackage functions as an interface to the SPIDER package. It includes
-		both a library of SPIDER commands and a set of application scripts to run
-		a set of procedures for every step of single-particle reconstruction including
-		orientation assignment but not classification.
+#. Arachnid Prime
+	A SciPy Toolkit (SciKit) that focuses on every step of the single-particle
+	reconstruction workflow up to orientation assignment and classification. This
+	toolkit also includes a set of application scripts and a workflow manager.
+
+#. pySPIDER
+	This subpackage functions as an interface to the SPIDER package. It includes
+	both a library of SPIDER commands and a set of application scripts to run
+	a set of procedures for every step of single-particle reconstruction including
+	orientation assignment but not classification.
 
 Arachnid Prime currently focuses on automating the pre-processing of the image 
 data captured by cryo-EM. For example, Arachnid has the following highlighted applications 
 handle the particle-picking problem:
 
-	- AutoPicker: Automated reference-free particle selection
-	- ViCer: Automated unsupervised particle verification
+- AutoPicker: Automated reference-free particle selection
+
+- ViCer: Automated unsupervised particle verification
 
 The user has several options when interfacing with Arachnid including both Graphical User
 Interfaces (GUIs) and command line scripts. The primary interface is a simple wizard GUI
@@ -52,8 +53,8 @@ Background
 
 This project was started in 2009 by Robert Langlois as an internal software package written
 for members of the `Frank Lab`_. It grew from a few machine learning scripts into a substantial
-software package. The released version of this package contains only a subset of the available 
-scripts, which have been published as well as their corresponding utilities.
+software package. The released version of this package contains only a subset of the scripts, which 
+either have associate publications or are utilities.
 
 Several summer students have contributed to this project. Jonathan Ginsburg (Yeshiva University) 
 developed the initial code for pySPIDER, which replaced the archaic SPIDER scripting language 

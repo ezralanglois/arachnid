@@ -24,6 +24,9 @@
 .. role:: icon-install
 	:class: glyphicon glyphicon-download
 
+.. role:: icon-link
+	:class: glyphicon glyphicon-link
+
 .. |info_icon| image:: /docs/images/icons/mini/information.png
 
 .. |accept_icon| image:: /docs/images/icons/mini/accept.png
