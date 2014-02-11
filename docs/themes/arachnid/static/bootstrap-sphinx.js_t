@@ -89,7 +89,7 @@
     $('a[href^="#module-"]')
    .each(function()
    { 
-   	  this.href = this.href.split('.').join('-').replace(/-html/, '.html');
+   	  this.href = this.href.split('.').join('-').replace(/-html/, '.html').replace(/www-/, 'www.').replace(/-us/, '.us');
    });
    
    $('div[id^="module-"]')
