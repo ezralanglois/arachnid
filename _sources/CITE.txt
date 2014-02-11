@@ -1,10 +1,18 @@
 
+.. include:: /docs/includes/icons.rst
 
 How to cite
 ===========
 
-Langlois, R., Ash, Ho N., Frank, J., 2014. Arachnid: Automated 
-Image-processing for Electron Microscopy. In Preparation.
+The main reference to cite is:
+
+
+	Langlois, R., Ash, Ho N., Frank, J., 2014. Arachnid: Automated 
+	Image-processing for Electron Microscopy. In Preparation.
+
+You can find this reference along with other references to specific
+programs :ref:`below <citation-manager>` in a file format that is easy to import into your
+favorite citation manager.
 
 Additional Papers
 -----------------
@@ -35,27 +43,29 @@ reconstruction of biological macromolecules from electron micrographs.
 Nature Protocols 3 (12), 1941-1974.
 URL http://www.nature.com/doifinder/10.1038/nprot.2008.156
 
+.. _citation-manager:
+
 For Citation Managers
 ----------------------
 
 .. list-table::
    :class: contentstable
    
-   * - `BibTeX <http://www.citeulike.org/bibtex/user/ezralanglois/tag/arachnid>`_
+   * - :icon-install:`.` `Library in BibTeX Format <http://www.citeulike.org/bibtex/user/ezralanglois/tag/arachnid>`_
 
-       LaTeX
+       Easy to use with LaTeX
 
-     - `RIS <http://www.citeulike.org/ris/user/ezralanglois/tag/arachnid>`_
+     - :icon-install:`.` `Library in RIS Format <http://www.citeulike.org/ris/user/ezralanglois/tag/arachnid>`_
 
-       Endnote, Procite, Reference manager, etc.
+       Easy to import into Endnote, Procite, etc.
 
-   * - `CiteULike <http://www.citeulike.org/user/ezralanglois/tag/arachnid>`_ 
+   * - :icon-link:`.` `CiteULike <http://www.citeulike.org/user/ezralanglois/tag/arachnid>`_ 
 
-       Social citation manager
+       Library available in this social citation manager
 
-     - `Mendeley <http://www.mendeley.com/groups/4057291/arachnid/>`_
+     - :icon-link:`.` `Mendeley <http://www.mendeley.com/groups/4057291/arachnid/>`_
 
-       Arachnid Application Group
+       Additional articles available
 
 
 
