@@ -44,7 +44,7 @@ The main reference to cite is:
 	Langlois, R. E., Ho D. N., Frank, J., 2014. Arachnid: Automated 
 	Image-processing for Electron Microscopy. In Preparation.
 
-See :doc:`CITE` for more information and downloadable citations.
+See `CITE <http://www.arachnid.us/CITE.html>`_ for more information and downloadable citations.
 
 Important links
 ===============
