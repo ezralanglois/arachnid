@@ -30,7 +30,7 @@ You can check what dependencies you have installed (and accessible) with the fol
 
 .. sourcecode:: sh
 
-    $ python setup.py check
+    $ python setup.py checkdep
       running check
       Checking for mpi4py: not found
       ---
@@ -387,7 +387,7 @@ if __name__ == '__main__':
             'Sphinx>=1.0.4',
             'nose>=1.0',
             ],
-            cmdclass = {'check': check_dep, 'sdist':sdist},
+            cmdclass = {'checkdep': check_dep, 'sdist':sdist},
             test_suite = 'nose.collector',
             **kwargs
     )
