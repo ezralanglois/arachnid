@@ -258,6 +258,7 @@ def search_range(img, disk_mult_range, **extra):
                 List of peaks: height and coordinates
     '''
     
+    del extra['mask_mult']
     coords_last = None
     disk_mult_range = numpy.asarray(disk_mult_range)
     max_mult = disk_mult_range.max()
@@ -792,6 +793,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   threshold_minimum=25,        help="Minimum number of particles for threshold selection")
     group.add_option("",   disk_mult_range=[],          help="Experimental parameter to search range of template sizes")
     group.add_option("",   nstd_pw=4.0,                 help="Cutoff for Fourier space PCA")
+    group.add_option("",   mask_mult=1.0,               help="Change the size of the real space PCA mask")
+    
     
     
     
