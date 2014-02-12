@@ -370,7 +370,7 @@ if __name__ == '__main__':
           long_description = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read(),
           data_files=[('rst', rglob("*.rst"))],
           install_requires = [
-            'numpy>=1.3.0',
+            #'numpy>=1.3.0', - causes conda build to fail
             'scipy>=0.7.1',
             'psutil',
             'scikit-learn',
@@ -380,9 +380,10 @@ if __name__ == '__main__':
             'sqlalchemy>=0.8.2', 
             'mysql-python',
             'PIL>=1.1.7',
-            'pyside',
+            'PySide',
+            'setuptools', #distribute
             ],
-            #setup_requires = [
+            #setup_requires = [ - causes conda build to fail
             #'Sphinx>=1.0.4',
             #'nose>=1.0',
             #],

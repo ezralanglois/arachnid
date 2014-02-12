@@ -74,18 +74,35 @@ package: `Anaconda`_.
 Install
 =======
 
-This package uses distutils, which is the default way of installing
-python modules. To install in your home directory, use::
-
-	python setup.py install --prefix=$HOME
-
-Alternatively, in Anaconda you may use::
-
-	conda pip arachnid
+The prefered method of installation is to use Anaconda::
 	
-Or, for a binary install, in Anaconda you may use::
-
+	# If you do not have Anaconda then run the following (assumes bash shell)
+	
+	wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
+	sh Miniconda-3.0.0-Linux-x86_64.sh -b -p $PWD/anaconda
+	export PATH=$PWD/anaconda/bin:$PATH
+	
+	# If you have anaconda or just installed it, then run
+	
 	conda install -c https://conda.binstar.org/ezralanglois arachnid
+
+Alternatives:
+
+	# Install from downloaded source
+	
+	$ python setup.py install --prefix=$HOME
+	
+	# Using Setup tools
+	
+	$ easy_install arachnid
+	
+	# Using PIP
+	
+	$ pip install arachnid
+	
+	# Using Anaconda
+	
+	$ conda install -c https://conda.binstar.org/ezralanglois arachnid
 
 Development
 ===========
