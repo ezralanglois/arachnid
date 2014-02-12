@@ -11,4 +11,3 @@ build
 *.cfg
 *.egg-info
 *_wrap.cxx
-*_wrap.cpp

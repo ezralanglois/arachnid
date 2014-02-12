@@ -24,7 +24,6 @@ def configuration(parent_package='',top_path=None):
     #fcompiler_args = compiler_options()[0]
     compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
     
-    
     fastdot_src = 'fastdot_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'fastdot_wrap.cpp')) else 'fastdot.i'
     config.add_extension('_fastdot', sources=[fastdot_src], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['fastdot.hpp'], swig_opts=['-c++'], extra_info = blas_opt, extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
     config.add_include_dirs(os.path.dirname(__file__))
