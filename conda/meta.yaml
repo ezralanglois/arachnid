@@ -25,5 +25,5 @@ requirements:
     - libpng
 
 about:
-  home: http://code.google.com/p/arachnid/
-  license: BSD
+  home: http://www.arachnid.us
+  license: GNU 2.0
