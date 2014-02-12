@@ -27,7 +27,7 @@ handle the particle-picking problem:
 - ViCer: Automated unsupervised particle verification
 
 This software is under development by the `Frank Lab`_ and is licensed under 
-:doc:`GPL 2.0 <../license>` or later.
+`GPL 2.0 <http://www.arachnid.us/license.html>`_ or later.
 
 For more information, see `http://www.arachnid.us <http://www.arachnid.us>`_.
 
@@ -50,7 +50,7 @@ Important links
 ===============
 
 - Official source code repo: https://github.com/ezralanglois/arachnid
-- HTML documentation (stable release): http://ezralanglois.github.io/arachnid/
+- HTML documentation (stable release): http://www.arachnid.us/
 - Download releases: https://binstar.org/
 - Issue tracker: https://github.com/ezralanglois/arachnid/issues
 - Mailing list: http://groups.google.com/group/arachnid-general
@@ -91,5 +91,4 @@ You can check out the latest source with the command::
 	git clone https://github.com/ezralanglois/arachnid/arachnid.git
 
 .. _`Frank Lab`: http://franklab.cpmc.columbia.edu/franklab/
-.. _`GPL 2.0`: http://www.gnu.org/licenses/gpl-2.0.html
 .. _`Anaconda`: https://store.continuum.io/
