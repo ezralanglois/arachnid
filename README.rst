@@ -82,6 +82,10 @@ python modules. To install in your home directory, use::
 Alternatively, in Anaconda you may use::
 
 	conda pip arachnid
+	
+Or, for a binary install, in Anaconda you may use::
+
+	conda install -c https://conda.binstar.org/ezralanglois arachnid
 
 Development
 ===========

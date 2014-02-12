@@ -382,10 +382,10 @@ if __name__ == '__main__':
             'PIL>=1.1.7',
             'pyside',
             ],
-            setup_requires = [
-            'Sphinx>=1.0.4',
-            'nose>=1.0',
-            ],
+            #setup_requires = [
+            #'Sphinx>=1.0.4',
+            #'nose>=1.0',
+            #],
             cmdclass = {'checkdep': check_dep, 'sdist':sdist},
             test_suite = 'nose.collector',
             **kwargs
