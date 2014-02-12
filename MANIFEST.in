@@ -1,3 +1,5 @@
 global-include docs/*
 global-include git-hooks/*
-global-include *.i *.h *.INC *.rst
+global-include *.i *.h *.INC *.hpp
+global-include *.cpp *.f *.f90 *.F90 *.c 
+global-include *.rst
