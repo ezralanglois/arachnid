@@ -167,6 +167,22 @@ Create a Program Script
 
 Under construction
 
+.. _add-to-workflow:
+
+Adding a script to the workflow
+-------------------------------
+
+A workflow module should contain the following function:
+
+.. py:function:: supports(files, **extra)
+
+   Test if this module is required in the project workflow
+
+   :param files: List of filenames to test
+   :param extra: Unused keyword arguments
+   :returns: True if this module should be added to the workflow
+
+
 ------------
 Custom Code
 ------------

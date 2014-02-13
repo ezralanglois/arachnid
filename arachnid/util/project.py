@@ -23,26 +23,30 @@ illustrated below.
     |     - vicer.cfg
     |     - relion_selection.cfg
     |     
-    |    data/
-    |     - cluster/
-    |         - data/
-    |             - data.star
-    |             - reference.dat
-    |         - win/
-    |             - win_00001.dat
-    |             - win_00002.dat
-    |     - local/
-    |         - coords/
-    |             - sndc_00001.dat
-    |             - sndc_00002.dat
-    |         - ctf/
-    |             - pow/
-    |                - pow_000001.dat
-    |                - pow_000002.dat
-    |             - params.dat
-    |             - ctf.dat
-    |         - mics_small/
-    |         - mics/
+    |    cluster/
+    |     - data/
+    |         - data.star
+    |         - reference.dat
+    |     - win/
+    |         - win_00001.dat
+    |         - win_00002.dat
+    |
+    |    local/
+    |     - coords/
+    |        - sndc_00001.dat
+    |        - sndc_00002.dat
+    |
+    |     - ctf/
+    |        - pow/
+    |           - pow_000001.dat
+    |           - pow_000002.dat
+    |
+    |        - params.dat
+    |        - ctf.dat
+    |
+    |      - mics_small/
+    |      - mics/
+    |
     |    run.sh
 
 
@@ -64,18 +68,10 @@ The workflow runs the following scripts in order:
 Single master config file - link input/output
 Individual files - configure each program
 
-Usage
------
+Development
+-----------
 
-A workflow module should contain the following function:
-
-.. py:function:: supports(files, **extra)
-
-   Test if this module is required in the project workflow
-
-   :param files: List of filenames to test
-   :param extra: Unused keyword arguments
-   :returns: True if this module should be added to the workflow
+See :ref:`add-to-workflow`.
 
 .. Created on Oct 20, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

@@ -1,6 +1,7 @@
 MANIFEST
 arachnid/_version.py
 docs/api_generated/
+docs/man_generated/
 dist
 scripts
 build
