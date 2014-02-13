@@ -19,13 +19,19 @@ The following commands must be run in the same directory.
 
 	.. sourcecode:: sh
 		
-		$ sp-project ../mic*.mrc -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --particle-diameter 220
+		# Single image projects
+		
+		$ ara-project -i "<path-to-exposures>/mic*.mrc" --apix 1.3 --voltage 300 --cs 2.26 --particle-diameter 250 --mask-diameter 300 -w 20 --raw-reference-file emd1021.map
+		
+		# Movie mode projects
+		
+		$ ara-project -i "<path-to-exposures>/mic*.mrc" --apix 1.3 --voltage 300 --cs 2.26 --particle-diameter 250 --mask-diameter 300 -w 20 --gain-file <path-to-gain>/gain.mrc --raw-reference-file emd1021.map
 
 2. Start the workflow
 
 	.. sourcecode:: sh
 	
-		$ nohup sh run_local  > local.log &
+		$ nohup sh run.sh  > local.log &
 
 3. Start manual micrograph/power spectra selection (Give some time for processing to start if not complete)
 
@@ -76,7 +82,7 @@ Tips
 4. Check normalization if you use Relion
 
 	For Arachnid=0.1.2 the particle-diameter must match the mask diameter used in Relion.
-	For Arachnid=0.1.3 the mask-diamter must match the mask diameter used in Relion.
+	For Arachnid>=0.1.3 the mask-diameter must match the mask diameter used in Relion.
 
 5. Suggested AutoPicker parameters for various conditions/samples
 
@@ -98,140 +104,6 @@ Tips
 		$ ara-vicer cluster/win/win_*.dat -a relion_it012_data.star -o output/view_0000000.dat -w8 -p cluster/data/params.dat 
 		
 	Note that this script writes out a relion selection file with the name view.star.
-
-Getting Started
-===============
-
-Now that you have finished collecting your data, you are ready to begin the image processing. At
-this point you should have two things:
-
-	#. A set of micrographs
-	#. Information describing your data collection:
-		- Pixel size, A
-		- Electron energy, KeV
-		- Spherical aberration, mm
-		- Actual size of particle, angstroms
-
-The default mode for project generation assumes that you will perform angular refinement and classification
-with Relion. There are several additional options that are availabe using the :option:`--cluster-mode`.
-	
-Alternatively, the following subsections describe how to create and run a program from the command line.
-
-Creating a project
-------------------
-
-The `sp-project` script generates an entire pySPIDER project including
-	
-	- Directories
-	- Configuration files
-
-A list of options (default configuration file) can be obtain by simply running
-the program without arguments.
-
-.. sourcecode:: sh
-	
-	$ sp-project
-	ERROR:root:Option --input-files requires a value - found empty
-	#  Program:	sp-project
-	#  Version:	0.0.1
-	
-	#  Generate all the scripts and directories for a pySPIDER project
-	#  
-	#  $ sp-project micrograph_files* -o project-name -r raw-reference -e extension -w 4 --apix 1.2 --voltage 300 --cs 2.26 --particle-diameter 220 --scatter-doc ribosome
-	#  
-
-	
-	input-files:                            #               (-i)    List of input filenames containing micrographs
-	output:                                 #               (-o)    Output directory with project name
-	raw-reference:                          #               (-r)    Raw reference volume - optional
-	is-film:                         False   #		Set true if the micrographs were collected on film (or have been processed)
-	apix:                           0.0     #       Pixel size, A
-	voltage:                        0.0     #       Electron energy, KeV
-	cs:                             0.0     #       Spherical aberration, mm
-	particle-diameter:              0       #       Longest diameter of the particle, angstroms
-	...
-
-The values shown above (for brevity this is only a partial list of all available parameters) are all 
-required for this script to run.
-
-The values for each option can be set as follows:
-
-.. sourcecode:: sh
-	
-	$ sp-project ../mic*.mrc -o ribosome_70s -r emd_1001.map -e spi -w 4 --apix 1.2 --voltage 300 --cs 2.26 --particle-diameter 220 --scatter-doc ribosome
-
-Let's look at each parameter on the command line above.
-
-The `../mic*.mrc` is a list of micrographs. The shell in most operating systems understands that `*` is a wildcard 
-character that allows you to select all files in directory `../` that start with `mic` and end with `.mrc`. You do
-not need to convert the micrographs to SPIDER format, that will be taken care of for you. In fact, the micrographs
-are not converted at all, only the output particle projection windows are required to be in SPIDER format for
-pySPIDER.
-
-The `-o ribosome_70s` defines the name of the root output directory, which in this case is `ribosome_70s`. A set of
-directories and configuration files/scripts will be created in this output directory (:ref:`see below <project-directory>`).
-
-The `-r emd_1001.map` defines the raw reference volume. Ideally, this will be in MRC format with the pixel-size in the header. If not,
-then you will need set the :option:`--curr-apix` parameter to set the proper pixel size.
-
-The `-apix 1.2`, `--voltage 300`, `--cs 2.26`, and `--particle-diameter 220` microscope parameters that define the experiment.
-
-The following are additional, recommended options.
-
-The `-w 4` defines the number of cores to use for parallel processing.
-
-The `--scatter-doc ribosome` will download a ribosome scattering file to 8A, otherwise you should specify an existing scattering file
-or nothing.
-
-.. note::
-
-	When processing processed (i.e. already contrast inverted, e.g. film) micrographs `--is-film` should be added to the command above.
-	In the configuration file, this should be `is-film: True`
-
-.. _project-directory:
-
-The command above will create a directory called `ribosome_70s` with the following structure:
-
-.. sourcecode:: sh
-
-	$ ls -R ribosome_70s
-	ribosome_70s/:
-	cluster  local run_local
-	
-	ribosome_70s/cluster:
-	align.cfg  data  refine.cfg  refinement  win
-	
-	ribosome_70s/cluster/data:
-	params.spi
-	
-	ribosome_70s/cluster/refinement:
-	
-	ribosome_70s/cluster/win:
-	
-	ribosome_70s/local:
-	autopick.cfg  coords  crop.cfg  defocus.cfg  pow  reference.cfg
-	
-	ribosome_70s/local/coords:
-	
-	ribosome_70s/local/pow:
-
-In the `ribosome_70s` directory, you will find two scripts: one to invoke all local scripts and one
-to invoke the cluster scripts.
-
-Running Scripts
----------------
-
-To run all the local scripts in the proper order, use the following suggested command:
-
-.. sourcecode:: sh
-
-	$ cd ribosome_70s
-	
-	$ nohup sh run_local  > /dev/null &
-
-.. note::
-	
-	All paths are setup relative to you executing a script from the project directory, e.g. `ribosome_70s`.
 
 Improving the Data Treatment
 ============================
@@ -258,7 +130,6 @@ This program has several features:
 
 Additional processing
 ---------------------
-
 
 Arachnid is geared toward automated data processing. Algorithms are currently under development to
 handle each the of the steps below. Until such algorithms have been developed, it is recommended
@@ -332,7 +203,7 @@ Particle Selection
 
 .. sourcecode:: sh
 
-	$ ara-autopick > auto.cfg
+	$ ara-autopick --create-cfg auto.cfg
 
 2. Edit config file
 
@@ -364,7 +235,7 @@ Particle Windowing
 
 .. sourcecode:: sh
 
-	$ ara-crop > crop.cfg
+	$ ara-crop --create-cfg crop.cfg
 
 2. Edit config file
 
