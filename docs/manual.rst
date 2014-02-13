@@ -16,20 +16,23 @@ Applications
 .. autosummary::
 	:nosignatures:
 	:template: man_module.rst
+	:toctree: man_generated/
 	
+	align_frames
 	autopick
 	lfcpick
+	reconstruct
+	vicer
 
 Utilities
 ---------
 
 .. currentmodule:: arachnid.util
 
-.. :toctree: man_generated/
-
 .. autosummary::
 	:nosignatures:
 	:template: man_module.rst
+	:toctree: man_generated/
 	
 	crop
     relion_selection
@@ -43,6 +46,7 @@ pySPIDER
 .. autosummary::
 	:nosignatures:
 	:template: man_module.rst
+	:toctree: man_generated/
     
     project
     defocus

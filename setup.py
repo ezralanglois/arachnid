@@ -392,6 +392,7 @@ if __name__ == '__main__':
             'setuptools', #distribute
             #'PySide',
             ],
+            #extras_require = dict(pyside="PySide"), #[pyside]
             #setup_requires = [ - causes conda build to fail
             #'Sphinx>=1.0.4',
             #'nose>=1.0',

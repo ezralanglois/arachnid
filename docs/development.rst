@@ -12,7 +12,7 @@ To get the latest version of the source, use the following `git <http://git-scm.
 
 .. sourcecode:: sh
 	
-	$ git clone https://code.google.com/p/arachnid/
+	$ git clone https://github.com/ezralanglois/arachnid/arachnid.git
 
 Alternatively, you can download a zip file of the latest development release:
 
@@ -38,45 +38,48 @@ Every time you add a new script or the first time you get the source, you may ru
 Reporting Bugs
 ==============
 
-As a user or developer, you can report bugs or request features on the `Google Issues Tab <http://code.google.com/p/arachnid/issues/entry>`_. Please,
+As a user or developer, you can report bugs or request features on the `Issues Tracker <https://github.com/ezralanglois/arachnid/issues>`_. Please,
 search for your issue before submitting it.
 
 Contributing Code
 =================
 
-The preferred way to contribute to Arachnid is to create your own local version or fork on code.google.com.
+The preferred way to contribute to Arachnid is to fork the main repository on Github and submit a "Pull Request".
 
-#. `Get a google account <https://accounts.google.com/NewAccount>`_
-#. `Create a google code project <http://code.google.com/hosting/createProject>`_
-#. Make a local copy of this project
+#. `Create a GitHub account <https://github.com/signup/free>`_
+#. `Fork the Arachnid repository <https://github.com/ezralanglois/arachnid/fork>`_
+#. Clone a local copy to your machine
+	
+	.. sourcecode:: sh
+		
+		$ git clone git@github.com:<YourLogin>/arachnid/arachnid.git
+	
+	Replace <YourLogin> with your username for GitHub.
+
+#. Create a branch to hold your changes
+
+	.. sourcecode:: sh
+		
+		$ git checkout -b my-changes
+
+#. When you have finished making changes, then
+
+	.. sourcecode:: sh
+		
+		$ git add modified_file1 
+		$ git add modified_file2
+		$ git commit -m "Comment describing your modifications"
+
+#. Upload your changes to your fork of Arachnid on GitHub
 
 	.. sourcecode:: sh
 	
-		$ git clone https://code.google.com/p/arachnid/
+		$ git push -u origin my-feature
 
-#. Work on your copy locally using Git for version control
-
-	.. sourcecode:: sh
-		
-		# First time only, create a branch with label `my-feature`
-		$ git remote add origin https://my-username@code.google.com/p/arachnid-my-fork-name/ 
-		$ git push origin master
-		$ git checkout -b my-feature 
-		
-		# Run for each new file
-		$ git add modified_files
-		
-		# Run for each major change
-		$ git commit
-		
-		# Run to push to public respository (or your respository)
-		$ git push origin master
-
-#. When your feature is ready for release, `create an issue <http://code.google.com/p/arachnid/issues/entry>`_
+#. Make a request to incorporate your changes 
 	
-	- Use the `Review Request` template and include the URL to your project and a description and your contact.
-	
-	- You may be invited to act as a contributor or your code will be incorporated.
+	Go your fork of Arachnid on Github and click the "Pull request" button. This
+	sends your changes to the maintainers for review.
 
 Your code should be error free and conform to the current code (also avoid `import *`). You can use the 
 following tools to help ensure your code conforms to the
@@ -130,28 +133,15 @@ Packaging for Anaconda
 
 .. sourcecode:: sh
 	
-	# Clean out all non-package code
-	$ conda package -r
+	$ conda skeleton pypi arachnid
 	
-	# Install non-package arachnid code
-	$ cd %arachnid$
-	$ python setup.py install 
-	
-	# Create distribution directory  
-	$ mkdir dist				
-	$ cd dist
-	
-	# Create Package
-	$ conda package --pkg-name=arachnid --pkg-version=$version 
-	
-	# Create index (Optional, used for local respository)
-	$ conda index				
+	$ conda build arachnid/
 
 Documentation Hack
 ==================
 
 To get the documentation to build correctly, you need to edit `sphinx/ext/autosummary/generate.py` in your site-packages
-directory. 
+directory.
 
 Change Line 143 from
 
