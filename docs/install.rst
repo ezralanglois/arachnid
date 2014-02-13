@@ -29,7 +29,7 @@ all the Arachnid dependencies.
 
 #. Download Anaconda Miniconda installer
 
-	.. sourcode:: sh
+	.. sourcecode:: sh
 	
 		wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
 
@@ -69,7 +69,7 @@ all the Arachnid dependencies.
 		
 		To simplify the above command, you may add the binstar repository to
 		your `$HOME/.condarc`. You may download an example file
-		 :download:`../.condarc` or copy the following:
+		:download:`../.condarc` or copy the following:
 		 
 		.. literalinclude:: ../.condarc
    			:language: sh
@@ -88,8 +88,8 @@ Troubleshooting
 	.. sourcecode:: sh
 		
 		Traceback (most recent call last):
-	  	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
-	    from conda.cli import main
+		File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
+		from conda.cli import main
 	
 	Then added `$PWD/anaconda/lib` to your `LD_LIBRARY_PATH`. This is normally not necessary.
 
@@ -111,7 +111,7 @@ Speeding up the code
 
 #. **Optional:** Install Accelerate
 	
-	..note::
+	.. note::
 	
 		This step requires you obtain a license from 
 		https://store.continuum.io/cshop/accelerate/. This is 

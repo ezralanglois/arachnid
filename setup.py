@@ -6,10 +6,10 @@ NumPY and SciPy fall into the should-not category because
 they can be sped up substantially if you install a vendor tuned linear 
 algebra library first.
 
-PyQT4 and EMAN2/Sparx have a more extensive set of installation requirements
+PySide has a more extensive set of installation requirements
 and thus must be downloaded from their respective sites.
 
-Matplotlib can use the PyQT4 library if installed after PyQT4.
+Matplotlib can use the PySide library if installed after PySide.
 
 Compilers
 ---------
@@ -37,9 +37,8 @@ You can check what dependencies you have installed (and accessible) with the fol
       Checking for numpy: found - 1.6.1
       Checking for scipy: found - 0.10.0rc1
       Checking for matplotlib: found - 1.1.0
-      Checking for PyQt4: found
+      Checking for PySide: found
       Checking for matplotlib: found - 1.1.0
-      Checking for EMAN2: found
 
 In the above example, only `mpi4py` was not installed.
 
@@ -57,11 +56,10 @@ Packages to Download
     - Graphical user interface libraries (Required for GUI)
         
         - `QT4`_
-        - `PyQT4`_
+        - `PySide`_
     
     - Single particle reconstruction package
         
-        - `EMAN2/Sparx`_ (Currently Required)
         - `SPIDER`_ (Not required for installation but to run pySPIDER scripts)
     
     - Scientific Python packages (Required)
@@ -69,10 +67,21 @@ Packages to Download
         - `Numpy`_
         - `Scipy`_
         - `Matplotlib`_
-    
-    - MPI Packages (Required to use MPI)
-        
+        - `scikit-learn`_
+        - `scikit-image`_
+        - `Basemap`_
+        - `Python Imaging Library (PIL)`_
         - `mpi4py`_
+    
+    - Database Packages
+        
+        - `SQLAlchemy`_
+        - `MySQL-Python`_
+    
+    - Other Packages
+        
+        - `psutil`_
+        - `setuptools`_
 
 .. _`mpi4py`: http://mpi4py.scipy.org/
 .. _`SPIDER`: http://www.wadsworth.org/spider_doc/spider/docs/spi-register.html
@@ -83,15 +92,19 @@ Packages to Download
 .. _`Blas`: http://www.netlib.org/blas/
 .. _`Goto Blas`: http://www.tacc.utexas.edu/tacc-projects/gotoblas2/
 .. _`QT4`: http://qt.nokia.com/
-.. _`EMAN2/Sparx`: http://ncmi.bcm.tmc.edu/ncmi/software/counter_222/software_86/
-.. _`PyQT4`: http://www.riverbankcomputing.co.uk/software/pyqt/intro
+.. _`PySide`: http://qt-project.org/wiki/PySide
 .. _`Numpy`: http://sourceforge.net/projects/numpy/files/
 .. _`Scipy`: http://sourceforge.net/projects/scipy/files/
 .. _`Matplotlib`: http://matplotlib.sourceforge.net/
 .. _`Sphinx`: http://sphinx.pocoo.org/
-.. _`Py2app`: http://svn.pythonmac.org/py2app/py2app/trunk/doc/index.html
-.. _`Py2exe`: http://www.py2exe.org/
-.. _`Cx_Freeze`: http://cx-freeze.sourceforge.net/
+.. _`scikit-image`: http://scikit-image.org/
+.. _`scikit-learn`: http://scikit-learn.org/stable/
+.. _`SQLAlchemy`: http://www.sqlalchemy.org/
+.. _`MySQL-Python`: http://mysql-python.sourceforge.net/
+.. _`Basemap`: http://matplotlib.org/basemap/
+.. _`Python Imaging Library (PIL)`: http://www.pythonware.com/products/pil/
+.. _`psutil`: https://code.google.com/p/psutil/
+.. _`setuptools`: http://pythonhosted.org/setuptools/setuptools.html
 
 Installation of Prerequisites
 -----------------------------
@@ -123,6 +136,8 @@ Installation of Prerequisites
 
 #. Install Python 2.6 or 2.7
 
+#. Install setuptools
+
 #. Install Numpy
 
     Create `site.cfg` in the Numpy source root and add the following values depending
@@ -145,33 +160,26 @@ Installation of Prerequisites
 
 #. Install Matplotlib (Required for plotting functions)
     
-    .. note ::
+    .. note::
 
-        If you plan on using the graphical user interface, install Qt4 and PyQt4 (steps 9 and 10) before installing matplotlib
-
-#. Install EMAN2/Sparx
+        If you plan on using the graphical user interface, install Qt4 and PySide (steps 9 and 10) before installing matplotlib
 
 #. Install Qt4 (Required for graphical user interface)
 
-#. Install PyQt4 (Required for graphical user interface)
+#. Install PySide (Required for graphical user interface)
 
 #. Setup Environment
     
     For Bash:
     
     .. sourcecode :: sh
-    
-        source $PATH_TO_EMAN/EMAN2/eman2.bashrc
-        
+            
         # Setup path for BLAS Libraries
         
         # With ACML
         export BLAS_LIBS=acml:cblas:acml_mv
         export BLAS_PATH=/opt/acml4.4.0/gfortran64_mp
         export LD_LIBRARY_PATH=$BLAS_PATH/lib:$LD_LIBRARY_PATH
-        
-        # With PGI compiler - need to link fortran libraries otherwise you get this error: ImportError: No module named _spider_util
-        export LDFLAGS="-L/opt/pgi/linux86-64/2011/REDIST -L/opt/pgi/linux86-64/2011/libso -pgf90libs $LDFLAGS"
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
