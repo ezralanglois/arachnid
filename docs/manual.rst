@@ -34,9 +34,13 @@ Utilities
 	:template: man_module.rst
 	:toctree: man_generated/
 	
+	bench
+	coverage
 	crop
+	enumerate_filenames
+	image_info
+	project
     relion_selection
-    bench
     
 pySPIDER
 --------
@@ -48,18 +52,18 @@ pySPIDER
 	:template: man_module.rst
 	:toctree: man_generated/
     
-    project
-    defocus
-    reference
     align
-    create_align
-    refine
-    reconstruct
+    autorefine
     classify
-   	prepare_volume
+    create_align
+    defocus
     enhance_volume
     filter_volume
-    mask_volume
+   	mask_volume
+    prepare_volume
+    reconstruct
+    reference
+    refine
     resolution
 
 .. _running-scripts:
