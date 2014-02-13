@@ -27,6 +27,10 @@ def main():
         raise
         sys.exit(1)
     
+    if len(sys.argv) > 1 and sys.argv[1]=='--help':
+        print "Go to http://www.arachnid.us for the help documentation"
+        sys.exit(0)
+    
     dialog = Viewer()
     dialog.show()
     if len(sys.argv) > 1:

@@ -30,6 +30,11 @@ def main():
         raise
         sys.exit(1)
     
+    
+    if len(sys.argv) > 1 and sys.argv[1]=='--help':
+        print "Go to http://www.arachnid.us for the help documentation"
+        sys.exit(0)
+    
     config_file = 'cfg/project.cfg'
     param = settings.parse_config_simple(config_file, coordinate_file="", pow_file="", small_micrograph_file="", selection_file="") if os.path.exists(config_file) else {}
     coordinate_file = spider_utility.spider_searchpath(param.get('coordinate_file', 'local/coords/sndc000001.*'))
