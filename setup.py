@@ -381,7 +381,7 @@ if __name__ == '__main__':
             'mysql-python',
             'PIL>=1.1.7',
             'PySide',
-            'setuptools', #distribute
+            #'setuptools', #distribute
             ],
             #setup_requires = [ - causes conda build to fail
             #'Sphinx>=1.0.4',
