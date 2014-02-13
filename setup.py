@@ -371,7 +371,7 @@ if __name__ == '__main__':
           data_files=[('rst', rglob("*.rst"))],
           install_requires = [
             #'numpy>=1.3.0', - causes conda build to fail
-            'scipy>=0.7.1',
+            'scipy',
             'psutil',
             'scikit-learn',
             'scikit-image',
@@ -380,6 +380,7 @@ if __name__ == '__main__':
             'sqlalchemy>=0.8.2', 
             'mysql-python',
             'PIL>=1.1.7',
+            'basemap',
             #'PySide',
             'setuptools', #distribute
             ],
