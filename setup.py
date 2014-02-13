@@ -380,8 +380,8 @@ if __name__ == '__main__':
             'sqlalchemy>=0.8.2', 
             'mysql-python',
             'PIL>=1.1.7',
-            'PySide',
-            #'setuptools', #distribute
+            #'PySide',
+            'setuptools', #distribute
             ],
             #setup_requires = [ - causes conda build to fail
             #'Sphinx>=1.0.4',
