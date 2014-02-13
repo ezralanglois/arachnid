@@ -1,0 +1,5 @@
+resolution
+============================
+
+.. automodule:: arachnid.pyspider.resolution
+	

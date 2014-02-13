@@ -17,20 +17,29 @@ Installation
 Anaconda
 ========
 
-Move to the directory you wish to install Anaconda
+The recommended method for most users to install Arachnid is 
+to use the Anaconda package. Anaconda makes it simple to install
+all the Arachnid dependencies.
 
-#. Download Anaconda
+#. Move to the directory you wish to install Anaconda
+	
+	.. sourcecode:: sh
+		
+		cd to-path-where-anaconda-will-be-installed/
 
-	`http://continuum.io/downloads <http://continuum.io/downloads>`_
+#. Download Anaconda Miniconda installer
+
+	.. sourcecode:: sh
+	
+		wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
 
 #. Install Anaconda
 	
 	.. sourcecode:: sh
 	
-		$ cd <to-path-where-anaconda-will-be-installed>
-		$ sh Anaconda-1.6.1-Linux-x86_64.sh -b -p $PWD/anaconda
+		$ sh Miniconda-3.0.0-Linux-x86_64.sh -b -p $PWD/anaconda
 	
-	Ensure Anaconda is on your path
+	You must ensure Anaconda is on your path by doing the following
 	
 	.. sourcecode:: sh
 	
@@ -40,67 +49,77 @@ Move to the directory you wish to install Anaconda
 		# C-Shell
 		$ setenv PATH $PWD/anaconda/bin:$PATH
 	
-	Alternatively, you can add these commands to your $HOME/.bashrc or $HOME/.cshrc, respectively.
+	.. note::
+		
+		The above step is only required the first time. Adding anaconda to your future
+		terminals as follows:
+		
+		- For bash users, Anaconda updates your `$HOME/.bashrc`.
+		
+		- C/Korn-shell users (csh or tcsh) must add the above C-shell 
+		  line to their own `$HOME/.cshrc`.
 
-#. Additional Packages
-
+#. Installing Arachnid
 	
 	.. sourcecode:: sh
 	
-		conda install basemap --yes			# Necessary for ara-cover
-		conda install psutil --yes			# Necessary for all scripts
-		conda install mysql-python --yes	# Necessary for Leginon import in GUI
-
-**Troubleshooting**
-
-If the installation gives the following error:
-
-.. sourcecode:: sh
+		conda install -c https://conda.binstar.org/public arachnid
 	
-	Traceback (most recent call last):
-  	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
-    from conda.cli import main
+	.. note::
+		
+		To simplify the above command, you may add the binstar repository to
+		your `$HOME/.condarc`. You may download an example file
+		:download:`../.condarc` or copy the following:
+		 
+		.. literalinclude:: ../.condarc
+   			:language: sh
+   		
+   		This allows you to install or update arachnid with the following
+   		commands::
+   			
+   			conda install arachnid
+   			conda update arachnid
 
-Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH. This is normally not necessary.
-	
-#. Install Accelerate
+Troubleshooting
+---------------
 
-	Note that this step requires you obtain a license from https://store.continuum.io/cshop/accelerate/. This is free.
-	if you have an .edu email.
-	
+#. If the installation gives the following error:
+
 	.. sourcecode:: sh
+		
+		Traceback (most recent call last):
+		File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
+		from conda.cli import main
 	
-		$ conda install accelerate --yes
+	Then added `$PWD/anaconda/lib` to your `LD_LIBRARY_PATH`. This is normally not necessary.
 
-#. Fix GUI
+#. If using the GUI gives the following error:
+
+	.. sourcecode:: sh
+		
+		Cannot mix incompatible Qt library (version 0x40701) with this library (version 0x40704)
+		/home/robertl/anaconda/bin/launcher: line 3:  9842 Aborted                 /home/robertl/anaconda/bin/python main.py $@
+	
+	This can be solved by updating your PySide library.
 
 	.. sourcecode:: sh
 	
 		$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
-#. Installing Arachnid
+Speeding up the code
+--------------------
 
-	- Add the Arachnid channel to your $HOME/.condarc
-
-		Download a prepared .condarc file to your $HOME path.
+#. **Optional:** Install Accelerate
 	
-		:download:`../.condarc`
+	.. note::
 	
-		**Alternative**: create on on the command line
+		This step requires you obtain a license from 
+		https://store.continuum.io/cshop/accelerate/. This is 
+		free if you have an .edu email.
 	
-		.. sourcecode:: sh
-		
-			$ echo "channels:" > $HOME/.condarc
-			$ echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
-			$ echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
-			$ echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
-			$ echo "  - http://guam/arachnid/dist" >> $HOME/.condarc
+	.. sourcecode:: sh
 	
-	- Install Arachnid
-	
-		.. sourcecode:: sh
-		
-			$ conda install arachnid --yes
+		$ conda install accelerate --yes
 
 Easy install
 ============
@@ -121,8 +140,12 @@ for easy_install.
 From Source
 ===========
 
-Download the package from https://
-, unpack the sources and cd into archive.
+Download the package from 
+
+- Latest stable version: https://pypi.python.org/packages/source/a/arachnid/arachnid-|release|.tar.gz
+- Latest development version: https://github.com/ezralanglois/arachnid/archive/master.zip
+
+Then unpack the sources and cd into archive.
 
 This packages uses distutils, which is the default way of installing
 python modules. The install command is::

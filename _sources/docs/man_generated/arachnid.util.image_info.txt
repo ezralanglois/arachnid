@@ -1,0 +1,5 @@
+image_info
+========================
+
+.. automodule:: arachnid.util.image_info
+	

@@ -1,0 +1,5 @@
+autopick
+=====================
+
+.. automodule:: arachnid.app.autopick
+	

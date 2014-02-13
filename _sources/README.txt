@@ -27,7 +27,7 @@ handle the particle-picking problem:
 - ViCer: Automated unsupervised particle verification
 
 This software is under development by the `Frank Lab`_ and is licensed under 
-:doc:`GPL 2.0 <../license>` or later.
+`GPL 2.0 <http://www.arachnid.us/license.html>`_ or later.
 
 For more information, see `http://www.arachnid.us <http://www.arachnid.us>`_.
 
@@ -44,13 +44,13 @@ The main reference to cite is:
 	Langlois, R. E., Ho D. N., Frank, J., 2014. Arachnid: Automated 
 	Image-processing for Electron Microscopy. In Preparation.
 
-See :doc:`CITE` for more information and downloadable citations.
+See `CITE <http://www.arachnid.us/CITE.html>`_ for more information and downloadable citations.
 
 Important links
 ===============
 
 - Official source code repo: https://github.com/ezralanglois/arachnid
-- HTML documentation (stable release): http://ezralanglois.github.io/arachnid/
+- HTML documentation (stable release): http://www.arachnid.us/
 - Download releases: https://binstar.org/
 - Issue tracker: https://github.com/ezralanglois/arachnid/issues
 - Mailing list: http://groups.google.com/group/arachnid-general
@@ -61,6 +61,7 @@ Dependencies
 
 The required dependencies to build the software are Python >= 2.6,
 setuptools, Numpy >= 1.3, SciPy >= 0.7, matplotlib>=1.1.0, mpi4py>=1.2.2, 
+scikit-learn, scikit-image, psutil, sqlalchemy, mysql-python, PIL, basemap,
 FFTW3 or MKL, and both C/C++ and Fortran compilers.
 
 It is also recommended you install NumPy and SciPy with an optimized Blas
@@ -74,14 +75,35 @@ package: `Anaconda`_.
 Install
 =======
 
-This package uses distutils, which is the default way of installing
-python modules. To install in your home directory, use::
+The prefered method of installation is to use Anaconda::
+	
+	# If you do not have Anaconda then run the following (assumes bash shell)
+	
+	wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
+	sh Miniconda-3.0.0-Linux-x86_64.sh -b -p $PWD/anaconda
+	export PATH=$PWD/anaconda/bin:$PATH
+	
+	# If you have anaconda or just installed it, then run
+	
+	conda install -c https://conda.binstar.org/public arachnid
 
-	python setup.py install --prefix=$HOME
+Alternatives:
 
-Alternatively, in Anaconda you may use::
-
-	conda pip arachnid
+	# Install from downloaded source
+	
+	$ python setup.py install --prefix=$HOME
+	
+	# Using Setup tools
+	
+	$ easy_install arachnid
+	
+	# Using PIP
+	
+	$ pip install arachnid
+	
+	# Using Anaconda
+	
+	$ conda install -c https://conda.binstar.org/ezralanglois arachnid
 
 Development
 ===========
@@ -91,5 +113,4 @@ You can check out the latest source with the command::
 	git clone https://github.com/ezralanglois/arachnid/arachnid.git
 
 .. _`Frank Lab`: http://franklab.cpmc.columbia.edu/franklab/
-.. _`GPL 2.0`: http://www.gnu.org/licenses/gpl-2.0.html
 .. _`Anaconda`: https://store.continuum.io/

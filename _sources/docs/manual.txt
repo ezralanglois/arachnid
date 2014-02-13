@@ -5,6 +5,11 @@ Manual
 This manual covers the usage of every available script. It provides a list of
 options and corresponding example usage.
 
+.. note::
+
+	This manual is intended for more advanced users, first time users
+	should see :doc:`reconstruction`
+
 Scripts
 =======
 
@@ -16,24 +21,31 @@ Applications
 .. autosummary::
 	:nosignatures:
 	:template: man_module.rst
+	:toctree: man_generated/
 	
+	align_frames
 	autopick
 	lfcpick
+	reconstruct
+	vicer
 
 Utilities
 ---------
 
 .. currentmodule:: arachnid.util
 
-.. :toctree: man_generated/
-
 .. autosummary::
 	:nosignatures:
 	:template: man_module.rst
+	:toctree: man_generated/
 	
+	bench
+	coverage
 	crop
+	enumerate_filenames
+	image_info
+	project
     relion_selection
-    bench
     
 pySPIDER
 --------
@@ -43,19 +55,20 @@ pySPIDER
 .. autosummary::
 	:nosignatures:
 	:template: man_module.rst
+	:toctree: man_generated/
     
-    project
-    defocus
-    reference
     align
-    create_align
-    refine
-    reconstruct
+    autorefine
     classify
-   	prepare_volume
+    create_align
+    defocus
     enhance_volume
     filter_volume
-    mask_volume
+   	mask_volume
+    prepare_volume
+    reconstruct
+    reference
+    refine
     resolution
 
 .. _running-scripts:
@@ -74,25 +87,49 @@ a configuration file (see below).
 
 .. sourcecode:: sh
 	
-	$ ara-autopick
-	2012-08-05 11:31:06,039 ERROR Requires at least one file
+	$ ara-autopick -h
 	#  Program:	ara-autopick
-	#  Version:	1.1.8
-	#  Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
+	#  Version:	0.1.4_158_gc3e4798
+	#  URL:	http://www.arachnid.us/docs/api_generated/arachnid.app.autopick.html
+	#
+	#  CITE:	http://www.arachnid.us/CITE.html
 	
-	#  This program find particles with reference-free Gaussian homomorphic cross-correlation.
-	#  
-	#  $ ara-autopick input-stack.spi -o coords.dat
-	#  
+	# Automated particle selection (AutoPicker)
+	# 
+	# $ ls input-stack_*.spi
+	# input-stack_0001.spi input-stack_0002.spi input-stack_0003.spi
+	# 
+	# Example: Unprocessed film micrograph
+	# 
+	# $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110
+	# 
+	# Example: Unprocessed CCD micrograph
+	# 
+	# $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110 --invert
+	# 
+	   ara-autopick -c $PWD/$0 $@
+	   exit $?
 	
-	input-files:			#		(-i)	Input files in addition to those placed on the command line
-	output:				#		(-o)	Path and name of the output file
+	
+	
+	
+	
+	#  Options that must be set to run the program
+	input-files:				#		(-i,--micrograph-files)	List of filenames for the input micrographs, e.g. mic_*.mrc
+	output:					    #		(-o,--coordinate-file)	Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)
+
 
 In the above example, the configuration file prints a header describing:
 	
 	#. Name of the program that generated the configuration file
 	#. Version of the program that generated the configuration file
+	#. Location of documentation for program
 	#. Basic usage of the program from the console
+	#. Code to run the script with: `sh name-of-script.cfg`
+	
+.. warning::
+	
+	Spaces at the start of a line are treated as comments!
 
 Any parameter listed in the configuration file can be used on the command line by adding `--` to the
 beginning.
@@ -107,8 +144,8 @@ Some parameters have the option to use a short flag, e.g. `-o`.
 	
 	$ ara-autopick -i mic_0001.spi,mic_0002.spi,mic_0003.spi -o sndc_0000.spi
 
-Finally, for input file only, you have the option of no flag. In this case only, multiple files must be 
-separated by spaces (whereas if you use `-i` or `--input-files`, they must be separated by commas).
+Finally, for input file only, you have the option of no flag. In this case only, multiple files **must** be 
+separated by spaces (whereas if you use `-i` or `--input-files`, they **must** be separated by commas).
 
 .. sourcecode:: sh
 	
@@ -132,33 +169,20 @@ of a script with no parameters to a filename. Note that this will always print a
 can be disregarded.
 
 .. sourcecode:: sh
+	
+    # Create configuration file
     
-    $ ara-autopick > autopick.cfg		# Create configuration file
-    2012-08-05 11:31:06,039 ERROR Requires at least one file
+    $ ara-autopick --create-cfg autopick.cfg
     
-    $ vi autopick.cfg					# Edit configuration file
+    
+    # Edit configuration file
+    
+    $ vi autopick.cfg					
 	#  Program:	ara-autopick
-	#  Version:	1.1.8
-	#  Usage: ara-autopick inputfile1 inputfile2 --option-name value ...
-	
-	#  This program find particles with reference-free Gaussian homomorphic cross-correlation.
-	#  
-	#  $ ara-autopick input-stack.spi -o coords.dat
-	#  
-	
-	input-files:			#		(-i)	Input files in addition to those placed on the command line
-	output:				#		(-o)	Path and name of the output file
+	#  Version:	0.1.4_158_gc3e4798
+	#  URL:	http://www.arachnid.us/docs/api_generated/arachnid.app.autopick.html
 
 	...
-
-A configuration file may also be created with the `--create-cfg` option. You may give
-it a value like `1` and it will write to the standard output similar to the previous
-example but without an error message. You can also give it a filename directly.
-
-.. sourcecode:: sh
-    
-    $ ara-autopick --create-cfg 1 > autopick.cfg 	# Create configuration file
-    $ ara-autopick --create-cfg autopick.cfg		# Create configuration file
 
 The `--create-cfg` option can also be used to create a copy of a configuration file. This
 is particulary useful when you want to change certain values from the command line.
@@ -229,6 +253,10 @@ a space at the start of a line is ignored. You should also end your command sequ
 	output:				#		(-o)	Path and name of the output file
 	
 	...
+
+.. warning::
+	
+	Remember, spaces at the start of a line are treated as comments!
 
 After adding your commands, you can now execute the configuration file like a script.
 
@@ -374,17 +402,17 @@ By default, an Arachnid script will log messages to STDERR, which means catching
 Log File
 --------
 
-You also have the option of specifying a log file (however, messages will still be printed to STDERR).
+You also have the option of specifying a log file.
 
 .. sourcecode:: sh
 	
 	$ ara-autopick -c autopick --log-file log.txt
 
-You can log only to the log file as follows:
+You can log to both the log file and console as follows:
 
 .. sourcecode:: sh
 	
-	$ ara-autopick -c autopick --log-file log.txt --disable-stderr
+	$ ara-autopick -c autopick --log-file log.txt --enable-stderr
 
 An added benefit of using `--log-file` is that old log files (with the same name) will be backed up in a zip
 archive (of the same name but with a '.zip' extension). 
@@ -393,8 +421,8 @@ Crash Report
 ------------
 
 Also, note that a crash report is generated regardless of what logging mode you choose. This file is
-called .$PROGRAM_NAME.crash_report. For example, for ara-autopick, it will be called 
-`.ara-autopick.crash_report`.
+called .$PROGRAM_NAME.crash_report.0 For example, for ara-autopick, it will be called 
+`.ara-autopick.crash_report.0`.
 
 This file contains any exceptions that are thrown during the execution of the script and is useful for reporting
 bugs. Please attach this file when you submit an issue.
