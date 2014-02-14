@@ -47,10 +47,10 @@ Update Arachnid to a specific version
 
 If the installation gives the following error:
 
-.. sourcecode::
+.. sourcecode:: sh
 	
 	Traceback (most recent call last):
-  	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
-    from conda.cli import main
+	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
+	from conda.cli import main
 
 Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
