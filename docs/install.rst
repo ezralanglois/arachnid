@@ -23,11 +23,13 @@ all the Arachnid dependencies.
 Quick Start
 -----------
 
-Simply download and run this script: :download:/install.sh.
+Simply download and run this script:
 
-.. sourcecode::
+	:download:`../install.sh`
+
+.. sourcecode:: sh
 	
-	$ cd <to-directory you wish to install Arachnid/Anaconda
+	$ cd <to-directory you wish to install Arachnid/Anaconda>
 	
 	# Copy script to this same directory
 	
