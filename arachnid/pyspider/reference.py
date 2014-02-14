@@ -99,7 +99,7 @@ import logging, os, numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=False, **extra):
+def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=False, disable_even=False, **extra):
     ''' Create a reference from from a given density map
     
     :Parameters:
@@ -120,6 +120,10 @@ def process(filename, spi, output, resolution, curr_apix=0.0, disable_center=Fal
     filename : str
                Filename for correct location
     '''
+    
+    if not disable_even and (extra['window']%2)==1:
+        extra['window'] += 1
+        _logger.info("Window size: %d (Forced Even)"%(extra['window']))
     
     _logger.info("Processing: %s"%os.path.basename(filename))
     _logger.info("Finished: %d,%d"%(0,5))
