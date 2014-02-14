@@ -1,5 +1,0 @@
-project
-=========================
-
-.. automodule:: arachnid.pyspider.project
-	
