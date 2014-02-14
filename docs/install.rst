@@ -2,7 +2,6 @@
 Installation
 =============
 
-
 .. toctree::
 	:maxdepth: 0
 	:hidden:
@@ -20,6 +19,25 @@ Anaconda
 The recommended method for most users to install Arachnid is 
 to use the Anaconda package. Anaconda makes it simple to install
 all the Arachnid dependencies.
+
+Quick Start
+-----------
+
+Simply download and run this script: :download:/install.sh.
+
+.. sourcecode::
+	
+	$ cd <to-directory you wish to install Arachnid/Anaconda
+	
+	# Copy script to this same directory
+	
+	$ sh install.sh
+
+Step-by-step
+------------
+
+These are the same steps run by the script in the 
+`Quick Start`_ section.
 
 #. Move to the directory you wish to install Anaconda
 	

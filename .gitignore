@@ -6,7 +6,6 @@ dist
 scripts
 build
 *.mod
-*.sh
 *.so
 *.pyc
 *.cfg
