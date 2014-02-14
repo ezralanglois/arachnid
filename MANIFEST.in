@@ -4,4 +4,4 @@ global-include *.i *.h *.INC *.hpp
 global-include *.cpp *.f *.f90 *.F90 *.c 
 global-include *.rst
 global-include *.qrc *.ui
-
+global-include install.sh
