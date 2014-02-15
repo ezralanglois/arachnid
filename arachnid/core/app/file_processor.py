@@ -83,6 +83,8 @@ program architecture.
 
 .. program:: shared
 
+.. beg-file-processor-options
+
 .. option:: --id-len <int>
     
     Set the expected length of the document file ID
@@ -98,6 +100,8 @@ program architecture.
 .. option:: --restart-test <bool>
     
     Test if the program will restart
+
+.. end-file-processor-options
 
 ..todo:: 
     

@@ -502,6 +502,10 @@ File Processor
 A subset of scripts support individual file processing. The following options are available for
 these scripts.
 
+.. include:: api_generated/arachnid.core.app.file_processor
+	:start-after: beg-file-processor-options
+	:end-before: end-file-processor-options
+
 .. option:: -l <int>, --id-len <int>
     
     Set the expected length of the document file ID
