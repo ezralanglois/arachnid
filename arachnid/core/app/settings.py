@@ -243,7 +243,7 @@ If I use the above truncated file as a configuration file, then the run will be 
 .. end-usage
 
 Module
-++++++
+------
 
 Adding an option to the Improved OptionParser can be done simply as follows:
 
