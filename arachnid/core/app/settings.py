@@ -3,142 +3,244 @@
 Every program shares a standard option interface that provides a rich set
 of features to the user.
 
-Usage
------
+.. beg-usage
+
+This section covers the basic usage of any Arachnid script from the console. Every 
+console-based Arachnid script supports both command-line options to run a script 
+quickly and configuration files to maintain how a script was run.
+
+Getting Help
+------------
+
+To get help or a list of options from the command-line, simply invoke the Arachnid script of
+interest on the command line as below:
+
+.. sourcecode:: sh
+    
+    $ ara-autopick -h
+    
+    #  Program:    ara-autopick
+    #  Version:    0.1.4_158_gc3e4798
+    #  URL:    http://www.arachnid.us/docs/api_generated/arachnid.app.autopick.html
+    #
+    #  CITE:    http://www.arachnid.us/CITE.html
+    
+    # Automated particle selection (AutoPicker)
+    # 
+    # $ ls input-stack_*.spi
+    # input-stack_0001.spi input-stack_0002.spi input-stack_0003.spi
+    # 
+    # Example: Unprocessed film micrograph
+    # 
+    # $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110
+    # 
+    # Example: Unprocessed CCD micrograph
+    # 
+    # $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110 --invert
+    # 
+       ara-autopick -c $PWD/$0 $@
+       exit $?
+    
+    #  Options that must be set to run the program
+    input-files:                    #        (-i,--micrograph-files)    List of filenames for the input micrographs, e.g. mic_*.mrc
+    output:                         #        (-o,--coordinate-file)    Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)
+    ...
+
+This above output can be broken down into three sections:
+
+    #. Header where each line is prefixed with a `#`.
+        
+        This section covers basic information about the script including
+        its name `Program:`, its version `Version:` and a link to the
+        manual page describing the program `URL`.
+        
+        This also includes a link to the citation for the full software
+        package `CITE:`.
+        
+        The header continues with a short description of the program and
+        examples showing how to run the program from the command-line.
+    
+    #. Extended header where each line is prefixed with a **space**
+        
+        This section will be covered in detail later.
+    
+    #. Options
+        
+        This section lists every option name, e.g. `input-files`, which
+        is seperated from its value (or empty space) by a `:`. Each
+        option is followed by a comment describing the option.
+        
+        The comment describing an option includes any alias for the
+        option, e.g. for `input-files`::
+            
+            -i,--micrograph-files
+        
+        Options are divided into natural groups where each group is
+        described by a comment, e.g.::
+            
+            #  Options that must be set to run the program
+
+The help can be invoked by either `--help` or `-h`.
 
 Command-line
-++++++++++++
+------------
 
 A basic method to set options for a script is to use the command line. The
-standard format for command-line options can be seen in the example below.f
-In general, the command is followed by a list of input files, then specific
-options can be set.
+standard format for command-line options can be seen in the example below:
 
 .. sourcecode:: sh
     
-    $ ara-program <input-files> --template <name> -o <file-path>
-    
-    $ ara-program mic_001.spi --template reference.spi -o sndc_000.spi
-    
-There are two components to setting an option(`--metrics precision`):
+    $  ara-autopick --input-files mic_0001.spi,mic_0002.spi,mic_0003.spi --output sndc_0000.spi
 
-    - Flag: `--metrics` or `-m`
-    - Value: precision
-    
-Some arguments such as `--metrics` supports a short form (`-m`). Also,
-most flags follow the pattern `--name value`, however input files is the
-one exception that does not require a flag.
+As shown above, any option listed in the help can be used on the command 
+line by adding a `--` to the beginning.
 
-The input files can be explicitly set as follows:
+Some parameters have the option to use a short flag, e.g. `-o`.
 
 .. sourcecode:: sh
     
-    $ ara-program <input-files>
-    $ ara-program --input-files <input-files>
-    $ ara-program -i <input-files>
+    $ ara-autopick -i mic_0001.spi,mic_0002.spi,mic_0003.spi -o sndc_0000.spi
 
-Available Options
-+++++++++++++++++
-
-The options available for a specific script can be found using the 
-`-h` or `--help` options.
+For input files only, you have the option of omitting a  flag. In this case only, multiple files **must** be 
+separated by spaces (whereas if you use `-i` or `--input-files`, they **must** be separated by commas).
 
 .. sourcecode:: sh
     
-    $ ara-program -h | more
-    
-    #  Program:    ara-program
-    #  Version:    0.1.3_76_g3b7c8d4
-    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
-    #  
-    
-    #  Options that must be set to run the program
-    input-files:              #        (-i)    List of filenames for the input micrographs
-    output:                   #        (-o)    Output filename for the program
-    alignment:                #        (-a)    Input file containing alignment parameters
-    --More--
-    
-Configuration Files
-+++++++++++++++++++
+    $ ara-autopick mic_0001.spi mic_0002.spi mic_0003.spi -o sndc_0000.spi
 
-A configuration file can be created by running the script without any parameters, as shown above. To
-save the configuration file, you can redirect the output stream to a file as follows:
+Wild cards may be used for input files, however if `-i` or `--input-files`, then the input filename
+show be quoted.
 
 .. sourcecode:: sh
     
-    $ mkdir cfg
-    $ ara-program -h > cfg/auto.cfg
-    $ more cfg/auto.cfg
-    #  Program:    ara-program
-    #  Version:    0.1.3_76_g3b7c8d4
-    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
-    #  
-    
-    #  Options that must be set to run the program
-    input-files:              #        (-i)    List of filenames for the input micrographs
-    output:                   #        (-o)    Output filename for the program
-    alignment:                #        (-a)    Input file containing alignment parameters
-    --More--
+    $ ara-autopick mic_*.spi -o sndc_0000.spi
+    $ ara-autopick -i "mic_*.spi" -o sndc_0000.spi
     
 .. note::
+    
+    Using `ara-autopick -i "mic_*.spi" -o sndc_0000.spi` will allow you to exceed the terminal limit on number
+    of input files.
+    
+Configuration Files
+-------------------
 
-    The `#` serves as a comment in the configuration file. Everything after the `#` is ignored. In 
-    addition, if the line starts with a space, then this entire line is also ignored.
-
-A configuration file can be used as follows: 
+A configruation file may be generate in a number of ways. First, it can be created by redirecting the output
+of a script with the `-h` or `--help` parameter:
 
 .. sourcecode:: sh
 
-    $ ara-program -c cfg/auto.cfg # Explicitly set filename
-    $ ara-program -c auto         # Automatically find auto.cfg in cfg
+    $ ara-autopick -h > autopick.cfg
 
-Default values in configuration files can be set using command line options:
-
-.. sourcecode:: sh
-    
-    $ ara-program -o output.txt --create-cfg new.cfg
-    $ more new.cfg
-    #  Program:    ara-program
-    #  Version:    0.1.3_76_g3b7c8d4
-    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
-    #  
-    
-    
-    input-files:                #    Input files in addition to those placed on the command line
-    output:      output.txt     #    Path and name of the output file
-    --More--
-    
-Configuration files can also be copied (almost completely):
+A configuration file can also be created using the `--create-cfg` option, giving
+the output filename as a value:
 
 .. sourcecode:: sh
     
-    $ ara-program -c old --create-cfg cfg/new.cfg
+    $ ara-autopick --create-cfg autopick.cfg
 
-An advanced feature of the configuration file is the ability to embed a shell script before
-the first option. For example, consider the following:
+If you want to change default values while creating a configuration file, then
+specify the new values on the command line:
 
 .. sourcecode:: sh
     
-    #  Program:    ara-program
-    #  Version:    0.1.3_76_g3b7c8d4
-    #  URL:    http://code.google.com/p/arachnid/docs/api_generated/arachnid.app.program.html
-    #  
+    $ ara-autopick --create-cfg autopick.cfg -i mic_0001.spi -w 32
     
-      nohup ara-program -c $PWD/$0 > `basename $0 cfg`log &
-      exit 0
-    
-    input-files:        #    Input files in addition to those placed on the command line
-    output:            #    Path and name of the output file
-
-This simple shell script, invokes the python script then exits before it reaches the options. Both
-lines are ignored by the python script because they are preceed by a space. Thus, the script can
-be run as follows:
+A configuration file has the following form in the excerpt below 
+(omitting the header):
 
 .. sourcecode:: sh
 
-    $ sh cfg/new.cfg
+    ...
+    
+    # Example: Unprocessed CCD micrograph
+    # 
+    # $ ara-autopick input-stack_*.spi -o coords_00001.dat -r 110 --invert
+    # 
+       ara-autopick -c $PWD/$0 $@
+       exit $?
+    
+    #  Options that must be set to run the program
+    input-files:               #        (-i,--micrograph-files)    List of filenames for the input micrographs, e.g. mic_*.mrc
+    output:                    #        (-o,--coordinate-file)    Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)
+    ctf-file:            -     #    Input defocus file - currently ignored
+    selection-file:            #        (-s)    Selection file for a subset of good micrographs
+    ...
 
-While this example is trivial, you can construct more complicated shell scripts or commands.
+As described previously, the configuration files has three main sections:
+
+#. Header where lines are prefixed with a `#`
+#. Extended header where lines are prefixed with a space
+#. Options
+
+.. warning::
+    
+    Spaces at the start of a line are treated as comments!
+    
+A script can be run using the configuration file in a number of ways. First,
+it can be given as input to the script using the `-c` or `--config-file` option:
+
+.. sourcecode::
+    
+    ara-autopick -c autopick.cfg
+
+Second, if the configuration file is in a directory called `cfg` and the program is
+run one level above cfg, then it can be also run as follows:
+
+.. sourcecode::
+    
+    ara-autopick -c cfg/autopick.cfg
+    
+    # or leaving off the `cfg/` and the `.cfg`
+    
+    ara-autopick -c autopick
+
+Finally, the extended header allows the configuration file to be run as if it was the program.
+
+.. sourcecode:: sh
+    
+    sh autopick.cfg
+    
+.. _version_control:
+
+Version Control
+---------------
+
+If you run a script, it will automatically create an extra file based on the output file you 
+specify, e.g. output: folder/name.ext ---> folder/cfg_name.cfg.
+
+As long as the output file does not change, this file will record a "version-controlled" configuration 
+file. Every time you run the program, a date followed by the parameters you changed will be 
+written to this file. This file in itself is a valid configuration file. If you want go back to a previous
+experiment, then you need only make a copy of this file and remove all options below a certain date.
+
+.. sourcecode:: sh
+    
+    $ more folder/cfg_name.cfg
+    # 2012-3-30 5:30:23
+    input-files: file1
+    boost:        1002
+    
+    # 2012-3-30 6:30:23
+    boost:        1003
+    
+    # 2012-4-30 2:31:23
+    boost:        900
+
+If I use the above file as a configuration file, then the run will be the same as was performed on 2012-4-30 at 2:31:23.
+
+.. sourcecode:: sh
+    
+    $ more folder/cfg_name.cfg
+    # 2012-3-30 5:30:23
+    input-files: file1
+    boost:        1002
+    
+    # 2012-3-30 6:30:23
+    boost:        1003
+
+If I use the above truncated file as a configuration file, then the run will be the same as was performed on 2012-3-30 at 6:30:23.
+
+.. end-usage
 
 Module
 ++++++
