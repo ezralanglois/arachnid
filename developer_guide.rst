@@ -40,7 +40,7 @@ Contents
 
        Application programmer's interface  
    
-   * - :icon-source:`.` `Source code <https://code.google.com/p/arachnid/source/browse/>`_
+   * - :icon-source:`.` `Source code <https://github.com/ezralanglois/arachnid>`_
 
        Source code for the package
      
