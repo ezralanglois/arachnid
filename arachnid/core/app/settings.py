@@ -245,6 +245,8 @@ If I use the above truncated file as a configuration file, then the run will be 
 Module
 ------
 
+.. beg-dev
+
 Adding an option to the Improved OptionParser can be done simply as follows:
 
 .. sourcecode:: py
@@ -308,6 +310,8 @@ An real valued option would have the following example signature:
 .. sourcecode:: py
 
     group.add_option("",   disk_mult=0.65,      help="Disk smooth kernel size factor", gui=dict(maximum=10.0, minimum=0.01, singleStep=0.1, decimals=2))
+
+.. end-dev
 
 Parameters
 ----------

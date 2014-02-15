@@ -150,6 +150,8 @@ The tracing script has the following inheritable parameters:
 Module
 ------
 
+.. beg-dev
+
 Standard practice when using this module is to define a logger
 for each module as follows:
 
@@ -195,6 +197,7 @@ follows:
 
 This generates a list of failed imports of optional modules, which will be logged at the start of the crash report.
 
+.. end-dev
 
 .. Created on Sep 28, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>

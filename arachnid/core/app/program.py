@@ -5,6 +5,8 @@ shared utilities such as option parsing, option checking, option updating, MPI s
 multi-threading control, input filename updates, configuration file creation, logging setup,
 file processing and version control.
 
+.. beg-dev
+
 Essentially a script can utilize one of two program architectures:
 
     #. Batch processing
@@ -33,8 +35,8 @@ the following:
 
     if __name__ == "__main__": main()
 
-Usage
------
+Interface
+---------
 
 The target module must define one of the following functions:
 
@@ -100,6 +102,8 @@ The target module may include any of the following functions:
    Return a dictionary of support properties
 
    :returns: Dictionary of supported properties
+
+.. end-dev
 
 Parameters
 ----------

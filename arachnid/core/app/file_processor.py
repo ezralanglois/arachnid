@@ -1,13 +1,13 @@
 ''' Framework for independent processing of files or groups of objects in serial, in parallel 
 on a workstation or in parallel on a cluster using MPI.
 
+
+.. beg-dev
+
 The file processor module provides basic functionality to any program 
 that processes a set of files or a set of object groups independently. It can 
 distribute processing to multiple cores using the multiprocessing package as 
 well as to multiple nodes on a cluster using mpi2py.
-
-Usage
------
 
 The target module must define the following functions:
 
@@ -74,6 +74,8 @@ Each function also has access to the following keyword arguments:
 
     - finished: List of input files that have been processed and thus will not be processed this round
     - id_len: Maximum number of digits in the SPIDER ID
+
+.. end-dev
 
 Parameters
 ----------

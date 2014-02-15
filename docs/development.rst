@@ -158,9 +158,44 @@ to
 A little background: The default autosummary code gets all inherited members of a class. This ensures only the current
 members will be documented.
 
+.. snippet tutorial
 
 Create a Program Script
 =======================
+
+Basic Program
+-------------
+
+.. include:: /arachnid/core/app/program.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+File Processor
+--------------
+
+.. include:: /arachnid/core/app/file_processor.py
+	:start-after: beg-dev
+	:end-before: end-dev
+	
+Options
+-------
+
+.. include:: /arachnid/core/app/settings.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+Logging
+-------
+
+.. include:: /arachnid/core/app/tracing.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+.. multi-processing
+.. mpi
+.. metadata
+.. image
+.. pyspider
 
 .. example batch program
 .. example file processor program
