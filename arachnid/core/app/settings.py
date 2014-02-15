@@ -179,14 +179,14 @@ As described previously, the configuration files has three main sections:
 A script can be run using the configuration file in a number of ways. First,
 it can be given as input to the script using the `-c` or `--config-file` option:
 
-.. sourcecode::
+.. sourcecode:: sh
     
     ara-autopick -c autopick.cfg
 
 Second, if the configuration file is in a directory called `cfg` and the program is
 run one level above cfg, then it can be also run as follows:
 
-.. sourcecode::
+.. sourcecode:: sh
     
     ara-autopick -c cfg/autopick.cfg
     
