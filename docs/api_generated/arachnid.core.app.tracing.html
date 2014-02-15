@@ -244,20 +244,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#getting-help">Getting Help</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#command-line">Command-line</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../manual.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#local-machine">Local Machine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#cluster">Cluster</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../manual.html#version-control">Version Control</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#versioning-the-script">Versioning the Script</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#version-control">Version Control</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#logging">Logging</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#terminal">Terminal</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#log-file">Log File</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#crash-report">Crash Report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#colors">Colors</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#common-options">Common Options</a><ul>
@@ -471,10 +466,10 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.program.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html">settings</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#available-options">Available Options</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#getting-help">Getting Help</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#version-control">Version Control</a><ul>
 <li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#module">Module</a></li>
 </ul>
 </li>
@@ -495,14 +490,12 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6 current"><a class="current reference internal" href="">tracing</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="#parameters">Parameters</a></li>
-<li class="toctree-l8"><a class="reference internal" href="#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="#crash-reports">Crash Reports</a></li>
-<li class="toctree-l8"><a class="reference internal" href="#colors">Colors</a></li>
-<li class="toctree-l8"><a class="reference internal" href="#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#crash-reports">Crash Reports</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#colors">Colors</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#config-logging">Config Logging</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#module">Module</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="#functions">Functions</a></li>
@@ -569,6 +562,7 @@
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html">spider</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#options">Options</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html#functions">Functions</a></li>
@@ -950,14 +944,12 @@
 </div>
 <ul>
 <li><a class="reference internal" href="#">tracing</a><ul>
-<li><a class="reference internal" href="#usage">Usage</a><ul>
-<li><a class="reference internal" href="#parameters">Parameters</a></li>
-<li><a class="reference internal" href="#command-line">Command-line</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
 <li><a class="reference internal" href="#crash-reports">Crash Reports</a></li>
 <li><a class="reference internal" href="#colors">Colors</a></li>
+<li><a class="reference internal" href="#config-logging">Config Logging</a></li>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
 <li><a class="reference internal" href="#module">Module</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -978,46 +970,61 @@
 with a common interface.</p>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="parameters">
-<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
-<p>The tracing script has the following inheritable parameters:</p>
-<dl class="option">
-<dt id="cmdoption-shared-v">
-<tt class="descname">-v</tt><tt class="descclassname"> &lt;CHOICE&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--log-level</tt><tt class="descclassname"> &lt;CHOICE&gt;</tt><a class="headerlink" href="#cmdoption-shared-v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set logging level application wide: &#8216;critical&#8217;, &#8216;error&#8217;, &#8216;warning&#8217;, &#8216;info&#8217;, &#8216;debug&#8217;, &#8216;debug_more&#8217; or 0-5</p>
-</dd></dl>
-
-<dl class="option">
-<dt id="cmdoption-shared--log-file">
-<tt class="descname">--log-file</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--log-file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set file to log messages</p>
-</dd></dl>
-
-<dl class="option">
-<dt id="cmdoption-shared--log-config">
-<tt class="descname">--log-config</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--log-config" title="Permalink to this definition">¶</a></dt>
-<dd><p>File containing the configuration of the application logging</p>
-</dd></dl>
-
-<dl class="option">
-<dt id="cmdoption-shared--disable-stderr">
-<tt class="descname">--disable-stderr</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-shared--disable-stderr" title="Permalink to this definition">¶</a></dt>
-<dd><p>If true, output will only be written to the given log file</p>
-</dd></dl>
-
-</div>
-<div class="section" id="command-line">
-<h3>Command-line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h3>
+<p>Logging is both versatile and redundant allowing the user to both configure
+the output, yet still retain the most critical information.</p>
+<p>The default for the level of logging is <cite>info</cite> (-v3 or &#8211;log-level info). This
+prints status updates, warnings and errors. Additional information can be
+obtained by changing the level to <cite>debug</cite> (-v4 or &#8211;log-level debug). See
+examples below:</p>
 <div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-autopick -v4                   <span class="c"># Log most including debug information</span>
 <span class="nv">$ </span>ara-autopick -v5                   <span class="c"># Log everything including debug information</span>
 <span class="nv">$ </span>ara-autopick --log-level 0         <span class="c"># Do not log any messages</span>
 <span class="nv">$ </span>ara-autopick --log-level info      <span class="c"># Log only information level or higher</span>
 
 <span class="nv">$ </span>ara-autopick --log-file info.log   <span class="c"># Write all log messages to a file </span>
+<span class="nv">$ </span>ara-autopick --log-file info.log --enable-stderr <span class="c"># Write messages to both file and console</span>
 </pre></div>
 </div>
 <p>The logging framework also supports fine-grained configuration. This can be enabled using
-the <cite>&#8211;log-config</cite> parameter.</p>
+the <cite>&#8211;log-config</cite> parameter. See <a class="reference internal" href="#config-logging"><em>Config Logging</em></a> for more information.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An added benefit of using <cite>&#8211;log-file</cite> is that old log files (with the same name) will be backed up in a zip
+archive (of the same name but with a &#8216;.zip&#8217; extension).</p>
+</div>
+</div>
+<div class="section" id="crash-reports">
+<h2>Crash Reports<a class="headerlink" href="#crash-reports" title="Permalink to this headline">¶</a></h2>
+<p>The logging module creates two loggers be default:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>A crash report logger for all exceptions</li>
+<li>A standard logger for user-based messages (default error stream)</li>
+</ol>
+</div></blockquote>
+<p>The crash report filename is constructed from the name of the script
+as follows:</p>
+<blockquote>
+<div>.&lt;script_name&gt;.crash_report.&lt;0&gt;</div></blockquote>
+<p>where &lt;script_name&gt; is the name of the script
+and &lt;0&gt; is its current MPI rank or 0 for non-MPI programs.</p>
+<p>For example, consider a non-MPI script called <cite>ara-info</cite>, its
+crash report will be called:</p>
+<div class="highlight-python"><pre>.ara-info.crash_report.0</pre>
+</div>
+<p>This file contains any exceptions that are thrown during the execution of the script and is useful for reporting
+bugs. Please attach this file when you submit an issue.</p>
+</div>
+<div class="section" id="colors">
+<h2>Colors<a class="headerlink" href="#colors" title="Permalink to this headline">¶</a></h2>
+<style> .red {color:red} </style><p>The logging module defines an API to color the logging messages. It
+first tests whether the terminal supports color. If so, then it
+adds color formatting.</p>
+<p>Currently, only the levelname or <span class="red">ERROR</span> in error messages to the 
+terminal are colored in red.</p>
+</div>
+<div class="section" id="config-logging">
+<span id="id1"></span><h2>Config Logging<a class="headerlink" href="#config-logging" title="Permalink to this headline">¶</a></h2>
 <p>The following is an example configuration file. Logging can be configured for a specific 
 module or an entire package.</p>
 <div class="highlight-python"><pre>[loggers]
@@ -1053,35 +1060,36 @@ datefmt=</pre>
 </pre></div>
 </div>
 </div>
-<div class="section" id="crash-reports">
-<h3>Crash Reports<a class="headerlink" href="#crash-reports" title="Permalink to this headline">¶</a></h3>
-<p>The logging module creates two loggers be default:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li>A crash report logger for all exceptions</li>
-<li>A standard logger for user-based messages (default error stream)</li>
-</ol>
-</div></blockquote>
-<p>The crash report filename is constructed from the name of the script
-as follows:</p>
-<blockquote>
-<div>.&lt;script_name&gt;.crash_report.&lt;0&gt;</div></blockquote>
-<p>where &lt;script_name&gt; is the name of the script
-and &lt;0&gt; is its current MPI rank or 0 for non-MPI programs.</p>
-<p>For example, consider a non-MPI script called <cite>ara-info</cite>, its
-crash report will be called</p>
-<p>.ara-info.crash_report.0</p>
-</div>
-<div class="section" id="colors">
-<h3>Colors<a class="headerlink" href="#colors" title="Permalink to this headline">¶</a></h3>
-<style> .red {color:red} </style><p>The logging module defines an API to color the logging messages. It
-first tests whether the terminal supports color. If so, then it
-adds color formatting.</p>
-<p>Currently, only the levelname or <span class="red">ERROR</span> in error messages to the 
-terminal are colored in red.</p>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<p>The tracing script has the following inheritable parameters:</p>
+<dl class="option">
+<dt id="cmdoption-shared-v">
+<tt class="descname">-v</tt><tt class="descclassname"> &lt;CHOICE&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--log-level</tt><tt class="descclassname"> &lt;CHOICE&gt;</tt><a class="headerlink" href="#cmdoption-shared-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set logging level application wide: &#8216;critical&#8217;, &#8216;error&#8217;, &#8216;warning&#8217;, &#8216;info&#8217;, &#8216;debug&#8217;, &#8216;debug_more&#8217; or 0-5</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--log-file">
+<tt class="descname">--log-file</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--log-file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set file to log messages</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--log-config">
+<tt class="descname">--log-config</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-shared--log-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>File containing the configuration of the application logging</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-shared--disable-stderr">
+<tt class="descname">--disable-stderr</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-shared--disable-stderr" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, output will only be written to the given log file</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module">
-<h3>Module<a class="headerlink" href="#module" title="Permalink to this headline">¶</a></h3>
+<h2>Module<a class="headerlink" href="#module" title="Permalink to this headline">¶</a></h2>
 <p>Standard practice when using this module is to define a logger
 for each module as follows:</p>
 <div class="highlight-py"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
@@ -1117,7 +1125,6 @@ follows:</p>
 </pre></div>
 </div>
 <p>This generates a list of failed imports of optional modules, which will be logged at the start of the crash report.</p>
-</div>
 </div>
 </div>
 <div class="section" id="functions">
