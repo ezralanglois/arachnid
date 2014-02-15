@@ -104,13 +104,30 @@ The target module may include any of the following functions:
 Parameters
 ----------
 
+The following options are, by convention, defined in most scripts with
+a few exceptions.
+
+.. program:: standard
+
+.. beg-convention-options
+
+.. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
+    
+    List of filenames for the input files. If you use the parameters `-i` or `--inputfiles` they must be
+    comma separated (no spaces). If you do not use a flag, then separate by spaces. For a very large number of files
+    (>5000) use `-i "filename*"`
+    
+.. option:: -o <FILENAME>, --output <FILENAME>
+    
+    Filename for the output file with correct number of digits (e.g. vol_0000.spi)
+
+.. end-convention-options
+
 The following parameters are added to a script using the program architecture. 
 
 .. program:: shared
 
-.. option:: --use-MPI <BOOL>
-    
-    Set this flag True when using mpirun or mpiexec (Only available for MPI-enabled programs)
+.. beg-program-options
 
 .. option:: -z <FILENAME>, --create-cfg <FILENAME>
     
@@ -119,6 +136,24 @@ The following parameters are added to a script using the program architecture.
 .. option:: --prog-version <version>
     
     Version of the program to use, use `latest` to always use the latest version
+
+.. option:: -X, --display-gui <BOOL>
+    
+    Display the graphical user interface
+
+.. end-program-options
+.. beg-openmp-options
+
+.. option:: -t, --thread-count <INT>
+    
+    Number of threads per machine, 0 means determine from environment (Default: 0)
+    
+.. end-openmp-options
+.. beg-mpi-options
+
+.. option:: --use-MPI <BOOL>
+    
+    Set this flag True when using mpirun or mpiexec (Only available for MPI-enabled programs)
 
 .. option:: --shared-scratch <FILENAME>
     
@@ -136,9 +171,7 @@ The following parameters are added to a script using the program architecture.
     
     File directory on local node for temporary files (optional but recommended for MPI jobs)
 
-.. option:: -t, --thread-count <INT>
-    
-    Number of threads per machine, 0 means determine from environment (Default: 0)
+.. end-mpi-options
 
 .. todo:: if not exist set to empty home-prefix, local-scratch, local-temp and warn
 

@@ -6,31 +6,15 @@ with a common interface.
 Usage
 -----
 
-Parameters
-++++++++++
+.. beg-usage
 
-The tracing script has the following inheritable parameters:
+Logging is both versatile and redundant allowing the user to both configure
+the output, yet still retain the most critical information.
 
-.. program:: shared
-
-.. option:: -v <CHOICE>, --log-level <CHOICE>
-    
-    Set logging level application wide: 'critical', 'error', 'warning', 'info', 'debug', 'debug_more' or 0-5
-
-.. option:: --log-file <FILENAME>
-    
-    Set file to log messages
-
-.. option:: --log-config <FILENAME>
-    
-    File containing the configuration of the application logging
-
-.. option:: --disable-stderr <BOOL>
-    
-    If true, output will only be written to the given log file
-
-Command-line
-++++++++++++
+The default for the level of logging is `info` (-v3 or --log-level info). This
+prints status updates, warnings and errors. Additional information can be
+obtained by changing the level to `debug` (-v4 or --log-level debug). See
+examples below:
 
 .. sourcecode:: sh
     
@@ -40,9 +24,62 @@ Command-line
     $ ara-autopick --log-level info      # Log only information level or higher
     
     $ ara-autopick --log-file info.log   # Write all log messages to a file 
+    $ ara-autopick --log-file info.log --enable-stderr # Write messages to both file and console
 
 The logging framework also supports fine-grained configuration. This can be enabled using
-the `--log-config` parameter.
+the `--log-config` parameter. See :ref:`config-logging` for more information.
+
+.. note::
+    
+    An added benefit of using `--log-file` is that old log files (with the same name) will be backed up in a zip
+    archive (of the same name but with a '.zip' extension).
+
+Crash Reports
+-------------
+
+The logging module creates two loggers be default:
+
+    #. A crash report logger for all exceptions
+    #. A standard logger for user-based messages (default error stream)
+
+The crash report filename is constructed from the name of the script
+as follows: 
+
+    .<script_name>.crash_report.<0>
+
+where <script_name> is the name of the script
+and <0> is its current MPI rank or 0 for non-MPI programs.
+
+For example, consider a non-MPI script called `ara-info`, its
+crash report will be called::
+
+    .ara-info.crash_report.0
+
+This file contains any exceptions that are thrown during the execution of the script and is useful for reporting
+bugs. Please attach this file when you submit an issue.
+
+Colors
+------
+
+.. role:: red
+
+.. raw:: html
+
+    <style> .red {color:red} </style>
+
+The logging module defines an API to color the logging messages. It
+first tests whether the terminal supports color. If so, then it
+adds color formatting. 
+
+Currently, only the levelname or :red:`ERROR` in error messages to the 
+terminal are colored in red.
+
+.. end-usage
+
+.. _config-logging:
+
+Config Logging
+--------------
 
 The following is an example configuration file. Logging can be configured for a specific 
 module or an entire package. 
@@ -82,46 +119,36 @@ The above logging configuration file can be specified on the command-line.
 .. sourcecode:: sh
     
     $ ara-autopick --log-config log.conf # Configure logging with a file
+
+Parameters
+----------
+
+The tracing script has the following inheritable parameters:
+
+.. program:: shared
+
+.. beg-options
+
+.. option:: -v <CHOICE>, --log-level <CHOICE>
     
-Crash Reports
-+++++++++++++
+    Set logging level application wide: 'critical', 'error', 'warning', 'info', 'debug', 'debug_more' or 0-5
 
-The logging module creates two loggers be default:
+.. option:: --log-file <FILENAME>
+    
+    Set file to log messages
 
-    #. A crash report logger for all exceptions
-    #. A standard logger for user-based messages (default error stream)
+.. option:: --log-config <FILENAME>
+    
+    File containing the configuration of the application logging
 
-The crash report filename is constructed from the name of the script
-as follows: 
+.. option:: --disable-stderr <BOOL>
+    
+    If true, output will only be written to the given log file
 
-    .<script_name>.crash_report.<0>
-
-where <script_name> is the name of the script
-and <0> is its current MPI rank or 0 for non-MPI programs.
-
-For example, consider a non-MPI script called `ara-info`, its
-crash report will be called
-
-.ara-info.crash_report.0
-
-Colors
-++++++
-
-.. role:: red
-
-.. raw:: html
-
-    <style> .red {color:red} </style>
-
-The logging module defines an API to color the logging messages. It
-first tests whether the terminal supports color. If so, then it
-adds color formatting. 
-
-Currently, only the levelname or :red:`ERROR` in error messages to the 
-terminal are colored in red.
+.. end-options
 
 Module
-++++++
+------
 
 Standard practice when using this module is to define a logger
 for each module as follows:

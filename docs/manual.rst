@@ -366,66 +366,9 @@ If I use the above truncated file as a configuration file, then the run will be 
 Logging
 =======
 
-Logging in arachnid is both versatile and redundant to give the user the best of all worlds. The most basic control the user
-has is the level of logging, i.e. the amount of information printed by the program.
-
-Most users should use `--log-level` 3 or info, which is the default. This prints some valuble information along with
-warnings and errors. Additional information can be obtained with `--log-level` 4 or debug. See examples below:
-
-.. sourcecode: sh
-
-	$ ara-autopick -c autopick -v4
-	
-	$ ara-autopick -c autopick -vdebug
-	
-	$ ara-autopick -c autopick --log-level 4
-	
-	$ ara-autopick -c autopick --log-level debug
-
-Using `--log-level` 2 or warn causes the script to only print warnings and errors.
-
-Using `--log-level` 1 or error causes the script to only print only errors.
-
-Terminal
---------
-
-By default, an Arachnid script will log messages to STDERR, which means catching log messages can be done as follows:
-
-.. sourcecode:: sh
-	
-	$ ara-autopick -c autopick 2> log.txt # For Bash (bash) or Bourne Shell (sh) or Korn Shell (ksh)
-	#
-	# Or
-	#
-	$ ara-autopick -c autopick >& log.txt # For C-shell (csh)
-
-Log File
---------
-
-You also have the option of specifying a log file.
-
-.. sourcecode:: sh
-	
-	$ ara-autopick -c autopick --log-file log.txt
-
-You can log to both the log file and console as follows:
-
-.. sourcecode:: sh
-	
-	$ ara-autopick -c autopick --log-file log.txt --enable-stderr
-
-An added benefit of using `--log-file` is that old log files (with the same name) will be backed up in a zip
-archive (of the same name but with a '.zip' extension). 
-
-Crash Report
-------------
-
-Also, note that a crash report is generated regardless of what logging mode you choose. This file is
-called .$PROGRAM_NAME.crash_report.0 For example, for ara-autopick, it will be called 
-`.ara-autopick.crash_report.0`.
-
-This file contains any exceptions that are thrown during the execution of the script and is useful for reporting
-bugs. Please attach this file when you submit an issue.
+.. include:: /arachnid/core/app/tracing.py
+	:start-after: beg-usage
+	:end-before: end-usage
 
 .. _common-options:
 
@@ -443,56 +386,33 @@ This section lists common options shared:
 All Scripts
 ------------
 
-The following options are shared by all scripts and are organized by their utlity.
+The following options are shared by all app/util scripts and are organized by their utility.
+
+.. note::
+	
+	These options are generally not supported by GUI-only
+	applications.
 
 Critical Options
 ++++++++++++++++
 
-.. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
-    
-    List of filenames for the input micrographs. If you use the parameters `-i` or `--inputfiles` they must be
-    comma separated (no spaces). If you do not use a flag, then separate by spaces. For a very large number of files
-    (>5000) use `-i "filename*"`
-    
-.. option:: -o <FILENAME>, --output <FILENAME>
-    
-    Filename and path to output file with correct number of digits (e.g. vol_0000.spi)
+.. include:: /arachnid/core/app/program.py
+	:start-after: beg-convention-options
+	:end-before: end-convention-options
 
 Logging Options
 +++++++++++++++
 
-.. option:: -v <CHOICE>, --log-level <CHOICE>
-    
-    Set logging level application wide: 'critical', 'error', 'warning', 'info', 'debug' or 0-4
-
-.. option:: --log-file <FILENAME>
-    
-    Set file to log messages
-
-.. option:: --log-config <FILENAME>
-    
-    File containing the configuration of the application logging
-
-.. option:: --disable_stderr <BOOL>
-    
-    If true, output will only be written to the given log file
+.. include:: /arachnid/core/app/tracing.py
+	:start-after: beg-options
+	:end-before: end-options
     
 Other Options
 +++++++++++++
 
-.. option:: --create-cfg <STRING>
-	
-	Create a configuration file, if STRING is a filename, then write to that file, 
-	otherwise write to the standard output
-
-.. option:: --prog-version <STRING>
-	
-	Version of the program that created the configuration file. Chaning this value
-	will load the specified version of the program at run-time.
-
-.. option:: -X <BOOL>, --ui <BOOL>
-	
-	Display the graphical user interface
+.. include:: /arachnid/core/app/program.py
+	:start-after: beg-program-options
+	:end-before: end-program-options
 
 .. _file-proc-options:
 
@@ -502,27 +422,20 @@ File Processor
 A subset of scripts support individual file processing. The following options are available for
 these scripts.
 
-.. include:: api_generated/arachnid.core.app.file_processor
-	:start-after: beg-file-processor-options
-	:end-before: end-file-processor-options
+.. program:: file-processor
 
-.. option:: -l <int>, --id-len <int>
-    
-    Set the expected length of the document file ID
-
-.. option:: -b <str>, --restart-file <str>
-    
-    Set the restart file to keep track of which processes have finished. If this is empty, then a restart file is 
-    written to .restart.$script_name You must set this to restart (otherwise it will overwrite the automatic restart file).
-
-.. option:: -w <int>, --work-count <int>
-    
-     Set the number of micrographs to process in parallel (keep in mind memory and processor restrictions)
+.. include:: /arachnid/core/app/file_processor.py
+	:start-after: beg-options
+	:end-before: end-options
 
 .. _param-options:
 
 Cryo-EM Experiments
 -------------------
+
+.. warning:: 
+
+	These parameters will be removed in the next version!
 
 The following options are supported by most of the scripts. They define key parameters that define
 a cryo-EM experiment.
@@ -534,7 +447,6 @@ a cryo-EM experiment.
 .. option:: --bin-factor <FLOAT>
     
     Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
-
 
 .. _mpi-options:
 
@@ -556,25 +468,11 @@ extermely important for proper function:
    less than 80 characters long. With these two parameters set proplerly, a soft link is created to automatically
    shorted all the filenames in the script.
 
-.. option:: --use-MPI <BOOL>
-	
-	Set this flag True when using mpirun or mpiexec
+.. program:: mpi-enabled
 
-.. option:: --shared-scratch <FILENAME>
-	
-	File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
-
-.. option:: --home-prefix <FILENAME>
-	
-	File directory accessible to all nodes to copy files (optional but recommended for MPI jobs)
-
-.. option:: --local-scratch <FILENAME>
-
-	File directory on local node to copy files (optional but recommended for MPI jobs)
-
-.. option:: --local-temp <FILENAME>
-
-	File directory on local node to setup a soft link to `home-prefix` (optional but recommended for MPI jobs)
+.. include:: /arachnid/core/app/program.py
+	:start-after: beg-mpi-options
+	:end-before: end-mpi-options
 
 OpenMP-Enabled Scripts
 ----------------------
@@ -583,9 +481,9 @@ This option is shared by all non-pySPIDER OpenMP-enabled scripts.
 
 .. program:: openmp-enabled
 
-.. option:: --thread-count <int>
-    
-    Number of threads per machine, 0 means determine from environment
+.. include:: /arachnid/core/app/program.py
+	:start-after: beg-openmp-options
+	:end-before: end-openmp-options
 
 .. _spider-options:
 
@@ -597,19 +495,8 @@ These options are shared pyspider scripts; those prefixed with `spi-`.
 
 .. program:: pyspider
 
-.. option:: --spider-path <FILENAME>
-    
-    File path to spider executable
-    
-.. option:: --data-ext <str>
-    
-    Extension of spider data files
-    
-.. option:: --thread-count <int>
-    
-    Number of threads per machine, 0 means use all cores
-    
-.. option:: --enable-results <BOOL>
-    
-     If set true, print results file to terminal
+.. include:: /arachnid/core/spider/spider.py
+	:start-after: beg-options
+	:end-before: end-options
+
 

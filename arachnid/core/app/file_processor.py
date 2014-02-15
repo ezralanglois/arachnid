@@ -83,7 +83,7 @@ program architecture.
 
 .. program:: shared
 
-.. beg-file-processor-options
+.. beg-options
 
 .. option:: --id-len <int>
     
@@ -101,7 +101,7 @@ program architecture.
     
     Test if the program will restart
 
-.. end-file-processor-options
+.. end-options
 
 ..todo:: 
     

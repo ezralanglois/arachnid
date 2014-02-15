@@ -51,6 +51,29 @@ Run the decimate command with the given parameters
     
     `Spider operations <http://www.wadsworth.org/spider_doc/spider/docs/operations_doc.html>`_
 
+Options
+-------
+
+.. beg-options
+
+.. option:: --spider-path <FILENAME>
+    
+    File path to spider executable
+
+.. option:: --data-ext <str>
+    
+    Extension of spider data files
+
+.. option:: --thread-count <int>
+    
+    Number of threads per machine, 0 means use all cores
+
+.. option:: --enable-results <BOOL>
+    
+    If set true, print results file to terminal
+
+.. end-options
+
 .. todo::
 
     #. tf_cor only works with spider 18.19 or later
