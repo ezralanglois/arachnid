@@ -71,12 +71,15 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
     '''
     '''
     
+    angs[:, 0] = 90.0-angs[:, 0]
+    
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
     total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
     count = numpy.histogram(pix, total)[0]
     maxcnt = count.max()
     pix = numpy.arange(total, dtype=numpy.int)
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
+    angs[:, 0] = 90-angs[:, 0]
     _logger.info("Number of angles %d for resolution %d"%(len(angs), view_resolution))
     fout = open(output, 'w')
     
@@ -109,7 +112,11 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
     cmap = getattr(cm, color_map)
     m = basemap.Basemap(**mapargs)
     
-    x, y = m(angs[:, 1], 90.0-angs[:, 0])
+    # Y -> latitude
+    # Z -> longitude
+    
+    #longitude, colatitude = 90-latitude
+    x, y = m(angs[:, 1], angs[:, 0]) #90.0-angs[:, 0])
     sel = hist < 1
     hist = hist.astype(numpy.float)
     s = numpy.sqrt(hist)*area_mult
@@ -192,12 +199,14 @@ def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
     '''
     '''
     
+    angs[:, 0] = 90.0-angs[:, 0]
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
     total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
     _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
     count = numpy.histogram(pix, total)[0]
     pix = numpy.arange(total, dtype=numpy.int)
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
+    angs[:, 0] = 90.0-angs[:, 0]
     return angs, count
     
 def read_angles(filename, header=None, select_file="", **extra):
