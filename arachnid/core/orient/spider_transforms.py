@@ -14,6 +14,10 @@ is to apply the rotation first, followed by the translation (TR).
 import numpy
 import healpix
 import transforms
+import logging
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def coarse_angles_3D(resolution, align, half=False, out=None):
     ''' Move project alignment parameters to a coarser grid.
@@ -42,12 +46,14 @@ def coarse_angles_3D(resolution, align, half=False, out=None):
               and optionally REF-NUM (note, PSI is 0)
     '''
     
+    _logger.critical("New code")
     ang = healpix.angles(resolution)
+    ang[:, 0]=90.0-ang[:, 0]
     resolution = pow(2, resolution)
     if out is None: out=numpy.zeros((len(align), len(align[0])))
     cols = out.shape[1]
     for i in xrange(len(align)):
-        theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        theta, phi = healpix.ensure_valid_deg(90.0-align[i,1], align[i,2], half)
         ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
         rot = rotate_into_frame(ang[ipix], (align[i, 0], theta, phi))
         out[i, :3]=(rot, theta, phi)
@@ -81,12 +87,14 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
               and optionally REF-NUM (note, PSI is 0)
     '''
     
+    _logger.critical("New code")
     ang = healpix.angles(resolution)
+    ang[:, 0]=90.0-ang[:, 0]
     resolution = pow(2, resolution)
     if out is None: out=numpy.zeros((len(align), len(align[0])))
     cols = out.shape[1]
     for i in xrange(len(align)):
-        theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        theta, phi = healpix.ensure_valid_deg(90.0-align[i,1], align[i,2], half)
         ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
         rot, tx, ty = rotate_into_frame_2d(ang[ipix], theta, phi, align[i, 3], align[i,4], align[i,5])
         out[i, 1:6]=( theta, phi, rot, tx, ty)
