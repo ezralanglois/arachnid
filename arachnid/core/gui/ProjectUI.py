@@ -434,6 +434,7 @@ class MainWindow(QtGui.QWizard):
         try:"+"+files
         except: pass
         else: files = files.split(',')
+        files = list(set(files))
         self.ui.gainFileComboBox.blockSignals(True)
         self.ui.gainFileComboBox.clear()
         self.ui.gainFileComboBox.addItems(files)
