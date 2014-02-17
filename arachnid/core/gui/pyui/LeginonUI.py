@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/LeginonUI.ui'
 #
-# Created: Tue Jan 14 13:39:15 2014
+# Created: Mon Feb 17 13:50:06 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -171,7 +171,7 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.widget)
 
         self.retranslateUi(Form)
-        self.loginStackedWidget.setCurrentIndex(0)
+        self.loginStackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Form)
         Form.setTabOrder(self.leginonHostnameLineEdit, self.projectHostnameLineEdit)
         Form.setTabOrder(self.projectHostnameLineEdit, self.usernameLineEdit)

@@ -29,7 +29,7 @@
       <item>
        <widget class="QStackedWidget" name="loginStackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="welcomePage">
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -93,7 +93,7 @@ p, li { white-space: pre-wrap; }
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="../icons/icons.qrc">
+                   <iconset resource="../../../../docs/images/icons/icons.qrc">
                     <normaloff>:/mini/mini/arrow_refresh.png</normaloff>:/mini/mini/arrow_refresh.png</iconset>
                   </property>
                  </widget>
@@ -117,7 +117,7 @@ p, li { white-space: pre-wrap; }
                    <string>Change User...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="../icons/icons.qrc">
+                   <iconset resource="../../../../docs/images/icons/icons.qrc">
                     <normaloff>:/mini/mini/user_edit.png</normaloff>:/mini/mini/user_edit.png</iconset>
                   </property>
                  </widget>
@@ -128,7 +128,7 @@ p, li { white-space: pre-wrap; }
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../icons/icons.qrc">
+                   <iconset resource="../../../../docs/images/icons/icons.qrc">
                     <normaloff>:/mini/mini/information.png</normaloff>:/mini/mini/information.png</iconset>
                   </property>
                  </widget>
@@ -457,7 +457,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>projectTableView</tabstop>
  </tabstops>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../docs/images/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>
