@@ -84,14 +84,12 @@ def finalize_bp3f(fftvol, weight, image_size, cleanup_fft):
     '''
     
     if fftvol is not None:
-        vol = numpy.zeros((image_size, image_size, image_size), order='F', dtype=weight.dtype)
-        #_logger.error("finalize_bp3f-1")
+        vol = numpy.zeros((image_size, image_size, image_size), order='C', dtype=weight.dtype)
         if not fftvol.flags.f_contiguous: fftvol = fftvol.T
         if not weight.flags.f_contiguous: weight = weight.T
         if not vol.flags.f_contiguous: vol = vol.T
         _spider_reconstruct.finalize_bp3f(fftvol, weight, vol)#, image_size)
         if cleanup_fft: _spider_reconstruct.cleanup_bp3f()
-        #_logger.error("finalize_bp3f-2")
         return vol
     if cleanup_fft: _spider_reconstruct.cleanup_bp3f()
     
@@ -128,7 +126,8 @@ def backproject_bp3f_array(image_size, npad=2, **extra):
     '''
     
     pad_size = image_size*npad
-    return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.float32))
+    #return dict(forvol=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.complex64), weight=numpy.zeros((image_size+1, pad_size, pad_size), order='C', dtype=numpy.float32))
+    return dict(forvol=numpy.zeros((pad_size, pad_size, image_size+1), order='C', dtype=numpy.complex64), weight=numpy.zeros((pad_size, pad_size, image_size+1), order='C', dtype=numpy.float32))
 
 def reconstruct3_bp3n_mp(image_size, gen1, gen2, align1=None, align2=None, **extra):
     '''Reconstruct three volumes using BP3F
@@ -328,8 +327,12 @@ def reconstruct_fft(backproject, backproject_array, gen, image_size, align, npad
             v, w = val['forvol'], val['weight']
         else: raise ValueError, "iterate_reduce must return dict or tuple"
         if fftvol is None:
-            fftvol = v
-            weight = w
+            if shared:
+                fftvol = v.copy()
+                weight = w.copy()
+            else:
+                fftvol = v
+                weight = w
         else:
             fftvol += v
             weight += w

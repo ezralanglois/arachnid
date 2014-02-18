@@ -9,6 +9,7 @@ This module defines a set of common tasks that can be performed in parallel or s
 import process_queue
 import logging
 import numpy.ctypeslib
+import multiprocessing.sharedctypes
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -130,10 +131,14 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
                 ar = shmem_array_info[key]
                 if ar.dtype.str[1]=='c':
                     typestr = ar.dtype.str[0]+'f'+str(int(ar.dtype.str[2:])/2)
-                    print ar.dtype.itemsize, ar.shape
                     ar = ar.view(numpy.dtype(typestr))
-                    print ar.dtype.itemsize, ar.shape
-                base[key] = numpy.ctypeslib.as_ctypes(ar)
+                if ar.dtype == numpy.dtype(numpy.float64):
+                    typecode="d"
+                elif ar.dtype == numpy.dtype(numpy.float32):
+                    typecode="f"
+                else: raise ValueError, "dtype not supported: %s"%str(ar.dtype)
+                
+                base[key] = multiprocessing.sharedctypes.RawArray(typecode, ar.ravel().shape[0])
                 arr[key] = numpy.ctypeslib.as_array(base[key])
                 arr[key] = arr[key].view(shmem_array_info[key].dtype).reshape(shmem_array_info[key].shape)
             shmem_map.append(arr)                                  
@@ -148,12 +153,18 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
                 yield val
         finally: pass
         #_logger.error("queue-done")
+    #extra['shmem_arr']=shmem_map
     
-    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra, shmem_arr=shmem_map):
+    def iterate_reduce_worker(qin, qout, process_number, process_limit, extra, shmem_map_base=None):#=shmem_map):
         val = None
         try:
-            if shmem_arr is not None:
-                extra.update(shmem_arr[process_number])
+            if shmem_map_base is not None:
+                ar = shmem_map_base[process_number]
+                ar_map={}
+                for key in ar.iterkeys():
+                    ar_map[key] = numpy.ctypeslib.as_array(ar[key])
+                    ar_map[key] = ar_map[key].view(shmem_map[process_number][key].dtype).reshape(shmem_map[process_number][key].shape)
+                extra.update(ar_map)
             val = worker(queue_iterator(qin, process_number), process_number=process_number, **extra)
         except:
             _logger.exception("Error in child process")
@@ -161,7 +172,7 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
                 val = qin.get()
                 if val is None: break
         finally:
-            if shmem_arr is not None:
+            if shmem_map_base is not None:
                 qout.put(process_number)
             else:
                 qout.put(val)
@@ -169,7 +180,7 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
     if queue_limit is None: queue_limit = thread_count*8
     else: queue_limit *= thread_count
     
-    qin, qout = process_queue.start_raw_enum_workers(iterate_reduce_worker, thread_count, queue_limit, 1, extra)
+    qin, qout = process_queue.start_raw_enum_workers(iterate_reduce_worker, thread_count, queue_limit, 1, extra, shmem_map_base)
     try:
         for val in enumerate(for_func):
             qin.put(val)
