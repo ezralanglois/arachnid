@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>file_processor &mdash; arachnid 0.1.4_166_gd1bd42f documentation</title>
+    <title>file_processor &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_166_gd1bd42f',
+        VERSION:     '0.1.4_195_g27a156f',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_166_gd1bd42f documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="arachnid.core.app.file_processor.progress" href="api_generated/arachnid.core.app.file_processor.progress.html" />
     <link rel="prev" title="arachnid.core.app.tracing.NullHandler" href="api_generated/arachnid.core.app.tracing.NullHandler.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_166_gd1bd42f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -284,6 +284,15 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#create-a-program-script">Create a Program Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#basic-program">Basic Program</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#interface">Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#options">Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#basic-snippets">Basic Snippets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#reading-writing-images">Reading/Writing images</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../development.html#custom-code">Custom Code</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../development.html#todo">TODO</a></li>
@@ -455,7 +464,7 @@
 </li>
 <li class="toctree-l5 current"><a class="reference internal" href="../api.html#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul class="current">
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.program.html">program</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.html#interface">Interface</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -469,10 +478,8 @@
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#getting-help">Getting Help</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#command-line">Command-line</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#version-control">Version Control</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#version-control">Version Control</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#module">Module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -507,7 +514,6 @@
 </ul>
 </li>
 <li class="toctree-l6 current"><a class="current reference internal" href="">file_processor</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="#usage">Usage</a></li>
 <li class="toctree-l7"><a class="reference internal" href="#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -944,7 +950,6 @@
 </div>
 <ul>
 <li><a class="reference internal" href="#">file_processor</a><ul>
-<li><a class="reference internal" href="#usage">Usage</a></li>
 <li><a class="reference internal" href="#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -967,8 +972,6 @@ on a workstation or in parallel on a cluster using MPI.</p>
 that processes a set of files or a set of object groups independently. It can 
 distribute processing to multiple cores using the multiprocessing package as 
 well as to multiple nodes on a cluster using mpi2py.</p>
-<div class="section" id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>The target module must define the following functions:</p>
 <dl class="function">
 <dt id="arachnid.core.app.file_processor.process">
@@ -984,7 +987,7 @@ well as to multiple nodes on a cluster using mpi2py.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">At minimum filename, however a tuple of additional arguments can be returned for processing by <a class="reference internal" href="#arachnid.core.app.file_processor.reduce_all" title="arachnid.core.app.file_processor.reduce_all"><tt class="xref py py-func docutils literal"><span class="pre">reduce_all()</span></tt></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">At minimum filename, however a tuple of additional arguments can be returned for processing by <a class="reference internal" href="../development.html#reduce_all" title="reduce_all"><tt class="xref py py-func docutils literal"><span class="pre">reduce_all()</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -1022,7 +1025,7 @@ well as to multiple nodes on a cluster using mpi2py.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>files</strong> &#8211; List of input files to process (possibly modified by <a class="reference internal" href="#arachnid.core.app.file_processor.initialize" title="arachnid.core.app.file_processor.initialize"><tt class="xref py py-func docutils literal"><span class="pre">initialize()</span></tt></a>)</li>
+<li><strong>files</strong> &#8211; List of input files to process (possibly modified by <a class="reference internal" href="../development.html#initialize" title="initialize"><tt class="xref py py-func docutils literal"><span class="pre">initialize()</span></tt></a>)</li>
 <li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
 </ul>
 </td>
@@ -1041,7 +1044,7 @@ only filename is a positional argument.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> &#8211; Input filename that was processed. May be a tuple containing data resulting from <a class="reference internal" href="#arachnid.core.app.file_processor.process" title="arachnid.core.app.file_processor.process"><tt class="xref py py-func docutils literal"><span class="pre">process()</span></tt></a>.</li>
+<li><strong>filename</strong> &#8211; Input filename that was processed. May be a tuple containing data resulting from <a class="reference internal" href="../development.html#process" title="process"><tt class="xref py py-func docutils literal"><span class="pre">process()</span></tt></a>.</li>
 <li><strong>file_index</strong> &#8211; Current index in the list of input filenames</li>
 <li><strong>file_count</strong> &#8211; Number of input filenames</li>
 <li><strong>file_completed</strong> &#8211; Current count of finished files</li>
@@ -1108,7 +1111,6 @@ group tuple must be an integer ID.</p>
 <li>id_len: Maximum number of digits in the SPIDER ID</li>
 </ul>
 </div></blockquote>
-</div>
 <div class="section" id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
 <p>The following parameters are added to a script using the file/group processing module in the 
@@ -1271,7 +1273,7 @@ name and its value is the the option value</p>
 <dd><p>Main driver for a generic file processor</p>
 <p>The workflow proceeds as follows.</p>
 <ol class="arabic simple">
-<li>For the root process, call <a class="reference internal" href="#arachnid.core.app.file_processor.init_root" title="arachnid.core.app.file_processor.init_root"><tt class="xref py py-func docutils literal"><span class="pre">init_root()</span></tt></a> and update any input files</li>
+<li>For the root process, call <a class="reference internal" href="../development.html#init_root" title="init_root"><tt class="xref py py-func docutils literal"><span class="pre">init_root()</span></tt></a> and update any input files</li>
 <li>Test if a subset of files have already been processed and remove these</li>
 <li>Broadcast new set of files to be processed to all nodes (if necessary)</li>
 <li>Broadcast files already processed to all nodes (if necessary)</li>

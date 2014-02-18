@@ -158,14 +158,41 @@ to
 A little background: The default autosummary code gets all inherited members of a class. This ensures only the current
 members will be documented.
 
+.. snippet tutorial
 
 Create a Program Script
 =======================
 
-.. example batch program
-.. example file processor program
+Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
+that are designed for a user and to fit on the reconstruction workflow. 
 
-Under construction
+Basic Program
+-------------
+
+.. include:: /arachnid/core/app/program.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+File Processor
+--------------
+
+.. include:: /arachnid/core/app/file_processor.py
+	:start-after: beg-dev
+	:end-before: end-dev
+	
+Options
+-------
+
+.. include:: /arachnid/core/app/settings.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+Logging
+-------
+
+.. include:: /arachnid/core/app/tracing.py
+	:start-after: beg-dev
+	:end-before: end-dev
 
 .. _add-to-workflow:
 
@@ -182,23 +209,45 @@ A workflow module should contain the following function:
    :param extra: Unused keyword arguments
    :returns: True if this module should be added to the workflow
 
+Basic Snippets
+==============
 
-------------
-Custom Code
-------------
-
-Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
-that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
-a way to test new ideas, perform a simple task quickly or customize objects such as plots.
+Fast prototyping is a way to test new ideas, perform a simple task quickly or 
+customize objects such as plots.
 
 The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
 examples range from unstacking a SPIDER image stack to customizing the FSC plot.
 
-------
-TODO
-------
+Below are some very short snippets illustrating basic utilities in Arachnid.
 
-.. todolist::
+Reading/Writing images
+----------------------
+
+.. include:: /arachnid/core/image/ndimage_file.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+	
+
+
+
+.. multi-processing
+.. mpi
+.. metadata
+.. image
+.. pyspider
+
+.. example batch program
+.. example file processor program
+
+.. Under construction
+
+
+.. ------
+.. TODO
+.. ------
+
+.. todolist
 
 
 

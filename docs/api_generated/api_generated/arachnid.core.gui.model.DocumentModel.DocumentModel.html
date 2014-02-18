@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>arachnid.core.gui.model.DocumentModel.DocumentModel &mdash; arachnid 0.1.4_166_gd1bd42f documentation</title>
+    <title>arachnid.core.gui.model.DocumentModel.DocumentModel &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
     
     <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.4_166_gd1bd42f',
+        VERSION:     '0.1.4_195_g27a156f',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_166_gd1bd42f documentation" href="../../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../../../index.html" />
     <link rel="up" title="DocumentModel" href="../arachnid.core.gui.model.DocumentModel.html" />
     <link rel="next" title="arachnid.core.gui.model.DocumentModel.qtSignal" href="arachnid.core.gui.model.DocumentModel.qtSignal.html" />
     <link rel="prev" title="DocumentModel" href="../arachnid.core.gui.model.DocumentModel.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html"><img src="../../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_166_gd1bd42f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -244,20 +244,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#getting-help">Getting Help</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#command-line">Command-line</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../manual.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#local-machine">Local Machine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#cluster">Cluster</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../manual.html#version-control">Version Control</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#versioning-the-script">Versioning the Script</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#version-control">Version Control</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../manual.html#logging">Logging</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#terminal">Terminal</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#log-file">Log File</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../manual.html#crash-report">Crash Report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../manual.html#colors">Colors</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../manual.html#common-options">Common Options</a><ul>
@@ -289,6 +284,15 @@
 <li class="toctree-l3"><a class="reference internal" href="../../development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../development.html#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../development.html#create-a-program-script">Create a Program Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#basic-program">Basic Program</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#interface">Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#options">Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../development.html#basic-snippets">Basic Snippets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#reading-writing-images">Reading/Writing images</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../development.html#custom-code">Custom Code</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../development.html#todo">TODO</a></li>
@@ -460,7 +464,7 @@
 </li>
 <li class="toctree-l5"><a class="reference internal" href="../../api.html#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.program.html">program</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.program.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.program.html#interface">Interface</a></li>
 <li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.program.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -471,13 +475,11 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.program.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.settings.html">settings</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#available-options">Available Options</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.settings.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#getting-help">Getting Help</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#version-control">Version Control</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#module">Module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.settings.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -495,14 +497,12 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.tracing.html">tracing</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#parameters">Parameters</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#colors">Colors</a></li>
-<li class="toctree-l8"><a class="reference internal" href="../arachnid.core.app.tracing.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#colors">Colors</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#config-logging">Config Logging</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.tracing.html#module">Module</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.tracing.html#functions">Functions</a></li>
@@ -514,7 +514,6 @@
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.app.file_processor.html">file_processor</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.file_processor.html#usage">Usage</a></li>
 <li class="toctree-l7"><a class="reference internal" href="../arachnid.core.app.file_processor.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -569,6 +568,7 @@
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider.html">spider</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="../arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
 <li class="toctree-l7"><a class="reference internal" href="../arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+<li class="toctree-l7"><a class="reference internal" href="../arachnid.core.spider.spider.html#options">Options</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="../arachnid.core.spider.spider.html#functions">Functions</a></li>
@@ -1326,7 +1326,7 @@ PyQt Lists, Trees and Tables.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.model.DocumentModel.DocumentModel.columnCount">
-<tt class="descname">columnCount</tt><big>(</big><em>index=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc772210&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.model.DocumentModel.DocumentModel.columnCount" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">columnCount</tt><big>(</big><em>index=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xf3df9b8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.model.DocumentModel.DocumentModel.columnCount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get number of columns</p>
 </dd></dl>
 
@@ -1660,7 +1660,7 @@ PyQt Lists, Trees and Tables.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.model.DocumentModel.DocumentModel.rowCount">
-<tt class="descname">rowCount</tt><big>(</big><em>index=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc79c878&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.model.DocumentModel.DocumentModel.rowCount" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">rowCount</tt><big>(</big><em>index=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xf3df9e0&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.model.DocumentModel.DocumentModel.rowCount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get number of rows</p>
 </dd></dl>
 

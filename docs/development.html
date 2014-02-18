@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Development &mdash; arachnid 0.1.4_166_gd1bd42f documentation</title>
+    <title>Development &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.4_166_gd1bd42f',
+        VERSION:     '0.1.4_195_g27a156f',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_166_gd1bd42f documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../index.html" />
     <link rel="up" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
     <link rel="next" title="Arachnid API" href="api.html" />
     <link rel="prev" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_166_gd1bd42f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -244,20 +244,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#getting-help">Getting Help</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#command-line">Command-line</a></li>
 <li class="toctree-l4"><a class="reference internal" href="manual.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#local-machine">Local Machine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#cluster">Cluster</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="manual.html#version-control">Version Control</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#versioning-the-script">Versioning the Script</a></li>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#version-control">Version Control</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="manual.html#logging">Logging</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#terminal">Terminal</a></li>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#log-file">Log File</a></li>
-<li class="toctree-l4"><a class="reference internal" href="manual.html#crash-report">Crash Report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="manual.html#colors">Colors</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="manual.html#common-options">Common Options</a><ul>
@@ -289,11 +284,16 @@
 <li class="toctree-l3"><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#create-a-program-script">Create a Program Script</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="#custom-code">Custom Code</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#todo">TODO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#basic-program">Basic Program</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#interface">Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#options">Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-a-script-to-the-workflow">Adding a script to the workflow</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#basic-snippets">Basic Snippets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#reading-writing-images">Reading/Writing images</a></li>
 </ul>
 </li>
 </ul>
@@ -460,7 +460,7 @@
 </li>
 <li class="toctree-l5"><a class="reference internal" href="api.html#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.program.html">program</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#interface">Interface</a></li>
 <li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -471,13 +471,11 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.program.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html">settings</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#available-options">Available Options</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#getting-help">Getting Help</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#version-control">Version Control</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#module">Module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -495,14 +493,12 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html">tracing</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#parameters">Parameters</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#colors">Colors</a></li>
-<li class="toctree-l8"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#colors">Colors</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#config-logging">Config Logging</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#module">Module</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.tracing.html#functions">Functions</a></li>
@@ -514,7 +510,6 @@
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html">file_processor</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#usage">Usage</a></li>
 <li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -569,6 +564,7 @@
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html">spider</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
 <li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#options">Options</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.core.spider.spider.html#functions">Functions</a></li>
@@ -934,11 +930,16 @@
 <li><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a></li>
 <li><a class="reference internal" href="#documentation-hack">Documentation Hack</a></li>
 <li><a class="reference internal" href="#create-a-program-script">Create a Program Script</a><ul>
-<li><a class="reference internal" href="#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
-<li><a class="reference internal" href="#custom-code">Custom Code</a></li>
-<li><a class="reference internal" href="#todo">TODO</a></li>
+<li><a class="reference internal" href="#basic-program">Basic Program</a></li>
+<li><a class="reference internal" href="#interface">Interface</a></li>
+<li><a class="reference internal" href="#file-processor">File Processor</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#adding-a-script-to-the-workflow">Adding a script to the workflow</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#basic-snippets">Basic Snippets</a><ul>
+<li><a class="reference internal" href="#reading-writing-images">Reading/Writing images</a></li>
 </ul>
 </li>
 </ul>
@@ -1092,7 +1093,427 @@ members will be documented.</p>
 </div>
 <div class="section" id="create-a-program-script">
 <h2>Create a Program Script<a class="headerlink" href="#create-a-program-script" title="Permalink to this headline">¶</a></h2>
-<p>Under construction</p>
+<p>Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
+that are designed for a user and to fit on the reconstruction workflow.</p>
+<div class="section" id="basic-program">
+<h3>Basic Program<a class="headerlink" href="#basic-program" title="Permalink to this headline">¶</a></h3>
+<p>Essentially a script can utilize one of two program architectures:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Batch processing</li>
+<li>Group or file processing</li>
+</ol>
+</div></blockquote>
+<p>This is determined by whether the script defines a <a class="reference internal" href="#process" title="process"><tt class="xref py py-func docutils literal"><span class="pre">process()</span></tt></a> or <a class="reference internal" href="#batch" title="batch"><tt class="xref py py-func docutils literal"><span class="pre">batch()</span></tt></a>
+entry point.</p>
+<p>By convention, a program should define a main entry point for execution from outside the
+script as follows:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c">#Main entry point for this script</span>
+    <span class="kn">from</span> <span class="nn">arachnid.core.app</span> <span class="kn">import</span> <span class="n">program</span>
+    <span class="n">program</span><span class="o">.</span><span class="n">run_hybrid_program</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;Description of the script&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Basically, it should define a <cite>main</cite> function that can serve as an entry point for
+<cite>setup.py</cite>. And, in case the script is executed from the command line, it should contain
+the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interface">
+<h3>Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h3>
+<p>The target module must define one of the following functions:</p>
+<dl class="function">
+<dt id="process">
+<tt class="descname">process</tt><big>(</big><em>filename</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single file. During parallel processing this is invoked by a worker process.</p>
+<p>See <a class="reference internal" href="api_generated/arachnid.core.app.file_processor.html#module-arachnid.core.app.file_processor" title="arachnid.core.app.file_processor"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.app.file_processor</span></tt></a> for more information on the file or group processing
+architecture.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; Input filename to process</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">At minimum filename, however a tuple of additional arguments can be returned for processing by <a class="reference internal" href="#reduce_all" title="reduce_all"><tt class="xref py py-func docutils literal"><span class="pre">reduce_all()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="batch">
+<tt class="descname">batch</tt><big>(</big><em>files</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process all input files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>files</strong> &#8211; List of input filenames to process</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The target module must define all the the following:</p>
+<dl class="function">
+<dt id="setup_options">
+<tt class="descname">setup_options</tt><big>(</big><em>parser</em>, <em>pgroup=None</em>, <em>main_option=False</em><big>)</big><a class="headerlink" href="#setup_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup program options for command-line and configuration file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parser</strong> &#8211; OptionParser</li>
+<li><strong>pgroup</strong> &#8211; Root OptionGroup</li>
+<li><strong>main_option</strong> &#8211; If true, add the options specific to running this script</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The target module may include any of the following functions:</p>
+<dl class="function">
+<dt id="change_option_defaults">
+<tt class="descname">change_option_defaults</tt><big>(</big><em>parser</em><big>)</big><a class="headerlink" href="#change_option_defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Customize default options in other modules for this specific script.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parser</strong> &#8211; OptionParser</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="dependents">
+<tt class="descname">dependents</tt><big>(</big><big>)</big><a class="headerlink" href="#dependents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of dependent modules and add their options. Dependents of a dependent will also be
+recursively found and added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of dependent modules</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="update_options">
+<tt class="descname">update_options</tt><big>(</big><em>options</em><big>)</big><a class="headerlink" href="#update_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilize parsed options and add additional option values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>options</strong> &#8211; object containing options as fields</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="check_options">
+<tt class="descname">check_options</tt><big>(</big><em>options</em>, <em>main_option=False</em><big>)</big><a class="headerlink" href="#check_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the validity of each option value and throw OptionValueError if
+an invalid value is found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>options</strong> &#8211; object containing options as fields</li>
+<li><strong>main_option</strong> &#8211; If true, add the options specific to running this script</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="flags">
+<tt class="descname">flags</tt><big>(</big><big>)</big><a class="headerlink" href="#flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary of support properties</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of supported properties</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="file-processor">
+<h3>File Processor<a class="headerlink" href="#file-processor" title="Permalink to this headline">¶</a></h3>
+<p>The file processor module provides basic functionality to any program
+that processes a set of files or a set of object groups independently. It can
+distribute processing to multiple cores using the multiprocessing package as
+well as to multiple nodes on a cluster using mpi2py.</p>
+<p>The target module must define the following functions:</p>
+<dl class="function">
+<dt>
+<tt class="descname">process</tt><big>(</big><em>filename</em>, <em>**extra</em><big>)</big></dt>
+<dd><p>Process a single file. During parallel processing this is invoked by a worker process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; Input filename to process</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">At minimum filename, however a tuple of additional arguments can be returned for processing by <a class="reference internal" href="#reduce_all" title="reduce_all"><tt class="xref py py-func docutils literal"><span class="pre">reduce_all()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The target module may include any of the following functions:</p>
+<dl class="function">
+<dt id="initialize">
+<tt class="descname">initialize</tt><big>(</big><em>files</em>, <em>extra</em><big>)</big><a class="headerlink" href="#initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the input data before processing. During parallel processing this is invoked by all processes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>files</strong> &#8211; List of input files to process</li>
+<li><strong>extra</strong> &#8211; Dictionary of unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None or a new list of files or objects to be processed by other routines</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="finalize">
+<tt class="descname">finalize</tt><big>(</big><em>files</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize data after processing. During parallel processing this is invoked by all processes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>files</strong> &#8211; List of input files to process (possibly modified by <a class="reference internal" href="#initialize" title="initialize"><tt class="xref py py-func docutils literal"><span class="pre">initialize()</span></tt></a>)</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="reduce_all">
+<tt class="descname">reduce_all</tt><big>(</big><em>filename</em>, <em>file_index=&lt;int&gt;</em>, <em>file_count=&lt;int&gt;</em>, <em>file_completed=&lt;int&gt;</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#reduce_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduce data from worker to root process. During parallel processing this is invoked by the root process. Note that
+only filename is a positional argument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; Input filename that was processed. May be a tuple containing data resulting from <a class="reference internal" href="#process" title="process"><tt class="xref py py-func docutils literal"><span class="pre">process()</span></tt></a>.</li>
+<li><strong>file_index</strong> &#8211; Current index in the list of input filenames</li>
+<li><strong>file_count</strong> &#8211; Number of input filenames</li>
+<li><strong>file_completed</strong> &#8211; Current count of finished files</li>
+<li><strong>extra</strong> &#8211; Unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Only the filename that was processed</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="init_process">
+<tt class="descname">init_process</tt><big>(</big><em>**extra</em><big>)</big><a class="headerlink" href="#init_process" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Initialize the input data before processing. During parallel processing this is invoked by all processes only
+once before processing except the root.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>extra</strong> &#8211; Keyword arguments (Options from the command line or config file, plus additional options)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A dictionary of keywords to add or update.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="init_root">
+<tt class="descname">init_root</tt><big>(</big><em>files</em>, <em>extra</em><big>)</big><a class="headerlink" href="#init_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the input data before processing (first init to be called). During parallel processing this is invoked only
+by the root process.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This runs before dependency checking, so this is the place to generate groups. The first element of the
+group tuple must be an integer ID.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>files</strong> &#8211; List of input files to process</li>
+<li><strong>extra</strong> &#8211; Dictionary of unused keyword arguments (Options from the command line or config file, plus additional options)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None or a new list of files or objects to be processed by other routines</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Each function also has access to the following keyword arguments:</p>
+<blockquote>
+<div><ul class="simple">
+<li>finished: List of input files that have been processed and thus will not be processed this round</li>
+<li>id_len: Maximum number of digits in the SPIDER ID</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="options">
+<h3>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h3>
+<p>Adding an option to the Improved OptionParser can be done simply as follows:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span>   <span class="n">invert_contrast</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Invert the contrast of CCD micrographs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first argument to <cite>add_option</cite> can be an empty string, a short parameter (<cite>-i</cite>) or a
+long parameter (<cite>&#8211;invert-image-contrast</cite>).</p>
+<dl class="docutils">
+<dt>The second argument to <cite>add_option</cite> defines several values simutaneously</dt>
+<dd><ol class="first last arabic">
+<li><p class="first"><cite>dest</cite>: The name of the destination in the values object</p>
+</li>
+<li><p class="first"><cite>default</cite>: The default value of the option, e.g. False for this boolen option</p>
+</li>
+<li><p class="first"><cite>type</cite>: The expected type of the input argument</p>
+</li>
+<li><p class="first"><cite>action</cite>: For boolean types, it sets the action to <cite>store_false</cite> or <cite>store_true</cite> depending on the initial value</p>
+</li>
+<li><dl class="first docutils">
+<dt><cite>long form argument</cite>: The long form argument in the configuration file or on the command</dt>
+<dd><p class="first last">line, e.g. <cite>invert_contrast</cite> becomes <cite>&#8211;invert-contrast</cite></p>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+<p>The third argument in this example defines a help message as in the standard OptionParser.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The arguments expected by the original OptionParser can also be passed to add_option</p>
+</div>
+<p>The <cite>add_option</cite> function supports several additional parameters including:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><cite>dependent</cite>: Mark option such that changing its value does not force a restart in processing all files</li>
+<li><cite>required</cite>: Mark option as required, i.e. if the option is not given a value, then it will throw an error</li>
+<li><cite>required_file</cite>: Marks are required and tests if filename is directory, then throws an error if so</li>
+</ol>
+</div></blockquote>
+<p>The <cite>add_option</cite> function can optionally take <cite>gui</cite> parameter that defines type specific information
+for building a GUI component of that option.</p>
+<p>Consider some examples:</p>
+<p>A list of input files would have the following example signature:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-i&quot;</span><span class="p">,</span> <span class="n">input_files</span><span class="o">=</span><span class="p">[],</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;List of filenames for the input micrographs&quot;</span><span class="p">,</span> <span class="n">required_file</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">filetype</span><span class="o">=</span><span class="s">&quot;file-list&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>A non-required input file would have the following example signature:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-d&quot;</span><span class="p">,</span> <span class="n">selection_doc</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>       <span class="n">help</span><span class="o">=</span><span class="s">&quot;Selection file for a subset of micrographs or selection file template for subset of good particles&quot;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">filetype</span><span class="o">=</span><span class="s">&quot;open&quot;</span><span class="p">),</span> <span class="n">required_file</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An output file would have the following example signature:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-o&quot;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>      <span class="n">help</span><span class="o">=</span><span class="s">&quot;Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)&quot;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">filetype</span><span class="o">=</span><span class="s">&quot;save&quot;</span><span class="p">),</span> <span class="n">required_file</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An integer valued option would have the following example signature:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span>   <span class="n">limit</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>      <span class="n">help</span><span class="o">=</span><span class="s">&quot;Limit on number of particles, 0 means give all&quot;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">minimum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">singleStep</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>An real valued option would have the following example signature:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span>   <span class="n">disk_mult</span><span class="o">=</span><span class="mf">0.65</span><span class="p">,</span>      <span class="n">help</span><span class="o">=</span><span class="s">&quot;Disk smooth kernel size factor&quot;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">maximum</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">singleStep</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="logging">
+<h3>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
+<p>Standard practice when using this module is to define a logger
+for each module as follows:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that you do not need to import this module, only the standard
+logging library.</p>
+<p>On the next line, we define a logger for this module
+called <cite>_logger</cite>. Passing <cite>__name__</cite> to <cite>getLogger</cite> creates
+a logger with a name based on the module.</p>
+<p>On the following line, we set the default log level. If you
+want debug logging to print in <cite>-v4</cite> then set the level to
+<cite>logging.DEBUG</cite>. However, if you want to suppress debug
+logging until the user specifies <cite>-v5</cite> then set the level
+to <cite>logging.INFO</cite>.</p>
+<p>A message can bypass the standard logger and go directly to
+the crash report by setting the <cite>tofile</cite> to <cite>True</cite>. For
+example, consider the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Some message&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">tofile</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Logging failed imports of optional modules should be done as
+follows:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">util</span> <span class="kn">import</span> <span class="n">_module</span>
+    <span class="n">_module</span><span class="p">;</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">arachnid.core.app</span> <span class="kn">import</span> <span class="n">tracing</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">log_import_error</span><span class="p">(</span><span class="s">&#39;Failed to load _module.so module - certain functions will not be available&#39;</span><span class="p">,</span> <span class="n">_logger</span><span class="p">)</span>
+    <span class="n">_module</span> <span class="o">=</span> <span class="bp">None</span>
+</pre></div>
+</div>
+<p>This generates a list of failed imports of optional modules, which will be logged at the start of the crash report.</p>
+</div>
 <div class="section" id="adding-a-script-to-the-workflow">
 <span id="add-to-workflow"></span><h3>Adding a script to the workflow<a class="headerlink" href="#adding-a-script-to-the-workflow" title="Permalink to this headline">¶</a></h3>
 <p>A workflow module should contain the following function:</p>
@@ -1117,16 +1538,48 @@ members will be documented.</p>
 </table>
 </dd></dl>
 
-<div class="section" id="custom-code">
-<h4>Custom Code<a class="headerlink" href="#custom-code" title="Permalink to this headline">¶</a></h4>
-<p>Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
-that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
-a way to test new ideas, perform a simple task quickly or customize objects such as plots.</p>
+</div>
+</div>
+<div class="section" id="basic-snippets">
+<h2>Basic Snippets<a class="headerlink" href="#basic-snippets" title="Permalink to this headline">¶</a></h2>
+<p>Fast prototyping is a way to test new ideas, perform a simple task quickly or
+customize objects such as plots.</p>
 <p>The <tt class="xref py py-mod docutils literal"><span class="pre">snippets</span></tt> cover a set of examples for writing fast-prototype code. These
 examples range from unstacking a SPIDER image stack to customizing the FSC plot.</p>
+<p>Below are some very short snippets illustrating basic utilities in Arachnid.</p>
+<div class="section" id="reading-writing-images">
+<h3>Reading/Writing images<a class="headerlink" href="#reading-writing-images" title="Permalink to this headline">¶</a></h3>
+<p>This module supports the standard formats for image data in cryo-EM, which
+include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">MRC</span></tt></li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">SPIDER</span></tt></li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">EMAN2/SPARX</span></tt> (Optional, used if available)</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Each read function supports soft links or shortcuts</p>
 </div>
-<div class="section" id="todo">
-<h4>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h4>
+<p>Images are read in as standard NumPy arrays using C-ordering for 2D
+or 3D images.</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">arachnid.core.image</span> <span class="kn">import</span> <span class="n">ndimage_file</span> <span class="k">as</span> <span class="n">imfile</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">imfile</span><span class="o">.</span><span class="n">read_image</span><span class="p">(</span><span class="s">&#39;image.spi&#39;</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&#39;Mean pixel:&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&#39;Image size (rows, columns):&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+<p>Due to the sheer number, images in cryo-EM are often grouped into stacks. The
+number of images in a stack can be determined by:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">print</span> <span class="s">&quot;Number of images:&quot;</span><span class="p">,</span> <span class="n">imfile</span><span class="o">.</span><span class="n">count_images</span><span class="p">(</span><span class="s">&#39;stack.spi&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A NumPy array containing pixel values can be written out as an image
+using the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">imfile</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="s">&#39;image.mrc&#39;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+</pre></div>
 </div>
 </div>
 </div>

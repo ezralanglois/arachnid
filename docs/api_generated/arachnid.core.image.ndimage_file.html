@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ndimage_file &mdash; arachnid 0.1.4_166_gd1bd42f documentation</title>
+    <title>ndimage_file &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_166_gd1bd42f',
+        VERSION:     '0.1.4_195_g27a156f',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_166_gd1bd42f documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="ndimage_filter" href="arachnid.core.image.ndimage_filter.html" />
     <link rel="prev" title="ndimage_utility" href="arachnid.core.image.ndimage_utility.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_166_gd1bd42f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -244,20 +244,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#running-the-scripts">Running the Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#getting-help">Getting Help</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#command-line">Command-line</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../manual.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#local-machine">Local Machine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#cluster">Cluster</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../manual.html#version-control">Version Control</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#versioning-the-script">Versioning the Script</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#versioning-the-config-file">Versioning the Config File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#version-control">Version Control</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#logging">Logging</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#terminal">Terminal</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#log-file">Log File</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../manual.html#crash-report">Crash Report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manual.html#colors">Colors</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#common-options">Common Options</a><ul>
@@ -289,6 +284,15 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#create-a-program-script">Create a Program Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#basic-program">Basic Program</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#interface">Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#file-processor">File Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#options">Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#basic-snippets">Basic Snippets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#reading-writing-images">Reading/Writing images</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../development.html#custom-code">Custom Code</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../development.html#todo">TODO</a></li>
@@ -460,7 +464,7 @@
 </li>
 <li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.app"><tt class="docutils literal"><span class="pre">arachnid.core.app</span></tt></a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.program.html">program</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.html#interface">Interface</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.program.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -471,13 +475,11 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.program.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html">settings</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#available-options">Available Options</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.settings.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#getting-help">Getting Help</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#command-line">Command-line</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#version-control">Version Control</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#module">Module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.settings.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -495,14 +497,12 @@
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.settings.html#exceptions">Exceptions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.tracing.html">tracing</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#usage">Usage</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#parameters">Parameters</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#command-line">Command-line</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#colors">Colors</a></li>
-<li class="toctree-l8"><a class="reference internal" href="arachnid.core.app.tracing.html#module">Module</a></li>
-</ul>
-</li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#usage">Usage</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#crash-reports">Crash Reports</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#colors">Colors</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#config-logging">Config Logging</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#parameters">Parameters</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.tracing.html#module">Module</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.tracing.html#functions">Functions</a></li>
@@ -514,7 +514,6 @@
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.app.file_processor.html">file_processor</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.file_processor.html#usage">Usage</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.app.file_processor.html#parameters">Parameters</a></li>
 </ul>
 </li>
@@ -569,6 +568,7 @@
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html">spider</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#spider-session-example">SPIDER session example</a></li>
 <li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#creating-a-spider-batch-file">Creating a SPIDER Batch file</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.core.spider.spider.html#options">Options</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.spider.spider.html#functions">Functions</a></li>
@@ -961,7 +961,8 @@
   <div class="section" id="module-arachnid.core.image.ndimage_file">
 <span id="ndimage-file"></span><h1>ndimage_file<a class="headerlink" href="#module-arachnid.core.image.ndimage_file" title="Permalink to this headline">¶</a></h1>
 <p>Reading and writing NumPY arrays in various image formats</p>
-<p>Supported formats:</p>
+<p>This module supports the standard formats for image data in cryo-EM, which
+include:</p>
 <blockquote>
 <div><ul class="simple">
 <li><tt class="xref py py-mod docutils literal"><span class="pre">MRC</span></tt></li>
@@ -972,6 +973,25 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Each read function supports soft links or shortcuts</p>
+</div>
+<p>Images are read in as standard NumPy arrays using C-ordering for 2D
+or 3D images.</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">arachnid.core.image</span> <span class="kn">import</span> <span class="n">ndimage_file</span> <span class="k">as</span> <span class="n">imfile</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">imfile</span><span class="o">.</span><span class="n">read_image</span><span class="p">(</span><span class="s">&#39;image.spi&#39;</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&#39;Mean pixel:&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&#39;Image size (rows, columns):&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+<p>Due to the sheer number, images in cryo-EM are often grouped into stacks. The
+number of images in a stack can be determined by:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="k">print</span> <span class="s">&quot;Number of images:&quot;</span><span class="p">,</span> <span class="n">imfile</span><span class="o">.</span><span class="n">count_images</span><span class="p">(</span><span class="s">&#39;stack.spi&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A NumPy array containing pixel values can be written out as an image
+using the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="n">imfile</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="s">&#39;image.mrc&#39;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="functions">
