@@ -191,6 +191,20 @@ Logging
 	:start-after: beg-dev
 	:end-before: end-dev
 
+Basic Snippets
+==============
+
+Reading/Writing images
+----------------------
+
+.. include:: /arachnid/core/image/ndimage_file.py
+	:start-after: beg-dev
+	:end-before: end-dev
+
+	
+
+
+
 .. multi-processing
 .. mpi
 .. metadata
@@ -200,7 +214,7 @@ Logging
 .. example batch program
 .. example file processor program
 
-Under construction
+.. Under construction
 
 .. _add-to-workflow:
 

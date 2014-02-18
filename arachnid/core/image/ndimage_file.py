@@ -1,6 +1,9 @@
 ''' Reading and writing NumPY arrays in various image formats
 
-Supported formats:
+.. beg-dev
+
+This module supports the standard formats for image data in cryo-EM, which
+include:
     
      - :py:mod:`MRC <formats.mrc>`
      - :py:mod:`SPIDER <formats.spider>`
@@ -9,6 +12,33 @@ Supported formats:
 .. note:: 
     
     Each read function supports soft links or shortcuts
+
+Images are read in as standard NumPy arrays using C-ordering for 2D
+or 3D images.
+
+.. sourcecode:: py
+    
+    from arachnid.core.image import ndimage_file as imfile
+    image = imfile.read_image('image.spi')
+    
+    print 'Mean pixel:', image.mean()
+    print 'Image size (rows, columns):', image.shape
+
+Due to the sheer number, images in cryo-EM are often grouped into stacks. The
+number of images in a stack can be determined by:
+
+.. sourcecode:: py
+
+    print "Number of images:", imfile.count_images('stack.spi')
+
+A NumPy array containing pixel values can be written out as an image
+using the following:
+
+.. sourcecode:: py
+
+    imfile.write_image('image.mrc', image)
+
+.. end-dev
 
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
