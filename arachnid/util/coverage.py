@@ -31,6 +31,7 @@ from ..core.orient import spider_transforms
 import scipy.io
 
 from mpl_toolkits import basemap
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 import matplotlib.cm
 import matplotlib.lines
@@ -49,7 +50,7 @@ def batch(files, output, dpi, chimera=False, **extra):
     '''
     
     outputn=output
-    mapargs = projection_args(**extra)
+    mapargs = projection_args(**extra) if extra['projection'] != '3d' else None
     i=0
     for filename in files:
         if len(files) > 1:
@@ -57,6 +58,11 @@ def batch(files, output, dpi, chimera=False, **extra):
         angs = read_angles(filename, **extra)
         if chimera:
             chimera_balls(angs, outputn, **extra)
+        elif mapargs is None:
+            fig = pylab.figure(i, dpi=dpi)
+            angs,cnt = count_angles(angs, **extra)
+            scatterEuler3d(fig, angs, cnt, **extra)
+            fig.savefig(outputn, dpi=dpi)
         else:
             angs,cnt = count_angles(angs, **extra)
             _logger.info("%s has %d missing views"%(os.path.basename(filename), numpy.sum(cnt < 1)))
@@ -66,6 +72,27 @@ def batch(files, output, dpi, chimera=False, **extra):
             fig.savefig(outputn, dpi=dpi)
     
     _logger.info("Completed")
+    
+def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **extra):
+    '''
+    '''
+    
+    cmap = getattr(cm, color_map)
+    cnt = cnt.astype(numpy.float)
+    nhist = cnt.copy()
+    if nhist.min() != nhist.max():
+        nhist-=nhist.min()
+        nhist/=nhist.max()
+    
+    ax = Axes3D(fig)
+    data = numpy.zeros((len(angs), 3))
+    for i in xrange(len(angs)):
+        if i == 0: print angs[i, :]
+        data[i, :] = spider_transforms.euler_to_vector(*angs[i, :])
+    nonzero = numpy.nonzero(cnt)
+    ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), c=nhist, cmap=cmap)
+    if not hide_zero_marker:
+        ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x')
     
 def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_radius=60, ball_center=0, ball_size=1.0, mirror=False, count_mode=2, color_map='cool', **extra):
     '''
@@ -89,7 +116,7 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
         fout.write('.color 1 0 0\n')
     for i in xrange(len(angs)):
         
-        v1,v2,v3 = spider_transforms.euler_to_vector(angs[i, 1], angs[i, 0])
+        v1,v2,v3 = spider_transforms.euler_to_vector(*angs[i, :])
         ncnt = count[i]/float(maxcnt)
         if count_mode != 0:
             r, g, b = cmap(ncnt)[:3]
@@ -98,7 +125,7 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
             
         fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
         if mirror:
-            v1,v2,v3 = spider_transforms.euler_to_vector(angs[i, 1], 180+angs[i, 0])
+            v1,v2,v3 = spider_transforms.euler_to_vector(180+angs[i, 0], angs[i, 1])
             fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
             
     fout.close()
@@ -202,11 +229,17 @@ def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
     '''
     '''
     
+    if view_resolution == 0:
+        return angs, numpy.ones(len(angs))
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
-    total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
+    total = healpix.res2npix(view_resolution, not disable_mirror)
+    #total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
     _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
-    count = numpy.histogram(pix, total)[0]
-    pix = numpy.arange(total, dtype=numpy.int)
+    
+    count = numpy.bincount(pix)
+    pix = numpy.nonzero(count)[0]
+    count = count[pix].copy().squeeze()
+    
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
     return angs, count
     
@@ -308,7 +341,7 @@ def check_options(options, main_option=False):
     maps=[m for m in matplotlib.cm.datad if not m.endswith("_r")]
     if options.color_map not in set(maps):
         raise OptionValueError, "%s is not a supported color map for --color-map, supported colormaps are\n%s"%(options.color_map, "\n".join(maps))
-    if options.projection not in set(basemap._projnames.keys()): 
+    if options.projection not in set(basemap._projnames.keys()) and options.projection != '3d': 
         raise OptionValueError, "%s is not a supported projection for --projection, supported projections are\n %s"%(options.projection, basemap.supported_projections)
     '''
     projection_params = {'cyl'      : 'corners only (no width/height)',
