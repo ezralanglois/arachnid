@@ -163,6 +163,9 @@ members will be documented.
 Create a Program Script
 =======================
 
+Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
+that are designed for a user and to fit on the reconstruction workflow. 
+
 Basic Program
 -------------
 
@@ -191,8 +194,31 @@ Logging
 	:start-after: beg-dev
 	:end-before: end-dev
 
+.. _add-to-workflow:
+
+Adding a script to the workflow
+-------------------------------
+
+A workflow module should contain the following function:
+
+.. py:function:: supports(files, **extra)
+
+   Test if this module is required in the project workflow
+
+   :param files: List of filenames to test
+   :param extra: Unused keyword arguments
+   :returns: True if this module should be added to the workflow
+
 Basic Snippets
 ==============
+
+Fast prototyping is a way to test new ideas, perform a simple task quickly or 
+customize objects such as plots.
+
+The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
+examples range from unstacking a SPIDER image stack to customizing the FSC plot.
+
+Below are some very short snippets illustrating basic utilities in Arachnid.
 
 Reading/Writing images
 ----------------------
@@ -216,38 +242,12 @@ Reading/Writing images
 
 .. Under construction
 
-.. _add-to-workflow:
 
-Adding a script to the workflow
--------------------------------
+.. ------
+.. TODO
+.. ------
 
-A workflow module should contain the following function:
-
-.. py:function:: supports(files, **extra)
-
-   Test if this module is required in the project workflow
-
-   :param files: List of filenames to test
-   :param extra: Unused keyword arguments
-   :returns: True if this module should be added to the workflow
-
-
-------------
-Custom Code
-------------
-
-Arachnid supports two types of scripting: applications and fast prototyping. Applications are scripts
-that are designed for a user and to fit on the reconstruction workflow. Fast prototyping, however, is
-a way to test new ideas, perform a simple task quickly or customize objects such as plots.
-
-The :py:mod:`snippets` cover a set of examples for writing fast-prototype code. These
-examples range from unstacking a SPIDER image stack to customizing the FSC plot.
-
-------
-TODO
-------
-
-.. todolist::
+.. todolist
 
 
 
