@@ -71,7 +71,6 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
     '''
     '''
     
-    angs[:, 0] = 90.0-angs[:, 0]
     
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
     total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
@@ -79,7 +78,6 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
     maxcnt = count.max()
     pix = numpy.arange(total, dtype=numpy.int)
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
-    angs[:, 0] = 90-angs[:, 0]
     _logger.info("Number of angles %d for resolution %d"%(len(angs), view_resolution))
     fout = open(output, 'w')
     
@@ -107,6 +105,10 @@ def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_ra
 
 def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9, hide_zero_marker=False, use_scale=False, label_view=[], **extra):
     '''
+    .. note::
+         
+        Basemap uses longitude latitude conventions, but the given angles are in
+        colatitude, longitude convention. 
     '''
     
     cmap = getattr(cm, color_map)
@@ -115,8 +117,8 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
     # Y -> latitude
     # Z -> longitude
     
-    #longitude, colatitude = 90-latitude
-    x, y = m(angs[:, 1], angs[:, 0]) #90.0-angs[:, 0])
+    #longitude, latitude = 90-colatitude
+    x, y = m(angs[:, 1], 90.0-angs[:, 0])
     sel = hist < 1
     hist = hist.astype(numpy.float)
     s = numpy.sqrt(hist)*area_mult
@@ -125,6 +127,7 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
     nhist/=nhist.max()
     m.drawparallels(numpy.arange(-90.,120.,30.))
     m.drawmeridians(numpy.arange(0.,420.,60.))
+    m.drawgreatcircle(angs[0, 1], 90.0-angs[0, 0], angs[-1, 1], 90.0-angs[-1, 0], del_s=50, color='red', lw=4.)
     im = m.scatter(x, y, s=s, marker="o", c=cmap(nhist), alpha=alpha, edgecolors='none')
     
     font_tiny=matplotlib.font_manager.FontProperties()
@@ -189,7 +192,7 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
         lon_zero = 0.0 if not lon_zero else float(lon_zero)
     _logger.info("Map Projection: %s"%projection)
     _logger.info("Longitude 0: %f - Latitude 0: %f - Bounding Lat: %f"%(lon_zero, lat_zero, boundinglat))
-    param = dict(projection=projection, lat_0=lat_zero, lon_0=lon_zero, llcrnrlon=ll_lon, llcrnrlat=ll_lat, urcrnrlon=ur_lon, urcrnrlat=ur_lat)
+    param = dict(projection=projection, lat_0=lat_zero, lon_0=lon_zero, llcrnrlon=ll_lon, llcrnrlat=ll_lat, urcrnrlon=ur_lon, urcrnrlat=ur_lat, celestial=False)
     if proj_width > 0: param['width']=proj_width
     if proj_height > 0: param['height']=proj_height
     if boundinglat > 0: param['boundinglat'] = boundinglat
@@ -199,14 +202,12 @@ def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
     '''
     '''
     
-    angs[:, 0] = 90.0-angs[:, 0]
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
     total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
     _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
     count = numpy.histogram(pix, total)[0]
     pix = numpy.arange(total, dtype=numpy.int)
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
-    angs[:, 0] = 90.0-angs[:, 0]
     return angs, count
     
 def read_angles(filename, header=None, select_file="", **extra):
