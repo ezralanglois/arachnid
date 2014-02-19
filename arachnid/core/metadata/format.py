@@ -1,6 +1,9 @@
 ''' Read and write into a number of supported document formats
 
-A number of different document formats are supported including:
+.. beg-dev
+
+The metadata format module supports reading and writing metadata
+in a number of document formats including:
 
     - Comma Separated Value Format
     
@@ -22,10 +25,51 @@ A number of different document formats are supported including:
         
         :py:mod:`arachnid.core.metadata.formats.star`
 
-The format of a document will be automatically determined when the
-document is read.
+Metadata can be read in using the following command:
 
-When writing out a document, the format will be chosen based on the extension.
+.. sourcecode:: py
+
+    >>> from arachnid.core.metadata import format
+    
+    >>> data = format.read('sndc_0000.dat')
+
+By default, the `data` is a list of NamedTuples
+
+.. sourcecode:: py
+    
+    >>> print data
+    [ BasicTuple(id="1/1", select=1, peak=0.00025182), BasicTuple(id="1/2", select=1, peak=0.00023578) ]
+
+.. note::
+    
+    The format of a document will be automatically determined when the
+    document is read.
+
+The data can be alternatively stored as a NumPy array, but the header is returned as a separate field:
+
+.. sourcecode:: py
+
+    >>> data_array, data_header = format.read('sndc_0000.dat', ndarray=True)
+
+Similarly, the data (list of Namedtuples) can be written out using the following:
+
+.. sourcecode:: py
+
+    >>> format.write("outputfile.star", data)
+
+.. note::
+
+    When writing out a document, the format will be chosen based on the extension.
+    
+If the data is in a NumPy array, then the header must be added as an additional argument:
+
+
+.. sourcecode:: py
+
+    >>> header = ['id', 'select', 'peak']
+    >>> format.write("outputfile.star", data, header=header)
+
+.. end-dev
 
 .. Created on Jun 8, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -57,14 +101,14 @@ def filters(formats=None):
         all available formats as defined in the module variable `__formats`.
     
     :Parameters:
-    
-    formats : list
-              List of formats, default All
+        
+        formats : list
+                  List of formats, default All
     
     :Returns:
-    
-    return_val : str
-               Formated list of format filters
+        
+        return_val : str
+                   Formated list of format filters
     '''
     
     if formats is None: # Ensure project is the first format when loading in a file chooser dialog
@@ -82,16 +126,16 @@ def extension(filter, formats=None):
     "pred"
     
     :Parameters:
-    
-    filter : str
-             File filter to test
-    formats : list
-              List of formats, default All
+        
+        filter : str
+                 File filter to test
+        formats : list
+                  List of formats, default All
     
     :Returns:
-    
-    val : str
-          Extension associated with given filter
+        
+        val : str
+              Extension associated with given filter
     '''
     
     if formats is None: formats=__formats
@@ -103,18 +147,18 @@ def replace_extension(filename, filter, formats=None):
     '''Replace the extension of the file given the filter
     
     :Parameters:
-    
-    filename : str
-               Name of the file
-    filter : str
-             Name of the file filter
-    formats : list, optional
-             List of available formats
+        
+        filename : str
+                   Name of the file
+        filter : str
+                 Name of the file filter
+        formats : list, optional
+                 List of available formats
     
     :Returns:
-    
-    filename : str
-               Filename with new extension
+        
+        filename : str
+                   Filename with new extension
     '''
     
     filename = os.path.splitext(str(filename))[0]
@@ -152,34 +196,34 @@ def open_file(filename, mode='r', header=None, spiderid=None, id_len=0, prefix=N
     
     :Parameters:
     
-    filename : str
-             Filename template used to create new filename
-    mode : str
-           Mode to open file
-    header : list
-             List of string values
-    spiderid : id-like object
-              Filename, string or integer to use as an ID
-    id_len : integer
-             Maximum ID length
-    prefix : str, optional
-             Prefix to add to start of the filename
-    replace_ext : bool
-                  If True and spiderid is a filename with an extension, replace current filename
-                  with this extension.
-    nospiderid : bool
-                If true remove the numeric suffix from the filename
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                 Filename template used to create new filename
+        mode : str
+               Mode to open file
+        header : list
+                 List of string values
+        spiderid : id-like object
+                  Filename, string or integer to use as an ID
+        id_len : integer
+                 Maximum ID length
+        prefix : str, optional
+                 Prefix to add to start of the filename
+        replace_ext : bool
+                      If True and spiderid is a filename with an extension, replace current filename
+                      with this extension.
+        nospiderid : bool
+                    If true remove the numeric suffix from the filename
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-    
-    filename : str
-             New filename stripped of header and with new ID
-    fin : stream
-          File stream (in or out depending on mode)
-    header : list
-             List of strings describing the header (Only returned if mode is 'r')
+        
+        filename : str
+                 New filename stripped of header and with new ID
+        fin : stream
+              File stream (in or out depending on mode)
+        header : list
+                 List of strings describing the header (Only returned if mode is 'r')
     '''
     
     _logger.debug("open_file: "+str(filename)+" - mode: %s"%(mode))
@@ -220,21 +264,21 @@ def get_format_by_ext(filename, format=None, formats=None, default_format=spider
     
     :Parameters:
     
-    filename : str
-              Path of a file
-    format : module
-              Specific document format
-    formats : list
-              List of formats, default All
-    default_format : module
-                    Default format to use if none can be determined
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                  Path of a file
+        format : module
+                  Specific document format
+        formats : list
+                  List of formats, default All
+        default_format : module
+                        Default format to use if none can be determined
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-    
-    val : module
-          Format module
+        
+        val : module
+              Format module
     '''
     
     _logger.debug("get_format_by_ext - start")
@@ -275,31 +319,31 @@ def get_format(filename, format=None, formats=None, mode='r', getformat=True, he
     
     :Parameters:
     
-    filename : str
-              Path of a file
-    format : module
-              Metadata document format
-    formats : list
-              List of formats, default All
-    mode : str
-           File stream read mode
-    getformat : bool
-             If True return format otherwise return cached header
-    header : list
-             List of string values describing a file header
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                  Path of a file
+        format : module
+                  Metadata document format
+        formats : list
+                  List of formats, default All
+        mode : str
+               File stream read mode
+        getformat : bool
+                 If True return format otherwise return cached header
+        header : list
+                 List of string values describing a file header
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
     
-    format : module
-             Format module (If getformat is true, this alone)
-    fin : stream
-          Input stream (Only returned if getformat is false)
-    header : list
-             List of strings describing the header (Only returned if getformat is false)
-    first_vals : list
-                 List of values parsed from first data line (Only returned if getformat is false)
+        format : module
+                 Format module (If getformat is true, this alone)
+        fin : stream
+              Input stream (Only returned if getformat is false)
+        header : list
+                 List of strings describing the header (Only returned if getformat is false)
+        first_vals : list
+                     List of values parsed from first data line (Only returned if getformat is false)
     '''
     
     _logger.debug("get_format: "+str(filename))
@@ -329,16 +373,16 @@ def is_readable(filename, **extra):
     ''' Test if file is readable by a metadata parser
     
     :Parameters:
-    
-    filename : str
-              Path of a file
-    extra : dict
-            Unused extra keyword arguments
+        
+        filename : str
+                  Path of a file
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-    
-    readable : bool
-               True if file is readable
+        
+        readable : bool
+                   True if file is readable
     '''
     
     try:
@@ -381,26 +425,26 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
     
     :Parameters:
     
-    filename : str
-              Path of a file
-    columns : list, optional
-              List of columns to use
-    header : str, optional
-             Header to use for read-in list
-    ndarray : bool
-              If True, return tuple (array, header) where header is a list of strings
-              describing each column
-    map_ids : bool
-              If True, return a dictionary mapping id to full list of values
-    factory : Factory
-              Class or module that creates the container for the values returned by the parser
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                  Path of a file
+        columns : list, optional
+                  List of columns to use
+        header : str, optional
+                 Header to use for read-in list
+        ndarray : bool
+                  If True, return tuple (array, header) where header is a list of strings
+                  describing each column
+        map_ids : bool
+                  If True, return a dictionary mapping id to full list of values
+        factory : Factory
+                  Class or module that creates the container for the values returned by the parser
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-    
-    val1 : list or tuple (array,list) or dict
-           List of namedtuples or other container created by the factory
+        
+        val1 : list or tuple (array,list) or dict
+               List of namedtuples or other container created by the factory
     '''
     
     if ndarray:extra['numeric']=True
@@ -488,22 +532,22 @@ def write(filename, values, mode='w', factory=namedtuple_factory, **extra):
     
     :Parameters:
     
-    filename : str
-              Input filename containing data
-    values : list or array
-             List of objects to be written
-    mode : str
-           Open file mode, default write over existing
-    factory : Factory
-              Class or module that creates takes a row of values
-              and converts them to a string
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                  Input filename containing data
+        values : list or array
+                 List of objects to be written
+        mode : str
+               Open file mode, default write over existing
+        factory : Factory
+                  Class or module that creates takes a row of values
+                  and converts them to a string
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-    
-    val : str
-           Path to file created by this function
+        
+        val : str
+               Path to file created by this function
     '''
     
     if len(values) == 0: raise ValueError, "Nothing to write - array has length 0"
@@ -528,31 +572,31 @@ def write_dataset(output, feat, id=None, label=None, good=None, header=None, sor
     
     :Parameters:
         
-    output : str
-             Name of the output file
-    feat : array
-           Array of values to be written out
-    id : int, optional
-         SPIDER id
-    label : array, optional
-            Array of labels to be the first column
-    good : array, optional
-           Array of selections to be the second column (if label is not None)
-    header : str, optional
-             String of comma separated values for the header
-    sort : bool, optional
-           If True, sort the features and label by the label
-    id_len : int, optional
-             Maximum length of the SPIDER id
-    prefix : str, optional
-             Prefix to add to start of the output filename
-    extra : dict
-            Unused extra keyword arguments
+        output : str
+                 Name of the output file
+        feat : array
+               Array of values to be written out
+        id : int, optional
+             SPIDER id
+        label : array, optional
+                Array of labels to be the first column
+        good : array, optional
+               Array of selections to be the second column (if label is not None)
+        header : str, optional
+                 String of comma separated values for the header
+        sort : bool, optional
+               If True, sort the features and label by the label
+        id_len : int, optional
+                 Maximum length of the SPIDER id
+        prefix : str, optional
+                 Prefix to add to start of the output filename
+        extra : dict
+                Unused extra keyword arguments
         
     :Returns:
-    
-    return_val : str
-                 Actual output filename used
+        
+        return_val : str
+                     Actual output filename used
     '''
     
     if label is not None and hasattr(label, 'ndim') and sort:
@@ -611,17 +655,17 @@ def read_alignment(filename, header=None, **extra):
     
     :Parameters:
     
-    filename : str
-              Input filename containing alignment data
-    header : str
-             User-specified header for the alignment file
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                  Input filename containing alignment data
+        header : str
+                 User-specified header for the alignment file
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-    
-    align : list
-            List of named tuples
+        
+        align : list
+                List of named tuples
     '''
     align_header = [
                     "epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus",

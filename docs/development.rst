@@ -227,8 +227,12 @@ Reading/Writing images
 	:start-after: beg-dev
 	:end-before: end-dev
 
-	
+Reading/Writing metadata
+------------------------
 
+.. include:: /arachnid/core/metadata/format.py
+	:start-after: beg-dev
+	:end-before: end-dev
 
 
 .. multi-processing
