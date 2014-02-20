@@ -121,6 +121,7 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
         return
     
     shmem_map=None
+    shmem_map_base=None
     if shmem_array_info is not None:
         shmem_map=[]
         shmem_map_base=[]
