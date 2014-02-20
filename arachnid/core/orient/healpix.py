@@ -1,6 +1,17 @@
 ''' pyHEALPix Library
 
-It works with Euler angles in the ZYZ rotating frame convention where (PSI,THETA,PHI).
+It works with Euler angles in the YZ rotating frame convention where (THETA,PHI). The
+angles must be in radians and in the following range:
+
+    0 <= THETA < PI (also called colatitude)
+    0 <= PHI < 2PI  (also called longitude)
+    
+.. note::
+    
+    The representation is compatiable with the SPIDER ZYZ rotating rame (PSI,THETA,PHI).
+
+The following table relates the resolution parameter (and its nside counterpart) to the sampling
+statistics:
 
 Resolution     nside       total    theta      half sphere (equator)  half sphere  half sphere sum
 ----------     -----       -----    -----      ---------------------  -----------  ---------------
@@ -13,10 +24,16 @@ Resolution     nside       total    theta      half sphere (equator)  half spher
 7              128         196608   0.46       98560                  98048        130556
 8              256         786432   0.23       393728                 392704       523260
 
+.. todo::
+    
+    1. use pmod to ensure angles in proper range
+
 .. Created on Aug 17, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import logging, numpy, math
+import logging
+import numpy
+import math
 
 
 _logger = logging.getLogger(__name__)
@@ -30,96 +47,6 @@ except:
     #_logger.exception("failed to import _healpix")
     from ..app import tracing
     tracing.log_import_error("Failed to import pyHEALPix module - certain functionality will not be available", _logger)
-
-
-def ensure_valid_deg(theta, phi, half=False):
-    ''' Ensure the theta and phi fall in the appropriate range
-    
-    Assumes Theta and PHI are in the ZYZ rotating frame where
-    (PSI,THETA,PHI), respectively.
-    
-    :Parameters:
-    
-    theta : float
-            Theta in ZYZ rotating frame
-    phi : float
-            Phi in ZYZ rotating frame
-    half : bool
-           Mirror THETA (and possibly PHI) to
-           half sphere coordinates
-    
-    :Returns:
-    
-    theta : float
-            Theta in proper range (possibly mirrored)
-    phi : float
-            Phi in proper range (possibly mirrored)
-    '''
-    
-    theta = pmod(theta, 180.0)
-    phi = pmod(phi, 360.0)
-    if half: return mirror_so2_deg(theta, phi)
-    return theta,phi
-
-def mirror_so2_deg(theta, phi):
-    ''' Mirror the angles of a projection
-    
-    Assumes Theta and PHI are in the ZYZ rotating frame where
-    (PSI,THETA,PHI), respectively.
-    
-    :Parameters:
-    
-    theta : float
-            Longitude 0 <= theta <= 180.0
-    phi : float
-            Latitude 0 <= theta <= 360.0
-            
-    :Returns:
-    
-    theta : float
-            Longitude 0 <= theta <= 90.0
-    phi : float
-            Latitude 0 <= theta <= 360.0
-    
-    '''
-    
-    if theta > 180.0: 
-        theta -= 180.0
-    elif theta > 90.0:
-        theta -= 90.0
-        phi += 180.0
-    theta = pmod(theta, 180.0)
-    phi = pmod(phi, 360.0)
-    return theta, phi
-
-def mirror_so2(theta, phi):
-    ''' Mirror the angles of a projection
-    
-    Assumes Theta and PHI are in the ZYZ rotating frame where
-    (PSI,THETA,PHI), respectively.
-    
-    :Parameters:
-    
-    theta : float
-            Longitude 0 <= theta <= PI
-    phi : float
-            Latitude 0 <= phi <= 2PI
-            
-    :Returns:
-    
-    theta : float
-            Longitude 0 <= theta <= PI/2
-    phi : float
-            Latitude 0 <= phi <= 2PI
-    
-    '''
-    
-    if theta > numpy.pi: 
-        theta -= numpy.pi
-    elif theta > (numpy.pi/2):
-        theta -= numpy.pi/2
-        phi += numpy.pi
-    return theta, phi
 
 def angles(resolution, half=False, out=None):
     ''' Generate a list of angles on SO(2) using HEALPix
@@ -143,19 +70,19 @@ def angles(resolution, half=False, out=None):
     
     :Parameters:
     
-    resolution : int
-                 Healpix resolution or sampling rate on the sphere
-    half : bool
-           Sample only from the half sphere (not equater projections)
-    out : array, optional
-          A nx3 array of angles on SO(2) (psi,theta,phi), where psi
-          zero
+        resolution : int
+                     Healpix resolution or sampling rate on the sphere
+        half : bool
+               Sample only from the half sphere (not equater projections)
+        out : array, optional
+              A nx3 array of angles on SO(2) (psi,theta,phi), where psi
+              zero
     
     :Returns:
-    
-    out : array
-          A nx3 array of angles on SO(2) (psi,theta,phi), where psi
-          zero
+        
+        out : array
+              A nx3 array of angles on SO(2) (psi,theta,phi), where psi
+              zero
     '''
     
     nsample = pow(2, resolution)
@@ -182,18 +109,18 @@ def angles_gen(resolution, deg=False, half=False):
     
     :Parameters:
     
-    resolution : int
-                 Sampling resolution 
-    deg : bool
-          Convert radians to degrees
-    half : bool
-           From half sphere (no equator)
+        resolution : int
+                     Sampling resolution 
+        deg : bool
+              Convert radians to degrees
+        half : bool
+               From half sphere (no equator)
     
     :Returns:
-    
-    array : array
-            A 1x3 array of angles on SO(2) (psi,theta,phi), where psi
-            zero
+        
+        array : array
+                A 1x3 array of angles on SO(2) (psi,theta,phi), where psi
+                zero
     '''
     
     nsample = pow(2, resolution)
@@ -215,18 +142,18 @@ def res2npix(resolution, half=False, equator=False):
     28
     
     :Parameters:
-    
-    resolution : int
-                 Sampling resolution 
-    half : bool
-           From half sphere
-    equator : bool
-             Include equator pixels
+        
+        resolution : int
+                     Sampling resolution 
+        half : bool
+               From half sphere
+        equator : bool
+                 Include equator pixels
     
     :Returns:
-    
-    npix : int
-           Number of pixels for a given resolution
+        
+        npix : int
+               Number of pixels for a given resolution
     '''
     
     nsample = pow(2, resolution)
@@ -235,7 +162,20 @@ def res2npix(resolution, half=False, equator=False):
     return 12*nsample*nsample
 
 def theta2nside(theta, max_res=8):
-    '''
+    '''  Given a theta increment, find the closest
+    healpix sampling index.
+    
+    :Parameters:
+    
+        theta : float
+                Sampling on theta
+        max_res : float
+                  Max resolution to return
+    
+    :Returns:
+    
+        resolution : int
+                     Resolution for theta sampling
     '''
     
     area = numpy.zeros(max_res)
@@ -244,7 +184,19 @@ def theta2nside(theta, max_res=8):
     return numpy.argmin(numpy.abs(theta-area))+1
 
 def pmod(x, y):
-    ''' Result is always positive
+    ''' Modules result that is always positive
+    
+    :Parameters:
+    
+        x : float
+            Number
+        y : float
+            Number
+    
+    :Returns:
+        
+        out : float
+              Positive modulus of x%y
     '''
     
     if y == 0: return x
@@ -267,16 +219,16 @@ def nside2pixarea(resolution, degrees=False):
     1.5978966540475428e-05
 
     :Parameters:
-
-    resolution : int
-                 nside = 2**resolution
-    degrees : bool
-              if True, returns pixel area in square degrees, in square radians otherwise
+    
+        resolution : int
+                     nside = 2**resolution
+        degrees : bool
+                  if True, returns pixel area in square degrees, in square radians otherwise
 
     :Returns:
-
-    pixarea : float
-              pixel area in suqare radian or square degree
+    
+        pixarea : float
+                  pixel area in suqare radian or square degree
     """
     
     nsample = pow(2, resolution)
@@ -289,24 +241,24 @@ def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
     
     :Parameters:
-    
-    resolution : int
-                 Pixel resolution
-    theta : float or array
-            Euler angle theta or array of Euler angles
-    phi : float
-          Euler angle phi or optional if theta is array of both
-    scheme : str
-             Pixel layout scheme: nest or ring
-    half : bool
-           Convert Euler angles to half volume
-    out : array, optional
-          Array of pixels for specified array of Euler angles
+        
+        resolution : int
+                     Pixel resolution
+        theta : float or array
+                Euler angle theta or array of Euler angles
+        phi : float
+              Euler angle phi or optional if theta is array of both
+        scheme : str
+                 Pixel layout scheme: nest or ring
+        half : bool
+               Convert Euler angles to half volume
+        out : array, optional
+              Array of pixels for specified array of Euler angles
     
     :Returns:
-    
-    out : in or, array
-          Pixel for specified Euler angles
+        
+        out : in or, array
+              Pixel for specified Euler angles
     '''
     
     resolution = pow(2, resolution)
@@ -319,29 +271,125 @@ def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
         return out
     else:
         return _pix2ang(int(resolution), int(pix))
+    
+def healpix_euler_rad(ang):
+    ''' Ensure Euler angles in radians fall in 
+    the accepted healpix range.
+    
+    .. note::
+        
+        This currently does not handel theta > 3/4PI or theta < 0
+    
+    :Parameters:
+    
+        ang : tuple
+              Theta, PI in radians
+    
+    :Returns:
+    
+        theta : float
+                Theta between 0 and PI in radians
+        phi : float
+                PHI between 0 and 2PI in radians
+    '''
+    
+    if len(ang) == 2:
+        theta, phi = ang
+        if theta > numpy.pi:
+            theta = theta-numpy.pi/2
+            phi += numpy.pi
+            if phi > (2*numpy.pi): phi-=(2*numpy.pi)
+        return theta, phi
+    else: raise ValueError, "Not implemented for other than 2 angles"
+    
+def healpix_euler_deg(ang):
+    ''' Ensure Euler angles in degrees fall in 
+    the accepted healpix range.
+    
+    .. note::
+        
+        This currently does not handel theta > 270.0 or theta < 0
+    
+    :Parameters:
+    
+        ang : tuple
+              Theta, PI in degrees
+    
+    :Returns:
+    
+        theta : float
+                Theta between 0 and 180 in degrees
+        phi : float
+                PHI between 0 and 360 in degrees
+    '''
+    
+    if len(ang) == 2:
+        theta, phi = ang
+        if theta > 180.0:
+            theta = theta-90.0
+            phi += 180.0
+            if phi > 360.0: phi-=360.0
+        return theta, phi
+    else: raise ValueError, "Not implemented for other than 2 angles"
+    
+def healpix_half_sphere_euler_rad(ang):
+    ''' Ensure Euler angles in radians fall in 
+    the accepted healpix range on the half sphere.
+    
+    .. note::
+        
+        This currently does not handel theta > 3/4PI or theta < 0
+    
+    :Parameters:
+    
+        ang : tuple
+              Theta, PI in radians
+    
+    :Returns:
+    
+        theta : float
+                Theta between 0 and 90 in radians
+        phi : float
+                PHI between 0 and 360 in radians
+    '''
+    
+    if len(ang) == 2:
+        halfpi = numpy.pi/2
+        twopi = numpy.pi*2
+        theta, phi = ang
+        if theta <= numpy.pi and theta > halfpi:
+            theta += halfpi
+            phi += numpy.pi
+            if phi > twopi: phi -= twopi
+        if theta > numpy.pi:
+            theta -= numpy.pi
+        return theta, phi
+    else: raise ValueError, "Not implemented for other than 2 angles"
 
-def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
+def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, deg=False, out=None):
     ''' Convert Euler angles to pixel
     
     :Parameters:
     
-    resolution : int
-                 Pixel resolution
-    theta : float or array
-            Euler angle theta or array of Euler angles (colatitude)
-    phi : float
-          Euler angle phi or optional if theta is array of both (longitude)
-    scheme : str
-             Pixel layout scheme: nest or ring
-    half : bool
-           Convert Euler angles to half volume
-    out : array, optional
-          Array of pixels for specified array of Euler angles
+        resolution : int
+                     Pixel resolution
+        theta : float or array
+                Euler angle theta or array of Euler angles (colatitude)
+        phi : float
+              Euler angle phi or optional if theta is array of both (longitude)
+        scheme : str
+                 Pixel layout scheme: nest or ring
+        half : bool
+               Convert Euler angles to half volume
+        deg : bool
+              Angles in degrees
+        out : array, optional
+              Array of pixels for specified array of Euler angles
     
     :Returns:
-    
-    out : in or, array
-          Pixel for specified Euler angles
+        
+        out : in or, array
+              Pixel for specified Euler angles
     '''
     
     resolution = pow(2, resolution)
@@ -355,64 +403,32 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, out=None):
         i = 0
         twopi=numpy.pi*2
         for t, p in theta:
-            t = pmod(t, numpy.pi)
-            p = pmod(p, twopi)
-            if half: t, p = mirror_so2(t,p)
+            if deg: t, p = numpy.deg2rad((t, p))
+            if half:
+                t, p = healpix_half_sphere_euler_rad(t, p)
+            else:
+                t, p = healpix_euler_rad(t, p)
+            if t > numpy.pi: raise ValueError, "Invalid theta: %f, must be less than PI"%t
+            if t < 0: raise ValueError, "Invalid theta: %f, must be greater than 0"%t
+            if p > twopi: raise ValueError, "Invalid phi: %f, must be less than PI"%p
+            if p < 0: raise ValueError, "Invalid phi: %f, must be greater than 0"%p
             out[i] = _ang2pix(int(resolution), float(t), float(p))
             i += 1
         return out
     else:
         _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
         if phi is None: "phi must not be None when theta is a float"
-        theta = pmod(theta, numpy.pi)
-        phi = pmod(phi, twopi)
-        if half: theta, phi = mirror_so2(theta, phi)
+        if deg: t, p = numpy.deg2rad((t, p))
+        if half:
+            t, p = healpix_half_sphere_euler_rad(t, p)
+        else:
+            t, p = healpix_euler_rad(t, p)
+        if t > numpy.pi: raise ValueError, "Invalid theta: %f, must be less than PI"%t
+        if t < 0: raise ValueError, "Invalid theta: %f, must be greater than 0"%t
+        if p > twopi: raise ValueError, "Invalid phi: %f, must be less than PI"%p
+        if p < 0: raise ValueError, "Invalid phi: %f, must be greater than 0"%p
         return _ang2pix(int(resolution), float(theta), float(phi))
 
-def coarse(resolution, theta, phi=None, scheme='ring', half=False, out=None):
-    ''' Convert Euler angles to coarser grid
-    
-    :Parameters:
-    
-    resolution : int
-                 Pixel resolution
-    theta : float or array
-            Euler angle theta or array of Euler angles
-    phi : float
-          Euler angle phi or optional if theta is array of both
-    scheme : str
-             Pixel layout scheme: nest or ring
-    half : bool
-           Convert Euler angles to half volume
-    out : array, optional
-          Array of pixels for specified array of Euler angles
-    
-    :Returns:
-    
-    out : in or, array
-          Pixel for specified Euler angles
-    '''
-    
-    resolution = pow(2, resolution)
-    if scheme not in ('nest', 'ring'): raise ValueError, "scheme must be nest or ring"
-    if hasattr(theta, '__iter__'):
-        if phi is not None and not hasattr(phi, '__iter__'): 
-            raise ValueError, "phi must be None or array when theta is an array"
-        if hasattr(phi, '__iter__'): theta = zip(theta, phi)
-        _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
-        _pix2ang = getattr(_healpix, 'pix2ang_%s'%scheme)
-        if out is None: out = numpy.zeros((len(theta), 2))
-        i = 0
-        for t, p in theta:
-            if half: t, p = mirror_so2(t,p)
-            pix = _ang2pix(int(resolution), float(t), float(p))
-            out[i, :] = _pix2ang(int(resolution), int(pix))
-            i += 1
-        return out
-    else:
-        _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
-        if phi is None: "phi must not be None when theta is a float"
-        if half: theta, phi = mirror_so2(theta, phi)
-        return _ang2pix(int(resolution), float(theta), float(phi))
+
 
 

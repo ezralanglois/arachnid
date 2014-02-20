@@ -19,6 +19,112 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def mirror_x(ang):
+    ''' Mirror Euler angles in ZYZ over the x-axis
+    
+    :Parameters:
+    
+        ang : tuple
+              Either PSI, THETA, PHI or THETA, PHI
+    
+    :Returns:
+    
+        out : tuple
+              Depends on input: mirrored PSI, THETA, PHI 
+              or THETA PHI
+    '''
+    
+    if len(ang) == 2: return (ang[0]-180.0, ang[1])
+    else: return (180.0-ang[0], ang[1]-180.0, ang[2])
+
+def mirror_y(ang):
+    ''' Mirror Euler angles in ZYZ over the y-axis
+    
+    :Parameters:
+    
+        ang : tuple
+              Either PSI, THETA, PHI or THETA, PHI
+    
+    :Returns:
+    
+        out : tuple
+              Depends on input: mirrored PSI, THETA, PHI 
+              or THETA PHI
+    '''
+    
+    if len(ang) == 2: return (ang[0]+180.0, ang[1])
+    else: return (-ang[0], ang[1]+180.0, ang[2])
+
+def unmirror_y(ang):
+    ''' Mirror Euler angles in ZYZ over the y-axis
+    
+    :Parameters:
+    
+        ang : tuple
+              Either PSI, THETA, PHI or THETA, PHI
+    
+    :Returns:
+    
+        out : tuple
+              Depends on input: mirrored PSI, THETA, PHI 
+              or THETA PHI
+    '''
+    
+    if len(ang) == 2:
+        if ang[0] > 180.0:
+            return (ang[0]-180.0, ang[1])
+        assert(ang[0] >= 0.0)
+        return (ang[0], ang[1])
+    else: 
+        if ang[1] > 180.0:
+            return (-ang[0], ang[1]-180.0, ang[2])
+        assert(ang[1] >= 0.0)
+    return ang
+    
+
+def mirror_xy(ang):
+    ''' Mirror Euler angles in ZYZ over the y-axis
+    
+    :Parameters:
+    
+        ang : tuple
+              Either PSI, THETA, PHI or THETA, PHI
+    
+    :Returns:
+    
+        out : tuple
+              Depends on input: mirrored PSI, THETA, PHI 
+              or THETA PHI
+    '''
+    
+    if len(ang) == 2: return (ang[0], ang[1])
+    else: return (180.0+ang[0], ang[1], ang[2])
+    
+def spider_euler(ang):
+    ''' Conver Euler angle in ZYZ to proper SPIDER range
+    
+    :Parameters:
+    
+    ang : tuple
+          Theta, PHI in degrees
+    
+    :Returns:
+        
+        theta : float
+                0 <= theta < 90.0 or 180 <= theta < 270
+        phi : float
+              0 <= phi < 360.0
+    '''
+    
+    if len(ang) == 2:
+        theta, phi = ang
+        if theta < 180.0 and theta > 90.0:
+            theta = theta+90.0
+            phi += 180.0
+            if phi > 360.0: phi-=360.0
+        return theta, phi
+    else: raise ValueError, "Not implemented for other than 2 angles"
+
 def coarse_angles_3D(resolution, align, half=False, out=None):
     ''' Move project alignment parameters to a coarser grid.
     
@@ -46,17 +152,18 @@ def coarse_angles_3D(resolution, align, half=False, out=None):
               and optionally REF-NUM (note, PSI is 0)
     '''
     
-    _logger.critical("New code")
+
     ang = healpix.angles(resolution)
-    ang[:, 0]=90.0-ang[:, 0]
-    resolution = pow(2, resolution)
+    #resolution = pow(2, resolution)
     if out is None: out=numpy.zeros((len(align), len(align[0])))
     cols = out.shape[1]
     for i in xrange(len(align)):
-        theta, phi = healpix.ensure_valid_deg(90.0-align[i,1], align[i,2], half)
-        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
-        rot = rotate_into_frame(ang[ipix], (align[i, 0], theta, phi))
-        out[i, :3]=(rot, theta, phi)
+        #theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
+        sp_t, sp_p = spider_euler(align[i, 1:3])
+        ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True)
+        rot = rotate_into_frame(ang[ipix], (align[i, 0], sp_t, sp_p))
+        if half: ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True, half=True)
+        out[i, :3]=(rot, sp_t, sp_p)
         if cols>6: out[i, 6] = ipix
     return out
 
@@ -87,17 +194,16 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
               and optionally REF-NUM (note, PSI is 0)
     '''
     
-    _logger.critical("New code")
     ang = healpix.angles(resolution)
-    ang[:, 0]=90.0-ang[:, 0]
     resolution = pow(2, resolution)
     if out is None: out=numpy.zeros((len(align), len(align[0])))
     cols = out.shape[1]
     for i in xrange(len(align)):
-        theta, phi = healpix.ensure_valid_deg(90.0-align[i,1], align[i,2], half)
-        ipix = healpix._healpix.ang2pix_ring(resolution, numpy.deg2rad(theta), numpy.deg2rad(phi))
-        rot, tx, ty = rotate_into_frame_2d(ang[ipix], theta, phi, align[i, 3], align[i,4], align[i,5])
-        out[i, 1:6]=( theta, phi, rot, tx, ty)
+        sp_t, sp_p = spider_euler(align[i, 1:3])
+        ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True)
+        rot, tx, ty = rotate_into_frame_2d(ang[ipix], sp_t, sp_p, align[i, 3], align[i,4], align[i,5])
+        if half: ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True, half=True)
+        out[i, 1:6]=( sp_t, sp_p, rot, tx, ty)
         if cols>6: out[i, 6] = ipix
     return out
 
@@ -247,38 +353,29 @@ def align_param_2D_to_3D(rot, tx, ty):
     sy = -tx*sa + ty*ca 
     return -rot, sx, sy
 
-def euler_to_vector(phi, theta):
+def euler_to_vector(theta, phi):
     ''' Convert Euler angles to a vector
-    
-    .. note::
-        
-        http://xmipp.cnb.csic.es/~xmipp/trunk/xmipp/documentation/html/geometry_8cpp_source.html
         
     :Parameters:
     
-    phi : float
-          Phi angle in degrees (psi,theta,phi = ZYZ) 
-    theta : float
-            Theta angle in degrees (psi,theta,phi = ZYZ)
+        theta : float
+                Theta angle in degrees (psi,theta,phi = ZYZ)
+        phi : float
+              Phi angle in degrees (psi,theta,phi = ZYZ) 
     
     :Returns:
     
-    sc : float
-         Something
-    ss : float
-         Something
-    ct : float
-         Something
+        x : float
+            X-coordinate
+        y : float
+             Y-coordinate
+        z : float
+             Z-coordinate
     '''
     
-    theta = numpy.deg2rad(theta)
-    phi = numpy.deg2rad(phi)
-    cp = numpy.cos(phi)   # ca
-    ct = numpy.cos(theta) # cb
-    sp = numpy.sin(phi)   # sa
-    st = numpy.sin(theta) # sb
-    sc = st * cp          #sb * ca;
-    ss = st * sp          #sb * sa;
-    return sc, ss, ct
+    
+    theta, phi = numpy.deg2rad((theta, phi))
+    sintheta = numpy.sin(theta)
+    return (sintheta*numpy.cos(phi), sintheta*numpy.sin(phi), numpy.cos(theta))
 
 
