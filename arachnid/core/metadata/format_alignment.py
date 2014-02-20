@@ -210,7 +210,6 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             if label[:, 1].min() > 0: label[:, 1]-=1
             files = (image_file, label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
-        _logger.critical("Check: %d - %f"%(scale_spi, apix))
     if ctf_params: return files, param, ctf_param
     return files, param
 

@@ -483,7 +483,7 @@ def write_image(filename, img, index=None, header=None, inplace=False):
             else:
                 header['iform'] = 3 if img.ndim == 3 else 1 
         
-        fheader = numpy.zeros(header['labbyt']/4, dtype=numpy.float32)
+        fheader = numpy.zeros(int(header['labbyt'])/4, dtype=numpy.float32)
         for name, idx in _header_map.iteritems(): 
             fheader[idx-1]=float(header[name])
         

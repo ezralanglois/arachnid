@@ -392,6 +392,7 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, deg=False, o
               Pixel for specified Euler angles
     '''
     
+    twopi=numpy.pi*2
     resolution = pow(2, resolution)
     if scheme not in ('nest', 'ring'): raise ValueError, "scheme must be nest or ring"
     if hasattr(theta, '__iter__'):
@@ -401,7 +402,6 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, deg=False, o
         _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
         if out is None: out = numpy.zeros(len(theta), dtype=numpy.long)
         i = 0
-        twopi=numpy.pi*2
         for t, p in theta:
             if deg: t, p = numpy.deg2rad((t, p))
             if half:
@@ -418,15 +418,15 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, deg=False, o
     else:
         _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
         if phi is None: "phi must not be None when theta is a float"
-        if deg: t, p = numpy.deg2rad((t, p))
+        if deg: theta, phi = numpy.deg2rad((theta, phi))
         if half:
-            t, p = healpix_half_sphere_euler_rad(t, p)
+            theta, phi = healpix_half_sphere_euler_rad(theta, phi)
         else:
-            t, p = healpix_euler_rad(t, p)
-        if t > numpy.pi: raise ValueError, "Invalid theta: %f, must be less than PI"%t
-        if t < 0: raise ValueError, "Invalid theta: %f, must be greater than 0"%t
-        if p > twopi: raise ValueError, "Invalid phi: %f, must be less than PI"%p
-        if p < 0: raise ValueError, "Invalid phi: %f, must be greater than 0"%p
+            theta, phi = healpix_euler_rad(theta, phi)
+        if theta > numpy.pi: raise ValueError, "Invalid theta: %f, must be less than PI"%theta
+        if theta < 0: raise ValueError, "Invalid theta: %f, must be greater than 0"%theta
+        if phi > twopi: raise ValueError, "Invalid phi: %f, must be less than PI"%phi
+        if phi < 0: raise ValueError, "Invalid phi: %f, must be greater than 0"%phi
         return _ang2pix(int(resolution), float(theta), float(phi))
 
 
