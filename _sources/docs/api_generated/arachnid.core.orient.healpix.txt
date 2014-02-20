@@ -60,56 +60,42 @@ Functions
    			
    			.. raw:: html
    				
-   				<a data-toggle="collapse" data-parent="#function_parent" href="#coarse">coarse</a>
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#healpix-euler-deg">healpix_euler_deg</a>
    		
    		.. container:: panel-collapse collapse
-   			:name: coarse
+   			:name: healpix-euler-deg
    			
    			.. container:: panel-body
    				
-   				.. autofunction:: coarse
+   				.. autofunction:: healpix_euler_deg
    	.. container:: panel panel-default
    		
    		.. container:: panel-heading
    			
    			.. raw:: html
    				
-   				<a data-toggle="collapse" data-parent="#function_parent" href="#ensure-valid-deg">ensure_valid_deg</a>
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#healpix-euler-rad">healpix_euler_rad</a>
    		
    		.. container:: panel-collapse collapse
-   			:name: ensure-valid-deg
+   			:name: healpix-euler-rad
    			
    			.. container:: panel-body
    				
-   				.. autofunction:: ensure_valid_deg
+   				.. autofunction:: healpix_euler_rad
    	.. container:: panel panel-default
    		
    		.. container:: panel-heading
    			
    			.. raw:: html
    				
-   				<a data-toggle="collapse" data-parent="#function_parent" href="#mirror-so2">mirror_so2</a>
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#healpix-half-sphere-euler-rad">healpix_half_sphere_euler_rad</a>
    		
    		.. container:: panel-collapse collapse
-   			:name: mirror-so2
+   			:name: healpix-half-sphere-euler-rad
    			
    			.. container:: panel-body
    				
-   				.. autofunction:: mirror_so2
-   	.. container:: panel panel-default
-   		
-   		.. container:: panel-heading
-   			
-   			.. raw:: html
-   				
-   				<a data-toggle="collapse" data-parent="#function_parent" href="#mirror-so2-deg">mirror_so2_deg</a>
-   		
-   		.. container:: panel-collapse collapse
-   			:name: mirror-so2-deg
-   			
-   			.. container:: panel-body
-   				
-   				.. autofunction:: mirror_so2_deg
+   				.. autofunction:: healpix_half_sphere_euler_rad
    	.. container:: panel panel-default
    		
    		.. container:: panel-heading
