@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Development &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
+    <title>Development &mdash; arachnid 0.1.4_206_gb6d8366 documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.4_195_g27a156f',
+        VERSION:     '0.1.4_206_gb6d8366',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.4_206_gb6d8366 documentation" href="../index.html" />
     <link rel="up" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
     <link rel="next" title="Arachnid API" href="api.html" />
     <link rel="prev" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_206_gb6d8366</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -294,6 +294,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#basic-snippets">Basic Snippets</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#reading-writing-images">Reading/Writing images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reading-writing-metadata">Reading/Writing metadata</a></li>
 </ul>
 </li>
 </ul>
@@ -940,6 +941,7 @@
 </li>
 <li><a class="reference internal" href="#basic-snippets">Basic Snippets</a><ul>
 <li><a class="reference internal" href="#reading-writing-images">Reading/Writing images</a></li>
+<li><a class="reference internal" href="#reading-writing-metadata">Reading/Writing metadata</a></li>
 </ul>
 </li>
 </ul>
@@ -1579,6 +1581,73 @@ number of images in a stack can be determined by:</p>
 <p>A NumPy array containing pixel values can be written out as an image
 using the following:</p>
 <div class="highlight-py"><div class="highlight"><pre><span class="n">imfile</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="s">&#39;image.mrc&#39;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reading-writing-metadata">
+<h3>Reading/Writing metadata<a class="headerlink" href="#reading-writing-metadata" title="Permalink to this headline">¶</a></h3>
+<p>The metadata format module supports reading and writing metadata
+in a number of document formats including:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">Comma Separated Value Format</p>
+<blockquote>
+<div><p><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.csv.html#module-arachnid.core.metadata.formats.csv" title="arachnid.core.metadata.formats.csv"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.formats.csv</span></tt></a></p>
+</div></blockquote>
+</li>
+<li><p class="first">Malibu Prediction Format</p>
+<blockquote>
+<div><p><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.prediction.html#module-arachnid.core.metadata.formats.prediction" title="arachnid.core.metadata.formats.prediction"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.formats.prediction</span></tt></a></p>
+</div></blockquote>
+</li>
+<li><p class="first">Spider Document Format</p>
+<blockquote>
+<div><p><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spiderdoc.html#module-arachnid.core.metadata.formats.spiderdoc" title="arachnid.core.metadata.formats.spiderdoc"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.formats.spiderdoc</span></tt></a></p>
+</div></blockquote>
+</li>
+<li><p class="first">Spider Selection Format</p>
+<blockquote>
+<div><p><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.spidersel.html#module-arachnid.core.metadata.formats.spidersel" title="arachnid.core.metadata.formats.spidersel"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.formats.spidersel</span></tt></a></p>
+</div></blockquote>
+</li>
+<li><p class="first">STAR Format</p>
+<blockquote>
+<div><p><a class="reference internal" href="api_generated/arachnid.core.metadata.formats.star.html#module-arachnid.core.metadata.formats.star" title="arachnid.core.metadata.formats.star"><tt class="xref py py-mod docutils literal"><span class="pre">arachnid.core.metadata.formats.star</span></tt></a></p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>Metadata can be read in using the following command:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">arachnid.core.metadata</span> <span class="kn">import</span> <span class="n">format</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;sndc_0000.dat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, the <cite>data</cite> is a list of NamedTuples</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">data</span>
+<span class="go">[ BasicTuple(id=&quot;1/1&quot;, select=1, peak=0.00025182), BasicTuple(id=&quot;1/2&quot;, select=1, peak=0.00023578) ]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The format of a document will be automatically determined when the
+document is read.</p>
+</div>
+<p>The data can be alternatively stored as a NumPy array, but the header is returned as a separate field:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data_array</span><span class="p">,</span> <span class="n">data_header</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;sndc_0000.dat&#39;</span><span class="p">,</span> <span class="n">ndarray</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Similarly, the data (list of Namedtuples) can be written out using the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">format</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;outputfile.star&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When writing out a document, the format will be chosen based on the extension.</p>
+</div>
+<p>If the data is in a NumPy array, then the header must be added as an additional argument:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;select&#39;</span><span class="p">,</span> <span class="s">&#39;peak&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">format</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;outputfile.star&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

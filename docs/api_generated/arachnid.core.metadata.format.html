@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>format &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
+    <title>format &mdash; arachnid 0.1.4_206_gb6d8366 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_195_g27a156f',
+        VERSION:     '0.1.4_206_gb6d8366',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_206_gb6d8366 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="spider_utility" href="arachnid.core.metadata.spider_utility.html" />
     <link rel="prev" title="correct" href="arachnid.core.image.ctf.correct.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_206_gb6d8366</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -289,15 +289,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../development.html#file-processor">File Processor</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#options">Options</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#logging">Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#basic-snippets">Basic Snippets</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#reading-writing-images">Reading/Writing images</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="../development.html#custom-code">Custom Code</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../development.html#todo">TODO</a></li>
-</ul>
-</li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#reading-writing-metadata">Reading/Writing metadata</a></li>
 </ul>
 </li>
 </ul>
@@ -961,7 +958,8 @@
   <div class="section" id="module-arachnid.core.metadata.format">
 <span id="format"></span><h1>format<a class="headerlink" href="#module-arachnid.core.metadata.format" title="Permalink to this headline">¶</a></h1>
 <p>Read and write into a number of supported document formats</p>
-<p>A number of different document formats are supported including:</p>
+<p>The metadata format module supports reading and writing metadata
+in a number of document formats including:</p>
 <blockquote>
 <div><ul>
 <li><p class="first">Comma Separated Value Format</p>
@@ -991,9 +989,39 @@
 </li>
 </ul>
 </div></blockquote>
-<p>The format of a document will be automatically determined when the
+<p>Metadata can be read in using the following command:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">arachnid.core.metadata</span> <span class="kn">import</span> <span class="n">format</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;sndc_0000.dat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, the <cite>data</cite> is a list of NamedTuples</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">data</span>
+<span class="go">[ BasicTuple(id=&quot;1/1&quot;, select=1, peak=0.00025182), BasicTuple(id=&quot;1/2&quot;, select=1, peak=0.00023578) ]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The format of a document will be automatically determined when the
 document is read.</p>
-<p>When writing out a document, the format will be chosen based on the extension.</p>
+</div>
+<p>The data can be alternatively stored as a NumPy array, but the header is returned as a separate field:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data_array</span><span class="p">,</span> <span class="n">data_header</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;sndc_0000.dat&#39;</span><span class="p">,</span> <span class="n">ndarray</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Similarly, the data (list of Namedtuples) can be written out using the following:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">format</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;outputfile.star&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When writing out a document, the format will be chosen based on the extension.</p>
+</div>
+<p>If the data is in a NumPy array, then the header must be added as an additional argument:</p>
+<div class="highlight-py"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;select&#39;</span><span class="p">,</span> <span class="s">&#39;peak&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">format</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;outputfile.star&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="functions">
 <h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
@@ -1019,28 +1047,25 @@ document is read.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filter <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>File filter to test</dd>
+<dd><p class="first last">File filter to test</p>
+</dd>
 <dt>formats <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of formats, default All</dd>
+<dd><p class="first last">List of formats, default All</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Extension associated with given filter</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Extension associated with given filter</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1071,26 +1096,22 @@ all available formats as defined in the module variable <cite>__formats</cite>.<
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>formats <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of formats, default All</dd>
+<dd><p class="first last">List of formats, default All</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>return_val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Formated list of format filters</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>return_val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Formated list of format filters</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1128,44 +1149,49 @@ and input stream are returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path of a file</dd>
+<dd><p class="first last">Path of a file</p>
+</dd>
 <dt>format <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
-<dd>Metadata document format</dd>
+<dd><p class="first last">Metadata document format</p>
+</dd>
 <dt>formats <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of formats, default All</dd>
+<dd><p class="first last">List of formats, default All</p>
+</dd>
 <dt>mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>File stream read mode</dd>
+<dd><p class="first last">File stream read mode</p>
+</dd>
 <dt>getformat <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True return format otherwise return cached header</dd>
+<dd><p class="first last">If True return format otherwise return cached header</p>
+</dd>
 <dt>header <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of string values describing a file header</dd>
+<dd><p class="first last">List of string values describing a file header</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Format module (If getformat is true, this alone)</p>
+</dd>
+<dt>fin <span class="classifier-delimiter">:</span> <span class="classifier">stream</span></dt>
+<dd><p class="first last">Input stream (Only returned if getformat is false)</p>
+</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of strings describing the header (Only returned if getformat is false)</p>
+</dd>
+<dt>first_vals <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of values parsed from first data line (Only returned if getformat is false)</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
-<dd>Format module (If getformat is true, this alone)</dd>
-<dt>fin <span class="classifier-delimiter">:</span> <span class="classifier">stream</span></dt>
-<dd>Input stream (Only returned if getformat is false)</dd>
-<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of strings describing the header (Only returned if getformat is false)</dd>
-<dt>first_vals <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of values parsed from first data line (Only returned if getformat is false)</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1192,34 +1218,34 @@ and input stream are returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path of a file</dd>
+<dd><p class="first last">Path of a file</p>
+</dd>
 <dt>format <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
-<dd>Specific document format</dd>
+<dd><p class="first last">Specific document format</p>
+</dd>
 <dt>formats <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of formats, default All</dd>
+<dd><p class="first last">List of formats, default All</p>
+</dd>
 <dt>default_format <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
-<dd>Default format to use if none can be determined</dd>
+<dd><p class="first last">Default format to use if none can be determined</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
+<dd><p class="first last">Format module</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">module</span></dt>
-<dd>Format module</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1238,28 +1264,25 @@ and input stream are returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path of a file</dd>
+<dd><p class="first last">Path of a file</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>readable <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if file is readable</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>readable <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>True if file is readable</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1306,47 +1329,53 @@ and if specified, creates a new filename using the given template and new ID.</p
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Filename template used to create new filename</dd>
+<dd><p class="first last">Filename template used to create new filename</p>
+</dd>
 <dt>mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Mode to open file</dd>
+<dd><p class="first last">Mode to open file</p>
+</dd>
 <dt>header <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of string values</dd>
+<dd><p class="first last">List of string values</p>
+</dd>
 <dt>spiderid <span class="classifier-delimiter">:</span> <span class="classifier">id-like object</span></dt>
-<dd>Filename, string or integer to use as an ID</dd>
+<dd><p class="first last">Filename, string or integer to use as an ID</p>
+</dd>
 <dt>id_len <span class="classifier-delimiter">:</span> <span class="classifier">integer</span></dt>
-<dd>Maximum ID length</dd>
+<dd><p class="first last">Maximum ID length</p>
+</dd>
 <dt>prefix <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd>Prefix to add to start of the filename</dd>
+<dd><p class="first last">Prefix to add to start of the filename</p>
+</dd>
 <dt>replace_ext <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True and spiderid is a filename with an extension, replace current filename
-with this extension.</dd>
+<dd><p class="first last">If True and spiderid is a filename with an extension, replace current filename
+with this extension.</p>
+</dd>
 <dt>nospiderid <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If true remove the numeric suffix from the filename</dd>
+<dd><p class="first last">If true remove the numeric suffix from the filename</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">New filename stripped of header and with new ID</p>
+</dd>
+<dt>fin <span class="classifier-delimiter">:</span> <span class="classifier">stream</span></dt>
+<dd><p class="first last">File stream (in or out depending on mode)</p>
+</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of strings describing the header (Only returned if mode is &#8216;r&#8217;)</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>New filename stripped of header and with new ID</dd>
-<dt>fin <span class="classifier-delimiter">:</span> <span class="classifier">stream</span></dt>
-<dd>File stream (in or out depending on mode)</dd>
-<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of strings describing the header (Only returned if mode is &#8216;r&#8217;)</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1398,39 +1427,41 @@ format to parse the file.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path of a file</dd>
+<dd><p class="first last">Path of a file</p>
+</dd>
 <dt>columns <span class="classifier-delimiter">:</span> <span class="classifier">list, optional</span></dt>
-<dd>List of columns to use</dd>
+<dd><p class="first last">List of columns to use</p>
+</dd>
 <dt>header <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd>Header to use for read-in list</dd>
+<dd><p class="first last">Header to use for read-in list</p>
+</dd>
 <dt>ndarray <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True, return tuple (array, header) where header is a list of strings
-describing each column</dd>
+<dd><p class="first last">If True, return tuple (array, header) where header is a list of strings
+describing each column</p>
+</dd>
 <dt>map_ids <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True, return a dictionary mapping id to full list of values</dd>
+<dd><p class="first last">If True, return a dictionary mapping id to full list of values</p>
+</dd>
 <dt>factory <span class="classifier-delimiter">:</span> <span class="classifier">Factory</span></dt>
-<dd>Class or module that creates the container for the values returned by the parser</dd>
+<dd><p class="first last">Class or module that creates the container for the values returned by the parser</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>val1 <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple (array,list) or dict</span></dt>
+<dd><p class="first last">List of namedtuples or other container created by the factory</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>val1 <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple (array,list) or dict</span></dt>
-<dd>List of namedtuples or other container created by the factory</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1452,30 +1483,28 @@ describing each column</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename containing alignment data</dd>
+<dd><p class="first last">Input filename containing alignment data</p>
+</dd>
 <dt>header <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>User-specified header for the alignment file</dd>
+<dd><p class="first last">User-specified header for the alignment file</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>align <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of named tuples</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>align <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of named tuples</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1494,30 +1523,28 @@ describing each column</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Name of the file</dd>
+<dd><p class="first last">Name of the file</p>
+</dd>
 <dt>filter <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Name of the file filter</dd>
+<dd><p class="first last">Name of the file filter</p>
+</dd>
 <dt>formats <span class="classifier-delimiter">:</span> <span class="classifier">list, optional</span></dt>
-<dd>List of available formats</dd>
+<dd><p class="first last">List of available formats</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Filename with new extension</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Filename with new extension</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1570,35 +1597,35 @@ describing each column</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename containing data</dd>
+<dd><p class="first last">Input filename containing data</p>
+</dd>
 <dt>values <span class="classifier-delimiter">:</span> <span class="classifier">list or array</span></dt>
-<dd>List of objects to be written</dd>
+<dd><p class="first last">List of objects to be written</p>
+</dd>
 <dt>mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Open file mode, default write over existing</dd>
+<dd><p class="first last">Open file mode, default write over existing</p>
+</dd>
 <dt>factory <span class="classifier-delimiter">:</span> <span class="classifier">Factory</span></dt>
-<dd>Class or module that creates takes a row of values
-and converts them to a string</dd>
+<dd><p class="first last">Class or module that creates takes a row of values
+and converts them to a string</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to file created by this function</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path to file created by this function</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1620,44 +1647,49 @@ and converts them to a string</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>output <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Name of the output file</dd>
+<dd><p class="first last">Name of the output file</p>
+</dd>
 <dt>feat <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Array of values to be written out</dd>
+<dd><p class="first last">Array of values to be written out</p>
+</dd>
 <dt>id <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd>SPIDER id</dd>
+<dd><p class="first last">SPIDER id</p>
+</dd>
 <dt>label <span class="classifier-delimiter">:</span> <span class="classifier">array, optional</span></dt>
-<dd>Array of labels to be the first column</dd>
+<dd><p class="first last">Array of labels to be the first column</p>
+</dd>
 <dt>good <span class="classifier-delimiter">:</span> <span class="classifier">array, optional</span></dt>
-<dd>Array of selections to be the second column (if label is not None)</dd>
+<dd><p class="first last">Array of selections to be the second column (if label is not None)</p>
+</dd>
 <dt>header <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd>String of comma separated values for the header</dd>
+<dd><p class="first last">String of comma separated values for the header</p>
+</dd>
 <dt>sort <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd>If True, sort the features and label by the label</dd>
+<dd><p class="first last">If True, sort the features and label by the label</p>
+</dd>
 <dt>id_len <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd>Maximum length of the SPIDER id</dd>
+<dd><p class="first last">Maximum length of the SPIDER id</p>
+</dd>
 <dt>prefix <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd>Prefix to add to start of the output filename</dd>
+<dd><p class="first last">Prefix to add to start of the output filename</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>return_val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Actual output filename used</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>return_val <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Actual output filename used</dd>
-</dl>
 </dd></dl>
 
 </div>

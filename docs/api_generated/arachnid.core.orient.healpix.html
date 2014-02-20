@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>healpix &mdash; arachnid 0.1.4_195_g27a156f documentation</title>
+    <title>healpix &mdash; arachnid 0.1.4_206_gb6d8366 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_195_g27a156f',
+        VERSION:     '0.1.4_206_gb6d8366',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_195_g27a156f documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_206_gb6d8366 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="transforms" href="arachnid.core.orient.transforms.html" />
     <link rel="prev" title="arachnid.core.app.progress.progress" href="api_generated/arachnid.core.app.progress.progress.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_195_g27a156f</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_206_gb6d8366</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -289,15 +289,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../development.html#file-processor">File Processor</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#options">Options</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#logging">Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#basic-snippets">Basic Snippets</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#reading-writing-images">Reading/Writing images</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../development.html#adding-a-script-to-the-workflow">Adding a script to the workflow</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="../development.html#custom-code">Custom Code</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../development.html#todo">TODO</a></li>
-</ul>
-</li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#reading-writing-metadata">Reading/Writing metadata</a></li>
 </ul>
 </li>
 </ul>
@@ -961,7 +958,17 @@
   <div class="section" id="module-arachnid.core.orient.healpix">
 <span id="healpix"></span><h1>healpix<a class="headerlink" href="#module-arachnid.core.orient.healpix" title="Permalink to this headline">¶</a></h1>
 <p>pyHEALPix Library</p>
-<p>It works with Euler angles in the ZYZ rotating frame convention where (PSI,THETA,PHI).</p>
+<p>It works with Euler angles in the YZ rotating frame convention where (THETA,PHI). The
+angles must be in radians and in the following range:</p>
+<blockquote>
+<div>0 &lt;= THETA &lt; PI (also called colatitude)
+0 &lt;= PHI &lt; 2PI  (also called longitude)</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The representation is compatiable with the SPIDER ZYZ rotating rame (PSI,THETA,PHI).</p>
+</div>
+<p>The following table relates the resolution parameter (and its nside counterpart) to the sampling
+statistics:</p>
 <p>Resolution     nside       total    theta      half sphere (equator)  half sphere  half sphere sum
 &#8212;&#8212;&#8212;-     &#8212;&#8211;       &#8212;&#8211;    &#8212;&#8211;      &#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;  &#8212;&#8212;&#8212;&#8211;  &#8212;&#8212;&#8212;&#8212;&#8212;
 1              2           48       29.32      28                     20           20
@@ -984,42 +991,46 @@
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.core.orient.healpix.ang2pix">
-<tt class="descname">ang2pix</tt><big>(</big><em>resolution</em>, <em>theta</em>, <em>phi=None</em>, <em>scheme='ring'</em>, <em>half=False</em>, <em>out=None</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.ang2pix" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">ang2pix</tt><big>(</big><em>resolution</em>, <em>theta</em>, <em>phi=None</em>, <em>scheme='ring'</em>, <em>half=False</em>, <em>deg=False</em>, <em>out=None</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.ang2pix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert Euler angles to pixel</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Pixel resolution</dd>
+<dd><p class="first last">Pixel resolution</p>
+</dd>
 <dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float or array</span></dt>
-<dd>Euler angle theta or array of Euler angles (colatitude)</dd>
+<dd><p class="first last">Euler angle theta or array of Euler angles (colatitude)</p>
+</dd>
 <dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Euler angle phi or optional if theta is array of both (longitude)</dd>
+<dd><p class="first last">Euler angle phi or optional if theta is array of both (longitude)</p>
+</dd>
 <dt>scheme <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Pixel layout scheme: nest or ring</dd>
+<dd><p class="first last">Pixel layout scheme: nest or ring</p>
+</dd>
 <dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Convert Euler angles to half volume</dd>
+<dd><p class="first last">Convert Euler angles to half volume</p>
+</dd>
+<dt>deg <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Angles in degrees</p>
+</dd>
 <dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array, optional</span></dt>
-<dd>Array of pixels for specified array of Euler angles</dd>
+<dd><p class="first last">Array of pixels for specified array of Euler angles</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">in or, array</span></dt>
+<dd><p class="first last">Pixel for specified Euler angles</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">in or, array</span></dt>
-<dd>Pixel for specified Euler angles</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1057,32 +1068,30 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Healpix resolution or sampling rate on the sphere</dd>
+<dd><p class="first last">Healpix resolution or sampling rate on the sphere</p>
+</dd>
 <dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Sample only from the half sphere (not equater projections)</dd>
+<dd><p class="first last">Sample only from the half sphere (not equater projections)</p>
+</dd>
 <dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array, optional</span></dt>
-<dd>A nx3 array of angles on SO(2) (psi,theta,phi), where psi
-zero</dd>
+<dd><p class="first last">A nx3 array of angles on SO(2) (psi,theta,phi), where psi
+zero</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">A nx3 array of angles on SO(2) (psi,theta,phi), where psi
+zero</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>A nx3 array of angles on SO(2) (psi,theta,phi), where psi
-zero</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1110,31 +1119,29 @@ zero</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Sampling resolution</dd>
+<dd><p class="first last">Sampling resolution</p>
+</dd>
 <dt>deg <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Convert radians to degrees</dd>
+<dd><p class="first last">Convert radians to degrees</p>
+</dd>
 <dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>From half sphere (no equator)</dd>
+<dd><p class="first last">From half sphere (no equator)</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>array <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">A 1x3 array of angles on SO(2) (psi,theta,phi), where psi
+zero</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>array <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>A 1x3 array of angles on SO(2) (psi,theta,phi), where psi
-zero</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1145,46 +1152,6 @@ zero</dd>
 <a data-toggle="collapse" data-parent="#function_parent" href="#coarse">coarse</a></div>
 <div class="panel-collapse collapse container" id="coarse">
 <div class="panel-body container">
-<dl class="function">
-<dt id="arachnid.core.orient.healpix.coarse">
-<tt class="descname">coarse</tt><big>(</big><em>resolution</em>, <em>theta</em>, <em>phi=None</em>, <em>scheme='ring'</em>, <em>half=False</em>, <em>out=None</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.coarse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert Euler angles to coarser grid</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Pixel resolution</dd>
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float or array</span></dt>
-<dd>Euler angle theta or array of Euler angles</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Euler angle phi or optional if theta is array of both</dd>
-<dt>scheme <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Pixel layout scheme: nest or ring</dd>
-<dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Convert Euler angles to half volume</dd>
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array, optional</span></dt>
-<dd>Array of pixels for specified array of Euler angles</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">in or, array</span></dt>
-<dd>Pixel for specified Euler angles</dd>
-</dl>
-</dd></dl>
-
 </div>
 </div>
 </div>
@@ -1193,45 +1160,6 @@ zero</dd>
 <a data-toggle="collapse" data-parent="#function_parent" href="#ensure-valid-deg">ensure_valid_deg</a></div>
 <div class="panel-collapse collapse container" id="ensure-valid-deg">
 <div class="panel-body container">
-<dl class="function">
-<dt id="arachnid.core.orient.healpix.ensure_valid_deg">
-<tt class="descname">ensure_valid_deg</tt><big>(</big><em>theta</em>, <em>phi</em>, <em>half=False</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.ensure_valid_deg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ensure the theta and phi fall in the appropriate range</p>
-<p>Assumes Theta and PHI are in the ZYZ rotating frame where
-(PSI,THETA,PHI), respectively.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Theta in ZYZ rotating frame</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Phi in ZYZ rotating frame</dd>
-<dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Mirror THETA (and possibly PHI) to
-half sphere coordinates</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Theta in proper range (possibly mirrored)</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Phi in proper range (possibly mirrored)</dd>
-</dl>
-</dd></dl>
-
 </div>
 </div>
 </div>
@@ -1240,42 +1168,6 @@ half sphere coordinates</dd>
 <a data-toggle="collapse" data-parent="#function_parent" href="#mirror-so2">mirror_so2</a></div>
 <div class="panel-collapse collapse container" id="mirror-so2">
 <div class="panel-body container">
-<dl class="function">
-<dt id="arachnid.core.orient.healpix.mirror_so2">
-<tt class="descname">mirror_so2</tt><big>(</big><em>theta</em>, <em>phi</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.mirror_so2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mirror the angles of a projection</p>
-<p>Assumes Theta and PHI are in the ZYZ rotating frame where
-(PSI,THETA,PHI), respectively.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Longitude 0 &lt;= theta &lt;= PI</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Latitude 0 &lt;= phi &lt;= 2PI</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Longitude 0 &lt;= theta &lt;= PI/2</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Latitude 0 &lt;= phi &lt;= 2PI</dd>
-</dl>
-</dd></dl>
-
 </div>
 </div>
 </div>
@@ -1284,42 +1176,6 @@ half sphere coordinates</dd>
 <a data-toggle="collapse" data-parent="#function_parent" href="#mirror-so2-deg">mirror_so2_deg</a></div>
 <div class="panel-collapse collapse container" id="mirror-so2-deg">
 <div class="panel-body container">
-<dl class="function">
-<dt id="arachnid.core.orient.healpix.mirror_so2_deg">
-<tt class="descname">mirror_so2_deg</tt><big>(</big><em>theta</em>, <em>phi</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.mirror_so2_deg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mirror the angles of a projection</p>
-<p>Assumes Theta and PHI are in the ZYZ rotating frame where
-(PSI,THETA,PHI), respectively.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Longitude 0 &lt;= theta &lt;= 180.0</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Latitude 0 &lt;= theta &lt;= 360.0</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Longitude 0 &lt;= theta &lt;= 90.0</dd>
-<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Latitude 0 &lt;= theta &lt;= 360.0</dd>
-</dl>
-</dd></dl>
-
 </div>
 </div>
 </div>
@@ -1350,28 +1206,25 @@ half sphere coordinates</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>nside = 2**resolution</dd>
+<dd><p class="first last">nside = 2**resolution</p>
+</dd>
 <dt>degrees <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>if True, returns pixel area in square degrees, in square radians otherwise</dd>
+<dd><p class="first last">if True, returns pixel area in square degrees, in square radians otherwise</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>pixarea <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">pixel area in suqare radian or square degree</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>pixarea <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>pixel area in suqare radian or square degree</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1390,36 +1243,37 @@ half sphere coordinates</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Pixel resolution</dd>
+<dd><p class="first last">Pixel resolution</p>
+</dd>
 <dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float or array</span></dt>
-<dd>Euler angle theta or array of Euler angles</dd>
+<dd><p class="first last">Euler angle theta or array of Euler angles</p>
+</dd>
 <dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Euler angle phi or optional if theta is array of both</dd>
+<dd><p class="first last">Euler angle phi or optional if theta is array of both</p>
+</dd>
 <dt>scheme <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Pixel layout scheme: nest or ring</dd>
+<dd><p class="first last">Pixel layout scheme: nest or ring</p>
+</dd>
 <dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Convert Euler angles to half volume</dd>
+<dd><p class="first last">Convert Euler angles to half volume</p>
+</dd>
 <dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array, optional</span></dt>
-<dd>Array of pixels for specified array of Euler angles</dd>
+<dd><p class="first last">Array of pixels for specified array of Euler angles</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">in or, array</span></dt>
+<dd><p class="first last">Pixel for specified Euler angles</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">in or, array</span></dt>
-<dd>Pixel for specified Euler angles</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1433,7 +1287,30 @@ half sphere coordinates</dd>
 <dl class="function">
 <dt id="arachnid.core.orient.healpix.pmod">
 <tt class="descname">pmod</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.pmod" title="Permalink to this definition">¶</a></dt>
-<dd><p>Result is always positive</p>
+<dd><p>Modules result that is always positive</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>x <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Number</p>
+</dd>
+<dt>y <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Number</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Positive modulus of x%y</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1461,30 +1338,28 @@ half sphere coordinates</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Sampling resolution</dd>
+<dd><p class="first last">Sampling resolution</p>
+</dd>
 <dt>half <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>From half sphere</dd>
+<dd><p class="first last">From half sphere</p>
+</dd>
 <dt>equator <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Include equator pixels</dd>
+<dd><p class="first last">Include equator pixels</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>npix <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Number of pixels for a given resolution</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>npix <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Number of pixels for a given resolution</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1498,7 +1373,32 @@ half sphere coordinates</dd>
 <dl class="function">
 <dt id="arachnid.core.orient.healpix.theta2nside">
 <tt class="descname">theta2nside</tt><big>(</big><em>theta</em>, <em>max_res=8</em><big>)</big><a class="headerlink" href="#arachnid.core.orient.healpix.theta2nside" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Given a theta increment, find the closest
+healpix sampling index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>theta <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Sampling on theta</p>
+</dd>
+<dt>max_res <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Max resolution to return</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>resolution <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Resolution for theta sampling</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 </div>
