@@ -3,9 +3,9 @@
 It works with Euler angles in the YZ rotating frame convention where (THETA,PHI). The
 angles must be in radians and in the following range:
 
-    0 <= THETA < PI (also called colatitude)
-    0 <= PHI < 2PI  (also called longitude)
-    
+- 0 <= THETA < PI (also called colatitude)
+- 0 <= PHI < 2PI  (also called longitude)
+
 .. note::
     
     The representation is compatiable with the SPIDER ZYZ rotating rame (PSI,THETA,PHI).
@@ -13,6 +13,7 @@ angles must be in radians and in the following range:
 The following table relates the resolution parameter (and its nside counterpart) to the sampling
 statistics:
 
+==========     =====       =====    =====      =====================  ===========  ===============
 Resolution     nside       total    theta      half sphere (equator)  half sphere  half sphere sum
 ----------     -----       -----    -----      ---------------------  -----------  ---------------
 1              2           48       29.32      28                     20           20
@@ -23,6 +24,7 @@ Resolution     nside       total    theta      half sphere (equator)  half spher
 6              64          49152    0.92       24704                  24448        32508
 7              128         196608   0.46       98560                  98048        130556
 8              256         786432   0.23       393728                 392704       523260
+==========     =====       =====    =====      =====================  ===========  ===============
 
 .. todo::
     
@@ -358,7 +360,7 @@ def healpix_half_sphere_euler_rad(ang):
         twopi = numpy.pi*2
         theta, phi = ang
         if theta <= numpy.pi and theta > halfpi:
-            theta += halfpi
+            theta = twopi-theta
             phi += numpy.pi
             if phi > twopi: phi -= twopi
         if theta > numpy.pi:
@@ -405,9 +407,9 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, deg=False, o
         for t, p in theta:
             if deg: t, p = numpy.deg2rad((t, p))
             if half:
-                t, p = healpix_half_sphere_euler_rad(t, p)
+                t, p = healpix_half_sphere_euler_rad((t, p))
             else:
-                t, p = healpix_euler_rad(t, p)
+                t, p = healpix_euler_rad((t, p))
             if t > numpy.pi: raise ValueError, "Invalid theta: %f, must be less than PI"%t
             if t < 0: raise ValueError, "Invalid theta: %f, must be greater than 0"%t
             if p > twopi: raise ValueError, "Invalid phi: %f, must be less than PI"%p
@@ -420,9 +422,9 @@ def ang2pix(resolution, theta, phi=None, scheme='ring', half=False, deg=False, o
         if phi is None: "phi must not be None when theta is a float"
         if deg: theta, phi = numpy.deg2rad((theta, phi))
         if half:
-            theta, phi = healpix_half_sphere_euler_rad(theta, phi)
+            theta, phi = healpix_half_sphere_euler_rad((theta, phi))
         else:
-            theta, phi = healpix_euler_rad(theta, phi)
+            theta, phi = healpix_euler_rad((theta, phi))
         if theta > numpy.pi: raise ValueError, "Invalid theta: %f, must be less than PI"%theta
         if theta < 0: raise ValueError, "Invalid theta: %f, must be greater than 0"%theta
         if phi > twopi: raise ValueError, "Invalid phi: %f, must be less than PI"%phi

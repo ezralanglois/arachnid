@@ -116,13 +116,13 @@ def spider_euler(ang):
               0 <= phi < 360.0
     '''
     
-    if len(ang) == 2:
-        theta, phi = ang
+    if len(ang) == 3:
+        psi, theta, phi = ang
         if theta < 180.0 and theta > 90.0:
-            theta = theta+90.0
+            theta = 360.0 - theta
             phi += 180.0
             if phi > 360.0: phi-=360.0
-        return theta, phi
+        return psi, theta, phi
     else: raise ValueError, "Not implemented for other than 2 angles"
 
 def coarse_angles_3D(resolution, align, half=False, out=None):
@@ -159,11 +159,12 @@ def coarse_angles_3D(resolution, align, half=False, out=None):
     cols = out.shape[1]
     for i in xrange(len(align)):
         #theta, phi = healpix.ensure_valid_deg(align[i,1], align[i,2], half)
-        sp_t, sp_p = spider_euler(align[i, 1:3])
+        sp_i, sp_t, sp_p = spider_euler(align[i, :3])
         ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True)
-        rot = rotate_into_frame(ang[ipix], (align[i, 0], sp_t, sp_p))
+        rot = rotate_into_frame(ang[ipix], (sp_i, sp_t, sp_p))
         if half: ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True, half=True)
         out[i, :3]=(rot, sp_t, sp_p)
+        #out[i, :3]=(rot, align[i,2], sp_p)
         if cols>6: out[i, 6] = ipix
     return out
 

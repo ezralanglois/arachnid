@@ -56,7 +56,7 @@ def mirror(img, out=None):
     return out
 
 def mirror_ud(img, out=None):
-    ''' Mirror projection (SPIDER convention)
+    ''' Mirror projection
     
     :Parameters:
     
@@ -445,11 +445,16 @@ def grid_image(shape, center=None):
     '''
     
     if not hasattr(shape, '__iter__'): shape = (shape, shape)
-    if center is None: cx, cy = shape[0]/2, shape[1]/2
+    if center is None: cx, cy = shape[1]/2, shape[0]/2
     elif not hasattr(center, '__iter__'): cx, cy = center, center
     else: cx, cy = center
     #radius2 = radius+1
-    y, x = numpy.ogrid[-cx: shape[0]-cx, -cy: shape[1]-cy]
+    
+    _logger.error("%f - %f | %f - %f"%(-cy, shape[0]-cy, shape[0], cy))
+    _logger.error("%f - %f | %f - %f"%(-cx, shape[1]-cx, shape[1], cx))
+    y, x = numpy.ogrid[-cy: shape[0]-cy, -cx: shape[1]-cx]
+    assert(len(y.squeeze())>0)
+    assert(len(x.squeeze())>0)
     return x, y
 
 def radial_image(shape, center=None):
@@ -457,7 +462,44 @@ def radial_image(shape, center=None):
     '''
     
     x, y = grid_image(shape, center)
+    _logger.error("%f - %f | %f - %f"%(x.min(), x.max(), y.min(), y.max()))
     return x**2+y**2
+
+def grid_image_fft(shape, center=None):
+    '''
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    if center is None: cx, cy = numpy.ceil((shape[0]+1)/2.0), numpy.ceil((shape[1]+1)/2.0)
+    elif not hasattr(center, '__iter__'): cx, cy = center, center
+    else: cx, cy = center
+    #radius2 = radius+1
+    y, x = numpy.ogrid[1-cx: shape[0]-cx+1, 1-cy: shape[1]-cy+1]
+    return x, y
+
+def radial_image_fft(shape, center=None, norm=False):
+    '''
+    '''
+    
+    x, y = grid_image_fft(shape, center)
+    if norm:
+        x = x.astype(numpy.float)
+        y = y.astype(numpy.float)
+        x /= shape[1]
+        y /= shape[0]
+    return x**2+y**2
+
+def angular_image(shape, center=None, norm=False):
+    '''
+    '''
+    
+    x, y = grid_image_fft(shape, center)
+    if norm:
+        x = x.astype(numpy.float)
+        y = y.astype(numpy.float)
+        x /= shape[1]
+        y /= shape[0]
+    return numpy.arctan2(y, x)
 
 def snr_correction_factor(img, ref):
     ''' Calculate an SNR correction factor between a high signal image and
@@ -506,6 +548,8 @@ def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     a = numpy.zeros(shape, dtype, order)
     irad = radial_image(shape, center)
     a[irad <= radius**2]=1
+    _logger.error("%f - %f < %f -- %f"%(irad.min(), irad.max(), radius**2, irad.sum()))
+    assert(a.sum()>0)
     return a
 
 def model_ring(rmin, rmax, shape, center=None, dtype=numpy.int, order='C'):

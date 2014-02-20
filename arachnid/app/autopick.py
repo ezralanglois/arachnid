@@ -222,13 +222,16 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     template = lfcpick.create_template(**extra)
     peaks = template_match(img, template, **extra)
     peaks=cull_boundary(peaks, img.shape, **extra)
+    if len(peaks.squeeze())==0: return []
     index = numpy.argsort(peaks[:,0])[::-1]
     if index.shape[0] > limit: index = index[:limit]
     index = index[::-1]
     try:
         peaks = peaks[index].copy().squeeze()
     except:
-        _logger.error("%d > %d"%(numpy.max(index), peaks.shape[0]))
+        try:
+            _logger.error("%d > %d"%(numpy.max(index), peaks.shape[0]))
+        except: pass
         raise
     if not disable_prune:
         _logger.debug("Classify peaks")
