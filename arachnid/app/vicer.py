@@ -131,9 +131,16 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.app import program
-from ..core.image import ndimage_file, ndimage_utility, rotate, ndimage_processor, ndimage_interpolate
+from ..core.image import ndimage_file
+from ..core.image import ndimage_utility
+from ..core.image import rotate
+from ..core.image import ndimage_processor
+from ..core.image import ndimage_interpolate
 from ..core.image import preprocess_utility
-from ..core.metadata import format, spider_params, format_alignment, namedtuple_utility
+from ..core.metadata import format
+from ..core.metadata import spider_params
+from ..core.metadata import format_alignment
+from ..core.metadata import namedtuple_utility
 from ..core.metadata import format_utility
 from ..core.metadata import selection_utility
 from ..core.parallel import mpi_utility, openmp
@@ -141,7 +148,9 @@ from ..core.orient import healpix
 from ..core.orient import spider_transforms
 from ..core.learn import unary_classification
 from ..core.learn import dimensionality_reduction
-import logging, numpy, scipy
+import logging
+import numpy
+import scipy
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -150,18 +159,18 @@ def process(input_vals, output, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
-    
-    input_vals : list 
-                 Tuple(view id, image labels and alignment parameters)
-    output : str
-             Filename for output file
-    extra : dict
-            Unused key word arguments
+        
+        input_vals : list 
+                     Tuple(view id, image labels and alignment parameters)
+        output : str
+                 Filename for output file
+        extra : dict
+                Unused key word arguments
                 
     :Returns:
-    
-    filename : str
-               Current filename
+        
+        filename : str
+                   Current filename
     '''
     
     _logger.info("Processing view %d"%int(input_vals[0]))
@@ -196,20 +205,20 @@ def embed_sample(samp, neig, expected, niter=5, **extra):
     ''' Embed the sample images into a lower dimensional factor space
     
     :Parameters:
-    
-    samp : array
-           2D array where each row is an unraveled image and each column a pixel
-    neig : int
-           Number of Eigen vectors
-    expected : float
-               Probability an image does not contain an outlier
-    extra : dict
-            Unused keyword arguments
+        
+        samp : array
+               2D array where each row is an unraveled image and each column a pixel
+        neig : int
+               Number of Eigen vectors
+        expected : float
+                   Probability an image does not contain an outlier
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    feat : array
-           2D array where each row is a compressed image and each column a factor
+        
+        feat : array
+               2D array where each row is a compressed image and each column a factor
     '''
     
     eigv, feat=dimensionality_reduction.dhr_pca(samp, samp, neig, expected, True, niter)
@@ -223,26 +232,26 @@ def one_class_classification(feat, neig, nsamples, prob_reject, **extra):
     estimate from a robust covariance as calculated by minimum covariance determinant.
     
     :Parameters:
-    
-    feat : array
-           2D array where each row is a compressed image and each column a factor
-    neig : int
-           Number of Eigen vectors
-    nsamples : int
-               Number of images (before constrained rotation) 
-    prob_reject : float
-                  Probability threshold for rejecting outliers
-    extra : dict
-            Unused keyword arguments
+        
+        feat : array
+               2D array where each row is a compressed image and each column a factor
+        neig : int
+               Number of Eigen vectors
+        nsamples : int
+                   Number of images (before constrained rotation) 
+        prob_reject : float
+                      Probability threshold for rejecting outliers
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    sel : array
-          Boolean array for each image
-    rsel : array
-           Boolean array for each group of rotated images
-    dist : array
-           Mahalanobis distance from the median for each image
+        
+        sel : array
+              Boolean array for each image
+        rsel : array
+               Boolean array for each group of rotated images
+        dist : array
+               Mahalanobis distance from the median for each image
     '''
 
     feat=feat[:, :neig]
@@ -259,24 +268,24 @@ def rotational_sample(label, align, nsamples, angle_range, **extra):
     ''' Generate alignment parameters and labels for each rotational sample
     
     :Parameters:
-    
-    label : array
-            2D integer array: file ID, slice ID
-    align : array
-            2d float array for alignment parameters
-    nsamples : int
-               Number of rotational samples
-    angle_range : float
-                  Allowed variance in in-plane rotation
-    extra : dict
-            Unused keyword arguments
+        
+        label : array
+                2D integer array: file ID, slice ID
+        align : array
+                2d float array for alignment parameters
+        nsamples : int
+                   Number of rotational samples
+        angle_range : float
+                      Allowed variance in in-plane rotation
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    label2 : array
-             2D integer array expanded for each rotation: file ID, slice ID
-    align2 : array
-            2d float array expanded for each rotation for alignment parameters
+        
+        label2 : array
+                 2D integer array expanded for each rotation: file ID, slice ID
+        align2 : array
+                2d float array expanded for each rotation for alignment parameters
     '''
     
     if nsamples < 2:
@@ -303,20 +312,20 @@ def create_mask(filename, pixel_diameter, apix, **extra):
     pixel size.
     
     :Parameters:
-    
-    filename : str
-               Input image file
-    pixel_diameter : int
-                     Diameter of mask in pixels
-    apix : float
-           Pixel spacing
-    extra : dict
-            Unused keyword arguments
+        
+        filename : str
+                   Input image file
+        pixel_diameter : int
+                         Diameter of mask in pixels
+        apix : float
+               Pixel spacing
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    mask : array
-           2D array of disk mask
+        
+        mask : array
+               2D array of disk mask
     '''
     
     img = ndimage_file.read_image(filename)
@@ -330,22 +339,22 @@ def resolution_from_order(apix, pixel_diameter, order, resolution, **extra):
     new estimate only if less-resolved than the current.
     
     :Parameters:
-    
-    apix : float
-           Pixel spacing
-    pixel_diameter : int
-                     Diameter of mask in pixels
-    order : int
-            Healpix order
-    resolution : float
-                 Current resolution
-    extra : dict
-            Unused keyword arguments
+        
+        apix : float
+               Pixel spacing
+        pixel_diameter : int
+                         Diameter of mask in pixels
+        order : int
+                Healpix order
+        resolution : float
+                     Current resolution
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    resolution : float
-                 Estimated resolution
+        
+        resolution : float
+                     Estimated resolution
     '''
     
     if order == 0 or 1 == 1: return resolution
@@ -357,20 +366,20 @@ def order_from_resolution(apix, pixel_diameter, resolution, **extra):
     ''' Estimate healpix order from resolution
     
     :Parameters:
-    
-    apix : float
-           Pixel spacing
-    pixel_diameter : int
-                     Diameter of mask in pixels
-    resolution : float
-                 Current resolution
-    extra : dict
-            Unused keyword arguments
+        
+        apix : float
+               Pixel spacing
+        pixel_diameter : int
+                         Diameter of mask in pixels
+        resolution : float
+                     Current resolution
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    order : int
-            Healpix order
+        
+        order : int
+                Healpix order
     '''
     
     theta_delta = numpy.rad2deg( numpy.arctan( resolution / (pixel_diameter*apix) ) )
@@ -380,18 +389,18 @@ def order_from_resolution(apix, pixel_diameter, resolution, **extra):
 def decimation_level(apix, window, **extra):
     '''
     :Parameters:
-    
-    apix : float
-           Pixel spacing
-    window : int
-             Size of the window in pixels
-    extra : dict
-            Unused keyword arguments
+        
+        apix : float
+               Pixel spacing
+        window : int
+                 Size of the window in pixels
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    out : float
-          Target downsampling factor
+        
+        out : float
+              Target downsampling factor
     '''
     
     resolution = resolution_from_order(apix, **extra)
@@ -404,34 +413,34 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
     ''' Transform the image
     
     :Parameters:
-    
-    img : array
-          2D image matrix
-    i : int
-        Offset into alignment parameters 
-    mask : array
-           2D array of disk mask
-    resolution : float
-                 Target resolution of image 
-    apix : float
-           Pixel spacing 
-    var_one : bool
-              Normalize image to variance 1 
-    align : array
-            2D array of alignment parameters
-    disable_bispec : bool
-                     Do not estimate bispectra of image
-    disable_rtsq : bool
-                   Disable rotate/translate image
-    scale_spi : bool
-                Scale translations before rotate/translate
-    extra : dict
-            Unused keyword arguments
+        
+        img : array
+              2D image matrix
+        i : int
+            Offset into alignment parameters 
+        mask : array
+               2D array of disk mask
+        resolution : float
+                     Target resolution of image 
+        apix : float
+               Pixel spacing 
+        var_one : bool
+                  Normalize image to variance 1 
+        align : array
+                2D array of alignment parameters
+        disable_bispec : bool
+                         Do not estimate bispectra of image
+        disable_rtsq : bool
+                       Disable rotate/translate image
+        scale_spi : bool
+                    Scale translations before rotate/translate
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    out : array
-          1D representation of the image
+        
+        out : array
+              1D representation of the image
     '''
     
     if not disable_rtsq: 
@@ -444,10 +453,8 @@ def image_transform(img, i, mask, resolution, apix, var_one=True, align=None, di
     ndimage_utility.vst(img, img)
     bin_factor = decimation_level(apix, resolution=resolution, **extra)
     if bin_factor > 1: img = ndimage_interpolate.downsample(img, bin_factor)
-    if mask.shape[0] != img.shape[0]:
-        _logger.error("mask-image: %d != %d"%(mask.shape[0],img.shape[0]))
-    assert(mask.shape[0]==img.shape[0])
-    ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
+    if mask is not None:
+        ndimage_utility.normalize_standard_norm(img, mask, var_one, out=img)
     
     if not disable_bispec:
         img, freq = ndimage_utility.bispectrum(img, int(img.shape[0]-1), 'uniform')#, scale='unbiased'
@@ -463,18 +470,18 @@ def group_by_reference(label, align, ref):
     ''' Group alignment entries by view number
     
     :Parameters:
-    
-    label : array
-            2D integer array where rows are images and columns are file ID, slice ID
-    align : array
-            2D float array for alignment parameters where rows are images and columns alignment parameters
-    label : array
-            1D integer array containing the group number for each image
+        
+        label : array
+                2D integer array where rows are images and columns are file ID, slice ID
+        align : array
+                2D float array for alignment parameters where rows are images and columns alignment parameters
+        label : array
+                1D integer array containing the group number for each image
     
     :Returns:
-    
-    group : list
-            List of tuples (view, selected label, selected align)
+        
+        group : list
+                List of tuples (view, selected label, selected align)
     '''
     
     group=[]
@@ -501,47 +508,74 @@ def read_alignment(files, alignment="", disable_mirror=False, order=0, random_vi
     ''' Read alignment parameters
     
     :Parameters:
-    
-    files : list
-            List of input files containing particle stacks
-    alignment : str
-                Input filename containing alignment parameters
-    disable_mirror : bool
-                     Flag to disable mirroring
-    order : int
-            Healpix resolution
-    random_view : int
-                  Assign projections to given number of random views (0 disables)
-    extra : dict
-            Unused keyword arguments
+        
+        files : list
+                List of input files containing particle stacks
+        alignment : str
+                    Input filename containing alignment parameters
+        disable_mirror : bool
+                         Flag to disable mirroring
+        order : int
+                Healpix resolution
+        random_view : int
+                      Assign projections to given number of random views (0 disables)
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
     
-    files : list
-            List of filename, index tuples
-    align : array
-            2D array of alignment parameters
-    ref : array
-          1D array of view groups
+        files : list
+                List of filename, index tuples
+        align : array
+                2D array of alignment parameters
+        ref : array
+              1D array of view groups
     '''
 
+    numpy.seterr(all='raise')
     files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8)
     align[:, 7]=align[:, 6]
     
     if order > 0: spider_transforms.coarse_angles(order, align, half=not disable_mirror, out=align)
     print 'after', len(numpy.unique(align[:, 6]))
-    
+        
     if diagnostic != "":
+        _logger.info("Preprocessing diagnositic images")
+        thread_count = extra['thread_count']
         extra['thread_count']=extra['worker_count']
-        print align[0]
-        avg = ndimage_processor.image_array_from_file(files, preprocess_utility.phaseflip_align2d_i, param=align, **extra)
+        extra['disable_bispec']=True
+        extra['resolution']=1.0
+        #avg = ndimage_processor.image_array_from_file(files, preprocess_utility.phaseflip_align2d_i, param=align, **extra)
+        avg = ndimage_processor.image_array_from_file(files, image_transform, mask=None, align=align, order=order, thread_num=thread_count, **extra)
+        _logger.info("Preprocessing diagnositic images - finished")
         ref = align[:, 6].astype(numpy.int)
         view = numpy.unique(ref)
+        _logger.info("Averaging %d views from %d - %d"%(len(view), view.min(), view.max()))
         avgs = []
+        _logger.info("Averaging diagnositic images")
         for i, v in enumerate(view):
             if numpy.sum(v==ref)==0: continue
             avgs.append(avg[v==ref].mean(axis=0))
+        _logger.info("Averaging diagnositic images - finished")
         ndimage_file.write_stack(diagnostic, avgs)
+        
+        if 1 == 0:
+            _logger.info("Averaging diagnositic images - unmirrored")
+            for i, v in enumerate(view):
+                sel = numpy.logical_and(v==ref, align[:, 1] <= 90.0)
+                if numpy.sum(sel)==0: continue
+                avgs.append(avg[sel].mean(axis=0))
+            _logger.info("Averaging diagnositic images - finished")
+            ndimage_file.write_stack(format_utility.add_prefix(diagnostic, 'unmir_'), avgs)
+            
+            
+            _logger.info("Averaging diagnositic images - mirrored")
+            for i, v in enumerate(view):
+                sel = numpy.logical_and(v==ref, align[:, 1] > 90.0)
+                if numpy.sum(sel)==0: continue
+                avgs.append(avg[sel].mean(axis=0))
+            _logger.info("Averaging diagnositic images - finished")
+            ndimage_file.write_stack(format_utility.add_prefix(diagnostic, 'mir_'), avgs)
     
     
     if random_view>0:
@@ -595,13 +629,13 @@ def update_selection_dict(sel_by_mic, label, sel):
     ''' Maps selections from view to stack in a dictionary
     
     :Parameters:
-    
-    sel_by_mic : dict
-                 Dictionary to update
-    label : tuple or list 
-            If tuple (filename, label), otherwise list of tuples [(filename, index)]
-    sel : array
-          Boolean array defining selections
+        
+        sel_by_mic : dict
+                     Dictionary to update
+        label : tuple or list 
+                If tuple (filename, label), otherwise list of tuples [(filename, index)]
+        sel : array
+              Boolean array defining selections
     '''
     
     if isinstance(label, tuple):
@@ -658,15 +692,18 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
     
-    data = format.read(alignment)
-    data = selection_utility.select_subset(data, sel_by_mic)
+    data = format.read(alignment, numeric=True)
+    data = selection_utility.select_stack_subset(data, sel_by_mic)
     if len(data) > 0 and hasattr(data[0], 'rlnImageName'):
         format.write(output, data, nospiderid=True, format=format.star)
     else:
         format.write(output, data, nospiderid=True, format=format.spiderdoc)
     if diagnostic != "":
         extra['thread_count']=extra['worker_count']
-        files, align = format_alignment.read_alignment(data, "", use_3d=False, align_cols=8)
+        filename = finished[0][0][0] if isinstance(finished[0], tuple) else finished[0]
+        files, align = format_alignment.read_alignment(data, image_file=filename, use_3d=False, align_cols=8)
+        _logger.critical("class=%s"%str(files.__class__))
+        _logger.critical("filename=%s"%str(files[0]))
         align[:, 7]=align[:, 6]
         order=extra['order']
         if order > 0: spider_transforms.coarse_angles(order, align, half=not extra['disable_mirror'], out=align)

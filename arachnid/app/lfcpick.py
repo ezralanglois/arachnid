@@ -126,19 +126,19 @@ def process(filename, id_len=0, **extra):
     
     :Parameters:
         
-    filename : str
-               Input filename
-    id_len : int
-             Maximum length of the ID
-    extra : dict
-            Unused key word arguments
+        filename : str
+                   Input filename
+        id_len : int
+                 Maximum length of the ID
+        extra : dict
+                Unused key word arguments
                 
     :Returns:
         
-    filename : string
-          Current filename
-    peaks : numpy.ndarray
-             List of peaks and coordinates
+        filename : string
+              Current filename
+        peaks : numpy.ndarray
+                 List of peaks and coordinates
     '''
     
     spider_utility.update_spider_files(extra, spider_utility.spider_id(filename, id_len), 'good_coords', 'output', 'good')    
@@ -153,23 +153,23 @@ def search(img, use_spectrum=False, limit=0, bin_factor=1.0, mask=None, **extra)
     
     :Parameters:
         
-    img : array
-          Micrograph image
-    use_spectrum : bool
-                   Set True to use spectrum correlation
-    limit : int
-            Maximum number of peaks to return
-    bin_factor : float
-                 Image downsampling factor
-    mask : array
-           Mask for 2D projection of the particle
-    extra : dict
-            Unused key word arguments
+        img : array
+              Micrograph image
+        use_spectrum : bool
+                       Set True to use spectrum correlation
+        limit : int
+                Maximum number of peaks to return
+        bin_factor : float
+                     Image downsampling factor
+        mask : array
+               Mask for 2D projection of the particle
+        extra : dict
+                Unused key word arguments
     
     :Returns:
-        
-    peaks : array
-            List of peaks and coordinates
+            
+        peaks : array
+                List of peaks and coordinates
     '''
     
     template = create_template(bin_factor=bin_factor, **extra)
@@ -194,23 +194,23 @@ def search_peaks(cc_map, pixel_diameter, overlap_mult, peak_last=None, fwidth=No
     
     :Parameters:
         
-    cc_map : array
-             Cross-correlation map
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    overlap_mult : float
-                   Amount of allowed overlap
-    peak_last : array
-                Previous set of peaks to merge (if None, ignored)
-    fwidth : float
-             Experimental parameters
-    extra : dict
-            Unused key word arguments
+        cc_map : array
+                 Cross-correlation map
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        overlap_mult : float
+                       Amount of allowed overlap
+        peak_last : array
+                    Previous set of peaks to merge (if None, ignored)
+        fwidth : float
+                 Experimental parameters
+        extra : dict
+                Unused key word arguments
     
     :Returns:
-    
-    peaks : array
-            List of peaks and coordinates
+        
+        peaks : array
+                List of peaks and coordinates
     '''
     
     radius = pixel_diameter/2
@@ -226,20 +226,18 @@ def scf_center(img, template, mask):
     ''' Variant of the spectrum correlation function
     
     :Parameters:
-        
-    img : array
-          Micrograph
-    template : array
-               Template
-    mask : array
-           Mask for variance map or variance map
+            
+        img : array
+              Micrograph
+        template : array
+                   Template
+        mask : array
+               Mask for variance map or variance map
     
     :Returns:
-        
-    cc_map : array
-             Spectrum enhanced cross-correlation map
-    
-         > r = numpy.correlate(x, x)
+            
+        cc_map : array
+                 Spectrum enhanced cross-correlation map
     '''
     
     cc_map = lfc(img, template, mask)
@@ -252,18 +250,18 @@ def lfc(img, template, mask):
     ''' Locally normalized fast cross-correlation
     
     :Parameters:
-        
-    img : array
-          Micrograph
-    template : array
-          Template
-    mask : array
-           Mask for variance map or variance map
+            
+        img : array
+              Micrograph
+        template : array
+              Template
+        mask : array
+               Mask for variance map or variance map
     
     :Returns:
-        
-    cc_map : array
-             Cross-correlation map
+            
+        cc_map : array
+                 Cross-correlation map
     '''
     
     cc_map = ndimage_utility.cross_correlate(img, template)
@@ -274,26 +272,26 @@ def read_micrograph(filename, bin_factor=1.0, sigma=1.0, disable_bin=False, inve
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
-        
-    filename : str
-               Filename for micrograph
-    bin_factor : float
-                 Image downsampling factor
-    sigma : float
-            Gaussian highpass filtering factor (sigma/window)
-    disable_bin : bool    
-                  If True, do not downsample the micrograph
-    invert : bool
-             If True, invert the contrast of the micrograph (CCD Data)
-    ds_kernel : array
-                Precomputed kernel for downsampling an image
-    extra : dict
-            Unused keyword arguments
+            
+        filename : str
+                   Filename for micrograph
+        bin_factor : float
+                     Image downsampling factor
+        sigma : float
+                Gaussian highpass filtering factor (sigma/window)
+        disable_bin : bool    
+                      If True, do not downsample the micrograph
+        invert : bool
+                 If True, invert the contrast of the micrograph (CCD Data)
+        ds_kernel : array
+                    Precomputed kernel for downsampling an image
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-        
-    mic : array
-          Micrograph image
+            
+        mic : array
+              Micrograph image
     '''
     
     count = ndimage_file.count_images(filename)
@@ -309,28 +307,28 @@ def create_template(template, disk_mult=1.0, bin_factor=1.0, disable_bin=False, 
     ''' Read a template from a file or create a soft disk
     
     :Parameters:
-        
-    template : array
-               Cross-correlation map
-    disk_mult : float
-                Mulitplier to control size of soft disk template
-    bin_factor : float
-                 Image downsampling factor
-    disable_bin : bool
-                  If true, do not downsample image
-    ds_kernel : array
-                Precomputed kernel for downsampling an image
-    window : int
-             Size of the window in pixels
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    extra : dict
-            Unused keyword arguments
+            
+        template : array
+                   Cross-correlation map
+        disk_mult : float
+                    Mulitplier to control size of soft disk template
+        bin_factor : float
+                     Image downsampling factor
+        disable_bin : bool
+                      If true, do not downsample image
+        ds_kernel : array
+                    Precomputed kernel for downsampling an image
+        window : int
+                 Size of the window in pixels
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-        
-    template : array
-               Template read from file or uniform disk with soft edge
+            
+        template : array
+                   Template read from file or uniform disk with soft edge
     '''
     
     if template != "": 
@@ -387,6 +385,7 @@ def reduce_all(val, confusion, file_index, **extra):
             pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
             sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
             info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
+    else: coords[0] += len(coords)
     return filename+info
 
 def finalize(files, confusion, output, **extra):
@@ -396,6 +395,7 @@ def finalize(files, confusion, output, **extra):
     if tot[1] > 0:
         _logger.info("Overall - precision: %f, recall: %f - %d,%d,%d"%(tot[2]/tot[0], tot[2]/tot[1], tot[0], tot[1], tot[2]))
         format.write(os.path.splitext(output)[0]+".csv", confusion, header="pp,pos,tp,dist".split(','), prefix="summary")
+    else: _logger.info("Selected %d candidate particles"%int(confusion[0]))
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):
