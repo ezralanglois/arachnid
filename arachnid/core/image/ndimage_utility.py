@@ -450,11 +450,7 @@ def grid_image(shape, center=None):
     else: cx, cy = center
     #radius2 = radius+1
     
-    _logger.error("%f - %f | %f - %f"%(-cy, shape[0]-cy, shape[0], cy))
-    _logger.error("%f - %f | %f - %f"%(-cx, shape[1]-cx, shape[1], cx))
     y, x = numpy.ogrid[-cy: shape[0]-cy, -cx: shape[1]-cx]
-    assert(len(y.squeeze())>0)
-    assert(len(x.squeeze())>0)
     return x, y
 
 def radial_image(shape, center=None):
@@ -462,7 +458,6 @@ def radial_image(shape, center=None):
     '''
     
     x, y = grid_image(shape, center)
-    _logger.error("%f - %f | %f - %f"%(x.min(), x.max(), y.min(), y.max()))
     return x**2+y**2
 
 def grid_image_fft(shape, center=None):
@@ -548,8 +543,6 @@ def model_disk(radius, shape, center=None, dtype=numpy.int, order='C'):
     a = numpy.zeros(shape, dtype, order)
     irad = radial_image(shape, center)
     a[irad <= radius**2]=1
-    _logger.error("%f - %f < %f -- %f"%(irad.min(), irad.max(), radius**2, irad.sum()))
-    assert(a.sum()>0)
     return a
 
 def model_ring(rmin, rmax, shape, center=None, dtype=numpy.int, order='C'):
