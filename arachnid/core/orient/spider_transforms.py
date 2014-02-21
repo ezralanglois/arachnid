@@ -196,11 +196,11 @@ def coarse_angles(resolution, align, half=False, out=None): # The bitterness of 
     '''
     
     ang = healpix.angles(resolution)
-    resolution = pow(2, resolution)
+    #resolution = pow(2, resolution)
     if out is None: out=numpy.zeros((len(align), len(align[0])))
     cols = out.shape[1]
     for i in xrange(len(align)):
-        sp_t, sp_p = spider_euler(align[i, 1:3])
+        sp_i, sp_t, sp_p = spider_euler(align[i, :3])
         ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True)
         rot, tx, ty = rotate_into_frame_2d(ang[ipix], sp_t, sp_p, align[i, 3], align[i,4], align[i,5])
         if half: ipix = healpix.ang2pix(resolution, align[i,1], align[i,2], deg=True, half=True)
