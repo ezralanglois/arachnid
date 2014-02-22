@@ -700,10 +700,8 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         format.write(output, data, nospiderid=True, format=format.spiderdoc)
     if diagnostic != "":
         extra['thread_count']=extra['worker_count']
-        filename = finished[0][0][0] if isinstance(finished[0], tuple) else finished[0]
+        filename = finished[0][1][0] if isinstance(finished[0], tuple) else finished[0]
         files, align = format_alignment.read_alignment(data, image_file=filename, use_3d=False, align_cols=8)
-        _logger.critical("class=%s"%str(files.__class__))
-        _logger.critical("filename=%s"%str(files[0]))
         align[:, 7]=align[:, 6]
         order=extra['order']
         if order > 0: spider_transforms.coarse_angles(order, align, half=not extra['disable_mirror'], out=align)
