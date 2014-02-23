@@ -11,17 +11,23 @@ from pyui.MontageViewer import Ui_MainWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot,QtWebKit
 from util import qimage_utility
 import property
-from ..metadata import spider_utility, format
-from ..image import ndimage_utility, ndimage_file, ndimage_interpolate, ndimage_filter
+from ..metadata import spider_utility
+from ..metadata import format
+from ..image import ndimage_utility
+from ..image import ndimage_file
+from ..image import ndimage_interpolate
+from ..image import ndimage_filter
 from ..image.ctf import estimate1d as estimate_ctf1d
 from ..util import drawing
 from ..util import plotting
-import glob, os, numpy #, itertools
+from util import messagebox
+import glob
+import os
+import numpy #, itertools
 import logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
-
 
 class MainWindow(QtGui.QMainWindow):
     ''' Main window display for the plotting tool
@@ -53,6 +59,7 @@ class MainWindow(QtGui.QMainWindow):
         self.base_level = None
         self.inifile = '' #'ara_view.ini'
         self.settings_group = 'ImageViewer'
+        self.imagesize=0
         
         # Image View
         self.imageListModel = QtGui.QStandardItemModel(self)
@@ -143,6 +150,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True, value=self.ui.imageZoomDoubleSpinBox)),
                dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True, value=self.ui.contrastSlider)),
                dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True, value=self.ui.imageCountSpinBox)),
+               dict(imagePage=self.ui.pageSpinBox.value(), help="Current page of images", gui=dict(readonly=True, value=self.ui.pageSpinBox)),
                dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True, value=self.ui.decimateSpinBox)),
                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True, value=self.ui.clampDoubleSpinBox)),
                ]
@@ -303,9 +311,10 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.zoomSlider.blockSignals(True)
         self.ui.zoomSlider.setValue(int(self.ui.zoomSlider.maximum()*zoom))
         self.ui.zoomSlider.blockSignals(False)
-            
-        n = max(5, int(self.imagesize*zoom))
-        self.ui.imageListView.setIconSize(QtCore.QSize(n, n))
+        
+        if self.imagesize > 0:
+            n = max(5, int(self.imagesize*zoom))
+            self.ui.imageListView.setIconSize(QtCore.QSize(n, n))
     
     @qtSlot()
     def on_loadImagesPushButton_clicked(self):
@@ -527,6 +536,10 @@ class MainWindow(QtGui.QMainWindow):
         
         fileset=set(self.files)
         newfiles = sorted([f for f in files if f not in fileset])
+        imgfiles = [f for f in newfiles if not ndimage_file.is_readable(f)]
+        if len(imgfiles) > 0:
+            messagebox.error_message(self, "File open failed - found non-image files. See details.", "\n".join(imgfiles))
+            return
         self.notify_added_files(newfiles)
         self.updateFileIndex(newfiles)
         self.files.extend(newfiles)
