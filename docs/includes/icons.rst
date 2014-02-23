@@ -27,6 +27,10 @@
 .. role:: icon-link
 	:class: glyphicon glyphicon-link
 
+.. role:: h1
+	:class: h1
+
+
 .. |info_icon| image:: /docs/images/icons/mini/information.png
 
 .. |accept_icon| image:: /docs/images/icons/mini/accept.png

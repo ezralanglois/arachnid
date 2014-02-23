@@ -48,19 +48,4 @@ Arachnid Single-particle Reconstruction
        A guide for developers
 
 
-	
-.. container:: well
-
-	Why use Arachnid?
-	=================
-	
-	.. rst-class:: list-group
-		
-		- Leginon Integration
-		- Automated Particle Selection
-		- Automated Defocus Estimation
-	
-		.. raw:: html
-		
-			<a class="btn btn-primary btn-lg" href="docs/overview.html" role="button">Learn More</a>
 
