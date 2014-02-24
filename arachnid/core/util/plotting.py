@@ -85,6 +85,23 @@ def plot_line_on_image(img, x, y, color='w', **extra):
     newax.axes.get_yaxis().set_visible(False)
     return save_as_image(fig)
 
+def plot_lines(output, lines, labels, ylabel=None, xlabel=None, dpi=72):
+    '''
+    '''
+    
+    fig = pylab.figure(dpi=dpi)
+    ax = fig.add_subplot(111)
+    
+    cmap = cm.jet#@UndefinedVariable
+    markers = ['s', 'o', '^', '>', 'v', 'd', 'p', 'h', '8', '+', 'x']
+    for i in xrange(len(lines)):
+        ax.plot(lines[i], markers[i], c=cmap(float(i+1)/len(lines)), label=labels[i])
+    
+    if ylabel is not None: pylab.ylabel(ylabel)
+    if xlabel is not None: pylab.xlabel(xlabel)
+    lgd=ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
+    fig.savefig(format_utility.new_filename(output, ext="png"), dpi=dpi, bbox_extra_artists=(lgd,), bbox_inches='tight')
+
 def plot_line(output, x, y, x_label=None, y_label=None, color=None, marker_idx=None, dpi=72):
     ''' Plot a scatter plot
     '''
