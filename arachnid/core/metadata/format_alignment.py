@@ -87,7 +87,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
     if 'format' in extra: del extra['format']
     if 'numeric' not in extra: extra['numeric']=True
     supports_spider_id="" if not force_list else None
-    if isinstance(filename, list) and len(filename) > 0 and hasattr(filename[0], 'rlnImageName') or is_relion_star(filename):
+    if isinstance(filename, list) and len(filename) > 0 and hasattr(filename[0], 'rlnImageName') or (not isinstance(filename, list) and is_relion_star(filename)):
         if isinstance(filename, list):
             align=filename
         else:
@@ -150,7 +150,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             if apix == 0: apix=ctf_param['apix']
         if 'ndarray' not in extra or not extra['ndarray']: extra['ndarray']=True
         if isinstance(filename, list):
-            align=filename
+            align=numpy.asarray(filename)
         else:
             align = read_spider_alignment(filename, **extra)[0]
         param = numpy.zeros((len(align), align_cols))
