@@ -13,6 +13,7 @@ from ..core.metadata import spider_params
 from ..core.metadata import format_utility
 from ..core.image import reconstruct
 from ..core.parallel import mpi_utility
+from ..core.parallel import openmp
 import numpy
 import logging
 
@@ -43,6 +44,7 @@ def batch(files, image_file, output, rand_subset=0, experimental=False, experime
     if extra['scale_spi']: _logger.info("Scaling translations for pySPIDER")
     if extra['thread_count']: _logger.info("Using %d threads"%extra['thread_count'])
     
+    openmp.set_thread_count(1)
     align, image_size = None, None
     ctf_param=None
     if mpi_utility.is_root(**extra): 
