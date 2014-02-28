@@ -38,7 +38,7 @@ def is_relion_star(filename):
     
     return format.get_format(filename) == format.star
 
-def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False, ctf_params=False, scale_spi=False, apix=0, **extra):
+def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=False, ctf_params=False, scale_spi=False, apix=0, class_index=0, **extra):
     ''' Read an alignment file and organize images
     
     This comprehensive function reads alignment parameters from either a 
@@ -67,6 +67,8 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                         Read and return CTF params
         scale_spi : bool
                     Scale translations by the pixel size
+        class_index : int
+                      Index of class to select
         extra : dict
                 Unused keyword arguments
     
@@ -97,6 +99,8 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
         if use_3d:
             _logger.info("Standard Relion alignment file - leave 3D")
             for i in xrange(len(align)):
+                if hasattr(align[i], 'rlnClassNumber') and class_index > 0:
+                    if align[i].rlnClassNumber != class_index: continue
                 filename, index = relion_utility.relion_file(align[i].rlnImageName)
                 if image_file != "":
                     filename = spider_utility.spider_filename(image_file, filename)
@@ -107,16 +111,22 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
                     elif supports_spider_id != spider_utility.spider_filepath(files[-1][0]):
                         supports_spider_id=None
-                param[i, 0] = align[i].rlnAnglePsi
-                param[i, 1] = align[i].rlnAngleTilt
-                param[i, 2] = align[i].rlnAngleRot
-                #param[i, 3] = align[i].
-                param[i, 4] = align[i].rlnOriginX
-                param[i, 5] = align[i].rlnOriginY
-                param[i, 6] = align[i].rlnDefocusU
+                j = len(files)-1
+                param[j, 0] = align[i].rlnAnglePsi
+                param[j, 1] = align[i].rlnAngleTilt
+                param[j, 2] = align[i].rlnAngleRot
+                #param[j, 3] = align[i].
+                param[j, 4] = align[i].rlnOriginX
+                param[j, 5] = align[i].rlnOriginY
+                if hasattr(align[i], 'rlnDefocusV'):
+                    param[j, 6] = (align[i].rlnDefocusU+align[i].rlnDefocusV)/2
+                else:
+                    param[j, 6] = align[i].rlnDefocusU
         else:
             _logger.info("Standard Relion alignment file - convert to 2D")
             for i in xrange(len(align)):
+                if hasattr(align[i], 'rlnClassNumber') and class_index > 0:
+                    if align[i].rlnClassNumber != class_index: continue
                 filename, index = relion_utility.relion_file(align[i].rlnImageName)
                 if image_file != "":
                     filename = spider_utility.spider_filename(image_file, filename)
@@ -126,18 +136,23 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
                     elif supports_spider_id != spider_utility.spider_filepath(files[-1][0]):
                         supports_spider_id=None
-                param[i, 1] = align[i].rlnAngleTilt
-                param[i, 2] = align[i].rlnAngleRot
+                j = len(files)-1
+                param[j, 1] = align[i].rlnAngleTilt
+                param[j, 2] = align[i].rlnAngleRot
                 rot, tx, ty = spider_transforms.align_param_3D_to_2D(align[i].rlnAnglePsi, align[i].rlnOriginX, align[i].rlnOriginY)
-                param[i, 3] = rot
-                param[i, 4] = tx
-                param[i, 5] = ty
-                param[i, 6] = align[i].rlnDefocusU
+                param[j, 3] = rot
+                param[j, 4] = tx
+                param[j, 5] = ty
+                if hasattr(align[i], 'rlnDefocusV'):
+                    param[j, 6] = (align[i].rlnDefocusU+align[i].rlnDefocusV)/2
+                else:
+                    param[j, 6] = align[i].rlnDefocusU
+        param = param[:len(files)]
+        assert(numpy.alltrue(param[:, 6]>0.0))
         if supports_spider_id is not None:
             label = numpy.zeros((len(param), 2), dtype=numpy.int)
             for i in xrange(len(files)): label[i, :] = (spider_utility.spider_id(files[i][0]), files[i][1])
-            if label[:, 1].min() > 0: 
-                label[:, 1]-=1
+            label[:, 1]-=1
             files = (files[0][0], label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
         if ctf_params:
@@ -207,7 +222,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                     label[:, 1] = align[:, 4]
             else:
                 label[:, :] = align[:, 15:17].astype(numpy.int)
-            if label[:, 1].min() > 0: label[:, 1]-=1
+            label[:, 1]-=1
             files = (image_file, label)
             if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
     if ctf_params: return files, param, ctf_param
