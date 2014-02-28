@@ -118,6 +118,9 @@ def spider_euler(ang):
     
     if len(ang) == 3:
         psi, theta, phi = ang
+        assert(theta >=0)
+        #if theta < 0: theta += 360.0
+        if phi < 0: phi += 360.0
         if theta < 180.0 and theta > 90.0:
             theta = 360.0 - theta
             phi += 180.0

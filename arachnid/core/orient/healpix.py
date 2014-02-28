@@ -297,10 +297,13 @@ def healpix_euler_rad(ang):
     
     if len(ang) == 2:
         theta, phi = ang
+        twopi = numpy.pi*2
+        assert(theta>=0)
+        if phi < 0: phi += twopi
         if theta > numpy.pi:
             theta = theta-numpy.pi/2
             phi += numpy.pi
-            if phi > (2*numpy.pi): phi-=(2*numpy.pi)
+            if phi > twopi: phi-=twopi
         return theta, phi
     else: raise ValueError, "Not implemented for other than 2 angles"
     
@@ -327,6 +330,8 @@ def healpix_euler_deg(ang):
     
     if len(ang) == 2:
         theta, phi = ang
+        assert(theta>=0)
+        if phi < 0: phi += 360.0
         if theta > 180.0:
             theta = theta-90.0
             phi += 180.0
@@ -359,6 +364,8 @@ def healpix_half_sphere_euler_rad(ang):
         halfpi = numpy.pi/2
         twopi = numpy.pi*2
         theta, phi = ang
+        assert(theta>=0)
+        if phi < 0: phi += twopi
         if theta <= numpy.pi and theta > halfpi:
             theta = twopi-theta
             phi += numpy.pi
