@@ -335,13 +335,22 @@ def iter_images(filename, index=None, header=None):
         if numpy.any(index >= count):  raise IOError, "Index exceeds number of images in stack: %s < %d"%(str(index), count)
         #offset = h_len + 0 * (h_len+i_len)
         
-        if file_size(f) != (h_len + count * (h_len+i_len)):
+        size = ( h_len + count * (h_len+i_len) ) if int(h['istack']) > 0 else (h_len + i_len)
+        
+        if file_size(f) != size:
             raise ValueError, "file size != header: %d != %d - %d -- %d,%d,%d"%(file_size(f), (h_len + count * (h_len+i_len)), count, int(h['nx']), int(h['ny']), int(h['nz']))
         try:
             f.seek(h_len)
         except:
             _logger.error("Offset: %s"%str(h_len))
             raise
+        if int(h['istack']) == 0: # This file contains a single image!
+            out = numpy.fromfile(f, dtype=dtype, count=d_len)
+            if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
+            if int(h['nz']) > 1:    out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
+            elif int(h['ny']) > 1:  out = out.reshape(int(h['ny']), int(h['nx']))
+            yield out
+            return
         
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
