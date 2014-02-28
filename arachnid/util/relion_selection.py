@@ -175,7 +175,11 @@ from ..core.metadata import spider_utility, relion_utility, format_utility, form
 from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate
 from ..core.parallel import parallel_utility
 from ..core.orient import healpix
-import numpy, os, logging, operator, glob
+import numpy
+import os
+import logging
+import operator
+import glob
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -253,7 +257,7 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
                 select_class_subset(vals, **extra)
     _logger.info("Completed")
 
-def generate_relion_selection_file(files, img, output, param_file, selection_file="", good_file="", test_all=False, **extra):
+def generate_relion_selection_file(files, img, output, param_file, selection_file="", good_file="", test_all=False, reindex_file="", **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
     
     :Parameters:
@@ -272,6 +276,8 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                 Selection file for good windows int he stack
     test_all : bool
                Test all images to ensure proper normalization
+    reindex_file : bool
+                   Selection file to map images in single stack
     extra : dict
             Unused key word arguments
     '''
@@ -320,25 +326,38 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     else:
         label = []
         group = []
-        for filename in files:
-            mic = spider_utility.spider_id(filename)
-            if good_file != "":
-                if not os.path.exists(spider_utility.spider_filename(good_file, mic)): continue
-                select_vals = format.read(good_file, spiderid=mic, numeric=True)
-                if len(select_vals) > 0 and not hasattr(select_vals[0], 'id'):
-                    raise ValueError, "Error with selection file (`--good-file`) missing `id` in header, return with `--good-file filename=id` or `--good-file filename=id,select` indicating which column has the id and select"
-                if len(select_vals) > 0 and 'select' in select_vals[0]._fields:
-                    select_vals = [s.id for s in select_vals if s.select > 0] if len(select_vals) > 0 and hasattr(select_vals[0], 'select') else [s.id for s in select_vals]
-            else:
-                select_vals = xrange(1, ndimage_file.count_images(filename)+1)
-            if mic not in defocus_dict:
-                _logger.warn("Micrograph not found in defocus file: %d -- skipping"%mic)
-                continue
-            
-            group.append((defocus_dict[mic].defocus, len(select_vals), len(label), mic))
-            for pid in select_vals:
-                #label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, mic] )
-                label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
+        if len(files) == 1:
+            header += ['araOriginalrlnImageName']
+            group_ids=set()
+            if reindex_file == "": raise ValueError, "A single stack requires --reindex-file"
+            stack_map, header = format.read(reindex_file, ndarray=True)
+            filename=files[0]
+            for id, mic, part in stack_map:
+                if mic not in defocus_dict: continue
+                if mic not in group_ids:
+                    group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, 1]==mic), len(label), mic))
+                    group_ids.add(mic)
+                label.append( ["%s@%s"%(str(id).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+        else:
+            for filename in files:
+                mic = spider_utility.spider_id(filename)
+                if good_file != "":
+                    if not os.path.exists(spider_utility.spider_filename(good_file, mic)): continue
+                    select_vals = format.read(good_file, spiderid=mic, numeric=True)
+                    if len(select_vals) > 0 and not hasattr(select_vals[0], 'id'):
+                        raise ValueError, "Error with selection file (`--good-file`) missing `id` in header, return with `--good-file filename=id` or `--good-file filename=id,select` indicating which column has the id and select"
+                    if len(select_vals) > 0 and 'select' in select_vals[0]._fields:
+                        select_vals = [s.id for s in select_vals if s.select > 0] if len(select_vals) > 0 and hasattr(select_vals[0], 'select') else [s.id for s in select_vals]
+                else:
+                    select_vals = xrange(1, ndimage_file.count_images(filename)+1)
+                if mic not in defocus_dict:
+                    _logger.warn("Micrograph not found in defocus file: %d -- skipping"%mic)
+                    continue
+                
+                group.append((defocus_dict[mic].defocus, len(select_vals), len(label), mic))
+                for pid in select_vals:
+                    #label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, mic] )
+                    label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
         if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
         groupmap = regroup(group, **extra)
         update_parameters(label, header, groupmap, **extra)
@@ -736,7 +755,7 @@ def print_stats(vals, column="rlnClassNumber", **extra):
         for cl in clazzes:
             _logger.info("Class: %d has %d projections"%(cl, numpy.sum(cl==tmp)))
             
-def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="", **extra):
+def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="", single_stack=False, **extra):
     ''' Convert a standard relion selection file to a movie mode selection file and
     write to output file
     
@@ -762,6 +781,8 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="",
     consecutive=None
     last=-1
     
+    stack_filename = format_utility.add_prefix(output, 'image_stack_')
+    stack_index = 0
     last_percent = -1
     for offset, v in enumerate(vals):
         percent = int(float(offset)/len(vals)*100)
@@ -793,9 +814,20 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="",
             continue
         frames=frames[:frame_limit]
         for f in frames:
-            frame_vals.append(v._replace(rlnImageName="%s@%s"%(str(pid).zfill(idlen), f))+(v.rlnImageName, ))
+            if single_stack:
+                orig_image_file = "%s@%s"%(str(pid).zfill(idlen), f)
+                ndimage_file.write_image(stack_filename, ndimage_file.read_image(f, pid-1), stack_index)
+                image_file = "%s@%s"%(str(stack_index+1).zfill(idlen), stack_filename)
+                stack_index += 1
+                additional = (v.rlnImageName, orig_image_file)
+            else:
+                image_file = "%s@%s"%(str(pid).zfill(idlen), f)
+                additional = (v.rlnImageName, )
+            frame_vals.append(v._replace(rlnImageName=image_file)+additional)
     header = list(vals[0]._fields)
     header.append('rlnParticleName')
+    if single_stack:
+        header.append('araOriginalrlnImageName')
     format.write(output, frame_vals, header=header)
     
 def create_movie_old(vals, frame_stack_file, output, frame_limit=0, **extra):
@@ -849,7 +881,7 @@ def create_movie_old(vals, frame_stack_file, output, frame_limit=0, **extra):
     header.append('rlnParticleName')
     format.write(output, frame_vals, header=header)
 
-def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", **extra):
+def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", sort_column="", sort_rev=False, **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -862,6 +894,14 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
                     Generate the specified number of random subsets
     restart : bool
               If True, then output only minimum header
+    param_file : str
+                 SPIDER Params file
+    reindex_file : str
+                   Selection file for reindexing
+    sort_column : str
+                  Column to sort by
+    sort_rev : bool
+               Reverse sorting - descending order
     extra : dict
             Unused key word arguments
     
@@ -903,6 +943,10 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
                     subset[i] = subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
                 except:
                     _logger.warn("Not updating defocus for micrograph %d"%mic)
+        if sort_column != "":
+            subset.sort(key=operator.attrgetter(sort_column), reverse=sort_rev)
+        #rlnSphericalAberration
+        
         if random_subset > 1: 
             _logger.info("Writing %d random subsets of the selection file"%random_subset)
             index = numpy.arange(len(subset), dtype=numpy.int)
@@ -1108,7 +1152,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
     group.add_option("-s", selection_file="",               help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
-    group.add_option("",   reindex_file="",                 help="Reindex file for running movie mode on a subset of selected particles in a stack", gui=dict(filetype="open"))
+    group.add_option("",   reindex_file="",                 help="Reindex file for 1) running movie mode on a subset of selected particles in a stack or 2) When generating a relion selection file from a single stack", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", '--ctf-file', defocus_file="",   help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
@@ -1132,6 +1176,10 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   apix=1.0,                        help="Pixel size of the particle")
     group.add_option("",   invert=False,                    help="Invert the images")
     group.add_option("",   dry_run=False,                   help="Do not process images - only output star file")
+    group.add_option("",   single_stack=False,              help="Generate a single stack of images and new relion selection file from an existing relion selection file")
+    group.add_option("",   sort_column="",                  help="Sort by column in relion selection file in ascending order")
+    group.add_option("",   sort_rev=False,                  help="Reverse sorting to descending order")
+    
     
     pgroup.add_option_group(group)
     if main_option:
