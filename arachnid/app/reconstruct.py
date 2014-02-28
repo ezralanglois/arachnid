@@ -39,6 +39,7 @@ def batch(files, image_file, output, rand_subset=0, experimental=False, experime
     '''
     
     if experimental: _logger.info("Experimental shared memory: enabled")
+    if experimental_2d: _logger.info("Experimental 2D aligned images: enabled")
     if image_file: _logger.info("Using image file: %s"%image_file)
     if rand_subset: _logger.info("Drawing random subset: %d"%rand_subset)
     if extra['scale_spi']: _logger.info("Scaling translations for pySPIDER")
@@ -66,6 +67,7 @@ def batch(files, image_file, output, rand_subset=0, experimental=False, experime
     even = numpy.arange(0, len(selection[curr_slice]), 2, dtype=numpy.int)
     odd = numpy.arange(1, len(selection[curr_slice]), 2, dtype=numpy.int)
     if isinstance(files, tuple):
+        _logger.debug("Supports stacks with SPIDER filenames")
         image_file, label = files
         label = label[selection].copy()
         align = align[selection].copy()
@@ -77,6 +79,7 @@ def batch(files, image_file, output, rand_subset=0, experimental=False, experime
         iter_single_images2 = ndimage_file.iter_images(image_file, label[odd])
         # todo support multiple spider prefixes
     else:
+        _logger.debug("Supports stacks non-SPIDER filenames")
         if len(selection) != len(files):
             files = [files[i] for i in selection]
             align = align[selection].copy()
@@ -107,6 +110,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("-r",   rand_subset=0,             help="Reconstruct a random subset of the given size", gui=dict(minimum=0), dependent=False)
     group.add_option("",     experimental=False,        help="Test experimental shared memory")
     group.add_option("",     experimental_2d=False,     help="Test 2d representation of alignment")
+    group.add_option("",     class_index=0,             help="Select a specifc class within the alignment file")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of alignment files, e.g. data.star", required_file=True, gui=dict(filetype="open"))
