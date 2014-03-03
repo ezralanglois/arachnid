@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>healpix &mdash; arachnid 0.1.4_206_gb6d8366 documentation</title>
+    <title>healpix &mdash; arachnid 0.1.4_254_gcb50e35 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_206_gb6d8366',
+        VERSION:     '0.1.4_254_gcb50e35',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_206_gb6d8366 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_254_gcb50e35 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="transforms" href="arachnid.core.orient.transforms.html" />
     <link rel="prev" title="arachnid.core.app.progress.progress" href="api_generated/arachnid.core.app.progress.progress.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_206_gb6d8366</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_254_gcb50e35</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -960,25 +960,101 @@
 <p>pyHEALPix Library</p>
 <p>It works with Euler angles in the YZ rotating frame convention where (THETA,PHI). The
 angles must be in radians and in the following range:</p>
-<blockquote>
-<div>0 &lt;= THETA &lt; PI (also called colatitude)
-0 &lt;= PHI &lt; 2PI  (also called longitude)</div></blockquote>
+<ul class="simple">
+<li>0 &lt;= THETA &lt; PI (also called colatitude)</li>
+<li>0 &lt;= PHI &lt; 2PI  (also called longitude)</li>
+</ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The representation is compatiable with the SPIDER ZYZ rotating rame (PSI,THETA,PHI).</p>
 </div>
 <p>The following table relates the resolution parameter (and its nside counterpart) to the sampling
 statistics:</p>
-<p>Resolution     nside       total    theta      half sphere (equator)  half sphere  half sphere sum
-&#8212;&#8212;&#8212;-     &#8212;&#8211;       &#8212;&#8211;    &#8212;&#8211;      &#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;  &#8212;&#8212;&#8212;&#8211;  &#8212;&#8212;&#8212;&#8212;&#8212;
-1              2           48       29.32      28                     20           20
-2              4           192      14.66      104                    88           108
-3              8           768      7.33       400                    368          476
-4              16          3072     3.66       1568                   1504         1980
-5              32          12288    1.83       6208                   6080         8060
-6              64          49152    0.92       24704                  24448        32508
-7              128         196608   0.46       98560                  98048        130556
-8              256         786432   0.23       393728                 392704       523260</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="7%" />
+<col width="8%" />
+<col width="7%" />
+<col width="29%" />
+<col width="15%" />
+<col width="21%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Resolution</td>
+<td>nside</td>
+<td>total</td>
+<td>theta</td>
+<td>half sphere (equator)</td>
+<td>half sphere</td>
+<td>half sphere sum</td>
+</tr>
+<tr class="row-even"><td>1</td>
+<td>2</td>
+<td>48</td>
+<td>29.32</td>
+<td>28</td>
+<td>20</td>
+<td>20</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>4</td>
+<td>192</td>
+<td>14.66</td>
+<td>104</td>
+<td>88</td>
+<td>108</td>
+</tr>
+<tr class="row-even"><td>3</td>
+<td>8</td>
+<td>768</td>
+<td>7.33</td>
+<td>400</td>
+<td>368</td>
+<td>476</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>16</td>
+<td>3072</td>
+<td>3.66</td>
+<td>1568</td>
+<td>1504</td>
+<td>1980</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>32</td>
+<td>12288</td>
+<td>1.83</td>
+<td>6208</td>
+<td>6080</td>
+<td>8060</td>
+</tr>
+<tr class="row-odd"><td>6</td>
+<td>64</td>
+<td>49152</td>
+<td>0.92</td>
+<td>24704</td>
+<td>24448</td>
+<td>32508</td>
+</tr>
+<tr class="row-even"><td>7</td>
+<td>128</td>
+<td>196608</td>
+<td>0.46</td>
+<td>98560</td>
+<td>98048</td>
+<td>130556</td>
+</tr>
+<tr class="row-odd"><td>8</td>
+<td>256</td>
+<td>786432</td>
+<td>0.23</td>
+<td>393728</td>
+<td>392704</td>
+<td>523260</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="functions">
 <h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>

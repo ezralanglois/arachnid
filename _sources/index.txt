@@ -48,8 +48,4 @@ Arachnid Single-particle Reconstruction
        A guide for developers
 
 
-	
-
-
-
 

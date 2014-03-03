@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>format_alignment &mdash; arachnid 0.1.4_206_gb6d8366 documentation</title>
+    <title>format_alignment &mdash; arachnid 0.1.4_254_gcb50e35 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_206_gb6d8366',
+        VERSION:     '0.1.4_254_gcb50e35',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_206_gb6d8366 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_254_gcb50e35 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="namedtuple_factory" href="arachnid.core.metadata.factories.namedtuple_factory.html" />
     <link rel="prev" title="namedtuple_utility" href="arachnid.core.metadata.namedtuple_utility.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_206_gb6d8366</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_254_gcb50e35</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1005,7 +1005,7 @@ whether is conforms with the Relion star format.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.core.metadata.format_alignment.read_alignment">
-<tt class="descname">read_alignment</tt><big>(</big><em>filename</em>, <em>image_file</em>, <em>use_3d=False</em>, <em>align_cols=7</em>, <em>force_list=False</em>, <em>ctf_params=False</em>, <em>scale_spi=False</em>, <em>apix=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.metadata.format_alignment.read_alignment" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read_alignment</tt><big>(</big><em>filename</em>, <em>image_file</em>, <em>use_3d=False</em>, <em>align_cols=7</em>, <em>force_list=False</em>, <em>ctf_params=False</em>, <em>scale_spi=False</em>, <em>apix=0</em>, <em>class_index=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.metadata.format_alignment.read_alignment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read an alignment file and organize images</p>
 <p>This comprehensive function reads alignment parameters from either a 
 Relion Star file or a SPIDER alignment file. It can optionally read
@@ -1033,6 +1033,8 @@ to SPIDER ID label array</dd>
 <dd>Read and return CTF params</dd>
 <dt>scale_spi <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
 <dd>Scale translations by the pixel size</dd>
+<dt>class_index <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Index of class to select</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd>Unused keyword arguments</dd>
 </dl>

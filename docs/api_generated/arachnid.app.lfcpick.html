@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>lfcpick &mdash; arachnid 0.1.4_206_gb6d8366 documentation</title>
+    <title>lfcpick &mdash; arachnid 0.1.4_254_gcb50e35 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_206_gb6d8366',
+        VERSION:     '0.1.4_254_gcb50e35',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_206_gb6d8366 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_254_gcb50e35 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="vicer" href="arachnid.app.vicer.html" />
     <link rel="prev" title="autopick" href="arachnid.app.autopick.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_206_gb6d8366</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_254_gcb50e35</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1118,40 +1118,43 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>template <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Cross-correlation map</dd>
+<dd><p class="first last">Cross-correlation map</p>
+</dd>
 <dt>disk_mult <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Mulitplier to control size of soft disk template</dd>
+<dd><p class="first last">Mulitplier to control size of soft disk template</p>
+</dd>
 <dt>bin_factor <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Image downsampling factor</dd>
+<dd><p class="first last">Image downsampling factor</p>
+</dd>
 <dt>disable_bin <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If true, do not downsample image</dd>
+<dd><p class="first last">If true, do not downsample image</p>
+</dd>
 <dt>ds_kernel <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Precomputed kernel for downsampling an image</dd>
+<dd><p class="first last">Precomputed kernel for downsampling an image</p>
+</dd>
 <dt>window <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Size of the window in pixels</dd>
+<dd><p class="first last">Size of the window in pixels</p>
+</dd>
 <dt>pixel_diameter <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Diameter of particle in pixels</dd>
+<dd><p class="first last">Diameter of particle in pixels</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>template <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Template read from file or uniform disk with soft edge</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>template <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Template read from file or uniform disk with soft edge</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1209,30 +1212,28 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>img <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Micrograph</dd>
+<dd><p class="first last">Micrograph</p>
+</dd>
 <dt>template <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Template</dd>
+<dd><p class="first last">Template</p>
+</dd>
 <dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Mask for variance map or variance map</dd>
+<dd><p class="first last">Mask for variance map or variance map</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>cc_map <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Cross-correlation map</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>cc_map <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Cross-correlation map</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1264,32 +1265,31 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename</dd>
+<dd><p class="first last">Input filename</p>
+</dd>
 <dt>id_len <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Maximum length of the ID</dd>
+<dd><p class="first last">Maximum length of the ID</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused key word arguments</dd>
+<dd><p class="first last">Unused key word arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Current filename</p>
+</dd>
+<dt>peaks <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
+<dd><p class="first last">List of peaks and coordinates</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>Current filename</dd>
-<dt>peaks <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
-<dd>List of peaks and coordinates</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1308,38 +1308,40 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Filename for micrograph</dd>
+<dd><p class="first last">Filename for micrograph</p>
+</dd>
 <dt>bin_factor <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Image downsampling factor</dd>
+<dd><p class="first last">Image downsampling factor</p>
+</dd>
 <dt>sigma <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Gaussian highpass filtering factor (sigma/window)</dd>
+<dd><p class="first last">Gaussian highpass filtering factor (sigma/window)</p>
+</dd>
 <dt>disable_bin <span class="classifier-delimiter">:</span> <span class="classifier">bool    </span></dt>
-<dd>If True, do not downsample the micrograph</dd>
+<dd><p class="first last">If True, do not downsample the micrograph</p>
+</dd>
 <dt>invert <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True, invert the contrast of the micrograph (CCD Data)</dd>
+<dd><p class="first last">If True, invert the contrast of the micrograph (CCD Data)</p>
+</dd>
 <dt>ds_kernel <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Precomputed kernel for downsampling an image</dd>
+<dd><p class="first last">Precomputed kernel for downsampling an image</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>mic <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Micrograph image</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>mic <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Micrograph image</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1371,33 +1373,28 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>img <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Micrograph</dd>
+<dd><p class="first last">Micrograph</p>
+</dd>
 <dt>template <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Template</dd>
+<dd><p class="first last">Template</p>
+</dd>
 <dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Mask for variance map or variance map</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>cc_map <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd><blockquote class="first">
-<div>Spectrum enhanced cross-correlation map</div></blockquote>
-<p class="last">&gt; r = numpy.correlate(x, x)</p>
+<dd><p class="first last">Mask for variance map or variance map</p>
 </dd>
 </dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>cc_map <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Spectrum enhanced cross-correlation map</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1416,36 +1413,37 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>img <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Micrograph image</dd>
+<dd><p class="first last">Micrograph image</p>
+</dd>
 <dt>use_spectrum <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Set True to use spectrum correlation</dd>
+<dd><p class="first last">Set True to use spectrum correlation</p>
+</dd>
 <dt>limit <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Maximum number of peaks to return</dd>
+<dd><p class="first last">Maximum number of peaks to return</p>
+</dd>
 <dt>bin_factor <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Image downsampling factor</dd>
+<dd><p class="first last">Image downsampling factor</p>
+</dd>
 <dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Mask for 2D projection of the particle</dd>
+<dd><p class="first last">Mask for 2D projection of the particle</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused key word arguments</dd>
+<dd><p class="first last">Unused key word arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>peaks <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">List of peaks and coordinates</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>peaks <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>List of peaks and coordinates</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1464,36 +1462,37 @@ selection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>cc_map <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Cross-correlation map</dd>
+<dd><p class="first last">Cross-correlation map</p>
+</dd>
 <dt>pixel_diameter <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Diameter of particle in pixels</dd>
+<dd><p class="first last">Diameter of particle in pixels</p>
+</dd>
 <dt>overlap_mult <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Amount of allowed overlap</dd>
+<dd><p class="first last">Amount of allowed overlap</p>
+</dd>
 <dt>peak_last <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Previous set of peaks to merge (if None, ignored)</dd>
+<dd><p class="first last">Previous set of peaks to merge (if None, ignored)</p>
+</dd>
 <dt>fwidth <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Experimental parameters</dd>
+<dd><p class="first last">Experimental parameters</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused key word arguments</dd>
+<dd><p class="first last">Unused key word arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>peaks <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">List of peaks and coordinates</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>peaks <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>List of peaks and coordinates</dd>
-</dl>
 </dd></dl>
 
 </div>
