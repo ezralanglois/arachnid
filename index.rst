@@ -1,8 +1,14 @@
-========================================
-Arachnid Single-particle Reconstruction
-========================================
 
 .. include:: docs/includes/icons.rst
+
+.. figure:: /docs/images/icons/icons/icon128x128.png
+   :alt: Arachnid Logo
+   :figclass: align-left
+
+=======================================
+Arachnid Single-particle Reconstruction
+=======================================
+
 
 .. line-block::
 	:class: lead

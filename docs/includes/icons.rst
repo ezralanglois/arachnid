@@ -27,9 +27,8 @@
 .. role:: icon-link
 	:class: glyphicon glyphicon-link
 
-.. role:: h1
-	:class: h1
-
+.. role:: logo
+	:class: arachnid-logo
 
 .. |info_icon| image:: /docs/images/icons/mini/information.png
 

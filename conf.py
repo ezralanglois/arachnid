@@ -157,7 +157,7 @@ html_show_sphinx=False
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "docs/images/icons/logo/icon16x16.png"
+html_logo = "docs/images/icons/icons/icon16x16.png"
 #html_logo = "resources/icons/icon64x64.png"
 
 # The name of an image file (within the static path) to use as favicon of the
@@ -168,7 +168,7 @@ html_favicon = "docs/images/icons/logo/favicon.ico"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = []#'resources/static']
+html_static_path = ['docs/images/icons/logo/']#'resources/static']
 #html_style=''#nature_fixed.css'
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
