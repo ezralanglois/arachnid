@@ -312,7 +312,7 @@ def create_mask(filename, pixel_diameter, apix, **extra):
     pixel size.
     
     :Parameters:
-        
+    
         filename : str
                    Input image file
         pixel_diameter : int
@@ -504,7 +504,7 @@ def group_by_reference(label, align, ref):
             group.append((r, [label[i] for i in numpy.argwhere(sel).squeeze()], align[sel]))
     return group
 
-def read_alignment(files, alignment="", disable_mirror=False, order=0, random_view=0, diagnostic="", **extra):
+def read_alignment(files, alignment="", disable_mirror=False, order=0, random_view=0, diagnostic="", class_index=0, **extra):
     ''' Read alignment parameters
     
     :Parameters:
@@ -519,6 +519,10 @@ def read_alignment(files, alignment="", disable_mirror=False, order=0, random_vi
                 Healpix resolution
         random_view : int
                       Assign projections to given number of random views (0 disables)
+        diagnostic : str
+                     Output file for diagnostic view average stack
+        class_index : int
+                      Class to select
         extra : dict
                 Unused keyword arguments
     
@@ -533,7 +537,7 @@ def read_alignment(files, alignment="", disable_mirror=False, order=0, random_vi
     '''
 
     numpy.seterr(all='raise')
-    files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8)
+    files, align = format_alignment.read_alignment(alignment, files[0], use_3d=False, align_cols=8, class_index=class_index)
     align[:, 7]=align[:, 6]
     
     if order > 0: spider_transforms.coarse_angles(order, align, half=not disable_mirror, out=align)
@@ -667,7 +671,7 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
     # Finalize global parameters for the script
     
     nsamples = None
-            
+    
     for filename in finished:
         label = filename[1]
         data = format.read(output, numeric=True, spiderid=int(filename[0]))
@@ -679,7 +683,7 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         feat = feat[:, off:]
         #sel, rsel, dist = one_class_classification(feat, **extra)
         sel, rsel = one_class_classification(feat, neig=neig, nsamples=nsamples, **extra)[:2]
-        _logger.info("Read %d samples and selected %d from finished view: %d"%(feat.shape[0], numpy.sum(rsel), int(filename[0])))
+        _logger.debug("Read %d samples and selected %d from finished view: %d"%(feat.shape[0], numpy.sum(rsel), int(filename[0])))
         for j in xrange(len(feat)):
             data[j] = data[j]._replace(select=sel[j])
         format.write(output, data, spiderid=int(filename[0]))
@@ -688,7 +692,7 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
     for id, sel in sel_by_mic.iteritems():
         n=len(sel)
         tot+=n
-        _logger.info("Writing %d to selection file %d"%(n, id))
+        _logger.debug("Writing %d to selection file %d"%(n, id))
         sel = numpy.asarray(sel)
         format.write(output, numpy.vstack((sel, numpy.ones(sel.shape[0]))).T, prefix="sel_", spiderid=id, header=['id', 'select'], default_format=format.spidersel)
     
@@ -700,7 +704,8 @@ def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, 
         format.write(output, data, nospiderid=True, format=format.spiderdoc)
     if diagnostic != "":
         extra['thread_count']=extra['worker_count']
-        filename = finished[0][1][0] if isinstance(finished[0], tuple) else finished[0]
+        filename = finished[0][1] if isinstance(finished[0], tuple) else finished[0]
+        filename = filename[0] if isinstance(filename, tuple) else filename
         files, align = format_alignment.read_alignment(data, image_file=filename, use_3d=False, align_cols=8)
         align[:, 7]=align[:, 6]
         order=extra['order']
@@ -737,6 +742,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", disable_mirror=False,      help="Disable mirroring and consider the full sphere in SO2")
     group.add_option("", niter=5,                   help="Number of iterations for cleaning")
     group.add_option("", diagnostic="",             help="Diagnosic view averages", gui=dict(filetype="save"), dependent=False)
+    group.add_option("", class_index=0,             help="Select a specifc class within the alignment file")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input particle stacks, e.g. cluster/win/win_*.dat ", required_file=True, gui=dict(filetype="open"))
