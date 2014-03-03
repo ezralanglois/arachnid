@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>logo/ArachnidLogoWindow_small.png</file>
+    <file>logo/ArachnidLogoWindow.png</file>
     <file>icons/220px-NIH_Master_Logo_Vertical_2Color.png</file>
     <file>icons/ColumbiaLogo.png</file>
     <file>icons/FrankLab_logo081511.png</file>

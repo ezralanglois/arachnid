@@ -75,8 +75,8 @@ class MainWindow(QtGui.QWizard):
         self.docs_url = ""
 
         
-        self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(':/icons/icons/icon256x256.png'))
-        self.setPixmap(QtGui.QWizard.BackgroundPixmap, QtGui.QPixmap(':/icons/icons/icon256x256.png'))
+        self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(':/icons/logo/ArachnidLogoWindow_small.png')) #:/icons/icons/icon256x256.png'))
+        self.setPixmap(QtGui.QWizard.BackgroundPixmap, QtGui.QPixmap(':/icons/logo/ArachnidLogoWindow_small.png')) #:/icons/icons/icon256x256.png'))
         
         ########################################################################################################################################
         ###### Introduction Page

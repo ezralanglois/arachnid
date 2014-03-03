@@ -1699,7 +1699,6 @@ p, li { white-space: pre-wrap; }
  </widget>
  <resources>
   <include location="../../../../docs/images/icons/icons.qrc"/>
-  <include location="../../../../docs/images/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>
