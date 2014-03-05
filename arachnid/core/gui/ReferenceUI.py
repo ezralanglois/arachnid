@@ -39,31 +39,31 @@ class Widget(QtGui.QWidget):
         self.ui.referenceTabWidget.currentChanged.connect(lambda x: self.captureScreen.emit(x+1))
         
         self.emdbCannedModel = QtGui.QStandardItemModel(self)
-        canned = [('Ribosome-40S', '1346', ':/reference/reference/1346/emdb_1346_pix32.png', 
+        canned = [('Ribosome-40S', '1346', ':/references/reference/1346/emdb_1346_pix32.png', 
 """The eukaryotic translation initiation factors eIF1 and eIF1A induce an open conformation of the 40S ribosome.
 Passmore LA, Schmeing TM, Maag D, Applefield DJ, Acker MG, Algire MA, Lorsch JR, Ramakrishnan V
 MOLECULAR CELL (2007) 26, pp. 41-50"""),
-                  ('Ribosome-60S', '1705', ':/reference/reference/1705/emdb_1705_pix32.png', 
+                  ('Ribosome-60S', '1705', ':/references/reference/1705/emdb_1705_pix32.png', 
 """Mechanism of eIF6-mediated inhibition of ribosomal subunit joining.
 Gartmann M, Blau M, Armache JP, Mielke T, Topf M, Beckmann R
 J.BIOL.CHEM. (2010) 285, pp. 14848-14851"""),
-                  ('Ribosome-80S', '2275', ':/reference/reference/2275/emdb_2275_pix32.png',
+                  ('Ribosome-80S', '2275', ':/references/reference/2275/emdb_2275_pix32.png',
 """Ribosome structures to near-atomic resolution from thirty thousand cryo-EM particles.
 Bai XC, Fernandez IS, McMullan G, Scheres SH
 ELIFE (2013) 2, pp. e00461-e00461"""),
-                  ('ATP synthase', '5335', ':/reference/reference/5335/emd_5335_pix32.png',
+                  ('ATP synthase', '5335', ':/references/reference/5335/emd_5335_pix32.png',
 """Subnanometre-resolution structure of the intact Thermus thermophilus H+-driven ATP synthase.
 Lau WC, Rubinstein JL
 NATURE (2012) 481, pp. 214-218"""),
-                  ('Ribosome-70S', '5360', ':/reference/reference/5360/emdb_5360_pix32.png',
+                  ('Ribosome-70S', '5360', ':/references/reference/5360/emdb_5360_pix32.png',
 """Structural characterization of mRNA-tRNA translocation intermediates.
 Agirrezabala X, Liao HY, Schreiner E, Fu J, Ortiz-Meoz RF, Schulten K, Green R, Frank J
 PROC.NAT.ACAD.SCI.USA (2012) 109, pp. 6094-6099"""),
-                  ('Ribosome-30S', '5503', ':/reference/reference/5503/emdb_5503_pix512.png',
+                  ('Ribosome-30S', '5503', ':/references/reference/5503/emdb_5503_pix512.png',
 """Dissecting the in vivo assembly of the 30S ribosomal subunit reveals the role of RimM and general features of the assembly process.
 Guo Q, Goto S, Chen Y, Feng B, Xu Y, Muto A, Himeno H, Deng H, Lei J, Gao N
 NUCLEIC ACIDS RES. (2013) 41, pp. 2609-2620"""),
-                  ('Ribosome-50S', '5787', ':/reference/reference/5787/emdb_5787_pix32.png',
+                  ('Ribosome-50S', '5787', ':/references/reference/5787/emdb_5787_pix32.png',
 """Functional domains of the 50S subunit mature late in the assembly process.
 Jomaa A, Jain N, Davis JH, Williamson JR, Britton RA, Ortega J
 NUCLEIC ACIDS RES. (2013)"""),]
