@@ -3,5 +3,5 @@ global-include git-hooks/*
 global-include *.i *.h *.INC *.hpp
 global-include *.cpp *.f *.f90 *.F90 *.c 
 global-include *.rst
-global-include *.qrc *.ui
+global-include *.qrc *.ui *.png *.ico
 global-include install.sh
