@@ -881,7 +881,7 @@ def create_movie_old(vals, frame_stack_file, output, frame_limit=0, **extra):
     header.append('rlnParticleName')
     format.write(output, frame_vals, header=header)
 
-def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", sort_column="", sort_rev=False, **extra):
+def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", sort_column="", sort_rev=False, split=False, **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -902,6 +902,8 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
                   Column to sort by
     sort_rev : bool
                Reverse sorting - descending order
+    split : bool
+            Split a relion star file
     extra : dict
             Unused key word arguments
     
@@ -934,9 +936,8 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
                 subset[i] = subset[i]._replace(rlnVoltage=voltage)
                 subset[i] = subset[i]._replace(rlnAmplitudeContrast=ampcont)
             
-        _logger.info("Read %d values from a defocus file"%len(defocus_dict))
         if len(defocus_dict) > 0:
-            _logger.info("Update defocus values")
+            _logger.info("Read %d values from a defocus file"%len(defocus_dict))
             for i in xrange(len(subset)):
                 mic,par = relion_utility.relion_id(subset[i].rlnImageName)
                 try:
@@ -947,18 +948,37 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
             subset.sort(key=operator.attrgetter(sort_column), reverse=sort_rev)
         #rlnSphericalAberration
         
-        if random_subset > 1: 
+        if split:
+            if len(subset) == 0: raise ValueError, "No data selected"
+            if not hasattr(subset[0], 'rlnRandomSubset'): raise ValueError, "No rlnRandomSubset column found"
+            
+            curr_subset=[subset[j]._make(subset[j]) for j in len(subset) if subset[j].rlnRandomSubset==1]
+            try: groupmap = regroup(build_group(curr_subset), **extra)
+            except: groupmap=None
+            update_parameters(curr_subset, list(curr_subset[0]._fields), groupmap, **extra)
+            format.write(output, curr_subset, spiderid=1)
+            
+            
+            curr_subset=[subset[j]._make(subset[j]) for j in len(subset) if subset[j].rlnRandomSubset==2]
+            try: groupmap = regroup(build_group(curr_subset), **extra)
+            except: groupmap=None
+            update_parameters(curr_subset, list(curr_subset[0]._fields), groupmap, **extra)
+            format.write(output, curr_subset, spiderid=2)
+            
+        elif random_subset > 1:
             _logger.info("Writing %d random subsets of the selection file"%random_subset)
             index = numpy.arange(len(subset), dtype=numpy.int)
             numpy.random.shuffle(index)
             index_sets = parallel_utility.partition_array(index, random_subset)
             for i, index in enumerate(index_sets):
-                curr_subset=[subset[j].__class__(*subset[j]) for j in index]
-                groupmap = regroup(build_group(curr_subset), **extra)
+                curr_subset=[subset[j]._make(subset[j]) for j in index]
+                try: groupmap = regroup(build_group(curr_subset), **extra)
+                except: groupmap=None
                 update_parameters(curr_subset, list(curr_subset[0]._fields), groupmap, **extra)
                 format.write(output, curr_subset, spiderid=(i+1))
         else:
-            groupmap = regroup(build_group(subset), **extra)
+            try: groupmap = regroup(build_group(subset), **extra)
+            except: groupmap=None
             update_parameters(subset, list(subset[0]._fields), groupmap, **extra)
             
             subset=downsample_images(subset, param_file=param_file, **extra)
@@ -1179,6 +1199,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   single_stack=False,              help="Generate a single stack of images and new relion selection file from an existing relion selection file")
     group.add_option("",   sort_column="",                  help="Sort by column in relion selection file in ascending order")
     group.add_option("",   sort_rev=False,                  help="Reverse sorting to descending order")
+    group.add_option("",   split=False,                     help="Split the relion star file using the rlnRandomSubset column")
     
     
     pgroup.add_option_group(group)
