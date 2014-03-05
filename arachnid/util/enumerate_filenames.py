@@ -179,6 +179,7 @@ def remap_enum_files(files, mapping_file):
     index = len(mapped)+1
     for filename in files:
         basename = os.path.basename(filename)
+        basename = os.path.splitext(basename)[0]
         found=[]
         for pair in mapped:
             if pair[0].find(basename) != -1 or basename.find(pair[0]) != -1:
