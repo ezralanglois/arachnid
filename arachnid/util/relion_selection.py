@@ -952,14 +952,14 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
             if len(subset) == 0: raise ValueError, "No data selected"
             if not hasattr(subset[0], 'rlnRandomSubset'): raise ValueError, "No rlnRandomSubset column found"
             
-            curr_subset=[subset[j]._make(subset[j]) for j in len(subset) if subset[j].rlnRandomSubset==1]
+            curr_subset=[subset[j]._make(subset[j]) for j in xrange(len(subset)) if subset[j].rlnRandomSubset==1]
             try: groupmap = regroup(build_group(curr_subset), **extra)
             except: groupmap=None
             update_parameters(curr_subset, list(curr_subset[0]._fields), groupmap, **extra)
             format.write(output, curr_subset, spiderid=1)
             
             
-            curr_subset=[subset[j]._make(subset[j]) for j in len(subset) if subset[j].rlnRandomSubset==2]
+            curr_subset=[subset[j]._make(subset[j]) for j in xrange(len(subset)) if subset[j].rlnRandomSubset==2]
             try: groupmap = regroup(build_group(curr_subset), **extra)
             except: groupmap=None
             update_parameters(curr_subset, list(curr_subset[0]._fields), groupmap, **extra)
