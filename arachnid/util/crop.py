@@ -166,7 +166,7 @@ import numpy, os, logging, psutil
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
+def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **extra):
     '''Crop a set of particles from a micrograph file with the specified
     coordinate file and write particles to an image stack.
     
@@ -180,6 +180,8 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
                 First frame to crop
     frame_end : int
                 List frame to crop
+    single_stack : bool
+                   Write windows to a single stack
     extra : dict
             Unused keyword arguments
                 
@@ -199,6 +201,7 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
     spider_utility.update_spider_files(extra, fid, 'good_file', 'output', 'coordinate_file', 'frame_align')
     try: coords = read_coordinates(**extra)
     except: return filename, 0, os.getpid()
+    global_selection=extra['global_selection']
 
     if tot is None:
         tot = ndimage_file.count_images(filename)
@@ -224,18 +227,25 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
     else: align=None
     
     if tot > 1: _logger.info("Cropping windows from %d frame to %d frame"%(frame_beg,frame_end))
-    for i in xrange(frame_beg,frame_end):
+    
+    #for i in xrange(frame_beg,frame_end):
+    indexes = range(frame_beg,frame_end) if align is None else [align[i].id for i in xrange(frame_beg,frame_end) ]
+    for j, mic in enumerate(iter_micrographs(filename, indexes, **extra)):
+        i = indexes[j]
         frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
+        '''
         if align is not None:
             id=align[i].id
-        else:id=i
+        else:
+        '''
+        #id=i
         #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
-        mic = read_micrograph(filename, id, **extra)
+        #mic = read_micrograph(filename, id, **extra)
         if tot > 1: 
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
             if align is not None:
                 mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
-            
+            #scp /catalina.F30/frames/13nov23c/rawdata/13*en.frames.mrc.bz2
         _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
         for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, window, bin_factor)):
             win = enhance_window(win, noise, **extra)
@@ -243,9 +253,67 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, **extra):
                 coord = coords[index]
                 x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
                 _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
-            ndimage_file.write_image(output, win, index)
+            if single_stack:
+                ndimage_file.write_image(output, win, len(global_selection))
+                global_selection.append((len(global_selection)+1, fid, index+1, ))
+            else:
+                ndimage_file.write_image(output, win, index)
         #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
+    if len(global_selection) > 0:
+        format.write(output, numpy.asarray(global_selection), prefix="sel_", header="id,micrograph,stack_id".split(','))
     return filename, len(coords), os.getpid()
+
+def iter_micrographs(filename, index=None, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, window=None, gain=None, **extra):
+    ''' Read a micrograph from a file and perform preprocessing
+    
+    :Parameters:
+        
+    filename : str
+               Filename for micrograph
+    index : int
+            Index of micrograph in stack
+    bin_factor : float
+                Downsampling factor
+    sigma : float
+            Gaussian highpass filtering factor (sigma/window)
+    disable_bin : bool    
+                  If True, do not downsample the micrograph
+    invert : bool
+             If True, invert the contrast of the micrograph (CCD Data)
+    window : int
+             Size of the window in pixels
+    gain : array
+           Gain correction/normalization image
+    extra : dict
+            Unused extra keyword arguments
+    
+    :Returns:
+        
+    mic : array
+          Micrograph image
+    '''
+    
+    assert(window is not None)
+    if isinstance(filename, tuple):
+        filename = filename[1][index]
+        index=None
+    
+    if ndimage_file.count_images(filename) == 1: index=None
+    
+    for mic in ndimage_file.iter_images(filename, index):
+        _logger.debug("Read micrograph")
+        mic = mic.astype(numpy.float32)
+        if gain is not None and index is not None: mic *= gain
+        if bin_factor > 1.0 and not disable_bin: 
+            _logger.debug("Downsample by %f"%bin_factor)
+            mic = ndimage_interpolate.downsample(mic, bin_factor)
+        if invert:
+            _logger.debug("Invert micrograph")
+            ndimage_utility.invert(mic, mic)
+        if sigma > 0.0:
+            _logger.debug("Filter by %f"%(sigma/float(window)))
+            mic = ndimage_filter.gaussian_highpass(mic, sigma/float(window), True)
+        yield mic
 
 def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=False, invert=False, window=None, gain=None, **extra):
     ''' Read a micrograph from a file and perform preprocessing
@@ -480,6 +548,10 @@ def initialize(files, param):
     
     if len(files) == 0 and len(param['finished']) == 0: return []
     filename = files[0] if len(files) > 0 else param['finished'][0]
+    param['global_selection']=[]
+    
+    if len(param['finished']) > 0 and param['single_stack']:
+        raise ValueError, "Cannot restart with --single-stack -- please use --force or force: True or delete the output files"
     
     spider_params.read(param['param_file'], param)
     if param['mask_diameter'] <= 0.0:
@@ -629,6 +701,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     group = OptionGroup(parser, "Cropping", "Options to crop particles from micrographs", id=__name__) #, gui=dict(root=True, stacked="prepComboBox"))
     
+    group.add_option("", single_stack=False,       help="Crop all files into a single stack")
     group.add_option("", invert=False,             help="Invert the contrast on the micrograph (usually for raw CCD micrographs)")
     group.add_option("", noise="",                 help="Use specified noise file rather then automatically generate one", gui=dict(filetype="open"))
     group.add_option("", gain_file="",             help="Perform gain correction with given norm image", gui=dict(filetype="open"))
@@ -666,6 +739,11 @@ def check_options(options, main_option=False):
     
     from ..core.app.settings import OptionValueError
     if options.bin_factor == 0.0: raise OptionValueError, "Bin factor cannot be zero (--bin-factor)"
+    if options.single_stack:
+        if options.use_MPI: raise OptionValueError, "You cannot use --single-stack with MPI"
+        if options.worker_count > 1:
+            options.worker_count = 1
+            _logger.warn("Setting --worker-count to 1 - This is necessary when using --single-stack mode")
 
 def flags():
     ''' Get flags the define the supported features
