@@ -406,6 +406,7 @@ def generate_noise(filename, noise="", output="", noise_stack=True, window=None,
     tot = ndimage_file.count_images(filename)
     if tot > 1:
         return None
+    window = int(window)
     mic = read_micrograph(filename, window=window, **extra)
     
     template = numpy.zeros((window,window))
@@ -562,6 +563,7 @@ def initialize(files, param):
         _logger.info("Processing %d files"%len(files))
         _logger.info("Paritcle diameter (in pixels): %d"%(param['pixel_diameter']))
         _logger.info("Mask diameter (in pixels): %d"%(int(param['mask_diameter'])))
+        param['window']=int(param['window'])
         if not param['disable_even'] and (param['window']%2)==1:
             param['window'] += 1
             _logger.info("Window size: %d (Forced Even)"%(param['window']))
