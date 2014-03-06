@@ -20,6 +20,14 @@ The recommended method for most users to install Arachnid is
 to use the Anaconda package. Anaconda makes it simple to install
 all the Arachnid dependencies.
 
+.. note::
+
+	You must also install the SPIDER package. This includes a single binary 
+	executable which is necessary to run the standard Arachnid workflow. It
+	can be found at: http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html
+	
+
+
 Quick Start
 -----------
 
