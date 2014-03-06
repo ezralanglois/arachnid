@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/LeginonUI.ui'
 #
-# Created: Mon Feb 17 13:50:06 2014
+# Created: Thu Mar  6 15:16:45 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -104,6 +104,7 @@ class Ui_Form(object):
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
         self.leginonHostnameLineEdit = QtGui.QLineEdit(self.loginPage)
+        self.leginonHostnameLineEdit.setText("")
         self.leginonHostnameLineEdit.setObjectName("leginonHostnameLineEdit")
         self.gridLayout.addWidget(self.leginonHostnameLineEdit, 1, 1, 1, 1)
         self.label_3 = QtGui.QLabel(self.loginPage)
@@ -116,10 +117,11 @@ class Ui_Form(object):
         self.label_5.setObjectName("label_5")
         self.gridLayout.addWidget(self.label_5, 3, 0, 1, 1)
         self.projectHostnameLineEdit = QtGui.QLineEdit(self.loginPage)
+        self.projectHostnameLineEdit.setText("")
         self.projectHostnameLineEdit.setObjectName("projectHostnameLineEdit")
         self.gridLayout.addWidget(self.projectHostnameLineEdit, 3, 1, 1, 1)
         self.passwordLineEdit = QtGui.QLineEdit(self.loginPage)
-        self.passwordLineEdit.setEchoMode(QtGui.QLineEdit.PasswordEchoOnEdit)
+        self.passwordLineEdit.setEchoMode(QtGui.QLineEdit.Password)
         self.passwordLineEdit.setObjectName("passwordLineEdit")
         self.gridLayout.addWidget(self.passwordLineEdit, 8, 1, 1, 1)
         self.label_4 = QtGui.QLabel(self.loginPage)
@@ -143,10 +145,12 @@ class Ui_Form(object):
         self.label_7.setObjectName("label_7")
         self.gridLayout.addWidget(self.label_7, 0, 2, 1, 1)
         self.dbUsernameLineEdit = QtGui.QLineEdit(self.loginPage)
+        self.dbUsernameLineEdit.setText("")
         self.dbUsernameLineEdit.setEchoMode(QtGui.QLineEdit.Password)
         self.dbUsernameLineEdit.setObjectName("dbUsernameLineEdit")
         self.gridLayout.addWidget(self.dbUsernameLineEdit, 7, 2, 1, 1)
         self.dbPasswordLineEdit = QtGui.QLineEdit(self.loginPage)
+        self.dbPasswordLineEdit.setText("")
         self.dbPasswordLineEdit.setEchoMode(QtGui.QLineEdit.Password)
         self.dbPasswordLineEdit.setObjectName("dbPasswordLineEdit")
         self.gridLayout.addWidget(self.dbPasswordLineEdit, 8, 2, 1, 1)
@@ -222,7 +226,6 @@ class Ui_Form(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Hostname or IP for the Leginon Database</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/asterisk_orange.png\" /> Note that the Database Information will be supplied by your System Administrator</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.leginonHostnameLineEdit.setText(QtGui.QApplication.translate("Form", "bb02frank15.cpmc.columbia.edu", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Form", "Username", None, QtGui.QApplication.UnicodeUTF8))
         self.usernameLineEdit.setToolTip(QtGui.QApplication.translate("Form", "Your Leginon Username", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Form", "Project DB", None, QtGui.QApplication.UnicodeUTF8))
@@ -233,7 +236,6 @@ class Ui_Form(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Hostname or IP for the Leginon Project Database</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/asterisk_orange.png\" /> Note that the Database Information will be supplied by your System Administrator</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.projectHostnameLineEdit.setText(QtGui.QApplication.translate("Form", "bb02frank15.cpmc.columbia.edu", None, QtGui.QApplication.UnicodeUTF8))
         self.passwordLineEdit.setToolTip(QtGui.QApplication.translate("Form", "Your Leginon password (will be encrypted)", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Form", "Password", None, QtGui.QApplication.UnicodeUTF8))
         self.loginPushButton.setText(QtGui.QApplication.translate("Form", "Login", None, QtGui.QApplication.UnicodeUTF8))
@@ -270,7 +272,6 @@ class Ui_Form(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Username for the database</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/asterisk_orange.png\" /> Note that the Database Information will be supplied by your System Administrator</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbUsernameLineEdit.setText(QtGui.QApplication.translate("Form", "robertl", None, QtGui.QApplication.UnicodeUTF8))
         self.dbPasswordLineEdit.setToolTip(QtGui.QApplication.translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -278,7 +279,6 @@ class Ui_Form(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Password for the database</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/asterisk_orange.png\" /> Note that the Database Information will be supplied by your System Administrator</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbPasswordLineEdit.setText(QtGui.QApplication.translate("Form", "guest", None, QtGui.QApplication.UnicodeUTF8))
         self.label_9.setText(QtGui.QApplication.translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

@@ -218,7 +218,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/mini/mini/asterisk_orange.png&quot; /&gt; Note that the Database Information will be supplied by your System Administrator&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>bb02frank15.cpmc.columbia.edu</string>
+             <string/>
             </property>
            </widget>
           </item>
@@ -255,7 +255,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/mini/mini/asterisk_orange.png&quot; /&gt; Note that the Database Information will be supplied by your System Administrator&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>bb02frank15.cpmc.columbia.edu</string>
+             <string/>
             </property>
            </widget>
           </item>
@@ -265,7 +265,7 @@ p, li { white-space: pre-wrap; }
              <string>Your Leginon password (will be encrypted)</string>
             </property>
             <property name="echoMode">
-             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+             <enum>QLineEdit::Password</enum>
             </property>
            </widget>
           </item>
@@ -362,7 +362,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/mini/mini/asterisk_orange.png&quot; /&gt; Note that the Database Information will be supplied by your System Administrator&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>robertl</string>
+             <string/>
             </property>
             <property name="echoMode">
              <enum>QLineEdit::Password</enum>
@@ -381,7 +381,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/mini/mini/asterisk_orange.png&quot; /&gt; Note that the Database Information will be supplied by your System Administrator&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>guest</string>
+             <string/>
             </property>
             <property name="echoMode">
              <enum>QLineEdit::Password</enum>
