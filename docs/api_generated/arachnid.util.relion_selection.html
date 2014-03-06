@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>relion_selection &mdash; arachnid 0.1.4_254_gcb50e35 documentation</title>
+    <title>relion_selection &mdash; arachnid 0.1.4_270_g436a9e7 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_254_gcb50e35',
+        VERSION:     '0.1.4_270_g436a9e7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_254_gcb50e35 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.4_270_g436a9e7 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="bench" href="arachnid.util.bench.html" />
     <link rel="prev" title="crop" href="arachnid.util.crop.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_254_gcb50e35</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.4_270_g436a9e7</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1738,7 +1738,7 @@ from the input relion seleciton file.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.relion_selection.select_class_subset">
-<tt class="descname">select_class_subset</tt><big>(</big><em>vals</em>, <em>output</em>, <em>random_subset=0</em>, <em>restart=False</em>, <em>param_file=''</em>, <em>reindex_file=''</em>, <em>sort_column=''</em>, <em>sort_rev=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_class_subset" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_class_subset</tt><big>(</big><em>vals</em>, <em>output</em>, <em>random_subset=0</em>, <em>restart=False</em>, <em>param_file=''</em>, <em>reindex_file=''</em>, <em>sort_column=''</em>, <em>sort_rev=False</em>, <em>split=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_class_subset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select a subset of classes and write a new selection file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1765,6 +1765,8 @@ from the input relion seleciton file.</p>
 <dd>Column to sort by</dd>
 <dt>sort_rev <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
 <dd>Reverse sorting - descending order</dd>
+<dt>split <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Split a relion star file</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd>Unused key word arguments</dd>
 </dl>
