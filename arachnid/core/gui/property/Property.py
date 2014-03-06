@@ -1553,7 +1553,7 @@ class StringProperty(Property):
             else:
                 self.propertyValidity.emit(self, False)
             '''
-            Property.setValue(self, str(value), valid)
+            Property.setValue(self, str(value).strip(), valid)
     
 def is_int(f):
     '''Test if the float value is an integer
