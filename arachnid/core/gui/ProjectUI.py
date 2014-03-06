@@ -635,8 +635,6 @@ class MainWindow(QtGui.QWizard):
                 if not os.path.exists(self.ui.micrographComboBox.itemText(i)): 
                     messagebox.error_message(self, "Micrograph not found!", self.ui.micrographComboBox.itemText(i))
                     return False
-        elif page == self.ui.fineTunePage:
-            self.saveFineTunePage()
         self.captureScreen()
         return True
     
@@ -677,8 +675,8 @@ class MainWindow(QtGui.QWizard):
         page = self.page(id)
         if page == self.ui.fineTunePage:
             self.setupFineTunePage()
-        #elif page == self.ui.monitorPage:
-        #    self.saveFineTunePage()
+        elif page == self.ui.monitorPage:
+            self.saveFineTunePage()
         
     def nextId(self):
         '''

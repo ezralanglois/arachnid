@@ -149,6 +149,7 @@ def workflow_settings(files, param):
     for mod in workflow[1:]:
         prog = program.generate_settings_tree(mod[0], **param)
         mods.append(prog)
+        print 'first_script', first_script, mod
         if len(param['input_files']) > 0 and mod[0] == first_script[0]:
             param['input_files'] = []
     return mods
