@@ -19,7 +19,8 @@ Additional Papers
 
 Langlois, R. E. Jordan, A. T., Pallesen, J., Ho, D. N., Rubinstein, J. L. 
 and Frank, J. 2014. Automated particle picking for low-contrast macromolecules 
-in cryo-electron microscopy. In review.
+in cryo-electron microscopy. In press.
+URL http://www.sciencedirect.com/science/article/pii/S1047847714000525
 
 Langlois, R., Ash, J. T., Pallesen, J., Frank, J., 2014. Fully Automated
 Particle Selection and Verification in Single-Particle Cryo-EM. In: Herman,
