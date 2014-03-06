@@ -729,7 +729,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--micrograph-files", input_files=[],         help="List of input filenames containing micrographs, e.g. mic_*.mrc ", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
-        pgroup.add_option("-o", "--particle-file",   output="",              help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-o", "--particle-file",   output="",               help="Output filename for window stack with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-l", coordinate_file="",                           help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"), required_file=True)
         pgroup.add_option("-s", selection_file="",                            help="Selection file for a subset of micrographs", gui=dict(filetype="open"), required_file=False)
         pgroup.add_option("-g", good_file="",                                 help="Selection file template for subset of good particles", gui=dict(filetype="open"), required_file=False)
