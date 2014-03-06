@@ -84,6 +84,7 @@ import os
 import sys
 import platform
 import glob
+from ..core.spider import spider
 
 _project = sys.modules[__name__]
 
@@ -358,6 +359,10 @@ def determine_spider(file_path):
         if len(files) == 0:
             files = glob.glob(os.path.join(file_path, 'spider', 'bin', exe+"*"))
             if len(files) == 0: return ""
+    
+    if not spider.validate_spider(files[0]):
+        _logger.warn("Not a valid SPIDER executable: %s"%files[0])
+        return ""
     return files[0]
     
 

@@ -865,6 +865,35 @@ def unpack_register_other(data):
 if is_linux(): unpack_register = unpack_register_linux
 else: unpack_register = unpack_register_other
 
+def validate_spider(spider_path):
+    ''' Test if the file is a valid SPIDER executable
+    
+    :Parameters:
+    
+        spider_path : str
+                      Filename for SPIDER executable
+    
+    :Returns:
+    
+        flag : bool
+               True if the file points to a working SPIDER executable
+    '''
+    
+    spider_version = subprocess.Popen(spider_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    spider_version.stdin.write('tmp\n')
+    spider_version.stdin.write('en d\n')
+    spider_version.stdin.flush()
+    n=-1
+    while True:
+        line = spider_version.stdout.readline()
+        if line == "": break
+        n = line.find('VERSION:')
+        if n != -1:break
+    spider_version.stderr.close()
+    spider_version.stdout.close()
+    spider_version.stdin.close()
+    return n != -1
+
 class SpiderCrashed(StandardError):
     ''' Exception is raised when SPIDER terminates unexpectedly
     '''

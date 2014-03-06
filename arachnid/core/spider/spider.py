@@ -3489,5 +3489,22 @@ def release_mp(spi, thread_count, **extra):
     
     spi.md('SET MP', thread_count)
 
-
+def validate_spider(spider_path):
+    ''' Test if the file is a valid SPIDER executable
+    
+    :Parameters:
+    
+        spider_path : str
+                      Filename for SPIDER executable
+    
+    :Returns:
+    
+        flag : bool
+               True if the file points to a working SPIDER executable
+    '''
+    
+    return spider_session.validate_spider(spider_path)
+    
+    
+    
 
