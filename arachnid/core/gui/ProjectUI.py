@@ -36,6 +36,7 @@ import arachnid
 import os
 import glob
 import sys
+import platform
 import functools
 sys.setrecursionlimit(10000)
 
@@ -156,6 +157,9 @@ class MainWindow(QtGui.QWizard):
         ###### Additional Settings Page
         ########################################################################################################################################
         
+        #self.ui.spiderExecutableLineEdit
+        #self.ui.spiderExecutablePushButton
+        
         self.updateParticleSizeSpinBox = lambda x: self.ui.particleSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         self.updateWindowSizeSpinBox = lambda x: self.ui.windowSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         self.updateMaskDiameterSpinBox = lambda x: self.ui.maskDiameterSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
@@ -178,8 +182,8 @@ class MainWindow(QtGui.QWizard):
         
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeDoubleSpinBox.setValue(x*1.4))
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
-        #self.ui.particleSizeSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeSpinBox.setValue(x*1.4))
-        #self.ui.particleSizeSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterSpinBox.setValue(x*1.2))
+  
+        self.ui.additionalSettingsPage.registerField(self.param("spider_path*"), self.ui.spiderExecutableLineEdit)
         self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param("window_actual*"), self.ui.windowSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param("mask_diameter*"), self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
@@ -228,6 +232,38 @@ class MainWindow(QtGui.QWizard):
             QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html#cmdoption-%s%s"%(program.program_name(), option))
         else:
             QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html")
+    
+    
+    @qtSlot()
+    def on_spiderExecutablePushButton_clicked(self):
+        '''
+        
+        Possible names:
+            - spider_linux  spider_linux_mp_intel  spider_linux_mp_intel64  spider_linux_mpi_opt64  spider_linux_mp_opt64  spider_osx_32  spider_osx_64
+        '''
+        
+        file_path = QtGui.QFileDialog.getExistingDirectory(self, self.tr("Directory containing SPIDER executables"))
+        platform_str = 'linux'
+        if sys.platform == 'darwin': platform_str = 'osx'
+        processor='opt'
+        if platform.processor().lower().find('intel') != -1: processor = 'intel'
+        #if platform.machine().endswith('64'): type=
+        exe = 'spider_%s_mp_%s'%(platform_str, processor)
+        files = glob.glob(os.path.join(file_path, exe+"*"))
+        if len(files) == 0:
+            files = glob.glob(os.path.join(file_path, 'bin', exe+"*"))
+            if len(files) == 0:
+                messagebox.error_message(self, "Cannot find SPIDER executables in ")
+                return
+        self.ui.spiderExecutableLineEdit.setText(files[0])
+    
+    @qtSlot()
+    def on_spiderExecutableToolButton_clicked(self):
+        '''
+        '''
+        
+        self.helpDialog.setHTML(self.ui.spiderExecutableLineEdit.toolTip())
+        self.helpDialog.show()
     
     @qtSlot()
     def on_sampleShapeInfoToolButton_clicked(self):
