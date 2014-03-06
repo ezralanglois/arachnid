@@ -68,6 +68,7 @@ class MainWindow(QtGui.QWizard):
         self.parameters=[]
         self.screen_shot_file=screen_shot_file
         self.helpDialog = HelpDialog(self)
+        self.default_spider_path = ' /guam.raid.cluster.software/spider.21.00/'
         
         version = arachnid.__version__
         n=version.find('_')
@@ -157,8 +158,8 @@ class MainWindow(QtGui.QWizard):
         ###### Additional Settings Page
         ########################################################################################################################################
         
-        #self.ui.spiderExecutableLineEdit
-        #self.ui.spiderExecutablePushButton
+        if os.path.exists(self.default_spider_path):
+            self.updateSpiderExe(self.default_spider_path)
         
         self.updateParticleSizeSpinBox = lambda x: self.ui.particleSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         self.updateWindowSizeSpinBox = lambda x: self.ui.windowSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
@@ -243,6 +244,13 @@ class MainWindow(QtGui.QWizard):
         '''
         
         file_path = QtGui.QFileDialog.getExistingDirectory(self, self.tr("Directory containing SPIDER executables"))
+        if file_path == "": return
+        self.updateSpiderExe(file_path)
+    
+    def updateSpiderExe(self, file_path):
+        '''
+        '''
+        
         platform_str = 'linux'
         if sys.platform == 'darwin': platform_str = 'osx'
         processor='opt'
