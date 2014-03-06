@@ -408,13 +408,9 @@ class program(object):
         '''
         '''
         
-        #print 'write-config1',self.config_file
         if self.config_file != "":
-            #print 'write-config2',self.config_file
             if not os.path.exists(os.path.dirname(self.config_file)):
                 os.makedirs(os.path.dirname(self.config_file))
-            #if hasattr(self.values, 'resolution'):
-            #    print 'write-config', self.values.resolution
             self.parser.write(self.config_file, values=self.values)
     
     def update(self, param):
