@@ -79,7 +79,12 @@ See :ref:`add-to-workflow`.
 from ..core.app import program
 from ..core.image import ndimage_file
 from ..core.metadata import spider_params
-import logging, os, sys
+import logging
+import os
+import sys
+import platform
+import glob
+
 _project = sys.modules[__name__]
 
 _logger = logging.getLogger(__name__)
@@ -138,10 +143,12 @@ def workflow_settings(files, param):
     param.update(vars(prog.values))
     spider_params.write_update(param['param_file'], **param)
     mods=[prog]
-    first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))[1]
+    first_param, first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
+    if first_param in param: del param[first_param]
     for mod in workflow[1:]:
         prog = program.generate_settings_tree(mod[0], **param)
         mods.append(prog)
+        print 'first_script', first_script, mod
         if len(param['input_files']) > 0 and mod[0] == first_script[0]:
             param['input_files'] = []
     return mods
@@ -258,15 +265,15 @@ def build_workflow(files, extra):
     for i in xrange(len(workflow)):
         workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i], **extra))
     
-    input,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
+    first_param,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
     # Hack
-    if input == '--unenum-files':
+    if first_param == 'unenum_files':
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
-        extra['linked_files'] = extra[input2[2:].replace('-', '_')]
+        extra['linked_files'] = extra[input2]
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
-        first_script[3] = [input2, ]+first_script[3]
+        first_script[3] = ['--'+input2.replace('_', '-'), ]+first_script[3]
     
-    return [workflow[0]]+build_dependency_tree(workflow[1:], workflow[0], [input])
+    return [workflow[0]]+build_dependency_tree(workflow[1:], workflow[0], ['--'+first_param.replace('_', '-')])
 
 def find_root(scripts, root_inputs):
     ''' Find the input for the root script
@@ -286,9 +293,9 @@ def find_root(scripts, root_inputs):
     '''
     
     for root_input in root_inputs:
-        root_input = '--'+root_input.replace('_', '-')
+        root_input2 = '--'+root_input.replace('_', '-')
         for scrpt in scripts:
-            if root_input in scrpt[2]: return root_input, scrpt
+            if root_input2 in scrpt[2]: return root_input, scrpt
     raise ValueError, "No root found!"
     
 def write_config(workflow, **extra):
@@ -309,7 +316,8 @@ def write_config(workflow, **extra):
         try: os.makedirs(config_path)
         except: pass
     
-    first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))[1]
+    first_param, first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
+    if first_param in extra: del extra[first_param]
     for mod, _, _, _ in workflow:
         param = program.update_config(mod, **extra)
         if param is not None:
@@ -318,6 +326,40 @@ def write_config(workflow, **extra):
         program.write_config(mod, **param)
         if len(param['input_files']) > 0 and mod == first_script[0]:
             param['input_files'] = []
+            
+def determine_spider(file_path):
+    ''' Determine the correct SPIDER executable and path
+    
+    :Parameters:
+        
+        files_path : str
+                     File path or directory containing spider executable
+    
+    :Returns:
+    
+        filename : str
+                   File path for SPIDER executable
+    '''
+    
+    if not os.path.isdir(file_path): return file_path
+    platform_str = 'linux_mp'
+    if sys.platform == 'darwin': 
+        platform_str = 'osx'
+        exe = 'spider_%s'%(platform_str)
+    else:
+        processor='opt'
+        if platform.processor().lower().find('intel') != -1: processor = 'intel'
+        exe = 'spider_%s_%s'%(platform_str, processor)
+    #if platform.machine().endswith('64'): type=
+    
+    files = glob.glob(os.path.join(file_path, exe+"*"))
+    if len(files) == 0:
+        files = glob.glob(os.path.join(file_path, 'bin', exe+"*"))
+        if len(files) == 0:
+            files = glob.glob(os.path.join(file_path, 'spider', 'bin', exe+"*"))
+            if len(files) == 0: return ""
+    return files[0]
+    
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -342,7 +384,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
     shrgroup.add_option("", config_path="cfg",                                     help="Location for configuration scripts", gui=dict(filetype="open"))
     shrgroup.add_option("", linked_files="",                                       help="Location for renamed links - name automatically set based on input", gui=dict(filetype="open"))
-    shrgroup.add_option("", data_ext="dat",                                        help="SPIDER extension")
     shrgroup.add_option("", micrograph_files="local/mics/mic_00000.dat",           help="Location for micrograph files", gui=dict(filetype="open"))
     shrgroup.add_option("", param_file="local/ctf/params.dat",                     help="Location for SPIDER params file", gui=dict(filetype="save"))
     shrgroup.add_option("", movie_files="local/frames/mic_00000.dat",              help="Location for micrograph frame stacks", gui=dict(filetype="open"))
@@ -359,6 +400,12 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup.add_option("", small_micrograph_file="local/mic_sm/mic_000000.dat",   help="Location of micrograph selection", gui=dict(filetype="open"))
     shrgroup.add_option("", frame_shift_file="local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
     #shrgroup.add_option("", local_temp="data/temp/",                                    help="Location for temporary files (on local node for MPI)", gui=dict(filetype="open"))
+    
+    ########################################################################################################
+    # Depreciated Parameters for Future Versions
+    ########################################################################################################
+    shrgroup.add_option("", data_ext="dat",                                        help="SPIDER extension")
+    shrgroup.add_option("", spider_path="/guam.raid.cluster.software/spider.21.00",help="SPIDER executable", gui=dict(filetype="open"), required=True)
     pgroup.add_option_group(shrgroup)
     # create suffix system? internal database?
     
@@ -372,7 +419,10 @@ def check_options(options, main_option=False):
     #Move check to movie mode
     if options.gain_file == "" and len(options.input_files) > 0 and ndimage_file.count_images(options.input_files[0]) > 1:
         _logger.warn("No gain reference specified for movie mode alignment!")
-        
+    
+    path = determine_spider(options.spider_path)
+    if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
+    options.spider_path = path
     if options.apix == 0.0:
         raise OptionValueError, "No pixel size in angstroms specified (--apix), either specifiy it or an existing SPIDER params file"
     if options.voltage == 0.0:

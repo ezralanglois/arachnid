@@ -251,25 +251,10 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        platform_str = 'linux_mp'
-        if sys.platform == 'darwin': 
-            platform_str = 'osx'
-            exe = 'spider_%s'%(platform_str)
-        else:
-            processor='opt'
-            if platform.processor().lower().find('intel') != -1: processor = 'intel'
-            exe = 'spider_%s_%s'%(platform_str, processor)
-        #if platform.machine().endswith('64'): type=
-        
-        files = glob.glob(os.path.join(file_path, exe+"*"))
-        if len(files) == 0:
-            files = glob.glob(os.path.join(file_path, 'bin', exe+"*"))
-            if len(files) == 0:
-                files = glob.glob(os.path.join(file_path, 'spider', 'bin', exe+"*"))
-                if len(files) == 0:
-                    messagebox.error_message(self, "Cannot find SPIDER executables in ")
-                    return
-        self.ui.spiderExecutableLineEdit.setText(files[0])
+        exe = project.determine_spider(file_path)
+        if exe == "":
+            messagebox.error_message(self, "Cannot find SPIDER executables in %s"%file_path)
+        self.ui.spiderExecutableLineEdit.setText(exe)
     
     @qtSlot()
     def on_spiderExecutableToolButton_clicked(self):
