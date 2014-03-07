@@ -228,6 +228,8 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
     
     if tot > 1: _logger.info("Cropping windows from %d frame to %d frame"%(frame_beg,frame_end))
     
+    extra['output']=strip_frame_tag(extra['output'])
+    
     #for i in xrange(frame_beg,frame_end):
     indexes = range(frame_beg,frame_end) if align is None else [align[i].id for i in xrange(frame_beg,frame_end) ]
     for j, mic in enumerate(iter_micrographs(filename, indexes, **extra)):
@@ -241,7 +243,7 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
         #id=i
         #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
         #mic = read_micrograph(filename, id, **extra)
-        if tot > 1: 
+        if tot > 1:
             output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
             if align is not None:
                 mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
@@ -623,6 +625,7 @@ def initialize(files, param):
                 id = filename[0] if isinstance(filename, tuple) else filename
                 ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
                 # Todo only add frames that require processing
+                param['output']=strip_frame_tag(param['output'])
                 for i in xrange(tot):
                     frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
                     output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
@@ -663,6 +666,29 @@ def initialize(files, param):
     assert(param['mask'].sum()<numpy.prod(param['mask'].shape))
     assert(param['norm_mask'].sum()>0)
     return files
+
+def strip_frame_tag(filename):
+    ''' Strip the frame tag from an output window stack filename
+    
+    :Parameters:
+    
+        filename : str
+                   Filename with frame_%d_
+    
+    :Returns:
+    
+        filename : str
+                   Filename with frame_%d_ stripped off
+    '''
+    
+    base = os.path.basename(filename)
+    if base.startswith('frame'):
+        root = os.path.dirname(filename)
+        n = base.find('_')
+        n = base.find('_', n+1)
+        base = base[n+1:]
+        filename = os.path.join(root, base)
+    return filename
 
 def reduce_all(val, count, id_len, **extra):
     # Process each input file in the main thread (for multi-threaded code)
@@ -740,12 +766,20 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     
     from ..core.app.settings import OptionValueError
+    
+    if len(options.input_files)>0:
+        n = ndimage_file.count_images(options.input_files[0])
+        if n > 1:
+            frame_end = n if options.frame_end < 0 else options.frame_end
+            options.output = format_utility.add_prefix(options.output, 'frame_%d_'%(frame_end))
+    
     if options.bin_factor == 0.0: raise OptionValueError, "Bin factor cannot be zero (--bin-factor)"
     if options.single_stack:
         if options.use_MPI: raise OptionValueError, "You cannot use --single-stack with MPI"
         if options.worker_count > 1:
             options.worker_count = 1
             _logger.warn("Setting --worker-count to 1 - This is necessary when using --single-stack mode")
+
 
 def flags():
     ''' Get flags the define the supported features
