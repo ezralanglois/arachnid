@@ -516,8 +516,16 @@ class MainWindow(QtGui.QMainWindow):
         if good_file != "" and not os.path.exists(good_file) and hasattr(self.advanced_settings, 'path_prefix'):
             good_file = os.path.join(self.advanced_settings.path_prefix, good_file)
         
-        coords=format.read(coords, spiderid=fileid, numeric=True)
-        select=format.read(good_file, spiderid=fileid, ndarray=True)[0].astype(numpy.int) if good_file != "" else None
+        try:
+            coords=format.read(coords, spiderid=fileid, numeric=True)
+        except: 
+            _logger.exception("Cannot find coordinate file: %s for id %d"%(coords, fileid))
+            return img
+        try:
+            select=format.read(good_file, spiderid=fileid, ndarray=True)[0].astype(numpy.int) if good_file != "" else None
+        except: 
+            _logger.exception("Cannot find selection file: %s for id %d"%(good_file, fileid))
+            select=None
         bin_factor=self.advanced_settings.bin_window
         if select is not None:
             img = drawing.draw_particle_boxes(img, coords, self.advanced_settings.window/bin_factor, bin_factor, outline="blue")
@@ -674,7 +682,10 @@ def iter_images(files, index, template=None, average=False):
         if isinstance(index[0], str):
             for f in index:
                 avg = None
-                if template is not None: f=spider_utility.spider_filename(template, f)
+                if template is not None: 
+                    f1=spider_utility.spider_filename(template, f)
+                    if os.path.exists(f1): f=f1
+                    else: _logger.warn("Unabled to find alternate image: %s"%f1)
                 for img in ndimage_file.iter_images(f):
                     if avg is None: avg = img
                     else: avg+=img
