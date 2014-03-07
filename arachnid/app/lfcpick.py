@@ -346,7 +346,7 @@ def initialize(files, param):
     
     spider_params.read(param['param_file'], param)
     param.update(ndimage_file.cache_data())
-    param["confusion"] = numpy.zeros((len(files), 4))
+    param["confusion"] = numpy.zeros((max(len(files),1), 4))
     param["ds_kernel"] = ndimage_interpolate.sincblackman(param['bin_factor'], dtype=numpy.float32)
     param['mask'] = ndimage_utility.model_disk(param['pixel_diameter']/2, (param['window'], param['window']))
     if mpi_utility.is_root(**param):
@@ -385,7 +385,7 @@ def reduce_all(val, confusion, file_index, **extra):
             pre = float(confusion[file_index, 2]) / (confusion[file_index, 0]) if confusion[file_index, 0] > 0 else 0
             sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
             info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
-    else: coords[0] += len(coords)
+    else: confusion[0,0] += len(coords)
     return filename+info
 
 def finalize(files, confusion, output, **extra):
@@ -395,7 +395,7 @@ def finalize(files, confusion, output, **extra):
     if tot[1] > 0:
         _logger.info("Overall - precision: %f, recall: %f - %d,%d,%d"%(tot[2]/tot[0], tot[2]/tot[1], tot[0], tot[1], tot[2]))
         format.write(os.path.splitext(output)[0]+".csv", confusion, header="pp,pos,tp,dist".split(','), prefix="summary")
-    else: _logger.info("Selected %d candidate particles"%int(confusion[0]))
+    else: _logger.info("Selected %d candidate particles"%int(confusion[0, 0]))
     _logger.info("Completed")
 
 def setup_options(parser, pgroup=None, main_option=False):
