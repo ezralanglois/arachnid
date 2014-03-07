@@ -25,7 +25,6 @@ all the Arachnid dependencies.
 	You must also install the SPIDER package. This includes a single binary 
 	executable which is necessary to run the standard Arachnid workflow. It
 	can be found at: http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html
-	
 
 
 Quick Start
@@ -133,6 +132,10 @@ Troubleshooting
 	.. sourcecode:: sh
 	
 		$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
+
+#. Install the daily build to get the latest bug fixes for the current version
+	
+	$ conda install https://conda.binstar.org/public arachnid-dev
 
 Speeding up the code
 --------------------
