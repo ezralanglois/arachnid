@@ -49,6 +49,7 @@ from ..metadata import spider_utility, format_utility
 from ..parallel import mpi_utility
 import numpy
 from formats.util import InvalidHeaderException
+InvalidHeaderException;
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

@@ -145,6 +145,7 @@ from ..core.learn import unary_classification
 from ..core.metadata import format_utility, format, spider_utility, spider_params
 from ..core.parallel import mpi_utility
 from ..core.util import drawing
+from ..core.image import ndimage_file
 import numpy # pylint: disable=W0611
 import numpy.linalg
 import scipy.spatial
