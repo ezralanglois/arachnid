@@ -36,7 +36,6 @@ import arachnid
 import os
 import glob
 import sys
-import platform
 import functools
 sys.setrecursionlimit(10000)
 
