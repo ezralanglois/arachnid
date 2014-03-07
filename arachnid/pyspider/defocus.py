@@ -182,7 +182,12 @@ def process(filename, output, id_len=0, **extra):
     id = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
     _logger.debug("create power spec")
-    power_spec, powm = create_powerspectra(filename, **extra)
+    ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
+    try:
+        power_spec, powm = create_powerspectra(filename, **extra)
+    except ndimage_file.InvalidHeaderException:
+        _logger.warn("Skipping %s - invalid header"%(filename))
+        return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
     _logger.debug("rotational average")
     rotational_average(power_spec, **extra) #ro_arr = 
     _logger.debug("estimate defocus")
@@ -191,7 +196,6 @@ def process(filename, output, id_len=0, **extra):
     except spider.SpiderCrashed:
         _logger.warn("SPIDER crashed - attempting to restart - try increasing the padding and or window size")
         extra['spi'].relaunch()
-        ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
     except:
         _logger.error("Failed to estimate defocus for %s"%filename)
         raise

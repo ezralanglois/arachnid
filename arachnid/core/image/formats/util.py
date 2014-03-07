@@ -10,6 +10,12 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+class InvalidHeaderException(Exception):
+    ''' Thrown when the image file has an invalid header
+    '''
+    
+    pass
+
 def fromfile(fin, dtype, count, sep=''):
     '''
     '''

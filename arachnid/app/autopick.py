@@ -181,7 +181,12 @@ def process(filename, disk_mult_range, id_len=0, **extra):
         _logger.info("Skipping: %s - invalid SPIDER ID"%filename)
         return filename, []
     _logger.debug("Read micrograph")
-    mic = lfcpick.read_micrograph(filename, **extra)
+    try:
+        mic = lfcpick.read_micrograph(filename, **extra)
+    except ndimage_file.InvalidHeaderException:
+        _logger.warn("Skipping: %s - invalid header"%filename)
+        return filename, []
+        
     _logger.debug("Search micrograph")
     try:
         if len(disk_mult_range) > 0:
@@ -193,7 +198,7 @@ def process(filename, disk_mult_range, id_len=0, **extra):
         return filename, []
     _logger.debug("Write coordinates")
     if len(peaks) == 0:
-        _logger.info("Skipping: %s - no particles found"%filename)
+        _logger.warn("Skipping: %s - no particles found"%filename)
         return filename, []
         
     coords = format_utility.create_namedtuple_list(peaks, "Coord", "id,peak,x,y",numpy.arange(1, len(peaks)+1, dtype=numpy.int)) if peaks.shape[0] > 0 else []

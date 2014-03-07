@@ -232,35 +232,39 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
     
     #for i in xrange(frame_beg,frame_end):
     indexes = range(frame_beg,frame_end) if align is None else [align[i].id for i in xrange(frame_beg,frame_end) ]
-    for j, mic in enumerate(iter_micrographs(filename, indexes, **extra)):
-        i = indexes[j]
-        frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
-        '''
-        if align is not None:
-            id=align[i].id
-        else:
-        '''
-        #id=i
-        #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
-        #mic = read_micrograph(filename, id, **extra)
-        if tot > 1:
-            output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
+    try:
+        for j, mic in enumerate(iter_micrographs(filename, indexes, **extra)):
+            i = indexes[j]
+            frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
+            '''
             if align is not None:
-                mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
-            #scp /catalina.F30/frames/13nov23c/rawdata/13*en.frames.mrc.bz2
-        _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
-        for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, window, bin_factor)):
-            win = enhance_window(win, noise, **extra)
-            if win.min() == win.max():
-                coord = coords[index]
-                x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
-                _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
-            if single_stack:
-                ndimage_file.write_image(output, win, len(global_selection))
-                global_selection.append((len(global_selection)+1, fid, index+1, ))
+                id=align[i].id
             else:
-                ndimage_file.write_image(output, win, index)
-        #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
+            '''
+            #id=i
+            #_logger.info("Cropping from movie %d frame %d - %d of %d"%(fid, frame, id, frame_end))
+            #mic = read_micrograph(filename, id, **extra)
+            if tot > 1:
+                output = format_utility.add_prefix(extra['output'], 'frame_%d_'%(frame))
+                if align is not None:
+                    mic[:] = ndimage_utility.fourier_shift(mic, -align[i].dx/bin_factor, -align[i].dy/bin_factor)
+                #scp /catalina.F30/frames/13nov23c/rawdata/13*en.frames.mrc.bz2
+            _logger.info("Extract %d windows from movie %d frame %d - %d of %d"%(len(coords), fid, frame, i, frame_end))
+            for index, win in enumerate(ndimage_utility.for_each_window(mic, coords, window, bin_factor)):
+                win = enhance_window(win, noise, **extra)
+                if win.min() == win.max():
+                    coord = coords[index]
+                    x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
+                    _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
+                if single_stack:
+                    ndimage_file.write_image(output, win, len(global_selection))
+                    global_selection.append((len(global_selection)+1, fid, index+1, ))
+                else:
+                    ndimage_file.write_image(output, win, index)
+            #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
+    except ndimage_file.InvalidHeaderException:
+        _logger.warn("Skipping: %s - invalid header"%filename)
+        return filename, 0, os.getpid()
     if len(global_selection) > 0:
         format.write(output, numpy.asarray(global_selection), prefix="sel_", header="id,micrograph,stack_id".split(','))
     return filename, len(coords), os.getpid()

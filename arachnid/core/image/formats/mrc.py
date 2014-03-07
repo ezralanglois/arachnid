@@ -392,22 +392,14 @@ def iter_images(filename, index=None, header=None):
         if not hasattr(index, '__iter__'): index =  xrange(index, count)
         else: index = index.astype(numpy.int)
         last = 0
+        total = file_size(f)
+        if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise util.InvalidHeaderException, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         for i in index:
             if i != (last+1): f.seek(int(1024+int(h['nsymbt'])+ i * d_len * dtype.itemsize))
             out = util.fromfile(f, dtype=dtype, count=d_len)
             
             out = reshape_data(out, h, index, count)
             if header_image_dtype.newbyteorder()==h.dtype: out = out.byteswap()
-            '''
-            if index is None and int(h['nz'][0]) > 1: out = out.reshape(int(h['nz'][0]), int(h['ny'][0]), int(h['nx'][0]))
-            elif int(h['ny'][0]) > 1:
-                try:
-                    out = out.reshape(int(h['ny'][0]), int(h['nx'][0]))
-                except:
-                    _logger.error("%d == %d == %d -- %d,%d (index: %d)"%(len(out), d_len, int(h['ny'][0])*int(h['nx'][0]), int(h['ny'][0]), int(h['nx'][0]), index))
-                    raise
-            '''
-            #if header_image_dtype.newbyteorder()==h.dtype:  out = out.byteswap()
             yield out
     finally:
         util.close(filename, f)
@@ -445,7 +437,7 @@ def read_image(filename, index=None, header=None, cache=None):
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         offset = 1024+int(h['nsymbt']) + idx * d_len * dtype.itemsize
         total = file_size(f)
-        if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise ValueError, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
+        if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise util.InvalidHeaderException, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
         out = util.fromfile(f, dtype=dtype, count=d_len)
         out = reshape_data(out, h, index, count)
