@@ -133,7 +133,7 @@ Troubleshooting
 	
 		$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
-#. Install the latest daily build
+#. Install the daily build to get the latest bug fixes for the current version
 	
 	$ conda install https://conda.binstar.org/public arachnid-dev
 
