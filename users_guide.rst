@@ -1,3 +1,8 @@
+
+.. figure:: /docs/images/icons/icons/icon128x128.png
+   :alt: Arachnid Logo
+   :figclass: align-left
+
 =====================
 Arachnid User's Guide
 =====================

@@ -1,6 +1,10 @@
 
 .. include:: docs/includes/icons.rst
 
+.. figure:: /docs/images/icons/icons/icon128x128.png
+   :alt: Arachnid Logo
+   :figclass: align-left
+
 ===========================
 Arachnid Developer's Guide
 ===========================
