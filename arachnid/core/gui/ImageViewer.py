@@ -166,7 +166,7 @@ class MainWindow(QtGui.QMainWindow):
         '''
         '''
         
-        if not emptyonly or self.advanced_settings.alternate_image == "":
+        if not emptyonly or self.advanced_settings.coords == "":
             self.advanced_settings.coords=filename
         
     def closeEvent(self, evt):
