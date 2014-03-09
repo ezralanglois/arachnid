@@ -602,8 +602,45 @@ class MainWindow(QtGui.QWizard):
         
         # Load the settings
         _logger.info("\rLoading project settings ...")
+        self.readSettings()
         self.loadProject()
         QtGui.QWizard.showEvent(self, evt)
+        
+    def closeEvent(self, evt):
+        '''Window close event triggered - save project and global settings 
+        
+        :Parameters:
+            
+        evt : QCloseEvent
+              Event for to close the main window
+        '''
+        
+        _logger.info("\rSaving settings ...")
+        self.writeSettings()
+        QtGui.QMainWindow.closeEvent(self, evt)
+    
+    def readSettings(self):
+        '''
+        '''
+        
+        settings = QtCore.QSettings()
+        settings.beginGroup("ProjectUI")
+        val = settings.value('spiderExecutable')
+        if val: self.ui.spiderExecutableLineEdit.setText(val)
+        settings.endGroup()
+        
+    def writeSettings(self):
+        '''
+        '''
+        
+        settings = QtCore.QSettings()
+        settings.beginGroup("ProjectUI")
+        settings.setValue('spiderExecutable', self.ui.spiderExecutableLineEdit.text())
+        settings.endGroup()
+        
+    ########################################################################################################################################
+    
+    ########################################################################################################################################
     
     def idOf(self, page):
         '''
