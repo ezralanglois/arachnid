@@ -72,6 +72,7 @@ class User(Base):
     firstname = Column('firstname', String)
     lastname = Column('lastname', String)
     fullname = column_property(firstname + " " + lastname)
+    password = Column('password', String)
     #allsessions = relationship("Session", primaryjoin="and_(User.id==ProjectOwners.user_id, ProjectOwners.project_id==ProjectExperiments.project_id, Session.id==ProjectExperiments.session_id)", secondary=ProjectOwners.__table__, order_by=lambda: desc(Session.timestamp))
 
 class Instrument(Base):
@@ -175,6 +176,8 @@ class ImageData(Base):
                                                                                     CameraEM.instrument_id==PixelSizeCalibration.camera_id,  #All
                                                                                     ScopeEM.instrument_id==PixelSizeCalibration.instrument_id)).limit(1))
 
+class AuthenticationError(Exception): pass
+
 def query_session_info(username, password, leginondb, projectdb, session):
     ''' Get the user relational object to access the Leginon
     
@@ -217,7 +220,7 @@ def query_session_info(username, password, leginondb, projectdb, session):
     if len(rs) > 0: return [rs[0]]
     return []
 
-def query_user_info(username, password, leginondb, projectdb, targetuser=None):
+def query_user_info(username, password, leginondb, projectdb, targetuser=None, targetpass=None):
     ''' Get the user relational object to access the Leginon
     
     :Parameters:
@@ -232,6 +235,8 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None):
                 Host/path to Leginon Project database, e.g. 111.222.32.143/projectdb
     targetuser : str, optional
                  Target user to query
+    targetpass : str, optional
+                 Target password for user
     
     :Returns:
     
@@ -248,10 +253,13 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None):
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
     db_session = SessionDB(binds=binds)
     if targetuser is None: targetuser = username
+    if targetpass is None: targetpass = password
     rs = db_session.query(User).filter(User.username==targetuser).all()
     #if len(rs) > 0: return rs[0]
     if len(rs) > 0: 
         user = rs[0]
+        if user.password != targetpass:
+            raise AuthenticationError, "Password does not match"
         experiments = []#user.projects[0].experiments
         projects = user.projects
         for i in xrange(len(projects)):

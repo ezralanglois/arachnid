@@ -583,7 +583,6 @@ class MainWindow(QtGui.QWizard):
             if p == 'input_files':
                 val = ",".join(val)
             self.setField(p, val)
-        print 'load:', self.idOf(self.ui.fineTunePage)
         self.setStartId(self.idOf(self.ui.fineTunePage))
         self.restart()
         self.next()
@@ -676,6 +675,7 @@ class MainWindow(QtGui.QWizard):
             self.setupFineTunePage()
         elif page == self.ui.monitorPage:
             self.saveFineTunePage()
+        page.initializePage()
         
     def nextId(self):
         '''

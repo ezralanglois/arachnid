@@ -15,6 +15,8 @@ import base64
 import logging
 import os
 import getpass
+import hashlib
+
 #import functools
 
 _logger = logging.getLogger(__name__)
@@ -42,6 +44,7 @@ class Widget(QtGui.QWidget):
         self.ui.setupUi(self)
         self.login={}
         self.helpDialog=helpDialog
+        self.startTabIndex=0
         
         self.ui.progressDialog = QtGui.QProgressDialog('Loading...', "", 0,5,self)
         self.ui.progressDialog.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -66,6 +69,12 @@ class Widget(QtGui.QWidget):
         self.ui.projectTableView.setModel(ListTableModel([], self.header, None, self))
         selmodel=self.ui.projectTableView.selectionModel()
         selmodel.selectionChanged.connect(self.selectionChanged)
+        
+    def initializePage(self):
+        '''
+        '''
+        
+        self.ui.loginStackedWidget.setCurrentIndex(self.startTabIndex)
     
     @qtSlot()
     def on_userInformationToolButton_clicked(self):
@@ -140,9 +149,9 @@ class Widget(QtGui.QWidget):
     def queryDatabaseForProjects(self, dummy=None):
         '''
         '''
-        #
+        
         targetuser = self.ui.usernameLineEdit.text()
-        #targetpass = self.ui.passwordLineEdit.text()
+        targetpass = hashlib.md5(self.ui.passwordLineEdit.text()).hexdigest()
         username = self.ui.dbUsernameLineEdit.text()
         password = self.ui.dbPasswordLineEdit.text()
         prjhost = self.ui.projectHostnameLineEdit.text() if self.ui.projectHostnameLineEdit.text() != "" else self.ui.leginonHostnameLineEdit.text()
@@ -153,15 +162,21 @@ class Widget(QtGui.QWidget):
            self.login.get('leginonDB', None) == leginonDB and \
            self.login.get('projectDB', None) == projectDB and \
            self.login.get('password', None) == password and \
+           self.login.get('targetpass', None) == targetpass and \
            self.login.get('targetuser', None) == targetuser and \
            self.login.get('limit', None) == limit: return
         #alternteUser = self.ui.alternateUserLineEdit.text()
         try:
-            user, experiments = leginondb.query_user_info(username, password, leginonDB, projectDB, targetuser)#, alternteUser)
+            user, experiments = leginondb.query_user_info(username, password, leginonDB, projectDB, targetuser, targetpass)#, alternteUser)
+        except leginondb.AuthenticationError:
+            messagebox.error_message(self, "Username or password incorrect!")
+            #self.ui.loginStackedWidget.setCurrentIndex(1)
+            self.startTabIndex=1
         except:
             _logger.exception("Error accessing project")
             messagebox.exception_message(self, "Error accessing project")
-            self.ui.loginStackedWidget.setCurrentIndex(1)
+            #self.ui.loginStackedWidget.setCurrentIndex(1)
+            self.startTabIndex=1
         else:
             self.login['username']=username
             self.login['leginonDB']=leginonDB
@@ -169,6 +184,7 @@ class Widget(QtGui.QWidget):
             self.login['password']=password
             self.login['limit']=limit
             self.login['targetuser']=targetuser
+            self.login['targetpass']=targetpass
             self.ui.progressDialog.show()
             self.ui.label.setText("Welcome "+str(user.fullname))
             self.taskFinished.connect(self.projectFinished)
@@ -274,7 +290,7 @@ class Widget(QtGui.QWidget):
         val = settings.value('projectPath')
         if val: self.ui.projectDBNameLineEdit.setText(val)
         self.ui.usernameLineEdit.setText(settings.value('targetuser'))
-        self.ui.passwordLineEdit.setText(base64.b64decode(settings.value('targetpass')))
+        self.ui.passwordLineEdit.setText(settings.value('targetpass'))
         
         val = settings.value('username')
         if val: self.ui.dbUsernameLineEdit.setText(val)
@@ -297,7 +313,7 @@ class Widget(QtGui.QWidget):
         settings.setValue('projectDB', self.ui.projectHostnameLineEdit.text())
         settings.setValue('projectPath', self.ui.projectDBNameLineEdit.text())
         settings.setValue('targetuser', self.ui.usernameLineEdit.text())
-        settings.setValue('targetpass', base64.b64encode(self.ui.passwordLineEdit.text()))
+        settings.setValue('targetpass', self.ui.passwordLineEdit.text())
         settings.setValue('username', self.ui.dbUsernameLineEdit.text())
         settings.setValue('password', base64.b64encode(self.ui.dbPasswordLineEdit.text()))
         #settings.setValue('alternate-user', self.ui.alternateUserLineEdit.text())
