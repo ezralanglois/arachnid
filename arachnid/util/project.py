@@ -145,13 +145,20 @@ def workflow_settings(files, param):
     spider_params.write_update(param['param_file'], **param)
     mods=[prog]
     first_param, first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
-    if first_param in param: del param[first_param]
+    param[first_param] = param['input_files']
+    '''
+    first_val=None
+    if first_param in param: 
+        first_val = param[first_param]
+        del param[first_param]
+    '''
     for mod in workflow[1:]:
         prog = program.generate_settings_tree(mod[0], **param)
+        assert(prog is not None)
         mods.append(prog)
-        print 'first_script', first_script, mod
         if len(param['input_files']) > 0 and mod[0] == first_script[0]:
             param['input_files'] = []
+            #if first_val is not None: param[first_param]=first_val
     return mods
 
 def default_settings():
