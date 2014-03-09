@@ -366,6 +366,7 @@ def initialize(files, param):
             _logger.info("Selecting %d files from %d"%(len(files), oldcnt))
         else:
             _logger.warn("No selection file found at %s - skipping"%param['selection_file'])
+    _logger.info("Processing %d files"%len(files))
     return files
 
 def reduce_all(val, confusion, file_index, **extra):
