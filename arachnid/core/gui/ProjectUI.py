@@ -657,7 +657,7 @@ class MainWindow(QtGui.QWizard):
         page = self.page(self.currentId())
         if page == self.ui.introductionPage:
             if self.ui.screenShotCheckBox.checkState() == QtCore.Qt.Checked and not self.screen_shot_file:
-                self.screen_shot_file = "data/screen_shots/wizard_screen_shot_0000.png"
+                self.screen_shot_file = "screen_shots/wizard_screen_shot_0000.png"
         elif page == self.ui.leginonDBPage:
             if not self.ui.leginonWidget.validate():
                 return False
