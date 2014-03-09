@@ -197,7 +197,7 @@ def process(filename, output, id_len=0, **extra):
         _logger.warn("SPIDER crashed - attempting to restart - try increasing the padding and or window size")
         extra['spi'].relaunch()
     except:
-        _logger.error("Failed to estimate defocus for %s"%filename)
+        _logger.exception("Failed to estimate defocus for %s"%filename)
         raise
 
     return filename, numpy.asarray([id, defocus, ang, mag, cutoff])

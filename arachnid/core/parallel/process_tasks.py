@@ -10,6 +10,7 @@ import process_queue
 import logging
 import numpy.ctypeslib
 import multiprocessing.sharedctypes
+import errno
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -45,7 +46,13 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
         qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
         index = 0
         while index < len(vals):
-            val = qout.get()
+            try:
+                val = qout.get()
+            except IOError, e:
+                # Workaround for Python bug
+                # http://stackoverflow.com/questions/4952247/interrupted-system-call-with-processing-queue
+                if e.errno == errno.EINTR: continue
+                else: raise    
             if isinstance(val, process_queue.ProcessException):
                 index = 0
                 while index < worker_count:
@@ -153,8 +160,6 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
                 if val is None: break
                 yield val
         finally: pass
-        #_logger.error("queue-done")
-    #extra['shmem_arr']=shmem_map
     
     def iterate_reduce_worker(qin, qout, process_number, process_limit, extra, shmem_map_base=None):#=shmem_map):
         val = None
