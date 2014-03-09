@@ -138,6 +138,7 @@ class Widget(QtGui.QWidget):
         '''
         
         model = self.ui.jobListView.model()
+        if model.rowCount() == 0: return
         if self.isComplete(lines):
             model.item(0).setIcon(self.job_status_icons[2])
             self.ui.crashReportToolButton.setEnabled(False)
