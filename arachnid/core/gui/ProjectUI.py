@@ -631,7 +631,10 @@ class MainWindow(QtGui.QWizard):
                 return False
             for i in xrange(self.ui.micrographComboBox.count()):
                 if not os.path.exists(self.ui.micrographComboBox.itemText(i)): 
-                    messagebox.error_message(self, "Micrograph not found!", self.ui.micrographComboBox.itemText(i))
+                    messagebox.error_message(self, "Micrograph not found!", '''File not found: %s
+                    This is likely due to the image server not being mounted on your computer.
+                    Please contact your administrator and have them mount the image file server. 
+                    '''%self.ui.micrographComboBox.itemText(i))
                     return False
         self.captureScreen()
         return True
