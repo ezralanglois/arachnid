@@ -24,6 +24,7 @@ class Widget(QtGui.QWidget):
     fireProgress = qtSignal(int)
     fireMaximum = qtSignal(int)
     captureScreen = qtSignal(int)
+    programCompleted = qtSignal(str)
     
     def __init__(self, parent=None, helpDialog=None):
         '''
@@ -140,6 +141,7 @@ class Widget(QtGui.QWidget):
         model = self.ui.jobListView.model()
         if model.rowCount() == 0: return
         if self.isComplete(lines):
+            self.programCompleted.emit(model.item(0).text())
             model.item(0).setIcon(self.job_status_icons[2])
             self.ui.crashReportToolButton.setEnabled(False)
         else:
@@ -298,10 +300,13 @@ class Widget(QtGui.QWidget):
         '''
         '''
         
+        print 'Test is complete'
         for i in xrange(len(lines)):
+            print i, lines[i]
             idx = lines[i].find('Completed')
             if idx != -1: return True
-        return None
+        print 'Test is false'
+        return False
     
     def parseName(self, lines, tag='Program:'):
         '''
