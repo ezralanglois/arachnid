@@ -33,7 +33,8 @@ def main():
         print "Go to http://www.arachnid.us for the help documentation"
         sys.exit(0)
     
-    ImageScreener.launch()
+    dialog=ImageScreener.launch()
+    dialog;
     sys.exit(app.exec_())
 
 
