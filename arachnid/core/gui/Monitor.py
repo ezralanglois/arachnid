@@ -25,6 +25,7 @@ class Widget(QtGui.QWidget):
     fireMaximum = qtSignal(int)
     captureScreen = qtSignal(int)
     programCompleted = qtSignal(str)
+    programStarted = qtSignal(str)
     
     def __init__(self, parent=None, helpDialog=None):
         '''
@@ -39,6 +40,7 @@ class Widget(QtGui.QWidget):
         self.ui.jobUpdateTimer.setInterval(self.timer_interval)
         self.ui.jobUpdateTimer.setSingleShot(False)
         self.helpDialog=helpDialog
+        self.last_offset=0
         
         self.ui.setupUi(self)
         #self.ui.pushButton.clicked.connect(self.runProgram)
@@ -128,6 +130,7 @@ class Widget(QtGui.QWidget):
                 self.ui.pushButton.setChecked(QtCore.Qt.Checked)
                 model = self.ui.jobListView.model()
                 model.item(0).setIcon(self.job_status_icons[1])
+                self.programStarted.emit(model.item(0).text())
                 self.ui.crashReportToolButton.setEnabled(False)
             else:
                 self.testCompletion(lines)
@@ -141,7 +144,6 @@ class Widget(QtGui.QWidget):
         model = self.ui.jobListView.model()
         if model.rowCount() == 0: return
         if self.isComplete(lines):
-            self.programCompleted.emit(model.item(0).text())
             model.item(0).setIcon(self.job_status_icons[2])
             self.ui.crashReportToolButton.setEnabled(False)
         else:
@@ -212,6 +214,7 @@ class Widget(QtGui.QWidget):
         for i in xrange(1, model.rowCount()):
             model.item(i).setIcon(self.job_status_icons[0])
         model.item(0).setIcon(self.job_status_icons[1])
+        self.programStarted.emit(model.item(0).text())
         self.ui.crashReportToolButton.setEnabled(False)
         self.captureScreen.emit(1)
     
@@ -233,7 +236,9 @@ class Widget(QtGui.QWidget):
                 return
         
         lines = self.readLogFile() # handel missing newline at end!
-        if len(lines) == 0: return
+
+        if len(lines) == 0: 
+            return
         
         if self.current_pid is None:
             self.current_pid = self.parsePID(lines)
@@ -257,7 +262,11 @@ class Widget(QtGui.QWidget):
             self.text_cursor.insertText(line)
         '''
         self.updateProgress(lines)
-    
+        
+        if self.parseName(lines, 'Workflow ended') is not None:
+            self.updateListIconFromOffset(None, True)
+            self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
+      
     def updateListIcon(self, lines):
         '''
         '''
@@ -267,21 +276,31 @@ class Widget(QtGui.QWidget):
         program = program.strip()
         model = self.ui.jobListView.model()
         for offset in xrange(model.rowCount()):
-            print "Marking finished: %s == %s"%(str(model.item(offset).data(QtCore.Qt.UserRole).id()), program)
             if str(model.item(offset).data(QtCore.Qt.UserRole).id()) == program:
                 break
         if offset == model.rowCount(): 
             _logger.error("Could not find ID: %s"%program)
-            print "Could not find ID: %s"%program
             return
+        self.updateListIconFromOffset(offset)
+    
+    def updateListIconFromOffset(self, offset=None, stopped=False):
+        '''
+        '''
+        
+        model = self.ui.jobListView.model()
+        if offset is None: offset=self.last_offset
         for i in xrange(offset):
+            if model.item(i).icon() != self.job_status_icons[2]:
+                self.programCompleted.emit(model.item(i).text())
             model.item(i).setIcon(self.job_status_icons[2])
-            
-        if not self.isRunning(self.created):
-            self.testCompletion(lines, 0)
-            self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
+        
+        self.last_offset=offset
+        if stopped:
+            model.item(offset).setIcon(self.job_status_icons[3])
         else:
             model.item(offset).setIcon(self.job_status_icons[1])
+            self.programStarted.emit(model.item(offset).text())
+        
         
     def isRunning(self, created=None):
         '''
