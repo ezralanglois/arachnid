@@ -22,6 +22,7 @@ from Monitor import Widget as MonitorUI
 from SettingsEditor import TabWidget as SettingsUI
 from model.ListTableModel import ListTableModel
 from HelpUI import Dialog as HelpDialog
+import ImageScreener 
 
 from pyui.ProjectUI import Ui_ProjectWizard
 from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
@@ -67,7 +68,7 @@ class MainWindow(QtGui.QWizard):
         self.parameters=[]
         self.screen_shot_file=screen_shot_file
         self.helpDialog = HelpDialog(self)
-        self.default_spider_path = ' /guam.raid.cluster.software/spider.21.00/'
+        self.default_spider_path = '/guam.raid.cluster.software/spider.21.00/'
         
         version = arachnid.__version__
         n=version.find('_')
@@ -121,7 +122,8 @@ class MainWindow(QtGui.QWizard):
         ###### Monitor Page
         ########################################################################################################################################
         self.ui.monitorWidget = MonitorUI(self, self.helpDialog)
-        self.ui.monitorLayout.addWidget(self.ui.monitorWidget)
+        self.ui.monitorLayout.insertWidget(0, self.ui.monitorWidget)
+        self.ui.monitorWidget.programCompleted.connect(self.onProgramCompleted)
         
         ########################################################################################################################################
         ###### Fine Settings Page
@@ -210,6 +212,19 @@ class MainWindow(QtGui.QWizard):
         self.ui.selectLeginonInformationLabel.setVisible(False)
         self.ui.selectReferenceInformationLabel.setVisible(False)
     
+    def onProgramCompleted(self, prog):
+        '''
+        '''
+        
+        print "---Completed:", prog
+    
+    @qtSlot()
+    def on_launchScreenToolButton_clicked(self):
+        '''
+        '''
+        
+        ImageScreener.launch()
+    
     @qtSlot()
     def on_documentationURLToolButton_clicked(self):
         '''
@@ -246,12 +261,12 @@ class MainWindow(QtGui.QWizard):
         if file_path == "": return
         self.updateSpiderExe(file_path)
     
-    def updateSpiderExe(self, file_path):
+    def updateSpiderExe(self, file_path, suppress_error=False):
         '''
         '''
         
         exe = project.determine_spider(file_path)
-        if exe == "":
+        if exe == "" and not suppress_error:
             messagebox.error_message(self, "Cannot find SPIDER executables in %s"%file_path)
         self.ui.spiderExecutableLineEdit.setText(exe)
     
@@ -713,8 +728,8 @@ class MainWindow(QtGui.QWizard):
         page = self.page(id)
         if page == self.ui.fineTunePage:
             self.setupFineTunePage()
-        elif page == self.ui.monitorPage:
-            self.saveFineTunePage()
+        #elif page == self.ui.monitorPage:
+        #    self.saveFineTunePage()
         page.initializePage()
         
     def nextId(self):
@@ -728,6 +743,8 @@ class MainWindow(QtGui.QWizard):
         elif page == self.ui.referenceQuestionPage:
             if self.ui.noReferencePushButton.isChecked():
                 return self.currentId()+2
+        elif page == self.ui.monitorPage:
+            self.saveFineTunePage()
         return super(MainWindow, self).nextId()
     
     def onLeginonLoadFinished(self):
