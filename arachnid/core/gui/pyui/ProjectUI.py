@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ProjectUI.ui'
 #
-# Created: Mon Mar 10 10:51:43 2014
+# Created: Sun Mar  9 11:57:38 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from ..util.qt4_loader import QtCore, QtGui
 class Ui_ProjectWizard(object):
     def setupUi(self, ProjectWizard):
         ProjectWizard.setObjectName("ProjectWizard")
-        ProjectWizard.resize(726, 590)
+        ProjectWizard.resize(726, 562)
         ProjectWizard.setWizardStyle(QtGui.QWizard.MacStyle)
         ProjectWizard.setOptions(QtGui.QWizard.IndependentPages|QtGui.QWizard.NoCancelButton|QtGui.QWizard.NoDefaultButton)
         self.introductionPage = QtGui.QWizardPage()
@@ -695,40 +695,9 @@ class Ui_ProjectWizard(object):
         ProjectWizard.addPage(self.fineTunePage)
         self.monitorPage = QtGui.QWizardPage()
         self.monitorPage.setObjectName("monitorPage")
-        self.monitorLayout = QtGui.QHBoxLayout(self.monitorPage)
-        self.monitorLayout.setContentsMargins(5, 0, 0, 0)
+        self.monitorLayout = QtGui.QVBoxLayout(self.monitorPage)
+        self.monitorLayout.setContentsMargins(0, 0, 0, 0)
         self.monitorLayout.setObjectName("monitorLayout")
-        self.widget_11 = QtGui.QWidget(self.monitorPage)
-        self.widget_11.setObjectName("widget_11")
-        self.verticalLayout_9 = QtGui.QVBoxLayout(self.widget_11)
-        self.verticalLayout_9.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_9.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_9.setObjectName("verticalLayout_9")
-        self.launchScreenToolButton = QtGui.QToolButton(self.widget_11)
-        self.launchScreenToolButton.setEnabled(False)
-        icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(":/mini/mini/application_view_columns.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.launchScreenToolButton.setIcon(icon7)
-        self.launchScreenToolButton.setObjectName("launchScreenToolButton")
-        self.verticalLayout_9.addWidget(self.launchScreenToolButton)
-        self.runViCerToolButton = QtGui.QToolButton(self.widget_11)
-        self.runViCerToolButton.setEnabled(False)
-        self.runViCerToolButton.setText("")
-        icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/chart_organisation.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.runViCerToolButton.setIcon(icon8)
-        self.runViCerToolButton.setObjectName("runViCerToolButton")
-        self.verticalLayout_9.addWidget(self.runViCerToolButton)
-        self.prepareRelionMovieModeToolButton = QtGui.QToolButton(self.widget_11)
-        self.prepareRelionMovieModeToolButton.setText("")
-        icon9 = QtGui.QIcon()
-        icon9.addPixmap(QtGui.QPixmap(":/mini/mini/timeline_marker.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.prepareRelionMovieModeToolButton.setIcon(icon9)
-        self.prepareRelionMovieModeToolButton.setObjectName("prepareRelionMovieModeToolButton")
-        self.verticalLayout_9.addWidget(self.prepareRelionMovieModeToolButton)
-        spacerItem5 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_9.addItem(spacerItem5)
-        self.monitorLayout.addWidget(self.widget_11)
         ProjectWizard.addPage(self.monitorPage)
         self.label_9.setBuddy(self.particleSizeDoubleSpinBox)
         self.label_21.setBuddy(self.windowSizeDoubleSpinBox)
@@ -940,9 +909,5 @@ class Ui_ProjectWizard(object):
         self.documentationURLToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Change the URL for the documentation", None, QtGui.QApplication.UnicodeUTF8))
         self.documentationURLToolButton.setText(QtGui.QApplication.translate("ProjectWizard", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.settingsInformatToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Information concerning the current page", None, QtGui.QApplication.UnicodeUTF8))
-        self.launchScreenToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Launch image screener", None, QtGui.QApplication.UnicodeUTF8))
-        self.launchScreenToolButton.setText(QtGui.QApplication.translate("ProjectWizard", "...", None, QtGui.QApplication.UnicodeUTF8))
-        self.runViCerToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Run ViCer over alignment by Relion", None, QtGui.QApplication.UnicodeUTF8))
-        self.prepareRelionMovieModeToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Extract windows from each frame of a movie-mode dataset", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

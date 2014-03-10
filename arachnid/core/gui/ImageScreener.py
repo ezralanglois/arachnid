@@ -12,15 +12,9 @@
 
 from ImageViewer import MainWindow as ImageViewerWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot
-from ..metadata import format
-from ..metadata import spider_utility
-from ..metadata import relion_utility
-from ..app import settings
+from ..metadata import format, spider_utility, relion_utility
 from util import messagebox
-import os
-import numpy
-import logging
-import glob
+import os, numpy, logging
 #from ..util import relion_selection
 
 
@@ -342,25 +336,3 @@ class MainWindow(ImageViewerWindow):
         self.selectfout.flush()
         self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.file_index)))
         
-def launch(config_file = 'cfg/project.cfg'):
-    '''
-    '''
-    
-    
-    param = settings.parse_config_simple(config_file, coordinate_file="", pow_file="", small_micrograph_file="", selection_file="") if os.path.exists(config_file) else {}
-    coordinate_file = spider_utility.spider_searchpath(param.get('coordinate_file', 'local/coords/sndc000001.*'))
-    small_micrograph_file = spider_utility.spider_searchpath(param.get('small_micrograph_file', 'local/mic/mic000001.*'))
-    pow_file = spider_utility.spider_searchpath(param.get('pow_file', 'local/pow/pow000001.*'))
-    selection_file = param.get('selection_file', 'sel_mic.dat')
-    dialog = MainWindow() 
-    dialog.show()
-    pow_files = glob.glob(pow_file)
-    mic_files = glob.glob(small_micrograph_file)
-    coord_files = glob.glob(coordinate_file)
-    if len(mic_files) > 0:dialog.setAlternateImage(mic_files[0], True)
-    elif 'small_micrograph_file' in param: dialog.setAlternateImage(param['small_micrograph_file'], True)
-    if len(coord_files) > 0: dialog.setCoordinateFile(coord_files[0], True)
-    elif 'coordinate_file' in param: dialog.setCoordinateFile(param['coordinate_file'], True)
-    dialog.setSelectionFile(selection_file)
-    dialog.openImageFiles(pow_files)
-    return dialog
