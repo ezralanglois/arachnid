@@ -185,7 +185,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeDoubleSpinBox.setValue(x*1.4))
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
   
-        self.ui.additionalSettingsPage.registerField(self.param("spider_path*"), self.ui.spiderExecutableLineEdit)
+        self.ui.additionalSettingsPage.registerField(self.param("spider_path"), self.ui.spiderExecutableLineEdit)
         self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param("window_actual*"), self.ui.windowSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param("mask_diameter*"), self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
@@ -216,6 +216,7 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
+        print 'prog', prog
         if prog == 'defocus':
             self.ui.launchScreenToolButton.setEnabled(True)
     
@@ -689,6 +690,17 @@ class MainWindow(QtGui.QWizard):
                     Please contact your administrator and have them mount the image file server. 
                     '''%self.ui.micrographComboBox.itemText(i))
                     return False
+        elif page == self.ui.fineTunePage:
+            spiderexe = self.ui.spiderExecutableLineEdit.text()
+            if spiderexe == "":
+                messagebox.error_message(self, "No SPIDER executable specified")
+                return False
+            if not os.path.exists(spiderexe):
+                messagebox.error_message(self, "SPIDER executable does not exist")
+                return False
+            if not project.determine_spider(spiderexe):
+                messagebox.error_message(self, "SPIDER executable does not run")
+                return False
         self.captureScreen()
         return True
     
