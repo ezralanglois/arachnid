@@ -24,6 +24,7 @@ class Widget(QtGui.QWidget):
     fireProgress = qtSignal(int)
     fireMaximum = qtSignal(int)
     captureScreen = qtSignal(int)
+    programCompleted = qtSignal(str)
     
     def __init__(self, parent=None, helpDialog=None):
         '''
@@ -81,7 +82,7 @@ class Widget(QtGui.QWidget):
         
         # save workflow in INI file
         
-        for i, prog in enumerate(self.workflow()):
+        for prog in self.workflow():
             prog.write_config()
     
     def setWorkflow(self, workflow):
@@ -133,13 +134,14 @@ class Widget(QtGui.QWidget):
                 self.current_pid = None
                 self.fin = None
     
-    def testCompletion(self, lines):
+    def testCompletion(self, lines, offset=0):
         '''
         '''
         
         model = self.ui.jobListView.model()
         if model.rowCount() == 0: return
         if self.isComplete(lines):
+            self.programCompleted.emit(model.item(0).text())
             model.item(0).setIcon(self.job_status_icons[2])
             self.ui.crashReportToolButton.setEnabled(False)
         else:
@@ -274,7 +276,12 @@ class Widget(QtGui.QWidget):
             return
         for i in xrange(offset):
             model.item(i).setIcon(self.job_status_icons[2])
-        model.item(offset).setIcon(self.job_status_icons[1])
+            
+        if not self.isRunning(self.created):
+            self.testCompletion(lines, 0)
+            self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
+        else:
+            model.item(offset).setIcon(self.job_status_icons[1])
         
     def isRunning(self, created=None):
         '''
