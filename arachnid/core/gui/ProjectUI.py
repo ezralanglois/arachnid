@@ -123,6 +123,7 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         self.ui.monitorWidget = MonitorUI(self, self.helpDialog)
         self.ui.monitorLayout.insertWidget(0, self.ui.monitorWidget)
+        self.ui.monitorWidget.programStarted.connect(self.onProgramStarted)
         self.ui.monitorWidget.programCompleted.connect(self.onProgramCompleted)
         
         ########################################################################################################################################
@@ -211,6 +212,16 @@ class MainWindow(QtGui.QWizard):
         self.ui.workerCountSpinBox.setValue(thread_count)
         self.ui.selectLeginonInformationLabel.setVisible(False)
         self.ui.selectReferenceInformationLabel.setVisible(False)
+        
+    def onProgramStarted(self, prog):
+        '''
+        '''
+        
+        if prog == 'defocus':
+            print 'found defocus'
+            self.ui.launchScreenToolButton.setEnabled(True)
+        
+        print "---started:", prog
     
     def onProgramCompleted(self, prog):
         '''
@@ -223,7 +234,7 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        ImageScreener.launch()
+        ImageScreener.launch(self)
     
     @qtSlot()
     def on_documentationURLToolButton_clicked(self):

@@ -342,7 +342,7 @@ class MainWindow(ImageViewerWindow):
         self.selectfout.flush()
         self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.file_index)))
         
-def launch(config_file = 'cfg/project.cfg'):
+def launch(parent=None, config_file = 'cfg/project.cfg'):
     '''
     '''
     
@@ -352,7 +352,7 @@ def launch(config_file = 'cfg/project.cfg'):
     small_micrograph_file = spider_utility.spider_searchpath(param.get('small_micrograph_file', 'local/mic/mic000001.*'))
     pow_file = spider_utility.spider_searchpath(param.get('pow_file', 'local/pow/pow000001.*'))
     selection_file = param.get('selection_file', 'sel_mic.dat')
-    dialog = MainWindow() 
+    dialog = MainWindow(parent) 
     dialog.show()
     pow_files = glob.glob(pow_file)
     mic_files = glob.glob(small_micrograph_file)
