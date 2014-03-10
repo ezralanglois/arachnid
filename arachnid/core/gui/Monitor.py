@@ -41,6 +41,7 @@ class Widget(QtGui.QWidget):
         self.ui.jobUpdateTimer.setSingleShot(False)
         self.helpDialog=helpDialog
         self.last_offset=0
+        self.total_running=0
         
         self.ui.setupUi(self)
         #self.ui.pushButton.clicked.connect(self.runProgram)
@@ -262,9 +263,11 @@ class Widget(QtGui.QWidget):
             self.text_cursor.insertText(line)
         '''
         self.updateProgress(lines)
+        self.updateRunning(lines)
         
         if self.parseName(lines, 'Workflow ended') is not None:
-            self.updateListIconFromOffset(None, True)
+            no_error = self.total_running == 0
+            self.updateListIconFromOffset(None, not no_error)
             self.ui.pushButton.setChecked(QtCore.Qt.Unchecked)
       
     def updateListIcon(self, lines):
@@ -283,7 +286,7 @@ class Widget(QtGui.QWidget):
             return
         self.updateListIconFromOffset(offset)
     
-    def updateListIconFromOffset(self, offset=None, stopped=False):
+    def updateListIconFromOffset(self, offset=None, stopped=None):
         '''
         '''
         
@@ -295,7 +298,11 @@ class Widget(QtGui.QWidget):
             model.item(i).setIcon(self.job_status_icons[2])
         
         self.last_offset=offset
-        if stopped:
+        if stopped is None:
+            if model.item(offset).icon() != self.job_status_icons[2]:
+                self.programCompleted.emit(model.item(offset).text())
+            model.item(offset).setIcon(self.job_status_icons[2])
+        elif not stopped:
             model.item(offset).setIcon(self.job_status_icons[3])
         else:
             model.item(offset).setIcon(self.job_status_icons[1])
@@ -340,6 +347,18 @@ class Widget(QtGui.QWidget):
                 return line
         return None
     
+    def parseNames(self, lines, tag='Program:'):
+        '''
+        '''
+        
+        names = []
+        for i in xrange(len(lines)):
+            idx = lines[i].find(tag)
+            if idx != -1:
+                line = lines[i][idx+len(tag):]
+                names.append(line.strip())
+        return names
+    
     def parsePID(self, lines, tag='PID:'):
         '''
         '''
@@ -347,6 +366,13 @@ class Widget(QtGui.QWidget):
         val = self.parseName(lines, tag)
         if val is not None: return int(val)
         return None
+    
+    def updateRunning(self, lines):
+        '''
+        '''
+        
+        self.total_running += len(self.parseNames(lines))
+        self.total_running -= len(self.parseNames(lines, 'Completed'))
         
     def updateProgress(self, lines, tag='Finished: '):
         '''
