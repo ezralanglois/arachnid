@@ -13,6 +13,28 @@ import functools
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+def safe_get(get):
+    ''' Ignore EINTR during Queue.get
+    
+    :Parameters:
+    
+        get : functor
+              Queue.get method
+    
+    :Returns:
+        
+        val : object
+              Value from Queue
+    '''
+    
+    while True:
+        try: return get()
+        except IOError, e:
+            # Workaround for Python bug
+            # http://stackoverflow.com/questions/4952247/interrupted-system-call-with-processing-queue
+            if e.errno == errno.EINTR: continue
+            else: raise     
+
 def current_id():
     ''' Get the current process id
     
@@ -44,7 +66,7 @@ def for_mapped(worker_callback, thread_count, size, *args, **extra):
         for p in processes: p.start()
         #for p in processes: p.join()
         for i in xrange(size):
-            yield qout.get()
+            yield safe_get(qout.get)
     else:
         worker_callback(0, size, *args, **extra)
 
@@ -69,7 +91,7 @@ def map_array_out(worker_callback, thread_count, data, *args, **extra):
         for p in processes: p.start()
         for p in processes: p.join()
         for i in xrange(size):
-            yield qout.get()
+            yield safe_get(qout.get)
     else:
         worker_callback(data, *args, **extra)
 
@@ -98,7 +120,7 @@ def start_reduce(worker_callback, thread_count, *args, **extra):
         processes = [multiprocessing.Process(target=functools.partial(reduce_worker, process_number=i, **extra), args=(qout, )+args) for i in xrange(thread_count)]
         for p in processes: p.start()
         for i in xrange(thread_count):
-            yield qout.get()
+            yield safe_get(qout.get)
     else:
         yield worker_callback(*args, **extra)
 
@@ -162,7 +184,7 @@ def map_reduce_array(worker_callback, thread_count, data, *args, **extra):
         processes = [multiprocessing.Process(target=functools.partial(reduce_worker, process_number=i, **extra), args=(qout, offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
         for p in processes: p.start()
         for i in xrange(thread_count):
-            yield qout.get()
+            yield safe_get(qout.get)
     else:
         yield worker_callback(0, size, data, *args, **extra)
 
@@ -197,7 +219,7 @@ def map_reduce_ndarray(worker_callback, thread_count, data, *args, **extra):
         processes = [multiprocessing.Process(target=functools.partial(reduce_worker, process_number=i, **extra), args=(qout, offsets[i], offsets[i+1], data)+args) for i in xrange(thread_count)]
         for p in processes: p.start()
         for i in xrange(thread_count):
-            yield qout.get()
+            yield safe_get(qout.get)
     else:
         yield worker_callback(data, *args, **extra)
 
