@@ -12,9 +12,15 @@
 
 from ImageViewer import MainWindow as ImageViewerWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot
-from ..metadata import format, spider_utility, relion_utility
+from ..metadata import format
+from ..metadata import spider_utility
+from ..metadata import relion_utility
+from ..app import settings
 from util import messagebox
-import os, numpy, logging
+import os
+import numpy
+import logging
+import glob
 #from ..util import relion_selection
 
 
@@ -335,7 +341,7 @@ class MainWindow(ImageViewerWindow):
             self.selectfout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
         self.selectfout.flush()
         self.setWindowTitle("Selected: %d of %d"%(self.selectedCount, len(self.file_index)))
-
+        
 def launch(config_file = 'cfg/project.cfg'):
     '''
     '''
@@ -358,4 +364,3 @@ def launch(config_file = 'cfg/project.cfg'):
     dialog.setSelectionFile(selection_file)
     dialog.openImageFiles(pow_files)
     return dialog
-
