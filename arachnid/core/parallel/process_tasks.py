@@ -10,7 +10,6 @@ import process_queue
 import logging
 import numpy.ctypeslib
 import multiprocessing.sharedctypes
-import errno
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -46,11 +45,11 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
         qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
         index = 0
         while index < len(vals):
-            val = safe_get(qout.get)    
+            val = process_queue.safe_get(qout.get)    
             if isinstance(val, process_queue.ProcessException):
                 index = 0
                 while index < worker_count:
-                    if safe_get(qout.get) is None:
+                    if process_queue.safe_get(qout.get) is None:
                         index += 1;
                 raise val
             if val is None: continue
@@ -75,7 +74,7 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
     def queue_iterator(qin, process_number):
         try:
             while True:
-                val = safe_get(qin.get)
+                val = process_queue.safe_get(qin.get)
                 if val is None: break
                 yield val
         finally: pass
@@ -88,11 +87,11 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
         except:
             _logger.exception("Error in child process")
             while True:
-                val = safe_get(qin.get)
+                val = process_queue.safe_get(qin.get)
                 if val is None: break
         finally:
             qout.put(val)
-            #safe_get(qin.get)
+            #process_queue.safe_get(qin.get)
     
     if queue_limit is None: queue_limit = thread_count*8
     else: queue_limit *= thread_count
@@ -108,7 +107,7 @@ def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
     #qin.join()
     
     for i in xrange(thread_count):
-        val = safe_get(qout.get)
+        val = process_queue.safe_get(qout.get)
         #qin.put(None)
         if val is None: raise ValueError, "Exception in child process"
         yield val
@@ -150,7 +149,7 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
     def queue_iterator(qin, process_number):
         try:
             while True:
-                val = safe_get(qin.get)
+                val = process_queue.safe_get(qin.get)
                 if val is None: break
                 yield val
         finally: pass
@@ -169,7 +168,7 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
         except:
             _logger.exception("Error in child process")
             while True:
-                val = safe_get(qin.get)
+                val = process_queue.safe_get(qin.get)
                 if val is None: break
         finally:
             if shmem_map_base is not None:
@@ -191,7 +190,7 @@ def iterate_reduce(for_func, worker, thread_count, queue_limit=None, shmem_array
     #qin.join()
     
     for i in xrange(thread_count):
-        val = safe_get(qout.get)
+        val = process_queue.safe_get(qout.get)
         if shmem_map is not None:
             val = shmem_map[val]
         #qin.put(None)
@@ -235,7 +234,7 @@ def for_process_mp(for_func, worker, shape, thread_count=0, queue_limit=None, **
             total = 0
             for i, val in enumerate(for_func):
                 if i >= thread_count:
-                    pos = safe_get(qout.get) #if i > thread_count else i
+                    pos = process_queue.safe_get(qout.get) #if i > thread_count else i
                     if pos is None or pos == -1: raise ValueError, "Error occured in process: %d"%pos
                     res, idx = pos
                     yield idx, res
@@ -244,7 +243,7 @@ def for_process_mp(for_func, worker, shape, thread_count=0, queue_limit=None, **
                     total += 1
                 qin.put((val,i))
             for i in xrange(total):
-                pos = safe_get(qout.get)
+                pos = process_queue.safe_get(qout.get)
                 if pos is None or pos == -1: raise ValueError, "Error occured in process: %d"%pos
                 res, idx = pos
                 yield idx, res
@@ -252,7 +251,7 @@ def for_process_mp(for_func, worker, shape, thread_count=0, queue_limit=None, **
             #_logger.error("Terminating %d workers"%(thread_count))
             for i in xrange(thread_count): 
                 qin.put((-1, -1))
-                pos = safe_get(qout.get)
+                pos = process_queue.safe_get(qout.get)
                 if pos != -1:
                     _logger.error("Wrong return value: %s"%str(pos))
                 assert(pos==-1)
@@ -284,7 +283,7 @@ def process_worker2(qin, qout, process_number, process_limit, worker, extra):
     _logger.debug("Worker %d of %d - started"%(process_number, process_limit))
     try:
         while True:
-            pos = safe_get(qin.get)
+            pos = process_queue.safe_get(qin.get)
             if pos is None or not hasattr(pos[0], 'ndim'): break
             res, idx = pos
             val = worker(res, idx, **extra)

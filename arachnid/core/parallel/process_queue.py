@@ -9,6 +9,7 @@ utilization with a queue.
 import multiprocessing
 import logging, sys, traceback, numpy
 import functools
+import errno
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
