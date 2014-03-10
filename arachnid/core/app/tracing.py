@@ -215,11 +215,11 @@ class Logger(logging.Logger):
         ''' Create a logger
         
         :Parameters:
-        
-        name : str
-               Name of the logger
-        level : int
-                Logging level
+            
+            name : str
+                   Name of the logger
+            level : int
+                    Logging level
         '''
         logging.Logger.__init__(self, name, level)
         Logger._log_map.add(name)
@@ -248,11 +248,11 @@ def log_import_error(message, logger=None):
     ''' Add failed import to list
      
     :Parameter:
-     
-    message : str
-               Message to log
-    logger : Logger, optional
-             Specific logger to use
+         
+        message : str
+                   Message to log
+        logger : Logger, optional
+                 Specific logger to use
     '''
     
     _log_import_errors.append(message)
@@ -261,11 +261,11 @@ def setup_options(parser, pgroup=None):
     '''Add options to the given option parser
     
     :Parameters:
-    
-    parser : OptionParser
-             Program option parser
-    pgroup : OptionGroup
-             Parent option group
+        
+        parser : OptionParser
+                 Program option parser
+        pgroup : OptionGroup
+                 Parent option group
     '''
     from settings import OptionGroup
     levels=tuple(_log_level_val)
@@ -283,11 +283,11 @@ def default_logfile(rank=0, **extra):
     '''Generate a default crash report filename
     
     :Parameters:
-    
-    rank : int
-           Identifier for process
-    extra : dict
-            Unused keyword arguments
+        
+        rank : int
+               Identifier for process
+        extra : dict
+                Unused keyword arguments
     '''
     
     return "."+os.path.basename(sys.argv[0])+".crash_report.%d"%rank
@@ -301,21 +301,21 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_st
         >>> core.app.tracing.configure_logging(log_level=3)
     
     :Parameters:
-
-    rank : int
-           Identifier for process
-    log_level : int
-                Level for logging application wide
-    log_file : str
-               File path for logging messages
-    log_config : str
-                 File path for logging configuration
-    enable_stderr : bool
-                    Do redirect to stderr
-    log_mode : str
-               Mode to open log file
-    extra : dict
-            Unused keyword arguments
+    
+        rank : int
+               Identifier for process
+        log_level : int
+                    Level for logging application wide
+        log_file : str
+                   File path for logging messages
+        log_config : str
+                     File path for logging configuration
+        enable_stderr : bool
+                        Do redirect to stderr
+        log_mode : str
+                   Mode to open log file
+        extra : dict
+                Unused keyword arguments
     '''
     
     if log_level == 5:
@@ -385,15 +385,15 @@ def configure_mp_logging(filename, level=logging.DEBUG, process_number=None, **e
     log file name.
     
     :Parameters:
-    
-    filename : str
-               Output log filename
-    level : int
-            Level for logging, default logging.DEBUG
-    process_number : int
-                     Process number passed by API
-    extra : dict
-            Unused keyword arguments
+        
+        filename : str
+                   Output log filename
+        level : int
+                Level for logging, default logging.DEBUG
+        process_number : int
+                         Process number passed by API
+        extra : dict
+                Unused keyword arguments
     '''
     
     if process_number is None: return
@@ -415,14 +415,14 @@ def backup(filename):
     will be given a unique name based on the current date and time.
     
     :Parameters:
-    
-    filename : str
-               Name of the file to backup
+        
+        filename : str
+                   Name of the file to backup
     
     :Returns:
-        
-    out : str
-          New unique name for the file to backup or None if no file existed to back up
+            
+        out : str
+              New unique name for the file to backup or None if no file existed to back up
     '''
     
     arcname = None
@@ -441,14 +441,14 @@ def backup_name(filename):
     version of the specified file.
     
     :Parameters:
-    
-    filename : str
-               Name of the file to backup
+        
+        filename : str
+                   Name of the file to backup
     
     :Returns:
-        
-    out : str
-          New unique name for the file to backup
+            
+        out : str
+              New unique name for the file to backup
     '''
     
     base, ext = os.path.splitext(filename)
@@ -462,9 +462,9 @@ def check_options(options):
     pre-processing of the options before the program is run.
     
     :Parameters:
-
-    options : object
-              Object whose fields are options that hold the corresponding values
+    
+        options : object
+                  Object whose fields are options that hold the corresponding values
     '''
     #from autopart.packrat.options import OptionValueError
     
@@ -474,9 +474,9 @@ def supports_colors():
     ''' Test whether terminal supports colors
     
     :Returns:
-    
-    flag : bool
-           True if terminal supports colors
+        
+        flag : bool
+               True if terminal supports colors
     '''
     
     try:
@@ -496,9 +496,9 @@ if not _loaded:
             ''' Dummy emit function
             
             :Parameters:
-            
-            record : object
-                     Record to log
+                
+                record : object
+                         Record to log
             '''
             pass
     h = NullHandler()
@@ -508,7 +508,8 @@ _RESET_SEQ = "\033[0m"
 _COLOR_SEQ = "\033[1;%dm"
 #BLACK, _RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 _RED=1
-COLORS={'ERROR': _RED}   
+_BLUE=4
+COLORS={'ERROR': _RED, 'WARN':_BLUE}   
 class ColoredFormatter(logging.Formatter):
     ''' Highlight the levelname for errors in red
     '''
@@ -517,11 +518,11 @@ class ColoredFormatter(logging.Formatter):
         ''' Initialize formatter object
         
         :Parameters:
-        
-        fmt : str
-              Message format string
-        datefmt : str
-                  Date format string
+            
+            fmt : str
+                  Message format string
+            datefmt : str
+                      Date format string
         '''
         
         logging.Formatter.__init__(self, fmt, datefmt)
@@ -532,14 +533,14 @@ class ColoredFormatter(logging.Formatter):
         Highligh the levelname for errors in red
         
         :Parameters:
-        
-        record : str
-                 Log record to format
+            
+            record : str
+                     Log record to format
         
         :Returns:
-        
-        text : str
-               Formatted text
+            
+            text : str
+                   Formatted text
         '''
         
         levelname = record.levelname
@@ -556,15 +557,15 @@ class ExceptionFilter(logging.Filter):
         ''' Disallow exceptions to be logged
         
         :Parameters:
-        
-        record : LogRecord
-                 Current log record
+            
+            record : LogRecord
+                     Current log record
         
         :Returns:
-            
-        val : bool
-              True if record does not contain an exception or
-              if record does not have `tofile` attribute.
+                
+            val : bool
+                  True if record does not contain an exception or
+                  if record does not have `tofile` attribute.
         '''
         
         #print "here: ", record.exc_info
