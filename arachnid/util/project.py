@@ -319,8 +319,7 @@ def write_config(workflow, **extra):
         except: pass
     
     first_param, first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
-    #if first_param in extra: del extra[first_param]
-    extra[first_param] = extra['input_files']
+    if first_param in extra: del extra[first_param]
     for mod, _, _, _ in workflow:
         param = program.update_config(mod, **extra)
         if param is not None:
