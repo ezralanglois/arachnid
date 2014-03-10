@@ -124,7 +124,6 @@ class MainWindow(QtGui.QWizard):
         self.ui.monitorWidget = MonitorUI(self, self.helpDialog)
         self.ui.monitorLayout.insertWidget(0, self.ui.monitorWidget)
         self.ui.monitorWidget.programStarted.connect(self.onProgramStarted)
-        self.ui.monitorWidget.programCompleted.connect(self.onProgramCompleted)
         
         ########################################################################################################################################
         ###### Fine Settings Page
@@ -218,16 +217,7 @@ class MainWindow(QtGui.QWizard):
         '''
         
         if prog == 'defocus':
-            print 'found defocus'
             self.ui.launchScreenToolButton.setEnabled(True)
-        
-        print "---started:", prog
-    
-    def onProgramCompleted(self, prog):
-        '''
-        '''
-        
-        print "---Completed:", prog
     
     @qtSlot()
     def on_launchScreenToolButton_clicked(self):
