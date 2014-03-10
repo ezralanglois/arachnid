@@ -124,6 +124,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.monitorWidget = MonitorUI(self, self.helpDialog)
         self.ui.monitorLayout.insertWidget(0, self.ui.monitorWidget)
         self.ui.monitorWidget.programStarted.connect(self.onProgramStarted)
+        self.ui.monitorWidget.programCompleted.connect(self.onProgramCompleted)
         
         ########################################################################################################################################
         ###### Fine Settings Page
@@ -211,12 +212,19 @@ class MainWindow(QtGui.QWizard):
         self.ui.workerCountSpinBox.setValue(thread_count)
         self.ui.selectLeginonInformationLabel.setVisible(False)
         self.ui.selectReferenceInformationLabel.setVisible(False)
+    
+    
+    def onProgramCompleted(self, prog):
+        '''
+        '''
         
+        if prog == 'defocus':
+            self.ui.launchScreenToolButton.setEnabled(True)
+    
     def onProgramStarted(self, prog):
         '''
         '''
         
-        print 'prog', prog
         if prog == 'defocus':
             self.ui.launchScreenToolButton.setEnabled(True)
     
@@ -583,6 +591,8 @@ class MainWindow(QtGui.QWizard):
         
         self.ui.monitorWidget.saveState()
         project.write_workflow(self.ui.monitorWidget.workflow())
+        workflow = self.ui.monitorWidget.workflow()
+        if len(workflow)>0: project.write_relion_settings(**vars(workflow[0].values))
         #todo add update if project option changes!
         
     def loadProject(self):

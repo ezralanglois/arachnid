@@ -112,7 +112,29 @@ def batch(files, is_film=False, **extra):
     _logger.info("Work flow includes %d steps"%len(workflow))
     write_config(workflow, **extra)
     write_workflow(workflow)
+    write_relion_settings(**extra)
     # run option
+    
+def write_relion_settings(align_file, mask_diameter, apix, **extra):
+    ''' Generate a relion settings file
+    
+    :Parameters:
+    
+        align_file : str
+                     Filename for output relion star file
+        mask_diameter : float
+                        Diameter of mask in angstroms
+        apix : float
+               Pixel size in angstroms
+    extra : dict
+            Keyword arguments
+    '''
+    
+    fout = open('.lastrun_gui2d.settings', 'w')
+    fout.write("Input images STAR file: == %s\n"%align_file)
+    fout.write("Particle mask diameter (A): == %s\n"%mask_diameter)
+    fout.write("Pixel size (A): == %s\n"%apix)
+    fout.close()
 
 def workflow_settings(files, param):
     ''' Generate a list of program objects for each script
