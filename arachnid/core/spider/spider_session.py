@@ -275,7 +275,11 @@ class Session(object):
         if self.version is None:
             if tmp_path == "": tmp_path = None
             #spider_version = subprocess.Popen([self.spiderexec, "spi/dat"], cwd=tmp_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            spider_version = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                spider_version = subprocess.Popen(self.spiderexec, cwd=tmp_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except:
+                _logger.error("Invalid spider executables: \"%s\""%self.spiderexec)
+                raise
             spider_version.stdin.write('tmp\n')
             spider_version.stdin.write('en d\n')
             spider_version.stdin.flush()
