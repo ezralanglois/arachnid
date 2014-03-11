@@ -105,6 +105,9 @@ from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stac
 from spider_session import SpiderCrashed
 import collections
 import logging, os, numpy
+import glob
+import platform
+import sys
 SpiderCrashed;
 
 _logger = logging.getLogger(__name__)
@@ -3505,6 +3508,42 @@ def validate_spider(spider_path):
     
     return spider_session.validate_spider(spider_path)
     
+def determine_spider(file_path):
+    ''' Determine the correct SPIDER executable and path
     
+    :Parameters:
+        
+        files_path : str
+                     File path or directory containing spider executable
+    
+    :Returns:
+    
+        filename : str
+                   File path for SPIDER executable
+    '''
+    
+    if os.path.isdir(file_path):
+        platform_str = 'linux_mp'
+        if sys.platform == 'darwin': 
+            platform_str = 'osx'
+            exe = 'spider_%s'%(platform_str)
+        else:
+            processor='opt'
+            if platform.processor().lower().find('intel') != -1: processor = 'intel'
+            exe = 'spider_%s_%s'%(platform_str, processor)
+        #if platform.machine().endswith('64'): type=
+        
+        files = glob.glob(os.path.join(file_path, exe+"*"))
+        if len(files) == 0:
+            files = glob.glob(os.path.join(file_path, 'bin', exe+"*"))
+            if len(files) == 0:
+                files = glob.glob(os.path.join(file_path, 'spider', 'bin', exe+"*"))
+                if len(files) == 0: return ""
+        file_path = files[0]
+    
+    if not validate_spider(file_path):
+        _logger.warn("Not a valid SPIDER executable: %s"%file_path)
+        return ""
+    return file_path
     
 

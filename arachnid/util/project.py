@@ -82,8 +82,6 @@ from ..core.metadata import spider_params
 import logging
 import os
 import sys
-import platform
-import glob
 from ..core.spider import spider
 
 _project = sys.modules[__name__]
@@ -351,45 +349,6 @@ def write_config(workflow, **extra):
         if len(param['input_files']) > 0 and mod == first_script[0]:
             param['input_files'] = []
             
-def determine_spider(file_path):
-    ''' Determine the correct SPIDER executable and path
-    
-    :Parameters:
-        
-        files_path : str
-                     File path or directory containing spider executable
-    
-    :Returns:
-    
-        filename : str
-                   File path for SPIDER executable
-    '''
-    
-    if os.path.isdir(file_path):
-        platform_str = 'linux_mp'
-        if sys.platform == 'darwin': 
-            platform_str = 'osx'
-            exe = 'spider_%s'%(platform_str)
-        else:
-            processor='opt'
-            if platform.processor().lower().find('intel') != -1: processor = 'intel'
-            exe = 'spider_%s_%s'%(platform_str, processor)
-        #if platform.machine().endswith('64'): type=
-        
-        files = glob.glob(os.path.join(file_path, exe+"*"))
-        if len(files) == 0:
-            files = glob.glob(os.path.join(file_path, 'bin', exe+"*"))
-            if len(files) == 0:
-                files = glob.glob(os.path.join(file_path, 'spider', 'bin', exe+"*"))
-                if len(files) == 0: return ""
-        file_path = files[0]
-    
-    if not spider.validate_spider(file_path):
-        _logger.warn("Not a valid SPIDER executable: %s"%file_path)
-        return ""
-    return file_path
-    
-
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
     from ..core.app.settings import OptionGroup
@@ -449,7 +408,7 @@ def check_options(options, main_option=False):
     if options.gain_file == "" and len(options.input_files) > 0 and ndimage_file.count_images(options.input_files[0]) > 1:
         _logger.warn("No gain reference specified for movie mode alignment!")
     
-    path = determine_spider(options.spider_path)
+    path = spider.determine_spider(options.spider_path)
     if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
     options.spider_path = path
     if options.apix == 0.0:

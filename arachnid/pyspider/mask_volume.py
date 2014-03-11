@@ -420,6 +420,8 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     
     if main_option:
+        path = spider.determine_spider(options.spider_path)
+        if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
         #spider_params.check_options(options)
         if options.volume_mask == 'N':
             raise OptionValueError, "Invalid parameter: --volume-mask should not be set to 'N', this means no masking"

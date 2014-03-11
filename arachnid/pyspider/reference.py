@@ -291,6 +291,8 @@ def check_options(options, main_option=False):
     #Check if the option values are valid
     from ..core.app.settings import OptionValueError
     
+    path = spider.determine_spider(options.spider_path)
+    if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
     if main_option:
         spider_params.check_options(options)
         #if options.resolution <= 0.0: raise OptionValueError, "--resolution must be a positive value greater than 0"
