@@ -205,6 +205,7 @@ class Widget(QtGui.QWidget):
             for prog in workflow:
                 _logger.info("Running "+str(prog.name()))
                 try:
+                    prog.check_options_validity()
                     prog.launch()
                 except: break
             _logger.info("Workflow ended")
