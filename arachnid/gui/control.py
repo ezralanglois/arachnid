@@ -14,6 +14,9 @@ def main():
     # Create GUI and display
     
     tracing.configure_logging(log_level=2, log_file='control.log')
+    if len(sys.argv) > 1 and sys.argv[1]=='--help':
+        print "Go to http://www.arachnid.us for the help documentation"
+        sys.exit(0)
     app = qtapp.create_app()
     if app is None:
         _logger.error("PyQT4 not installed")
@@ -28,9 +31,6 @@ def main():
         sys.exit(1)
     
     screen_shot_file=None
-    if len(sys.argv) > 1 and sys.argv[1]=='--help':
-        print "Go to http://www.arachnid.us for the help documentation"
-        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1]=='--screen-shot':
         screen_shot_file=sys.argv[2]
     dialog = ProjectUI(screen_shot_file) 

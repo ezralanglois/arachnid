@@ -14,6 +14,9 @@ def main():
     # Create GUI and display
     
     tracing.configure_logging()
+    if len(sys.argv) > 1 and sys.argv[1]=='--help':
+        print "Go to http://www.arachnid.us for the help documentation"
+        sys.exit(0)
     app = qtapp.create_app()
     if app is None:
         _logger.error("PyQT4 not installed")
@@ -26,10 +29,6 @@ def main():
         _logger.exception("Failed to load viewer")
         raise
         sys.exit(1)
-    
-    if len(sys.argv) > 1 and sys.argv[1]=='--help':
-        print "Go to http://www.arachnid.us for the help documentation"
-        sys.exit(0)
     
     dialog = Viewer()
     dialog.show()
