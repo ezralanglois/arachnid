@@ -136,8 +136,8 @@ def process(filename, output, **extra):
     filename1 = spider_file.copy_to_spider(filename, tempfile1)
     if 'apix' in extra:
         extra.update(filter_volume.ensure_pixel_size(filename=filename1, **extra))
-    if spider_utility.is_spider_filename(filename[0]):
-        output = spider_utility.spider_filename(output, filename[0])
+    if spider_utility.is_spider_filename(filename):
+        output = spider_utility.spider_filename(output, filename)
     mask_volume(filename1, output, mask_output=format_utility.add_prefix(output, "mask_"), **extra)
     return filename
 
