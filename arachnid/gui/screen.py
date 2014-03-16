@@ -18,6 +18,7 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1]=='--help':
         print "Go to http://www.arachnid.us for the help documentation"
         sys.exit(0)
+    from ..core.gui.util import qtapp
     app = qtapp.create_app()
     if app is None:
         _logger.error("PyQT4 not installed")

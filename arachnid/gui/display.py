@@ -3,7 +3,6 @@
 .. Created on Jul 17, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.gui.util import qtapp
 from ..core.app import tracing
 import logging, sys
 
@@ -17,6 +16,7 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1]=='--help':
         print "Go to http://www.arachnid.us for the help documentation"
         sys.exit(0)
+    from ..core.gui.util import qtapp
     app = qtapp.create_app()
     if app is None:
         _logger.error("PyQT4 not installed")
