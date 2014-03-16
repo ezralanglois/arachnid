@@ -18,13 +18,17 @@ def configuration(parent_package='',top_path=None):
     
     try:
         fftw_opt = get_info('mkl',notfound_action=2)
-    except: 
-        try: 
-            fftw_opt = get_info('fftw',notfound_action=2)
-            #fftw_opt['libraries']=['fftw3f']
-            fftw_opt['libraries'].extend(['fftw3f'])
-            fftw_opt['library_dirs'].extend(['/usr/lib'])
-        except: fftw_opt=dict(libraries=['fftw3f'])
+    except:
+        fftw_static='/guam.raid.cluster.software/spider.21.00/fftw/fftw3-opt64/lib/libfftw3f.a'
+        if os.path.exists(fftw_static):
+            fftw_opt=dict(libraries=[fftw_static])
+        else:
+            try: 
+                fftw_opt = get_info('fftw',notfound_action=2)
+                #fftw_opt['libraries']=['fftw3f']
+                fftw_opt['libraries'].extend(['fftw3f'])
+                fftw_opt['library_dirs'].extend(['/usr/lib'])
+            except: fftw_opt=dict(libraries=['fftw3f'])
     if 'library_dirs' not in fftw_opt: fftw_opt['library_dirs']=[]
     if 'include_dirs' not in fftw_opt: fftw_opt['include_dirs']=[]
     config = Configuration('spi', parent_package, top_path)

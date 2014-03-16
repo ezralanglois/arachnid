@@ -3,7 +3,6 @@
 .. Created on Jul 17, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.gui.util import qtapp
 from ..core.app import tracing
 import logging, sys
 
