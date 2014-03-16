@@ -52,8 +52,8 @@ def configuration(parent_package='',top_path=None):
 
     #config.add_extension('_spider_interpolate', sources=['interpolate.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
     #-fdefault-real-8
-    rot_src = 'spider_rotate_dist_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'spider_rotate_dist_wrap.cpp')) else 'rotate.i'
-    config.add_extension('_spider_rotate_dist', sources=[rot_src], define_macros=[('__STDC_FORMAT_MACROS', 1)]+ccompiler_defs, depends=['rotate.hpp'], swig_opts=['-c++'], libraries=['spiutil']+fftlibs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
+    #rot_src = 'spider_rotate_dist_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'spider_rotate_dist_wrap.cpp')) else 'rotate.i'
+    #config.add_extension('_spider_rotate_dist', sources=[rot_src], define_macros=[('__STDC_FORMAT_MACROS', 1)]+ccompiler_defs, depends=['rotate.hpp'], swig_opts=['-c++'], libraries=['spiutil']+fftlibs, extra_compile_args=ccompiler_args, extra_link_args=compiler_args, library_dirs=fftw_opt['library_dirs'])
     config.add_extension('_spider_rotate', sources=['rotate.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=flink_args, library_dirs=fftw_opt['library_dirs'])
     #config.add_extension('_spider_align', sources=['align.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=flink_args, library_dirs=fftw_opt['library_dirs'])
     config.add_extension('_spider_filter', sources=['filter.F90'], libraries=['spiutil']+fftlibs, f2py_options=f2py_options, define_macros=ccompiler_defs, extra_compile_args=ccompiler_args, extra_link_args=flink_args, library_dirs=fftw_opt['library_dirs'])
