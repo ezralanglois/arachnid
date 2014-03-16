@@ -21,7 +21,7 @@ def configuration(parent_package='',top_path=None):
     except:
         fftw_static='/guam.raid.cluster.software/spider.21.00/fftw/fftw3-opt64/lib/libfftw3f.a'
         if os.path.exists(fftw_static):
-            fftw_opt=dict(libraries=[fftw_static])
+            fftw_opt=dict(libraries=[os.path.basename(fftw_static)], library_dirs=[os.path.dirname(fftw_static)])
         else:
             try: 
                 fftw_opt = get_info('fftw',notfound_action=2)
