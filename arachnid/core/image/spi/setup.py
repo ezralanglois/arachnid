@@ -33,7 +33,7 @@ def configuration(parent_package='',top_path=None):
         f2py_options = ['--debug-capi']
     else: f2py_options=[]
     
-    flink_args = compiler_args+['-static-libgfortran']
+    flink_args = compiler_args
     #-ffixed-form define_macros=[('SP_LIBFFTW3', 1)]+compiler_defs, 
     library_options=dict(macros=[('SP_LIBFFTW3', 1)]+compiler_defs, extra_f77_compile_args=compiler_args, extra_f90_compile_args=compiler_args)#extra_f77_compiler_args=['-fdefault-real-8'],, ('SP_MP', 1)
                           #extra_f90_compiler_args=['-fdefault-real-8'])
