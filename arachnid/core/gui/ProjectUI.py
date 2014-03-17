@@ -29,6 +29,7 @@ from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
 from arachnid.util import project
 from ..image import ndimage_file
 from ..metadata import spider_utility
+from ..spider import spider
 from util import messagebox
 from ..parallel import openmp
 import logging
@@ -275,7 +276,7 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        exe = project.determine_spider(file_path)
+        exe = spider.determine_spider(file_path)
         if exe == "" and not suppress_error:
             messagebox.error_message(self, "Cannot find SPIDER executables in %s"%file_path)
         self.ui.spiderExecutableLineEdit.setText(exe)
@@ -708,7 +709,7 @@ class MainWindow(QtGui.QWizard):
             if not os.path.exists(spiderexe):
                 messagebox.error_message(self, "SPIDER executable does not exist")
                 return False
-            if not project.determine_spider(spiderexe):
+            if not spider.determine_spider(spiderexe):
                 messagebox.error_message(self, "SPIDER executable does not run")
                 return False
         self.captureScreen()
