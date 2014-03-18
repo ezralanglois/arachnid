@@ -89,10 +89,6 @@ Tunable Options
     
     Gap between pairs for L1/L2 alignment
 
-.. option:: --invert <BOOL>
-    
-    Invert the contrast of the input frames
-
 Diagnostic Options
 ==================
 
@@ -143,12 +139,13 @@ from ..core.image import ndimage_interpolate
 from ..core.image import ndimage_filter
 from ..core.image import affine_transform
 from ..core.image import alignment
-#from ..core.image import similarity
 from ..core.metadata import format
+from ..core.metadata import format_utility
 from ..core.metadata import spider_params
 from ..core.metadata import spider_utility
 from ..core.metadata import selection_utility
 from ..core.util import drawing
+from ..core.util import plotting
 import scipy.fftpack
 import scipy.ndimage
 import numpy
@@ -162,18 +159,18 @@ def process(filename, benchmark=False, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
-    
-    filename : str
-               Input filename
-    extra : dict
-            Unused key word arguments
+        
+        filename : str
+                   Input filename
+        extra : dict
+                Unused key word arguments
                 
     :Returns:
-    
-    filename : str
-               Current filename
-    coords : str
-             Coordinates
+        
+        filename : str
+                   Current filename
+        coords : str
+                 Coordinates
     '''
     
     spider_utility.update_spider_files(extra, filename, *extra['outfile_deps'])
@@ -189,8 +186,25 @@ def process(filename, benchmark=False, **extra):
         write_coordinates(coords, **extra)
     return filename, coords
 
-def align_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **extra):
-    '''
+def fft_in_memory(filename, gain_file="", bin_factor=1.0, **extra):
+    ''' Precalculate the FFT of each frame in the movie stack.
+    
+    :Parameters:
+    
+        filename : str
+                   Filename for movie stack
+        gain_file : str
+                    Filename for gain normalization image
+        bin_factor : float
+                     Factor to downsample frame images
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        fourier_frames : list
+                         List of Fourier transforms of each frame
+    
     .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
     .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
     '''
@@ -201,60 +215,193 @@ def align_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **extr
     for frame in ndimage_file.iter_images(filename):
         frame = frame.astype(numpy.float)
         if gain is not None: numpy.multiply(frame, gain, frame)
-        if invert: enhance_image.invert(frame, frame)
+        x, y, w, h = get_window(frame, **extra)
+        frame = frame[y:y+h, x:x+w].copy()
         enhance_image.normalize_standard(frame, var_one=True, out=frame)
         frame = scipy.fftpack.fft2(frame)
         if bin_factor > 1.0: frame = ndimage_interpolate.resample_fft_fast(frame, bin_factor, True)
         fourier_frames.append(frame)
-    _logger.info("Aligning FFTs with l2 optimization")
-    trans = align_l2(fourier_frames, **extra)
-    _logger.info("Alignment finished")
-    write_perdiogram(fourier_frames, 0, trans, **extra)
-    trans *= bin_factor
-    return trans
+    return fourier_frames
 
-def benchmark_in_memory(filename, gain_file="", bin_factor=1.0, invert=False, **extra):
-    '''
+def align_in_memory(filename, mode=0, **extra):
+    ''' Align frames from a movie stack in memory
+    
+    This function supports the following alignment algorithms:
+    
+        #. Trisequential
+        #. Sequential
+        #. L2
+    
+    :Parameters:
+    
+        filename : str
+                   Filename for movie stack
+        mode : int
+               Alignment mode: 0) Trisequential, 1) Sequential, 2) L2
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        trans : array
+                Shifts for each movie frame
+    
+    
     .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
     .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
     '''
     
-    gain = ndimage_file.read_image(gain_file) if gain_file != "" else None
-    fourier_frames = []
-    avg = None
-    ideal_pow=None
-    #window = None
-    #cache = None
-    for frame in ndimage_file.iter_images(filename):
-        frame = frame.astype(numpy.float)
-        if gain is not None: numpy.multiply(frame, gain, frame)
-        if invert: enhance_image.invert(frame, frame)
-        enhance_image.normalize_standard(frame, var_one=True, out=frame)
-        frame2 = ndimage_interpolate.downsample(frame, bin_factor) if bin_factor > 1.0 else frame
-        if avg is not None: avg += frame2
-        else: avg=frame2
-        pow = perdiogram(frame2, **extra)
-        if ideal_pow is not None: ideal_pow += pow
-        else: ideal_pow=pow
-        frame = scipy.fftpack.fft2(frame)
-        if bin_factor > 1.0: 
-            frame = ndimage_interpolate.resample_fft_fast(frame, bin_factor, True)
-        fourier_frames.append(frame)
-    write_perdiogram(avg, 0, **extra)
-    write_pow(ideal_pow, 1, **extra)
+    fourier_frames = fft_in_memory(filename, **extra)
+    if mode == 0:
+        _logger.info("Trisequential alignment")
+        trans = align_trisequential(fourier_frames, **extra)
+    elif mode == 1:
+        _logger.info("Sequential alignment")
+        trans = align_sequential(fourier_frames, **extra)
+    else:
+        _logger.info("L2 alignment")
+        trans = align_l2(fourier_frames, **extra)
+    _logger.info("Alignment finished")
+    write_perdiogram(fourier_frames, 0, trans, **extra)
+    trans *= extra['bin_factor']
+    return trans
+
+def benchmark_in_memory(filename, **extra):
+    ''' Benchmark the frame alignment algorithms
     
+    This function benchmarks the following alignment algorithms:
+    
+        #. Trisequential
+        #. Sequential
+        #. L2
+    
+    :Parameters:
+    
+        filename : str
+                   Filename for movie stack
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        trans : array
+                Empty list
+    
+    .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
+    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
+    '''
+    
+    fourier_frames = fft_in_memory(filename, **extra)
+    avg = average_fft(fourier_frames)
+    write_perdiogram(avg, 0, **extra)
     _logger.info("Begin sequential")
     trans = align_sequential(fourier_frames, **extra)
     avg = average_fft(fourier_frames, trans)
-    pow1 = write_perdiogram(avg, 2, **extra)
-    _logger.info("Sequential error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
+    pow1 = write_perdiogram(avg, 1, **extra)
     _logger.info("Begin l2")
     trans = align_l2(fourier_frames, **extra)
     avg = average_fft(fourier_frames, trans)
-    pow1=write_perdiogram(avg, 3, **extra)
-    _logger.info("l2 error %f"%(numpy.sqrt(numpy.sum(numpy.square(pow1-ideal_pow)))))
-    trans *= bin_factor
+    pow2=write_perdiogram(avg, 2, **extra)
+    _logger.info("Begin trisequential")
+    trans = align_trisequential(fourier_frames, **extra)
+    avg = average_fft(fourier_frames, trans)
+    pow3=write_perdiogram(avg, 3, **extra)
+    _logger.info("Begin mean displacement")
+    trans = align_mean_displacement(fourier_frames, **extra)
+    avg = average_fft(fourier_frames, trans)
+    pow4=write_perdiogram(avg, 4, **extra)
+    write_powerspectra_1D((pow1, pow2, pow3, pow4), ('Sequential', 'L2', 'Trisequential', 'Mean'), **extra)
+    #trans *= extra['bin_factor']
     return []
+
+def align_mean_displacement(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+    '''
+    '''
+    
+    filter_kernel=None
+    if lowpass_sigma is not None:
+        filter_kernel = scipy.fftpack.ifftshift(ndimage_filter.gaussian_lowpass_kernel(fourier_frames[0].shape, lowpass_sigma, numpy.float))
+    else: filter_kernel=1.0
+    
+    index = numpy.triu_indices(len(fourier_frames), 1)
+    cache = numpy.zeros((len(fourier_frames), len(fourier_frames), 3))
+    
+    for i, j in zip(*index):
+        y, x, p = alignment.xcorr_dft_peak(fourier_frames[i]*filter_kernel, fourier_frames[j], upsampling, search_radius)
+        cache[i, j] = (x,y,p)
+        cache[j, i] = (-x,-y,p)
+    
+    trans = numpy.zeros((len(fourier_frames), 2))
+    idx = numpy.arange(1, len(fourier_frames), dtype=numpy.int)
+    for i in xrange(1, trans.shape[0]):
+        cidx = idx[idx != i]
+        weight = 1.0 #cache[0, cidx, 2]+cache[i, cidx, 2]
+        #weight /= weight.sum()
+        
+        trans[i, :] = numpy.mean(weight*(cache[0, cidx, :2]-cache[i, cidx, :2]), axis=0)
+        #print trans[i, :], trans[i]-trans[i-1]
+    return trans
+
+def align_trisequential(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
+    '''Align frames using trisequential alignment
+    
+    The trisequential alignment algorithm works as follows:
+        
+        #. Perform sequential alignment on the first half of the frames
+        #. Align second half to reference generated from first half
+        #. Realign first half to reference generated from second half
+    
+    :Parameters:
+    
+        fourier_frames : list
+                         Filename for movie stack
+        upsampling : int
+                     Number of times to upsample alignment, e.g. 2 times means shift accuracy to half a pixel
+        search_radius : int
+                        Radius to search for peak
+        lowpass_sigma : float
+                        Stop band frequency for Gaussian low pass filter
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        trans : array
+                Shifts for each movie frame
+    
+    .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
+    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
+    '''
+    
+    filter_kernel=None
+    trans = numpy.zeros((len(fourier_frames), 2))
+    ref = fourier_frames[0].copy()
+    if lowpass_sigma is not None:
+        filter_kernel = scipy.fftpack.ifftshift(ndimage_filter.gaussian_lowpass_kernel(ref.shape, lowpass_sigma, numpy.float))
+    mid = int(numpy.floor(len(fourier_frames)/2.0))
+    
+    # Create initial reference
+    for i, frame in enumerate(fourier_frames[1:mid]):
+        if filter_kernel is not None: numpy.multiply(ref, filter_kernel, ref)
+        y, x, p1 = alignment.xcorr_dft_peak(ref, frame, upsampling, search_radius)
+        trans[i+1, :]=(x,y)
+        ref += scipy.ndimage.fourier_shift(frame, (-trans[i+1, 1], -trans[i+1, 0]), -1, 0)
+    
+    # Aligned 2nd half to initial reference
+    ref2 = ref.copy()
+    ref2[:] = 0
+    for i, frame in enumerate(fourier_frames[mid:]):
+        if filter_kernel is not None: numpy.multiply(ref, filter_kernel, ref)
+        y, x, p1 = alignment.xcorr_dft_peak(ref, frame, upsampling, search_radius)
+        trans[i+1, :]=(x,y)
+        ref2 += scipy.ndimage.fourier_shift(frame, (-trans[i+1, 1], -trans[i+1, 0]), -1, 0)
+    
+    # Realign first half to reference generated by 2nd half
+    for i, frame in enumerate(fourier_frames[:mid]):
+        if filter_kernel is not None: numpy.multiply(ref, filter_kernel, ref)
+        y, x, p1 = alignment.xcorr_dft_peak(ref2, frame, upsampling, search_radius)
+        trans[i, :]=(x,y)
+    return trans
 
 def align_sequential(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None, **extra):
     '''
@@ -271,7 +418,7 @@ def align_sequential(fourier_frames, upsampling=2, search_radius=50, lowpass_sig
         if filter_kernel is not None: numpy.multiply(ref, filter_kernel, ref)
         y, x, p1 = alignment.xcorr_dft_peak(ref, frame, upsampling, search_radius)
         trans[i+1, :]=(x,y)
-        print i+1, trans[i+1, :], trans[i+1, :]-trans[i, :], p1
+        #print i+1, trans[i+1, :], trans[i+1, :]-trans[i, :], p1
         ref += scipy.ndimage.fourier_shift(frame, (-trans[i+1, 1], -trans[i+1, 0]), -1, 0)
     return trans
 
@@ -300,43 +447,25 @@ def align_l2(fourier_frames, upsampling=2, search_radius=50, lowpass_sigma=None,
     x0 = numpy.linalg.lstsq(A, b)[0]
     trans = numpy.zeros((len(fourier_frames), 2))
     trans[1:] = x0.cumsum(axis=0)
+    '''
     for i in xrange(trans.shape[0]):
         if i > 0:
             print trans[i], trans[i]-trans[i-1]
         else:
             print trans[i]
+    '''
     return trans
 
-def _xcorr_dft_peak(f3, usfac, search_radius, y0=0, x0=0, tshape=None, template_ssd=None):
-    '''
-    .. codeauthor:: Ryan Hyde Smith <rhs2132@columbia.edu>
-    '''
-    
-    ny, nx = f3.shape
-    noyx = numpy.ceil(search_radius*usfac)
-    dftshift = numpy.fix(numpy.ceil(search_radius*usfac)/2)
-    yoff = dftshift - numpy.rint(usfac*y0)
-    xoff = dftshift - numpy.rint(usfac*x0)
-
-    kerny = numpy.exp((-2j*numpy.pi/(ny*usfac)*(numpy.arange(noyx).T - yoff)[:, numpy.newaxis])*(scipy.fftpack.ifftshift(numpy.arange(ny) - numpy.floor(ny/2)).T[numpy.newaxis, :]))
-    kernx = numpy.exp((-2j*numpy.pi/(nx*usfac)*(numpy.arange(noyx).T - xoff)[:, numpy.newaxis])*(scipy.fftpack.ifftshift(numpy.arange(nx) - numpy.floor(nx/2)).T[numpy.newaxis, :])).T
-
-    CC = numpy.dot(numpy.dot(kerny, f3), kernx)
-    
-    
-    dy, dx = numpy.unravel_index(numpy.argmax(CC), CC.shape)
-    peak=CC[dy,dx].real
-    dy = (float(dy) - dftshift)/usfac
-    dx = (float(dx) - dftshift)/usfac
-    return dy, dx, peak
-
-def average_fft(fourier_frames, trans, do_ifft=True):
+def average_fft(fourier_frames, trans=None, do_ifft=True):
     '''
     '''
     
     avg = numpy.zeros_like(fourier_frames[0])
     for i, frame in enumerate(fourier_frames):
-        avg += scipy.ndimage.fourier_shift(frame, (-trans[i, 1], -trans[i, 0]), -1, 0)
+        if trans is None:
+            avg += frame
+        else:
+            avg += scipy.ndimage.fourier_shift(frame, (-trans[i, 1], -trans[i, 0]), -1, 0)
     return scipy.fftpack.ifft2(avg).real if do_ifft else avg
 
 def write_average_with_path(avg, trans, waypoint_file="", **extra):
@@ -372,6 +501,20 @@ def perdiogram(avg, window_size=256, pad=1, overlap=0.5, **extra):
     '''
     
     return ndimage_utility.perdiogram(avg, window_size, pad, overlap)
+
+
+def write_powerspectra_1D(pows, labels, diagnostic_file="", dpi=300, **extra):
+    '''
+    '''
+    
+    if plotting.is_plotting_disabled(): return
+    
+    spectra1d = []
+    for pow in pows:
+        raw = ndimage_utility.mean_azimuthal(pow)[:pow.shape[0]/2]
+        spectra1d.append(raw[5:])
+    plotting.plot_lines(diagnostic_file, spectra1d, labels, 'CTF', dpi)
+    
 
 def write_pow(pow, index=0, diagnostic_file="", apix=None, **extra):
     '''
@@ -412,7 +555,7 @@ def write_coordinates(coords, translation_file="", **extra):
     coords = numpy.hstack((numpy.arange(len(coords))[:, numpy.newaxis], coords))
     format.write(translation_file, coords, header='id,x,y'.split(','))
 
-def write_average(filename, coords, output, frame_beg=0, frame_end=0, gain_file="", **extra):
+def write_average(filename, coords, output, frame_beg=0, frame_end=0, gain_file="", diagnostic_file="", crop=[], line_width=10, **extra):
     ''' Average the frames in the stack using the given 
     translation coordinates.
     '''
@@ -431,10 +574,41 @@ def write_average(filename, coords, output, frame_beg=0, frame_end=0, gain_file=
         else: avg += frame
     avg /= len(coords)
     ndimage_file.write_image(output, avg)
+    
+    if diagnostic_file != "" and len(crop) > 0 and crop[0] > 0 \
+        or (len(crop) > 1 and crop[1] > 0) \
+        or (len(crop) > 2 and crop[2] > 0) \
+        or (len(crop) > 3 and crop[3] > 0):
+        output = format_utility.add_prefix(output, 'diagnostic_win_')
+        
+        x, y, w, h = get_window(avg, crop)
+        mask = numpy.zeros(avg.shape, dtype=numpy.bool)
+        mask[:, x:x+line_width]=0
+        mask[y:y+line_width, :]=0
+        mask[:, x+w:x+line_width+w]=0
+        mask[y+h:y+line_width+h, :]=0
+        
+        ndimage_file.write_image(output, avg)
+
+def get_window(avg, crop=[], **extra):
+    '''
+    '''
+    
+    x, y, w, h = 0, 0, -1, -1
+    if len(crop) > 0: x = crop[0]
+    if len(crop) > 1: y = crop[1]
+    if len(crop) > 2: w = crop[2]
+    if len(crop) > 3: h = crop[3]
+    if w == -1: w = avg.shape[1]
+    if h == -1: h = avg.shape[0]
+    return x, y, w, h
+    
 
 def initialize(files, param):
     # Initialize global parameters for the script
     
+    count = ndimage_file.count_images(files[0])
+    _logger.info("Aligning %d stacks with %d frames in each"%(len(files), count))
     if param['param_file'] != "":
         spider_params.read(param['param_file'], param)
     if param['benchmark']:
@@ -536,7 +710,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", search_radius=50,  help="Maximum search radius")
     group.add_option("", upsampling=2,      help="Upsampling factor")
     group.add_option("", gap=5,             help="Gap between pairs for L1/L2 alignment")
-    group.add_option("", invert=False,      help="Invert the contrast of the input frames")
+    group.add_option("", mode=("Trisequential", "Sequential", "L2"), help="Alignment mode", default=2)
+    group.add_option("", crop=[0, 0, -1, -1], help="Window size for the alignment")
     
     dgroup = OptionGroup(parser, "Diagnostic", "Options to control diagnostic output",  id=__name__)
     dgroup.add_option("", benchmark=False,   help="Run every alignment algorithm on the same set of micrographs for benchmarking")
