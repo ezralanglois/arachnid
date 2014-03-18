@@ -12,12 +12,13 @@ def configuration(parent_package='',top_path=None):
     from arachnid.setup import compiler_options
     import os
     
-    try:
+    blas_opt = None
+    for opt in ('mkl', 'atlas', 'blas'):
+        try: blas_opt = get_info(opt,notfound_action=2)
+        except: pass
+        else: break
+    if blas_opt is None:
         blas_opt = get_info('blas_opt',notfound_action=2)
-    except:
-        try:
-            blas_opt = get_info('mkl',notfound_action=2)  
-        except: blas_opt = get_info('blas')
     
     config = Configuration('core', parent_package, top_path)
     
