@@ -131,6 +131,15 @@ To test whether your code has any problems such as uninitalized variable, use th
 Packaging for Anaconda
 ======================
 
+Prerequisites
+-------------
+
+.. sourcecode:: sh
+
+	# Install the conda build command
+	
+	conda install conda-build
+
 Stable Release
 --------------
 

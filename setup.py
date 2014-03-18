@@ -378,7 +378,7 @@ if __name__ == '__main__':
           long_description = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read(),
           data_files=[('rst', rglob("*.rst"))],
           install_requires = [
-            #'numpy>=1.3.0', - causes conda build to fail
+            'numpy',
             'scipy',
             'psutil',
             'scikit-learn',

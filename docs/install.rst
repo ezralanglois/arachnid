@@ -20,12 +20,23 @@ The recommended method for most users to install Arachnid is
 to use the Anaconda package. Anaconda makes it simple to install
 all the Arachnid dependencies.
 
+Prerequisites
+-------------
+
 .. note::
 
 	You must also install the SPIDER package. This includes a single binary 
 	executable which is necessary to run the standard Arachnid workflow. It
 	can be found at: http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html
 
+The following prerequisites are generally already available on many Linux distributions
+but, have been found to be absent from a few.
+
+	- Fortran runtime libraries: libgfortran.so.3
+	- Fastest Fourier transform (in the west): libfftw3.so (No longer required for the daily build)
+
+I am currently working to address these missing dependencies. The daily builds have already
+included the Fastest Fourier transform (in the west).
 
 Quick Start
 -----------
@@ -110,6 +121,31 @@ These are the same steps run by the script in the
 Troubleshooting
 ---------------
 
+#. Arachnid does not seem to be running or stalls!
+
+	Run `ara-vicer`, if you see the following error message, then you are
+	using the accelerated version of Arachnid and require a license file
+	from continuum. Good news, this is free if you have .edu email!
+	
+	See `Speeding up the code`_ for more information.
+	
+	Alternatively, you can install a non-accelerated version of Arachnid.
+	
+	.. sourcecode:: sh
+	
+		$ ara-vicer
+		
+		Vendor:  Continuum Analytics, Inc.
+		Package: mkl
+		Message: trial mode EXPIRED 221 days ago
+		
+		    You cannot run mkl without a license any longer.
+		    A license can be purchased it at: http://continuum.io
+		    We are sorry for any inconveniences.
+		
+		    SHUTTING DOWN PYTHON INTERPRETER
+	
+
 #. If the installation gives the following error:
 
 	.. sourcecode:: sh
@@ -133,9 +169,16 @@ Troubleshooting
 	
 		$ conda install -c https://conda.binstar.org/asmeurer pyside --yes
 
+#. Alternative PyQt4 library for the GUI
+	
+	A user reported that installing the PyQt4 library using conda did not work. If you run into the
+	same problem, then the workaround is to manually `download <https://binstar.org/asmeurer/pyqt/4.10.3/files>`_ the library.
+
 #. Install the daily build to get the latest bug fixes for the current version
 	
 	$ conda install https://conda.binstar.org/public arachnid-dev
+
+
 
 Speeding up the code
 --------------------
