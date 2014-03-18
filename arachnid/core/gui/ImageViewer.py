@@ -153,6 +153,8 @@ class MainWindow(QtGui.QMainWindow):
                dict(imagePage=self.ui.pageSpinBox.value(), help="Current page of images", gui=dict(readonly=True, value=self.ui.pageSpinBox)),
                dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True, value=self.ui.decimateSpinBox)),
                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True, value=self.ui.clampDoubleSpinBox)),
+               dict(line_width=3, help="Set the line width for the boxes on the micrograph"),
+               
                ]
         
     def setAlternateImage(self, filename, emptyonly=False):
@@ -527,11 +529,12 @@ class MainWindow(QtGui.QMainWindow):
             _logger.exception("Cannot find selection file: %s for id %d"%(good_file, fileid))
             select=None
         bin_factor=self.advanced_settings.bin_window
+        line_width = self.advanced_settings.line_width
         if select is not None:
-            img = drawing.draw_particle_boxes(img, coords, self.advanced_settings.window/bin_factor, bin_factor, outline="blue")
-            return drawing.draw_particle_boxes_to_array(img, [coords[i-1] for i in select[:, 0]], self.advanced_settings.window/bin_factor, bin_factor)
+            img = drawing.draw_particle_boxes(img, coords, self.advanced_settings.window/bin_factor, bin_factor, outline="blue", width=line_width)
+            return drawing.draw_particle_boxes_to_array(img, [coords[i-1] for i in select[:, 0]], self.advanced_settings.window/bin_factor, bin_factor, width=line_width)
         else:
-            return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor)
+            return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor, width=line_width)
     
     def openImageFiles(self, files):
         ''' Open a collection of image files, sort by content type
