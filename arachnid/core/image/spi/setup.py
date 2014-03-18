@@ -21,8 +21,8 @@ def configuration(parent_package='',top_path=None):
     except:
         fftw_static='/data/robertl/development_master/lib/fftw/lib/libfftw3f.a'
         if os.path.exists(fftw_static):
-            fftw_opt=dict(libraries=[fftw_static])
-            #fftw_opt=dict(libraries=[os.path.splitext(os.path.basename(fftw_static)[3:])[0]], library_dirs=[os.path.dirname(fftw_static)])
+            #fftw_opt=dict(libraries=[fftw_static])
+            fftw_opt=dict(libraries=[os.path.splitext(os.path.basename(fftw_static)[3:])[0]], library_dirs=[os.path.dirname(fftw_static)])
         else:
             try: 
                 fftw_opt = get_info('fftw',notfound_action=2)
