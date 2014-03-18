@@ -1200,8 +1200,10 @@ class OptionParser(optparse.OptionParser):
             if not os.path.exists(fin): return self.values
             fin = file(fin, 'r')
         self.skipped_flags = []
+        lineno=0
         for line in fin:
             pos = line.find(self.comment)
+            lineno += 1
             if line[0] == ' ': continue
             if pos > -1: line = line[:pos]
             line = line.strip()
@@ -1209,7 +1211,7 @@ class OptionParser(optparse.OptionParser):
             try:
                 key, val = line.split(self.separator, 1)
             except:
-                raise
+                raise ValueError, "Missing separator on line %d - \"%s\""%(lineno, line)
             key = key.strip()
             val = val.strip()
             if key == "" or val == "": continue
