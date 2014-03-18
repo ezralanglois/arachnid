@@ -55,7 +55,7 @@ def mark(img):
     draw.line((0, img.size[1], img.size[0], 0), fill=128, width=5)
     return scipy.misc.fromimage(img)
 
-def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", **extra):
+def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", width=1, **extra):
     ''' Draw boxes around particles on the micrograph using the given coordinates, window size
     and down sampling factor.
     
@@ -90,7 +90,7 @@ def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", 
     for box in coords:
         x = box.x / bin_factor
         y = box.y / bin_factor
-        draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline=outline)
+        draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline=outline, width=width)
     return mic
 
 def draw_particle_boxes_to_file(mic, coords, window, bin_factor=1.0, box_image="", **extra):
