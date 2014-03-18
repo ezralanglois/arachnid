@@ -266,6 +266,6 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None, t
             experiments.extend(projects[i].experiments)
         experiments.sort(key=lambda x: x.session.timestamp, reverse=True)
         return user, experiments
-    return [], []
+    raise AuthenticationError, "Username not found: %s"%str(username)
 
 
