@@ -162,7 +162,7 @@ class MainWindow(QtGui.QWizard):
         ########################################################################################################################################
         
         if os.path.exists(self.default_spider_path):
-            self.updateSpiderExe(self.default_spider_path)
+            self.updateSpiderExe(self.default_spider_path, True)
         
         self.updateParticleSizeSpinBox = lambda x: self.ui.particleSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         self.updateWindowSizeSpinBox = lambda x: self.ui.windowSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
@@ -279,6 +279,9 @@ class MainWindow(QtGui.QWizard):
         exe = spider.determine_spider(file_path)
         if exe == "" and not suppress_error:
             messagebox.error_message(self, "Cannot find SPIDER executables in %s"%file_path)
+        elif exe == "" and suppress_error:
+            file_path = os.path.dirname(sys.argv[0])
+            exe = spider.determine_spider(file_path)
         self.ui.spiderExecutableLineEdit.setText(exe)
     
     @qtSlot()

@@ -152,12 +152,16 @@ from ..core.learn import unary_classification
 from ..core.parallel import mpi_utility
 from ..core.spider import spider, spider_file
 from ..core.util import plotting
-import os, numpy, logging, itertools #, scipy
+import os
+import numpy
+import logging
+import itertools
+import functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, **extra):
+def process(filename, output, id_len=0, skip_defocus=False, **extra):
     ''' Esimate the defocus of the given micrograph
     
     :Parameters:
@@ -168,6 +172,8 @@ def process(filename, output, id_len=0, **extra):
              Output defocus file
     id_len : int
              Max length of SPIDER ID
+    skip_defocus : bool
+                   Skip the defocus estimation step
     extra : dict
             Unused key word arguments
     
@@ -188,17 +194,18 @@ def process(filename, output, id_len=0, **extra):
     except ndimage_file.InvalidHeaderException:
         _logger.warn("Skipping %s - invalid header"%(filename))
         return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
-    _logger.debug("rotational average")
-    rotational_average(power_spec, **extra) #ro_arr = 
-    _logger.debug("estimate defocus")
-    try:
-        ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
-    except spider.SpiderCrashed:
-        _logger.warn("SPIDER crashed - attempting to restart - try increasing the padding and or window size")
-        extra['spi'].relaunch()
-    except:
-        _logger.exception("Failed to estimate defocus for %s"%filename)
-        raise
+    if not skip_defocus:
+        _logger.debug("rotational average")
+        rotational_average(power_spec, **extra) #ro_arr = 
+        _logger.debug("estimate defocus")
+        try:
+            ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
+        except spider.SpiderCrashed:
+            _logger.warn("SPIDER crashed - attempting to restart - try increasing the padding and or window size")
+            extra['spi'].relaunch()
+        except:
+            _logger.exception("Failed to estimate defocus for %s"%filename)
+            raise
 
     return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
 
@@ -289,9 +296,10 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
             _logger.error("Host: %s"%mpi_utility.hostname())
             raise
         if image_count > 1:
-            if image_count > 1: raise ValueError, "Frames not supported - %s"%filename
+            _logger.warn("Frames not supported - assuming input is a stack of particles!")
+            #if image_count > 1: raise ValueError, "Frames not supported - %s"%filename
             rwin = ndimage_file.iter_images(filename)
-            rwin = itertools.imap(prepare_micrograph, rwin, bin_factor, invert)
+            rwin = itertools.imap(functools.partial(prepare_micrograph, bin_factor=bin_factor, invert=invert), rwin)
         else:
             mic = prepare_micrograph(ndimage_file.read_image(filename), bin_factor, invert)
             if output_mic != "" and bin_micrograph > 0:
@@ -689,7 +697,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   invert=False,                                   help="Invert the contrast of CCD micrographs")
     group.add_option("",   bin_micrograph=6.0,                             help="Number of times to decimate the micrograph - for micrograph selection (not used for defocus estimation)")
     group.add_option("",   summary=False,                                  help="Write out a summary for the power spectra")
-    group.add_option("",  use_8bit=False,                                   help="Write decimate micrograph as 8-bit mrc")
+    group.add_option("",   use_8bit=False,                                 help="Write decimate micrograph as 8-bit mrc")
+    group.add_option("",   skip_defocus=False,                             help="Write only power spectra and decimated micrographs")
     pgroup.add_option_group(group)
     
     setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, for_window_in_micrograph
