@@ -368,6 +368,13 @@ class check_dep(Command):
             log.info("Checking for %s: found%s"%(package, version))
         sys.exit(len(notfound))
 
+def get_readme():
+    '''
+    '''
+    
+    try: return open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read()
+    except: return None
+
 if __name__ == '__main__':
     
     kwargs = build_description(arachnid)
@@ -375,7 +382,7 @@ if __name__ == '__main__':
             'console_scripts': arachnid.setup.console_scripts,
             'gui_scripts': arachnid.setup.gui_scripts
           },
-          long_description = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read(),
+          long_description = get_readme(),
           data_files=[('rst', rglob("*.rst"))],
           install_requires = [
             'numpy',
