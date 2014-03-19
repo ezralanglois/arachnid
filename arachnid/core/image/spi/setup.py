@@ -19,19 +19,12 @@ def configuration(parent_package='',top_path=None):
     try:
         fftw_opt = get_info('mkl',notfound_action=2)
     except:
-        fftw_lib = 'fftw3f'
-        fftw_lib_path = ''
-        if os.path.exists(os.path.join(fftw_lib_path, 'lib'+fftw_lib+'.a')):
-            #fftw_opt=dict(libraries=[fftw_static])
-            #fftw_opt=dict(libraries=[os.path.splitext(os.path.basename(fftw_static)[3:])[0]], library_dirs=[os.path.dirname(fftw_static)])
-            fftw_opt=dict(libraries=[fftw_lib])#, library_dirs=[fftw_lib_path])
-        else:
-            try: 
-                fftw_opt = get_info('fftw',notfound_action=2)
-                #fftw_opt['libraries']=['fftw3f']
-                fftw_opt['libraries'].extend(['fftw3f'])
-                fftw_opt['library_dirs'].extend(['/usr/lib'])
-            except: fftw_opt=dict(libraries=['fftw3f'])
+        try: 
+            fftw_opt = get_info('fftw',notfound_action=2)
+            #fftw_opt['libraries']=['fftw3f']
+            fftw_opt['libraries'].extend(['fftw3f'])
+            fftw_opt['library_dirs'].extend(['/usr/lib'])
+        except: fftw_opt=dict(libraries=['fftw3f'])
     if 'library_dirs' not in fftw_opt: fftw_opt['library_dirs']=[]
     if 'include_dirs' not in fftw_opt: fftw_opt['include_dirs']=[]
     config = Configuration('spi', parent_package, top_path)
