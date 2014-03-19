@@ -19,10 +19,12 @@ def configuration(parent_package='',top_path=None):
     try:
         fftw_opt = get_info('mkl',notfound_action=2)
     except:
-        fftw_static='/data/robertl/development_master/lib/fftw/lib/libfftw3f.a'
-        if os.path.exists(fftw_static):
+        fftw_lib = 'fftw3f'
+        fftw_lib_path = ''
+        if os.path.exists(os.path.join(fftw_lib_path, 'lib'+fftw_lib+'.a')):
             #fftw_opt=dict(libraries=[fftw_static])
-            fftw_opt=dict(libraries=[os.path.splitext(os.path.basename(fftw_static)[3:])[0]], library_dirs=[os.path.dirname(fftw_static)])
+            #fftw_opt=dict(libraries=[os.path.splitext(os.path.basename(fftw_static)[3:])[0]], library_dirs=[os.path.dirname(fftw_static)])
+            fftw_opt=dict(libraries=[fftw_lib])#, library_dirs=[fftw_lib_path])
         else:
             try: 
                 fftw_opt = get_info('fftw',notfound_action=2)
