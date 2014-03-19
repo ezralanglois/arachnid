@@ -158,6 +158,24 @@ def read_header(filename, index=None):
     header['format'] = eman2_utility.EMAN2.EMUtil.get_imagetype_name(eman2_utility.EMAN2.EMUtil.get_image_type(filename))
     return header
 
+def valid_image(filename):
+    ''' Test if the image is valid
+    
+    :Parameters:
+    
+        filename : str
+                   Input filename to test
+    
+    :Returns:
+        
+        flag : bool
+               True if image is valid
+    '''
+    
+    try: read_image(filename)
+    except: return False
+    return True
+
 def read_image(filename, index=None, header=None, cache=None):
     '''Read an image from an EMAN2/Sparx supported format
     

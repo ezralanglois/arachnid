@@ -404,6 +404,28 @@ def iter_images(filename, index=None, header=None):
     finally:
         util.close(filename, f)
 
+def valid_image(filename):
+    ''' Test if the image is valid
+    
+    :Parameters:
+    
+        filename : str
+                   Input filename to test
+    
+    :Returns:
+        
+        flag : bool
+               True if image is valid
+    '''
+    
+    f = util.uopen(filename, 'rb')
+    try:
+        h = read_mrc_header(f)
+        total = file_size(f)
+        return total == (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize)
+    finally:
+        util.close(filename, f)
+
 def read_image(filename, index=None, header=None, cache=None):
     ''' Read an image from the specified file in the MRC format
     

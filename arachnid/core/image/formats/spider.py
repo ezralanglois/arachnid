@@ -237,6 +237,31 @@ def read_spider_header(filename, index=None):
         util.close(filename, f)
     return h
 
+def valid_image(filename):
+    ''' Test if the image is valid
+    
+    :Parameters:
+    
+        filename : str
+                   Input filename to test
+    
+    :Returns:
+        
+        flag : bool
+               True if image is valid
+    '''
+    
+    f = util.uopen(filename, 'rb')
+    try:
+        h = read_spider_header(f)
+        h_len = int(h['labbyt'])
+        d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
+        i_len = d_len * 4
+        count = count_images(h)
+        return file_size(f) == (h_len + count * (h_len+i_len))
+    finally:
+        util.close(filename, f)
+
 def read_image(filename, index=None, header=None):
     ''' Read an image from the specified file in the SPIDER format
     

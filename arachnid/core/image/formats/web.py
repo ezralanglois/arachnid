@@ -290,6 +290,28 @@ def read_header(filename, index=None):
     header['format'] = 'mrc'
     return header
 
+def valid_image(filename):
+    ''' Test if the image is valid
+    
+    :Parameters:
+    
+        filename : str
+                   Input filename to test
+    
+    :Returns:
+        
+        flag : bool
+               True if image is valid
+    '''
+    
+    f = util.uopen(filename, 'rb')
+    try:
+        h = read_web_header(f)
+        offset, ar_args = array_from_header(h)
+        return file_size(f) == (offset + h['count'] * ar_args[1] * ar_args[0].itemsize)
+    finally:
+        util.close(filename, f)
+
 def read_image(filename, index=None, header=None, cache=None):
     ''' Read an image from the specified file in the WEB format
     

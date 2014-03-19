@@ -537,6 +537,15 @@ def get_window(avg, crop=[], **extra):
 def initialize(files, param):
     # Initialize global parameters for the script
     
+    if mpi_utility.is_root(**param):
+        n = len(files)
+        for filename in param['finished']:
+            if not ndimage_file.valid_image(filename): 
+                files.append(filename)
+        if len(files) > n:
+            _logger.warn("Found %d corrupt files - reprocessing them"%(len(files)-n))
+    files = mpi_utility.broadcast(files, **param)
+    
     count = ndimage_file.count_images(files[0])
     _logger.info("Aligning %d stacks with %d frames in each"%(len(files), count))
     if param['param_file'] != "":

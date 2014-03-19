@@ -107,6 +107,28 @@ def is_readable(filename):
     filename = readlinkabs(filename)
     return get_read_format(filename) is not None
 
+def valid_image(filename):
+    ''' Test if the image is valid
+    
+    :Parameters:
+    
+        filename : str
+                   Input filename to test
+    
+    :Returns:
+        
+        flag : bool
+               True if image is valid
+    '''
+    
+    filename = readlinkabs(filename)
+    try:
+        format = get_read_format_except(filename)
+    except: return False
+    try:
+        return format.valid_image(filename)
+    except: return False
+
 def read_header(filename, index=None):
     '''Read the header of an image from the given file
     
