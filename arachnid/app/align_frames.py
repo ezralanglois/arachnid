@@ -144,6 +144,7 @@ from ..core.metadata import format_utility
 from ..core.metadata import spider_params
 from ..core.metadata import spider_utility
 from ..core.metadata import selection_utility
+from ..core.parallel import mpi_utility
 from ..core.util import drawing
 from ..core.util import plotting
 import scipy.fftpack

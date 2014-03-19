@@ -155,8 +155,8 @@ from ..core.util import plotting
 import os
 import numpy
 import logging
-import itertools
-import functools
+#import itertools
+#import functools
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -299,7 +299,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
             _logger.warn("Frames not supported - assuming input is a stack of particles!")
             #if image_count > 1: raise ValueError, "Frames not supported - %s"%filename
             rwin = ndimage_file.iter_images(filename)
-            rwin = itertools.imap(functools.partial(prepare_micrograph, bin_factor=bin_factor, invert=invert), rwin)
+            #rwin = itertools.imap(functools.partial(prepare_micrograph, bin_factor=bin_factor, invert=invert), rwin)
         else:
             mic = prepare_micrograph(ndimage_file.read_image(filename), bin_factor, invert)
             if output_mic != "" and bin_micrograph > 0:

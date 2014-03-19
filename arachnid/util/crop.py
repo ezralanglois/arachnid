@@ -625,7 +625,9 @@ def initialize(files, param):
         else:
             tot = ndimage_file.count_images(filename)
         for filename in param['finished']:
-            if tot > 1:
+            if not ndimage_file.valid_image(filename):
+                files.append(filename)
+            elif tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
                 ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
                 # Todo only add frames that require processing
