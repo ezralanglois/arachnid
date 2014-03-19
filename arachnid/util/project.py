@@ -409,6 +409,8 @@ def check_options(options, main_option=False):
         _logger.warn("No gain reference specified for movie mode alignment!")
     
     path = spider.determine_spider(options.spider_path)
+    if path == "": options.spider_path = os.path.dirname(sys.argv[0])
+    path = spider.determine_spider(options.spider_path)
     if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
     options.spider_path = path
     if options.apix == 0.0:
