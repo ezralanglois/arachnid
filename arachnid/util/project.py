@@ -386,7 +386,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup.add_option("", view_file="local/vicer/view/view_000000.dat",          help="Location of images embedded in low-dimensional factor space", gui=dict(filetype="open"))
     shrgroup.add_option("", selection_file="local/screen/select.dat",              help="Location of micrograph selection", gui=dict(filetype="open"))
     shrgroup.add_option("", small_micrograph_file="local/mic_sm/mic_000000.dat",   help="Location of micrograph selection", gui=dict(filetype="open"))
-    shrgroup.add_option("", frame_shift_file="local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
+    shrgroup.add_option("", translation_file="local/movie/shift/shift_000000.dat", help="Location of frame shifts for each micrograph", gui=dict(filetype="open"))
+    
     #shrgroup.add_option("", local_temp="data/temp/",                                    help="Location for temporary files (on local node for MPI)", gui=dict(filetype="open"))
     
     ########################################################################################################
