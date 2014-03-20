@@ -422,6 +422,7 @@ def valid_image(filename):
     try:
         h = read_mrc_header(f)
         total = file_size(f)
+        dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         return total == (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize)
     finally:
         util.close(filename, f)

@@ -312,6 +312,11 @@ def valid_image(filename):
     finally:
         util.close(filename, f)
 
+def file_size(fileobject):
+    fileobject.seek(0,2) # move the cursor to the end of the file
+    size = fileobject.tell()
+    return size
+
 def read_image(filename, index=None, header=None, cache=None):
     ''' Read an image from the specified file in the WEB format
     
