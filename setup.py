@@ -194,9 +194,10 @@ except:
     import setuptools
 import arachnid.distutils.sdist
 import arachnid.distutils.check_dep
-from numpy.distutils.core import setup
+
 from distutils import log
 import os
+import sys
 import fnmatch
 import arachnid.setup
 
@@ -269,11 +270,22 @@ def get_readme():
     
     try: return open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'README.rst')).read()
     except: return None
+    
+def setup_package(**extra):
+    '''
+    '''
+    
+    if sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.') or '--help' in sys.argv:
+        from setuptools import setup
+        setup(**extra)
+    else:
+        from numpy.distutils.core import setup
+        setup(**extra)
 
 if __name__ == '__main__':
     
     kwargs = build_description(arachnid)
-    setup(entry_points = {
+    setup_package(entry_points = {
             'console_scripts': arachnid.setup.console_scripts,
             'gui_scripts': arachnid.setup.gui_scripts
           },
