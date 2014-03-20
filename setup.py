@@ -301,7 +301,7 @@ setup_package(entry_points = {
         'matplotlib',
         'sqlalchemy', 
         'mysql-python',
-        'PIL',
+        'pil',
         'basemap',
         'setuptools', #distribute
         #'PySide',

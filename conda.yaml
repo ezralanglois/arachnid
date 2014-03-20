@@ -1,0 +1,43 @@
+{% extends "setuptools.yaml" %}
+
+{% block build -%}
+
+  {{ super() }}
+
+  {% block entry_points -%}
+  entry_points: {{data.get('entry_points', {}).get('console_scripts', [])+data.get('entry_points', {}).get('gui_scripts', [])}}
+  {%- endblock %}
+  
+  features: 
+    - mkl
+
+  track_features:
+    - mkl
+
+  preserve_egg_dir: True
+
+{%- endblock %}
+
+
+{% block requirements -%}
+requirements:
+  build:
+    - python
+    - setuptools
+    {% for req in data.get('install_requires', []) -%}
+    - {{req}}
+    {% endfor %}
+    - atlas
+    - arachnid-build
+    
+  run:
+    - python
+    - setuptools
+    {% for req in data.get('install_requires', []) -%}
+    - {{req}}
+    {% endfor %}
+    - PySide
+    - arachnid-spider
+
+{%- endblock %}
+
