@@ -90,7 +90,13 @@ def draw_particle_boxes(mic, coords, window, bin_factor=1.0, outline="#ff4040", 
     for box in coords:
         x = box.x / bin_factor
         y = box.y / bin_factor
-        draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline=outline, width=width)
+        if width is not None and width > 1:
+            draw.line((x-offset, y-offset, x+offset, y-offset), outline, width)#top
+            draw.line((x-offset, y-offset, x-offset, y+offset), outline, width)#left
+            draw.line((x-offset, y+offset, x+offset, y+offset), outline, width)#bottom
+            draw.line((x+offset, y-offset, x+offset, y+offset), outline, width)#right
+        else:
+            draw.rectangle((x+offset, y+offset, x-offset, y-offset), fill=None, outline=outline)
     return mic
 
 def draw_particle_boxes_to_file(mic, coords, window, bin_factor=1.0, box_image="", **extra):
