@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Development &mdash; arachnid 0.1.4_288_g8f88b7d documentation</title>
+    <title>Development &mdash; arachnid 0.1.5_78_geb34dd9 documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.4_288_g8f88b7d',
+        VERSION:     '0.1.5_78_geb34dd9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_288_g8f88b7d documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.5_78_geb34dd9 documentation" href="../index.html" />
     <link rel="up" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
     <link rel="next" title="Arachnid API" href="api.html" />
     <link rel="prev" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_288_g8f88b7d</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.5_78_geb34dd9</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -136,6 +136,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="install.html#anaconda">Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="install.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#quick-start">Quick Start</a></li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#troubleshooting">Troubleshooting</a></li>
@@ -285,7 +286,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#contributing-code">Contributing Code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#testing-compilation-of-code">Testing compilation of code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stable-release">Stable Release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#development-release-daily-build">Development Release (Daily Build)</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#create-a-program-script">Create a Program Script</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#basic-program">Basic Program</a></li>
@@ -932,7 +938,12 @@
 <li><a class="reference internal" href="#contributing-code">Contributing Code</a></li>
 <li><a class="reference internal" href="#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li><a class="reference internal" href="#testing-compilation-of-code">Testing compilation of code</a></li>
-<li><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#stable-release">Stable Release</a></li>
+<li><a class="reference internal" href="#development-release-daily-build">Development Release (Daily Build)</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#documentation-hack">Documentation Hack</a></li>
 <li><a class="reference internal" href="#create-a-program-script">Create a Program Script</a><ul>
 <li><a class="reference internal" href="#basic-program">Basic Program</a></li>
@@ -1076,10 +1087,73 @@ the suppressions.</li>
 </div>
 <div class="section" id="packaging-for-anaconda">
 <h2>Packaging for Anaconda<a class="headerlink" href="#packaging-for-anaconda" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>conda skeleton pypi arachnid
+<div class="section" id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Install the conda build command</span>
 
-<span class="nv">$ </span>conda build arachnid/
+conda install conda-build
 </pre></div>
+</div>
+</div>
+<div class="section" id="stable-release">
+<h3>Stable Release<a class="headerlink" href="#stable-release" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Upload new source distribution to PyPI</span>
+
+<span class="nv">$ </span>cp conda-stable.yaml conda.yaml
+
+<span class="c"># Build a binary release for Anaconda</span>
+
+<span class="nv">$ </span>conda build .
+
+<span class="c"># Upload to binstar.org repository</span>
+
+<span class="nv">$ </span>binstar upload <span class="nv">$HOME</span>/anaconda/conda-bld/linux-64/arachnid-0.1.4-py27_0.tar.bz2
+</pre></div>
+</div>
+</div>
+<div class="section" id="development-release-daily-build">
+<h3>Development Release (Daily Build)<a class="headerlink" href="#development-release-daily-build" title="Permalink to this headline">¶</a></h3>
+<p>This protocol assumes that you have either created or edited the <cite>meta.yaml</cite>
+file from the <cite>Stable Release</cite> section.</p>
+<p>We assume this file is kep in <cite>arachnid-dev</cite>.</p>
+<p>The following lines are changed in the meta.yaml file from:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">package</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">arachnid</span>
+  <span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="kt">!!str</span> <span class="l-Scalar-Plain">0.1.5</span>
+
+<span class="l-Scalar-Plain">source</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">fn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">arachnid-0.1.5.tar.gz</span>
+  <span class="l-Scalar-Plain">url</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https://pypi.python.org/packages/source/a/arachnid/arachnid-0.1.5.tar.gz</span>
+  <span class="l-Scalar-Plain">md5</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">cc13499de5d2cb59e12321311a5eaf97</span>
+</pre></div>
+</div>
+<p>To:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">package</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">arachnid-dev</span>
+  <span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="kt">!!str</span> <span class="l-Scalar-Plain">0.1.dev</span>
+
+<span class="l-Scalar-Plain">source</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">fn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">master.zip</span>
+  <span class="l-Scalar-Plain">url</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https://github.com/ezralanglois/arachnid/archive/master.zip</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">We point the url to the source zip from the GIT repository.</p>
+</div>
+<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Push latest changes to GIT repository</span>
+
+<span class="nv">$ </span>git push origin master --tags
+
+<span class="c"># Build a binary release for Anaconda</span>
+
+<span class="nv">$ </span>conda build arachnid-devel
+
+<span class="c"># Upload to binstar.org repository (We use --force to overwrite the old package)</span>
+
+<span class="nv">$ </span>binstar upload /home/robertl/anaconda/conda-bld/linux-64/arachnid-dev-0.1.dev-py27_0.tar.bz2 --force
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="documentation-hack">

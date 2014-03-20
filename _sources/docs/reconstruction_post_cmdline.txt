@@ -1,0 +1,50 @@
+========================
+Post Processing Protocol
+========================
+
+This protocol describes post-processing of the single-particle reconstruction run
+by either Relion or SPIDER.
+
+Relion and SPIDER
+=================
+
+The following describes post-processing of either SPIDER or Relion alignment
+files.
+
+Angular Distribution
+--------------------
+
+The distribution of the projections in 3D space is an important factor in the quality of
+a reconstruction. It indicates areas on the reconstruction that may be artifactual or just
+low-resolution due to missing projections.
+
+The `ara-coverage` script, by default, maps a visual histogram of projection distribution
+on a 2D projection of a sphere.
+
+.. sourcecode:: sh
+
+	$ ara-coverage relion-it001_data.star -o coverage.png
+
+Relion-Only
+============
+
+The following describes post-processing of Relion alignment files.
+
+Class Selection
+---------------
+
+
+
+
+Relion Movie-mode Alignment
+---------------------------
+
+
+
+
+Chimera
+=======
+
+Ctrl to select segment before merging.
+
+segment exportmask sel savePath mask.mrc

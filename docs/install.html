@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; arachnid 0.1.4_288_g8f88b7d documentation</title>
+    <title>Installation &mdash; arachnid 0.1.5_78_geb34dd9 documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.4_288_g8f88b7d',
+        VERSION:     '0.1.5_78_geb34dd9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_288_g8f88b7d documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.5_78_geb34dd9 documentation" href="../index.html" />
     <link rel="up" title="Arachnid User’s Guide" href="../users_guide.html" />
     <link rel="next" title="Installation" href="install_franklab.html" />
     <link rel="prev" title="Arachnid User’s Guide" href="../users_guide.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_288_g8f88b7d</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.5_78_geb34dd9</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -136,6 +136,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
@@ -285,7 +286,12 @@
 <li class="toctree-l3"><a class="reference internal" href="development.html#contributing-code">Contributing Code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="development.html#testing-compilation-of-code">Testing compilation of code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="development.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="development.html#stable-release">Stable Release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="development.html#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="development.html#create-a-program-script">Create a Program Script</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="development.html#basic-program">Basic Program</a></li>
@@ -928,6 +934,7 @@
 <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
 <li><a class="reference internal" href="#anaconda">Anaconda</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li><a class="reference internal" href="#step-by-step">Step-by-step</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
@@ -964,11 +971,25 @@
 <p>The recommended method for most users to install Arachnid is
 to use the Anaconda package. Anaconda makes it simple to install
 all the Arachnid dependencies.</p>
+<div class="section" id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">You must also install the SPIDER package. This includes a single binary
 executable which is necessary to run the standard Arachnid workflow. It
 can be found at: <a class="reference external" href="http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html">http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html</a></p>
+</div>
+<p>The following prerequisites are generally already available on many Linux distributions
+but, have been found to be absent from a few.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Fortran runtime libraries: libgfortran.so.3</li>
+<li>Fastest Fourier transform (in the west): libfftw3.so (No longer required for the daily build)</li>
+</ul>
+</div></blockquote>
+<p>I am currently working to address these missing dependencies. The daily builds have already
+included the Fastest Fourier transform (in the west) and include SPIDER. The <cite>ara-control</cite>
+and <cite>ara-project</cite> scripts should automatically find the included SPIDER executables.</p>
 </div>
 <div class="section" id="quick-start">
 <h3>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h3>
@@ -1057,6 +1078,28 @@ conda update arachnid</pre>
 <div class="section" id="troubleshooting">
 <h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
+<li><p class="first">Arachnid does not seem to be running or stalls!</p>
+<blockquote>
+<div><p>Run <cite>ara-vicer</cite>, if you see the following error message, then you are
+using the accelerated version of Arachnid and require a license file
+from continuum. Good news, this is free if you have .edu email!</p>
+<p>See <a class="reference internal" href="#speeding-up-the-code">Speeding up the code</a> for more information.</p>
+<p>Alternatively, you can install a non-accelerated version of Arachnid.</p>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-vicer
+
+Vendor:  Continuum Analytics, Inc.
+Package: mkl
+Message: trial mode EXPIRED 221 days ago
+
+    You cannot run mkl without a license any longer.
+    A license can be purchased it at: http://continuum.io
+    We are sorry <span class="k">for </span>any inconveniences.
+
+    SHUTTING DOWN PYTHON INTERPRETER
+</pre></div>
+</div>
+</div></blockquote>
+</li>
 <li><p class="first">If the installation gives the following error:</p>
 <blockquote>
 <div><div class="highlight-sh"><div class="highlight"><pre>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
@@ -1077,6 +1120,12 @@ from conda.cli import main
 <div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>conda install -c https://conda.binstar.org/asmeurer pyside --yes
 </pre></div>
 </div>
+</div></blockquote>
+</li>
+<li><p class="first">Alternative PyQt4 library for the GUI</p>
+<blockquote>
+<div><p>A user reported that installing the PyQt4 library using conda did not work. If you run into the
+same problem, then the workaround is to manually <a class="reference external" href="https://binstar.org/asmeurer/pyqt/4.10.3/files">download</a> the library.</p>
 </div></blockquote>
 </li>
 <li><p class="first">Install the daily build to get the latest bug fixes for the current version</p>
@@ -1121,7 +1170,7 @@ with the command:</p>
 <h2>From Source<a class="headerlink" href="#from-source" title="Permalink to this headline">¶</a></h2>
 <p>Download the package from</p>
 <ul class="simple">
-<li>Latest stable version: <a class="reference external" href="https://pypi.python.org/packages/source/a/arachnid/arachnid">https://pypi.python.org/packages/source/a/arachnid/arachnid</a>-0.1.4_288_g8f88b7d.tar.gz</li>
+<li>Latest stable version: <a class="reference external" href="https://pypi.python.org/packages/source/a/arachnid/arachnid">https://pypi.python.org/packages/source/a/arachnid/arachnid</a>-0.1.5_78_geb34dd9.tar.gz</li>
 <li>Latest development version: <a class="reference external" href="https://github.com/ezralanglois/arachnid/archive/master.zip">https://github.com/ezralanglois/arachnid/archive/master.zip</a></li>
 </ul>
 <p>Then unpack the sources and cd into archive.</p>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>tracing &mdash; arachnid 0.1.4_288_g8f88b7d documentation</title>
+    <title>tracing &mdash; arachnid 0.1.5_78_geb34dd9 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.4_288_g8f88b7d',
+        VERSION:     '0.1.5_78_geb34dd9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.4_288_g8f88b7d documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.5_78_geb34dd9 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="arachnid.core.app.tracing.ColoredFormatter" href="api_generated/arachnid.core.app.tracing.ColoredFormatter.html" />
     <link rel="prev" title="arachnid.core.app.settings.optlist" href="api_generated/arachnid.core.app.settings.optlist.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.4_288_g8f88b7d</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.5_78_geb34dd9</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -136,6 +136,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#troubleshooting">Troubleshooting</a></li>
@@ -285,7 +286,12 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#contributing-code">Contributing Code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#stable-release">Stable Release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#documentation-hack">Documentation Hack</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#create-a-program-script">Create a Program Script</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#basic-program">Basic Program</a></li>
@@ -1152,26 +1158,22 @@ will be given a unique name based on the current date and time.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Name of the file to backup</dd>
+<dd><p class="first last">Name of the file to backup</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">New unique name for the file to backup or None if no file existed to back up</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>New unique name for the file to backup or None if no file existed to back up</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1191,26 +1193,22 @@ version of the specified file.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Name of the file to backup</dd>
+<dd><p class="first last">Name of the file to backup</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">New unique name for the file to backup</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>New unique name for the file to backup</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1231,14 +1229,15 @@ pre-processing of the options before the program is run.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><p class="first last">Object whose fields are options that hold the corresponding values</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
-<dd>Object whose fields are options that hold the corresponding values</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1261,26 +1260,33 @@ pre-processing of the options before the program is run.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>rank <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Identifier for process</p>
+</dd>
+<dt>log_level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Level for logging application wide</p>
+</dd>
+<dt>log_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File path for logging messages</p>
+</dd>
+<dt>log_config <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File path for logging configuration</p>
+</dd>
+<dt>enable_stderr <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Do redirect to stderr</p>
+</dd>
+<dt>log_mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Mode to open log file</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>rank <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Identifier for process</dd>
-<dt>log_level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Level for logging application wide</dd>
-<dt>log_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>File path for logging messages</dd>
-<dt>log_config <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>File path for logging configuration</dd>
-<dt>enable_stderr <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Do redirect to stderr</dd>
-<dt>log_mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Mode to open log file</dd>
-<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1300,20 +1306,24 @@ log file name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output log filename</p>
+</dd>
+<dt>level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Level for logging, default logging.DEBUG</p>
+</dd>
+<dt>process_number <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Process number passed by API</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output log filename</dd>
-<dt>level <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Level for logging, default logging.DEBUG</dd>
-<dt>process_number <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Process number passed by API</dd>
-<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1332,16 +1342,18 @@ log file name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>rank <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Identifier for process</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>rank <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Identifier for process</dd>
-<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1360,16 +1372,18 @@ log file name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameter:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameter:</th><td class="field-body"><dl class="first last docutils">
+<dt>message <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Message to log</p>
+</dd>
+<dt>logger <span class="classifier-delimiter">:</span> <span class="classifier">Logger, optional</span></dt>
+<dd><p class="first last">Specific logger to use</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>message <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Message to log</dd>
-<dt>logger <span class="classifier-delimiter">:</span> <span class="classifier">Logger, optional</span></dt>
-<dd>Specific logger to use</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1402,16 +1416,18 @@ log file name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>parser <span class="classifier-delimiter">:</span> <span class="classifier">OptionParser</span></dt>
+<dd><p class="first last">Program option parser</p>
+</dd>
+<dt>pgroup <span class="classifier-delimiter">:</span> <span class="classifier">OptionGroup</span></dt>
+<dd><p class="first last">Parent option group</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>parser <span class="classifier-delimiter">:</span> <span class="classifier">OptionParser</span></dt>
-<dd>Program option parser</dd>
-<dt>pgroup <span class="classifier-delimiter">:</span> <span class="classifier">OptionGroup</span></dt>
-<dd>Parent option group</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1430,14 +1446,15 @@ log file name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>flag <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if terminal supports colors</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>flag <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>True if terminal supports colors</dd>
-</dl>
 </dd></dl>
 
 </div>
