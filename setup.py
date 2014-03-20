@@ -221,6 +221,7 @@ def build_description(package, extra=None):
                 Keyword arguments to setup the package description
     '''
     from distutils import log # Workaround for conda build with jinga
+    import setuptools # Workaround for conda build with jinga
     
     if extra is None: extra = {}
     description = [('name', 'project'), 'version', 'author', 'license', 'author_email', 'description', 'url', 'download_url', 'keywords', 'classifiers', 'platforms']#, ('long_description', 'doc')
