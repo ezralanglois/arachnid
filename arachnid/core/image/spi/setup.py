@@ -9,7 +9,7 @@ This setup file defines a build script for C/C++ or Fortran extensions.
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info
-    from arachnid.setup import compiler_options #detect_openmp
+    from arachnid.distutils.compiler import compiler_options #detect_openmp
     import os
     
     compiler_args, compiler_libraries, compiler_defs, ccompiler_args, ccompiler_lib, ccompiler_defs = compiler_options()[:6]

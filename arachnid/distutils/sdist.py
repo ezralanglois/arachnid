@@ -8,7 +8,7 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from distutils import command
+from distutils.command import sdist as command_sdist
 import subprocess
 import os
 import re
@@ -69,11 +69,11 @@ def get_version():
             return ver
     return None
 
-class sdist(command.sdist.sdist):
+class sdist(command_sdist.sdist):
     '''Adopted from https://github.com/warner/python-ecdsa
     '''
     def run(self):
         update_version_py()
         self.distribution.metadata.version = get_version()
         print 'Update version', self.distribution.metadata.version
-        return command.sdist.sdist.run(self)
+        return command_sdist.sdist.run(self)

@@ -15,7 +15,7 @@ setup(name='_transformations', ext_modules=[
 
 def configuration(parent_package='',top_path=None):  
     from numpy.distutils.misc_util import Configuration
-    from arachnid.setup import compiler_options
+    from arachnid.distutils.compiler import compiler_options
     import os
     config = Configuration('core', parent_package, top_path)
     compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
