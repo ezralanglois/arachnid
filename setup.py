@@ -195,10 +195,8 @@ except:
 import arachnid.distutils.sdist
 import arachnid.distutils.check_dep
 
-from distutils import log
 import os
 import sys
-import fnmatch
 import arachnid.setup
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
@@ -222,6 +220,7 @@ def build_description(package, extra=None):
         extra : dict
                 Keyword arguments to setup the package description
     '''
+    from distutils import log # Workaround for conda build with jinga
     
     if extra is None: extra = {}
     description = [('name', 'project'), 'version', 'author', 'license', 'author_email', 'description', 'url', 'download_url', 'keywords', 'classifiers', 'platforms']#, ('long_description', 'doc')
@@ -258,6 +257,7 @@ def rglob(pattern, root=os.curdir):
           List of files
     '''
     
+    import fnmatch # Workaround for conda build with jinga
     filenames = []
     for path, _, files in os.walk(os.path.abspath(root)):
         for filename in fnmatch.filter(files, pattern):
