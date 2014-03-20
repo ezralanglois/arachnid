@@ -275,45 +275,44 @@ def setup_package(**extra):
     '''
     '''
     
-    if sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.') or '--help' in sys.argv:
+    if ('build_sphinx' in sys.argv or 'sphinx-build' in sys.argv) and __name__ != '__main__': return # Do not invoke if sphinx is called
+    if len(sys.argv) > 1 and (sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.', '') or '--help' in sys.argv):
         from setuptools import setup
         setup(**extra)
     else:
         from numpy.distutils.core import setup
         setup(**extra)
 
-if __name__ == '__main__':
-    
-    kwargs = build_description(arachnid)
-    setup_package(entry_points = {
-            'console_scripts': arachnid.setup.console_scripts,
-            'gui_scripts': arachnid.setup.gui_scripts
-          },
-          long_description = get_readme(),
-          data_files=[('rst', rglob("*.rst"))],
-          install_requires = [
-            'numpy',
-            'scipy',
-            'psutil',
-            'scikit-learn',
-            'scikit-image',
-            'mpi4py>=1.2.2',
-            'matplotlib>=1.1.0',
-            'sqlalchemy>=0.8.2', 
-            'mysql-python',
-            'PIL>=1.1.7',
-            'basemap',
-            'setuptools', #distribute
-            #'PySide',
-            ],
-            #extras_require = dict(pyside="PySide"), #[pyside]
-            #setup_requires = [ - causes conda build to fail
-            #'Sphinx>=1.0.4',
-            #'nose>=1.0',
-            #],
-            cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist},
-            test_suite = 'nose.collector',
-            **kwargs
-    )
+kwargs = build_description(arachnid)
+setup_package(entry_points = {
+        'console_scripts': arachnid.setup.console_scripts,
+        'gui_scripts': arachnid.setup.gui_scripts
+      },
+      long_description = get_readme(),
+      data_files=[('rst', rglob("*.rst"))],
+      install_requires = [
+        'numpy',
+        'scipy',
+        'psutil',
+        'scikit-learn',
+        'scikit-image',
+        'mpi4py>=1.2.2',
+        'matplotlib>=1.1.0',
+        'sqlalchemy>=0.8.2', 
+        'mysql-python',
+        'PIL>=1.1.7',
+        'basemap',
+        'setuptools', #distribute
+        #'PySide',
+        ],
+        #extras_require = dict(pyside="PySide"), #[pyside]
+        #setup_requires = [ - causes conda build to fail
+        #'Sphinx>=1.0.4',
+        #'nose>=1.0',
+        #],
+        cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist},
+        test_suite = 'nose.collector',
+        **kwargs
+)
 
 
