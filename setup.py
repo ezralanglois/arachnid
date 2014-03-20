@@ -192,11 +192,12 @@ except:
     import ez_setup #@UnresolvedImport
     ez_setup.use_setuptools()
     import setuptools
+import arachnid.distutils.sdist
+import arachnid.distutils.check_dep
 from numpy.distutils.core import setup
-from distutils.core import Command
-from distutils import command
 from distutils import log
-import os, fnmatch, sys, re,subprocess
+import os
+import fnmatch
 import arachnid.setup
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
@@ -210,15 +211,15 @@ def build_description(package, extra=None):
     
     :Parameters:
 
-    package : str
-              Name of the package
-    extra : dict
-            Keyword arguments to setup the package description
+        package : str
+                  Name of the package
+        extra : dict
+                Keyword arguments to setup the package description
     
     :Returns:
-    
-    extra : dict
-            Keyword arguments to setup the package description
+        
+        extra : dict
+                Keyword arguments to setup the package description
     '''
     
     if extra is None: extra = {}
@@ -262,112 +263,6 @@ def rglob(pattern, root=os.curdir):
             filenames.append( os.path.join(path, filename) )
     return filenames
 
-
-#####
-VERSION_PY = """
-# This file is originally generated from Git information by running 'setup.py
-# sdist'. Distribution tarballs contain a pre-generated copy of this file.
-
-__version__ = '%s'
-"""
-
-def update_version_py():
-    '''
-    Adopted from https://github.com/warner/python-ecdsa
-    '''
-    
-    if not os.path.isdir(".git"):
-        print "This does not appear to be a Git repository."
-        return
-    try:
-        p = subprocess.Popen(["git", "describe",
-                              "--tags"], #, "--dirty", "--always"
-                             stdout=subprocess.PIPE)
-    except EnvironmentError:
-        print "unable to run git, leaving ecdsa/_version.py alone"
-        return
-    stdout = p.communicate()[0]
-    if p.returncode != 0:
-        print "unable to run git, leaving ecdsa/_version.py alone"
-        return
-    # we use tags like "v0.5", so strip the prefix
-    assert stdout.startswith("v")
-    ver = stdout[len("v"):].strip()
-    # Ensure the version number is compatiable with eggs - Robert Langlois
-    ver = ver.replace('-', '_') 
-    f = open("arachnid/_version.py", "w")
-    f.write(VERSION_PY % ver)
-    f.close()
-    print "set arachnid/_version.py to '%s'" % ver
-
-def get_version():
-    '''
-    Adopted from https://github.com/warner/python-ecdsa
-    '''
-    
-    try:
-        f = open("arachnid/_version.py")
-    except EnvironmentError:
-        return None
-    for line in f.readlines():
-        mo = re.match("__version__ = '([^']+)'", line)
-        if mo:
-            ver = mo.group(1)
-            n=ver.find('_')
-            # Do not want to update every git commit
-            if n  != -1:ver = ver[:n]
-            return ver
-    return None
-
-class sdist(command.sdist.sdist):
-    '''Adopted from https://github.com/warner/python-ecdsa
-    '''
-    def run(self):
-        update_version_py()
-        self.distribution.metadata.version = get_version()
-        print 'Update version', self.distribution.metadata.version
-        return command.sdist.sdist.run(self)
-
-class check_dep(Command):
-    ''' Check if the dependencies listed in `install_requires` and `extras_require`
-    are currently installed and on the Python path.
-    '''
-    description = "Check if dependencies are installed"
-
-    user_options = []
-    test_commands = {}
-    
-    def initialize_options(self): pass
-    def finalize_options(self): pass
-
-    def run(self):
-        ''' Check if dependencies are importable.
-        '''
-        
-        packages = self.distribution.install_requires
-        for v in self.distribution.extras_require.values():
-            if isinstance(v, list): packages.extend(v)
-            else: packages.append(v)
-        sep=['>', '<', '>=', '<=', '==']
-        found = []
-        notfound=[]
-        for package in packages:
-            for s in sep:
-                idx = package.find(s)
-                if idx > -1: 
-                    package=package[:idx]
-                    break
-            try:    mod = __import__(package)
-            except: notfound.append(package)
-            else:   found.append((package, mod))
-        for package in notfound:
-            log.info("Checking for %s: not found"%(package))
-        log.info('---')
-        for package, mod in found:
-            version = ' - '+mod.__version__ if hasattr(mod, '__version__') else ''
-            log.info("Checking for %s: found%s"%(package, version))
-        sys.exit(len(notfound))
-
 def get_readme():
     '''
     '''
@@ -404,7 +299,7 @@ if __name__ == '__main__':
             #'Sphinx>=1.0.4',
             #'nose>=1.0',
             #],
-            cmdclass = {'checkdep': check_dep, 'sdist':sdist},
+            cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist},
             test_suite = 'nose.collector',
             **kwargs
     )
