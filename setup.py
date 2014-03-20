@@ -292,7 +292,7 @@ setup_package(entry_points = {
       long_description = get_readme(),
       data_files=[('rst', rglob("*.rst"))],
       install_requires = [
-        'numpy',
+        #'numpy', # conda bug
         'scipy',
         'psutil',
         'scikit-learn',

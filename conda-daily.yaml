@@ -42,7 +42,7 @@ requirements:
     {% for req in data.get('install_requires', []) -%}
     - {{req}}
     {% endfor %}
-    - PySide
+    - pyside
     - arachnid-spider
 
 {%- endblock %}
