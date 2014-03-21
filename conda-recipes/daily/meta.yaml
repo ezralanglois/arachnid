@@ -1,0 +1,47 @@
+{% extends "setuptools.yaml" %}
+
+{% block package -%}
+package:
+  name: {{data.get('name').lower().replace(' ', '_')}}-dev
+  version: {{data.get('version')}}
+{%- endblock %}
+
+{% block build -%}
+
+  {{ super() }}
+
+  {% block entry_points -%}
+  entry_points: {{data.get('entry_points', {}).get('console_scripts', [])+data.get('entry_points', {}).get('gui_scripts', [])}}
+  {%- endblock %}
+
+  preserve_egg_dir: True
+
+{%- endblock %}
+
+{% block requirements -%}
+requirements:
+  build:
+    - python
+    - setuptools
+    {% for req in data.get('install_requires', []) -%}
+    - {{req}}
+    {% endfor %}
+    - atlas
+    - arachnid-build
+    
+  run:
+    - python
+    - setuptools
+    {% for req in data.get('install_requires', []) -%}
+    - {{req}}
+    {% endfor %}
+    - pyside
+    - arachnid-spider
+
+{%- endblock %}
+
+{% block test -%}
+test:
+  imports: {{data.get('packages')+['arachnid.core.image.spi._spider_ctf', 'arachnid.core.image.spi._spider_filter', 'arachnid.core.image.spi._spider_interpolate', 'arachnid.core.image.spi._spider_reconstruct', 'arachnid.core.image.spi._spider_rotate', 'arachnid.core.learn.core._fastdot', 'arachnid.core.orient.core._healpix', 'arachnid.core.orient.core._transformations', 'arachnid.core.parallel.core._omp']}}
+{%- endblock -%}
+

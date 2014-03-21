@@ -1,5 +1,11 @@
 {% extends "setuptools.yaml" %}
 
+{% block package -%}
+package:
+  name: {{data.get('name').lower().replace(' ', '_')}}-dev
+  version: {{data.get('version')}}
+{%- endblock %}
+
 {% block build -%}
 
   {{ super() }}
@@ -18,6 +24,7 @@
 
 {%- endblock %}
 
+{% block build_number -%}p1{%- endblock %}
 
 {% block requirements -%}
 requirements:
@@ -27,7 +34,7 @@ requirements:
     {% for req in data.get('install_requires', []) -%}
     - {{req}}
     {% endfor %}
-    - atlas
+    - accelerate
     - arachnid-build
     
   run:
@@ -38,6 +45,7 @@ requirements:
     {% endfor %}
     - pyside
     - arachnid-spider
+    - accelerate
 
 {%- endblock %}
 
