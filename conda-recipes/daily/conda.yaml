@@ -9,7 +9,7 @@ package:
 {% block build -%}
 
 build:
-  string: py27_1p
+  string: py27_1
   script:
     - base=`dirname $RECIPE_DIR`
     - cp -r `dirname $base` .
@@ -23,12 +23,6 @@ build:
   {% block entry_points -%}
   entry_points: {{data.get('entry_points', {}).get('console_scripts', [])+data.get('entry_points', {}).get('gui_scripts', [])}}
   {%- endblock %}
-  
-  features: 
-    - mkl
-
-  track_features:
-    - mkl
 
   preserve_egg_dir: True
 
@@ -43,7 +37,7 @@ requirements:
     {% for req in data.get('install_requires', []) -%}
     - {{req}}
     {% endfor %}
-    - accelerate
+    - atlas
     - arachnid-build
     
   run:
@@ -54,7 +48,6 @@ requirements:
     {% endfor %}
     - pyside
     - arachnid-spider
-    - accelerate
 
 {%- endblock %}
 
@@ -62,4 +55,11 @@ requirements:
 test:
   imports: {{data.get('packages')+['arachnid.core.image.spi._spider_ctf', 'arachnid.core.image.spi._spider_filter', 'arachnid.core.image.spi._spider_interpolate', 'arachnid.core.image.spi._spider_reconstruct', 'arachnid.core.image.spi._spider_rotate', 'arachnid.core.learn.core._fastdot', 'arachnid.core.orient.core._healpix', 'arachnid.core.orient.core._transformations', 'arachnid.core.parallel.core._omp']}}
 {%- endblock -%}
+
+{% block about -%}
+about:
+  home: {{data.get('url')}}
+  license: {{data.get('license')}}
+  summary: {{data.get('summary')}}
+{%- endblock %}
 

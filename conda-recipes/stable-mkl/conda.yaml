@@ -63,3 +63,13 @@ test:
   imports: {{data.get('packages')+['arachnid.core.image.spi._spider_ctf', 'arachnid.core.image.spi._spider_filter', 'arachnid.core.image.spi._spider_interpolate', 'arachnid.core.image.spi._spider_reconstruct', 'arachnid.core.image.spi._spider_rotate', 'arachnid.core.learn.core._fastdot', 'arachnid.core.orient.core._healpix', 'arachnid.core.orient.core._transformations', 'arachnid.core.parallel.core._omp']}}
 {%- endblock -%}
 
+
+{% block about -%}
+about:
+  home: {{data.get('url')}}
+  license: {{data.get('license')}}
+  summary: {{data.get('summary')}}
+{%- endblock %}
+
+
+
