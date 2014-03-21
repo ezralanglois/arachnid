@@ -9,6 +9,7 @@
 '''
 
 from distutils.command import sdist as command_sdist
+from distutils.core import Command
 import subprocess
 import os
 import re
@@ -77,3 +78,21 @@ class sdist(command_sdist.sdist):
         self.distribution.metadata.version = get_version()
         print 'Update version', self.distribution.metadata.version
         return command_sdist.sdist.run(self)
+
+class version(Command):
+    ''' Check if the dependencies listed in `install_requires` and `extras_require`
+    are currently installed and on the Python path.
+    '''
+    description = "Create a version file"
+
+    user_options = []
+    test_commands = {}
+    
+    def initialize_options(self): pass
+    def finalize_options(self): pass
+
+    def run(self):
+        ''' Check if dependencies are importable.
+        '''
+        
+        update_version_py()

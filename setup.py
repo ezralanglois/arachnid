@@ -311,7 +311,7 @@ setup_package(entry_points = {
         #'Sphinx>=1.0.4',
         #'nose>=1.0',
         #],
-        cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist},
+        cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist, 'version':arachnid.distutils.sdist.version},
         test_suite = 'nose.collector',
         **kwargs
 )
