@@ -521,13 +521,13 @@ class MainWindow(QtGui.QMainWindow):
         try:
             coords=format.read(coords, spiderid=fileid, numeric=True)
         except: 
-            _logger.exception("Cannot find coordinate file: %s for id %d"%(coords, fileid))
+            _logger.exception("Cannot find coordinate file: %s for id %s"%(coords, str(fileid)))
             return img
+        select=None
         try:
             select=format.read(good_file, spiderid=fileid, ndarray=True)[0].astype(numpy.int) if good_file != "" else None
         except: 
-            _logger.exception("Cannot find selection file: %s for id %s"%(good_file, str(fileid))
-            select=None
+            _logger.exception("Cannot find selection file: %s for id %s"%(good_file, str(fileid)))
         bin_factor=self.advanced_settings.bin_window
         line_width = self.advanced_settings.line_width
         if select is not None:
