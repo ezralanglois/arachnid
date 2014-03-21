@@ -526,7 +526,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             select=format.read(good_file, spiderid=fileid, ndarray=True)[0].astype(numpy.int) if good_file != "" else None
         except: 
-            _logger.exception("Cannot find selection file: %s for id %d"%(good_file, fileid))
+            _logger.exception("Cannot find selection file: %s for id %s"%(good_file, str(fileid))
             select=None
         bin_factor=self.advanced_settings.bin_window
         line_width = self.advanced_settings.line_width
@@ -536,7 +536,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             return drawing.draw_particle_boxes_to_array(img, coords, self.advanced_settings.window/bin_factor, bin_factor, width=line_width)
     
-    def openImageFiles(self, files):
+    def openImageFiles(self, files, notify=True):
         ''' Open a collection of image files, sort by content type
         
         :Parameters:
@@ -546,12 +546,12 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         fileset=set(self.files)
-        newfiles = sorted([f for f in files if f not in fileset])
+        newfiles = sorted([f for f in files if os.path.abspath(f) not in fileset])
         imgfiles = [f for f in newfiles if not ndimage_file.is_readable(f)]
         if len(imgfiles) > 0:
             messagebox.error_message(self, "File open failed - found non-image files. See details.", "\n".join(imgfiles))
             return
-        self.notify_added_files(newfiles)
+        if notify: self.notify_added_files(newfiles)
         self.updateFileIndex(newfiles)
         self.files.extend(newfiles)
         self.setWindowTitle("File count: %d - Image count: %d"%(len(self.files), len(self.file_index)))

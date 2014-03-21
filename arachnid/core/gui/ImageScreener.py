@@ -15,6 +15,7 @@ from util.qt4_loader import QtGui,QtCore,qtSlot
 from ..metadata import format
 from ..metadata import spider_utility
 from ..metadata import relion_utility
+from ..metadata import format_utility
 from ..app import settings
 from util import messagebox
 import os
@@ -116,6 +117,12 @@ class MainWindow(ImageViewerWindow):
         '''
         
         self.selectfout.close()
+        with open(format_utility.add_prefix(self.advanced_settings.select_file, 'compressed_'), 'w') as fout:
+            for f in self.files:
+                fout.write("@%s\n"%f)
+            for idx in xrange(len(self.file_index)):
+                fout.write('%d,'%idx)
+                fout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
         ImageViewerWindow.closeEvent(self, evt)
         
     def getSettings(self):
@@ -148,6 +155,7 @@ class MainWindow(ImageViewerWindow):
             if line[0] == '@':
                 f = line[1:].strip()
                 f = os.path.join(curr_path, f)
+                f = os.path.abspath(f)
                 self.updateFileIndex([f])
                 self.files.append(f)
             else:
