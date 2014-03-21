@@ -583,6 +583,18 @@ def initialize(files, param):
         if param['waypoint_file'] != "":
             _logger.info("Writing out illustrative waypoint image: %s"%param['waypoint_file'])
     
+    if param['output']!="":
+        try:os.makedirs(os.path.dirname(param['output']))
+        except: pass
+    if param['translation_file']!="":
+        try:os.makedirs(os.path.dirname(param['translation_file']))
+        except: pass
+    if param['diagnostic_file']!="":
+        try:os.makedirs(os.path.dirname(param['diagnostic_file']))
+        except: pass
+    if param['waypoint_file']!="":
+        try:os.makedirs(os.path.dirname(param['waypoint_file']))
+        except: pass
     
     if 'selection_file' in param and param['selection_file'] != "":
         if os.path.exists(param['selection_file']):
