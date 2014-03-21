@@ -150,7 +150,7 @@ def batch(files, alignment, refine_index=-1, output="", **extra):
     alignvals = spider_file.read_array_mpi(spi.replace_ext(alignment), sort_column=17, header="epsi,theta,phi,ref_num,id,psi,tx,ty,nproj,ang_diff,cc_rot,spsi,sx,sy,mirror,micrograph,stack_id,defocus".split(','), **extra)
     assert(alignvals.shape[1]==18)
     curr_slice = mpi_utility.mpi_slice(len(alignvals), **extra)
-    extra.update(align.initalize(spi, files, alignvals[curr_slice], **extra))
+    extra.update(align.initalize(spi, files, alignvals[curr_slice], alignvals, **extra))
     if mpi_utility.is_root(**extra): setup_log(output)
     refine_volume(spi, alignvals, curr_slice, refine_index, output, **extra)
     if mpi_utility.is_root(**extra): _logger.info("Completed")
