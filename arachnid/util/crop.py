@@ -204,7 +204,11 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
     global_selection=extra['global_selection']
 
     if tot is None:
-        tot = ndimage_file.count_images(filename)
+        try:
+            tot = ndimage_file.count_images(filename)
+        except:  
+            _logger.warn("Skipping: %s - no header"%filename)
+        return filename, 0, os.getpid()
         
     
     noise=extra['noise']
