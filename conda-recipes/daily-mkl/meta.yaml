@@ -3,12 +3,23 @@
 {% block package -%}
 package:
   name: {{data.get('name').lower().replace(' ', '_')}}-dev
-  version: {{data.get('version')}}
+  version: {{data.get('version').split('_')[0]}}
 {%- endblock %}
 
 {% block build -%}
 
-  {{ super() }}
+build:
+  number: 1
+  string: p
+  script:
+    - base=`dirname $RECIPE_DIR`
+    - cp -r `dirname $base` .
+    - base=`dirname $base`
+    - cd $base
+    - $PYTHON setup.py version
+    - cd $SRC_DIR
+    - cd `basename $base`
+    - $PYTHON setup.py install --single-version-externally-managed --record=record.txt
 
   {% block entry_points -%}
   entry_points: {{data.get('entry_points', {}).get('console_scripts', [])+data.get('entry_points', {}).get('gui_scripts', [])}}
@@ -24,13 +35,12 @@ package:
 
 {%- endblock %}
 
-{% block build_number -%}p1{%- endblock %}
-
 {% block requirements -%}
 requirements:
   build:
     - python
     - setuptools
+    - jinja2
     {% for req in data.get('install_requires', []) -%}
     - {{req}}
     {% endfor %}

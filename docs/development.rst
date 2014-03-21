@@ -136,78 +136,47 @@ Prerequisites
 
 .. sourcecode:: sh
 
-	# Install the conda build command
+	# Install the conda build command and its dependencies
 	
 	conda install conda-build
+	conda install jinja2
+	conda install setuptools
 
 Stable Release
 --------------
 
 .. sourcecode:: sh
 	
-	# Upload new source distribution to PyPI
-	
-	$ cp conda-stable.yaml conda.yaml
-	
 	# Build a binary release for Anaconda
 	
-	$ conda build .
+	$ conda build conda-recipes/stable
 	
 	# Upload to binstar.org repository
 	
-	$ binstar upload $HOME/anaconda/conda-bld/linux-64/arachnid-0.1.4-py27_0.tar.bz2
+	$ binstar upload $HOME/anaconda/conda-bld/linux-64/arachnid-0.1.4-py27_1.tar.bz2
+	
+.. note::
+	
+	The accelerate (aka MKL) releases can be done the same way
+	except its `conda-recipes/stable-mkl`.
 
 Development Release (Daily Build)
 ---------------------------------
 
-This protocol assumes that you have either created or edited the `meta.yaml`
-file from the `Stable Release` section.
-
-We assume this file is kep in `arachnid-dev`.
-
-The following lines are changed in the meta.yaml file from:
-
-.. sourcecode:: yaml
-
-	package:
-	  name: arachnid
-	  version: !!str 0.1.5
-	
-	source:
-	  fn: arachnid-0.1.5.tar.gz
-	  url: https://pypi.python.org/packages/source/a/arachnid/arachnid-0.1.5.tar.gz
-	  md5: cc13499de5d2cb59e12321311a5eaf97
-
-To:
-
-.. sourcecode:: yaml
-
-	package:
-	  name: arachnid-dev
-	  version: !!str 0.1.dev
-	
-	source:
-	  fn: master.zip 
-	  url: https://github.com/ezralanglois/arachnid/archive/master.zip
-
-.. note::
-
-	We point the url to the source zip from the GIT repository. 
-
 .. sourcecode:: sh
-	
-	# Push latest changes to GIT repository
-	
-	$ git push origin master --tags
 	
 	# Build a binary release for Anaconda
 	
-	$ conda build arachnid-devel
+	$ conda build conda-recipes/daily
 	
-	# Upload to binstar.org repository (We use --force to overwrite the old package)
+	# Upload to binstar.org repository (The `--force` is required since the version does not necessary change)
 	
-	$ binstar upload /home/robertl/anaconda/conda-bld/linux-64/arachnid-dev-0.1.dev-py27_0.tar.bz2 --force
+	$ binstar upload /home/robertl/anaconda/conda-bld/linux-64/arachnid-dev-0.1.5.dev-py27_1.tar.bz2 --force
 
+.. note::
+	
+	The accelerate (aka MKL) releases can be done the same way
+	except its `conda-recipes/daily-mkl`.
 
 Documentation Hack
 ==================

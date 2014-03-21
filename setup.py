@@ -277,7 +277,7 @@ def setup_package(**extra):
     '''
     
     if ('build_sphinx' in sys.argv or 'sphinx-build' in sys.argv) and __name__ != '__main__': return # Do not invoke if sphinx is called
-    if len(sys.argv) > 1 and (sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.', '') or '--help' in sys.argv):
+    if len(sys.argv) > 1 and (sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.', '') or '--help' in sys.argv or sys.argv[1].find('conda') != -1):
         from setuptools import setup
         setup(**extra)
     else:
