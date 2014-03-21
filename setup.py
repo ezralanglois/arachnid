@@ -237,8 +237,9 @@ def build_description(package, extra=None):
         log.info("Root config package %s"%(package.setup.__name__))
         extra.update(package.setup.configuration(top_path='').todict())
     except: 
-        log.error("No setup file found in root package to build extensions")
-        raise
+        if os.path.basename(sys.argv[0]) != 'conda-build':
+            log.error("No setup file found in root package to build extensions")
+            raise
     extra['packages'] = setuptools.find_packages(exclude='pyspider')
     return extra
 
