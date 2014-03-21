@@ -147,15 +147,11 @@ Stable Release
 	
 	# Upload new source distribution to PyPI
 	
-	$ python setup.py sdist upload
-	
-	# Build a meta.yaml file
-	
-	$ conda skeleton pypi arachnid
+	$ cp conda-stable.yaml conda.yaml
 	
 	# Build a binary release for Anaconda
 	
-	$ conda build arachnid/
+	$ conda build .
 	
 	# Upload to binstar.org repository
 	

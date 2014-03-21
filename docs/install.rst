@@ -36,7 +36,8 @@ but, have been found to be absent from a few.
 	- Fastest Fourier transform (in the west): libfftw3.so (No longer required for the daily build)
 
 I am currently working to address these missing dependencies. The daily builds have already
-included the Fastest Fourier transform (in the west).
+included the Fastest Fourier transform (in the west) and include SPIDER. The `ara-control`
+and `ara-project` scripts should automatically find the included SPIDER executables.
 
 Quick Start
 -----------
