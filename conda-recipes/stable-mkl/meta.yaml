@@ -1,10 +1,15 @@
 {% extends "setuptools.yaml" %}
 
+{% block package -%}
+package:
+  name: {{data.get('name').lower().replace(' ', '_')}}
+  version: {{data.get('version').split('_')[0]}}
+{%- endblock %}
+
 {% block build -%}
 
 build:
-  number: 1
-  string: p
+  string: py27_1p
   script:
     - base=`dirname $RECIPE_DIR`
     - cp -r `dirname $base` .

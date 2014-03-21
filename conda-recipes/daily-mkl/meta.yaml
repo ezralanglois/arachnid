@@ -9,8 +9,7 @@ package:
 {% block build -%}
 
 build:
-  number: 1
-  string: p
+  string: py27_1p
   script:
     - base=`dirname $RECIPE_DIR`
     - cp -r `dirname $base` .
