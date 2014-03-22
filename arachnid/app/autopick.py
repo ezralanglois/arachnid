@@ -278,7 +278,6 @@ def search_range(img, disk_mult_range, **extra):
             _logger.error("Error for disk_mult=%f and mask_mult=%f = %f/%f"%(disk_mult, float(disk_mult)/max_mult, disk_mult, max_mult))
             raise
         coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
-    coords_last[:, 1:3] *= extra['bin_factor']
     return coords_last[::-1]
 
 def template_match(img, template_image, pixel_diameter, **extra):
