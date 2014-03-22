@@ -175,6 +175,7 @@ from ..core.metadata import spider_utility, relion_utility, format_utility, form
 from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate
 from ..core.parallel import parallel_utility
 from ..core.orient import healpix
+from ..core.image.ctf import correct as ctf_correct
 import numpy
 import os
 import logging
@@ -1069,7 +1070,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
     return new_vals
 
-def downsample_images(vals, downsample=1.0, param_file="", **extra):
+def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, apix=1.0, pixel_radius=0, **extra):
     ''' Downsample images in Relion selection file and update
     selection entries to point to new files.
     
@@ -1079,6 +1080,8 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
            List of entries from a selection file
     downsample : float
                  Down sampling factor
+    phase_flip : bool
+                 Apply CTF correction by phase flipping
     extra : dict
             Unused key word arguments
     
@@ -1088,15 +1091,30 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
            Update list of entries from a selection file
     '''
     
-    if downsample == 1.0: return vals
+    if downsample == 1.0 and not phase_flip: return vals
     extra['bin_factor']=downsample
-    spider_params.read(param_file, extra)
+    if pixel_radius == 0:
+        if param_file == "": 
+            raise ValueError, "Requires --param-file or --pixel-radius and --apix"
+        spider_params.read(param_file, extra)
+        apix=extra['apix']
+        pixel_radius=extra['pixel_diameter']/2
     
     mask = None
-    ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32)
+    ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
     filename = relion_utility.relion_file(vals[0].rlnImageName, True)
-    output = os.path.join(os.path.dirname(filename)+"_%.2f"%downsample, os.path.basename(filename))
+    if phase_flip:
+        output = os.path.join(os.path.dirname(filename)+"_flipped_%.2f"%downsample, os.path.basename(filename))
+    else:
+        output = os.path.join(os.path.dirname(filename)+"_%.2f"%downsample, os.path.basename(filename))
     oindex = {}
+    
+    if 'voltage' not in extra:
+        extra['voltage']=vals[0].rlnVoltage
+    if 'cs' not in extra:
+        extra['cs']=vals[0].rlnSphericalAberration
+    if 'ampcont' not in extra:
+        extra['ampcont']=vals[0].rlnAmplitudeContrast
     
     _logger.info("Stack downsampling started")
     for i in xrange(len(vals)):
@@ -1105,8 +1123,12 @@ def downsample_images(vals, downsample=1.0, param_file="", **extra):
             _logger.info("Processed %d of %d"%(i+1, len(vals)))
         filename, index = relion_utility.relion_file(v.rlnImageName)
         img = ndimage_file.read_image(filename, index-1).astype(numpy.float32)
-        img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
-        if mask is None: mask = ndimage_utility.model_disk(extra['pixel_diameter']/2, img.shape)
+        if phase_flip:
+            ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, v.rlnDefocusU, **extra)
+            img = ctf_correct.correct(img, ctfimg)
+        if ds_kernel is not None:
+            img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
+        if mask is None: mask = ndimage_utility.model_disk(pixel_radius, img.shape)
         ndimage_utility.normalize_standard(img, mask, out=img)
         if filename not in oindex: oindex[filename]=0
         oindex[filename] += 1
@@ -1200,6 +1222,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   sort_column="",                  help="Sort by column in relion selection file in ascending order")
     group.add_option("",   sort_rev=False,                  help="Reverse sorting to descending order")
     group.add_option("",   split=False,                     help="Split the relion star file using the rlnRandomSubset column")
+    group.add_option("",   phase_flip=False,                help="Create a set of phase flipped stacks")
     
     
     pgroup.add_option_group(group)
