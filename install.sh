@@ -5,7 +5,47 @@
 # 
 # $ sh install.sh
 #
+# The default install is the latest stable version of Arachnid. 
+#
+# If you wish the latest accelerated version (a premium package 
+# free for Academic use) then use the following command:
+#
+# $ sh install.sh mkl
+#
+# If you wish the latest daily build, then using this command:
+#
+# $ sh install.sh dev
+#
+# If you wish the latest accelerated daily build, then use this command:
+# 
+# $ sh install.sh dev-mkl
+#
 ####################################################################################
+
+##############################
+# Handle command line options
+##############################
+
+suffix=""
+if [ "$1" != "" ] ; then
+
+if [ "$1" == "-h" ] || [ "$1" == "--help"] || [ "$1" == "-help" ] ; then
+head -23 $0
+exit 0
+fi
+
+if [ "$1" != "mkl" ] && [ "$1" != "dev" ] && [ "$1" != "dev-mkl" ] ; then
+
+echo "Error: unrecognized option $1"
+echo "Only mkl, dev, dev-mkl and empty string supported"
+echo "sh install -h for more information"
+exit 1
+
+fi
+
+suffix="-${1}"
+
+fi
 
 ##############################
 # Download Miniconda installer
@@ -67,7 +107,7 @@ echo "Found $HOME/.condarc found"
 ##############################
 
 # Install arachnid
-conda install -c https://conda.binstar.org/ezralanglois arachnid
+conda install -c https://conda.binstar.org/ezralanglois arachnid${suffix}
 
 echo "Please ensure https://conda.binstar.org/public is in your $HOME/.condarc"
 echo "Then you will be able to update with: conda update arachnid"

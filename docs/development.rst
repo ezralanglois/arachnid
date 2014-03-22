@@ -141,6 +141,8 @@ Prerequisites
 	conda install conda-build
 	conda install jinja2
 	conda install setuptools
+	conda install binstar
+	conda install patchelf
 
 Stable Release
 --------------

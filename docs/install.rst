@@ -52,7 +52,26 @@ Simply download and run this script:
 	
 	# Copy script to this same directory
 	
+	# Latest stable build
+	
 	$ sh install.sh
+	
+	# Latest accelerated stable build 
+	# (requires Premium package free for Academic use)
+	
+	$ sh install.sh mkl
+	
+	# Latest daily build
+	
+	$ sh install.sh dev
+	
+	# Latest accelerated daily build 
+	# (requires Premium package free for Academic use)
+	
+	$ sh install.sh dev-mkl
+
+See `Speeding up the code`_ for more information about the Accelerated
+builds.
 
 Step-by-step
 ------------
@@ -105,6 +124,19 @@ These are the same steps run by the script in the
 		conda install -c https://conda.binstar.org/public arachnid
 	
 	.. note::
+		
+		There are four versions of arachnid you can install
+		#. Stable build ($ conda install arachnid)
+		#. Accelerated Stable build ($ conda install arachnid-mkl)
+		#. Daily build ($ conda install arachnid-dev)
+		#. Accelerated Daily build ($ conda install arachnid-dev-mkl)
+		
+		The accelerated builds require a premium package and thus
+		a license file. This license file is free for Academic use.
+		See `Speeding up the code`_ for more information.
+		
+	
+#. Simplify for future use
 		
 		To simplify the above command, you may add the binstar repository to
 		your `$HOME/.condarc`. You may download an example file
@@ -179,8 +211,6 @@ Troubleshooting
 	
 	$ conda install https://conda.binstar.org/public arachnid-dev
 
-
-
 Speeding up the code
 --------------------
 
@@ -190,11 +220,12 @@ Speeding up the code
 	
 		This step requires you obtain a license from 
 		https://store.continuum.io/cshop/accelerate/. This is 
-		free if you have an .edu email.
+		free if you have an .edu email 
+		https://store.continuum.io/cshop/academicanaconda.
 	
 	.. sourcecode:: sh
 	
-		$ conda install accelerate --yes
+		$ conda install arachnid-mkl
 
 Easy install
 ============
