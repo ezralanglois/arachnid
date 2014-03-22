@@ -156,6 +156,12 @@ class MainWindow(QtGui.QMainWindow):
                dict(line_width=3, help="Set the line width for the boxes on the micrograph"),
                
                ]
+    
+    def setWindowSize(self, window):
+        '''
+        '''
+        
+        self.advanced_settings.window=window
         
     def setAlternateImage(self, filename, emptyonly=False):
         '''

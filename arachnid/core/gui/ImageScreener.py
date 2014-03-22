@@ -355,11 +355,12 @@ def launch(parent=None, config_file = 'cfg/project.cfg'):
     '''
     
     
-    param = settings.parse_config_simple(config_file, coordinate_file="", pow_file="", small_micrograph_file="", selection_file="") if os.path.exists(config_file) else {}
+    param = settings.parse_config_simple(config_file, coordinate_file="", pow_file="", small_micrograph_file="", selection_file="", window=0) if os.path.exists(config_file) else {}
     coordinate_file = spider_utility.spider_searchpath(param.get('coordinate_file', 'local/coords/sndc000001.*'))
     small_micrograph_file = spider_utility.spider_searchpath(param.get('small_micrograph_file', 'local/mic/mic000001.*'))
     pow_file = spider_utility.spider_searchpath(param.get('pow_file', 'local/pow/pow000001.*'))
     selection_file = param.get('selection_file', 'sel_mic.dat')
+    window = param.get('window', 0)
     dialog = MainWindow(parent) 
     dialog.show()
     pow_files = glob.glob(pow_file)
@@ -370,5 +371,6 @@ def launch(parent=None, config_file = 'cfg/project.cfg'):
     if len(coord_files) > 0: dialog.setCoordinateFile(coord_files[0], True)
     elif 'coordinate_file' in param: dialog.setCoordinateFile(param['coordinate_file'], True)
     dialog.setSelectionFile(selection_file)
+    if window > 0: dialog.setWindowSize(window)
     dialog.openImageFiles(pow_files)
     return dialog
