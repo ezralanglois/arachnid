@@ -2,7 +2,7 @@
 
 {% block package -%}
 package:
-  name: {{data.get('name').lower().replace(' ', '_')}}-dev
+  name: {{data.get('name').lower().replace(' ', '_')}}-dev-mkl
   version: {{data.get('version').split('_')[0]}}
 {%- endblock %}
 
