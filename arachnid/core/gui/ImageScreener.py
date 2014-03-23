@@ -75,7 +75,7 @@ class MainWindow(ImageViewerWindow):
         '''
         '''
         
-        self.selection_file=filename
+        self.selection_file=os.path.relpath(filename)
     
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -119,7 +119,7 @@ class MainWindow(ImageViewerWindow):
         self.selectfout.close()
         with open(format_utility.add_prefix(self.advanced_settings.select_file, 'compressed_'), 'w') as fout:
             for f in self.files:
-                fout.write("@%s\n"%f)
+                fout.write("@%s\n"%os.path.relpath(f))
             for idx in xrange(len(self.file_index)):
                 fout.write('%d,'%idx)
                 fout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
@@ -187,7 +187,7 @@ class MainWindow(ImageViewerWindow):
         '''
         
         for f in newfiles:
-            self.selectfout.write("@%s\n"%f)
+            self.selectfout.write("@%s\n"%os.path.relpath(f))
     
     def imageSubset(self, index, count):
         '''
@@ -366,6 +366,7 @@ def launch(parent=None, config_file = 'cfg/project.cfg'):
     pow_files = glob.glob(pow_file)
     mic_files = glob.glob(small_micrograph_file)
     coord_files = glob.glob(coordinate_file)
+    #
     if len(mic_files) > 0:dialog.setAlternateImage(mic_files[0], True)
     elif 'small_micrograph_file' in param: dialog.setAlternateImage(param['small_micrograph_file'], True)
     if len(coord_files) > 0: dialog.setCoordinateFile(coord_files[0], True)

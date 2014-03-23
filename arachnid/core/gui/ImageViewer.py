@@ -174,14 +174,14 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         if not emptyonly or self.advanced_settings.alternate_image == "":
-            self.advanced_settings.alternate_image=filename
+            self.advanced_settings.alternate_image=os.path.relpath(filename)
         
     def setCoordinateFile(self, filename, emptyonly=False):
         '''
         '''
         
         if not emptyonly or self.advanced_settings.coords == "":
-            self.advanced_settings.coords=filename
+            self.advanced_settings.coords=os.path.relpath(filename)
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 
