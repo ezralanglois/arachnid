@@ -128,32 +128,38 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         return [ 
+               # Global options
                dict(mark_image=False, help="Cross out selected images"),
                dict(downsample_type=('ft', 'bilinear', 'fs', 'sblack'), help="Choose the down sampling algorithm ranked from fastest to most accurate"),
-               dict(invert=False, help="Perform contrast inversion"),
-               dict(coords="",      help="Path to coordinate file", gui=dict(filetype='open')),
-               dict(good_file="", help="Highlight selected coordinates in red - unselected in blue", gui=dict(filetype='open')),
-               dict(show_coords=False, help="Hide the loaded coordinates"),
                dict(second_image="", help="Path to a tooltip image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
-               dict(alternate_image="", help="Path to a alternate image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
-               dict(load_alternate=False, help="Load the alternate image"),
-               dict(power_spectra=0, help="Estimate a powerspectra on the fly and save as a tool tip", gui=dict()),
                dict(second_nstd=5.0, help="Outlier removal for second image loading"),
                dict(second_downsample=1.0, help="Factor to downsample second image"),
-               dict(bin_window=6.0, help="Number of times to decimate coordinates (and window)"),
-               dict(window=200, help="Size of window to box particle"),
-               dict(center_mask=0, help="Radius of mask for image center"),
-               dict(power1D=False, help="Display 1D radial average (1D power spect if image is a 2D powerspec)"),
-               dict(gaussian_low_pass=0.0, help="Radius for Gaussian low pass filter"),
-               dict(gaussian_high_pass=0.0, help="Radius for Gaussian high pass filter"),
+               dict(gaussian_low_pass=0.0, help="Resolution for Gaussian low pass filter"),
+               dict(gaussian_high_pass=0.0, help="Resolution for Gaussian high pass filter"),
                dict(show_label=False, help="Show the labels below each image"),
+               dict(current_powerspec=True, help="Is the current image displayed a power spectra?"),               
+               dict(alternate_image="", help="Path to a alternate image that can be cross-indexed with the current one (SPIDER filename)", gui=dict(filetype='open')),
+
+               # Window Options
+               dict(coords="",    help="Path to coordinate file", gui=dict(filetype='open')),
+               dict(good_file="", help="Highlight selected coordinates in red - unselected in blue", gui=dict(filetype='open')),
+               dict(window=200, help="Size of window to box particle"),               
+               dict(power_spectra=0, help="Estimate a powerspectra on the fly and save as a tool tip", gui=dict()),
+               dict(invert=False, help="Perform contrast inversion"),
+               dict(bin_window=6.0, help="Number of times to decimate coordinates (and window)"),
+               dict(line_width=3, help="Set the line width for the boxes on the micrograph"),
+
+               # Power spectra options
+               dict(center_mask=0, help="Radius of mask for image center"),
+               dict(radialAverage=False, help="Display 1D radial average (1D power spect if image is a 2D powerspec)"),
+               
+               # Hidden options
                dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True, value=self.ui.imageZoomDoubleSpinBox)),
                dict(contrast=self.ui.contrastSlider.value(), help="Level of contrast in the image", gui=dict(readonly=True, value=self.ui.contrastSlider)),
                dict(imageCount=self.ui.imageCountSpinBox.value(), help="Number of images to display at once", gui=dict(readonly=True, value=self.ui.imageCountSpinBox)),
                dict(imagePage=self.ui.pageSpinBox.value(), help="Current page of images", gui=dict(readonly=True, value=self.ui.pageSpinBox)),
                dict(decimate=self.ui.decimateSpinBox.value(), help="Number of times to reduce the size of the image in memory", gui=dict(readonly=True, value=self.ui.decimateSpinBox)),
                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True, value=self.ui.clampDoubleSpinBox)),
-               dict(line_width=3, help="Set the line width for the boxes on the micrograph"),
                
                ]
     
@@ -212,6 +218,20 @@ class MainWindow(QtGui.QMainWindow):
         
         self.on_loadImagesPushButton_clicked()
     
+    @qtSlot()
+    def on_actionSwap_Image_triggered(self):
+        '''
+        '''
+        
+        self.advanced_settings.current_powerspec=not self.advanced_settings.current_powerspec
+        self.on_loadImagesPushButton_clicked()
+    
+    @qtSlot()
+    def on_actionShow_Coordinates_triggered(self):
+        '''
+        '''
+        
+        self.on_loadImagesPushButton_clicked()
            
 #    @qtSlot(int)
 #    def on_pageSpinBox_valueChanged(self, val):
@@ -348,7 +368,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.imageListView.setModel(None)
         
         template = None
-        if self.advanced_settings.alternate_image != "" and self.advanced_settings.load_alternate:
+        load_alternate = self.ui.actionSwap_Image.isChecked()
+        if self.advanced_settings.alternate_image != "" and load_alternate:
             template = self.advanced_settings.alternate_image
             if not os.path.exists(template) and hasattr(self.advanced_settings, 'path_prefix'):
                 template = os.path.join(self.advanced_settings.path_prefix, template)
@@ -360,27 +381,37 @@ class MainWindow(QtGui.QMainWindow):
             _logger.info("No matplotlib loaded")
             self.advanced_settings.mark_image=False
         
+        current_powerspec = self.advanced_settings.current_powerspec
+        if current_powerspec:
+            if self.advanced_settings.invert:
+                _logger.info("Cannot invert a power spectra")
+        else:
+            if self.advanced_settings.center_mask > 0:
+                _logger.info("Cannot mask micrograph")
+        
         added_items=[]
-        for i, (imgname, img) in enumerate(iter_images(self.files, index, template)):
+        for i, (imgname, img, pixel_size) in enumerate(iter_images(self.files, index, template)):
             selimg = None
             progressDialog.setValue(i+1)
             if hasattr(img, 'ndim'):
-                if self.advanced_settings.center_mask > 0 and img.shape not in masks:
+                if current_powerspec and self.advanced_settings.center_mask > 0 and img.shape not in masks:
                     masks[img.shape]=ndimage_utility.model_disk(self.advanced_settings.center_mask, img.shape)*-1+1
-                if self.advanced_settings.invert:
+                if self.advanced_settings.invert and not current_powerspec:
                     if img.max() != img.min(): ndimage_utility.invert(img, img)
                 img = ndimage_utility.replace_outlier(img, nstd, nstd, replace='mean')
                 if self.advanced_settings.gaussian_high_pass > 0.0:
-                    img=ndimage_filter.filter_gaussian_highpass(img, self.advanced_settings.gaussian_high_pass)
+                    img=ndimage_filter.filter_gaussian_highpass(img, pixel_size/self.advanced_settings.gaussian_high_pass)
                 if self.advanced_settings.gaussian_low_pass > 0.0:
-                    img=ndimage_filter.filter_gaussian_lowpass(img, self.advanced_settings.gaussian_low_pass)
-                if self.advanced_settings.center_mask > 0:
+                    img=ndimage_filter.filter_gaussian_lowpass(img, pixel_size/self.advanced_settings.gaussian_low_pass)
+                if current_powerspec and self.advanced_settings.center_mask > 0:
                     img *= masks[img.shape]
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
+                pixel_size *= bin_factor
                 img = self.box_particles(img, imgname)
                 img = self.display_powerspectra_1D(img, imgname)
                 if self.advanced_settings.mark_image:
-                    selimg = qimage_utility.numpy_to_qimage(drawing.mark(img))
+                    imgm = drawing.mark(img)
+                    selimg = qimage_utility.numpy_to_qimage(imgm)
                 qimg = qimage_utility.numpy_to_qimage(img)
                 if self.base_level is not None:
                     qimg.setColorTable(self.color_level)
@@ -410,7 +441,7 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 item.setData(i+start, QtCore.Qt.UserRole)
             
-            self.addToolTipImage(imgname, item)
+            self.addToolTipImage(imgname, item, pixel_size)
             self.imageListModel.appendRow(item)
             added_items.append(item)
             
@@ -461,7 +492,7 @@ class MainWindow(QtGui.QMainWindow):
     
     # Other methods
     
-    def addToolTipImage(self, imgname, item):
+    def addToolTipImage(self, imgname, item, apix):
         '''
         '''
         
@@ -481,6 +512,9 @@ class MainWindow(QtGui.QMainWindow):
                     qimg = img.convertToFormat(QtGui.QImage.Format_Indexed8)
                 item.setToolTip(qimage_utility.qimage_to_html(qimg))
         elif self.advanced_settings.power_spectra > 3:
+            if self.advanced_settings.current_powerspec:
+                _logger.info("Cannot estimate a periodgram of a power spectra")
+                return
             mic = ndimage_file.read_image(imgname[0], imgname[1])
             print "Start estimation"
             img = ndimage_utility.perdiogram(mic, self.advanced_settings.power_spectra, 1, 0.5, 0)
@@ -490,7 +524,7 @@ class MainWindow(QtGui.QMainWindow):
             qimg = qimage_utility.numpy_to_qimage(img)
             item.setToolTip(qimage_utility.qimage_to_html(qimg))
         else:
-            item.setToolTip('%d@%s'%(imgname[1], imgname[0]))
+            item.setToolTip('%d@%s - %f'%(imgname[1], imgname[0], apix))
     
     def display_powerspectra_1D(self, img, fileid):
         '''
@@ -500,7 +534,10 @@ class MainWindow(QtGui.QMainWindow):
             _logger.warn("No matplotlib loaded")
             return img
         
-        if not self.advanced_settings.power1D: return img
+        current_powerspec = self.advanced_settings.current_powerspec
+        if not current_powerspec and self.advanced_settings.radialAverage:
+            _logger.info("Cannot calculate 1D from micrograph, requires powerspectra")
+        if not self.advanced_settings.radialAverage or not current_powerspec: return img
         raw = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
         raw[1:] = raw[:len(raw)-1]
         raw[:2]=0
@@ -515,7 +552,9 @@ class MainWindow(QtGui.QMainWindow):
         if not drawing.is_available():
             _logger.warn("No PIL loaded")
             return img
-        if self.advanced_settings.coords == "" or not self.advanced_settings.show_coords: return img
+        show_coords = self.ui.actionShow_Coordinates.isChecked()
+        current_powerspec = self.advanced_settings.current_powerspec
+        if self.advanced_settings.coords == "" or not show_coords or current_powerspec: return img
         if isinstance(fileid, tuple): fileid=fileid[0]
         coords = self.advanced_settings.coords
         if not os.path.exists(coords) and hasattr(self.advanced_settings, 'path_prefix'):
@@ -653,7 +692,6 @@ def read_image(filename, index=None):
     qimg = QtGui.QImage()
     if qimg.load(filename): return qimg
     return ndimage_utility.normalize_min_max(ndimage_file.read_image(filename, index))
-        
 
 def iter_images(files, index, template=None, average=False):
     ''' Wrapper for iterate images that support color PNG files
@@ -672,6 +710,7 @@ def iter_images(files, index, template=None, average=False):
     qimg = QtGui.QImage()
     if template is not None: filename=spider_utility.spider_filename(template, files[0])
     else: filename = files[0]
+    header={}
     if qimg.load(filename):
         if isinstance(index[0], str): files = index
         else:files = [files[i[0]] for i in index]
@@ -682,7 +721,7 @@ def iter_images(files, index, template=None, average=False):
                 qimg=QtGui.QPixmap(":/mini/mini/cross.png").toImage()
                 _logger.warn("Unable to read image - %s"%filename)
                 #raise IOError, "Unable to read image - %s"%filename
-            yield (filename,0), qimg
+            yield (filename,0), qimg, 1.0
     else:
         # todo reorganize with
         '''
@@ -695,28 +734,28 @@ def iter_images(files, index, template=None, average=False):
                     f1=spider_utility.spider_filename(template, f)
                     if os.path.exists(f1): f=f1
                     else: _logger.warn("Unabled to find alternate image: %s"%f1)
-                for img in ndimage_file.iter_images(f):
+                for img in ndimage_file.iter_images(f, header=header):
                     if avg is None: avg = img
                     else: avg+=img
                 try:
                     img = ndimage_utility.normalize_min_max(avg)
                 except: img=avg
-                yield (f, 0), img 
+                yield (f, 0), img, header.get('apix', 1.0)
         else:
             for idx in index:
                 f, i = idx[:2]
                 filename = files[f]
                 if template is not None: filename=spider_utility.spider_filename(template, filename)
                 try:
-                    img = ndimage_file.read_image(filename, i) 
+                    img = ndimage_file.read_image(filename, i, header=header) 
                 except:
                     _logger.exception("Error while reading!")
-                    img = ndimage_file.read_image(filename)
+                    img = ndimage_file.read_image(filename, header=header)
                     #print f, i, len(files), files[f], template, filename
                     #raise
                 try:img=ndimage_utility.normalize_min_max(img)
                 except: pass
-                yield (filename, i), img
+                yield (filename, i), img, header.get('apix', 1.0)
         '''
         for filename in files:
             for i, img in enumerate(itertools.imap(ndimage_utility.normalize_min_max, ndimage_file.iter_images(filename))):

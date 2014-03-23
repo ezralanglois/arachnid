@@ -185,7 +185,7 @@
                        <string>Reload</string>
                       </property>
                       <property name="icon">
-                       <iconset resource="../icons/icons.qrc">
+                       <iconset resource="../../../../docs/images/icons/icons.qrc">
                         <normaloff>:/mini/mini/arrow_rotate_anticlockwise.png</normaloff>:/mini/mini/arrow_rotate_anticlockwise.png</iconset>
                       </property>
                      </widget>
@@ -280,7 +280,7 @@
                        <string>Reload</string>
                       </property>
                       <property name="icon">
-                       <iconset resource="../icons/icons.qrc">
+                       <iconset resource="../../../../docs/images/icons/icons.qrc">
                         <normaloff>:/mini/mini/arrow_rotate_clockwise.png</normaloff>:/mini/mini/arrow_rotate_clockwise.png</iconset>
                       </property>
                      </widget>
@@ -421,11 +421,14 @@
    <addaction name="actionBackward"/>
    <addaction name="actionForward"/>
    <addaction name="separator"/>
+   <addaction name="actionShow_Coordinates"/>
+   <addaction name="actionSwap_Image"/>
+   <addaction name="separator"/>
    <addaction name="actionHelp"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/folder.png</normaloff>:/mini/mini/folder.png</iconset>
    </property>
    <property name="text">
@@ -440,7 +443,7 @@
   </action>
   <action name="actionFitToView">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/arrow_in.png</normaloff>:/mini/mini/arrow_in.png</iconset>
    </property>
    <property name="text">
@@ -452,7 +455,7 @@
   </action>
   <action name="actionHome">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/house.png</normaloff>:/mini/mini/house.png</iconset>
    </property>
    <property name="text">
@@ -467,7 +470,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/zoom_out.png</normaloff>:/mini/mini/zoom_out.png</iconset>
    </property>
    <property name="text">
@@ -479,7 +482,7 @@
   </action>
   <action name="actionForward">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/resultset_next.png</normaloff>:/mini/mini/resultset_next.png</iconset>
    </property>
    <property name="text">
@@ -494,7 +497,7 @@
   </action>
   <action name="actionBackward">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/resultset_previous.png</normaloff>:/mini/mini/resultset_previous.png</iconset>
    </property>
    <property name="text">
@@ -509,7 +512,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/disk.png</normaloff>:/mini/mini/disk.png</iconset>
    </property>
    <property name="text">
@@ -521,7 +524,7 @@
   </action>
   <action name="actionShow_Options">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/database_table.png</normaloff>:/mini/mini/database_table.png</iconset>
    </property>
    <property name="text">
@@ -536,7 +539,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/application_side_list.png</normaloff>:/mini/mini/application_side_list.png</iconset>
    </property>
    <property name="text">
@@ -548,7 +551,7 @@
   </action>
   <action name="actionOriginal_Size">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/arrow_out.png</normaloff>:/mini/mini/arrow_out.png</iconset>
    </property>
    <property name="text">
@@ -560,7 +563,7 @@
   </action>
   <action name="actionHelp">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/help.png</normaloff>:/mini/mini/help.png</iconset>
    </property>
    <property name="text">
@@ -572,7 +575,7 @@
   </action>
   <action name="actionLoad_More">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/arrow_refresh.png</normaloff>:/mini/mini/arrow_refresh.png</iconset>
    </property>
    <property name="text">
@@ -584,7 +587,7 @@
   </action>
   <action name="actionAdvanced_Settings">
    <property name="icon">
-    <iconset resource="../icons/icons.qrc">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
      <normaloff>:/mini/mini/wrench_orange.png</normaloff>:/mini/mini/wrench_orange.png</iconset>
    </property>
    <property name="text">
@@ -594,9 +597,40 @@
     <string>Open the Advanced Settings Dialog</string>
    </property>
   </action>
+  <action name="actionSwap_Image">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
+     <normaloff>:/mini/mini/image.png</normaloff>
+     <normalon>:/mini/mini/cd.png</normalon>:/mini/mini/image.png</iconset>
+   </property>
+   <property name="text">
+    <string>Swap Image</string>
+   </property>
+   <property name="toolTip">
+    <string>Swap between power spectra and micrograph</string>
+   </property>
+  </action>
+  <action name="actionShow_Coordinates">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
+     <normaloff>:/mini/mini/table.png</normaloff>:/mini/mini/table.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Coordinates</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the coordinates on the micrograph images</string>
+   </property>
+  </action>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../docs/images/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

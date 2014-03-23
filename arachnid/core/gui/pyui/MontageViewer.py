@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Fri Nov  1 14:11:01 2013
+# Created: Sun Mar 23 09:45:18 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -260,12 +260,28 @@ class Ui_MainWindow(object):
         icon14.addPixmap(QtGui.QPixmap(":/mini/mini/wrench_orange.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionAdvanced_Settings.setIcon(icon14)
         self.actionAdvanced_Settings.setObjectName("actionAdvanced_Settings")
+        self.actionSwap_Image = QtGui.QAction(MainWindow)
+        self.actionSwap_Image.setCheckable(True)
+        icon15 = QtGui.QIcon()
+        icon15.addPixmap(QtGui.QPixmap(":/mini/mini/image.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon15.addPixmap(QtGui.QPixmap(":/mini/mini/cd.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        self.actionSwap_Image.setIcon(icon15)
+        self.actionSwap_Image.setObjectName("actionSwap_Image")
+        self.actionShow_Coordinates = QtGui.QAction(MainWindow)
+        self.actionShow_Coordinates.setCheckable(True)
+        icon16 = QtGui.QIcon()
+        icon16.addPixmap(QtGui.QPixmap(":/mini/mini/table.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionShow_Coordinates.setIcon(icon16)
+        self.actionShow_Coordinates.setObjectName("actionShow_Coordinates")
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionLoad_More)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionBackward)
         self.toolBar.addAction(self.actionForward)
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(self.actionShow_Coordinates)
+        self.toolBar.addAction(self.actionSwap_Image)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionHelp)
 
@@ -319,5 +335,9 @@ class Ui_MainWindow(object):
         self.actionLoad_More.setToolTip(QtGui.QApplication.translate("MainWindow", "Search for additional micrographs in directories already in use", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAdvanced_Settings.setText(QtGui.QApplication.translate("MainWindow", "Advanced Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAdvanced_Settings.setToolTip(QtGui.QApplication.translate("MainWindow", "Open the Advanced Settings Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSwap_Image.setText(QtGui.QApplication.translate("MainWindow", "Swap Image", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSwap_Image.setToolTip(QtGui.QApplication.translate("MainWindow", "Swap between power spectra and micrograph", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_Coordinates.setText(QtGui.QApplication.translate("MainWindow", "Show Coordinates", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_Coordinates.setToolTip(QtGui.QApplication.translate("MainWindow", "Show the coordinates on the micrograph images", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;
