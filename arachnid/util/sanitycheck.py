@@ -26,7 +26,6 @@ def sanitycheck():
                 'arachnid.core.orient.core._transformations', 
                 'arachnid.core.parallel.core._omp']
 
-    '''
     for slib in sharedlibs:
         try:
             __import__(slib)
