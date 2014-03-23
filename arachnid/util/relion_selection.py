@@ -616,7 +616,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, selection_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
+def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -624,7 +624,7 @@ def select_good(vals, selection_file, good_file, min_defocus, max_defocus, colum
     
     vals : list
            Entries from relion selection file
-    selection_file : str
+    class_file : str
                      Filename for good class selection file
     good_file : str
                 Selection file for good particles organized by micrograph 
@@ -683,8 +683,8 @@ def select_good(vals, selection_file, good_file, min_defocus, max_defocus, colum
     else: subset=vals
     
     _logger.debug("Subset size1: %d"%len(subset))
-    if selection_file != "" and not isinstance(selection_file, list):
-        select = selection_file
+    if class_file != "" and not isinstance(class_file, list):
+        select = class_file
         vals = subset
         subset=[]
         try: select=int(select)
@@ -692,7 +692,7 @@ def select_good(vals, selection_file, good_file, min_defocus, max_defocus, colum
             if select.find(",") != -1:
                 select = set([int(v) for v in select.split(',')])
             else:
-                select = format.read(selection_file, numeric=True)
+                select = format.read(class_file, numeric=True)
                 select = set([s.id for s in select if s.select > 0])
         else: select=set([select])
         _logger.info("Selecting classes: %s"%str(select))
@@ -1192,7 +1192,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "Relion Selection", "Options to control creation of a relion selection file",  id=__name__)
-    group.add_option("-s", selection_file="",               help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
+    group.add_option("-s", class_file="",               help="SPIDER micrograph, class selection file, or comma separated list of classes (e.g. 1,2,3) - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
+
+    group.add_option("",   selection_file="",               help="SPIDER micrograph selection file - if select file does not have proper header, then use `--selection-file filename=id` or `--selection-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("-g", good_file="",                    help="SPIDER particle selection file template - if select file does not have proper header, then use `--good-file filename=id` or `--good-file filename=id,select`", gui=dict(filetype="open"))
     group.add_option("",   reindex_file="",                 help="Reindex file for 1) running movie mode on a subset of selected particles in a stack or 2) When generating a relion selection file from a single stack", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
