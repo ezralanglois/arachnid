@@ -1053,7 +1053,7 @@ class OptionParser(optparse.OptionParser):
         _logger.debug("Dependent options changed: %s"%str(dep))
         return VersionControl(output), len(dep) > 0
     
-    def parse_all(self, args=sys.argv[1:], values=None, fin=None):
+    def parse_all(self, args=sys.argv[1:], values=None, fin=None, global_config=""):
         '''Parse configuration file, then command line
         
         :Parameters:
@@ -1071,8 +1071,8 @@ class OptionParser(optparse.OptionParser):
                      A tuple of options and arguments without flags
         '''
         
-        if os.path.exists('cfg/project.cfg'):
-            values = self.parse_file(args, values, 'cfg/project.cfg')
+        if os.path.exists(global_config):
+            values = self.parse_file(args, values, global_config)
         values = self.parse_file(args, values, fin)
         return self.parse_args(args, values)
     
@@ -1099,6 +1099,7 @@ class OptionParser(optparse.OptionParser):
         '''
         
         self.add_option("-c", config_file="", help="Read a configuration file for options", gui=dict(nogui=True))#, archive=True)
+        self.add_option("",   global_config_file="cfg/project.cfg", help="Read a global configuration file for options", gui=dict(nogui=True))#, archive=True)
         try:
             options=self.parse_args()[0]
         except optparse.OptionError, inst:
@@ -1115,7 +1116,7 @@ class OptionParser(optparse.OptionParser):
             if not os.path.exists(config_file): 
                 raise OptionValueError, "Cannot find specified configuration file: "+options.config_file
                 #self.error("Cannot find specified configuration file: "+options.config_file, options)
-        return self.parse_all(args, values, config_file)
+        return self.parse_all(args, values, config_file, options.global_config_file)
     
     def parse_args(self, args=sys.argv[1:], values=None):
         ''' Parse arguments from the command line
