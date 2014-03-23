@@ -32,8 +32,6 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('_transformations', sources=['transforms.c'])
     config.add_extension('_healpix', sources=['healpix.c'], libraries=['_healpixlib'])
     
-    rot_src = 'rotation_mapping_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'rotation_mapping_wrap.cpp')) else 'rotation_mapping.i'
-    config.add_extension('_rotation_mapping', sources=[rot_src], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['rotation_mapping.hpp', 'linalg.hpp'], swig_opts=['-c++'], extra_link_args=compiler_args, libraries=compiler_libraries)
     config.add_include_dirs(os.path.dirname(__file__))
     return config
 
