@@ -9,4 +9,5 @@ console_scripts = [
  'project = arachnid.util.project:main',
  'info = arachnid.util.image_info:main',
  'coverage = arachnid.util.coverage:main',
+ 'sanitycheck = arachnid.util.sanitycheck:sanitycheck',
 ]
