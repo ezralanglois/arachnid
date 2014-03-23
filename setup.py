@@ -192,6 +192,7 @@ except:
     import ez_setup #@UnresolvedImport
     ez_setup.use_setuptools()
     import setuptools
+    setuptools;
 import arachnid.distutils.sdist
 import arachnid.distutils.check_dep
 
