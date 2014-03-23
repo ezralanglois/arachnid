@@ -306,12 +306,9 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
                 fac = bin_micrograph/bin_factor
                 if fac > 1: img = ndimage_interpolate.downsample(mic, fac)
                 if use_8bit:
-                    img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
-                    img = ndimage_utility.normalize_min_max(img)*255
-                    img = img.astype(numpy.uint8)
-                    ndimage_file.mrc.write_image(os.path.splitext(output_mic)[0]+".mrc", img)
+                    save_8bit(output_mic, img, extra['apix']*fac)
                 else:
-                    ndimage_file._default_write_format.write_image(output_mic, img)
+                    ndimage_file._default_write_format.write_image(output_mic, img, header=dict(apix=extra['apix']))
             #window_size /= bin_factor
             x_overlap_norm = 100.0 / (100-x_overlap)
             step = max(1, window_size/x_overlap_norm)
@@ -334,13 +331,26 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
         
         
         assert(output_pow != "" and output_pow is not None)
-        ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec)
+        # small image format
+        if use_8bit:
+            save_8bit(output_pow, mpowerspec, extra['apix'])
+        else:
+            ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']))
     else:
         power_spec = spi.cp(filename)
         spi.du(power_spec, 3, 3)
         npowerspec = ndimage_file.read_image(spi.replace_ext(filename))
     return power_spec, npowerspec
 
+def save_8bit(output, img, apix):
+    '''
+    '''
+    
+    img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
+    img = ndimage_utility.normalize_min_max(img)*255
+    img = img.astype(numpy.uint8)
+    ndimage_file.write_image(os.path.splitext(output)[0]+".mrc", img, header=dict(apix=apix))
+    
 def prepare_micrograph(mic, bin_factor, invert):
     ''' Preprocess the micrograph
     
