@@ -208,7 +208,7 @@ def read_stack(filename):
         stack[i, :] = img
     return stack
 
-def iter_images(filename, index=None):
+def iter_images(filename, index=None, header=None):
     ''' Read a set of images from the given file
     
     :Parameters:
@@ -238,7 +238,7 @@ def iter_images(filename, index=None):
                 yield read_image(f, id-1)
         else:
             for f in filename:
-                for img in iter_images(f):
+                for img in iter_images(f, header=header):
                     yield img
         return
     elif index is not None and hasattr(index, 'ndim'):
@@ -267,7 +267,7 @@ def iter_images(filename, index=None):
                     if numpy.any(index[sel, 1]) > count_images(curr_filename):
                         raise ValueError, "Index exceeds stack size: %s - %d > %d"%(curr_filename, index[sel, 1].max(), count_images(curr_filename))
                     if len(sel) > 1:
-                        for img in iter_images(curr_filename, index[sel, 1]):
+                        for img in iter_images(curr_filename, index[sel, 1], header):
                             yield img
                     else:
                         yield read_image(curr_filename, int(index[sel[0], 1]))
@@ -281,7 +281,7 @@ def iter_images(filename, index=None):
     if index is not None and hasattr(index, '__iter__') and not hasattr(index, 'ndim'): index = numpy.asarray(index)
     filename = readlinkabs(filename)
     format = get_read_format_except(filename)
-    for img in format.iter_images(filename, index):
+    for img in format.iter_images(filename, index, header):
         yield img
 
 def count_images(filename):

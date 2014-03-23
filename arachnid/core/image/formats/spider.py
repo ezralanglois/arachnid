@@ -114,7 +114,7 @@ def cache_data():
             Keyword arguments
     '''
     
-    return dict()
+    return dict(header=None)
 
 def is_format_header(h):
     ''' Test if the given header has the proper format
@@ -180,7 +180,7 @@ def read_header(filename, index=None):
              Dictionary with header information
     '''
     
-    h = read_spider_header(filename, index)
+    h = read_spider_header(filename, index) if not hasattr(filename, 'ndim') else filename
     header={}
     header['apix'] = float(h['apix'][0])
     header['fourier_even'] = (h['iform'][0] == -12 or h['iform'][0] == -22)
@@ -352,7 +352,8 @@ def iter_images(filename, index=None, header=None):
         h = read_spider_header(f)
         dtype = numpy.dtype(spi2numpy[float(h['iform'])])
         #if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
-        if header is not None: util.update_header(header, h, spi2ara, 'spi')
+        #if header is not None: util.update_header(header, h, spi2ara, 'spi')
+        if header is not None:  header.update(read_header(h))
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4

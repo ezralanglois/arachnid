@@ -221,7 +221,7 @@ def cache_data():
             Keyword arguments
     '''
     
-    return dict()
+    return dict(header=None)
 
 def is_format_header(h):
     ''' Test if the given header has the proper format
@@ -380,7 +380,8 @@ def iter_images(filename, index=None, header=None):
     try:
         h = read_mrc_header(f)
         count = count_images(h)
-        if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
+        #if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
+        if header is not None: header.update(read_header(h))
         d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         offset = 1024+int(h['nsymbt'])+ 0 * d_len * dtype.itemsize
