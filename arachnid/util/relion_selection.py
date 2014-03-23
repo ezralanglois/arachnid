@@ -1097,7 +1097,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         if param_file == "": 
             raise ValueError, "Requires --param-file or --pixel-radius and --apix"
         spider_params.read(param_file, extra)
-        apix=extra['apix']
+        #apix=extra['apix']
         pixel_radius=extra['pixel_diameter']/2
     
     mask = None
