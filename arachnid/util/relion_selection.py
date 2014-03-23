@@ -1097,7 +1097,6 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         if param_file == "": 
             raise ValueError, "Requires --param-file or --pixel-radius and --apix"
         spider_params.read(param_file, extra)
-        #apix=extra['apix']
         pixel_radius=extra['pixel_diameter']/2
     
     mask = None
@@ -1108,6 +1107,9 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     else:
         output = os.path.join(os.path.dirname(filename)+"_%.2f"%downsample, os.path.basename(filename))
     oindex = {}
+    
+    try: os.makedirs(os.path.dirname(output))
+    except: pass
     
     if 'voltage' not in extra:
         extra['voltage']=vals[0].rlnVoltage
