@@ -6,6 +6,8 @@ This script ensures Arachnid is properly installed and will function correctly.
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 import logging
+import traceback
+import sys
 
 def sanitycheck():
     ''' Sanity check code for testing the installation
@@ -25,14 +27,22 @@ def sanitycheck():
                 'arachnid.core.orient.core._healpix', 
                 'arachnid.core.orient.core._transformations', 
                 'arachnid.core.parallel.core._omp']
-
+    
+    failed=[]
     for slib in sharedlibs:
         try:
             __import__(slib)
-        except:
-            logging.exception("Cannot import %s"%slib)
-        else:
-            logging.info("Successful import of %s"%slib)
+        except: failed.append(slib)
+    if len(failed) > 0: 
+        for slib in failed:
+            try: 
+                __import__(slib)
+            except: 
+                formatted_lines = traceback.format_exc().splitlines()
+                logging.error(formatted_lines[-3])
+        logging.error("Failed to load %d shared libraries"%len(failed))
+    else:
+        logging.info("All tests completed successfully")
     
 
 if __name__ == "__main__": sanitycheck()
