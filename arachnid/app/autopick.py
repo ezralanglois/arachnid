@@ -278,7 +278,9 @@ def search_range(img, disk_mult_range, **extra):
         except:
             _logger.error("Error for disk_mult=%f"%(disk_mult))
             raise
+        coords2[:, 1:3] /= extra['bin_factor']
         coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
+    coords_last[:, 1:3] *= extra['bin_factor']
     return coords_last[::-1]
 
 def template_match(img, template_image, pixel_diameter, **extra):
@@ -314,7 +316,6 @@ def merge_coords(coords1, coords2, pixel_diameter, **extra):
     '''
     '''
     
-    coords2[:, 1:3] /= extra['bin_factor']
     pixel_radius = pixel_diameter/2
     pixel_radius = pixel_radius*pixel_radius
     selected = []
