@@ -104,7 +104,9 @@ import spider_session
 from spider_parameter import spider_image, spider_tuple, spider_doc, spider_stack, spider_select, spider_coord_tuple, is_incore_filename, SpiderParameterError
 from spider_session import SpiderCrashed
 import collections
-import logging, os, numpy
+import logging
+import os
+import numpy
 import glob
 import platform
 import sys
@@ -3540,7 +3542,9 @@ def determine_spider(file_path):
                 files = glob.glob(os.path.join(file_path, 'spider', 'bin', exe+"*"))
                 if len(files) == 0: return ""
         file_path = files[0]
-    
+
+    if not os.path.exists(file_path) or os.path.isdir(file_path):
+        return ""
     if not validate_spider(file_path):
         _logger.warn("Not a valid SPIDER executable: %s"%file_path)
         return ""
