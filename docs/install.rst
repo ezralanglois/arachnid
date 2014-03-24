@@ -32,11 +32,11 @@ Prerequisites
 The following prerequisites are generally already available on many Linux distributions
 but, have been found to be absent from a few.
 
-	- Fortran runtime libraries: libgfortran.so.3
+	- Fortran runtime libraries: libgfortran.so.3           (No longer required for the daily build)
 	- Fastest Fourier transform (in the west): libfftw3.so (No longer required for the daily build)
 
 I am currently working to address these missing dependencies. The daily builds have already
-included the Fastest Fourier transform (in the west) and include SPIDER. The `ara-control`
+included the Fastest Fourier transform (in the west), libfortran and include SPIDER. The `ara-control`
 and `ara-project` scripts should automatically find the included SPIDER executables.
 
 Quick Start
@@ -69,6 +69,29 @@ Simply download and run this script:
 	# (requires Premium package free for Academic use)
 	
 	$ sh install.sh dev-mkl
+
+To update your code, do one of the following:
+
+For the latest stable build:
+
+.. sourcecode:: sh
+	
+	$ conda update arachnid
+	
+For the latest daily build:
+
+.. sourcecode:: sh
+	
+	$ conda install arachnid-dev --force
+
+If you want to update the accelerate versions, just add `-mkl` to the end.
+
+For example:
+
+.. sourcecode:: sh
+	
+	$ conda update arachnid-mkl
+
 
 See `Speeding up the code`_ for more information about the Accelerated
 builds.
@@ -209,7 +232,7 @@ Troubleshooting
 
 #. Install the daily build to get the latest bug fixes for the current version
 	
-	$ conda install https://conda.binstar.org/public arachnid-dev
+	$ conda install -c https://conda.binstar.org/public arachnid-dev --force
 
 Speeding up the code
 --------------------

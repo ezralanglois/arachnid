@@ -134,15 +134,37 @@ Packaging for Anaconda
 Prerequisites
 -------------
 
+#. Install required packages
+
 .. sourcecode:: sh
 
 	# Install the conda build command and its dependencies
 	
-	conda install conda-build
-	conda install jinja2
-	conda install setuptools
-	conda install binstar
-	conda install patchelf
+	conda install conda-build jinja2 setuptools binstar patchelf
+
+#. Setup Arachnid dependencies
+
+You must add `https:/conda.binstar.org/public` to your `$HOME/.condarc`.
+
+See the example below:
+
+.. literalinclude:: ../.condarc
+   	:language: sh
+
+You may download an example file :download:`../.condarc` or copy the previous.
+
+#. Fix possible bug in conda-build
+
+If you get the following error:
+
+	ImportError: No module named arachnid.distutils.sdist
+
+Then can add the following:
+	
+	>>> sys.path.append('.')
+
+To line 31 in:
+anaconda/lib/python2.7/site-packages/conda_build/jinja_context.py
 
 Stable Release
 --------------
