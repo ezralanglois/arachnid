@@ -210,7 +210,6 @@ option when you see it and unselecting the Gnome Desktop.
 		
 		$ git clone http://github.com/ezralanglois/arachnid/
 
-
 Prerequisites
 -------------
 

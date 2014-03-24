@@ -42,8 +42,23 @@ and `ara-project` scripts should automatically find the included SPIDER executab
 Quick Start
 -----------
 
+This section covers the installation and updating of Arachind. 
+
 First Install
 ~~~~~~~~~~~~~
+
+If you have not installed Arachnid before, then you should start
+here otherwise see `Update to Latest`_.
+
+.. note::
+
+	If you already have Anaconda, then you only need to run:
+	
+	.. sourcecode:: sh
+		
+		conda install -c https://conda.binstar.org/public arachnid 
+		# You can replace arachnid with arachnid-dev or arachnid-mkl 
+		# or arachnid-dev-mkl
 
 Simply download and run this script:
 
@@ -76,7 +91,7 @@ Simply download and run this script:
 Update to Latest
 ~~~~~~~~~~~~~~~~
 
-To update your code, do one of the following:
+To update an existing install of Arachnid, do one of the following:
 
 For the latest stable build:
 
@@ -155,6 +170,7 @@ These are the same steps run by the script in the
 	.. note::
 		
 		There are four versions of arachnid you can install
+		
 		#. Stable build ($ conda install arachnid)
 		#. Accelerated Stable build ($ conda install arachnid-mkl)
 		#. Daily build ($ conda install arachnid-dev)
