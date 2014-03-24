@@ -131,6 +131,86 @@ To test whether your code has any problems such as uninitalized variable, use th
 Packaging for Anaconda
 ======================
 
+Build System: CentOS 5.10
+-------------------------
+
+The Anaconda people use CentOS 5 to build Anaconda and to ensure compatibility I recommend doing the same.
+
+.. note::
+	
+	Redhat backported OpenMP to gcc 4.1. This provides both backward compatibility for gcc4 compilers
+	and OpenMP threading.
+
+Here are the steps I suggest to perform a minimal install of CentOS 5 on some platform, e.g. virutual machine.
+
+#. Get the ISO. 
+
+You can download CentOS 5.10 from http://isoredirect.centos.org/centos/5/isos/x86_64/
+
+I am going through a bare minimum build so I only use the first CD: CentOS-5.10-x86_64-bin-1of9.iso
+
+#. Install
+
+To do a bare minimum install, I recommend unselecting all the packages. This means selecting the `Customize Now`
+option when you see it and unselecting the Gnome Desktop.
+
+.. warning::
+
+	Do not use automatic installation in VMWare if you want a bare minimum install
+	of CentOS 5.
+
+#. Install Compilers
+
+	.. sourcecode:: sh
+		
+		$ yum install gcc gcc-gfortran gcc-c++ -yq
+	
+#. Install Git Prerequisites
+
+	#. Install Git
+
+	.. sourcecode:: sh
+		
+		$ yum install wget -yq
+		$ yum install unzip -yq
+		$ yum install make -yq
+		$ yum install zlib zlib-devel -yq
+		$ yum install openssh-server openssh-clients openssl-devel -yq
+		$ yum install curl curl-devel -yq
+		$ yum install expat expat-devel
+		$ yum install gettext
+		$ yum install bzip2
+
+.. One long command:
+.. yum install gcc gcc-gfortran gcc-c++ unzip make zlib zlib-devel openssh-server openssh-clients openssl-devel curl curl-devel expat expat-devel gettext wget bzip2 -yq
+	
+#. Install Git
+
+	.. sourcecode:: sh
+		
+		$ wget https://github.com/git/git/archive/master.zip
+		$ mv master master.zip
+		$ unzip master.zip 
+		$ cd git-master/
+		$ make prefix=/usr install
+
+.. One long command:
+.. wget https://github.com/git/git/archive/master.zip;mv master master.zip;unzip master.zip;cd git-master/;make prefix=/usr install
+
+#. Install Anaconda
+	
+	.. sourcecode:: sh
+		
+		$ wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
+		$ sh Miniconda-3.0.0-Linux-x86_64.sh -b -p $PWD/anaconda
+
+#. Get Arachnid Source
+
+	.. sourcecode:: sh
+		
+		$ git clone http://github.com/ezralanglois/arachnid/
+
+
 Prerequisites
 -------------
 
@@ -140,7 +220,7 @@ Prerequisites
 
 	# Install the conda build command and its dependencies
 	
-	conda install conda-build jinja2 setuptools binstar patchelf
+	conda install conda-build jinja2 setuptools binstar patchelf --yes
 
 #. Setup Arachnid dependencies
 
@@ -169,7 +249,22 @@ anaconda/lib/python2.7/site-packages/conda_build/jinja_context.py
 Stable Release
 --------------
 
+.. note::
+
+	To run these commands, https://conda.binstar.org/public must
+	be in your $HOME/.condarc.
+	
+	If you do not have a condarc, then a quick fix is to run the
+	following:
+	
+	.. sourcecode:: sh
+		
+		$ cd <arachnid-source-directory>
+		$ cp .condarc ~/
+
 .. sourcecode:: sh
+	
+	$ cd <arachnid-source-directory>
 	
 	# Build a binary release for Anaconda
 	
@@ -189,6 +284,8 @@ Development Release (Daily Build)
 
 .. sourcecode:: sh
 	
+	$ cd <arachnid-source-directory>
+	
 	# Build a binary release for Anaconda
 	
 	$ conda build conda-recipes/daily
@@ -201,6 +298,7 @@ Development Release (Daily Build)
 	
 	The accelerate (aka MKL) releases can be done the same way
 	except its `conda-recipes/daily-mkl`.
+
 
 Documentation Hack
 ==================
