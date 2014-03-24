@@ -170,6 +170,7 @@ These are the same steps run by the script in the
 	.. note::
 		
 		There are four versions of arachnid you can install
+		
 		#. Stable build ($ conda install arachnid)
 		#. Accelerated Stable build ($ conda install arachnid-mkl)
 		#. Daily build ($ conda install arachnid-dev)
