@@ -278,7 +278,7 @@ def search_range(img, disk_mult_range, **extra):
         except:
             _logger.error("Error for disk_mult=%f"%(disk_mult))
             raise
-        coords2[:, 1:3] /= extra['bin_factor']
+        coords[:, 1:3] /= extra['bin_factor']
         coords_last = merge_coords(coords_last, coords, **extra) if coords_last is not None else coords
     coords_last[:, 1:3] *= extra['bin_factor']
     return coords_last[::-1]
