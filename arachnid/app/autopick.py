@@ -267,13 +267,14 @@ def search_range(img, disk_mult_range, **extra):
                 List of peaks: height and coordinates
     '''
     
-    del extra['mask_mult']
+    #del extra['mask_mult']
     coords_last = None
     disk_mult_range = numpy.asarray(disk_mult_range)
-    max_mult = disk_mult_range.max()
+    #max_mult = disk_mult_range.max()
     for disk_mult in disk_mult_range:
         try:
-            coords = search(img, mask_mult=float(disk_mult)/max_mult, **extra)[::-1]
+            #coords = search(img, mask_mult=float(disk_mult)/max_mult, **extra)[::-1]
+            coords = search(img, **extra)[::-1]
         except:
             _logger.error("Error for disk_mult=%f and mask_mult=%f = %f/%f"%(disk_mult, float(disk_mult)/max_mult, disk_mult, max_mult))
             raise
