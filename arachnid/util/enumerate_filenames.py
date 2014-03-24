@@ -219,15 +219,22 @@ def generate_enum_links(mapped, output, test_image=False):
         except: pass
     for filename, id in mapped:
         link = spider_utility.spider_filename(output, id)
-        try:os.unlink(link)
-        except: pass
         if os.path.exists(filename):
+            linkedfilename = os.readlink(link)
+            if os.path.abspath(linkedfilename) != os.path.abspath(filename):
+                _logger.warn("Relinking %s because %s does not match original link %s -- this will cause other programs to restart in Arachnid"%(link, filename, linkedfilename))
+                try:os.unlink(link)
+                except: pass
+                os.symlink(os.path.abspath(filename), link)
             if test_image and not ndimage_file.is_readable(filename):
                 _logger.warn("Unlinking %s because %s is not a valid image"%(link, filename))
+                try:os.unlink(link)
+                except: pass
                 continue
-            os.symlink(os.path.abspath(filename), link)
         else:
             _logger.warn("Unlinking %s because %s does not exist"%(link, filename))
+            try:os.unlink(link)
+            except: pass
 
 def is_enum_filename(files):
     ''' Test if list of filenames all follow the enumerated filename
