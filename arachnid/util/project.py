@@ -5,6 +5,13 @@ cryo-electron microscopy. It generates a set of configuration files that can
 be used to tune individual parameters as well as a directory structure
 to organize all data.
 
+A project consists of four primary directories
+
+#. cfg - contains all configuration file for the scripts
+#. linked - contains renamed links
+#. cluster - contains all files to copy to the cluster
+#. local - contains all files that can be copied to a local machine (e.g. laptop)
+
 The directory structure and location of configuration files and scripts is
 illustrated below.
 
@@ -22,6 +29,9 @@ illustrated below.
     |     - autorefine.cfg
     |     - vicer.cfg
     |     - relion_selection.cfg
+    |
+    |    linked/
+    |
     |     
     |    cluster/
     |     - data/
@@ -291,11 +301,43 @@ def build_workflow(files, extra):
     # Hack
     if first_param == 'unenum_files':
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
-        extra['linked_files'] = extra[input2]
+        extra['linked_files'] = os.path.join('linked', *os_path_split(extra[input2])[1:])
+        extra[input2] = extra['linked_files']
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
         first_script[3] = ['--'+input2.replace('_', '-'), ]+first_script[3]
     
     return [workflow[0]]+build_dependency_tree(workflow[1:], workflow[0], ['--'+first_param.replace('_', '-')])
+
+def os_path_split(path):
+    ''' Split a filename into a list of directories (possibly) ending with a filename
+    
+    :Parameters:
+        
+        path : str
+               Path to split
+    
+    :Returns:
+        
+        paths : list
+                List of directories (possibly) ending with a filename
+    
+    .. note::
+        
+        Adopted from:
+        http://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
+    '''
+    
+    parts = []
+    while True:
+        newpath, tail = os.path.split(path)
+        if newpath == path:
+            assert not tail
+            if path: parts.append(path)
+            break
+        parts.append(tail)
+        path = newpath
+    parts.reverse()
+    return parts
 
 def find_root(scripts, root_inputs):
     ''' Find the input for the root script
