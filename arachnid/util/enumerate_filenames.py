@@ -49,6 +49,10 @@ Useful Options
     filename to the enumerated filename. This is specified when the files need to be
     relinked because of a change in location.
 
+.. option:: -s, --strict <BOOL>
+
+    Only use files list in --mapping-file
+
 .. option:: --test-image <BOOL>
     
     Test if the input filename is a valid image - do not link if invalid
@@ -73,7 +77,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mapping_file="", test_image=False, **extra):
+def batch(files, output, mapping_file="", test_image=False, strict=False, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
@@ -86,6 +90,8 @@ def batch(files, output, mapping_file="", test_image=False, **extra):
                    Filename of possible existing mapping
     test_image : bool
                  Test if input file is valid image
+    strict : bool
+             If True, Only use files list in --mapping-file
     extra : dict
             Unused keyword arguments
     '''
@@ -108,7 +114,7 @@ def batch(files, output, mapping_file="", test_image=False, **extra):
     if mapping_file == "":
         mapped = map_enum_files(files, output_map_file)
     else:
-        mapped = remap_enum_files(files, mapping_file)
+        mapped = remap_enum_files(files, mapping_file, strict)
     #output = os.path.splitext(output)[0]+os.path.splitext(files[0])[1]
     path = os.path.dirname(output)
     if not os.path.exists(path):
@@ -118,7 +124,7 @@ def batch(files, output, mapping_file="", test_image=False, **extra):
     generate_enum_links(mapped, output, test_image)
     _logger.info("Completed")
     
-def map_enum_files(files, mapping_file):
+def map_enum_files(files, mapping_file, strict=False):
     ''' Map the list of files, optionally, given an existing mapping
     
     :Parameters:
@@ -127,6 +133,8 @@ def map_enum_files(files, mapping_file):
             List of filenames to map
     mapping_file : str
                    Filename of possible existing mapping
+    strict : bool
+             If True, Only use files list in --mapping-file
     
     :Returns:
     
@@ -150,14 +158,14 @@ def map_enum_files(files, mapping_file):
             if offset is not None:
                 mapped[offset] = (filename, mapped[offset][1])
                 relink += 1
-            else:
+            elif not strict:
                 mapped.append((filename, index))
                 index += 1
     if relink > 0:
         _logger.info("Relinked %d of %d files"%(relink, len(files)))
     return mapped
     
-def remap_enum_files(files, mapping_file):
+def remap_enum_files(files, mapping_file, strict=False):
     ''' Remap the list of files given an existing mapping
     
     :Parameters:
@@ -166,6 +174,8 @@ def remap_enum_files(files, mapping_file):
             List of filenames to remap
     mapping_file : str
                    Filename of existing mapping
+    strict : bool
+             If True, Only use files list in --mapping-file
     
     :Returns:
     
@@ -179,10 +189,12 @@ def remap_enum_files(files, mapping_file):
     index = len(mapped)+1
     for filename in files:
         basename = os.path.basename(filename)
-        basename = os.path.splitext(basename)[0]
+        if os.path.splitext(basename)[1] == '.bz2': basename = os.path.splitext(basename)[0]
         found=[]
         for pair in mapped:
-            if pair[0].find(basename) != -1 or basename.find(pair[0]) != -1:
+            mapbase = os.path.splitext(os.path.basename(pair[0]))[0]
+            if os.path.splitext(mapbase)[1] == '.bz2': mapbase = os.path.splitext(mapbase)[0]
+            if mapbase.find(basename) != -1 or basename.find(mapbase) != -1:
                 found.append(pair)
         if len(found) == 1:
             pair = found[0]
@@ -190,7 +202,7 @@ def remap_enum_files(files, mapping_file):
         elif len(found) > 1:
             _logger.error('Duplicate mappings (%d) found for filename %s -> %s'%(len(found), filename, str(found)))
             raise ValueError, 'Duplicate mappings (%d) found for filename %s -> %s'%(len(found), filename, str(found))
-        else:
+        elif not strict:
             newmapping.append((filename, index))
             index += 1
             #_logger.error('Filename not found in mapping: %s'%filename)
@@ -223,15 +235,16 @@ def generate_enum_links(mapped, output, test_image=False):
             if os.path.exists(link):
                 linkedfilename = os.readlink(link)
                 if os.path.abspath(linkedfilename) != os.path.abspath(filename):
-                    _logger.warn("Relinking %s because %s does not match original link %s -- this will cause other programs to restart in Arachnid"%(link, filename, linkedfilename))
+                    #_logger.warn("Relinking %s because %s does not match original link %s -- this will cause other programs to restart in Arachnid"%(link, filename, linkedfilename))
                     try:os.unlink(link)
                     except: pass
+            else:
+                os.symlink(os.path.abspath(filename), link)
             if test_image and not ndimage_file.is_readable(filename):
                 _logger.warn("Unlinking %s because %s is not a valid image"%(link, filename))
                 try:os.unlink(link)
                 except: pass
                 continue
-            os.symlink(os.path.abspath(filename), link)
         else:
             _logger.warn("Unlinking %s because %s does not exist"%(link, filename))
             try:os.unlink(link)
@@ -303,6 +316,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-o", "--linked-files", output="",              help="Output filename for micrograph links", gui=dict(filetype="save"), required=True)
     pgroup.add_option("-m", mapping_file="",                          help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
     pgroup.add_option("-t", test_image=False,                         help="Test if the input filename is a valid image - do not link if invalid")
+    pgroup.add_option("-s", strict=False,                             help="Only use files list in --mapping-file")
     
 def flags():
     ''' Get flags the define the supported features
