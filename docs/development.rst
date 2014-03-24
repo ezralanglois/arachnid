@@ -12,7 +12,7 @@ To get the latest version of the source, use the following `git <http://git-scm.
 
 .. sourcecode:: sh
 	
-	$ git clone https://github.com/ezralanglois/arachnid/arachnid.git
+	$ git clone http://github.com/ezralanglois/arachnid
 
 Alternatively, you can download a zip file of the latest development release:
 
