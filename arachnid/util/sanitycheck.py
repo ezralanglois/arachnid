@@ -58,7 +58,7 @@ def check_qt():
     failed=[]
     try:
         from ..core.gui.util import qtapp
-        app = qtapp.create_app()
+        qtapp.create_app()
     except:
         formatted_lines = traceback.format_exc().splitlines()
         if sys.platform == 'darwin':
