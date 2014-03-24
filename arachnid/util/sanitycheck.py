@@ -7,7 +7,6 @@ This script ensures Arachnid is properly installed and will function correctly.
 '''
 import logging
 import traceback
-import sys
 
 def sanitycheck():
     ''' Sanity check code for testing the installation
