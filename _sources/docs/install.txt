@@ -42,6 +42,9 @@ and `ara-project` scripts should automatically find the included SPIDER executab
 Quick Start
 -----------
 
+First Install
+~~~~~~~~~~~~~
+
 Simply download and run this script:
 
 	:download:`../install.sh`
@@ -69,6 +72,9 @@ Simply download and run this script:
 	# (requires Premium package free for Academic use)
 	
 	$ sh install.sh dev-mkl
+
+Update to Latest
+~~~~~~~~~~~~~~~~
 
 To update your code, do one of the following:
 
