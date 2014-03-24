@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>relion_selection &mdash; arachnid 0.1.5_78_geb34dd9 documentation</title>
+    <title>relion_selection &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.5_78_geb34dd9',
+        VERSION:     '0.1.5_89_g1b930c3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_78_geb34dd9 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="bench" href="arachnid.util.bench.html" />
     <link rel="prev" title="crop" href="arachnid.util.crop.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_78_geb34dd9</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1362,7 +1362,7 @@ write to output file</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.relion_selection.downsample_images">
-<tt class="descname">downsample_images</tt><big>(</big><em>vals</em>, <em>downsample=1.0</em>, <em>param_file=''</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.downsample_images" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">downsample_images</tt><big>(</big><em>vals</em>, <em>downsample=1.0</em>, <em>param_file=''</em>, <em>phase_flip=False</em>, <em>apix=1.0</em>, <em>pixel_radius=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.downsample_images" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downsample images in Relion selection file and update
 selection entries to point to new files.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1378,6 +1378,8 @@ selection entries to point to new files.</p>
 <dd>List of entries from a selection file</dd>
 <dt>downsample <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>Down sampling factor</dd>
+<dt>phase_flip <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Apply CTF correction by phase flipping</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd>Unused key word arguments</dd>
 </dl>
@@ -1792,7 +1794,7 @@ from the input relion seleciton file.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.relion_selection.select_good">
-<tt class="descname">select_good</tt><big>(</big><em>vals</em>, <em>selection_file</em>, <em>good_file</em>, <em>min_defocus</em>, <em>max_defocus</em>, <em>column='rlnClassNumber'</em>, <em>view_resolution=0</em>, <em>view_limit=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_good" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_good</tt><big>(</big><em>vals</em>, <em>class_file</em>, <em>good_file</em>, <em>min_defocus</em>, <em>max_defocus</em>, <em>column='rlnClassNumber'</em>, <em>view_resolution=0</em>, <em>view_limit=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_good" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select good particles based on selection file and defocus
 range.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1806,7 +1808,7 @@ range.</p>
 <dl class="docutils">
 <dt>vals <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
 <dd>Entries from relion selection file</dd>
-<dt>selection_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dt>class_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>Filename for good class selection file</dd>
 <dt>good_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>Selection file for good particles organized by micrograph</dd>

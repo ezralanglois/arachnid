@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Development &mdash; arachnid 0.1.5_78_geb34dd9 documentation</title>
+    <title>Development &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.5_78_geb34dd9',
+        VERSION:     '0.1.5_89_g1b930c3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_78_geb34dd9 documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="../index.html" />
     <link rel="up" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
     <link rel="next" title="Arachnid API" href="api.html" />
     <link rel="prev" title="Arachnid Developer’s Guide" href="../developer_guide.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_78_geb34dd9</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -974,7 +974,7 @@
 <div class="section" id="getting-source">
 <h2>Getting Source<a class="headerlink" href="#getting-source" title="Permalink to this headline">¶</a></h2>
 <p>To get the latest version of the source, use the following <a class="reference external" href="http://git-scm.com/documentation">git</a> command:</p>
-<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>git clone https://github.com/ezralanglois/arachnid/arachnid.git
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>git clone http://github.com/ezralanglois/arachnid
 </pre></div>
 </div>
 <p>Alternatively, you can download a zip file of the latest development release:</p>
@@ -1089,70 +1089,72 @@ the suppressions.</li>
 <h2>Packaging for Anaconda<a class="headerlink" href="#packaging-for-anaconda" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="prerequisites">
 <h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Install the conda build command</span>
+<ol class="arabic simple">
+<li>Install required packages</li>
+</ol>
+<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Install the conda build command and its dependencies</span>
 
-conda install conda-build
+conda install conda-build jinja2 setuptools binstar patchelf
 </pre></div>
 </div>
+<ol class="arabic simple">
+<li>Setup Arachnid dependencies</li>
+</ol>
+<p>You must add <cite>https:/conda.binstar.org/public</cite> to your <cite>$HOME/.condarc</cite>.</p>
+<p>See the example below:</p>
+<div class="highlight-sh"><div class="highlight"><pre>channels:
+  - http://repo.continuum.io/pkgs/pro
+  - http://repo.continuum.io/pkgs/free
+  - http://repo.continuum.io/pkgs/gpl
+  - https://conda.binstar.org/public
+</pre></div>
+</div>
+<p>You may download an example file <a class="reference download internal" href="../_downloads/.condarc"><tt class="xref download docutils literal"><span class="pre">../.condarc</span></tt></a> or copy the previous.</p>
+<ol class="arabic simple">
+<li>Fix possible bug in conda-build</li>
+</ol>
+<p>If you get the following error:</p>
+<blockquote>
+<div>ImportError: No module named arachnid.distutils.sdist</div></blockquote>
+<p>Then can add the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To line 31 in:
+anaconda/lib/python2.7/site-packages/conda_build/jinja_context.py</p>
 </div>
 <div class="section" id="stable-release">
 <h3>Stable Release<a class="headerlink" href="#stable-release" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Upload new source distribution to PyPI</span>
+<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Build a binary release for Anaconda</span>
 
-<span class="nv">$ </span>cp conda-stable.yaml conda.yaml
-
-<span class="c"># Build a binary release for Anaconda</span>
-
-<span class="nv">$ </span>conda build .
+<span class="nv">$ </span>conda build conda-recipes/stable
 
 <span class="c"># Upload to binstar.org repository</span>
 
-<span class="nv">$ </span>binstar upload <span class="nv">$HOME</span>/anaconda/conda-bld/linux-64/arachnid-0.1.4-py27_0.tar.bz2
-</pre></div>
-</div>
-</div>
-<div class="section" id="development-release-daily-build">
-<h3>Development Release (Daily Build)<a class="headerlink" href="#development-release-daily-build" title="Permalink to this headline">¶</a></h3>
-<p>This protocol assumes that you have either created or edited the <cite>meta.yaml</cite>
-file from the <cite>Stable Release</cite> section.</p>
-<p>We assume this file is kep in <cite>arachnid-dev</cite>.</p>
-<p>The following lines are changed in the meta.yaml file from:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">package</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">arachnid</span>
-  <span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="kt">!!str</span> <span class="l-Scalar-Plain">0.1.5</span>
-
-<span class="l-Scalar-Plain">source</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">fn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">arachnid-0.1.5.tar.gz</span>
-  <span class="l-Scalar-Plain">url</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https://pypi.python.org/packages/source/a/arachnid/arachnid-0.1.5.tar.gz</span>
-  <span class="l-Scalar-Plain">md5</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">cc13499de5d2cb59e12321311a5eaf97</span>
-</pre></div>
-</div>
-<p>To:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">package</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">arachnid-dev</span>
-  <span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="kt">!!str</span> <span class="l-Scalar-Plain">0.1.dev</span>
-
-<span class="l-Scalar-Plain">source</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">fn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">master.zip</span>
-  <span class="l-Scalar-Plain">url</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https://github.com/ezralanglois/arachnid/archive/master.zip</span>
+<span class="nv">$ </span>binstar upload <span class="nv">$HOME</span>/anaconda/conda-bld/linux-64/arachnid-0.1.4-py27_1.tar.bz2
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">We point the url to the source zip from the GIT repository.</p>
+<p class="last">The accelerate (aka MKL) releases can be done the same way
+except its <cite>conda-recipes/stable-mkl</cite>.</p>
 </div>
-<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Push latest changes to GIT repository</span>
+</div>
+<div class="section" id="development-release-daily-build">
+<h3>Development Release (Daily Build)<a class="headerlink" href="#development-release-daily-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Build a binary release for Anaconda</span>
 
-<span class="nv">$ </span>git push origin master --tags
+<span class="nv">$ </span>conda build conda-recipes/daily
 
-<span class="c"># Build a binary release for Anaconda</span>
+<span class="c"># Upload to binstar.org repository (The `--force` is required since the version does not necessary change)</span>
 
-<span class="nv">$ </span>conda build arachnid-devel
-
-<span class="c"># Upload to binstar.org repository (We use --force to overwrite the old package)</span>
-
-<span class="nv">$ </span>binstar upload /home/robertl/anaconda/conda-bld/linux-64/arachnid-dev-0.1.dev-py27_0.tar.bz2 --force
+<span class="nv">$ </span>binstar upload /home/robertl/anaconda/conda-bld/linux-64/arachnid-dev-0.1.5.dev-py27_1.tar.bz2 --force
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The accelerate (aka MKL) releases can be done the same way
+except its <cite>conda-recipes/daily-mkl</cite>.</p>
 </div>
 </div>
 </div>
