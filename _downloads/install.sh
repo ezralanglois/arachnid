@@ -146,7 +146,7 @@ if [ "$shell" != "bash" ]; then
 	echo "setenv PATH \"$PWD/anaconda/bin:\$PATH\"" >> $HOME/.${shell}rc
 fi
 
-if [ $suffix == "" ] || [ $suffix == "mkl ] ; then
+if [ $suffix == "" ] || [ $suffix == "mkl" ] ; then
 echo "If you have not already done so, please install SPIDER - http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html"
 fi
 
