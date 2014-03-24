@@ -291,6 +291,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#testing-compilation-of-code">Testing compilation of code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -943,6 +944,7 @@
 <li><a class="reference internal" href="#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li><a class="reference internal" href="#testing-compilation-of-code">Testing compilation of code</a></li>
 <li><a class="reference internal" href="#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li><a class="reference internal" href="#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#stable-release">Stable Release</a></li>
 <li><a class="reference internal" href="#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -1091,6 +1093,88 @@ the suppressions.</li>
 </div>
 <div class="section" id="packaging-for-anaconda">
 <h2>Packaging for Anaconda<a class="headerlink" href="#packaging-for-anaconda" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="build-system-centos-5-10">
+<h3>Build System: CentOS 5.10<a class="headerlink" href="#build-system-centos-5-10" title="Permalink to this headline">¶</a></h3>
+<p>The Anaconda people use CentOS 5 to build Anaconda and to ensure compatibility I recommend doing the same.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Redhat backported OpenMP to gcc 4.1. This provides both backward compatibility for gcc4 compilers
+and OpenMP threading.</p>
+</div>
+<p>Here are the steps I suggest to perform a minimal install of CentOS 5 on some platform, e.g. virutual machine.</p>
+<ol class="arabic simple">
+<li>Get the ISO.</li>
+</ol>
+<p>You can download CentOS 5.10 from <a class="reference external" href="http://isoredirect.centos.org/centos/5/isos/x86_64/">http://isoredirect.centos.org/centos/5/isos/x86_64/</a></p>
+<p>I am going through a bare minimum build so I only use the first CD: CentOS-5.10-x86_64-bin-1of9.iso</p>
+<ol class="arabic simple">
+<li>Install</li>
+</ol>
+<p>To do a bare minimum install, I recommend unselecting all the packages. This means selecting the <cite>Customize Now</cite>
+option when you see it and unselecting the Gnome Desktop.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Do not use automatic installation in VMWare if you want a bare minimum install
+of CentOS 5.</p>
+</div>
+<ol class="arabic">
+<li><p class="first">Install Compilers</p>
+<blockquote>
+<div><div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>yum install gcc gcc-gfortran gcc-c++ -yq
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Install Git Prerequisites</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Install Git</li>
+</ol>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>yum install wget -yq
+<span class="nv">$ </span>yum install unzip -yq
+<span class="nv">$ </span>yum install make -yq
+<span class="nv">$ </span>yum install zlib zlib-devel -yq
+<span class="nv">$ </span>yum install openssh-server openssh-clients openssl-devel -yq
+<span class="nv">$ </span>yum install curl curl-devel -yq
+<span class="nv">$ </span>yum install expat expat-devel
+<span class="nv">$ </span>yum install gettext
+<span class="nv">$ </span>yum install bzip2
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<ol class="arabic">
+<li><p class="first">Install Git</p>
+<blockquote>
+<div><div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>wget https://github.com/git/git/archive/master.zip
+<span class="nv">$ </span>mv master master.zip
+<span class="nv">$ </span>unzip master.zip
+<span class="nv">$ </span><span class="nb">cd </span>git-master/
+<span class="nv">$ </span>make <span class="nv">prefix</span><span class="o">=</span>/usr install
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<ol class="arabic">
+<li><p class="first">Install Anaconda</p>
+<blockquote>
+<div><div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
+<span class="nv">$ </span>sh Miniconda-3.0.0-Linux-x86_64.sh -b -p <span class="nv">$PWD</span>/anaconda
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Get Arachnid Source</p>
+<blockquote>
+<div><div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>git clone http://github.com/ezralanglois/arachnid/
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
 <div class="section" id="prerequisites">
 <h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic simple">
@@ -1098,7 +1182,7 @@ the suppressions.</li>
 </ol>
 <div class="highlight-sh"><div class="highlight"><pre><span class="c"># Install the conda build command and its dependencies</span>
 
-conda install conda-build jinja2 setuptools binstar patchelf
+conda install conda-build jinja2 setuptools binstar patchelf --yes
 </pre></div>
 </div>
 <ol class="arabic simple">
@@ -1129,7 +1213,20 @@ anaconda/lib/python2.7/site-packages/conda_build/jinja_context.py</p>
 </div>
 <div class="section" id="stable-release">
 <h3>Stable Release<a class="headerlink" href="#stable-release" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Build a binary release for Anaconda</span>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To run these commands, <a class="reference external" href="https://conda.binstar.org/public">https://conda.binstar.org/public</a> must
+be in your $HOME/.condarc.</p>
+<p>If you do not have a condarc, then a quick fix is to run the
+following:</p>
+<div class="last highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd</span> &lt;arachnid-source-directory&gt;
+<span class="nv">$ </span>cp .condarc ~/
+</pre></div>
+</div>
+</div>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd</span> &lt;arachnid-source-directory&gt;
+
+<span class="c"># Build a binary release for Anaconda</span>
 
 <span class="nv">$ </span>conda build conda-recipes/stable
 
@@ -1146,7 +1243,9 @@ except its <cite>conda-recipes/stable-mkl</cite>.</p>
 </div>
 <div class="section" id="development-release-daily-build">
 <h3>Development Release (Daily Build)<a class="headerlink" href="#development-release-daily-build" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sh"><div class="highlight"><pre><span class="c"># Build a binary release for Anaconda</span>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd</span> &lt;arachnid-source-directory&gt;
+
+<span class="c"># Build a binary release for Anaconda</span>
 
 <span class="nv">$ </span>conda build conda-recipes/daily
 
