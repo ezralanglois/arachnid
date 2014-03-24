@@ -213,11 +213,11 @@ class MainWindow(QtGui.QWizard):
         # Hack to determine whether CPU supports hyperthreading
         frac = 1.0
         if sys.platform == 'darwin':
-            info = dict([line.strip().split(':') for line in os.popen('sysctl hw').readlines()[1:20]])
+            info = dict([line.strip().split(':') for line in os.popen('sysctl hw').readlines()[1:20] if line.find(':') != -1])
             frac = float(info['hw.activecpu'].strip())/float(info['hw.physicalcpu'].strip())
         else:
             if os.path.exists('/proc/cpuinfo'):
-                info = dict([(line.strip().split(':')[0].strip(), line.strip().split(':')[1].strip()) for line in open('/proc/cpuinfo', 'r').readlines()])
+                info = dict([(line.strip().split(':')[0].strip(), line.strip().split(':')[1].strip()) for line in open('/proc/cpuinfo', 'r').readlines() if line.find(':') != -1])
                 frac = float(info['siblings'].strip())/float(info['cpu cores'].strip())
         
         thread_count = int(thread_count/frac)
