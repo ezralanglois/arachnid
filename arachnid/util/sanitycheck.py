@@ -38,7 +38,10 @@ def sanitycheck():
                 __import__(slib)
             except: 
                 formatted_lines = traceback.format_exc().splitlines()
-                logging.error(formatted_lines[-3])
+                if sys.platform == 'darwin':
+                    logging.error(formatted_lines[-3])
+                else:
+                    logging.error(formatted_lines[-1])
         logging.error("Failed to load %d shared libraries"%len(failed))
     else:
         logging.info("All tests completed successfully")
