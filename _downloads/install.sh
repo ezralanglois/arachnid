@@ -29,7 +29,7 @@
 suffix=""
 if [ "$1" != "" ] ; then
 
-if [ "$1" == "-h" ] || [ "$1" == "--help"] || [ "$1" == "-help" ] ; then
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] || [ "$1" == "-help" ] ; then
 head -23 $0
 exit 0
 fi
@@ -48,16 +48,38 @@ suffix="-${1}"
 fi
 
 ##############################
+# Test if Anaconda exists
+##############################
+
+which conda
+if [ $? -eq 0 ] ; then
+echo "You already have anaconda installed"
+echo "You can use the following command to install Arachnid"
+echo "conda install -c https://conda.binstar.org/ezralanglois arachnid${suffix} --yes"
+exit 1
+fi
+
+##############################
 # Download Miniconda installer
 ##############################
 
 wget http://repo.continuum.io/miniconda/Miniconda-3.0.0-Linux-x86_64.sh
+
+if [ $? -ne 0 ] ; then
+echo "Failed to download Anaconda"
+exit 1
+fi
 
 ##############################
 # Install in local directory
 ##############################
 
 sh Miniconda-3.0.0-Linux-x86_64.sh -b -p $PWD/anaconda
+
+if [ $? -ne 0 ] ; then
+echo "Failed to install Anaconda"
+exit 1
+fi
 
 ##############################
 # Remove installer
@@ -107,7 +129,7 @@ echo "Found $HOME/.condarc found"
 ##############################
 
 # Install arachnid
-conda install -c https://conda.binstar.org/ezralanglois arachnid${suffix}
+conda install -c https://conda.binstar.org/ezralanglois arachnid${suffix} --yes
 
 echo "Please ensure https://conda.binstar.org/public is in your $HOME/.condarc"
 echo "Then you will be able to update with: conda update arachnid"
@@ -124,7 +146,9 @@ if [ "$shell" != "bash" ]; then
 	echo "setenv PATH \"$PWD/anaconda/bin:\$PATH\"" >> $HOME/.${shell}rc
 fi
 
+if [ $suffix == "" ] || [ $suffix == "mkl ] ; then
 echo "If you have not already done so, please install SPIDER - http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html"
+fi
 
 
 
