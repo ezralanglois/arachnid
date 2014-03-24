@@ -210,6 +210,17 @@ class MainWindow(QtGui.QWizard):
         else:
             try: thread_count=multiprocessing.cpu_count()
             except: pass
+        # Hack to determine whether CPU supports hyperthreading
+        frac = 1.0
+        if sys.platform == 'darwin':
+            info = dict([line.strip().split(':') for line in os.popen('sysctl hw').readlines()[1:20]])
+            frac = float(info['hw.activecpu'].strip())/float(info['hw.physicalcpu'].strip())
+        else:
+            if os.path.exists('/proc/cpuinfo'):
+                info = dict([(line.strip().split(':')[0].strip(), line.strip().split(':')[1].strip()) for line in open('/proc/cpuinfo', 'r').readlines()])
+                frac = float(info['siblings'].strip())/float(info['cpu cores'].strip())
+        
+        thread_count = int(thread_count/frac)
         self.ui.workerCountSpinBox.setValue(thread_count)
         self.ui.selectLeginonInformationLabel.setVisible(False)
         self.ui.selectReferenceInformationLabel.setVisible(False)
