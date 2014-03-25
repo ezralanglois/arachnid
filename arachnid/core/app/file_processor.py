@@ -170,7 +170,10 @@ def main(files, module, **extra):
                 Unused extra keyword arguments
     '''
     
-    restart_file = os.path.join(os.path.dirname(extra['output']), '.restart.') if 'output' in extra else None
+    progname = os.path.basename(sys.argv[0])
+    if progname[:4] == 'ara-': progname = progname[4:]
+    if progname[:3] == 'sp-': progname = progname[3:]
+    restart_file = os.path.join(os.path.dirname(extra['output']), '.restart.'+progname) if 'output' in extra else None
     if extra['worker_count'] > multiprocessing.cpu_count():
         _logger.warn("Number of workers exceeds number of cores: %d > %d"%(extra['worker_count'], multiprocessing.cpu_count()))
     
@@ -287,7 +290,7 @@ def check_dependencies(files, restart_file, infile_deps, outfile_deps, opt_chang
                    List of input filenames that satisfy requirements and will not be processed.
     '''
     
-    restart_files = set([f.strip() for f in open(restart_file, 'r').readlines()]) if restart_file is not None else None
+    restart_files = set([f.strip() for f in open(restart_file, 'r').readlines()]) if restart_file is not None and os.path.exists(restart_file) else None
     
     if opt_changed or force:
         msg = "configuration file changed" if opt_changed else "--force option specified"
