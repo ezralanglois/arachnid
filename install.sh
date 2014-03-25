@@ -107,7 +107,7 @@ echo "channels:" > $HOME/.condarc
 echo "  - http://repo.continuum.io/pkgs/pro" >> $HOME/.condarc
 echo "  - http://repo.continuum.io/pkgs/free" >> $HOME/.condarc
 echo "  - http://repo.continuum.io/pkgs/gpl" >> $HOME/.condarc
-echo "  - https://conda.binstar.org/public" >> $HOME/.condarc
+echo "  - https://conda.binstar.org/ezralanglois" >> $HOME/.condarc
 
 ##############################
 # Install Arachnid
@@ -131,7 +131,7 @@ echo "Found $HOME/.condarc found"
 # Install arachnid
 conda install -c https://conda.binstar.org/ezralanglois arachnid${suffix} --yes
 
-echo "Please ensure https://conda.binstar.org/public is in your $HOME/.condarc"
+echo "Please ensure https://conda.binstar.org/ezralanglois is in your $HOME/.condarc"
 echo "Then you will be able to update with: conda update arachnid"
 
 fi

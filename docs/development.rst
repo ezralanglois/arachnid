@@ -223,7 +223,7 @@ Prerequisites
 
 #. Setup Arachnid dependencies
 
-You must add `https:/conda.binstar.org/public` to your `$HOME/.condarc`.
+You must add `https:/conda.binstar.org/ezralanglois` to your `$HOME/.condarc`.
 
 See the example below:
 
@@ -250,7 +250,7 @@ Stable Release
 
 .. note::
 
-	To run these commands, https://conda.binstar.org/public must
+	To run these commands, https://conda.binstar.org/ezralanglois must
 	be in your $HOME/.condarc.
 	
 	If you do not have a condarc, then a quick fix is to run the
