@@ -170,7 +170,7 @@ def main(files, module, **extra):
                 Unused extra keyword arguments
     '''
     
-    
+    restart_file = os.path.join(os.path.dirname(extra['output']), '.restart.') if 'output' in extra else None
     if extra['worker_count'] > multiprocessing.cpu_count():
         _logger.warn("Number of workers exceeds number of cores: %d > %d"%(extra['worker_count'], multiprocessing.cpu_count()))
     
@@ -183,7 +183,7 @@ def main(files, module, **extra):
             f = init_root(files, extra)
             if f is not None: files = f
         _logger.debug("Test dependencies1: %d"%len(files))
-        files, finished = check_dependencies(files, **extra)
+        files, finished = check_dependencies(files, restart_file, **extra)
         extra['finished'] = finished
         _logger.debug("Test dependencies2: %d"%len(files))
     else: extra['finished']=None
@@ -213,7 +213,11 @@ def main(files, module, **extra):
     if mpi_utility.is_root(**extra):
         _logger.debug("Setup progress monitor")
         monitor = progress(len(files))
-         
+    
+    restart_fout = open(restart_file, 'w') if restart_file is not None else None
+    if restart_fout is not None:
+        for f in finished:
+            restart_fout.write(str(f)+'\n')
     current = 0
     _logger.debug("Start processing")
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
@@ -232,12 +236,17 @@ def main(files, module, **extra):
             except:
                 _logger.exception("Error in root process")
                 del files[:]
+            else:
+                if restart_fout is not None:
+                    if spider_utility.is_spider_filename(filename): filename=spider_utility.spider_id(filename)
+                    restart_fout.write(str(filename)+'\n')
+    restart_fout.close()
     if len(files) == 0:
         raise ValueError, "Error in root process"
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
 
-def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, **extra):
+def check_dependencies(files, restart_file, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
     output files. Note that this dependency checking is similar to the program `make`.
     
@@ -245,11 +254,14 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
     #. Check modification times of output against input
     #. Check if `opt_changed` flag was set to True
     #. Check if `force` flag was set to True
+    #. Check if the inputfile exists in the restart file
     
     :Parameters:
     
         files : list
                 List of input files
+        restart_file : str
+                       Filename for the restart file
         infile_deps : list
                       List of input file dependencies
         outfile_deps : list
@@ -274,6 +286,8 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
         finished : list
                    List of input filenames that satisfy requirements and will not be processed.
     '''
+    
+    restart_files = set([f.strip() for f in open(restart_file, 'r').readlines()]) if restart_file is not None else None
     
     if opt_changed or force:
         msg = "configuration file changed" if opt_changed else "--force option specified"
@@ -332,8 +346,14 @@ def check_dependencies(files, infile_deps, outfile_deps, opt_changed, force=Fals
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
         mods = [os.path.getctime(input) for input in deps if input != "" and os.path.exists(input)]
         last_input = numpy.max( mods ) if len(mods) > 0 else 0
+        
+        fileid = spider_utility.spider_id(filename, 0, False) if spider_utility.is_spider_filename(filename) else filename
         if last_input >= first_output:
             _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))
+            unfinished.append(filename)
+            continue
+        elif restart_files is not None and fileid not in restart_files:
+            _logger.debug("Adding: %s because it is not in the restart file"%(f))
             unfinished.append(filename)
             continue
         else: finished.append(filename)

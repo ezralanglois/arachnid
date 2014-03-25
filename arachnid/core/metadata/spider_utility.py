@@ -465,12 +465,15 @@ def spider_id(filename, idlen=0, use_int=True):
     '''
     
     try:
-        return int(filename)
+        int(filename)
     except: pass
+    else:
+        if use_int: return int(filename)
+        else: return str(filename)
     
     orig = filename
     if filename.find('.') != -1:
-        filename, ext = os.path.splitext(filename)
+        filename = os.path.splitext(filename)[0]
     n = spider_id_length(filename)
     if n < idlen or idlen == 0: idlen = n
     try:
