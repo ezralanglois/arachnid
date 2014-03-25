@@ -137,7 +137,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#first-install">First Install</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#update-to-latest">Update to Latest</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#speeding-up-the-code">Speeding up the code</a></li>
@@ -287,6 +291,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -1177,7 +1182,7 @@ program architecture.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.core.app.file_processor.check_dependencies">
-<tt class="descname">check_dependencies</tt><big>(</big><em>files</em>, <em>infile_deps</em>, <em>outfile_deps</em>, <em>opt_changed</em>, <em>force=False</em>, <em>id_len=0</em>, <em>data_ext=None</em>, <em>restart_test=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.file_processor.check_dependencies" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">check_dependencies</tt><big>(</big><em>files</em>, <em>restart_file</em>, <em>infile_deps</em>, <em>outfile_deps</em>, <em>opt_changed</em>, <em>force=False</em>, <em>id_len=0</em>, <em>data_ext=None</em>, <em>restart_test=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.app.file_processor.check_dependencies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a subset of files required to process based on changes to input and existing
 output files. Note that this dependency checking is similar to the program <cite>make</cite>.</p>
 <ol class="arabic simple">
@@ -1185,6 +1190,7 @@ output files. Note that this dependency checking is similar to the program <cite
 <li>Check modification times of output against input</li>
 <li>Check if <cite>opt_changed</cite> flag was set to True</li>
 <li>Check if <cite>force</cite> flag was set to True</li>
+<li>Check if the inputfile exists in the restart file</li>
 </ol>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1193,6 +1199,9 @@ output files. Note that this dependency checking is similar to the program <cite
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>files <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
 <dd><p class="first last">List of input files</p>
+</dd>
+<dt>restart_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Filename for the restart file</p>
 </dd>
 <dt>infile_deps <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
 <dd><p class="first last">List of input file dependencies</p>

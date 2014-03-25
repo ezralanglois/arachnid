@@ -134,7 +134,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#first-install">First Install</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#update-to-latest">Update to Latest</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#speeding-up-the-code">Speeding up the code</a></li>
@@ -284,6 +288,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -979,6 +984,12 @@ by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filen
 <dd><p>Input filename for selection file that maps the original 
 filename to the enumerated filename. This is specified when the files need to be
 relinked because of a change in location.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-enumfiles-s">
+<tt class="descname">-s</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--strict</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-enumfiles-s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only use files list in &#8211;mapping-file</p>
 </dd></dl>
 
 <dl class="option">
