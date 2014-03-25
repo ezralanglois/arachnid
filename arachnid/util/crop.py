@@ -200,7 +200,10 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
         fid = spider_utility.spider_id(filename, id_len)
     spider_utility.update_spider_files(extra, fid, 'good_file', 'output', 'coordinate_file', 'frame_align')
     try: coords = read_coordinates(**extra)
-    except: return filename, 0, os.getpid()
+    except: 
+        if _logger.isEnabledFor(logging.DEBUG):
+            _logger.exception("Failed to read coordinates file")
+        return filename, 0, os.getpid()
     global_selection=extra['global_selection']
 
     if tot is None:
