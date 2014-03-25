@@ -56,7 +56,7 @@ here otherwise see `Update to Latest`_.
 	
 	.. sourcecode:: sh
 		
-		conda install -c https://conda.binstar.org/public arachnid 
+		conda install -c https://conda.binstar.org/ezralanglois arachnid 
 		# You can replace arachnid with arachnid-dev or arachnid-mkl 
 		# or arachnid-dev-mkl
 
@@ -165,7 +165,7 @@ These are the same steps run by the script in the
 	
 	.. sourcecode:: sh
 	
-		conda install -c https://conda.binstar.org/public arachnid
+		conda install -c https://conda.binstar.org/ezralanglois arachnid
 	
 	.. note::
 		
@@ -254,7 +254,7 @@ Troubleshooting
 
 #. Install the daily build to get the latest bug fixes for the current version
 	
-	$ conda install -c https://conda.binstar.org/public arachnid-dev --force
+	$ conda install -c https://conda.binstar.org/ezralanglois arachnid-dev --force
 
 Speeding up the code
 --------------------

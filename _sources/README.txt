@@ -85,7 +85,7 @@ The prefered method of installation is to use Anaconda::
 	
 	# If you have anaconda or just installed it, then run
 	
-	conda install -c https://conda.binstar.org/public arachnid
+	conda install -c https://conda.binstar.org/ezralanglois arachnid
 
 Alternatives:
 

@@ -2,4 +2,4 @@ channels:
   - http://repo.continuum.io/pkgs/pro
   - http://repo.continuum.io/pkgs/free
   - http://repo.continuum.io/pkgs/gpl
-  - https://conda.binstar.org/public
+  - https://conda.binstar.org/ezralanglois
