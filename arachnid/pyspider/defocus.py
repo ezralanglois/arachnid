@@ -444,23 +444,12 @@ def initialize(files, param):
             #if param['use_powerspec']:
             #newvals = defvals
             defvals = format_utility.map_object_list(defvals)
-            oldfiles = list(files)
-            files = []
-            for f in oldfiles:
+            #oldfiles = list(files)
+            #files = []
+            for f in extra['finished']:
                 if spider_utility.spider_id(f, param['id_len']) not in defvals:
                     files.append(f)
-            _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
-            '''
-            else:
-                ids = set([spider_utility.spider_id(f, param['id_len']) for f in files])
-                for d in defvals:
-                    if d.id not in ids:
-                        newvals.append(d)
-            if len(newvals) > 0:
-                format.write(param['output'], newvals, default_format=format.spiderdoc)
-            _logger.info("Restarting on %f files of %f total files"%(len(files), len(oldfiles)))
-            param['output_offset']=len(newvals)
-            '''
+            _logger.info("Restarting on %f files"%(len(files)))
             param['output_offset']=len(defvals)
         if os.path.splitext(param['output'])[1] == '.emx':
             fout = open(param['output'], 'w')
