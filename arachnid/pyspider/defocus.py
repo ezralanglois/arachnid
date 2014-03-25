@@ -446,7 +446,7 @@ def initialize(files, param):
             defvals = format_utility.map_object_list(defvals)
             #oldfiles = list(files)
             #files = []
-            for f in extra['finished']:
+            for f in param['finished']:
                 if spider_utility.spider_id(f, param['id_len']) not in defvals:
                     files.append(f)
             _logger.info("Restarting on %f files"%(len(files)))
