@@ -665,7 +665,7 @@ def reduce_all(val, sel_by_mic, id_len=0, **extra):
     update_selection_dict(sel_by_mic, label, sel) 
     tot=numpy.sum(sel)
     total = len(label[1]) if isinstance(label, tuple) else len(label)
-    return "%d - Selected: %d -- Removed %d"%(input[0], tot, total-tot)
+    return input[0], "%d - Selected: %d -- Removed %d"%(input[0], tot, total-tot)
 
 def finalize(files, output, sel_by_mic, finished, nsamples, thread_count, neig, input_files, alignment, diagnostic, **extra):
     # Finalize global parameters for the script

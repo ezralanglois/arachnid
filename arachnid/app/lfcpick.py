@@ -387,7 +387,7 @@ def reduce_all(val, confusion, file_index, **extra):
             sen = float(confusion[file_index, 2]) / (confusion[file_index, 1]) if confusion[file_index, 1] > 0 else 0
             info = " - %d,%d,%d - precision: %f, recall: %f"%(confusion[file_index, 0], confusion[file_index, 1], confusion[file_index, 2], pre, sen)
     else: confusion[0,0] += len(coords)
-    return filename+info
+    return filename, filename+info
 
 def finalize(files, confusion, output, **extra):
     # Finalize global parameters for the script

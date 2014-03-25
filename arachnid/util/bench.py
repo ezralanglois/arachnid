@@ -328,7 +328,7 @@ def reduce_all(val, confusion, file_index, **extra):
         sen = recall(*conf)
         info = " - %d,%d,%d - precision: %.2f, recall: %.2f"%(conf[0]+conf[1], conf[0]+conf[3], conf[0], pre, sen)
     else: info=""
-    return filename+info
+    return filename, filename+info
 
 def finalize(files, confusion, output, **extra):
     # Finalize global parameters for the script

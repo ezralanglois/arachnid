@@ -223,7 +223,10 @@ def main(files, module, **extra):
                 if reduce_all is not None:
                     current += 1
                     filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
-                    _logger.info("Finished: %d,%d - Time left: %s - %s"%(current, len(files), monitor.time_remaining(True), str(filename)))
+                    if isinstance(filename, tuple):
+                        filename, msg = filename
+                    else: msg=filename
+                    _logger.info("Finished: %d,%d - Time left: %s - %s"%(current, len(files), monitor.time_remaining(True), str(msg)))
                 else:
                     _logger.info("Finished: %d,%d - Time left: %s"%(current, len(files), monitor.time_remaining(True)))
             except:
