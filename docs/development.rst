@@ -232,19 +232,6 @@ See the example below:
 
 You may download an example file :download:`../.condarc` or copy the previous.
 
-#. Fix possible bug in conda-build
-
-If you get the following error:
-
-	ImportError: No module named arachnid.distutils.sdist
-
-Then can add the following:
-	
-	>>> sys.path.append('.')
-
-To line 31 in:
-anaconda/lib/python2.7/site-packages/conda_build/jinja_context.py
-
 Stable Release
 --------------
 
