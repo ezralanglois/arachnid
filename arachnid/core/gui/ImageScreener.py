@@ -44,6 +44,7 @@ class MainWindow(ImageViewerWindow):
         _logger.info("\rLoading settings ...")
         self.loadSettings()
         
+        '''
         icon8 = QtGui.QIcon()
         icon8.addPixmap(QtGui.QPixmap(":/mini/mini/feed_disk.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.actionSave_Inverted = QtGui.QAction(icon8, 'Save Inverted', self)
@@ -52,6 +53,9 @@ class MainWindow(ImageViewerWindow):
         self.ui.toolBar.insertAction(self.ui.actionLoad_More, self.ui.actionSave_Inverted)
         #QtCore.QMetaObject.connectSlotsByName(self)
         self.ui.actionSave_Inverted.triggered.connect(self.on_actionSave_Inverted_triggered)
+        '''
+        
+        self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionSelection_Mode)
         
         try:
             self.selectfout = open(self.advanced_settings.select_file, 'a')
@@ -116,6 +120,10 @@ class MainWindow(ImageViewerWindow):
               Event for to close the main window
         '''
         
+        # need to deal with inverted selections 
+        # one save button
+        # switch color
+        # saveSelection
         self.selectfout.close()
         with open(format_utility.add_prefix(self.advanced_settings.select_file, 'compressed_'), 'w') as fout:
             for f in self.files:
@@ -179,8 +187,12 @@ class MainWindow(ImageViewerWindow):
         ''' Called when an image is added to the view
         '''
         
-        if self.file_index[item.data(QtCore.Qt.UserRole), 2] > 0:
-            self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
+        if self.ui.actionSelection_Mode.isChecked():
+            if self.file_index[item.data(QtCore.Qt.UserRole), 2] < 1:
+                self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
+        else:
+            if self.file_index[item.data(QtCore.Qt.UserRole), 2] > 0:
+                self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
     
     def notify_added_files(self, newfiles):
         ''' Called when new files are loaded
@@ -214,6 +226,21 @@ class MainWindow(ImageViewerWindow):
         return ImageViewerWindow.imageTotal(self)
     
     # Slots for GUI
+    
+    @qtSlot()
+    def on_actionSelection_Mode_triggered(self):
+        '''
+        '''
+        
+        if self.ui.actionSelection_Mode.isChecked():
+            self.ui.imageListView.setStyleSheet('QListView::item:selected{ color: #008000; border: 3px solid #FF0000; }')
+        else:
+            self.ui.imageListView.setStyleSheet('QListView::item:selected{ color: #008000; border: 3px solid #6FFF00; }')
+        self.on_loadImagesPushButton_clicked()
+        #setProperty("theMaximum", true);
+        #self.ui.imageListView.style().unpolish(self.ui.imageListView);
+        #self.ui.imageListView.style().polish(self.ui.imageListView);
+            
     
     #@qtSlot()
     def on_actionSave_Inverted_triggered(self):
@@ -333,6 +360,9 @@ class MainWindow(ImageViewerWindow):
         
         #modifiers = QtGui.QApplication.keyboardModifiers()
         #if modifiers == QtCore.Qt.AltModifier:
+        
+        
+        if self.ui.actionSelection_Mode.isChecked(): selected, deselected = deselected, selected
         for index in selected.indexes():
             idx = index.data(QtCore.Qt.UserRole)
             if hasattr(idx, '__iter__'): idx = idx[0]

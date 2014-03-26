@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Sun Mar 23 09:45:18 2014
+# Created: Tue Mar 25 16:45:09 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -273,6 +273,13 @@ class Ui_MainWindow(object):
         icon16.addPixmap(QtGui.QPixmap(":/mini/mini/table.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionShow_Coordinates.setIcon(icon16)
         self.actionShow_Coordinates.setObjectName("actionShow_Coordinates")
+        self.actionSelection_Mode = QtGui.QAction(MainWindow)
+        self.actionSelection_Mode.setCheckable(True)
+        icon17 = QtGui.QIcon()
+        icon17.addPixmap(QtGui.QPixmap(":/mini/mini/accept.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon17.addPixmap(QtGui.QPixmap(":/mini/mini/delete.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        self.actionSelection_Mode.setIcon(icon17)
+        self.actionSelection_Mode.setObjectName("actionSelection_Mode")
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionLoad_More)
@@ -339,5 +346,7 @@ class Ui_MainWindow(object):
         self.actionSwap_Image.setToolTip(QtGui.QApplication.translate("MainWindow", "Swap between power spectra and micrograph", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_Coordinates.setText(QtGui.QApplication.translate("MainWindow", "Show Coordinates", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_Coordinates.setToolTip(QtGui.QApplication.translate("MainWindow", "Show the coordinates on the micrograph images", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSelection_Mode.setText(QtGui.QApplication.translate("MainWindow", "Selection Mode", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSelection_Mode.setToolTip(QtGui.QApplication.translate("MainWindow", "If the Green Icon is Showing - Selected Images are Kept - otherwise they are rejected", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

@@ -628,6 +628,22 @@
     <string>Show the coordinates on the micrograph images</string>
    </property>
   </action>
+  <action name="actionSelection_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
+     <normaloff>:/mini/mini/accept.png</normaloff>
+     <normalon>:/mini/mini/delete.png</normalon>:/mini/mini/accept.png</iconset>
+   </property>
+   <property name="text">
+    <string>Selection Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>If the Green Icon is Showing - Selected Images are Kept - otherwise they are rejected</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../../../../docs/images/icons/icons.qrc"/>
