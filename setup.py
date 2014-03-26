@@ -197,7 +197,6 @@ import arachnid.distutils.sdist
 import arachnid.distutils.check_dep
 
 import os
-import sys
 import arachnid.setup
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
@@ -223,6 +222,7 @@ def build_description(package, extra=None):
     '''
     from distutils import log # Workaround for conda build with jinga
     import setuptools # Workaround for conda build with jinga
+    import sys
     
     if extra is None: extra = {}
     description = [('name', 'project'), 'version', 'author', 'license', 'author_email', 'description', 'url', 'download_url', 'keywords', 'classifiers', 'platforms']#, ('long_description', 'doc')
@@ -277,6 +277,7 @@ def get_readme():
 def setup_package(**extra):
     '''
     '''
+    import sys
     
     if ('build_sphinx' in sys.argv or 'sphinx-build' in sys.argv) and __name__ != '__main__': return # Do not invoke if sphinx is called
     if len(sys.argv) > 1 and (sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.', '') or '--help' in sys.argv or sys.argv[1].find('conda') != -1):
