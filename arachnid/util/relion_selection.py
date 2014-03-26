@@ -779,7 +779,7 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="",
     _logger.info("Creating movie mode relion selection file: %d"%frame_limit)
     frame_vals = []
     idlen=None
-    consecutive=None
+    consecutive=None if reindex_file == "" else True
     last=-1
     
     stack_filename = format_utility.add_prefix(output, 'image_stack_')
