@@ -1099,7 +1099,7 @@ class OptionParser(optparse.OptionParser):
         '''
         
         self.add_option("-c", config_file="", help="Read a configuration file for options", gui=dict(nogui=True))#, archive=True)
-        self.add_option("",   global_config_file="cfg/project.cfg", help="Read a global configuration file for options", gui=dict(nogui=True))#, archive=True)
+        self.add_option("",   global_config_file="cfg/global.cfg", help="Read a global configuration file for options", gui=dict(nogui=True))#, archive=True)
         try:
             options=self.parse_args()[0]
         except optparse.OptionError, inst:
