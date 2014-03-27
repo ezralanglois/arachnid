@@ -264,10 +264,10 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
                     x, y = (coord.x, coord.y) if hasattr(coord, 'x') else (coord[1], coord[2])
                     _logger.warn("Window %d at coordinates %d,%d has an issue - clamp_window may need to be increased"%(index+1, x, y))
                 if single_stack:
-                    ndimage_file.write_image(output, win, len(global_selection))
+                    ndimage_file.write_image(output, win, len(global_selection), header=dict(apix=extra['apix']))
                     global_selection.append((len(global_selection)+1, fid, index+1, ))
                 else:
-                    ndimage_file.write_image(output, win, index)
+                    ndimage_file.write_image(output, win, index, header=dict(apix=extra['apix']))
             #_logger.info("Extract %d windows from movie %d frame %d - %d of %d - finished"%(len(coords), fid, frame, i, tot))
     except ndimage_file.InvalidHeaderException:
         _logger.warn("Skipping: %s - invalid header"%filename)

@@ -1082,7 +1082,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
                 _logger.error("Image does not match mask (%d != %d) - %s"%(img.shape[0], mask.shape[0], filename))
             ndimage_utility.normalize_standard(img, mask, True, img)
             if invert: ndimage_utility.invert(img, img)
-            ndimage_file.write_image(output, img, idmap[filename])
+            ndimage_file.write_image(output, img, idmap[filename], header=dict(apix=apix))
         idmap[filename] += 1
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
     return new_vals
@@ -1152,7 +1152,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         if filename not in oindex: oindex[filename]=0
         oindex[filename] += 1
         output = spider_utility.spider_filename(output, filename)
-        ndimage_file.write_image(output, img, oindex[filename]-1)
+        ndimage_file.write_image(output, img, oindex[filename]-1, header=dict(apix=apix))
         vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
     _logger.info("Stack downsampling finished")
     return vals
