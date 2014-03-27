@@ -9,6 +9,8 @@ Reconstruction Protocol
 	:hidden:
 	
 	reconstruction_cmdline
+	reconstruction_post_cmdline
+	
 
 This tutorial covers setting up a workflow for preprocessing images for 3D angular 
 refinement using the Arachnid Graphical User Interface (GUI).  The GUI allows 
@@ -21,6 +23,8 @@ All commands and options in the program can alternatively be accessed and run
 via the command line. This is covered in the 
 :doc:`Command-line Protocol <reconstruction_cmdline>`. This tutorial 
 also assumes that :doc:`installation <install>` of the program was successful.
+
+Steps for post-processing of the data can be found in :doc:`Post-processing <reconstruction_post_cmdline>`.
 
 .. note::
 

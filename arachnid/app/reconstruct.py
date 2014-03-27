@@ -94,9 +94,9 @@ def batch(files, image_file, output, rand_subset=0, experimental=False, experime
     else:
         vol = reconstruct.reconstruct3_bp3f_mp(image_size, iter_single_images1, iter_single_images2, align1, align2, process_image=preprocess_utility.phaseflip_shift, shared=experimental, **extra)
     if vol is not None: 
-        ndimage_file.write_image(output, vol[0].T.copy())
-        ndimage_file.write_image(format_utility.add_prefix(output, 'h1_'), vol[1].T.copy())
-        ndimage_file.write_image(format_utility.add_prefix(output, 'h2_'), vol[2].T.copy())
+        ndimage_file.write_image(output, vol[0].T.copy(), header=dict(apix=extra['apix']))
+        ndimage_file.write_image(format_utility.add_prefix(output, 'h1_'), vol[1].T.copy(), header=dict(apix=extra['apix']))
+        ndimage_file.write_image(format_utility.add_prefix(output, 'h2_'), vol[2].T.copy(), header=dict(apix=extra['apix']))
     _logger.info("Complete")
 
 def setup_options(parser, pgroup=None, main_option=False):

@@ -102,13 +102,17 @@ Selection Options
 .. option:: --view-resolution <int>
     
     Select a subset to ensure roughly even view distribution (0, default, disables this feature)
+    
+.. option:: --remove-missing <BOOL>
+    
+    Test if image file exists and if not, remove from star file
 
 Movie-mode Options
 ==================
 
 .. option:: --frame-stack-file <FILENAME>
     
-    Frame stack filename used to build new relion star file for movie mode refinement
+    Frame stack filename used to build new relion star file for movie mode refinement. It must have a star for the frame number (e.g. --frame-stack_file frame_*_win_00001.dat)
 
 .. option:: --frame-limit <int>
     
@@ -616,7 +620,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
+def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -638,6 +642,8 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                       Cull views at this resolution (0 disables)
     view_limit : int
                  Maximum number of projections per view (if 0, then use median)
+    remove_missing : bool
+                     Remove entries where the stack is missing
     extra : dict
             Unused key word arguments
             
@@ -661,6 +667,17 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
     _logger.info("Original Defocus Range: %f, %f"%old_max)
     _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
+    
+    if remove_missing:
+        old_vals = vals
+        vals = []
+        missing=set()
+        for v in old_vals:
+            if not os.path.exists(relion_utility.relion_file(v.rlnImageName, True)):
+                missing.add(relion_utility.relion_file(v.rlnImageName, True))
+            else:
+                vals.append(v)
+        _logger.warn("Removed %d image stacks"%len(missing))
     
     if good_file != "":
         _logger.info("Selecting good particles from: %s"%str(good_file))
@@ -779,7 +796,7 @@ def create_movie(vals, frame_stack_file, output, frame_limit=0, reindex_file="",
     _logger.info("Creating movie mode relion selection file: %d"%frame_limit)
     frame_vals = []
     idlen=None
-    consecutive=None
+    consecutive=None if reindex_file == "" else True
     last=-1
     
     stack_filename = format_utility.add_prefix(output, 'image_stack_')
@@ -1065,7 +1082,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
                 _logger.error("Image does not match mask (%d != %d) - %s"%(img.shape[0], mask.shape[0], filename))
             ndimage_utility.normalize_standard(img, mask, True, img)
             if invert: ndimage_utility.invert(img, img)
-            ndimage_file.write_image(output, img, idmap[filename])
+            ndimage_file.write_image(output, img, idmap[filename], header=dict(apix=apix))
         idmap[filename] += 1
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
     return new_vals
@@ -1135,7 +1152,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         if filename not in oindex: oindex[filename]=0
         oindex[filename] += 1
         output = spider_utility.spider_filename(output, filename)
-        ndimage_file.write_image(output, img, oindex[filename]-1)
+        ndimage_file.write_image(output, img, oindex[filename]-1, header=dict(apix=apix))
         vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
     _logger.info("Stack downsampling finished")
     return vals
@@ -1212,7 +1229,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   min_defocus=4000,                help="Minimum allowed defocus")
     group.add_option("",   max_defocus=100000,              help="Maximum allowed defocus")
     group.add_option("",   random_subset=0,                 help="Split a relion selection file into specificed number of random subsets (0 disables)")
-    group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
+    group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement. It must have a star for the frame number (e.g. --frame-stack_file frame_*_win_00001.dat)", gui=dict(filetype="open"))
     group.add_option("",   frame_limit=0,                   help="Limit number of frames to use (0 means no limit)")
     group.add_option("",   view_resolution=0,               help="Select a subset to ensure roughly even view distribution (0, default, disables this feature)")
     group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")
@@ -1227,6 +1244,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   sort_rev=False,                  help="Reverse sorting to descending order")
     group.add_option("",   split=False,                     help="Split the relion star file using the rlnRandomSubset column")
     group.add_option("",   phase_flip=False,                help="Create a set of phase flipped stacks")
+    group.add_option("",   remove_missing=False,            help="Test if image file exists and if not, remove from star file")
     
     
     pgroup.add_option_group(group)

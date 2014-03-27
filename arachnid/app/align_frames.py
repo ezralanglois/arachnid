@@ -504,7 +504,7 @@ def write_average(filename, coords, output, frame_beg=0, frame_end=0, gain_file=
         if avg is None: avg = frame
         else: avg += frame
     avg /= len(coords)
-    ndimage_file.write_image(output, avg)
+    ndimage_file.write_image(output, avg, header=dict(apix=extra['apix']))
     
     if diagnostic_file != "" and len(crop) > 0 and crop[0] > 0 \
         or (len(crop) > 1 and crop[1] > 0) \

@@ -304,7 +304,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
             mic = prepare_micrograph(ndimage_file.read_image(filename), bin_factor, invert)
             if output_mic != "" and bin_micrograph > 0:
                 fac = bin_micrograph/bin_factor
-                if fac > 1: img = ndimage_interpolate.downsample(mic, fac)
+                img = ndimage_interpolate.downsample(mic, fac) if fac > 1 else mic
                 if use_8bit:
                     save_8bit(output_mic, img, extra['apix']*fac)
                 else:

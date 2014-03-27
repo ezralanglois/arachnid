@@ -4,8 +4,6 @@
 
 @todo - save
 
-@todo - fix advanced settings load
-
 .. Created on Jul 19, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
