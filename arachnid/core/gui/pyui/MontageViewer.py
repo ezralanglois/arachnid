@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Tue Mar 25 16:45:09 2014
+# Created: Thu Mar 27 16:42:27 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -280,6 +280,11 @@ class Ui_MainWindow(object):
         icon17.addPixmap(QtGui.QPixmap(":/mini/mini/delete.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.actionSelection_Mode.setIcon(icon17)
         self.actionSelection_Mode.setObjectName("actionSelection_Mode")
+        self.actionAutoPick = QtGui.QAction(MainWindow)
+        icon18 = QtGui.QIcon()
+        icon18.addPixmap(QtGui.QPixmap(":/mini/mini/page_white_magnify.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionAutoPick.setIcon(icon18)
+        self.actionAutoPick.setObjectName("actionAutoPick")
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionLoad_More)
@@ -348,5 +353,7 @@ class Ui_MainWindow(object):
         self.actionShow_Coordinates.setToolTip(QtGui.QApplication.translate("MainWindow", "Show the coordinates on the micrograph images", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSelection_Mode.setText(QtGui.QApplication.translate("MainWindow", "Selection Mode", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSelection_Mode.setToolTip(QtGui.QApplication.translate("MainWindow", "If the Green Icon is Showing - Selected Images are Kept - otherwise they are rejected", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionAutoPick.setText(QtGui.QApplication.translate("MainWindow", "AutoPick", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionAutoPick.setToolTip(QtGui.QApplication.translate("MainWindow", "Launch the AutoPick Tuning Controls", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

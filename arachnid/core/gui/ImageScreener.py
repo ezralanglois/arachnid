@@ -12,6 +12,7 @@
 
 from ImageViewer import MainWindow as ImageViewerWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot
+from AutoPickUI import Dialog as AutoPickDialog
 from ..metadata import format
 from ..metadata import spider_utility
 from ..metadata import relion_utility
@@ -39,12 +40,14 @@ class MainWindow(ImageViewerWindow):
         self.inifile = 'ara_screen.ini'
         self.settings_group = 'ImageScreener'
         self.selection_file=""
+        self.autopick_dialog = AutoPickDialog(self)
         
         # Load the settings
         _logger.info("\rLoading settings ...")
         self.loadSettings()
         
         self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionSelection_Mode)
+        self.ui.toolBar.insertAction(self.ui.actionSelection_Mode, self.ui.actionAutoPick)
         
         try:
             self.selectfout = open(self.advanced_settings.select_file, 'a')
@@ -166,6 +169,18 @@ class MainWindow(ImageViewerWindow):
         fin.close()
         if len(self.files) > 0:
             self.on_loadImagesPushButton_clicked()
+            
+    def currentFileList(self):
+        '''
+        '''
+        
+        #self.file_index[item.data(QtCore.Qt.UserRole), 2]
+        files = []
+        for i in xrange(self.imageListModel.rowCount()):
+            idx = item.data(QtCore.Qt.UserRole)
+            if self.file_index[idx, 2] > 0:
+                files.append(self.files[self.file_index[idx, 0]])
+        return files
     
     def is_empty(self):
         '''
@@ -217,6 +232,14 @@ class MainWindow(ImageViewerWindow):
         return ImageViewerWindow.imageTotal(self)
     
     # Slots for GUI
+    
+    @qtSlot()
+    def on_actionAutoPick_triggered(self):
+        '''
+        '''
+        
+        if self.autopick_dialog.isValid():
+            self.autopick_dialog.show()
     
     @qtSlot()
     def on_actionSelection_Mode_triggered(self):

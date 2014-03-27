@@ -5,7 +5,7 @@
 '''
 
 from pyui.AutoPickUI import Ui_Dialog
-from util.qt4_loader import QtGui, QtCore #, qtSlot,QtWebKit
+from util.qt4_loader import QtGui, QtCore, qtSlot, qtSignal
 from util import messagebox
 from ..app import program
 from util import BackgroundTask
@@ -38,6 +38,7 @@ class Dialog(QtGui.QDialog):
         #self.ui.progressDialog.findChildren(QtGui.QPushButton)[0].hide()
         self.ui.progressDialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
         self.task = None
+        self.output = None
         
         self.autopick_program = program.generate_settings_tree(autopick, 'cfg')
         if self.autopick_program.values.param_file == "":
@@ -45,13 +46,8 @@ class Dialog(QtGui.QDialog):
         self.taskUpdated.connect(self.updateProgress)
         # params file
     
-    def showEvent(self, evt):
-        '''Window close event triggered - save project and global settings 
-        
-        :Parameters:
-            
-            evt : QShowEvent
-                  Event for to close the main window
+    def isValid(self):
+        '''
         '''
         
         self.autopick_program = program.generate_settings_tree(autopick, 'cfg')
@@ -65,16 +61,18 @@ class Dialog(QtGui.QDialog):
             
             Please move there or create a properly configured cfg/autopick.cfg.
             """)
-            return
-        QtGui.QMainWindow.showEvent(self, evt)
+            self.close()
+            return False
+        
+        return True
     
-    @qtSlot(int)
+    @qtSlot()
     def on_runPushButton_clicked(self):
         '''
         '''
         
         # Get list of micrographs
-        files = []
+        files = self.parent().currentFileList()
         # Update parameters
         
         output = self.autopick_program.values.output
@@ -99,6 +97,7 @@ class Dialog(QtGui.QDialog):
             prog.launch()
             yield 1
         
+        self.output = output
         self.task = BackgroundTask.launch_mp(self, _run_worker, self.autopick_program)
     
     def programFinished(self, sessions):
@@ -113,6 +112,7 @@ class Dialog(QtGui.QDialog):
         self.taskFinished.disconnect(self.programFinished)
         self.taskError.disconnect(self.programError)
         self.task = None
+        self.parent().setCoordinateFile(self.output)
     
     def programError(self, exception):
         '''

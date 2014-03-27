@@ -644,6 +644,18 @@
     <string>If the Green Icon is Showing - Selected Images are Kept - otherwise they are rejected</string>
    </property>
   </action>
+  <action name="actionAutoPick">
+   <property name="icon">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
+     <normaloff>:/mini/mini/page_white_magnify.png</normaloff>:/mini/mini/page_white_magnify.png</iconset>
+   </property>
+   <property name="text">
+    <string>AutoPick</string>
+   </property>
+   <property name="toolTip">
+    <string>Launch the AutoPick Tuning Controls</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../../../../docs/images/icons/icons.qrc"/>
