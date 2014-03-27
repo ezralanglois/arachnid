@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/AutoPickUI.ui'
 #
-# Created: Thu Mar 27 09:35:04 2014
+# Created: Thu Mar 27 16:00:50 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,7 +22,7 @@ class Ui_Dialog(object):
         self.diskDoubleSpinBox.setMinimum(0.01)
         self.diskDoubleSpinBox.setMaximum(2.0)
         self.diskDoubleSpinBox.setSingleStep(0.1)
-        self.diskDoubleSpinBox.setProperty("value", 1.0)
+        self.diskDoubleSpinBox.setProperty("value", 0.6)
         self.diskDoubleSpinBox.setObjectName("diskDoubleSpinBox")
         self.gridLayout.addWidget(self.diskDoubleSpinBox, 0, 1, 1, 1)
         self.diskHorizontalSlider = QtGui.QSlider(Dialog)
@@ -68,12 +68,12 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.overlapHorizontalSlider, 2, 2, 1, 1)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem, 4, 1, 1, 1)
-        self.pushButton = QtGui.QPushButton(Dialog)
+        self.runPushButton = QtGui.QPushButton(Dialog)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/mini/mini/control_play_blue.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pushButton.setIcon(icon)
-        self.pushButton.setObjectName("pushButton")
-        self.gridLayout.addWidget(self.pushButton, 3, 0, 1, 1)
+        self.runPushButton.setIcon(icon)
+        self.runPushButton.setObjectName("runPushButton")
+        self.gridLayout.addWidget(self.runPushButton, 3, 0, 1, 1)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -83,6 +83,6 @@ class Ui_Dialog(object):
         self.label.setText(QtGui.QApplication.translate("Dialog", "Disk Multiplier", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Dialog", "Mask Multiplier", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Dialog", "Overlap Multiplier", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton.setText(QtGui.QApplication.translate("Dialog", "Run", None, QtGui.QApplication.UnicodeUTF8))
+        self.runPushButton.setText(QtGui.QApplication.translate("Dialog", "Run", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

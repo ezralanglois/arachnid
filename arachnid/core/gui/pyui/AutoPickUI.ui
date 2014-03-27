@@ -33,7 +33,7 @@
       <double>0.100000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>0.600000000000000</double>
      </property>
     </widget>
    </item>
@@ -145,7 +145,7 @@
     </spacer>
    </item>
    <item row="3" column="0">
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="runPushButton">
      <property name="text">
       <string>Run</string>
      </property>
