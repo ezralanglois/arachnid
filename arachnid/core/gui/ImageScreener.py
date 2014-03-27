@@ -44,17 +44,6 @@ class MainWindow(ImageViewerWindow):
         _logger.info("\rLoading settings ...")
         self.loadSettings()
         
-        '''
-        icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(":/mini/mini/feed_disk.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.actionSave_Inverted = QtGui.QAction(icon8, 'Save Inverted', self)
-        self.ui.actionSave_Inverted.setToolTip("Save inverted selection")
-        self.ui.actionSave_Inverted.setObjectName("actionSave_Inverted")
-        self.ui.toolBar.insertAction(self.ui.actionLoad_More, self.ui.actionSave_Inverted)
-        #QtCore.QMetaObject.connectSlotsByName(self)
-        self.ui.actionSave_Inverted.triggered.connect(self.on_actionSave_Inverted_triggered)
-        '''
-        
         self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionSelection_Mode)
         
         try:
@@ -120,17 +109,19 @@ class MainWindow(ImageViewerWindow):
               Event for to close the main window
         '''
         
-        # need to deal with inverted selections 
-        # one save button
-        # switch color
-        # saveSelection
+        if self.selection_file != "":
+            try:os.makedirs(os.path.dirname(self.selection_file))
+            except: pass
+            self.saveSelection()
+            
         self.selectfout.close()
-        with open(format_utility.add_prefix(self.advanced_settings.select_file, 'compressed_'), 'w') as fout:
-            for f in self.files:
-                fout.write("@%s\n"%os.path.relpath(f))
-            for idx in xrange(len(self.file_index)):
-                fout.write('%d,'%idx)
-                fout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
+        if 1 == 0:
+            with open(format_utility.add_prefix(self.advanced_settings.select_file, 'compressed_'), 'w') as fout:
+                for f in self.files:
+                    fout.write("@%s\n"%os.path.relpath(f))
+                for idx in xrange(len(self.file_index)):
+                    fout.write('%d,'%idx)
+                    fout.write("%d,%d,%d\n"%tuple(self.file_index[idx]))
         ImageViewerWindow.closeEvent(self, evt)
         
     def getSettings(self):
