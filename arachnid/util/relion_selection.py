@@ -108,7 +108,7 @@ Movie-mode Options
 
 .. option:: --frame-stack-file <FILENAME>
     
-    Frame stack filename used to build new relion star file for movie mode refinement
+    Frame stack filename used to build new relion star file for movie mode refinement. It must have a star for the frame number (e.g. --frame-stack_file frame_*_win_00001.dat)
 
 .. option:: --frame-limit <int>
     
@@ -1212,7 +1212,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   min_defocus=4000,                help="Minimum allowed defocus")
     group.add_option("",   max_defocus=100000,              help="Maximum allowed defocus")
     group.add_option("",   random_subset=0,                 help="Split a relion selection file into specificed number of random subsets (0 disables)")
-    group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement", gui=dict(filetype="open"))
+    group.add_option("",   frame_stack_file="",             help="Frame stack filename used to build new relion star file for movie mode refinement. It must have a star for the frame number (e.g. --frame-stack_file frame_*_win_00001.dat)", gui=dict(filetype="open"))
     group.add_option("",   frame_limit=0,                   help="Limit number of frames to use (0 means no limit)")
     group.add_option("",   view_resolution=0,               help="Select a subset to ensure roughly even view distribution (0, default, disables this feature)")
     group.add_option("",   view_limit=0,                    help="Maximum number of projections per view (if 0, then use median)")

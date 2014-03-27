@@ -91,7 +91,14 @@ Step 3: Generate a Relion Selection File
 
 .. sourcecode:: sh
 
-	$ ara-selrelion relion-it001_data.star --frame-stack-file win/win_000000.dat --reindex-file good/good_000000.dat -o relion-it001_data_frames.star
+	$ ara-selrelion relion-it001_data.star --frame-stack-file "win/frame_*_win_000000.dat" --reindex-file good/good_000000.dat -o relion-it001_data_frames.star
+
+.. note:: 
+	
+	In the config file, the quotes are unnecessary, e.g.:
+	
+	frame-stack-file: win/frame_*_win_000000.dat
+	
 
 Step 4: Test the Relion Selection File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
