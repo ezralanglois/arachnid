@@ -103,7 +103,7 @@ Selection Options
     
     Select a subset to ensure roughly even view distribution (0, default, disables this feature)
     
-.. option:: --remove_missing <BOOL>
+.. option:: --remove-missing <BOOL>
     
     Test if image file exists and if not, remove from star file
 
