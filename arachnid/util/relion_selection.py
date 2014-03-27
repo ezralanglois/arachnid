@@ -102,6 +102,10 @@ Selection Options
 .. option:: --view-resolution <int>
     
     Select a subset to ensure roughly even view distribution (0, default, disables this feature)
+    
+.. option:: --remove_missing <BOOL>
+    
+    Test if image file exists and if not, remove from star file
 
 Movie-mode Options
 ==================
@@ -616,7 +620,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, **extra):
+def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -638,6 +642,8 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                       Cull views at this resolution (0 disables)
     view_limit : int
                  Maximum number of projections per view (if 0, then use median)
+    remove_missing : bool
+                     Remove entries where the stack is missing
     extra : dict
             Unused key word arguments
             
@@ -661,6 +667,17 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
     _logger.info("Original Defocus Range: %f, %f"%old_max)
     _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
+    
+    if remove_missing:
+        old_vals = vals
+        vals = []
+        missing=set()
+        for v in old_vals:
+            if not os.path.exists(relion_utility.relion_file(v.rlnImageName, True)):
+                missing.add(relion_utility.relion_file(v.rlnImageName, True))
+            else:
+                vals.append(v)
+        _logger.warn("Removed %d image stacks"%len(missing))
     
     if good_file != "":
         _logger.info("Selecting good particles from: %s"%str(good_file))
@@ -1227,6 +1244,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   sort_rev=False,                  help="Reverse sorting to descending order")
     group.add_option("",   split=False,                     help="Split the relion star file using the rlnRandomSubset column")
     group.add_option("",   phase_flip=False,                help="Create a set of phase flipped stacks")
+    group.add_option("",   remove_missing=False,            help="Test if image file exists and if not, remove from star file")
     
     
     pgroup.add_option_group(group)
