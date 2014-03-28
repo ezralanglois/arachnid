@@ -113,6 +113,7 @@ class Dialog(QtGui.QDialog):
         self.taskError.disconnect(self.programError)
         self.task = None
         self.parent().setCoordinateFile(self.output)
+        self.parent().on_loadImagesPushButton_clicked()
     
     def programError(self, exception):
         '''
