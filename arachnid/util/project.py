@@ -30,7 +30,7 @@ illustrated below.
     |     - vicer.cfg
     |     - relion_selection.cfg
     |
-    |    linked/
+    |    other/
     |
     |     
     |    cluster/
@@ -301,7 +301,7 @@ def build_workflow(files, extra):
     # Hack
     if first_param == 'unenum_files':
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
-        extra['linked_files'] = os.path.join('linked', *os_path_split(extra[input2])[1:])
+        extra['linked_files'] = os.path.join('other', *os_path_split(extra[input2])[1:])
         extra[input2] = extra['linked_files']
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
         first_script[3] = ['--'+input2.replace('_', '-'), ]+first_script[3]
@@ -414,7 +414,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     shrgroup = OptionGroup(parser, "Metadata", "Files created during workflow")
     shrgroup.add_option("", config_path="cfg",                                     help="Location for configuration scripts", gui=dict(filetype="open"))
     shrgroup.add_option("", linked_files="",                                       help="Location for renamed links - name automatically set based on input", gui=dict(filetype="open"))
-    shrgroup.add_option("", micrograph_files="local/mics/mic_00000.dat",           help="Location for micrograph files", gui=dict(filetype="open"))
+    shrgroup.add_option("", micrograph_files="other/mics/mic_00000.dat",          help="Location for micrograph files", gui=dict(filetype="open"))
     shrgroup.add_option("", param_file="local/ctf/params.dat",                     help="Location for SPIDER params file", gui=dict(filetype="save"))
     shrgroup.add_option("", movie_files="local/frames/mic_00000.dat",              help="Location for micrograph frame stacks", gui=dict(filetype="open"))
     shrgroup.add_option("", coordinate_file="local/coords/sndc_000000.dat",        help="Location for particle coordinates on micrograph", gui=dict(filetype="open"))
