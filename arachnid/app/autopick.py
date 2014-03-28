@@ -745,6 +745,8 @@ def initialize(files, param):
     # Initialize global parameters for the script
     
     if mpi_utility.is_root(**param):
+        _logger.info("Mask Multiplier: %f"%param['mask_mult'])
+        _logger.info("Peak limit: %f"%param['limit'])
         if param['disable_prune']: _logger.info("Bad particle removal - disabled")
         if param['disable_threshold']: _logger.info("Noise removal - disabled")
         if param['remove_aggregates']: _logger.info("Aggregate removal - enabled")
