@@ -175,7 +175,7 @@ class MainWindow(ImageViewerWindow):
         #self.file_index[item.data(QtCore.Qt.UserRole), 2]
         files = []
         for i in xrange(self.imageListModel.rowCount()):
-            idx = item.data(QtCore.Qt.UserRole)
+            idx = self.imageListModel.item(i).data(QtCore.Qt.UserRole)
             if self.file_index[idx, 2] > 0:
                 files.append(self.files[self.file_index[idx, 0]])
         return files
