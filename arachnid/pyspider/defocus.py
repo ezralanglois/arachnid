@@ -333,7 +333,8 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
         assert(output_pow != "" and output_pow is not None)
         # small image format
         if use_8bit:
-            save_8bit(output_pow, mpowerspec, extra['apix'])
+            #os.unlink(spi.replace_ext(output_pow))
+            save_8bit(spi.replace_ext(output_pow), mpowerspec, extra['apix'])
         else:
             ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']))
     else:
@@ -349,7 +350,8 @@ def save_8bit(output, img, apix):
     img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
     img = ndimage_utility.normalize_min_max(img)*255
     img = img.astype(numpy.uint8)
-    ndimage_file.write_image(os.path.splitext(output)[0]+".mrc", img, header=dict(apix=apix))
+    ndimage_file.write_image(output, img, header=dict(apix=apix))
+    #ndimage_file.write_image(os.path.splitext(output)[0]+".mrc", img, header=dict(apix=apix))
     
 def prepare_micrograph(mic, bin_factor, invert):
     ''' Preprocess the micrograph
