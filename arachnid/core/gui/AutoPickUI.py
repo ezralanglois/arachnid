@@ -75,10 +75,8 @@ class Dialog(QtGui.QDialog):
         files = self.parent().currentFileList()
         # Update parameters
         if len(files) == 0: 
-            print files
             return
         bin_factor = float(self.parent().micrographDecimationFactor())
-        print "bin_factor", bin_factor
         output = self.autopick_program.values.output
         output, base = os.path.split(output)
         output+="-%.2f-%.2f-%.2f"%(self.ui.maskDoubleSpinBox.value(), self.ui.diskDoubleSpinBox.value(), self.ui.overlapDoubleSpinBox.value())

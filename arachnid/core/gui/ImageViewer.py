@@ -350,6 +350,18 @@ class MainWindow(QtGui.QMainWindow):
             n = max(5, int(self.imagesize*zoom))
             self.ui.imageListView.setIconSize(QtCore.QSize(n, n))
     
+    def get_template(self):
+        '''
+        '''
+        
+        template = None
+        load_alternate = self.ui.actionSwap_Image.isChecked()
+        if self.advanced_settings.alternate_image != "" and load_alternate:
+            template = self.advanced_settings.alternate_image
+            if not os.path.exists(template) and hasattr(self.advanced_settings, 'path_prefix'):
+                template = os.path.join(self.advanced_settings.path_prefix, template)
+        return template
+    
     @qtSlot()
     def on_loadImagesPushButton_clicked(self):
         ''' Load the current batch of images into the list
@@ -366,19 +378,13 @@ class MainWindow(QtGui.QMainWindow):
         zoom = self.ui.imageZoomDoubleSpinBox.value()
         masks={}
         
+        template = self.get_template()
         
         progressDialog = QtGui.QProgressDialog('Opening...', "Cancel", 0,len(index),self)
         progressDialog.setWindowModality(QtCore.Qt.WindowModal)
         progressDialog.show()
         
         self.ui.imageListView.setModel(None)
-        
-        template = None
-        load_alternate = self.ui.actionSwap_Image.isChecked()
-        if self.advanced_settings.alternate_image != "" and load_alternate:
-            template = self.advanced_settings.alternate_image
-            if not os.path.exists(template) and hasattr(self.advanced_settings, 'path_prefix'):
-                template = os.path.join(self.advanced_settings.path_prefix, template)
         
         if not drawing.is_available():
             _logger.info("No PIL loaded")
