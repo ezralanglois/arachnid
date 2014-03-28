@@ -547,8 +547,8 @@ def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, sum
             idx = numpy.argsort(defocus_arr[:, 1])
             for i, j in enumerate(idx):
                 id =  int(defocus_arr[j, 0])
-                roo = numpy.asarray(format.read(output_roo, numeric=True, spiderid=id))
-                ctf = numpy.asarray(format.read(output_ctf, numeric=True, spiderid=id))
+                roo = numpy.asarray(format.read(output_roo, numeric=True, spiderid=id, header="id,value,index,dum1,dum2".split(',')))
+                ctf = numpy.asarray(format.read(output_ctf, numeric=True, spiderid=id, header="id,freq,noise,sub,env".split(',')))
                 pow = ndimage_file.read_image(spider_utility.spider_filename(output_pow, id))
                 remove_line(pow)
                 pow = label_image(pow, defocus_arr[j], roo[:, 2:], ctf[:, 3], **extra)
@@ -581,7 +581,7 @@ def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     newax = ax.twinx()
     
     start = img.shape[0]*(8.0/pixel_diameter)
-    start = min_freq(ctf[start:])+start
+    start = int(min_freq(ctf[start:])+start)
     mask = ndimage_utility.model_disk(start, img.shape)
     sel = mask*-1+1
     img[mask.astype(numpy.bool)] = numpy.mean(img[sel.astype(numpy.bool)])
