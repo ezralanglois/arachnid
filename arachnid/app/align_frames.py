@@ -547,6 +547,7 @@ def initialize(files, param):
             _logger.warn("Found %d corrupt files - reprocessing them"%(len(files)-n))
     files = mpi_utility.broadcast(files, **param)
     
+    if len(files) == 0: return
     count = ndimage_file.count_images(files[0])
     _logger.info("Aligning %d stacks with %d frames in each"%(len(files), count))
     if param['param_file'] != "":
