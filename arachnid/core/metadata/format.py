@@ -550,7 +550,10 @@ def write(filename, values, mode='w', factory=namedtuple_factory, **extra):
                Path to file created by this function
     '''
     
-    if len(values) == 0: raise ValueError, "Nothing to write - array has length 0"
+    if len(values) == 0: 
+        _logger.warn("Nothing to write - array has length 0")
+        #raise ValueError, "Nothing to write - array has length 0"
+        return filename
     
     format = get_format_by_ext(filename, **extra)
     if format !=  spiderdoc and os.path.splitext(filename)[1][1:] != format.extension():
