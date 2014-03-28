@@ -357,6 +357,8 @@ def initialize(files, param):
         _logger.info("Window size: %d"%(param['window']))
         if param['bin_factor'] > 1 and not param['disable_bin']: _logger.info("Decimate micrograph by %d"%param['bin_factor'])
         if param['invert']: _logger.info("Inverting contrast of the micrograph")
+        _logger.info("Disk Multiplier: %f"%param['disk_mult'])
+        _logger.info("Overlap Multiplier: %f"%param['overlap_mult'])
     
     if 'selection_file' in param and param['selection_file'] != "":
         if os.path.exists(param['selection_file']):
