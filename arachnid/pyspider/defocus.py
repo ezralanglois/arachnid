@@ -580,7 +580,7 @@ def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
     ax = pylab.axes(frameon=False)
     newax = ax.twinx()
     
-    start = img.shape[0]*(8.0/pixel_diameter)
+    start = int(img.shape[0]*(8.0/pixel_diameter))
     start = int(min_freq(ctf[start:])+start)
     mask = ndimage_utility.model_disk(start, img.shape)
     sel = mask*-1+1
