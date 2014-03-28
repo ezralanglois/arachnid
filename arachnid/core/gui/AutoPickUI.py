@@ -86,6 +86,8 @@ class Dialog(QtGui.QDialog):
                                           mask_mult=self.ui.maskDoubleSpinBox.value(),
                                           disk_mult=self.ui.diskDoubleSpinBox.value(),
                                           overlap_mult=self.ui.overlapDoubleSpinBox.value(),
+                                          bin_factor=self.parent().micrographDecimationFactor,
+                                          disable_bin=True,
                                           output=output))
         
         self.taskFinished.connect(self.programFinished)

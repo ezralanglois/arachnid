@@ -163,6 +163,12 @@ class MainWindow(QtGui.QMainWindow):
                
                ]
     
+    def micrographDecimationFactor(self):
+        '''
+        '''
+        
+        return self.advanced_settings.bin_window
+    
     def setWindowSize(self, window):
         '''
         '''
