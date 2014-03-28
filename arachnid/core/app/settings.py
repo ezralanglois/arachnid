@@ -1724,7 +1724,7 @@ class OptionValueError(optparse.OptParseError):
     """Exception raised for errors in parsing values of options
     """
 
-    def __init__(self, msg):
+    def __init__(self, msg=""):
         '''Create an exception with a message as a parameter
         
         :Parameters:
