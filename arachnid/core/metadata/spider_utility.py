@@ -469,7 +469,7 @@ def spider_id(filename, idlen=0, use_int=True):
     except: pass
     else:
         if use_int: return int(filename)
-        else: return str(filename)
+        else: return str(int(filename))
     
     orig = filename
     if filename.find('.') != -1:
@@ -480,7 +480,7 @@ def spider_id(filename, idlen=0, use_int=True):
         filename = filename[len(filename)-idlen:]
         val = int(filename)
         if use_int: return val
-        return filename
+        return str(val)
     except:
         raise SpiderError, "Cannot parse filename: "+orig+" - "+str(len(filename))+" - "+str(idlen)
 
