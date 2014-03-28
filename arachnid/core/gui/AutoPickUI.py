@@ -74,13 +74,15 @@ class Dialog(QtGui.QDialog):
         # Get list of micrographs
         files = self.parent().currentFileList()
         # Update parameters
-        
+        if len(files) == 0: 
+            print files
+            return
         output = self.autopick_program.values.output
         output, base = os.path.split(output)
         output+="-%.2f-%.2f-%.2f"%(self.ui.maskDoubleSpinBox.value(), self.ui.diskDoubleSpinBox.value(), self.ui.overlapDoubleSpinBox.value())
         output = output.replace(".", "_")
         output = os.path.join(output, base)
-        self.autopick_program.update(dict(input_files=files, 
+        self.autopick_program.update(dict(input_files=self.autopick_program.values.input_files.__class__(files), 
                                           mask_mult=self.ui.maskDoubleSpinBox.value(),
                                           disk_mult=self.ui.diskDoubleSpinBox.value(),
                                           overlap_mult=self.ui.overlapDoubleSpinBox.value(),
