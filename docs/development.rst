@@ -31,6 +31,7 @@ Every time you add a new script or the first time you get the source, you may ru
 
 .. sourcecode:: sh
 
+	$ python setup.py version
 	$ python setup.py develop --install-dir $BIN -m
 
 .. _contribute:
