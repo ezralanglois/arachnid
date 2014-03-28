@@ -147,7 +147,7 @@ class MainWindow(QtGui.QMainWindow):
                dict(power_spectra=0, help="Estimate a powerspectra on the fly and save as a tool tip", gui=dict()),
                dict(invert=False, help="Perform contrast inversion"),
                dict(bin_window=6.0, help="Number of times to decimate coordinates (and window)"),
-               dict(line_width=3, help="Set the line width for the boxes on the micrograph"),
+               dict(line_width=1, help="Set the line width for the boxes on the micrograph"),
 
                # Power spectra options
                dict(center_mask=0, help="Radius of mask for image center"),
