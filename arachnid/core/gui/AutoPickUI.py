@@ -80,8 +80,7 @@ class Dialog(QtGui.QDialog):
         output+="-%.2f-%.2f-%.2f"%(self.ui.maskDoubleSpinBox.value(), self.ui.diskDoubleSpinBox.value(), self.ui.overlapDoubleSpinBox.value())
         output = output.replace(".", "_")
         output = os.path.join(output, base)
-        self.autopick_program.update(dict(
-                                          input_files=files, 
+        self.autopick_program.update(dict(input_files=files, 
                                           mask_mult=self.ui.maskDoubleSpinBox.value(),
                                           disk_mult=self.ui.diskDoubleSpinBox.value(),
                                           overlap_mult=self.ui.overlapDoubleSpinBox.value(),
