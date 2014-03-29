@@ -469,6 +469,7 @@ def initialize(files, param):
         _logger.info("Padding: %d"%param['pad'])
         _logger.info("Pixel size: %f"%(param['apix']))
         _logger.info("Window size: %d"%(param['window_size']))#/param['bin_factor']))
+        if param['use_8bit']: _logger.info("Writing out 8-bit images")
         if param['invert']:
             _logger.info("Inverting Micrograph - common for CCD")
         if param['bin_factor'] != 1.0:
