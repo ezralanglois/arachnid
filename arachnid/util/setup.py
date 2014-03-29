@@ -10,4 +10,5 @@ console_scripts = [
  'info = arachnid.util.image_info:main',
  'coverage = arachnid.util.coverage:main',
  'sanitycheck = arachnid.util.sanitycheck:sanitycheck',
+ 'screenmics = arachnid.util.sanitycheck:screenmics',
 ]

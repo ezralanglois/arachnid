@@ -43,11 +43,16 @@ using the following:
 .. Created on Aug 11, 2012
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-import logging, os
-from formats import spider, mrc, eman_format
-from ..metadata import spider_utility, format_utility
+from formats import spider
+from formats import mrc
+from formats import eman_format
+from ..metadata import spider_utility
+from ..metadata import format_utility
 from ..parallel import mpi_utility
+import ndimage_utility
 import numpy
+import logging
+import os
 from formats.util import InvalidHeaderException
 InvalidHeaderException;
 
@@ -60,19 +65,19 @@ def copy_local(filename, selection, local_file, **extra):
     
     :Parameters:
     
-    filename : str
-               Input filename template
-    selection : array
-                Selection ids
-    local_file : str
-                 Output filename template
-    extra : dict
-            Unused keyword arguments
+        filename : str
+                   Input filename template
+        selection : array
+                    Selection ids
+        local_file : str
+                     Output filename template
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
     
-    local_file : str
-                 Local filename based on rank of node and process id
+        local_file : str
+                     Local filename based on rank of node and process id
     '''
     
     if mpi_utility.get_size(**extra) < 2: return filename
@@ -95,13 +100,13 @@ def is_readable(filename):
     
     :Parameters:
     
-    filename : str
-               Input filename to test
+        filename : str
+                   Input filename to test
     
     :Returns:
     
-    out : bool
-           True if the format is recognized
+        out : bool
+               True if the format is recognized
     '''
     
     filename = readlinkabs(filename)
@@ -133,16 +138,16 @@ def read_header(filename, index=None):
     '''Read the header of an image from the given file
     
     :Parameters:
-    
-    filename : str
-               Input filename to read
-    index : int, optional
-            Index of image to get, if None, first image (Default: None)
+        
+        filename : str
+                   Input filename to read
+        index : int, optional
+                Index of image to get, if None, first image (Default: None)
     
     :Returns:
-        
-    out : array
-          Array with header information in the file
+            
+        out : array
+              Array with header information in the file
     '''
     
     filename = readlinkabs(filename)
@@ -154,17 +159,17 @@ def read_image(filename, index=None, **extra):
     
     :Parameters:
     
-    filename : str
-               Input filename to read
-    index : int, optional
-            Index of image to get, if None, first image (Default: None)
-    extra : dict
-            Unused keyword arguments
+        filename : str
+                   Input filename to read
+        index : int, optional
+                Index of image to get, if None, first image (Default: None)
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-        
-    out : array
-          Array with header information in the file
+            
+        out : array
+              Array with header information in the file
     '''
     
     if isinstance(filename, tuple): filename,index=filename
@@ -188,17 +193,17 @@ def read_stack(filename):
     ''' Read an entire stack into a multi-dimensional array
     
     :Parameters:
-    
-    filename : str
-               Input filename to read
+        
+        filename : str
+                   Input filename to read
     
     :Returns:
-        
-    out : array
-          Array nxm1xm2xm3 where n is the 
-          number of images and m1-m3 are
-          the dimensions of an individual
-          image
+            
+        out : array
+              Array nxm1xm2xm3 where n is the 
+              number of images and m1-m3 are
+              the dimensions of an individual
+              image
     '''
     
     img = read_image(filename)
@@ -212,21 +217,21 @@ def iter_images(filename, index=None, header=None):
     ''' Read a set of images from the given file
     
     :Parameters:
-    
-    filename : str
-               Input filename to read
-    index : int or array, optional
-            Image index: 
-                - if int, then index of image to start 
-                - if array, then an array of selected images
-                - if list of strs, then iterate over each stack for each filename in list
-                - if list of tuples, then assumes each is a filename and an index
-                - if None, start with the first image (Default: None)
+        
+        filename : str
+                   Input filename to read
+        index : int or array, optional
+                Image index: 
+                    - if int, then index of image to start 
+                    - if array, then an array of selected images
+                    - if list of strs, then iterate over each stack for each filename in list
+                    - if list of tuples, then assumes each is a filename and an index
+                    - if None, start with the first image (Default: None)
     
     :Returns:
-        
-    out : array
-          Array with header information in the file
+            
+        out : array
+              Array with header information in the file
         
     .. todo:: iter single images
     '''
@@ -288,14 +293,14 @@ def count_images(filename):
     ''' Count the number of images in the file
     
     :Parameters:
-    
-    filename : str
-               Input filename to read
+        
+        filename : str
+                   Input filename to read
     
     :Returns:
-        
-    out : int
-          Number of images in the file
+            
+        out : int
+              Number of images in the file
     '''
     
     if isinstance(filename, list):
@@ -314,34 +319,55 @@ def is_writable(filename):
     as a writable format.
     
     :Parameters:
-    
-    filename : str
-               Output filename to test
+        
+        filename : str
+                   Output filename to test
     
     :Returns:
-    
-    write : bool
-            True if the format is recognized
+        
+        write : bool
+                True if the format is recognized
     '''
     
     return get_write_format(filename) is not None
 
+def write_image_8bit(filename, img, index=None, header=None, clamp_nstd=2.5):
+    ''' Write the given image to the given filename using 
+    the 8-bit MRC format.
+    
+    :Parameters:
+        
+        filename : str
+                   Output filename for the image
+        img : array
+              Image data to write out
+        index : int, optional
+                Index image should be written to in the stack
+        header : dict
+                Header dictionary
+    '''
+    
+    img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, clamp_nstd))
+    img = ndimage_utility.normalize_min_max(img)*255
+    img = img.astype(numpy.uint8)
+    mrc.write_image(filename, img, index, header)
+    
 def write_image(filename, img, index=None, header=None, inplace=False):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
     :Parameters:
-    
-    filename : str
-               Output filename for the image
-    img : array
-          Image data to write out
-    index : int, optional
-            Index image should be written to in the stack
-    header : dict
-            Header dictionary
-    inplace : bool
-              Write new image to stack without removing the stack
+        
+        filename : str
+                   Output filename for the image
+        img : array
+              Image data to write out
+        index : int, optional
+                Index image should be written to in the stack
+        header : dict
+                Header dictionary
+        inplace : bool
+                  Write new image to stack without removing the stack
     '''
     
     
@@ -355,11 +381,11 @@ def write_stack(filename, imgs):
     based on the file extension, or given type.
     
     :Parameters:
-    
-    filename : str
-               Output filename for the image
-    imgs : array
-           Image stack data to write out
+        
+        filename : str
+                   Output filename for the image
+        imgs : array
+               Image stack data to write out
     '''
     
     format = get_write_format(filename)
@@ -374,14 +400,14 @@ def get_write_format(filename):
     ''' Get the write format for the image
     
     :Parameters:
-    
-    filename : str
-               Output filename to test
+        
+        filename : str
+                   Output filename to test
     
     :Returns:
-    
-    out : format
-            Write format for given file extension
+        
+        out : format
+                Write format for given file extension
     '''
     
     try:
@@ -396,14 +422,14 @@ def get_read_format_except(filename):
     ''' Get the write format for the image
     
     :Parameters:
-    
-    filename : str
-               Input file to test
+        
+        filename : str
+                   Input file to test
     
     :Returns:
-    
-    out : format
-            Read format for given file
+        
+        out : format
+                Read format for given file
     '''
     
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%(filename)
@@ -420,14 +446,14 @@ def get_read_format(filename):
     ''' Get the write format for the image
     
     :Parameters:
-    
-    filename : str
-               Input file to test
+        
+        filename : str
+                   Input file to test
     
     :Returns:
-    
-    out : format
-            Read format for given file
+        
+        out : format
+                Read format for given file
     '''
     
     if not os.path.exists(filename): raise IOError, "Cannot find file: %s"%(filename)
@@ -440,9 +466,9 @@ def cache_data():
     ''' Get keywords to be added as data cache
     
     :Returns:
-    
-    extra : dict
-            Keyword arguments
+        
+        extra : dict
+                Keyword arguments
     '''
     
     extra={}
@@ -455,14 +481,14 @@ def readlinkabs(link):
     ''' Get the absolute path for the given symlink
     
     :Parameters:
-    
-    link : str
-           Link filename
+        
+        link : str
+               Link filename
     
     :Returns:
-    
-    filename : str
-               Absolute path of file link points
+        
+        filename : str
+                   Absolute path of file link points
     '''
     
     if not os.path.exists(link): raise IOError, "Cannot find file: %s"%(link)

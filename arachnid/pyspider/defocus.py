@@ -306,7 +306,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
                 fac = bin_micrograph/bin_factor
                 img = ndimage_interpolate.downsample(mic, fac) if fac > 1 else mic
                 if use_8bit:
-                    save_8bit(output_mic, img, extra['apix']*fac)
+                    ndimage_file.write_image_8bit(output_mic, img, header=dict(apix=extra['apix']*fac))
                 else:
                     ndimage_file._default_write_format.write_image(output_mic, img, header=dict(apix=extra['apix']))
             #window_size /= bin_factor
@@ -334,7 +334,7 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
         # small image format
         if use_8bit:
             #os.unlink(spi.replace_ext(output_pow))
-            save_8bit(spi.replace_ext(output_pow), mpowerspec, extra['apix'])
+            ndimage_file.write_image_8bit(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']))
         else:
             ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']))
     else:

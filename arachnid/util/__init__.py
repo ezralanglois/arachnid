@@ -14,4 +14,5 @@
     project
     image_info
     coverage
+    screenmics
 '''
