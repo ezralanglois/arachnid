@@ -8,7 +8,10 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from pyui.MontageViewer import Ui_MainWindow
-from util.qt4_loader import QtGui,QtCore,qtSlot,QtWebKit
+from HelpUI import Dialog as HelpDialog
+from util.qt4_loader import QtGui
+from util.qt4_loader import QtCore
+from util.qt4_loader import qtSlot
 from util import qimage_utility
 import property
 from ..metadata import spider_utility
@@ -75,11 +78,15 @@ class MainWindow(QtGui.QMainWindow):
         
         # Custom Actions
         
-        action = self.ui.dockWidget.toggleViewAction()
+        self.ui.dockWidgetAction = self.ui.dockWidget.toggleViewAction()
+        self.ui.whatsThisAction = QtGui.QWhatsThis.createAction(self)
         icon8 = QtGui.QIcon()
         icon8.addPixmap(QtGui.QPixmap(":/mini/mini/application_side_list.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        action.setIcon(icon8)
-        self.ui.toolBar.insertAction(self.ui.actionHelp, action)
+        self.ui.dockWidgetAction.setIcon(icon8)
+        self.ui.dockWidgetAction.setToolTip("Show or hide the controls widget")
+        self.ui.dockWidgetAction.setWhatsThis(QtGui.QApplication.translate("MainWindow", '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n<html><head><meta name="qrichtext" content="1" /><style type="text/css">\np, li { white-space: pre-wrap; }\n</style></head><body style=" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;">\n<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><img src=":/mini/mini/application_side_list.png" /> Display/Hide the controls widget</p>\n<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"></p>\n<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">This widget can be hidden to increase the number of images that can be shown.</p></body></html>', None, QtGui.QApplication.UnicodeUTF8))
+        self.ui.toolBar.addAction(self.ui.dockWidgetAction)
+        self.ui.toolBar.addAction(self.ui.whatsThisAction)
         
         # Create advanced settings
         
@@ -92,14 +99,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.ui.advancedSettingsTreeView.setRowHidden(i, QtCore.QModelIndex(), True)
         
         # Help system
-        if QtWebKit is not None and 1 == 0:
-            self.helpDialog = QtGui.QDialog(self)
-            self.helpLayout = QtGui.QVBoxLayout(self.helpDialog)
-            self.webView = QtWebKit.QWebView(self.helpDialog)
-            self.helpLayout.addWidget(self.webView)
-            self.helpLayout.setContentsMargins(0,0,0,0)
-        else: self.webView=None
-        
+        self.helpDialog = HelpDialog(self)
         
     def showEvent(self, evt):
         '''Window close event triggered - save project and global settings 
@@ -209,13 +209,6 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.imageListView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     
     # Slots for GUI
-    @qtSlot()
-    def on_actionHelp_triggered(self):
-        ''' Display the help dialog
-        '''
-        if self.webView is not None:
-            self.webView.load(QtCore.QUrl('http://www.google.com'))
-            self.helpDialog.show()
           
     @qtSlot()
     def on_reloadPageButton_clicked(self):

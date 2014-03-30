@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Thu Mar 27 16:42:27 2014
+# Created: Sun Mar 30 10:09:10 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,6 +13,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(870, 576)
+        MainWindow.setToolTip("")
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.centralwidget)
@@ -295,7 +296,6 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionShow_Coordinates)
         self.toolBar.addAction(self.actionSwap_Image)
         self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionHelp)
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(1)
@@ -316,10 +316,25 @@ class Ui_MainWindow(object):
         self.loadImagesPushButton.setText(QtGui.QApplication.translate("MainWindow", "Reload", None, QtGui.QApplication.UnicodeUTF8))
         self.imageCountSpinBox.setToolTip(QtGui.QApplication.translate("MainWindow", "Number of images to display at once", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Advanced Settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.advancedSettingsTreeView.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" text-decoration: underline;\">Advanced Settings</span></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">These controls are experimental or advanced settings that are intended for expert users.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"> </p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Loading", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", "Open", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionOpen.setToolTip(QtGui.QApplication.translate("MainWindow", "Open a file to plot or a stack of images to display", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOpen.setToolTip(QtGui.QApplication.translate("MainWindow", "Open an image or image stack", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOpen.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/folder.png\" /> Open additional images files</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The supported formats include MRC, SPIDER, PNG and JPEG.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setShortcut(QtGui.QApplication.translate("MainWindow", "Meta+O", None, QtGui.QApplication.UnicodeUTF8))
         self.actionFitToView.setText(QtGui.QApplication.translate("MainWindow", "Fit to View", None, QtGui.QApplication.UnicodeUTF8))
         self.actionFitToView.setToolTip(QtGui.QApplication.translate("MainWindow", "Fit all images to view", None, QtGui.QApplication.UnicodeUTF8))
@@ -328,13 +343,42 @@ class Ui_MainWindow(object):
         self.actionZoom.setText(QtGui.QApplication.translate("MainWindow", "zoom", None, QtGui.QApplication.UnicodeUTF8))
         self.actionZoom.setToolTip(QtGui.QApplication.translate("MainWindow", "Use the cursor to zoom in on an area of the plot", None, QtGui.QApplication.UnicodeUTF8))
         self.actionForward.setText(QtGui.QApplication.translate("MainWindow", "forward", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionForward.setToolTip(QtGui.QApplication.translate("MainWindow", "Step forward in action history", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionForward.setToolTip(QtGui.QApplication.translate("MainWindow", "Go to next group of images", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionForward.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/resultset_next.png\" />Go to next group of images</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The number of images in a group is controlled by the <span style=\" font-weight:600;\">Viewable</span> control, which is under the<span style=\" font-weight:600;\"> Loading</span> Tab of the controls widget.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">You must hit <img src=\":/mini/mini/arrow_rotate_clockwise.png\" /> Reload after changing the number of Viewable to see an effect.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionForward.setShortcut(QtGui.QApplication.translate("MainWindow", "Space", None, QtGui.QApplication.UnicodeUTF8))
         self.actionBackward.setText(QtGui.QApplication.translate("MainWindow", "backward", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionBackward.setToolTip(QtGui.QApplication.translate("MainWindow", "Step backward in action history", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionBackward.setToolTip(QtGui.QApplication.translate("MainWindow", "Go to previous group of images", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionBackward.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/resultset_previous.png\" />Go to previous group of images</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The number of images in a group is controlled by the <span style=\" font-weight:600;\">Viewable</span> control, which is under the<span style=\" font-weight:600;\"> Loading</span> Tab of the controls widget.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">You must hit <img src=\":/mini/mini/arrow_rotate_clockwise.png\" /> Reload after changing the number of Viewable to see an effect.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionBackward.setShortcut(QtGui.QApplication.translate("MainWindow", "Left", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSave.setText(QtGui.QApplication.translate("MainWindow", "save", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionSave.setToolTip(QtGui.QApplication.translate("MainWindow", "Save the current plot", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSave.setToolTip(QtGui.QApplication.translate("MainWindow", "Save a selection file", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSave.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/disk.png\" /> Save the selections to a file.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This action saves the selections in the SPIDER selection document format, which includes the IDs of only the selected images.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If single images are open, then a single selection file is saved.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If stacks of images are open, then a selection file is saved for each stack.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_Options.setText(QtGui.QApplication.translate("MainWindow", "Show Options", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_Options.setToolTip(QtGui.QApplication.translate("MainWindow", "Display dialog to configure plot options", None, QtGui.QApplication.UnicodeUTF8))
         self.actionHide_Controls.setText(QtGui.QApplication.translate("MainWindow", "Hide Controls", None, QtGui.QApplication.UnicodeUTF8))
@@ -344,15 +388,58 @@ class Ui_MainWindow(object):
         self.actionHelp.setText(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.actionHelp.setToolTip(QtGui.QApplication.translate("MainWindow", "Display help dialog", None, QtGui.QApplication.UnicodeUTF8))
         self.actionLoad_More.setText(QtGui.QApplication.translate("MainWindow", "Load More", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionLoad_More.setToolTip(QtGui.QApplication.translate("MainWindow", "Search for additional micrographs in directories already in use", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionLoad_More.setToolTip(QtGui.QApplication.translate("MainWindow", "Scan for new images and open them", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionLoad_More.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/arrow_refresh.png\" /> Scan for new images to load</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This action uses the currently open image filenames as a template to find new images that were generated after the program was loaded.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This allows the user to start screening before the pre-processing has finished.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAdvanced_Settings.setText(QtGui.QApplication.translate("MainWindow", "Advanced Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAdvanced_Settings.setToolTip(QtGui.QApplication.translate("MainWindow", "Open the Advanced Settings Dialog", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSwap_Image.setText(QtGui.QApplication.translate("MainWindow", "Swap Image", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSwap_Image.setToolTip(QtGui.QApplication.translate("MainWindow", "Swap between power spectra and micrograph", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSwap_Image.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/image.png\" />/<img src=\":/mini/mini/cd.png\" /> Swap between power spectra and micrograph</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The default behavior of ara-screen is to open the power spectra. Then under <span style=\" text-decoration: underline;\">Advanced Settings</span> of the <span style=\" font-weight:600;\">Loading</span> Tab, the decimated micrographs are set as <span style=\" font-weight:600;\">Alternate Image</span>.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This action swaps between the opened image (power spectra) and the <span style=\" font-weight:600;\">Alternate image</span> (micrograph).</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Also under Advanced Settings is the <span style=\" font-weight:600;\">Current PowerSpec</span> checkbox. This should be checked when you see a Power spectra and unchecked when you see a micrograph. It automatically alternates when this action is invoked.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The <span style=\" font-weight:600;\">Current PowerSpec</span> checkbox ensures that the <span style=\" text-decoration: underline;\">Advanced Settings</span> that apply to micrographs will only apply to micrographs and visa versa.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_Coordinates.setText(QtGui.QApplication.translate("MainWindow", "Show Coordinates", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionShow_Coordinates.setToolTip(QtGui.QApplication.translate("MainWindow", "Show the coordinates on the micrograph images", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_Coordinates.setToolTip(QtGui.QApplication.translate("MainWindow", "Show the coordinates of the selected particles on the micrograph images", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_Coordinates.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/table.png\" /> Show the coordinates of the selected particles on the micrograph images</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">When this action is selected, boxes around candidate particles will be displayed on the micrograph.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Under <span style=\" text-decoration: underline;\">Advanced Settings</span> of the <span style=\" font-weight:600;\">Loading</span> Tab, the following must be set:</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">1. A coordinate file (<span style=\" font-weight:600;\">Coords</span>) must be specified (and exist for the current image).</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">2. <span style=\" font-weight:600;\">Current Powerspec</span> must be unchecked </p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Additionally, the following <span style=\" text-decoration: underline;\">Advanced Settings</span> control various features of the window:</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">1. <span style=\" font-weight:600;\">Window</span>: controls the window size of the box around the particles</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">2. <span style=\" font-weight:600;\">Bin Window</span>: modifies both the window size and the coordinate positions</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">3. <span style=\" font-weight:600;\">Good File</span>: select a subset of the candidate particles</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">4. <span style=\" font-weight:600;\">Line Width</span>: controls the thickness of the lines of the box</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSelection_Mode.setText(QtGui.QApplication.translate("MainWindow", "Selection Mode", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionSelection_Mode.setToolTip(QtGui.QApplication.translate("MainWindow", "If the Green Icon is Showing - Selected Images are Kept - otherwise they are rejected", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSelection_Mode.setToolTip(QtGui.QApplication.translate("MainWindow", "Set the selection mode: Accept or Reject selected", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAutoPick.setText(QtGui.QApplication.translate("MainWindow", "AutoPick", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAutoPick.setToolTip(QtGui.QApplication.translate("MainWindow", "Launch the AutoPick Tuning Controls", None, QtGui.QApplication.UnicodeUTF8))
 
