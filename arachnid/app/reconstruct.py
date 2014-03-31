@@ -20,7 +20,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, image_file, output, rand_subset=0, experimental=False, experimental_2d=False, **extra):#, neig=1, nstd=1.5
+def batch(files, image_file, output, rand_subset=0, experimental=False, experimental_2d=False, negate_trans=False, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Args
@@ -87,6 +87,10 @@ def batch(files, image_file, output, rand_subset=0, experimental=False, experime
         iter_single_images1 = ndimage_file.iter_images([files[i] for i in even])
         iter_single_images2 = ndimage_file.iter_images([files[i] for i in odd])
     align_curr = align[curr_slice].copy()
+    if negate_trans:
+        align_curr[:, 4:6] = -align_curr[:, 4:6]
+    #if neg_trans:
+    #    align_curr[:, ]
     align1 = align_curr[even]
     align2 = align_curr[odd]
     if experimental_2d:
@@ -111,6 +115,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",     experimental=False,        help="Test experimental shared memory")
     group.add_option("",     experimental_2d=False,     help="Test 2d representation of alignment")
     group.add_option("",     class_index=0,             help="Select a specifc class within the alignment file")
+    group.add_option("",     negate_trans=False,        help="Negate the translations")
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[], help="List of alignment files, e.g. data.star", required_file=True, gui=dict(filetype="open"))
