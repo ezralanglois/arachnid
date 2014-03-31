@@ -74,6 +74,8 @@ class ListTableModel(QtCore.QAbstractTableModel):#QAbstractItemModel):
         if not index.isValid(): return None
         if role == QtCore.Qt.DisplayRole:
             return str(self._data[index.row()][index.column()])
+        elif role == QtCore.Qt.UserRole:
+            return self._data[index.row()]
         return None
     
     def rowCount(self, parent = QtCore.QModelIndex()):

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/AutoPickUI.ui'
 #
-# Created: Mon Mar 31 12:00:01 2014
+# Created: Mon Mar 31 12:17:57 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -91,6 +91,10 @@ class Ui_Form(object):
         self.horizontalLayout_3.addItem(spacerItem)
         self.verticalLayout.addWidget(self.widget_5)
         self.autopickHistoryTableView = QtGui.QTableView(Form)
+        self.autopickHistoryTableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.autopickHistoryTableView.setProperty("showDropIndicator", False)
+        self.autopickHistoryTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.autopickHistoryTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.autopickHistoryTableView.setObjectName("autopickHistoryTableView")
         self.verticalLayout.addWidget(self.autopickHistoryTableView)
         self.label_7.setBuddy(self.maskDoubleSpinBox)

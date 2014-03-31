@@ -41,6 +41,11 @@ class Widget(QtGui.QWidget):
            
         self.ui.autopickHistoryTableView.setModel(ListTableModel([], self.header, None, self))
         
+        #selmodel=self.ui.autopickHistoryTableView.selectionModel()
+        self.ui.autopickHistoryTableView.doubleClicked.connect(self.on_runPushButton_clicked)
+        
+        #doubleClicked ( const QModelIndex & index )
+        
         self.ui.progressDialog = QtGui.QProgressDialog('Running...', "Close", 0, 1, self)
         self.ui.progressDialog.setWindowModality(QtCore.Qt.ApplicationModal)
         #self.ui.progressDialog.findChildren(QtGui.QPushButton)[0].hide()
@@ -80,9 +85,18 @@ class Widget(QtGui.QWidget):
         return True
     
     @qtSlot()
-    def on_runPushButton_clicked(self):
+    def on_runPushButton_clicked(self, index=None):
         '''
         '''
+        
+        if index is None:
+            disk_mult = self.ui.diskDoubleSpinBox.value()
+            mask_mult = self.ui.maskDoubleSpinBox.value()
+            overlap_mult = self.ui.overlapDoubleSpinBox.value()
+        else:
+            #model = self.ui.autopickHistoryTableView.model()
+            disk_mult, mask_mult, overlap_mult = index.data(QtCore.Qt.UserRole)[:3]
+            print disk_mult, mask_mult, overlap_mult
         
         # Get list of micrographs
         files = self.parent_control.currentFileList()
@@ -97,13 +111,13 @@ class Widget(QtGui.QWidget):
         
         bin_factor = float(self.parent_control.micrographDecimationFactor())
         output, base = os.path.split(self.output)
-        output+="-%.2f-%.2f-%.2f"%(self.ui.maskDoubleSpinBox.value(), self.ui.diskDoubleSpinBox.value(), self.ui.overlapDoubleSpinBox.value())
+        output+="-%.2f-%.2f-%.2f"%(disk_mult, mask_mult, overlap_mult)
         output = output.replace(".", "_")
         output = os.path.join(output, base)
         self.autopick_program.update(dict(input_files=self.autopick_program.values.input_files.__class__(files), 
-                                          mask_mult=self.ui.maskDoubleSpinBox.value(),
-                                          disk_mult=self.ui.diskDoubleSpinBox.value(),
-                                          overlap_mult=self.ui.overlapDoubleSpinBox.value(),
+                                          mask_mult=mask_mult,
+                                          disk_mult=disk_mult,
+                                          overlap_mult=overlap_mult,
                                           bin_factor=bin_factor,
                                           disable_bin=True,
                                           output=output))
