@@ -166,6 +166,20 @@ class MainWindow(QtGui.QMainWindow):
                dict(clamp=self.ui.clampDoubleSpinBox.value(), help="Bad pixel removal: higher the number less bad pixels removed", gui=dict(readonly=True, value=self.ui.clampDoubleSpinBox)),
                
                ]
+            
+    def currentFileList(self):
+        '''
+        '''
+        
+        #self.file_index[item.data(QtCore.Qt.UserRole), 2]
+        template = self.get_template()
+        files = []
+        for i in xrange(self.imageListModel.rowCount()):
+            idx = self.imageListModel.item(i).data(QtCore.Qt.UserRole)
+            filename = self.files[self.file_index[idx, 0]]
+            if template is not None: filename=spider_utility.spider_filename(template, filename)
+            files.append(filename)
+        return files
     
     def micrographDecimationFactor(self):
         '''

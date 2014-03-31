@@ -29,6 +29,7 @@ class Widget(QtGui.QWidget):
         "Initialize screener window"
         
         QtGui.QWidget.__init__(self, parent)
+        self.parent_control = parent
         
         # Build window
         _logger.info("Building main window ...")
@@ -84,7 +85,7 @@ class Widget(QtGui.QWidget):
         '''
         
         # Get list of micrographs
-        files = self.parent().currentFileList()
+        files = self.parent_control.currentFileList()
         # Update parameters
         if len(files) == 0: 
             return
@@ -94,7 +95,7 @@ class Widget(QtGui.QWidget):
         self.ui.overlapDoubleSpinBox.setEnabled(False)
         self.ui.runPushButton.setEnabled(False)
         
-        bin_factor = float(self.parent().micrographDecimationFactor())
+        bin_factor = float(self.parent_control.micrographDecimationFactor())
         output, base = os.path.split(self.output)
         output+="-%.2f-%.2f-%.2f"%(self.ui.maskDoubleSpinBox.value(), self.ui.diskDoubleSpinBox.value(), self.ui.overlapDoubleSpinBox.value())
         output = output.replace(".", "_")
@@ -132,8 +133,8 @@ class Widget(QtGui.QWidget):
         self.taskFinished.disconnect(self.programFinished)
         self.taskError.disconnect(self.programError)
         self.task = None
-        self.parent().setCoordinateFile(self.output)
-        self.parent().on_loadImagesPushButton_clicked()
+        self.parent_control.setCoordinateFile(self.output)
+        self.parent_control.on_loadImagesPushButton_clicked()
         
         count = 0
         for filename in self.micrograph_files:
