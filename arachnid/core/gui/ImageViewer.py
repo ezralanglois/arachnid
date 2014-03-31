@@ -12,6 +12,7 @@ from HelpUI import Dialog as HelpDialog
 from util.qt4_loader import QtGui
 from util.qt4_loader import QtCore
 from util.qt4_loader import qtSlot
+from AutoPickUI import Widget as AutoPickWidget
 from util import qimage_utility
 import property
 from ..metadata import spider_utility
@@ -75,6 +76,9 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionForward.setEnabled(False)
         self.ui.actionBackward.setEnabled(False)
         self.setup()
+        
+        self.ui.autopickWidget = AutoPickWidget(self)
+        self.ui.tabWidget.addTab(self.ui.autopickWidget, "AutoPick")
         
         # Custom Actions
         

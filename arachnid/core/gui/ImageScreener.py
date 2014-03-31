@@ -10,7 +10,6 @@
 
 from ImageViewer import MainWindow as ImageViewerWindow
 from util.qt4_loader import QtGui,QtCore,qtSlot
-from AutoPickUI import Dialog as AutoPickDialog
 from ..metadata import format
 from ..metadata import spider_utility
 from ..metadata import relion_utility
@@ -38,7 +37,6 @@ class MainWindow(ImageViewerWindow):
         self.inifile = 'ara_screen.ini'
         self.settings_group = 'ImageScreener'
         self.selection_file=""
-        self.autopick_dialog = AutoPickDialog(self)
         
         # Load the settings
         _logger.info("\rLoading settings ...")
@@ -52,6 +50,12 @@ class MainWindow(ImageViewerWindow):
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If the Green Icon is Showing: Selected Images are accepted</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Otherwise selected images are rejected</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        
+        self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionSelection_Mode)
+        
+        
+        '''
+        self.autopick_dialog = AutoPickDialog(self)
         self.ui.actionAutoPick.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -61,8 +65,8 @@ class MainWindow(ImageViewerWindow):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This action opens a dialog that allows the user to run AutoPicker on the <span style=\" font-weight:600;\">currently opened and selected micrographs</span>.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         
-        self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionSelection_Mode)
         self.ui.toolBar.insertAction(self.ui.actionSelection_Mode, self.ui.actionAutoPick)
+        '''
         
         try:
             self.selectfout = open(self.advanced_settings.select_file, 'a')
@@ -250,7 +254,7 @@ class MainWindow(ImageViewerWindow):
         return ImageViewerWindow.imageTotal(self)
     
     # Slots for GUI
-    
+    """
     @qtSlot()
     def on_actionAutoPick_triggered(self):
         '''
@@ -258,7 +262,7 @@ class MainWindow(ImageViewerWindow):
         
         if self.autopick_dialog.isValid():
             self.autopick_dialog.show()
-    
+    """
     @qtSlot()
     def on_actionSelection_Mode_triggered(self):
         '''

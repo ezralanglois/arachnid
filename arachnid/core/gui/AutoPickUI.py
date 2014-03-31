@@ -4,19 +4,21 @@
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-from pyui.AutoPickUI import Ui_Dialog
+from pyui.AutoPickUI import Ui_Form
 from util.qt4_loader import QtGui, QtCore, qtSlot, qtSignal
 from util import messagebox
 from ..app import program
 from util import BackgroundTask
 from arachnid.app import autopick
+from model.ListTableModel import ListTableModel
+from ..metadata import format
 import logging
 import os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-class Dialog(QtGui.QDialog): 
+class Widget(QtGui.QWidget): 
     ''' Automated GUI build from command line options
     '''
     taskFinished = qtSignal(object)
@@ -26,14 +28,19 @@ class Dialog(QtGui.QDialog):
     def __init__(self, parent=None):
         "Initialize screener window"
         
-        QtGui.QDialog.__init__(self, parent, QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.Dialog|QtCore.Qt.WindowCloseButtonHint)
+        QtGui.QWidget.__init__(self, parent)
         
         # Build window
         _logger.info("Building main window ...")
-        self.ui = Ui_Dialog()
+        self.ui = Ui_Form()
         self.ui.setupUi(self)
+        self.header = ['Disk', 'Mask', 'Overlap', '# Mics', '# Particles']
+        self.data = []
+        self.micrograph_files=[]
+           
+        self.ui.autopickHistoryTableView.setModel(ListTableModel([], self.header, None, self))
         
-        self.ui.progressDialog = QtGui.QProgressDialog('Running...', "", 0,1,self)
+        self.ui.progressDialog = QtGui.QProgressDialog('Running...', "Close", 0, 1, self)
         self.ui.progressDialog.setWindowModality(QtCore.Qt.ApplicationModal)
         #self.ui.progressDialog.findChildren(QtGui.QPushButton)[0].hide()
         self.ui.progressDialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
@@ -41,8 +48,11 @@ class Dialog(QtGui.QDialog):
         self.output = None
         
         self.autopick_program = program.generate_settings_tree(autopick, 'cfg')
+        
         if self.autopick_program.values.param_file == "":
             self.autopick_program = None
+        else:
+            self.output = self.autopick_program.values.output
         self.taskUpdated.connect(self.updateProgress)
         # params file
     
@@ -63,6 +73,8 @@ class Dialog(QtGui.QDialog):
             """)
             self.close()
             return False
+        else:
+            self.output = self.autopick_program.values.output
         
         return True
     
@@ -76,9 +88,14 @@ class Dialog(QtGui.QDialog):
         # Update parameters
         if len(files) == 0: 
             return
+        self.micrograph_files = files
+        self.ui.diskDoubleSpinBox.setEnabled(False)
+        self.ui.maskDoubleSpinBox.setEnabled(False)
+        self.ui.overlapDoubleSpinBox.setEnabled(False)
+        self.ui.runPushButton.setEnabled(False)
+        
         bin_factor = float(self.parent().micrographDecimationFactor())
-        output = self.autopick_program.values.output
-        output, base = os.path.split(output)
+        output, base = os.path.split(self.output)
         output+="-%.2f-%.2f-%.2f"%(self.ui.maskDoubleSpinBox.value(), self.ui.diskDoubleSpinBox.value(), self.ui.overlapDoubleSpinBox.value())
         output = output.replace(".", "_")
         output = os.path.join(output, base)
@@ -117,6 +134,25 @@ class Dialog(QtGui.QDialog):
         self.task = None
         self.parent().setCoordinateFile(self.output)
         self.parent().on_loadImagesPushButton_clicked()
+        
+        count = 0
+        for filename in self.micrograph_files:
+            try: num = len(format.read(self.output, spiderid=filename))
+            except: pass
+            else: count += num
+        
+        self.data.append([self.ui.diskDoubleSpinBox.value(),
+                          self.ui.maskDoubleSpinBox.value(),
+                          self.ui.overlapDoubleSpinBox.value(),
+                          len(self.micrograph_files),
+                          count,
+                          ])
+        model = self.ui.autopickHistoryTableView.model()
+        model.setData(self.data)
+        self.ui.diskDoubleSpinBox.setEnabled(True)
+        self.ui.maskDoubleSpinBox.setEnabled(True)
+        self.ui.overlapDoubleSpinBox.setEnabled(True)
+        self.ui.runPushButton.setEnabled(True)
     
     def programError(self, exception):
         '''
@@ -127,6 +163,10 @@ class Dialog(QtGui.QDialog):
         self.taskFinished.disconnect(self.programFinished)
         self.taskError.disconnect(self.programError)
         self.task = None
+        self.ui.diskDoubleSpinBox.setEnabled(True)
+        self.ui.maskDoubleSpinBox.setEnabled(True)
+        self.ui.overlapDoubleSpinBox.setEnabled(True)
+        self.ui.runPushButton.setEnabled(True)
     
     def updateProgress(self, val):
         
@@ -145,18 +185,20 @@ class Dialog(QtGui.QDialog):
         value = value/float(self.ui.diskHorizontalSlider.maximum())
         value *= (box.maximum()-box.minimum())
         value += box.minimum()
-        #box.blockSignals(True)
+        box.blockSignals(True)
         box.setValue(value)
-        #box.blockSignals(False)
-        #box_valueChanged(value)
+        box.blockSignals(False)
     
     @qtSlot(float)
     def on_diskDoubleSpinBox_valueChanged(self, value=None):
         '''
         '''
         
+        box = self.ui.diskDoubleSpinBox
         slider = self.ui.diskHorizontalSlider
-        if value is None: value = self.ui.diskDoubleSpinBox.value()
+        if value is None: value = box.value()
+        value -= box.minimum()
+        value /= (box.maximum()-box.minimum())
         slider.blockSignals(True)
         slider.setValue(int(slider.maximum()*value))
         slider.blockSignals(False)
@@ -170,18 +212,20 @@ class Dialog(QtGui.QDialog):
         value = value/float(self.ui.maskHorizontalSlider.maximum())
         value *= (box.maximum()-box.minimum())
         value += box.minimum()
-        #box.blockSignals(True)
+        box.blockSignals(True)
         box.setValue(value)
-        #box.blockSignals(False)
-        #box_valueChanged(value)
+        box.blockSignals(False)
     
     @qtSlot(float)
     def on_maskDoubleSpinBox_valueChanged(self, value=None):
         '''
         '''
         
+        box = self.ui.diskDoubleSpinBox
         slider = self.ui.maskHorizontalSlider
         if value is None: value = self.ui.maskDoubleSpinBox.value()
+        value -= box.minimum()
+        value /= (box.maximum()-box.minimum())
         slider.blockSignals(True)
         slider.setValue(int(slider.maximum()*value))
         slider.blockSignals(False)
@@ -195,18 +239,20 @@ class Dialog(QtGui.QDialog):
         value = value/float(self.ui.overlapHorizontalSlider.maximum())
         value *= (box.maximum()-box.minimum())
         value += box.minimum()
-        #box.blockSignals(True)
+        box.blockSignals(True)
         box.setValue(value)
-        #box.blockSignals(False)
-        #box_valueChanged(value)
+        box.blockSignals(False)
     
     @qtSlot(float)
     def on_overlapDoubleSpinBox_valueChanged(self, value=None):
         '''
         '''
         
+        box = self.ui.diskDoubleSpinBox
         slider = self.ui.overlapHorizontalSlider
         if value is None: value = self.ui.overlapDoubleSpinBox.value()
+        value -= box.minimum()
+        value /= (box.maximum()-box.minimum())
         slider.blockSignals(True)
         slider.setValue(int(slider.maximum()*value))
         slider.blockSignals(False)

@@ -42,7 +42,7 @@
         </property>
         <widget class="QWidget" name="configTab">
          <attribute name="icon">
-          <iconset resource="../icons/icons.qrc">
+          <iconset resource="../../../../docs/images/icons/icons.qrc">
            <normaloff>:/mini/mini/application_view_list.png</normaloff>:/mini/mini/application_view_list.png</iconset>
          </attribute>
          <attribute name="title">
@@ -51,7 +51,7 @@
         </widget>
         <widget class="QWidget" name="runTab">
          <attribute name="icon">
-          <iconset resource="../icons/icons.qrc">
+          <iconset resource="../../../../docs/images/icons/icons.qrc">
            <normaloff>:/mini/mini/monitor_go.png</normaloff>
            <disabledoff>:/mini/mini/monitor_delete.png</disabledoff>
            <disabledon>:/mini/mini/monitor_delete.png</disabledon>:/mini/mini/monitor_go.png</iconset>
@@ -68,7 +68,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../docs/images/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

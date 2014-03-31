@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Sun Mar 30 13:39:01 2014
+# Created: Mon Mar 31 12:00:04 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -58,6 +58,7 @@ class Ui_MainWindow(object):
         self.formLayout_3.setHorizontalSpacing(3)
         self.formLayout_3.setObjectName("formLayout_3")
         self.label_8 = QtGui.QLabel(self.widget_3)
+        self.label_8.setText("")
         self.label_8.setPixmap(QtGui.QPixmap(":/mini/mini/zoom.png"))
         self.label_8.setObjectName("label_8")
         self.formLayout_3.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_8)
@@ -77,6 +78,7 @@ class Ui_MainWindow(object):
         self.zoomSlider.setObjectName("zoomSlider")
         self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.zoomSlider)
         self.label_2 = QtGui.QLabel(self.widget_3)
+        self.label_2.setText("")
         self.label_2.setPixmap(QtGui.QPixmap(":/mini/mini/contrast.png"))
         self.label_2.setObjectName("label_2")
         self.formLayout_3.setWidget(2, QtGui.QFormLayout.LabelRole, self.label_2)
@@ -90,6 +92,7 @@ class Ui_MainWindow(object):
         self.contrastSlider.setObjectName("contrastSlider")
         self.formLayout_3.setWidget(2, QtGui.QFormLayout.FieldRole, self.contrastSlider)
         self.label_4 = QtGui.QLabel(self.widget_3)
+        self.label_4.setText("")
         self.label_4.setPixmap(QtGui.QPixmap(":/mini/mini/page_refresh.png"))
         self.label_4.setObjectName("label_4")
         self.formLayout_3.setWidget(3, QtGui.QFormLayout.LabelRole, self.label_4)
@@ -306,11 +309,6 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_8.setText(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/zoom.png\" /> Zoom</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.imageZoomDoubleSpinBox.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -318,11 +316,6 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/zoom.png\" /> Zoom the entire screen</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Works immediately.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setText(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/contrast.png\" /> Contrast</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.contrastSlider.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -332,11 +325,6 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Works immediately</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_4.setText(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/page_refresh.png\" /> Page</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.pageSpinBox.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
