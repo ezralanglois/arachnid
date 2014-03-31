@@ -121,6 +121,7 @@ class Widget(QtGui.QWidget):
                                           overlap_mult=overlap_mult,
                                           bin_factor=bin_factor,
                                           disable_bin=True,
+                                          selection_file="",
                                           output=output))
         
         self.taskFinished.connect(self.programFinished)

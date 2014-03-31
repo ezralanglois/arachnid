@@ -198,9 +198,7 @@ class MainWindow(ImageViewerWindow):
         files = []
         for i in xrange(self.imageListModel.rowCount()):
             idx = self.imageListModel.item(i).data(QtCore.Qt.UserRole)
-            print self.file_index[idx]
             if self.file_index[idx, 2] > 0:
-                print 'Added'
                 filename = self.files[self.file_index[idx, 0]]
                 if template is not None: filename=spider_utility.spider_filename(template, filename)
                 files.append(filename)
