@@ -38,6 +38,8 @@ class Widget(QtGui.QWidget):
         self.header = ['Disk', 'Mask', 'Overlap', '# Mics', '# Particles']
         self.data = []
         self.micrograph_files=[]
+        self.output=None
+        self.output_base=None
            
         self.ui.autopickHistoryTableView.setModel(ListTableModel([], self.header, None, self))
         
@@ -58,7 +60,7 @@ class Widget(QtGui.QWidget):
         if self.autopick_program.values.param_file == "":
             self.autopick_program = None
         else:
-            self.output = self.autopick_program.values.output
+            self.output_base = self.autopick_program.values.output
         self.taskUpdated.connect(self.updateProgress)
         # params file
     
@@ -80,7 +82,7 @@ class Widget(QtGui.QWidget):
             self.close()
             return False
         else:
-            self.output = self.autopick_program.values.output
+            self.output_base = self.autopick_program.values.output
         
         return True
     
@@ -96,7 +98,6 @@ class Widget(QtGui.QWidget):
         else:
             #model = self.ui.autopickHistoryTableView.model()
             disk_mult, mask_mult, overlap_mult = index.data(QtCore.Qt.UserRole)[:3]
-            print disk_mult, mask_mult, overlap_mult
         
         # Get list of micrographs
         files = self.parent_control.currentFileList()
@@ -110,7 +111,7 @@ class Widget(QtGui.QWidget):
         self.ui.runPushButton.setEnabled(False)
         
         bin_factor = float(self.parent_control.micrographDecimationFactor())
-        output, base = os.path.split(self.output)
+        output, base = os.path.split(self.output_base)
         output+="-%.2f-%.2f-%.2f"%(disk_mult, mask_mult, overlap_mult)
         output = output.replace(".", "_")
         output = os.path.join(output, base)
