@@ -372,7 +372,7 @@ def prepare_micrograph(mic, bin_factor, invert):
     '''
     
     if bin_factor > 1: mic = ndimage_interpolate.downsample(mic, bin_factor)
-    if invert: ndimage_utility.invert(mic, mic)
+    #if invert: ndimage_utility.invert(mic, mic)
     return mic
 
 def default_path(filename, output):    
