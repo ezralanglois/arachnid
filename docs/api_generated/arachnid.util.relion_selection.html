@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>relion_selection &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
+    <title>relion_selection &mdash; arachnid 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.5_89_g1b930c3',
+        VERSION:     '0.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.7 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="bench" href="arachnid.util.bench.html" />
     <link rel="prev" title="crop" href="arachnid.util.crop.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.7</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -137,7 +137,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#first-install">First Install</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#update-to-latest">Update to Latest</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#speeding-up-the-code">Speeding up the code</a></li>
@@ -175,6 +179,25 @@
 <li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reconstruction_post_cmdline.html">Post Processing Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-and-spider">Relion and SPIDER</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#angular-distribution">Angular Distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-only">Relion-Only</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#class-selection">Class Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-movie-mode-alignment">Relion Movie-mode Alignment</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-1-generate-a-selection-file">Step 1: Generate a selection file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-2-crop-the-frames">Step 2: Crop the frames</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-3-generate-a-relion-selection-file">Step 3: Generate a Relion Selection File</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-4-test-the-relion-selection-file">Step 4: Test the Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#chimera">Chimera</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../reconstruction.html#quick-start">Quick Start</a><ul>
@@ -287,6 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -747,6 +771,16 @@
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html#functions">Functions</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
@@ -1093,13 +1127,19 @@ by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filen
 <dd><p>Select a subset to ensure roughly even view distribution (0, default, disables this feature)</p>
 </dd></dl>
 
+<dl class="option">
+<dt id="cmdoption-ara-selrelion--remove-missing">
+<tt class="descname">--remove-missing</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-selrelion--remove-missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if image file exists and if not, remove from star file</p>
+</dd></dl>
+
 </div>
 <div class="section" id="movie-mode-options">
 <h2>Movie-mode Options<a class="headerlink" href="#movie-mode-options" title="Permalink to this headline">¶</a></h2>
 <dl class="option">
 <dt id="cmdoption-ara-selrelion--frame-stack-file">
 <tt class="descname">--frame-stack-file</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-ara-selrelion--frame-stack-file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Frame stack filename used to build new relion star file for movie mode refinement</p>
+<dd><p>Frame stack filename used to build new relion star file for movie mode refinement. It must have a star for the frame number (e.g. &#8211;frame-stack_file frame_*_win_00001.dat)</p>
 </dd></dl>
 
 <dl class="option">
@@ -1794,7 +1834,7 @@ from the input relion seleciton file.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.relion_selection.select_good">
-<tt class="descname">select_good</tt><big>(</big><em>vals</em>, <em>class_file</em>, <em>good_file</em>, <em>min_defocus</em>, <em>max_defocus</em>, <em>column='rlnClassNumber'</em>, <em>view_resolution=0</em>, <em>view_limit=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_good" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_good</tt><big>(</big><em>vals</em>, <em>class_file</em>, <em>good_file</em>, <em>min_defocus</em>, <em>max_defocus</em>, <em>column='rlnClassNumber'</em>, <em>view_resolution=0</em>, <em>view_limit=0</em>, <em>remove_missing=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_good" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select good particles based on selection file and defocus
 range.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1822,6 +1862,8 @@ range.</p>
 <dd>Cull views at this resolution (0 disables)</dd>
 <dt>view_limit <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd>Maximum number of projections per view (if 0, then use median)</dd>
+<dt>remove_missing <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Remove entries where the stack is missing</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd>Unused key word arguments</dd>
 </dl>

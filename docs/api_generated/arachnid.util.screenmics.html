@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>process_tasks &mdash; arachnid 0.1.7 documentation</title>
+    <title>screenmics &mdash; arachnid 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -33,8 +33,8 @@
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
     <link rel="top" title="arachnid 0.1.7 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
-    <link rel="next" title="mpi_utility" href="arachnid.core.parallel.mpi_utility.html" />
-    <link rel="prev" title="process_queue" href="arachnid.core.parallel.process_queue.html" />
+    <link rel="next" title="align" href="arachnid.pyspider.align.html" />
+    <link rel="prev" title="coverage" href="arachnid.util.coverage.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -335,7 +335,7 @@
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="../api.html#module-arachnid"><tt class="docutils literal"><span class="pre">arachnid</span></tt></a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="../api.html#module-arachnid.core"><tt class="docutils literal"><span class="pre">arachnid.core</span></tt></a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.core"><tt class="docutils literal"><span class="pre">arachnid.core</span></tt></a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.gui"><tt class="docutils literal"><span class="pre">arachnid.core.gui</span></tt></a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.gui.HelpUI.html">HelpUI</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.gui.HelpUI.html#classes">Classes</a><ul>
@@ -581,14 +581,14 @@
 <li class="toctree-l6"><a class="reference internal" href="../api.html#module-arachnid.core.orient.core"><tt class="docutils literal"><span class="pre">arachnid.core.orient.core</span></tt></a></li>
 </ul>
 </li>
-<li class="toctree-l5 current"><a class="reference internal" href="../api.html#module-arachnid.core.parallel"><tt class="docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><ul class="current">
+<li class="toctree-l5"><a class="reference internal" href="../api.html#module-arachnid.core.parallel"><tt class="docutils literal"><span class="pre">arachnid.core.parallel</span></tt></a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.parallel_utility.html">parallel_utility</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.parallel_utility.html#functions">Functions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_queue.html">process_queue</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_queue.html#functions">Functions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_queue.html#exceptions">Exceptions</a></li>
-<li class="toctree-l6 current"><a class="current reference internal" href="">process_tasks</a></li>
-<li class="toctree-l6"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_tasks.html">process_tasks</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.process_tasks.html#functions">Functions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.mpi_utility.html">mpi_utility</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.mpi_utility.html#functions">Functions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.core.parallel.openmp.html">openmp</a></li>
@@ -715,7 +715,7 @@
 <li class="toctree-l5"><a class="reference internal" href="arachnid.app.align_frames.html#functions">Functions</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.util"><tt class="docutils literal"><span class="pre">arachnid.util</span></tt></a><ul>
+<li class="toctree-l4 current"><a class="reference internal" href="../api.html#module-arachnid.util"><tt class="docutils literal"><span class="pre">arachnid.util</span></tt></a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.crop.html">crop</a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#notes">Notes</a></li>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.util.crop.html#running-the-script">Running the Script</a></li>
@@ -771,16 +771,16 @@
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
-<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
-<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
-<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#running-the-script">Running the Script</a></li>
-<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#critical-options">Critical Options</a></li>
-<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#enhancement-options">Enhancement Options</a></li>
-<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#more-options">More Options</a></li>
-<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#other-options">Other Options</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="">screenmics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#other-options">Other Options</a></li>
 </ul>
 </li>
-<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#functions">Functions</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
@@ -990,7 +990,15 @@
 </ul>
 </div>
 <ul>
-<li><a class="reference internal" href="#">process_tasks</a></li>
+<li><a class="reference internal" href="#">screenmics</a><ul>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#running-the-script">Running the Script</a></li>
+<li><a class="reference internal" href="#critical-options">Critical Options</a></li>
+<li><a class="reference internal" href="#enhancement-options">Enhancement Options</a></li>
+<li><a class="reference internal" href="#more-options">More Options</a></li>
+<li><a class="reference internal" href="#other-options">Other Options</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 </ul>
 
@@ -999,10 +1007,118 @@
       </div>
     <div class="col-md-9" role="main">
       
-  <div class="section" id="module-arachnid.core.parallel.process_tasks">
-<span id="process-tasks"></span><h1>process_tasks<a class="headerlink" href="#module-arachnid.core.parallel.process_tasks" title="Permalink to this headline">¶</a></h1>
-<p>Common parallel/serial design patterns</p>
-<p>This module defines a set of common tasks that can be performed in parallel or serial.</p>
+  <div class="section" id="module-arachnid.util.screenmics">
+<span id="screenmics"></span><h1>screenmics<a class="headerlink" href="#module-arachnid.util.screenmics" title="Permalink to this headline">¶</a></h1>
+<p>Preprocess a set of micrographs for screening</p>
+<p>This script (<cite>ara-screenmics</cite>) prepares micrograph image files for screening.</p>
+<p>It performs the following preprocessing on the micrograph:</p>
+<blockquote>
+<div><ul class="simple">
+<li>High pass filter with cutoff = sigma / window_size (Default sigma = 1, if sigma = 0, then high pass filtering is disabled)</li>
+<li>Decimation (Default bin-factor = 0, no decimation)</li>
+<li>Contrast inversion (Default invert = False)</li>
+<li>Removing bad pixels from dust or errant electrons (Default clamp-window 5, if clamp-window = 0 then disable clamping)</li>
+</ul>
+</div></blockquote>
+<div class="section" id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Input filenames: To specifiy multiple files, either use a selection file <cite>&#8211;selection-doc sel01.spi</cite> with a single input file mic_00001.spi or use a single star mic_*.spi to
+replace the number.</li>
+<li>All other filenames: Must follow the SPIDER format with a number before the extension, e.g. mic_00001.spi. Output files just require the number of digits: <cite>&#8211;output sndc_0000.spi</cite></li>
+<li>Film micrographs - Use the <cite>&#8211;film</cite> parameter to disable contrast invertion (if it was done during scanning)</li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="running-the-script">
+<h2>Running the Script<a class="headerlink" href="#running-the-script" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-screenmics mic_*.dat -o mic_sm_00000.dat -p params.dat
+
+<span class="c"># For very compressed images</span>
+
+<span class="nv">$ </span>ara-screenmics mic_*.dat -o mic_sm_00000.dat --use-8bit -p params.dat
+</pre></div>
+</div>
+</div>
+<div class="section" id="critical-options">
+<h2>Critical Options<a class="headerlink" href="#critical-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--micrograph-files">
+<tt class="descname">--micrograph-files</tt><tt class="descclassname"> &lt;filename1,filename2&gt;</tt><tt class="descclassname">, </tt><tt class="descname">-i</tt><tt class="descclassname"> &lt;filename1,filename2&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--input-files</tt><tt class="descclassname"> &lt;filename1,filename2&gt;, filename1 filename</tt><a class="headerlink" href="#cmdoption-ara-screenmics--micrograph-files" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of input micrograph filenames
+If you use the parameters <cite>-i</cite> or <cite>&#8211;inputfiles</cite> the filenames may be comma or 
+space separated on the command line; they must be comma seperated in a configuration 
+file. Note, these flags are optional for input files; the filenames must be separated 
+by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filename*&#8221;</cite></p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-screenmics-o">
+<tt class="descname">-o</tt><tt class="descclassname"> &lt;str&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--output</tt><tt class="descclassname"> &lt;str&gt;</tt><a class="headerlink" href="#cmdoption-ara-screenmics-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output filename template for processed micrograph with correct number of digits (e.g. sndc_0000.spi)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="enhancement-options">
+<h2>Enhancement Options<a class="headerlink" href="#enhancement-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--disable-enhance">
+<tt class="descname">--disable-enhance</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-ara-screenmics--disable-enhance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable post-enhancement: clamping, high-pass filtering, decimating</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--clamp">
+<tt class="descname">--clamp</tt><tt class="descclassname"> &lt;float&gt;</tt><a class="headerlink" href="#cmdoption-ara-screenmics--clamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--sigma">
+<tt class="descname">--sigma</tt><tt class="descclassname"> &lt;float&gt;</tt><a class="headerlink" href="#cmdoption-ara-screenmics--sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="more-options">
+<h2>More Options<a class="headerlink" href="#more-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--selection-file">
+<tt class="descname">--selection-file</tt><tt class="descclassname"> &lt;str&gt;</tt><a class="headerlink" href="#cmdoption-ara-screenmics--selection-file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selection file for a subset of micrographs or selection file template for subset of good particles</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-screenmics-p">
+<tt class="descname">-p</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--param-file</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-ara-screenmics-p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename for SPIDER parameter file describing a Cryo-EM experiment</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--bin-factor">
+<tt class="descname">--bin-factor</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-screenmics--bin-factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-screenmics--film">
+<tt class="descname">--film</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-ara-screenmics--film" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do not invert the contrast on the micrograph (usually for film micrographs where inversion was done during scanning)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="other-options">
+<h2>Other Options<a class="headerlink" href="#other-options" title="Permalink to this headline">¶</a></h2>
+<p>This is not a complete list of options available to this script, for additional options see:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><a class="reference internal" href="../manual.html#shared-options"><em>Options shared by all scripts ...</em></a></li>
+<li><a class="reference internal" href="../manual.html#file-proc-options"><em>Options shared by file processor scripts...</em></a></li>
+<li><a class="reference internal" href="../manual.html#param-options"><em>Options shared by SPIDER params scripts...</em></a></li>
+</ol>
+</div></blockquote>
+</div>
 </div>
 <div class="section" id="functions">
 <h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
@@ -1010,33 +1126,39 @@
 <div><div class="panel-group container" id="function-parent">
 <div class="panel panel-default container">
 <div class="panel-heading container">
-<a data-toggle="collapse" data-parent="#function_parent" href="#for-process-mp">for_process_mp</a></div>
-<div class="panel-collapse collapse container" id="for-process-mp">
+<a data-toggle="collapse" data-parent="#function_parent" href="#change-option-defaults">change_option_defaults</a></div>
+<div class="panel-collapse collapse container" id="change-option-defaults">
 <div class="panel-body container">
 <dl class="function">
-<dt id="arachnid.core.parallel.process_tasks.for_process_mp">
-<tt class="descname">for_process_mp</tt><big>(</big><em>for_func</em>, <em>worker</em>, <em>shape</em>, <em>thread_count=0</em>, <em>queue_limit=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.parallel.process_tasks.for_process_mp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generator to process collection of arrays in parallel</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>for_func <span class="classifier-delimiter">:</span> <span class="classifier">func</span></dt>
-<dd>Generate a list of data</dd>
-<dt>work <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd>Function to preprocess the images</dd>
-<dt>thread_count <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Number of threads</dd>
-<dt>shape <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Shape of worker result array</dd>
-<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
-</dl>
+<dt id="arachnid.util.screenmics.change_option_defaults">
+<tt class="descname">change_option_defaults</tt><big>(</big><em>parser</em><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.change_option_defaults" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a></div>
+<div class="panel-collapse collapse container" id="dependents">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.util.screenmics.dependents">
+<tt class="descname">dependents</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.dependents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+<div class="panel panel-default container">
+<div class="panel-heading container">
+<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a></div>
+<div class="panel-collapse collapse container" id="flags">
+<div class="panel-body container">
+<dl class="function">
+<dt id="arachnid.util.screenmics.flags">
+<tt class="descname">flags</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get flags the define the supported features</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1046,10 +1168,8 @@
 </tbody>
 </table>
 <dl class="docutils">
-<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Yields index of output array</dd>
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Yields output array of worker</dd>
+<dt>flags <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>Supported features</dd>
 </dl>
 </dd></dl>
 
@@ -1058,71 +1178,83 @@
 </div>
 <div class="panel panel-default container">
 <div class="panel-heading container">
-<a data-toggle="collapse" data-parent="#function_parent" href="#iterate-map">iterate_map</a></div>
-<div class="panel-collapse collapse container" id="iterate-map">
+<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a></div>
+<div class="panel-collapse collapse container" id="initialize">
 <div class="panel-body container">
 <dl class="function">
-<dt id="arachnid.core.parallel.process_tasks.iterate_map">
-<tt class="descname">iterate_map</tt><big>(</big><em>for_func</em>, <em>worker</em>, <em>thread_count</em>, <em>queue_limit=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.parallel.process_tasks.iterate_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over the input value and reduce after finished processing</p>
-</dd></dl>
+<dt id="arachnid.util.screenmics.initialize">
+<tt class="descname">initialize</tt><big>(</big><em>files</em>, <em>param</em><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 </div>
 </div>
 <div class="panel panel-default container">
 <div class="panel-heading container">
-<a data-toggle="collapse" data-parent="#function_parent" href="#iterate-reduce">iterate_reduce</a></div>
-<div class="panel-collapse collapse container" id="iterate-reduce">
+<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a></div>
+<div class="panel-collapse collapse container" id="main">
 <div class="panel-body container">
 <dl class="function">
-<dt id="arachnid.core.parallel.process_tasks.iterate_reduce">
-<tt class="descname">iterate_reduce</tt><big>(</big><em>for_func</em>, <em>worker</em>, <em>thread_count</em>, <em>queue_limit=None</em>, <em>shmem_array_info=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.parallel.process_tasks.iterate_reduce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over the input value and reduce after finished processing</p>
-</dd></dl>
+<dt id="arachnid.util.screenmics.main">
+<tt class="descname">main</tt><big>(</big><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 </div>
 </div>
 <div class="panel panel-default container">
 <div class="panel-heading container">
-<a data-toggle="collapse" data-parent="#function_parent" href="#process-mp">process_mp</a></div>
-<div class="panel-collapse collapse container" id="process-mp">
+<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a></div>
+<div class="panel-collapse collapse container" id="process">
 <div class="panel-body container">
 <dl class="function">
-<dt id="arachnid.core.parallel.process_tasks.process_mp">
-<tt class="descname">process_mp</tt><big>(</big><em>process</em>, <em>vals</em>, <em>worker_count</em>, <em>init_process=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.core.parallel.process_tasks.process_mp" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Generator that runs a process functor in parallel (or serial if worker_count </dt>
-<dd>is less than 2) over a list of given data values and returns the result</dd>
-</dl>
+<dt id="arachnid.util.screenmics.process">
+<tt class="descname">process</tt><big>(</big><em>filename</em>, <em>output</em>, <em>bin_factor</em>, <em>sigma</em>, <em>film</em>, <em>clamp</em>, <em>window=0</em>, <em>disable_enhance=False</em>, <em>use_8bit=False</em>, <em>id_len=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate files and write to a single output file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>process <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd>Functor to be run in parallel (or serial if worker_count is less than 2)</dd>
-<dt>vals <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of items to process in parallel</dd>
-<dt>worker_count <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Number of processes to run in parallel</dd>
-<dt>init_process <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd>Initalize the parameters for the child process</dd>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Input filename</p>
+</dd>
+<dt>output <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output filename</p>
+</dd>
+<dt>bin_factor <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Decimation factor</p>
+</dd>
+<dt>sigma <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">High-pass filter factor</p>
+</dd>
+<dt>film <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, do not invert contrast</p>
+</dd>
+<dt>clamp <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Number of standard deviations from the mean</p>
+</dd>
+<dt>window <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Window size of the particle</p>
+</dd>
+<dt>disable_enhance <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Do not performace preprocessing on image</p>
+</dd>
+<dt>use_8bit <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, write out 8-bit MRC file</p>
+</dd>
+<dt>id_len <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">Maximum length of the ID</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused key word arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
-<dd><p class="first last">Return value of process functor</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Current filename</p>
 </dd>
 </dl>
 </td>
@@ -1136,40 +1268,13 @@
 </div>
 <div class="panel panel-default container">
 <div class="panel-heading container">
-<a data-toggle="collapse" data-parent="#function_parent" href="#process-worker2">process_worker2</a></div>
-<div class="panel-collapse collapse container" id="process-worker2">
+<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a></div>
+<div class="panel-collapse collapse container" id="setup-options">
 <div class="panel-body container">
 <dl class="function">
-<dt id="arachnid.core.parallel.process_tasks.process_worker2">
-<tt class="descname">process_worker2</tt><big>(</big><em>qin</em>, <em>qout</em>, <em>process_number</em>, <em>process_limit</em>, <em>worker</em>, <em>extra</em><big>)</big><a class="headerlink" href="#arachnid.core.parallel.process_tasks.process_worker2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Worker in each process that preprocesses the images</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>qin <span class="classifier-delimiter">:</span> <span class="classifier">multiprocessing.Queue</span></dt>
-<dd>Queue with index for input images in shared array</dd>
-<dt>qout <span class="classifier-delimiter">:</span> <span class="classifier">multiprocessing.Queue</span></dt>
-<dd>Queue with index and offset for the output images in shared array</dd>
-<dt>process_number <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Process number</dd>
-<dt>process_limit <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Number of processes</dd>
-<dt>worker <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd>Function to preprocess the images</dd>
-<dt>shmem_img <span class="classifier-delimiter">:</span> <span class="classifier">multiprocessing.RawArray</span></dt>
-<dd>Shared memory image array</dd>
-<dt>shape <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
-<dd>Dimensions of the shared memory array</dd>
-<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Keyword arguments</dd>
-</dl>
-</dd></dl>
+<dt id="arachnid.util.screenmics.setup_options">
+<tt class="descname">setup_options</tt><big>(</big><em>parser</em>, <em>pgroup=None</em>, <em>main_option=False</em><big>)</big><a class="headerlink" href="#arachnid.util.screenmics.setup_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 </div>

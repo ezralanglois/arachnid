@@ -1,0 +1,123 @@
+screenmics
+========================
+
+.. automodule:: arachnid.util.screenmics
+
+   
+   
+Functions
+=========
+  
+   .. container:: panel-group
+   	:name: function_parent
+   	
+   	
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#change-option-defaults">change_option_defaults</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: change-option-defaults
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: change_option_defaults
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#dependents">dependents</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: dependents
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: dependents
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#flags">flags</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: flags
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: flags
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#initialize">initialize</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: initialize
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: initialize
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#main">main</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: main
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: main
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#process">process</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: process
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: process
+   	.. container:: panel panel-default
+   		
+   		.. container:: panel-heading
+   			
+   			.. raw:: html
+   				
+   				<a data-toggle="collapse" data-parent="#function_parent" href="#setup-options">setup_options</a>
+   		
+   		.. container:: panel-collapse collapse
+   			:name: setup-options
+   			
+   			.. container:: panel-body
+   				
+   				.. autofunction:: setup_options
+
+   
+   
+
+   
+   
+   
+
+   
+   
+   

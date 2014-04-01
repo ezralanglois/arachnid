@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Post Processing Protocol &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
+    <title>Post Processing Protocol &mdash; arachnid 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.5_89_g1b930c3',
+        VERSION:     '0.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,10 @@
     <script type="text/javascript" src="../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="../index.html" />
+    <link rel="top" title="arachnid 0.1.7 documentation" href="../index.html" />
+    <link rel="up" title="Reconstruction Protocol" href="reconstruction.html" />
+    <link rel="next" title="Manual" href="manual.html" />
+    <link rel="prev" title="Reconstruction Protocol" href="reconstruction_cmdline.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -52,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../index.html"><img src="../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.7</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -78,7 +81,7 @@
      class="dropdown-toggle"
      data-toggle="dropdown">Site Map <b class="caret"></b></a>
   <ul class="dropdown-menu globaltoc"
-    ><ul>
+    ><ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../license.html#version-2-june-1991">Version 2, June 1991</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../license.html#preamble">Preamble</a><ul>
@@ -91,7 +94,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../users_guide.html">User&#8217;s Guide</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="../users_guide.html">User&#8217;s Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="install.html">Install</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="install_franklab.html">Installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="install_franklab.html#franklab">FrankLab</a></li>
@@ -134,7 +137,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="install.html#anaconda">Anaconda</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="install.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="install.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="install.html#first-install">First Install</a></li>
+<li class="toctree-l5"><a class="reference internal" href="install.html#update-to-latest">Update to Latest</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#speeding-up-the-code">Speeding up the code</a></li>
@@ -150,7 +157,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="reconstruction.html">Reconstruction Protocol</a><ul>
+<li class="toctree-l2 current"><a class="reference internal" href="reconstruction.html">Reconstruction Protocol</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="reconstruction_cmdline.html">Reconstruction Protocol</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#quick-start">Quick Start</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reconstruction_cmdline.html#tips">Tips</a></li>
@@ -172,6 +179,25 @@
 <li class="toctree-l5"><a class="reference internal" href="reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">Post Processing Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#relion-and-spider">Relion and SPIDER</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#angular-distribution">Angular Distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#relion-only">Relion-Only</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#class-selection">Class Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#relion-movie-mode-alignment">Relion Movie-mode Alignment</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#step-1-generate-a-selection-file">Step 1: Generate a selection file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#step-2-crop-the-frames">Step 2: Crop the frames</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#step-3-generate-a-relion-selection-file">Step 3: Generate a Relion Selection File</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#step-4-test-the-relion-selection-file">Step 4: Test the Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#chimera">Chimera</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="reconstruction.html#quick-start">Quick Start</a><ul>
@@ -284,6 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="development.html#testing-compilation-of-code">Testing compilation of code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="development.html#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -744,6 +771,16 @@
 <li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.image_info.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.coverage.html">coverage</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.coverage.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html">screenmics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api_generated/arachnid.util.screenmics.html#functions">Functions</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
@@ -936,7 +973,13 @@
 </li>
 <li><a class="reference internal" href="#relion-only">Relion-Only</a><ul>
 <li><a class="reference internal" href="#class-selection">Class Selection</a></li>
-<li><a class="reference internal" href="#relion-movie-mode-alignment">Relion Movie-mode Alignment</a></li>
+<li><a class="reference internal" href="#relion-movie-mode-alignment">Relion Movie-mode Alignment</a><ul>
+<li><a class="reference internal" href="#step-1-generate-a-selection-file">Step 1: Generate a selection file</a></li>
+<li><a class="reference internal" href="#step-2-crop-the-frames">Step 2: Crop the frames</a></li>
+<li><a class="reference internal" href="#step-3-generate-a-relion-selection-file">Step 3: Generate a Relion Selection File</a></li>
+<li><a class="reference internal" href="#step-4-test-the-relion-selection-file">Step 4: Test the Relion Selection File</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#chimera">Chimera</a></li>
@@ -974,9 +1017,70 @@ on a 2D projection of a sphere.</p>
 <p>The following describes post-processing of Relion alignment files.</p>
 <div class="section" id="class-selection">
 <h3>Class Selection<a class="headerlink" href="#class-selection" title="Permalink to this headline">¶</a></h3>
+<p>After classification, it is usually necessary to extract out a single class of particles for
+further refinement. This is can be done as follows:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-selrelion relion-it001_data.star -o relion-it001_data_class_1_2_5.star -s1,2,5
+</pre></div>
+</div>
+<p>Sometimes, it is usually necessary to recombine several classes into a single star file for
+refinement. This is can be done as follows:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-selrelion relion-it001_data.star -o relion-it001_data_class_1_2_5.star -s1,2,5
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Running autorefine with the above selection files will start with the angles found by
+classification. To begin from scratch include the <cite>&#8211;restart</cite> option.</p>
+</div>
 </div>
 <div class="section" id="relion-movie-mode-alignment">
 <h3>Relion Movie-mode Alignment<a class="headerlink" href="#relion-movie-mode-alignment" title="Permalink to this headline">¶</a></h3>
+<p>This section assumes you have already performed classification/refinement with Relion and
+obtained a structure that is better than 6-angstroms. It is also assumed that you:</p>
+<ol class="arabic simple">
+<li>Performed frame alignment on the micrographs with Arachnid or do not require frame alignment.</li>
+<li>Or, know how to convert the translations from the software you used to Arachnid</li>
+<li>Or, do not require translations for the micrographs</li>
+</ol>
+<div class="section" id="step-1-generate-a-selection-file">
+<h4>Step 1: Generate a selection file<a class="headerlink" href="#step-1-generate-a-selection-file" title="Permalink to this headline">¶</a></h4>
+<p>Normally, you have performed some type of classification for your data and only wish to crop
+frames for a subset, which you subsequently refined to better than 6-angstroms. Even if you
+want to crop all the data, performing this step will make things easier in the future.</p>
+<p>The following command will generate a particle selection file by micrograph in the SPIDER
+document format.</p>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-selrelion relion-it001_data.star -o good/good_000000.dat
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-2-crop-the-frames">
+<h4>Step 2: Crop the frames<a class="headerlink" href="#step-2-crop-the-frames" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-crop <span class="nb">local</span>/frames/mic_* -g good/good_000000.dat -o win/win_000000.dat -w16
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-3-generate-a-relion-selection-file">
+<h4>Step 3: Generate a Relion Selection File<a class="headerlink" href="#step-3-generate-a-relion-selection-file" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-selrelion relion-it001_data.star --frame-stack-file <span class="s2">&quot;win/frame_*_win_000000.dat&quot;</span> --reindex-file good/good_000000.dat -o relion-it001_data_frames.star
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In the config file, the quotes are unnecessary, e.g.:</p>
+<p class="last">frame-stack-file: win/frame_*_win_000000.dat</p>
+</div>
+</div>
+<div class="section" id="step-4-test-the-relion-selection-file">
+<h4>Step 4: Test the Relion Selection File<a class="headerlink" href="#step-4-test-the-relion-selection-file" title="Permalink to this headline">¶</a></h4>
+<p>This example assumes the following:</p>
+<ol class="arabic simple">
+<li>You have 16 cores available on your system.</li>
+<li>The pixel size used for CTF estimation is 1.5.</li>
+</ol>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-reconstruct relion-it001_data_frames.star -o raw.dat -t16 --apix 1.5
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="chimera">

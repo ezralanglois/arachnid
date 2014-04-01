@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>reconstruct_stack &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
+    <title>reconstruct_stack &mdash; arachnid 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.5_89_g1b930c3',
+        VERSION:     '0.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.7 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="reconstruct3" href="arachnid.snippets.reconstruction.reconstruct3.html" />
     <link rel="prev" title="reconstruct_single" href="arachnid.snippets.reconstruction.reconstruct_single.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.7</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -179,6 +179,25 @@
 <li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reconstruction_post_cmdline.html">Post Processing Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-and-spider">Relion and SPIDER</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#angular-distribution">Angular Distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-only">Relion-Only</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#class-selection">Class Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-movie-mode-alignment">Relion Movie-mode Alignment</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-1-generate-a-selection-file">Step 1: Generate a selection file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-2-crop-the-frames">Step 2: Crop the frames</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-3-generate-a-relion-selection-file">Step 3: Generate a Relion Selection File</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-4-test-the-relion-selection-file">Step 4: Test the Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#chimera">Chimera</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../reconstruction.html#quick-start">Quick Start</a><ul>
@@ -752,6 +771,16 @@
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html#functions">Functions</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
@@ -973,100 +1002,11 @@
   <div class="section" id="module-arachnid.snippets.reconstruction.reconstruct_stack">
 <span id="reconstruct-stack"></span><h1>reconstruct_stack<a class="headerlink" href="#module-arachnid.snippets.reconstruction.reconstruct_stack" title="Permalink to this headline">¶</a></h1>
 <p>Reconstruct a volume from a subset of projections</p>
-<p>Download to edit and run: <a class="reference download internal" href="../../_downloads/reconstruct_stack.py"><tt class="xref download docutils literal"><span class="pre">reconstruct_stack.py</span></tt></a></p>
+<p>Download to edit and run: <tt class="xref download docutils literal"><span class="pre">reconstruct_subset.py</span></tt></p>
 <p>To run:</p>
-<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>python reconstruct_stack.py
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>python reconstruct_subset.py
 </pre></div>
 </div>
-<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44</pre></div></td><td class="code"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
-<span class="c">#sys.path.append(&#39;/home/robertl/tmp/arachnid-0.0.1/&#39;)</span>
-
-<span class="kn">from</span> <span class="nn">arachnid.core.app</span> <span class="kn">import</span> <span class="n">tracing</span>
-<span class="kn">from</span> <span class="nn">arachnid.core.metadata</span> <span class="kn">import</span> <span class="n">format</span><span class="p">,</span> <span class="n">spider_params</span>
-<span class="kn">from</span> <span class="nn">arachnid.core.image</span> <span class="kn">import</span> <span class="n">ndimage_file</span><span class="p">,</span> <span class="n">rotate</span>
-<span class="kn">from</span> <span class="nn">arachnid.core.image.ctf</span> <span class="kn">import</span> <span class="n">correct</span> <span class="k">as</span> <span class="n">ctf_correct</span>
-<span class="kn">from</span> <span class="nn">arachnid.core.image</span> <span class="kn">import</span> <span class="n">reconstruct</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-
-<span class="k">def</span> <span class="nf">process_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    
-    <span class="n">img</span> <span class="o">=</span> <span class="n">rotate</span><span class="o">.</span><span class="n">rotate_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span>
-    <span class="n">ctfimg</span> <span class="o">=</span> <span class="n">ctf_correct</span><span class="o">.</span><span class="n">phase_flip_transfer_function</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">17</span><span class="p">],</span> <span class="o">**</span><span class="n">extra</span><span class="p">)</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">ctf_correct</span><span class="o">.</span><span class="n">correct</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ctfimg</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">img</span>
-
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
-    
-    <span class="n">tracing</span><span class="o">.</span><span class="n">configure_logging</span><span class="p">()</span>
-
-    <span class="n">image_file</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>   <span class="c"># phase_flip_dala_stack.spi</span>
-    <span class="n">align_file</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>   <span class="c"># align.spi</span>
-    <span class="n">param_file</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>       <span class="c"># raw_vol.spi</span>
-    <span class="n">bin_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="mf">1.0</span>        <span class="c"># raw_vol.spi</span>
-    <span class="n">thread_count</span> <span class="o">=</span> <span class="mi">32</span>
-    
-    <span class="n">extra</span> <span class="o">=</span> <span class="n">spider_params</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">param_file</span><span class="p">)</span>
-    <span class="n">extra</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">spider_params</span><span class="o">.</span><span class="n">update_params</span><span class="p">(</span><span class="n">bin_factor</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">))</span>
-    <span class="k">print</span> <span class="s">&quot;Loaded param file&quot;</span>
-    <span class="n">extra</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">thread_count</span><span class="o">=</span><span class="n">thread_count</span><span class="p">)</span>
-    
-    <span class="n">align</span><span class="p">,</span><span class="n">header</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">read_alignment</span><span class="p">(</span><span class="n">align_file</span><span class="p">,</span> <span class="n">ndarray</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Reconstructing </span><span class="si">%d</span><span class="s"> particles&quot;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">align</span><span class="p">))</span>
-    <span class="n">selection</span> <span class="o">=</span> <span class="n">align</span><span class="p">[:,</span> <span class="mi">15</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span>
-    <span class="n">align</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">/=</span> <span class="n">extra</span><span class="p">[</span><span class="s">&#39;apix&#39;</span><span class="p">]</span>
-    <span class="n">iter_single_images</span> <span class="o">=</span> <span class="n">ndimage_file</span><span class="o">.</span><span class="n">iter_images</span><span class="p">(</span><span class="n">image_file</span><span class="p">,</span> <span class="n">selection</span><span class="p">)</span>
-    <span class="n">image_size</span> <span class="o">=</span> <span class="n">ndimage_file</span><span class="o">.</span><span class="n">read_image</span><span class="p">(</span><span class="n">image_file</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">vol</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="o">.</span><span class="n">reconstruct_bp3f_mp</span><span class="p">(</span><span class="n">iter_single_images</span><span class="p">,</span> <span class="n">image_size</span><span class="p">,</span> <span class="n">align</span><span class="p">,</span> <span class="n">process_image</span><span class="o">=</span><span class="n">process_image</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">vol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
-        <span class="n">ndimage_file</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">vol</span><span class="p">)</span>
-</pre></div>
-</td></tr></table></div>
 </div>
 <div class="section" id="functions">
 <h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ndimage_file &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
+    <title>ndimage_file &mdash; arachnid 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.5_89_g1b930c3',
+        VERSION:     '0.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="../../index.html" />
+    <link rel="top" title="arachnid 0.1.7 documentation" href="../../index.html" />
     <link rel="up" title="Arachnid API" href="../api.html" />
     <link rel="next" title="ndimage_filter" href="arachnid.core.image.ndimage_filter.html" />
     <link rel="prev" title="ndimage_utility" href="arachnid.core.image.ndimage_utility.html" />
@@ -55,7 +55,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html"><img src="../../_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.7</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -137,7 +137,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#first-install">First Install</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install.html#update-to-latest">Update to Latest</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#step-by-step">Step-by-step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#speeding-up-the-code">Speeding up the code</a></li>
@@ -175,6 +179,25 @@
 <li class="toctree-l5"><a class="reference internal" href="../reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reconstruction_post_cmdline.html">Post Processing Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-and-spider">Relion and SPIDER</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#angular-distribution">Angular Distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-only">Relion-Only</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#class-selection">Class Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../reconstruction_post_cmdline.html#relion-movie-mode-alignment">Relion Movie-mode Alignment</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-1-generate-a-selection-file">Step 1: Generate a selection file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-2-crop-the-frames">Step 2: Crop the frames</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-3-generate-a-relion-selection-file">Step 3: Generate a Relion Selection File</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../reconstruction_post_cmdline.html#step-4-test-the-relion-selection-file">Step 4: Test the Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reconstruction_post_cmdline.html#chimera">Chimera</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../reconstruction.html#quick-start">Quick Start</a><ul>
@@ -287,6 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../development.html#debugging-c-c-code">Debugging C/C++ code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#testing-compilation-of-code">Testing compilation of code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#packaging-for-anaconda">Packaging for Anaconda</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#build-system-centos-5-10">Build System: CentOS 5.10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
@@ -747,6 +771,16 @@
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html#functions">Functions</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
@@ -1018,14 +1052,15 @@ using the following:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Keyword arguments</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Keyword arguments</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1045,32 +1080,31 @@ MPI only</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename template</dd>
+<dd><p class="first last">Input filename template</p>
+</dd>
 <dt>selection <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Selection ids</dd>
+<dd><p class="first last">Selection ids</p>
+</dd>
 <dt>local_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output filename template</dd>
+<dd><p class="first last">Output filename template</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>local_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Local filename based on rank of node and process id</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>local_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Local filename based on rank of node and process id</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1089,26 +1123,22 @@ MPI only</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename to read</dd>
+<dd><p class="first last">Input filename to read</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Number of images in the file</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Number of images in the file</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1127,26 +1157,22 @@ MPI only</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input file to test</dd>
+<dd><p class="first last">Input file to test</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">format</span></dt>
+<dd><p class="first last">Read format for given file</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">format</span></dt>
-<dd>Read format for given file</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1165,26 +1191,22 @@ MPI only</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input file to test</dd>
+<dd><p class="first last">Input file to test</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">format</span></dt>
+<dd><p class="first last">Read format for given file</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">format</span></dt>
-<dd>Read format for given file</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1203,26 +1225,22 @@ MPI only</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output filename to test</dd>
+<dd><p class="first last">Output filename to test</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">format</span></dt>
+<dd><p class="first last">Write format for given file extension</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">format</span></dt>
-<dd>Write format for given file extension</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1242,26 +1260,22 @@ format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename to test</dd>
+<dd><p class="first last">Input filename to test</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if the format is recognized</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>True if the format is recognized</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1281,26 +1295,22 @@ as a writable format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output filename to test</dd>
+<dd><p class="first last">Output filename to test</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>write <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if the format is recognized</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>write <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>True if the format is recognized</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1319,13 +1329,10 @@ as a writable format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename to read</dd>
+<dd><p class="first last">Input filename to read</p>
+</dd>
 <dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int or array, optional</span></dt>
 <dd><dl class="first last docutils">
 <dt>Image index: </dt>
@@ -1340,18 +1347,17 @@ as a writable format.</p>
 </dl>
 </dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Array with header information in the file</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Array with header information in the file</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1370,28 +1376,25 @@ as a writable format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename to read</dd>
+<dd><p class="first last">Input filename to read</p>
+</dd>
 <dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd>Index of image to get, if None, first image (Default: None)</dd>
+<dd><p class="first last">Index of image to get, if None, first image (Default: None)</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Array with header information in the file</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Array with header information in the file</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1410,30 +1413,28 @@ as a writable format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename to read</dd>
+<dd><p class="first last">Input filename to read</p>
+</dd>
 <dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd>Index of image to get, if None, first image (Default: None)</dd>
+<dd><p class="first last">Index of image to get, if None, first image (Default: None)</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Array with header information in the file</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Array with header information in the file</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1452,29 +1453,25 @@ as a writable format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename to read</dd>
+<dd><p class="first last">Input filename to read</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
 </tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt>out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Array nxm1xm2xm3 where n is the 
+<dd><p class="first last">Array nxm1xm2xm3 where n is the 
 number of images and m1-m3 are
 the dimensions of an individual
-image</dd>
+image</p>
+</dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1493,26 +1490,22 @@ image</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>link <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Link filename</dd>
+<dd><p class="first last">Link filename</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Absolute path of file link points</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Absolute path of file link points</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1532,22 +1525,27 @@ based on the file extension, or given type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output filename for the image</p>
+</dd>
+<dt>img <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Image data to write out</p>
+</dd>
+<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">Index image should be written to in the stack</p>
+</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Header dictionary</p>
+</dd>
+<dt>inplace <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Write new image to stack without removing the stack</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output filename for the image</dd>
-<dt>img <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Image data to write out</dd>
-<dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd>Index image should be written to in the stack</dd>
-<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Header dictionary</dd>
-<dt>inplace <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Write new image to stack without removing the stack</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1567,16 +1565,18 @@ based on the file extension, or given type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output filename for the image</p>
+</dd>
+<dt>imgs <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Image stack data to write out</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output filename for the image</dd>
-<dt>imgs <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Image stack data to write out</dd>
-</dl>
 </dd></dl>
 
 </div>

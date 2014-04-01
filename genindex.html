@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; arachnid 0.1.5_89_g1b930c3 documentation</title>
+    <title>Index &mdash; arachnid 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.5_89_g1b930c3',
+        VERSION:     '0.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <script type="text/javascript" src="_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="arachnid 0.1.5_89_g1b930c3 documentation" href="index.html" />
+    <link rel="top" title="arachnid 0.1.7 documentation" href="index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -52,7 +52,7 @@
         </button>
         <a class="navbar-brand" href="index.html"><img src="_static/icon16x16.png">
           arachnid</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.5_89_g1b930c3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.7</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -176,6 +176,25 @@
 <li class="toctree-l5"><a class="reference internal" href="docs/reconstruction_cmdline.html#creating-relion-selection-file">Creating Relion Selection File</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="docs/reconstruction_post_cmdline.html">Post Processing Protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#relion-and-spider">Relion and SPIDER</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#angular-distribution">Angular Distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#relion-only">Relion-Only</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#class-selection">Class Selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#relion-movie-mode-alignment">Relion Movie-mode Alignment</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#step-1-generate-a-selection-file">Step 1: Generate a selection file</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#step-2-crop-the-frames">Step 2: Crop the frames</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#step-3-generate-a-relion-selection-file">Step 3: Generate a Relion Selection File</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#step-4-test-the-relion-selection-file">Step 4: Test the Relion Selection File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="docs/reconstruction_post_cmdline.html#chimera">Chimera</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="docs/reconstruction.html#quick-start">Quick Start</a><ul>
@@ -749,6 +768,16 @@
 <li class="toctree-l5"><a class="reference internal" href="docs/api_generated/arachnid.util.image_info.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="docs/api_generated/arachnid.util.coverage.html">coverage</a></li>
 <li class="toctree-l5"><a class="reference internal" href="docs/api_generated/arachnid.util.coverage.html#functions">Functions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html">screenmics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#running-the-script">Running the Script</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#enhancement-options">Enhancement Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#more-options">More Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#other-options">Other Options</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="docs/api_generated/arachnid.util.screenmics.html#functions">Functions</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="docs/api.html#module-arachnid.pyspider"><tt class="docutils literal"><span class="pre">arachnid.pyspider</span></tt></a><ul>
@@ -1046,6 +1075,10 @@
   </dt>
 
         
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--bin-factor">ara-screenmics command line option</a>
+  </dt>
+
+        
   <dt><a href="docs/api_generated/arachnid.core.metadata.spider_params.html#cmdoption--bin-factor">command line option</a>
   </dt>
 
@@ -1196,6 +1229,17 @@
       </dl></dd>
       
   <dt>
+    --clamp &lt;float&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--clamp">ara-screenmics command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     --clamp-window &lt;float&gt;
   </dt>
 
@@ -1331,6 +1375,10 @@
       <dd><dl>
         
   <dt><a href="docs/man_generated/arachnid.util.crop.html#cmdoption-ara-crop--disable-enhance">ara-crop command line option</a>, <a href="docs/api_generated/arachnid.util.crop.html#cmdoption-ara-crop--disable-enhance">[1]</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--disable-enhance">ara-screenmics command line option</a>
   </dt>
 
       </dl></dd>
@@ -1576,6 +1624,17 @@
       </dl></dd>
       
   <dt>
+    --film
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--film">ara-screenmics command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     --filter-type &lt;INT&gt;
   </dt>
 
@@ -1654,23 +1713,23 @@
       </dl></dd>
       
   <dt>
-    --frame-end &lt;int&gt;
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="docs/man_generated/arachnid.util.crop.html#cmdoption-ara-crop--frame-end">ara-crop command line option</a>, <a href="docs/api_generated/arachnid.util.crop.html#cmdoption-ara-crop--frame-end">[1]</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt>
     --frame-end &lt;INT&gt;
   </dt>
 
       <dd><dl>
         
   <dt><a href="docs/man_generated/arachnid.app.align_frames.html#cmdoption-ara-alignmovie--frame-end">ara-alignmovie command line option</a>, <a href="docs/api_generated/arachnid.app.align_frames.html#cmdoption-ara-alignmovie--frame-end">[1]</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --frame-end &lt;int&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="docs/man_generated/arachnid.util.crop.html#cmdoption-ara-crop--frame-end">ara-crop command line option</a>, <a href="docs/api_generated/arachnid.util.crop.html#cmdoption-ara-crop--frame-end">[1]</a>
   </dt>
 
       </dl></dd>
@@ -2095,6 +2154,10 @@
       <dd><dl>
         
   <dt><a href="docs/man_generated/arachnid.util.crop.html#cmdoption-ara-crop--micrograph-files">ara-crop command line option</a>, <a href="docs/api_generated/arachnid.util.crop.html#cmdoption-ara-crop--micrograph-files">[1]</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--micrograph-files">ara-screenmics command line option</a>
   </dt>
 
       </dl></dd>
@@ -2541,6 +2604,17 @@
       </dl></dd>
       
   <dt>
+    --remove-missing &lt;BOOL&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#cmdoption-ara-selrelion--remove-missing">ara-selrelion command line option</a>, <a href="docs/man_generated/arachnid.util.relion_selection.html#cmdoption-ara-selrelion--remove-missing">[1]</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     --res-edge-width : int
   </dt>
 
@@ -2799,6 +2873,10 @@
   <dt><a href="docs/man_generated/arachnid.util.crop.html#cmdoption-ara-crop--selection-file">ara-crop command line option</a>, <a href="docs/api_generated/arachnid.util.crop.html#cmdoption-ara-crop--selection-file">[1]</a>
   </dt>
 
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--selection-file">ara-screenmics command line option</a>
+  </dt>
+
       </dl></dd>
       
   <dt>
@@ -2823,6 +2901,10 @@
       <dd><dl>
         
   <dt><a href="docs/man_generated/arachnid.util.crop.html#cmdoption-ara-crop--sigma">ara-crop command line option</a>, <a href="docs/api_generated/arachnid.util.crop.html#cmdoption-ara-crop--sigma">[1]</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--sigma">ara-screenmics command line option</a>
   </dt>
 
       </dl></dd>
@@ -3614,6 +3696,17 @@
       </dl></dd>
       
   <dt>
+    -o &lt;str&gt;, --output &lt;str&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics-o">ara-screenmics command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     -p &lt;FILENAME&gt;, --param-file  &lt;FILENAME&gt;
   </dt>
 
@@ -3643,6 +3736,10 @@
 
         
   <dt><a href="docs/man_generated/arachnid.app.lfcpick.html#cmdoption-ara-lfcpick-p">ara-lfcpick command line option</a>, <a href="docs/api_generated/arachnid.app.lfcpick.html#cmdoption-ara-lfcpick-p">[1]</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics-p">ara-screenmics command line option</a>
   </dt>
 
         
@@ -4781,6 +4878,49 @@
       </dl></dd>
       
   <dt>
+    ara-screenmics command line option
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--bin-factor">--bin-factor &lt;FLOAT&gt;</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--clamp">--clamp &lt;float&gt;</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--disable-enhance">--disable-enhance</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--film">--film</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--micrograph-files">--micrograph-files &lt;filename1,filename2&gt;, -i &lt;filename1,filename2&gt;, --input-files &lt;filename1,filename2&gt;, filename1 filename</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--selection-file">--selection-file &lt;str&gt;</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics--sigma">--sigma &lt;float&gt;</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics-o">-o &lt;str&gt;, --output &lt;str&gt;</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#cmdoption-ara-screenmics-p">-p &lt;FILENAME&gt;, --param-file &lt;FILENAME&gt;</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     ara-selrelion command line option
   </dt>
 
@@ -4815,6 +4955,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#cmdoption-ara-selrelion--reindex-file">--reindex-file &lt;FILENAME&gt;</a>, <a href="docs/man_generated/arachnid.util.relion_selection.html#cmdoption-ara-selrelion--reindex-file">[1]</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#cmdoption-ara-selrelion--remove-missing">--remove-missing &lt;BOOL&gt;</a>, <a href="docs/man_generated/arachnid.util.relion_selection.html#cmdoption-ara-selrelion--remove-missing">[1]</a>
   </dt>
 
         
@@ -5432,6 +5576,10 @@
   </dt>
 
       
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#module-arachnid.util.screenmics">arachnid.util.screenmics (module)</a>
+  </dt>
+
+      
   <dt><a href="docs/api_generated/api_generated/arachnid.core.orient.transforms.Arcball.html#arachnid.core.orient.transforms.Arcball">Arcball (class in arachnid.core.orient.transforms)</a>
   </dt>
 
@@ -5992,6 +6140,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.project.html#arachnid.util.project.change_option_defaults">(in module arachnid.util.project)</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.change_option_defaults">(in module arachnid.util.screenmics)</a>
   </dt>
 
       </dl></dd>
@@ -7671,6 +7823,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#arachnid.util.relion_selection.dependents">(in module arachnid.util.relion_selection)</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.dependents">(in module arachnid.util.screenmics)</a>
   </dt>
 
       </dl></dd>
@@ -9562,6 +9718,10 @@
   <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#arachnid.util.relion_selection.flags">(in module arachnid.util.relion_selection)</a>
   </dt>
 
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.flags">(in module arachnid.util.screenmics)</a>
+  </dt>
+
       </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
@@ -11030,6 +11190,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.crop.html#arachnid.util.crop.initialize">(in module arachnid.util.crop)</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.initialize">(in module arachnid.util.screenmics)</a>
   </dt>
 
       </dl></dd>
@@ -12684,6 +12848,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#arachnid.util.relion_selection.main">(in module arachnid.util.relion_selection)</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.main">(in module arachnid.util.screenmics)</a>
   </dt>
 
       </dl></dd>
@@ -14594,6 +14762,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.crop.html#arachnid.util.crop.process">(in module arachnid.util.crop)</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.process">(in module arachnid.util.screenmics)</a>
   </dt>
 
       </dl></dd>
@@ -18053,6 +18225,10 @@
 
         
   <dt><a href="docs/api_generated/arachnid.util.relion_selection.html#arachnid.util.relion_selection.setup_options">(in module arachnid.util.relion_selection)</a>
+  </dt>
+
+        
+  <dt><a href="docs/api_generated/arachnid.util.screenmics.html#arachnid.util.screenmics.setup_options">(in module arachnid.util.screenmics)</a>
   </dt>
 
       </dl></dd>
