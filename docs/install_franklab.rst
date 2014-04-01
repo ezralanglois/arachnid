@@ -2,6 +2,8 @@
 Installation
 =============
 
+If you want a local installation of Arachnid, then follow the instructions on the
+standard :doc:`install` page.
 
 FrankLab
 ========
