@@ -105,8 +105,8 @@ Step 4: Test the Relion Selection File
 
 This example assumes the following:
 
-#. You have 16 core available on your system.
-#. The pixel size used for CTF estimation is 1.5
+#. You have 16 cores available on your system.
+#. The pixel size used for CTF estimation is 1.5.
 
 .. sourcecode:: sh
 
