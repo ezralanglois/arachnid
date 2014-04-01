@@ -1,14 +1,14 @@
 ''' Reconstruct a volume from a subset of projections
 
-Download to edit and run: :download:`reconstruct_stack.py <../../arachnid/snippets/reconstruction/reconstruct_stack.py>`
+Download to edit and run: :download:`reconstruct_subset.py <../../arachnid/snippets/reconstruct_subset.py>`
 
 To run:
 
 .. sourcecode:: sh
     
-    $ python reconstruct_stack.py
+    $ python reconstruct_subset.py
 
-.. literalinclude:: ../../arachnid/snippets/reconstruction/reconstruct_stack.py
+.. literalinclude:: ../../arachnid/snippets/reconstruct_subset.py
    :language: python
    :lines: 16-
    :linenos:
