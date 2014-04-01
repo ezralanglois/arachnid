@@ -20,25 +20,6 @@ The recommended method for most users to install Arachnid is
 to use the Anaconda package. Anaconda makes it simple to install
 all the Arachnid dependencies.
 
-Prerequisites
--------------
-
-.. note::
-
-	You must also install the SPIDER package. This includes a single binary 
-	executable which is necessary to run the standard Arachnid workflow. It
-	can be found at: http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html
-
-The following prerequisites are generally already available on many Linux distributions
-but, have been found to be absent from a few.
-
-	- Fortran runtime libraries: libgfortran.so.3           (No longer required for the daily build)
-	- Fastest Fourier transform (in the west): libfftw3.so (No longer required for the daily build)
-
-I am currently working to address these missing dependencies. The daily builds have already
-included the Fastest Fourier transform (in the west), libfortran and include SPIDER. The `ara-control`
-and `ara-project` scripts should automatically find the included SPIDER executables.
-
 Quick Start
 -----------
 
