@@ -142,7 +142,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#first-install">First Install</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#update-to-latest">Update to Latest</a></li>
@@ -974,7 +973,6 @@
 <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
 <li><a class="reference internal" href="#anaconda">Anaconda</a><ul>
-<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a><ul>
 <li><a class="reference internal" href="#first-install">First Install</a></li>
 <li><a class="reference internal" href="#update-to-latest">Update to Latest</a></li>
@@ -1015,26 +1013,6 @@
 <p>The recommended method for most users to install Arachnid is
 to use the Anaconda package. Anaconda makes it simple to install
 all the Arachnid dependencies.</p>
-<div class="section" id="prerequisites">
-<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">You must also install the SPIDER package. This includes a single binary
-executable which is necessary to run the standard Arachnid workflow. It
-can be found at: <a class="reference external" href="http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html">http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html</a></p>
-</div>
-<p>The following prerequisites are generally already available on many Linux distributions
-but, have been found to be absent from a few.</p>
-<blockquote>
-<div><ul class="simple">
-<li>Fortran runtime libraries: libgfortran.so.3           (No longer required for the daily build)</li>
-<li>Fastest Fourier transform (in the west): libfftw3.so (No longer required for the daily build)</li>
-</ul>
-</div></blockquote>
-<p>I am currently working to address these missing dependencies. The daily builds have already
-included the Fastest Fourier transform (in the west), libfortran and include SPIDER. The <cite>ara-control</cite>
-and <cite>ara-project</cite> scripts should automatically find the included SPIDER executables.</p>
-</div>
 <div class="section" id="quick-start">
 <h3>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h3>
 <p>This section covers the installation and updating of Arachind.</p>
