@@ -77,7 +77,7 @@ def display(program, display_gui=False, **extra):
 def setup_options(parser, pgroup=None, main_option=False):
     '''
     '''
-    if QtGui is None: return 
+    if QtGui is None: return
     from ..app.settings import OptionGroup
     if pgroup is None: pgroup=parser
     group = OptionGroup(parser, "User Interface", "Options to control the state of the AutoGUI", id=__name__)
