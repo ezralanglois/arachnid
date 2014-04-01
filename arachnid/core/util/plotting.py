@@ -5,7 +5,7 @@
 '''
 
 
-from matplotlib_nogui import pylab, matplotlib
+from matplotlib_nogui import pylab
 try:
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 except:
@@ -55,7 +55,7 @@ def subset_no_overlap(data, overlap, n=100):
     for i in xrange(1, len(data)):
         ref = data[out[:k]]
         if ref.ndim == 1: ref = ref.reshape((1, data.shape[1]))
-        mat = scipy.spatial.distance.cdist(ref, data[i].reshape((1, len(data[i]))), metric='euclidean')
+        mat = scipy.spatial.distance.cdist(ref, data[i].reshape((1, len(data[i]))), metric='euclidean') #@UndefinedVariable
         if mat.ndim == 0 or mat.shape[0]==0: continue
         val = numpy.min(mat)
         if val > overlap:
