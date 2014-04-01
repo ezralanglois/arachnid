@@ -97,7 +97,13 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../users_guide.html">User&#8217;s Guide</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="install.html">Install</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="">Installation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#franklab">FrankLab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#franklab">FrankLab</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#latest-stable-build">Latest Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#latest-daily-build">Latest Daily Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#latest-accelerated-stable-build">Latest Accelerated Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#latest-accelerated-daily-build">Latest Accelerated Daily Build</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="attribution.html">Attribution</a><ul>
@@ -967,7 +973,13 @@
         <div id="sidebar" class="bs-sidebar hidden-print" role="complementary">
 <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#franklab">FrankLab</a></li>
+<li><a class="reference internal" href="#franklab">FrankLab</a><ul>
+<li><a class="reference internal" href="#latest-stable-build">Latest Stable Build</a></li>
+<li><a class="reference internal" href="#latest-daily-build">Latest Daily Build</a></li>
+<li><a class="reference internal" href="#latest-accelerated-stable-build">Latest Accelerated Stable Build</a></li>
+<li><a class="reference internal" href="#latest-accelerated-daily-build">Latest Accelerated Daily Build</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -979,43 +991,45 @@
       
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>If you want a local installation of Arachnid, then follow the instructions on the
+standard <a class="reference internal" href="install.html"><em>Installation</em></a> page.</p>
 <div class="section" id="franklab">
 <h2>FrankLab<a class="headerlink" href="#franklab" title="Permalink to this headline">¶</a></h2>
 <p>If you are a member of FrankLab, then you only require to do the following in this
 section.</p>
-<p>Install Anaconda</p>
-<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd</span> &lt;to-path-where-anaconda-will-be-installed&gt;
-<span class="c"># For example</span>
-<span class="nv">$ </span><span class="nb">cd</span> /data/robertl/
-
-<span class="nv">$ </span>bash /guam.raid.cluster.software/arachnid/install
+<div class="section" id="latest-stable-build">
+<h3>Latest Stable Build<a class="headerlink" href="#latest-stable-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">source</span> /guam.raid.cluster.software/arachnid/arachnid-latest.rc
 </pre></div>
 </div>
-<p>Update to the Latest Version of Arachnid</p>
-<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>conda install arachnid --yes -fq
+</div>
+<div class="section" id="latest-daily-build">
+<h3>Latest Daily Build<a class="headerlink" href="#latest-daily-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">source</span> /guam.raid.cluster.software/arachnid/arachnid-latest.rc dev
 </pre></div>
 </div>
-<p>Update Arachnid to a specific version</p>
-<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>conda install <span class="nv">arachnid</span><span class="o">=</span>0.1.2 --yes -fq
-<span class="c"># or</span>
-<span class="nv">$ </span>conda install <span class="nv">arachnid</span><span class="o">=</span>0.1.3 --yes -fq
+</div>
+<div class="section" id="latest-accelerated-stable-build">
+<h3>Latest Accelerated Stable Build<a class="headerlink" href="#latest-accelerated-stable-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">source</span> /guam.raid.cluster.software/arachnid/arachnid-latest.rc mkl
+</pre></div>
+</div>
+</div>
+<div class="section" id="latest-accelerated-daily-build">
+<h3>Latest Accelerated Daily Build<a class="headerlink" href="#latest-accelerated-daily-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">source</span> /guam.raid.cluster.software/arachnid/arachnid-latest.rc dev-mkl
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>This requires that you have a license for the premium accelerate package.</p>
-<p><a class="reference external" href="https://store.continuum.io/cshop/academicanaconda">https://store.continuum.io/cshop/academicanaconda</a></p>
-<p>If you have a license file on one computer, then just copy it to another.</p>
-<p class="last">$ scp -r ~/.continuum 156.111.X.XXX:~/</p>
+<p>The Accelerated Builds require that you obtain a license from
+<a class="reference external" href="https://store.continuum.io/cshop/accelerate/">https://store.continuum.io/cshop/accelerate/</a>. This is
+free if you have an .edu email
+<a class="reference external" href="https://store.continuum.io/cshop/academicanaconda">https://store.continuum.io/cshop/academicanaconda</a>.</p>
+<p class="last">Follow the instructions in the email, which explain how to
+install the license file.</p>
 </div>
-<p><strong>Troubleshooting</strong></p>
-<p>If the installation gives the following error:</p>
-<div class="highlight-sh"><div class="highlight"><pre>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
-File <span class="s2">&quot;/home/liaoh/anaconda/bin/conda&quot;</span>, line 3, in &lt;module&gt;
-from conda.cli import main
-</pre></div>
 </div>
-<p>Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.</p>
 </div>
 </div>
 

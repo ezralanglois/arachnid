@@ -2,6 +2,8 @@
 Installation
 =============
 
+If you want a local installation of Arachnid, then follow the instructions on the
+standard :doc:`install` page.
 
 FrankLab
 ========
@@ -9,48 +11,41 @@ FrankLab
 If you are a member of FrankLab, then you only require to do the following in this
 section.
 
-Install Anaconda
+Latest Stable Build
+-------------------
 
 .. sourcecode:: sh
 
-	$ cd <to-path-where-anaconda-will-be-installed>
-	# For example
-	$ cd /data/robertl/
+	$ source /guam.raid.cluster.software/arachnid/arachnid-latest.rc
 	
-	$ bash /guam.raid.cluster.software/arachnid/install
+Latest Daily Build
+-------------------
+
+.. sourcecode:: sh
+
+	$ source /guam.raid.cluster.software/arachnid/arachnid-latest.rc dev
 	
-Update to the Latest Version of Arachnid
+Latest Accelerated Stable Build
+--------------------------------
 
 .. sourcecode:: sh
 
-	$ conda install arachnid --yes -fq
+	$ source /guam.raid.cluster.software/arachnid/arachnid-latest.rc mkl
 
-Update Arachnid to a specific version
+Latest Accelerated Daily Build
+------------------------------
 
 .. sourcecode:: sh
 
-	$ conda install arachnid=0.1.2 --yes -fq
-	# or 
-	$ conda install arachnid=0.1.3 --yes -fq
-
+	$ source /guam.raid.cluster.software/arachnid/arachnid-latest.rc dev-mkl
+	
 .. note::
 
-	This requires that you have a license for the premium accelerate package.
+	The Accelerated Builds require that you obtain a license from 
+	https://store.continuum.io/cshop/accelerate/. This is 
+	free if you have an .edu email 
+	https://store.continuum.io/cshop/academicanaconda.
 	
-	https://store.continuum.io/cshop/academicanaconda
-	
-	If you have a license file on one computer, then just copy it to another.
-	
-	$ scp -r ~/.continuum 156.111.X.XXX:~/
+	Follow the instructions in the email, which explain how to 
+	install the license file.
 
-**Troubleshooting**
-
-If the installation gives the following error:
-
-.. sourcecode:: sh
-	
-	Traceback (most recent call last):
-	File "/home/liaoh/anaconda/bin/conda", line 3, in <module>
-	from conda.cli import main
-
-Then added $PWD/anaconda/lib to your LD_LIBRARY_PATH.
