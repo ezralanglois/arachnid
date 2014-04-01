@@ -103,6 +103,11 @@ Step 3: Generate a Relion Selection File
 Step 4: Test the Relion Selection File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This example assumes the following:
+
+#. You have 16 core available on your system.
+#. The pixel size used for CTF estimation is 1.5
+
 .. sourcecode:: sh
 
 	$ ara-reconstruct relion-it001_data_frames.star -o raw.dat -t16 --apix 1.5
