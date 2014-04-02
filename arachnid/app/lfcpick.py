@@ -296,7 +296,11 @@ def read_micrograph(filename, bin_factor=1.0, sigma=1.0, disable_bin=False, inve
     
     count = ndimage_file.count_images(filename)
     if count > 1: raise ValueError, "Stacks of micrographs cannot be used as input = %s"%filename
-    mic = ndimage_file.read_image(filename, **extra).astype(numpy.float32)
+    mic = ndimage_file.read_image(filename, **extra)
+    
+    if issubclass(numpy.dtype(mic.dtype).type, numpy.integer):
+        _logger.warn("You are processing an image that is not gain corrected!")
+    mic = mic.astype(numpy.float32)
 
     if bin_factor > 1.0 and not disable_bin:
         mic = ndimage_interpolate.downsample(mic, bin_factor, ds_kernel)

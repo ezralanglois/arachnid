@@ -366,6 +366,9 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
     if ndimage_file.count_images(filename) == 1: index=None
     _logger.debug("Read micrograph")
     mic = ndimage_file.read_image(filename, index, **extra)
+    
+    if issubclass(numpy.dtype(mic.dtype).type, numpy.integer):
+        _logger.warn("You are processing an image that is not gain corrected!")
     _logger.debug("Convert to 32 bit")
     mic = mic.astype(numpy.float32)
     if gain is not None and index is not None: mic *= gain
