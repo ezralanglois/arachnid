@@ -221,7 +221,7 @@ def cache_data():
             Keyword arguments
     '''
     
-    return dict(header=None)
+    return dict(header=None, no_strict_mrc=False)
 
 def is_format_header(h):
     ''' Test if the given header has the proper format
@@ -241,13 +241,17 @@ def is_format_header(h):
 
 bad_mrc_header=False
 
-def is_readable(filename):
+def is_readable(filename, no_strict_mrc=False):
     ''' Test if the file read has a valid MRC header
     
     :Parameters:
     
     filename : str or file object
                Filename or open stream for a file
+    no_strict_mrc : bool
+                    Perform strict MRC header checking (recommended) - Only
+                    EPU MRC files and Yifang's frame alignment require this
+                    to be off.
     
     :Returns:
         
@@ -279,14 +283,20 @@ def is_readable(filename):
     
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder:
-            if h['alpha'][0] == 0.0 and h['beta'][0] == 0.0 and h['gamma'][0] == 0.0: # this line hack for non-standard writers
+            if h['alpha'][0] == 0.0 and h['beta'][0] == 0.0 and h['gamma'][0] == 0.0 and int(h['mode'][0]) == 6: # this line hack for non-standard writers
                 if not bad_mrc_header:
-                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from EPU)")
                     bad_mrc_header=True
+                    if not no_strict_mrc and 1 == 0:
+                        _logger.warn("This image could be MRC format likely this image came from EPU. Use --no-strict-mrc to read this image")
+                        return False
+                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from EPU)")
             elif h['alpha'][0] == 90.0 and h['beta'][0] == 90.0 and h['gamma'][0] == 90.0: # this line hack for non-standard writers
                 if not bad_mrc_header:
-                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from Yifang's GPU alignment)")
                     bad_mrc_header=True
+                    if not no_strict_mrc and 1 == 0:
+                        _logger.warn("This image could be MRC format likely this image came from Yifang's GPU alignment. Use --no-strict-mrc to read this image")
+                        return False
+                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from Yifang's GPU alignment)")
             else:
                 _logger.debug("Failed to read proper machine stamp - not MRC!")
                 return False
@@ -295,7 +305,7 @@ def is_readable(filename):
         return False
     return True
 
-def read_header(filename, index=None):
+def read_header(filename, index=None, no_strict_mrc=False):
     ''' Read the MRC header
     
     :Parameters:
@@ -304,6 +314,10 @@ def read_header(filename, index=None):
                Filename or open stream for a file
     index : int, ignored
             Index of image to get the header, if None, the stack header (Default: None)
+    no_strict_mrc : bool
+                    Perform strict MRC header checking (recommended) - Only
+                    EPU MRC files and Yifang's frame alignment require this
+                    to be off.
     
     :Returns:
         
@@ -311,7 +325,7 @@ def read_header(filename, index=None):
              Dictionary with header information
     '''
     
-    h = read_mrc_header(filename, index) if not hasattr(filename, 'ndim') else filename
+    h = read_mrc_header(filename, index, no_strict_mrc) if not hasattr(filename, 'ndim') else filename
     header={}
     header['apix']=float(h['xlen'][0])/float(h['nx'][0])
     header['count'] = int(h['nz'][0]) if int(h['nz'][0])!=int(h['nx'][0]) else 1
@@ -323,7 +337,7 @@ def read_header(filename, index=None):
     header['format'] = 'mrc'
     return header
 
-def read_mrc_header(filename, index=None):
+def read_mrc_header(filename, index=None, no_strict_mrc=False):
     ''' Read the MRC header
     
     :Parameters:
@@ -332,6 +346,10 @@ def read_mrc_header(filename, index=None):
                Filename or open stream for a file
     index : int, ignored
             Index of image to get the header, if None, the stack header (Default: None)
+    no_strict_mrc : bool
+                    Perform strict MRC header checking (recommended) - Only
+                    EPU MRC files and Yifang's frame alignment require this
+                    to be off.
     
     :Returns:
         
@@ -343,8 +361,8 @@ def read_mrc_header(filename, index=None):
     try:
         #curr = f.tell()
         h = util.fromfile(f, dtype=header_image_dtype, count=1)
-        if not is_readable(h): h = h.newbyteorder()
-        if not is_readable(h): raise IOError, "Not MRC header"
+        if not is_readable(h, no_strict_mrc): h = h.newbyteorder()
+        if not is_readable(h, no_strict_mrc): raise IOError, "Not MRC header"
     finally:
         util.close(filename, f)
     return h
@@ -357,13 +375,17 @@ def is_volume(filename):
     else: h = read_mrc_header(filename)
     return h['nz'][0] == h['nx'][0] and h['nz'][0] == h['ny'][0]
 
-def count_images(filename):
+def count_images(filename, no_strict_mrc=False):
     ''' Count the number of images in the file
     
     :Parameters:
     
     filename : str or file object
                Filename or open stream for a file
+    no_strict_mrc : bool
+                    Perform strict MRC header checking (recommended) - Only
+                    EPU MRC files and Yifang's frame alignment require this
+                    to be off.
     
     :Returns:
         
@@ -372,10 +394,10 @@ def count_images(filename):
     '''
     
     if hasattr(filename, 'dtype'): h=filename
-    else: h = read_mrc_header(filename)
+    else: h = read_mrc_header(filename, no_strict_mrc)
     return h['nz'][0]
 
-def iter_images(filename, index=None, header=None):
+def iter_images(filename, index=None, header=None, no_strict_mrc=False):
     ''' Read a set of SPIDER images
     
     :Parameters:
@@ -386,6 +408,10 @@ def iter_images(filename, index=None, header=None):
             Index of image to start, if None, start with the first image (Default: None)
     header : dict, optional
              Output dictionary to place header values
+    no_strict_mrc : bool
+                    Perform strict MRC header checking (recommended) - Only
+                    EPU MRC files and Yifang's frame alignment require this
+                    to be off.
     
     :Returns:
         
@@ -396,7 +422,7 @@ def iter_images(filename, index=None, header=None):
     f = util.uopen(filename, 'rb')
     if index is None: index = 0
     try:
-        h = read_mrc_header(f)
+        h = read_mrc_header(f, no_strict_mrc)
         count = count_images(h)
         #if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
         if header is not None: header.update(read_header(h))
@@ -423,13 +449,17 @@ def iter_images(filename, index=None, header=None):
     finally:
         util.close(filename, f)
 
-def valid_image(filename):
+def valid_image(filename, no_strict_mrc=False):
     ''' Test if the image is valid
     
     :Parameters:
     
         filename : str
                    Input filename to test
+        no_strict_mrc : bool
+                        Perform strict MRC header checking (recommended) - Only
+                        EPU MRC files and Yifang's frame alignment require this
+                        to be off.
     
     :Returns:
         
@@ -439,35 +469,39 @@ def valid_image(filename):
     
     f = util.uopen(filename, 'rb')
     try:
-        h = read_mrc_header(f)
+        h = read_mrc_header(f, no_strict_mrc)
         total = file_size(f)
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         return total == (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize)
     finally:
         util.close(filename, f)
 
-def read_image(filename, index=None, header=None, cache=None):
+def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=False):
     ''' Read an image from the specified file in the MRC format
     
     :Parameters:
     
-    filename : str or file object
-               Filename or open stream for a file
-    index : int, optional
-            Index of image to get, if None, first image (Default: None)
-    header : dict, optional
-             Output dictionary to place header values
+        filename : str or file object
+                   Filename or open stream for a file
+        index : int, optional
+                Index of image to get, if None, first image (Default: None)
+        header : dict, optional
+                 Output dictionary to place header values
+        no_strict_mrc : bool
+                        Perform strict MRC header checking (recommended) - Only
+                        EPU MRC files and Yifang's frame alignment require this
+                        to be off.
     
     :Returns:
-        
-    out : array
-          Array with image information from the file
+            
+        out : array
+              Array with image information from the file
     '''
     
     idx = 0 if index is None else index
     f = util.uopen(filename, 'rb')
     try:
-        h = read_mrc_header(f)
+        h = read_mrc_header(f, no_strict_mrc)
         #if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
         if header is not None: header.update(read_header(h))
         count = count_images(h)
