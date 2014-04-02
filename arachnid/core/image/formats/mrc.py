@@ -273,7 +273,9 @@ def is_readable(filename):
             _logger.debug("%s: %f - %d"%(name, h[name][0], ((h[name][0] != 90.0) )))
         for name in ('nx', 'ny', 'nz'):
             _logger.debug("%s: %d - %d"%(name, h[name][0], (h[name][0] > 0 )))
-    if h['mode'][0] not in mrc2numpy: return False
+    if h['mode'][0] not in mrc2numpy: 
+        _logger.debug("Failed to read proper mode - not MRC!")
+        return False
     
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder:
@@ -286,8 +288,11 @@ def is_readable(filename):
                     _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from Yifang's GPU alignment)")
                     bad_mrc_header=True
             else:
+                _logger.debug("Failed to read proper machine stamp - not MRC!")
                 return False
-    if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz')]): return False
+    if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz')]): 
+        _logger.debug("Failed to read proper dimensions - not MRC!")
+        return False
     return True
 
 def read_header(filename, index=None):
