@@ -658,7 +658,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", frame_beg=0,       help="Index of the first frame to average, 0 means first frame, 1 second and so on", gui=dict(maximum=10000, minimum=0, singleStep=1))
     group.add_option("", frame_end=0,       help="Index of last frame to average, if 0 use last in stack", gui=dict(maximum=10000, minimum=0, singleStep=1))
     group.add_option("", gain_file="",      help="Gain reference normalization image", gui=dict(filetype="open"))
-    group.add_option("", resolution=15.0,  help="Target resolution to lowpass filter frames")
+    group.add_option("", resolution=20.0,   help="Target resolution to lowpass filter frames")
     group.add_option("", apix=0.0,          help="Pixel size of the image")
     group.add_option("", search_radius=50,  help="Maximum search radius")
     group.add_option("", upsampling=2,      help="Upsampling factor")
