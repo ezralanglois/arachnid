@@ -1087,7 +1087,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
     return new_vals
 
-def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, apix=1.0, pixel_radius=0, **extra):
+def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, apix=1.0, pixel_radius=0, mask_diameter=0, **extra):
     ''' Downsample images in Relion selection file and update
     selection entries to point to new files.
     
@@ -1109,13 +1109,15 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     '''
     
     if downsample == 1.0 and not phase_flip: return vals
-    if pixel_radius == 0:
+    if pixel_radius == 0 and mask_diameter == 0:
         if param_file == "": 
             raise ValueError, "Requires --param-file or --pixel-radius and --apix"
         extra['bin_factor']=1.0
         spider_params.read(param_file, extra)
         pixel_radius=extra['pixel_diameter']/2
         pixel_radius /= downsample
+    if pixel_radius == 0:
+        pixel_radius = int(mask_diameter/apix)/2
     
     mask = None
     ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
@@ -1156,6 +1158,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         ndimage_file.write_image(output, img, oindex[filename]-1, header=dict(apix=apix))
         vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
     _logger.info("Stack downsampling finished")
+    _logger.info("Using %f angstroms as the diameter of the mask in relion"%(pixel_radius*2*apix))
     return vals
 
 '''
@@ -1246,6 +1249,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   split=False,                     help="Split the relion star file using the rlnRandomSubset column")
     group.add_option("",   phase_flip=False,                help="Create a set of phase flipped stacks")
     group.add_option("",   remove_missing=False,            help="Test if image file exists and if not, remove from star file")
+    group.add_option("",   mask_diameter=0.0,               help="Mask diameter for Relion (in Angstroms) - 0 mean uses particle_diameter from SPIDER params file")
     
     
     pgroup.add_option_group(group)
