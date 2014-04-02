@@ -1118,6 +1118,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         pixel_radius /= downsample
     if pixel_radius == 0:
         pixel_radius = int(mask_diameter/apix)/2
+    _logger.info("Using %f angstroms as the diameter of the mask in relion"%(pixel_radius*2*apix))
     
     mask = None
     ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
@@ -1158,7 +1159,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         ndimage_file.write_image(output, img, oindex[filename]-1, header=dict(apix=apix))
         vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
     _logger.info("Stack downsampling finished")
-    _logger.info("Using %f angstroms as the diameter of the mask in relion"%(pixel_radius*2*apix))
+    _logger.info("Reminder - Using %f angstroms as the diameter of the mask in relion"%(pixel_radius*2*apix))
     return vals
 
 '''
