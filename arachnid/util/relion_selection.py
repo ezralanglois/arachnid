@@ -1145,7 +1145,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         img = ndimage_file.read_image(filename, index-1).astype(numpy.float32)
         if phase_flip:
             ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, v.rlnDefocusU, **extra)
-            img = ctf_correct.correct(img, ctfimg)
+            img = ctf_correct.correct(img, ctfimg).copy()
         if ds_kernel is not None:
             img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
         if mask is None: mask = ndimage_utility.model_disk(pixel_radius, img.shape)
