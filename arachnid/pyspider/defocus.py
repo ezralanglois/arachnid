@@ -371,6 +371,10 @@ def prepare_micrograph(mic, bin_factor, invert):
           Preprocessed micrograph
     '''
     
+    if issubclass(numpy.dtype(mic.dtype).type, numpy.integer):
+        _logger.warn("You are processing an image that is not gain corrected!")
+        mic = mic.astype(numpy.float)
+    
     if bin_factor > 1: mic = ndimage_interpolate.downsample(mic, bin_factor)
     #if invert: ndimage_utility.invert(mic, mic)
     return mic
