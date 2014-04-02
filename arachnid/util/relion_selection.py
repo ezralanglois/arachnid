@@ -1109,12 +1109,13 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     '''
     
     if downsample == 1.0 and not phase_flip: return vals
-    extra['bin_factor']=downsample
     if pixel_radius == 0:
         if param_file == "": 
             raise ValueError, "Requires --param-file or --pixel-radius and --apix"
+        extra['bin_factor']=1.0
         spider_params.read(param_file, extra)
         pixel_radius=extra['pixel_diameter']/2
+        pixel_radius /= downsample
     
     mask = None
     ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
