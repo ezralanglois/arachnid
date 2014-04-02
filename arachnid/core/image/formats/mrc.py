@@ -239,6 +239,8 @@ def is_format_header(h):
     
     return h.dtype == header_image_dtype or h.dtype == header_image_dtype.newbyteorder()
 
+bad_mrc_header=False
+
 def is_readable(filename):
     ''' Test if the file read has a valid MRC header
     
@@ -252,6 +254,8 @@ def is_readable(filename):
     out : bool
           True if the header conforms to MRC
     '''
+    
+    global bad_mrc_header
     
     if hasattr(filename, 'dtype'): 
         h = filename
@@ -270,9 +274,18 @@ def is_readable(filename):
         for name in ('nx', 'ny', 'nz'):
             _logger.debug("%s: %d - %d"%(name, h[name][0], (h[name][0] > 0 )))
     if h['mode'][0] not in mrc2numpy: return False
+    
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder:
-            if h['alpha'][0] != 90.0 or h['beta'][0] != 90.0 or h['gamma'][0] != 90.0: # this line hack for non-standard writers
+            if h['alpha'][0] == 90.0 and h['beta'][0] == 90.0 and h['gamma'][0] == 90.0: # this line hack for non-standard writers
+                if not bad_mrc_header:
+                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from EPU)")
+                    bad_mrc_header=True
+            elif h['alpha'][0] == 90.0 and h['beta'][0] == 90.0 and h['gamma'][0] == 90.0: # this line hack for non-standard writers
+                if not bad_mrc_header:
+                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from Yifang's GPU alignment)")
+                    bad_mrc_header=True
+            else:
                 return False
     if not numpy.alltrue([h[v][0] > 0 for v in ('nx', 'ny', 'nz')]): return False
     return True
