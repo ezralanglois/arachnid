@@ -279,7 +279,7 @@ def is_readable(filename):
     
     if (h['byteorder'][0]&-65536) not in intbyteorder and \
        (h['byteorder'][0].byteswap()&-65536) not in intbyteorder:
-            if h['alpha'][0] == 90.0 and h['beta'][0] == 90.0 and h['gamma'][0] == 90.0: # this line hack for non-standard writers
+            if h['alpha'][0] == 0.0 and h['beta'][0] == 0.0 and h['gamma'][0] == 0.0: # this line hack for non-standard writers
                 if not bad_mrc_header:
                     _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from EPU)")
                     bad_mrc_header=True
