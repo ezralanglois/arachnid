@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>643</width>
-    <height>426</height>
+    <height>518</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,198 +18,425 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QWidget" name="widget_4" native="true">
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="toolTip">
-         <string>Mask Multiplier (--mask-mult)</string>
-        </property>
-        <property name="text">
-         <string>Mask </string>
-        </property>
-        <property name="buddy">
-         <cstring>maskDoubleSpinBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="toolTip">
-         <string>Overlap Multiplier (--overlap-mult)</string>
-        </property>
-        <property name="text">
-         <string>Overlap</string>
-        </property>
-        <property name="buddy">
-         <cstring>overlapDoubleSpinBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QSlider" name="diskHorizontalSlider">
-        <property name="toolTip">
-         <string>Disk Multipler (--disk-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string>Disk Multipler (--disk-mult)
+    <widget class="QTabWidget" name="autoPickTabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="widget_4" native="true">
+         <layout class="QGridLayout" name="gridLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="toolTip">
+             <string>Mask Multiplier (--mask-mult)</string>
+            </property>
+            <property name="text">
+             <string>Mask </string>
+            </property>
+            <property name="buddy">
+             <cstring>maskDoubleSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="toolTip">
+             <string>Overlap Multiplier (--overlap-mult)</string>
+            </property>
+            <property name="text">
+             <string>Overlap</string>
+            </property>
+            <property name="buddy">
+             <cstring>overlapDoubleSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QSlider" name="diskHorizontalSlider">
+            <property name="toolTip">
+             <string>Disk Multipler (--disk-mult)</string>
+            </property>
+            <property name="whatsThis">
+             <string>Disk Multipler (--disk-mult)
 
 This option controls the size of the smooth disk.</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="toolTip">
-         <string>Disk Multipler (--disk-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Disk</string>
-        </property>
-        <property name="buddy">
-         <cstring>diskDoubleSpinBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="diskDoubleSpinBox">
-        <property name="toolTip">
-         <string>Disk Multipler (--disk-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string>Disk Multipler (--disk-mult)
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="toolTip">
+             <string>Disk Multipler (--disk-mult)</string>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Disk</string>
+            </property>
+            <property name="buddy">
+             <cstring>diskDoubleSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="diskDoubleSpinBox">
+            <property name="toolTip">
+             <string>Disk Multipler (--disk-mult)</string>
+            </property>
+            <property name="statusTip">
+             <string>disk_mult</string>
+            </property>
+            <property name="whatsThis">
+             <string>Disk Multipler (--disk-mult)
 
 This option controls the size of the smooth disk.</string>
-        </property>
-        <property name="minimum">
-         <double>0.010000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.600000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QDoubleSpinBox" name="maskDoubleSpinBox">
-        <property name="toolTip">
-         <string>Mask Multiplier (--mask-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string>Mask Multiplier (--mask-mult)
+            </property>
+            <property name="minimum">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>2.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.600000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="maskDoubleSpinBox">
+            <property name="toolTip">
+             <string>Mask Multiplier (--mask-mult)</string>
+            </property>
+            <property name="statusTip">
+             <string>mask_mult</string>
+            </property>
+            <property name="whatsThis">
+             <string>Mask Multiplier (--mask-mult)
 
 This option controls the size of the particle boundary mask.</string>
-        </property>
-        <property name="minimum">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QDoubleSpinBox" name="overlapDoubleSpinBox">
-        <property name="toolTip">
-         <string>Overlap Multiplier (--overlap-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string>Overlap Multiplier (--overlap-mult)
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>2.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QDoubleSpinBox" name="overlapDoubleSpinBox">
+            <property name="toolTip">
+             <string>Overlap Multiplier (--overlap-mult)</string>
+            </property>
+            <property name="statusTip">
+             <string>overlap_mult</string>
+            </property>
+            <property name="whatsThis">
+             <string>Overlap Multiplier (--overlap-mult)
 
 This option controls the amount of allowed overlap between cross-correlation peaks.</string>
-        </property>
-        <property name="minimum">
-         <double>0.010000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QSlider" name="overlapHorizontalSlider">
-        <property name="toolTip">
-         <string>Overlap Multiplier (--overlap-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string>Overlap Multiplier (--overlap-mult)
+            </property>
+            <property name="minimum">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>2.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="2">
+           <widget class="QSlider" name="overlapHorizontalSlider">
+            <property name="toolTip">
+             <string>Overlap Multiplier (--overlap-mult)</string>
+            </property>
+            <property name="whatsThis">
+             <string>Overlap Multiplier (--overlap-mult)
 
 This option controls the amount of allowed overlap between cross-correlation peaks.</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QSlider" name="maskHorizontalSlider">
-        <property name="toolTip">
-         <string>Mask Multiplier (--mask-mult)</string>
-        </property>
-        <property name="whatsThis">
-         <string>Mask Multiplier (--mask-mult)
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QSlider" name="maskHorizontalSlider">
+            <property name="toolTip">
+             <string>Mask Multiplier (--mask-mult)</string>
+            </property>
+            <property name="whatsThis">
+             <string>Mask Multiplier (--mask-mult)
 
 This option controls the size of the particle boundary mask.</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="2">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Additional</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Contrast</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QCheckBox" name="contrastInvertCheckBox">
+         <property name="toolTip">
+          <string>Invert the contrast of CCD micrographs (--invert)</string>
+         </property>
+         <property name="statusTip">
+          <string>invert</string>
+         </property>
+         <property name="text">
+          <string>Invert</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Maximum</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="maximumParticleSpinBox">
+         <property name="toolTip">
+          <string>Limit on number of particles, 0 means give all (--limit)</string>
+         </property>
+         <property name="statusTip">
+          <string>limit</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Minimum</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="minimumParticleSpinBox">
+         <property name="toolTip">
+          <string>Minimum number of particles for threshold selection (--threshold-minimum)</string>
+         </property>
+         <property name="statusTip">
+          <string>threshold_minimum</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Aggregates</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="aggregateCheckBox">
+         <property name="toolTip">
+          <string>Use difference of Gaussian to remove possible aggergates, only use this option if there are many (--remove-aggregates)</string>
+         </property>
+         <property name="statusTip">
+          <string>remove_aggregates</string>
+         </property>
+         <property name="text">
+          <string>Remove</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Contaminant</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="contaminantCheckBox">
+         <property name="toolTip">
+          <string>Disable bad particle removal (--disable-prune)</string>
+         </property>
+         <property name="statusTip">
+          <string>disable_prune</string>
+         </property>
+         <property name="text">
+          <string>Disable</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Noise</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QCheckBox" name="noiseCheckBox">
+         <property name="toolTip">
+          <string>Disable noise thresholding (--disable-threshold)</string>
+         </property>
+         <property name="statusTip">
+          <string>disable_threshold</string>
+         </property>
+         <property name="text">
+          <string>Disable</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Advanced</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>PCA Mode</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="pcaModeSpinBox">
+         <property name="toolTip">
+          <string>et the PCA mode for outlier removal: 0: auto, &lt;1: energy, &gt;=1: number of eigen vectors (--pca-mode)</string>
+         </property>
+         <property name="statusTip">
+          <string>pca_mode</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Size Cutoff</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="sizeCutoffDoubleSpinBox">
+         <property name="toolTip">
+          <string>Cutoff for real space PCA (--real-space-nstd)</string>
+         </property>
+         <property name="statusTip">
+          <string>real_space_nstd</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>Amplitude Cutoff</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QDoubleSpinBox" name="amplitudeCutoffDoubleSpinBox">
+         <property name="toolTip">
+          <string>Cutoff for Fourier space PCA (--nstd-pw)</string>
+         </property>
+         <property name="statusTip">
+          <string>nstd_pw</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>

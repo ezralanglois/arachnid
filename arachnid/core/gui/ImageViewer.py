@@ -79,6 +79,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.ui.autopickWidget = AutoPickWidget(self)
         self.ui.tabWidget.addTab(self.ui.autopickWidget, "AutoPick")
+        self.ui.tabWidget.currentChanged.connect(self.tabValid)
         
         # Custom Actions
         
@@ -227,6 +228,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.imageListView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     
     # Slots for GUI
+    
+    def tabValid(self, index):
+        '''
+        '''
+        
+        if index != 2: return
+        if not self.ui.autopickWidget.isValid():
+            self.ui.tabWidget.setCurrentIndex(0)
           
     @qtSlot()
     def on_reloadPageButton_clicked(self):

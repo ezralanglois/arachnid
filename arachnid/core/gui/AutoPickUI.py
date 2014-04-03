@@ -35,7 +35,8 @@ class Widget(QtGui.QWidget):
         _logger.info("Building main window ...")
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        self.header = ['Disk', 'Mask', 'Overlap', '# Mics', '# Particles']
+        self.header = ['# Mics', '# Particles', 'Disk', 'Mask', 'Overlap']
+        self.options = [self.ui.diskDoubleSpinBox.statusTip(), self.ui.diskDoubleSpinBox.statusTip(), self.ui.diskDoubleSpinBox.statusTip()]
         self.data = []
         self.micrograph_files=[]
         self.output=None
@@ -54,14 +55,9 @@ class Widget(QtGui.QWidget):
         self.ui.progressDialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
         self.task = None
         self.output = None
-        
-        self.autopick_program = program.generate_settings_tree(autopick, 'cfg')
-        
-        if self.autopick_program.values.param_file == "":
-            self.autopick_program = None
-        else:
-            self.output_base = self.autopick_program.values.output
         self.taskUpdated.connect(self.updateProgress)
+        self.option_control_map = self._collect_options_controls()
+        self._add_controls()
         # params file
     
     def isValid(self):
@@ -92,12 +88,11 @@ class Widget(QtGui.QWidget):
         '''
         
         if index is None:
-            disk_mult = self.ui.diskDoubleSpinBox.value()
-            mask_mult = self.ui.maskDoubleSpinBox.value()
-            overlap_mult = self.ui.overlapDoubleSpinBox.value()
+            extra = self.controlOptionValueDict()
         else:
             #model = self.ui.autopickHistoryTableView.model()
-            disk_mult, mask_mult, overlap_mult = index.data(QtCore.Qt.UserRole)[:3]
+            extra = dict([v for v in zip(self.options, index.data(QtCore.Qt.UserRole)[2:])])
+            #disk_mult, mask_mult, overlap_mult = index.data(QtCore.Qt.UserRole)[2:]
         
         # Get list of micrographs
         files = self.parent_control.currentFileList()
@@ -105,24 +100,28 @@ class Widget(QtGui.QWidget):
         if len(files) == 0: 
             return
         self.micrograph_files = files
+        self.setEnabled(False)
+        '''
         self.ui.diskDoubleSpinBox.setEnabled(False)
         self.ui.maskDoubleSpinBox.setEnabled(False)
         self.ui.overlapDoubleSpinBox.setEnabled(False)
         self.ui.runPushButton.setEnabled(False)
+        '''
         
         bin_factor = float(self.parent_control.micrographDecimationFactor())
         output, base = os.path.split(self.output_base)
-        output+="-%.2f-%.2f-%.2f"%(disk_mult, mask_mult, overlap_mult)
+        output+="-%.2f-%.2f-%.2f"%(extra['disk_mult'], extra['mask_mult'], extra['overlap_mult'])
         output = output.replace(".", "_")
         output = os.path.join(output, base)
         self.autopick_program.update(dict(input_files=self.autopick_program.values.input_files.__class__(files), 
-                                          mask_mult=mask_mult,
-                                          disk_mult=disk_mult,
-                                          overlap_mult=overlap_mult,
+                                          #mask_mult=mask_mult,
+                                          #disk_mult=disk_mult,
+                                          #overlap_mult=overlap_mult,
                                           bin_factor=bin_factor,
                                           disable_bin=True,
                                           selection_file="",
-                                          output=output))
+                                          output=output,
+                                          **extra))
         
         self.taskFinished.connect(self.programFinished)
         self.taskError.connect(self.programError)
@@ -136,6 +135,40 @@ class Widget(QtGui.QWidget):
         
         self.output = output
         self.task = BackgroundTask.launch_mp(self, _run_worker, self.autopick_program)
+        
+    def controlOptionValueDict(self):
+        '''
+        '''
+        
+        valmap = {}
+        for option, control in self.option_control_map:
+            valmap[option] = control.isChecked() if hasattr(control, 'isChecked') else control.value()
+        return valmap
+    
+    def _add_controls(self):
+        '''
+        '''
+        
+        self.header, self.options
+        for option, control in self.option_control_map:
+            title = control.toolTip()
+            n = title.find(' (')
+            if n != -1: title = title[:n]
+            if option in self.options: continue
+            self.header.append(title)
+            self.options.append(option)
+    
+    def _collect_options_controls(self):
+        '''
+        '''
+        
+        controls={}
+        for control_var in vars(self.ui).keys():
+            control = getattr(self.ui, control_var)
+            if not hasattr(control, 'value') and not hasattr(control, 'isChecked'): continue
+            if control.statusTip()=="": continue
+            controls[control.statusTip()] = control
+        return controls
     
     def programFinished(self, sessions):
         '''
@@ -158,18 +191,25 @@ class Widget(QtGui.QWidget):
             except: pass
             else: count += num
         
-        self.data.append([self.ui.diskDoubleSpinBox.value(),
+        valmap = self.controlOptionValueDict()
+        self.data.append([ len(self.micrograph_files), count,]+[valmap[o] for o in self.options])
+        '''
+        self.data.append([ len(self.micrograph_files),
+                          count,
+                          self.ui.diskDoubleSpinBox.value(),
                           self.ui.maskDoubleSpinBox.value(),
                           self.ui.overlapDoubleSpinBox.value(),
-                          len(self.micrograph_files),
-                          count,
                           ])
+        '''
         model = self.ui.autopickHistoryTableView.model()
         model.setData(self.data)
+        '''
         self.ui.diskDoubleSpinBox.setEnabled(True)
         self.ui.maskDoubleSpinBox.setEnabled(True)
         self.ui.overlapDoubleSpinBox.setEnabled(True)
         self.ui.runPushButton.setEnabled(True)
+        '''
+        self.setEnabled(True)
     
     def programError(self, exception):
         '''
@@ -180,10 +220,13 @@ class Widget(QtGui.QWidget):
         self.taskFinished.disconnect(self.programFinished)
         self.taskError.disconnect(self.programError)
         self.task = None
+        '''
         self.ui.diskDoubleSpinBox.setEnabled(True)
         self.ui.maskDoubleSpinBox.setEnabled(True)
         self.ui.overlapDoubleSpinBox.setEnabled(True)
         self.ui.runPushButton.setEnabled(True)
+        '''
+        self.setEnabled(True)
     
     def updateProgress(self, val):
         
