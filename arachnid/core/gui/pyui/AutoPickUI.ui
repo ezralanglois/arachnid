@@ -20,7 +20,7 @@
    <item>
     <widget class="QTabWidget" name="autoPickTabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -298,6 +298,9 @@ This option controls the size of the particle boundary mask.</string>
          <property name="statusTip">
           <string>limit</string>
          </property>
+         <property name="maximum">
+          <number>100000</number>
+         </property>
         </widget>
        </item>
        <item row="2" column="0">
@@ -314,6 +317,9 @@ This option controls the size of the particle boundary mask.</string>
          </property>
          <property name="statusTip">
           <string>threshold_minimum</string>
+         </property>
+         <property name="maximum">
+          <number>100000</number>
          </property>
         </widget>
        </item>

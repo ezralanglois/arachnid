@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/AutoPickUI.ui'
 #
-# Created: Thu Apr  3 13:11:17 2014
+# Created: Thu Apr  3 13:15:19 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -99,12 +99,14 @@ class Ui_Form(object):
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(1, QtGui.QFormLayout.LabelRole, self.label_2)
         self.maximumParticleSpinBox = QtGui.QSpinBox(self.tab_2)
+        self.maximumParticleSpinBox.setMaximum(100000)
         self.maximumParticleSpinBox.setObjectName("maximumParticleSpinBox")
         self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.maximumParticleSpinBox)
         self.label_4 = QtGui.QLabel(self.tab_2)
         self.label_4.setObjectName("label_4")
         self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.label_4)
         self.minimumParticleSpinBox = QtGui.QSpinBox(self.tab_2)
+        self.minimumParticleSpinBox.setMaximum(100000)
         self.minimumParticleSpinBox.setObjectName("minimumParticleSpinBox")
         self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.minimumParticleSpinBox)
         self.label_5 = QtGui.QLabel(self.tab_2)
@@ -177,7 +179,7 @@ class Ui_Form(object):
         self.label_6.setBuddy(self.diskDoubleSpinBox)
 
         self.retranslateUi(Form)
-        self.autoPickTabWidget.setCurrentIndex(0)
+        self.autoPickTabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
