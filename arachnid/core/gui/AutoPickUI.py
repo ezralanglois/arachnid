@@ -141,7 +141,7 @@ class Widget(QtGui.QWidget):
         '''
         
         valmap = {}
-        for option, control in self.option_control_map:
+        for option, control in self.option_control_map.iteritems():
             valmap[option] = control.isChecked() if hasattr(control, 'isChecked') else control.value()
         return valmap
     
@@ -150,7 +150,7 @@ class Widget(QtGui.QWidget):
         '''
         
         self.header, self.options
-        for option, control in self.option_control_map:
+        for option, control in self.option_control_map.iteritems():
             title = control.toolTip()
             n = title.find(' (')
             if n != -1: title = title[:n]
