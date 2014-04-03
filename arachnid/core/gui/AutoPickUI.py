@@ -80,6 +80,11 @@ class Widget(QtGui.QWidget):
         else:
             self.output_base = self.autopick_program.values.output
         
+        extra = vars(self.autopick_program.values)
+        for option, control in self.option_control_map.iteritems():
+            if hasattr(control, 'isChecked'): control.setChecked(extra[option])
+            else: control.setValue(extra[option])
+        
         return True
     
     @qtSlot()

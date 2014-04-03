@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/AutoPickUI.ui'
 #
-# Created: Thu Apr  3 12:46:41 2014
+# Created: Thu Apr  3 13:11:17 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -177,7 +177,7 @@ class Ui_Form(object):
         self.label_6.setBuddy(self.diskDoubleSpinBox)
 
         self.retranslateUi(Form)
-        self.autoPickTabWidget.setCurrentIndex(1)
+        self.autoPickTabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
