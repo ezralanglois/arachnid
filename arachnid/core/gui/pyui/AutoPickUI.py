@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/AutoPickUI.ui'
 #
-# Created: Thu Apr  3 13:16:32 2014
+# Created: Thu Apr  3 13:32:33 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from ..util.qt4_loader import QtCore, QtGui
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(643, 518)
+        Form.resize(643, 452)
         self.verticalLayout = QtGui.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -81,7 +81,7 @@ class Ui_Form(object):
         self.maskHorizontalSlider.setOrientation(QtCore.Qt.Horizontal)
         self.maskHorizontalSlider.setObjectName("maskHorizontalSlider")
         self.gridLayout.addWidget(self.maskHorizontalSlider, 4, 2, 1, 1)
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        spacerItem = QtGui.QSpacerItem(20, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem, 7, 2, 1, 1)
         self.verticalLayout_2.addWidget(self.widget_4)
         self.autoPickTabWidget.addTab(self.tab, "")
@@ -217,7 +217,7 @@ class Ui_Form(object):
         self.maskHorizontalSlider.setWhatsThis(QtGui.QApplication.translate("Form", "Mask Multiplier (--mask-mult)\n"
 "\n"
 "This option controls the size of the particle boundary mask.", None, QtGui.QApplication.UnicodeUTF8))
-        self.autoPickTabWidget.setTabText(self.autoPickTabWidget.indexOf(self.tab), QtGui.QApplication.translate("Form", "General", None, QtGui.QApplication.UnicodeUTF8))
+        self.autoPickTabWidget.setTabText(self.autoPickTabWidget.indexOf(self.tab), QtGui.QApplication.translate("Form", "Standard", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Form", "Contrast", None, QtGui.QApplication.UnicodeUTF8))
         self.contrastInvertCheckBox.setToolTip(QtGui.QApplication.translate("Form", "Invert the contrast of CCD micrographs (--invert)", None, QtGui.QApplication.UnicodeUTF8))
         self.contrastInvertCheckBox.setStatusTip(QtGui.QApplication.translate("Form", "invert", None, QtGui.QApplication.UnicodeUTF8))

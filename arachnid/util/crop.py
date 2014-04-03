@@ -6,7 +6,7 @@ algorithm such as AutoPicker (`ara-autopick`).
 It performs the following preprocessing on the micrograph:
 
     - High pass filter with cutoff = sigma / window_size (Default sigma = 1, if sigma = 0, then high pass filtering is disabled)
-    - Decimation (Default bin-factor = 0, no decimation)
+    - Decimation (Default bin-factor = 1, no decimation)
     - Contrast inversion (Default invert = False)
 
 In addition, it performs the following preprocessing on the windows:
