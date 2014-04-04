@@ -26,6 +26,17 @@ Every time you update C or Cython code, you may run the following command (rathe
 .. sourcecode:: sh
 	
 	$ python setup.py build_ext --inplace
+
+.. note::
+	
+	If you use Anaconda with your development, then you may get the following error when
+	running the previous command:
+		:1: Error: Unable to find 'swig.swg'
+		:3: Error: Unable to find 'python.swg'
+	
+	To fix this, you must use the `SWIG_LIB` environment variable as follows:
+	
+	$ export SWIG_LIB=/path-to-anaconda/anaconda/share/swig/2.0.10
 	
 Every time you add a new script or the first time you get the source, you may run the following command (rather that reinstall)
 
