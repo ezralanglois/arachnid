@@ -146,7 +146,7 @@ from ..core.metadata import format_utility, format, spider_utility, spider_param
 from ..core.parallel import mpi_utility
 from ..core.util import drawing
 from ..core.image import ndimage_file
-import numpy # pylint: disable=W0611
+#import numpy # pylint: disable=W0611
 import numpy.linalg
 import scipy.spatial
 import scipy.stats

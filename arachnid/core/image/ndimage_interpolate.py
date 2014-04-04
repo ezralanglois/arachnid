@@ -13,6 +13,7 @@ SPIDER: http://www.wadsworth.org/spider_doc/spider/docs/spider.html
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..app import tracing
+import ndimage_filter
 import logging, numpy
 import scipy.fftpack
 import sys
@@ -40,29 +41,31 @@ except:
     #_logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
 
-def resample_offsets(img, shape, axis=None):
+def resample_offsets(ishape, shape, axis=None):
     '''
     '''
+    
+    if hasattr(ishape, 'shape'): ishape=ishape.shape
     
     if not hasattr(shape, 'ndim'):
-        if hasattr(shape, '__len__'): shape = (int(shape[0]), int(shape[1]), int(shape[2])) if img.ndim == 3 else (int(shape[0]), int(shape[1]))
-        else: shape = (int(img.shape[0]/shape), int(img.shape[1]/shape), int(img.shape[2]/shape)) if img.ndim == 3 else (int(img.shape[0]/shape), int(img.shape[1]/shape))
+        if hasattr(shape, '__len__'): shape = (int(shape[0]), int(shape[1]), int(shape[2])) if len(ishape) == 3 else (int(shape[0]), int(shape[1]))
+        else: shape = (int(ishape[0]/shape), int(ishape[1]/shape), int(ishape[2]/shape)) if len(ishape) == 3 else (int(ishape[0]/shape), int(ishape[1]/shape))
     
     if axis is None:
-        iy, oy = resample_offsets(img, shape, 0)
-        ix, ox = resample_offsets(img, shape, 1)
+        iy, oy = resample_offsets(ishape, shape, 0)
+        ix, ox = resample_offsets(ishape, shape, 1)
         return ((iy, ix), (oy, ox))
 
-    i_range = numpy.arange(0, min(img.shape[axis], shape[axis]), dtype=numpy.int)
-    if (((img.shape[axis]%2) == 0) and (shape[axis]>img.shape[axis])) or (((img.shape[axis]%2) != 0) and shape[axis] < img.shape[axis]):
-        x_out_idx = max(int(numpy.floor((shape[axis]-img.shape[axis])/2.0)), 0) + i_range
-        x_img_idx = max(int(numpy.floor((img.shape[axis]-shape[axis])/2.0)), 0) + i_range
+    i_range = numpy.arange(0, min(ishape[axis], shape[axis]), dtype=numpy.int)
+    if (((ishape[axis]%2) == 0) and (shape[axis]>ishape[axis])) or (((ishape[axis]%2) != 0) and shape[axis] < ishape[axis]):
+        x_out_idx = max(int(numpy.floor((shape[axis]-ishape[axis])/2.0)), 0) + i_range
+        x_img_idx = max(int(numpy.floor((ishape[axis]-shape[axis])/2.0)), 0) + i_range
     else:
-        x_out_idx = max(int(numpy.ceil((shape[axis]-img.shape[axis])/2.0)), 0) + i_range
-        x_img_idx = max(int(numpy.ceil((img.shape[axis]-shape[axis])/2.0)), 0) + i_range
+        x_out_idx = max(int(numpy.ceil((shape[axis]-ishape[axis])/2.0)), 0) + i_range
+        x_img_idx = max(int(numpy.ceil((ishape[axis]-shape[axis])/2.0)), 0) + i_range
     return (x_img_idx, x_out_idx)
     
-def resample_fft(img, out, is_fft=False, offsets=None):
+def resample_fft(img, out, is_fft=False, offsets=None, pad=None):
     '''
     '''
     
@@ -72,7 +75,12 @@ def resample_fft(img, out, is_fft=False, offsets=None):
             assert(out > 1.0)
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
         out = numpy.zeros(shape, dtype=img.dtype)
-    if not is_fft: img = scipy.fftpack.fft2(img)
+    if not is_fft:
+        if pad is not None and pad > 1:
+            shape = img.shape
+            ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
+            img = ndimage_filter.pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
+        img = scipy.fftpack.fft2(img)
     img = scipy.fftpack.fftshift(img)
     
     gain_x = float(out.shape[1])/float(img.shape[1])
@@ -88,7 +96,11 @@ def resample_fft(img, out, is_fft=False, offsets=None):
     fout[:]=scipy.fftpack.ifftshift(fout)
     
     if not is_fft: 
-        out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+        if pad is not None and pad > 1:
+            img = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+            out[:] = depad_image(img, shape)
+        else:
+            out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
         return out
     return fout
 

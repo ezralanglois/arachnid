@@ -1087,7 +1087,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
     return new_vals
 
-def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, apix=1.0, pixel_radius=0, mask_diameter=0, **extra):
+def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, apix=1.0, pixel_radius=0, mask_diameter=0, pad=1, **extra):
     ''' Downsample images in Relion selection file and update
     selection entries to point to new files.
     
@@ -1120,8 +1120,12 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         pixel_radius = int(mask_diameter/apix)/2
     _logger.info("Using %f angstroms as the diameter of the mask in relion"%(pixel_radius*2*apix))
     
+    filename, index = relion_utility.relion_file(vals[0].rlnImageName)
+    img = ndimage_file.read_image(filename)
+    
     mask = None
-    ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
+    #ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
+    ds_kernel = ndimage_interpolate.resample_offsets(img, downsample) if downsample > 1.0 else None
     filename = relion_utility.relion_file(vals[0].rlnImageName, True)
     if phase_flip:
         output = os.path.join(os.path.dirname(filename)+"_flipped_%.2f"%downsample, os.path.basename(filename))
@@ -1139,7 +1143,9 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     if 'ampcont' not in extra:
         extra['ampcont']=vals[0].rlnAmplitudeContrast
     
-    _logger.info("Stack downsampling started")
+    if downsample > 1.0: _logger.info("Downsampling images")
+    if phase_flip: _logger.info("Phase flipping images")
+    _logger.info("Stack preprocessing started")
     for i in xrange(len(vals)):
         v = vals[i]
         if (i%1000) == 0:
@@ -1150,7 +1156,8 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
             ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, v.rlnDefocusU, **extra)
             img = ctf_correct.correct(img, ctfimg).copy()
         if ds_kernel is not None:
-            img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
+            #img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
+            img = ndimage_interpolate.resample_fft(img, downsample, offsets=ds_kernel, pad=pad)
         if mask is None: mask = ndimage_utility.model_disk(pixel_radius, img.shape)
         ndimage_utility.normalize_standard(img, mask, out=img)
         if filename not in oindex: oindex[filename]=0
@@ -1158,7 +1165,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         output = spider_utility.spider_filename(output, filename)
         ndimage_file.write_image(output, img, oindex[filename]-1, header=dict(apix=apix))
         vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
-    _logger.info("Stack downsampling finished")
+    _logger.info("Stack preprocessing finished")
     _logger.info("Reminder - Using %f angstroms as the diameter of the mask in relion"%(pixel_radius*2*apix))
     return vals
 
@@ -1251,7 +1258,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   phase_flip=False,                help="Create a set of phase flipped stacks")
     group.add_option("",   remove_missing=False,            help="Test if image file exists and if not, remove from star file")
     group.add_option("",   mask_diameter=0.0,               help="Mask diameter for Relion (in Angstroms) - 0 mean uses particle_diameter from SPIDER params file")
-    
+    group.add_option("",   pad=3,                           help="Padding for image downsize")
     
     pgroup.add_option_group(group)
     if main_option:
