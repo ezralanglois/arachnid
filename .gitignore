@@ -10,4 +10,3 @@ build
 *.pyc
 *.cfg
 *.egg-info
-*_wrap.cxx

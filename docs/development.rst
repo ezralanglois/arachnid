@@ -30,7 +30,7 @@ Every time you update C or Cython code, you may run the following command (rathe
 .. note::
 	
 	If you use Anaconda with your development, then you may get the following error when
-	running the previous command:
+	running the previous command (if you add or update the swig interface files):
 		:1: Error: Unable to find 'swig.swg'
 		:3: Error: Unable to find 'python.swg'
 	
