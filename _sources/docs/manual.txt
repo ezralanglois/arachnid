@@ -5,10 +5,29 @@ Manual
 This manual covers the usage of every available script. It provides a list of
 options and corresponding example usage.
 
-.. note::
+Tutorials
+=========
 
-	This manual is intended for more advanced users, first time users
-	should see :doc:`reconstruction`
+Most users may be interesting in one of the following tutorials:
+
+.. list-table::
+   :class: contentstable
+
+   * - :doc:`Beginner Tutorial <reconstruction>`
+
+       Single-particle reconstruction with the GUI
+
+     - :doc:`Advanced Tutorial <reconstruction_cmdline>`
+
+       Single-particle reconstruction from the command line
+
+   * - :doc:`Post-processing Tutorial <reconstruction_post_cmdline>` 
+
+       Post-processing the data after classification and refinement
+
+     - `Latest Tips and Tricks <http://blog.arachnid.us/>`_
+
+       Latest information about the daily builds, upcoming versions and other useful tidbits
 
 Scripts
 =======

@@ -97,7 +97,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../users_guide.html">User&#8217;s Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../install.html">Install</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../install_franklab.html">Installation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../install_franklab.html#franklab">FrankLab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../install_franklab.html#franklab">FrankLab</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-stable-build">Latest Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-daily-build">Latest Daily Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-accelerated-stable-build">Latest Accelerated Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-accelerated-daily-build">Latest Accelerated Daily Build</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../attribution.html">Attribution</a><ul>
@@ -136,7 +142,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../install.html#anaconda">Anaconda</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../install.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../install.html#quick-start">Quick Start</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../install.html#first-install">First Install</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../install.html#update-to-latest">Update to Latest</a></li>
@@ -224,6 +229,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../manual.html">Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../manual.html#tutorials">Tutorials</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../manual.html#scripts">Scripts</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../manual.html#applications">Applications</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../man_generated/arachnid.app.align_frames.html">align_frames</a><ul>
@@ -1402,7 +1408,7 @@ write to output file</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.relion_selection.downsample_images">
-<tt class="descname">downsample_images</tt><big>(</big><em>vals</em>, <em>downsample=1.0</em>, <em>param_file=''</em>, <em>phase_flip=False</em>, <em>apix=1.0</em>, <em>pixel_radius=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.downsample_images" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">downsample_images</tt><big>(</big><em>vals</em>, <em>downsample=1.0</em>, <em>param_file=''</em>, <em>phase_flip=False</em>, <em>apix=1.0</em>, <em>pixel_radius=0</em>, <em>mask_diameter=0</em>, <em>pad=1</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.downsample_images" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downsample images in Relion selection file and update
 selection entries to point to new files.</p>
 <table class="docutils field-list" frame="void" rules="none">

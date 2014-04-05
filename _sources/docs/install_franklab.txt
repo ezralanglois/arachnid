@@ -38,6 +38,17 @@ Latest Accelerated Daily Build
 .. sourcecode:: sh
 
 	$ source /guam.raid.cluster.software/arachnid/arachnid-latest.rc dev-mkl
+
+Latest Bleeding Edge Build
+--------------------------
+
+.. note::
+	
+	This version does not work on all machines!
+
+.. sourcecode:: sh
+
+	$ source /guam.raid.cluster.software/arachnid/arachnid-latest.rc bleed
 	
 .. note::
 

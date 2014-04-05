@@ -97,7 +97,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../users_guide.html">User&#8217;s Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install.html">Install</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="install_franklab.html">Installation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="install_franklab.html#franklab">FrankLab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="install_franklab.html#franklab">FrankLab</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="install_franklab.html#latest-stable-build">Latest Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="install_franklab.html#latest-daily-build">Latest Daily Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="install_franklab.html#latest-accelerated-stable-build">Latest Accelerated Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="install_franklab.html#latest-accelerated-daily-build">Latest Accelerated Daily Build</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="attribution.html">Attribution</a><ul>
@@ -136,7 +142,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="install.html#anaconda">Anaconda</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="install.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="install.html#quick-start">Quick Start</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="install.html#first-install">First Install</a></li>
 <li class="toctree-l5"><a class="reference internal" href="install.html#update-to-latest">Update to Latest</a></li>
@@ -224,6 +229,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="manual.html">Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="manual.html#tutorials">Tutorials</a></li>
 <li class="toctree-l3"><a class="reference internal" href="manual.html#scripts">Scripts</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="manual.html#applications">Applications</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="man_generated/arachnid.app.align_frames.html">align_frames</a><ul>
@@ -1016,6 +1022,25 @@
 <a class="btn btn-primary" href="https://github.com/ezralanglois/arachnid/archive/master.zip" role="button">Download</a><p>Every time you update C or Cython code, you may run the following command (rather that reinstall)</p>
 <div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>python setup.py build_ext --inplace
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>If you use Anaconda with your development, then you may get the following error when
+running the previous command:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">1:</th><td class="field-body">Error: Unable to find &#8216;swig.swg&#8217;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">3:</th><td class="field-body">Error: Unable to find &#8216;python.swg&#8217;</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>To fix this, you must use the <cite>SWIG_LIB</cite> environment variable as follows:</p>
+<p class="last">$ export SWIG_LIB=/path-to-anaconda/anaconda/share/swig/2.0.10</p>
 </div>
 <p>Every time you add a new script or the first time you get the source, you may run the following command (rather that reinstall)</p>
 <div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>python setup.py version
