@@ -13,26 +13,21 @@ Most users may be interesting in one of the following tutorials:
 .. list-table::
    :class: contentstable
 
-   * :doc:`Beginner Tutorial <reconstruction>`
+   * - :doc:`Beginner Tutorial <reconstruction>`
 
-       Step-by-step tutorial for single-particle reconstruction with the GUI
+       Single-particle reconstruction with the GUI
 
      - :doc:`Advanced Tutorial <reconstruction_cmdline>`
 
-       Step-by-step tutorial for single-particle reconstruction with the command line interface
+       Single-particle reconstruction from the command line
 
    * - :doc:`Post-processing Tutorial <reconstruction_post_cmdline>` 
 
-       Step-by-step tutorial for post-processing the data after classification and refinement
+       Post-processing the data after classification and refinement
 
      - `Latest Tips and Tricks <http://blog.arachnid.us/>`_
 
-       Provides information about the daily builds, upcoming versions and other useful tidbits
-
-.. note::
-
-	This manual is intended for more advanced users, first time users
-	should see :doc:`reconstruction`
+       Latest information about the daily builds, upcoming versions and other useful tidbits
 
 Scripts
 =======
