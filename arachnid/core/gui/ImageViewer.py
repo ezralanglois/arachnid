@@ -440,7 +440,7 @@ class MainWindow(QtGui.QMainWindow):
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 pixel_size *= bin_factor
                 img = self.box_particles(img, imgname)
-                img = self.display_powerspectra_1D(img, imgname)
+                img = self.display_powerspectra_1D(img, imgname, pixel_size)
                 if self.advanced_settings.mark_image:
                     imgm = drawing.mark(img)
                     selimg = qimage_utility.numpy_to_qimage(imgm)
@@ -558,7 +558,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             item.setToolTip('%d@%s - %f'%(imgname[1], imgname[0], apix))
     
-    def display_powerspectra_1D(self, img, fileid):
+    def display_powerspectra_1D(self, img, fileid, pixel_size):
         '''
         '''
         
@@ -570,6 +570,12 @@ class MainWindow(QtGui.QMainWindow):
         if not current_powerspec and self.advanced_settings.radialAverage:
             _logger.info("Cannot calculate 1D from micrograph, requires powerspectra")
         if not self.advanced_settings.radialAverage or not current_powerspec: return img
+        
+        e=6
+        n = img.shape[0] - int(numpy.ceil(((img.shape[0]+1)/2.0)))
+        rad = apix/( (0.5*e)/float(n) )
+        return plotting.plot_circles_on_image(img, rad)
+        
         raw = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
         raw[1:] = raw[:len(raw)-1]
         raw[:2]=0
