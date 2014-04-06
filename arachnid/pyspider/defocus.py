@@ -334,9 +334,9 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
         # small image format
         if use_8bit:
             #os.unlink(spi.replace_ext(output_pow))
-            ndimage_file.write_image_8bit(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']*pad))
+            ndimage_file.write_image_8bit(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']))#*pad
         else:
-            ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']*pad))
+            ndimage_file.write_image(spi.replace_ext(output_pow), mpowerspec, header=dict(apix=extra['apix']))#*pad
     else:
         power_spec = spi.cp(filename)
         spi.du(power_spec, 3, 3)
