@@ -13,7 +13,8 @@ except:
 from ..metadata import format_utility
 import matplotlib.cm as cm
 import matplotlib._pylab_helpers
-import numpy, logging
+import numpy
+import logging
 import scipy
 
 _logger = logging.getLogger(__name__)
@@ -63,6 +64,25 @@ def subset_no_overlap(data, overlap, n=100):
             k+=1
             if k >= n: break
     return out[:k]
+
+def plot_circles_on_image(img, radii, center=None, color='r', linewidth=5, **extra):
+    '''
+    '''
+    
+    if is_plotting_disabled(): return img
+    fig, ax=draw_image(img, **extra)
+    
+    if center is None: center = numpy.ceil((img.shape[0]+1)/2.0), numpy.ceil((img.shape[1]+1)/2.0)
+    if not hasattr(radii, '__iter__'): radii=[radii]
+    for rad in radii:
+        circle2=pylab.Circle(center,rad,color=color,fill=False, linewidth=linewidth)
+        fig.gca().add_artist(circle2)
+    
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    return save_as_image(fig)
 
 def plot_line_on_image(img, x, y, color='w', **extra):
     '''
