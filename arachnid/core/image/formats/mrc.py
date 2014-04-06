@@ -119,9 +119,9 @@ def _gen_header():
         ('xlen', numpy.float32),
         ('ylen', numpy.float32),
         ('zlen', numpy.float32),
-        ('alpha', numpy.float32),
-        ('beta', numpy.float32),
-        ('gamma', numpy.float32),
+        ('alpha', numpy.float32), #defocus
+        ('beta', numpy.float32),  #astig_ang
+        ('gamma', numpy.float32), #astig_mag
         ('mapc', numpy.int32),
         ('mapr', numpy.int32),
         ('maps', numpy.int32),
@@ -142,7 +142,11 @@ def _gen_header():
         ('rms', numpy.float32),
         ('nlabels', numpy.int32),
         ('label0', 'S80'),
-        ('label1', 'S80'),
+        ('label1', 'S80'), # Image Type
+        #Allow image `type`s are:
+        #    - Power Spectra: 'P'
+        #    - Windowed Particle: 'W'
+        #    - Micrograph: 'M'
         ('label2', 'S80'),
         ('label3', 'S80'),
         ('label4', 'S80'),

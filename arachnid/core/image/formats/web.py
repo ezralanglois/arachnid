@@ -5,6 +5,9 @@
 This format describes a binary data that comprises a required fixed header (79 bytes) followed by an optional 
 variable-length header and then by the image data.
 
+Header
+------
+
 Header Length: 78 bytes
 
 Name             Type       Size (Bytes)    Description
@@ -44,6 +47,22 @@ The dtype field in the header describes a two character code, e.g. <f.
 
 The `order` field in the header describes the layout of a 2 or 3D array in memory. Both
 c-contiguous or row-major and fortran-contiguous or column major are supported.
+
+Extended Image Header
+---------------------
+
+Name             Type       Size (Bytes)    Description
+====             ====       ============    ===========
+defocus          Float           8          Defocus of the image
+astig_ang        Float           8          Astigmatism Angle (SPIDER convention)
+astig_mag        Float           8          Astigmatism Magnitude (SPIDER convention)
+type             Char            4          Type of image
+
+Allow image `type`s are:
+
+    - Power Spectra: 'P'
+    - Windowed Particle: 'W'
+    - Micrograph: 'M'
  
  This follows the standard of NumPy:
  http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html#arrays-dtypes

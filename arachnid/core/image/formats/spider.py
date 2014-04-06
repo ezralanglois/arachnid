@@ -21,7 +21,7 @@ spi_defaults = dict()
 _header_map = {'nz': 1,'ny': 2,'irec':3,'iform':5,'imami':6,'fmax':7,'fmin':8, 
           'av':9, 'sig':10, 'nx':12, 'labrec':13, 'labbyt': 22, 'lenbyt':23, 
           'istack': 24, 'maxim':26, 'imgnum': 27, 'apix':38,'voltage': 39,
-          'proj': 40, 'mic': 41}
+          'proj': 40, 'mic': 41, 'defocus': 44, 'astig_ang':45, 'astig_mag':46, 'powerspec':77}
 
 spi2ara={'apix': 'apix'}
 #ara.update(dict([(h[0], 'mrc'+_h[0]) for h in header_image_dtype]))
