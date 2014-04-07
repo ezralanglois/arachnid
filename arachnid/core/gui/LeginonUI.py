@@ -424,7 +424,7 @@ def load_images_iter(sessions):
                 print image.norm_id
                 print image.pixelsize
                 print len(image.frame_list)
-                assert(image.norm_id is not None)
+                if image.norm_id is None: continue
                 if image.norm_id != norm_id:
                     norm_path=image.norm_path
                     norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
