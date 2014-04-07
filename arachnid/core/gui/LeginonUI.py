@@ -418,13 +418,15 @@ def load_images_iter(sessions):
             norm_file="None"
             norm_id="None"
             for image in session.exposures:
-                print image.filename
-                print image.norm_path
-                print image.norm_filename
-                print image.norm_id
-                print image.pixelsize
-                print len(image.frame_list)
-                if image.norm_id is None: continue
+                if image.norm_id is None: 
+                    print image.filename
+                    print image.norm_path
+                    print image.norm_filename
+                    print image.norm_id
+                    print image.pixelsize
+                    print len(image.frame_list)
+                    _logger.warning("Skipping %s - no gain normalization listed in database"%image.filename)
+                    continue
                 if image.norm_id != norm_id:
                     norm_path=image.norm_path
                     norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
