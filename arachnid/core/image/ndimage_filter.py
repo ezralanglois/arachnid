@@ -581,18 +581,18 @@ def depad_image(img, shape, out=None):
     ''' Depad an image
     
     :Parameters:
-    
-    img : array
-          Image to pad
-    shape : tuple
-            Dimensions of new image
-    out : array
-          Padded image
+        
+        img : array
+              Image to pad
+        shape : tuple
+                Dimensions of new image
+        out : array
+              Padded image
     
     :Returns:
-    
-    out : array
-          Padded image
+        
+        out : array
+              Padded image
     '''
     
     if out is None: 

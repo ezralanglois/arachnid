@@ -98,7 +98,7 @@ def resample_fft(img, out, is_fft=False, offsets=None, pad=None):
     if not is_fft: 
         if pad is not None and pad > 1:
             img = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
-            out[:] = depad_image(img, shape)
+            out[:] = ndimage_filter.depad_image(img, shape)
         else:
             out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
         return out
