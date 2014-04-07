@@ -71,6 +71,7 @@ def numpy_to_qimage(img, width=0, height=0, colortable=_basetable):
             fmt = QtGui.QImage.Format_ARGB32
     
         qimage = QtGui.QImage(bgra.data, img.shape[1], img.shape[0], fmt)
+        qimage=qimage.convertToFormat(QtGui.QImage.Format_Indexed8)
         qimage._numpy = bgra
         return qimage
     elif img.ndim != 2: raise ValueError, "Only gray scale images are supported for conversion, %d"%img.ndim

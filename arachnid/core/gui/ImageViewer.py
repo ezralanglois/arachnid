@@ -18,6 +18,7 @@ import property
 from ..metadata import spider_utility
 from ..metadata import format
 from ..image import ndimage_utility
+from ..image import peakdetect_1d
 from ..image import ndimage_file
 from ..image import ndimage_interpolate
 from ..image import ndimage_filter
@@ -105,20 +106,8 @@ class MainWindow(QtGui.QMainWindow):
         
         # Help system
         self.helpDialog = HelpDialog(self)
-        
-    def showEvent(self, evt):
-        '''Window close event triggered - save project and global settings 
-        
-        :Parameters:
-            
-        evt : QCloseEvent
-              Event for to close the main window
-        '''
-        
-        # Load the settings
         _logger.info("\rLoading settings ...")
         self.loadSettings()
-        QtGui.QMainWindow.showEvent(self, evt)
         
     def advancedSettings(self):
         '''
@@ -157,6 +146,8 @@ class MainWindow(QtGui.QMainWindow):
                # Power spectra options
                dict(center_mask=0, help="Radius of mask for image center"),
                dict(radialAverage=False, help="Display 1D radial average (1D power spect if image is a 2D powerspec)"),
+               dict(resolution_rings="", help="Display resolution rings, specific comma seperate list of resolutions: 12,6"),
+               
                
                # Hidden options
                dict(zoom=self.ui.imageZoomDoubleSpinBox.value(), help="Zoom factor where 1.0 is original size", gui=dict(readonly=True, value=self.ui.imageZoomDoubleSpinBox)),
@@ -436,13 +427,15 @@ class MainWindow(QtGui.QMainWindow):
                 if self.advanced_settings.gaussian_low_pass > 0.0:
                     img=ndimage_filter.filter_gaussian_lowpass(img, pixel_size/self.advanced_settings.gaussian_low_pass)
                 if current_powerspec and self.advanced_settings.center_mask > 0:
+                    #img[numpy.logical_not(masks[img.shape])] = numpy.mean(img[masks[img.shape]])
                     img *= masks[img.shape]
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 pixel_size *= bin_factor
                 img = self.box_particles(img, imgname)
                 img = self.display_powerspectra_1D(img, imgname, pixel_size)
+                img = self.display_resolution(img, imgname, pixel_size)
                 if self.advanced_settings.mark_image:
-                    imgm = drawing.mark(img)
+                    imgm = self.imageMarker(img)
                     selimg = qimage_utility.numpy_to_qimage(imgm)
                 qimg = qimage_utility.numpy_to_qimage(img)
                 if self.base_level is not None:
@@ -490,7 +483,12 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.pageSpinBox.setMaximum(batch_count)
         self.ui.actionForward.setEnabled(self.ui.pageSpinBox.value() < batch_count)
         self.ui.actionBackward.setEnabled(self.ui.pageSpinBox.value() > 0)
+    
+    def imageMarker(self, img):
+        '''
+        '''
         
+        return drawing.mark(img)
     # Abstract methods
     
     def imageSubset(self, index, count):
@@ -571,17 +569,90 @@ class MainWindow(QtGui.QMainWindow):
             _logger.info("Cannot calculate 1D from micrograph, requires powerspectra")
         if not self.advanced_settings.radialAverage or not current_powerspec: return img
         
-        e=6
-        n = img.shape[0] - int(numpy.ceil(((img.shape[0]+1)/2.0)))
-        rad = apix/( (0.5*e)/float(n) )
-        return plotting.plot_circles_on_image(img, rad)
+
         
         raw = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
-        raw[1:] = raw[:len(raw)-1]
+        #raw[1:] = raw[:len(raw)-1]
         raw[:2]=0
         roo = estimate_ctf1d.subtract_background(raw, int(len(raw)*0.2))
         freq = numpy.arange(len(roo), dtype=numpy.float)
-        return plotting.plot_line_on_image(img, freq+len(roo), roo)
+
+        return plotting.plot_line_on_image(img, freq+len(roo), roo, dpi=128)
+    
+    def display_resolution(self, img, fileid, pixel_size):
+        '''
+        '''
+        
+        if not plotting.is_available():
+            _logger.warn("No matplotlib loaded")
+            return img
+        
+        current_powerspec = self.advanced_settings.current_powerspec
+        if not current_powerspec and self.advanced_settings.radialAverage:
+            _logger.info("Cannot display resolution rings, requires powerspectra")
+        if not self.advanced_settings.resolution_rings or not current_powerspec: return img
+        if pixel_size == 0:
+            _logger.error("Cannot display rings: no pixel size in header of image")
+            return img
+        
+        st = int(numpy.ceil(((img.shape[0]+1)/2.0)))
+        res_vals=[]
+        for res in self.advanced_settings.resolution_rings.split(','):
+            try: res=float(res)
+            except: _logger.error("Resolution must be comma seperated list of floats, not %s"%str(res))
+            else:res_vals.append(estimate_ctf1d.resolution(res, st, pixel_size))
+        if len(res_vals)==0: return img
+        return plotting.plot_circles_on_image(img, res_vals, force_gray=True, linewidth=1, dpi=128)
+    
+    def display_powerspectra_1D_old(self, img, fileid, pixel_size):
+        '''
+        '''
+        
+        if not plotting.is_available():
+            _logger.warn("No matplotlib loaded")
+            return img
+        
+        current_powerspec = self.advanced_settings.current_powerspec
+        if not current_powerspec and self.advanced_settings.radialAverage:
+            _logger.info("Cannot calculate 1D from micrograph, requires powerspectra")
+        if not self.advanced_settings.radialAverage or not current_powerspec: return img
+        
+        st = int(numpy.ceil(((img.shape[0]+1)/2.0)))
+        
+        if pixel_size == 0: pixel_size=1.58
+        rmin = 15.0
+        rmax = 12.0
+        if rmin < rmax: rmin, rmax = rmax, rmin
+        min_freq = pixel_size/rmin
+        max_freq = pixel_size/rmax
+        rmin = min_freq*img.shape[0]
+        rmax = max_freq*img.shape[0]
+        rang = (rmax-rmin)/2.0
+        freq2 = float(img.shape[0])/(rang/1)
+        freq1 = float(img.shape[0])/(rang/15)
+        #img=ndimage_filter.filter_annular_bp(img, freq1, freq2, 2)
+        
+        raw = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
+        #raw[1:] = raw[:len(raw)-1]
+        raw[:2]=0
+        roo=raw
+        roo = estimate_ctf1d.subtract_background(raw, int(len(raw)*0.2))
+        #roo -= roo.mean()
+        freq = numpy.arange(len(roo), dtype=numpy.float)
+        peaks = peakdetect_1d.peakdetect(roo, lookahead=5)[0]
+        #peaks = peakdetect_1d.peakdetect_fft(roo, freq)[0]
+        
+        '''
+        energy=.7
+        roo=numpy.abs(roo)
+        rad = numpy.searchsorted(numpy.cumsum(roo)/roo.sum(), energy)
+        n = img.shape[0] - int(numpy.ceil(((img.shape[0]+1)/2.0)))
+        e = pixel_size/( (0.5*rad)/float(n) )
+        print e
+        '''
+        nimg= plotting.plot_circles_on_image(img, [peaks[i][0] for i in xrange(min(3, len(peaks)))], force_gray=True, linewidth=1, dpi=128)
+        return nimg
+        return plotting.plot_line_on_image(nimg, freq+len(roo), roo)
     
     def box_particles(self, img, fileid):
         ''' Draw particle boxes on each micrograph

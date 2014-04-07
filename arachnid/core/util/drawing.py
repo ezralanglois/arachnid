@@ -33,6 +33,32 @@ def is_available():
     
     return ImageDraw is not None
 
+def check(img):
+    ''' Draw an X through an image
+    
+    :Parameters:
+    
+    img : array
+          Image
+    
+    :Returns:
+    
+    out : array
+          Returns the resulting RGB image as an array (nxnx3)
+    '''
+    
+    if ImageDraw is None: return None
+    if hasattr(img, 'ndim'):
+        img = scipy.misc.toimage(img).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    
+    center = tuple([int(v) for v in (numpy.asarray(img.size)/2.0)])
+    draw.line((0, 0)+center, fill=(0, 128, 0), width=5)
+    
+    img.size[0]/8
+    draw.line((center[0]-1, center[1]-1, center[0]+img.size[0]/8, center[1]-img.size[1]/8), fill=(0, 128, 0), width=5)
+    return scipy.misc.fromimage(img)
+
 def mark(img):
     ''' Draw an X through an image
     

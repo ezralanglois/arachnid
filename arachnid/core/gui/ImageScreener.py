@@ -14,6 +14,7 @@ from ..metadata import format
 from ..metadata import spider_utility
 from ..metadata import relion_utility
 from ..metadata import format_utility
+from ..util import drawing
 from ..app import settings
 from util import messagebox
 import os
@@ -241,6 +242,12 @@ class MainWindow(ImageViewerWindow):
         elif self.advanced_settings.show_images == 'Deleted':
             return numpy.sum(self.file_index[:, 2]<0)
         return ImageViewerWindow.imageTotal(self)
+
+    def imageMarker(self, img):
+        '''
+        '''
+        
+        return drawing.mark(img) if self.ui.actionSelection_Mode.isChecked() else drawing.check(img)
     
     # Slots for GUI
     """

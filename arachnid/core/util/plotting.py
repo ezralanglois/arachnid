@@ -65,7 +65,7 @@ def subset_no_overlap(data, overlap, n=100):
             if k >= n: break
     return out[:k]
 
-def plot_circles_on_image(img, radii, center=None, color='r', linewidth=5, **extra):
+def plot_circles_on_image(img, radii, center=None, color='w', linewidth=5, force_gray=True, **extra):
     '''
     '''
     
@@ -75,25 +75,42 @@ def plot_circles_on_image(img, radii, center=None, color='r', linewidth=5, **ext
     if center is None: center = numpy.ceil((img.shape[0]+1)/2.0), numpy.ceil((img.shape[1]+1)/2.0)
     if not hasattr(radii, '__iter__'): radii=[radii]
     for rad in radii:
-        circle2=pylab.Circle(center,rad,color=color,fill=False, linewidth=linewidth)
+        circle2=pylab.Circle(center,rad,color=color,fill=False, ls='dotted')
         fig.gca().add_artist(circle2)
     
     ax.get_xaxis().tick_bottom()
     ax.get_yaxis().tick_left()
     ax.axes.get_xaxis().set_visible(False)
     ax.axes.get_yaxis().set_visible(False)
-    return save_as_image(fig)
+    fimg = save_as_image(fig, force_gray)
+    return fimg
 
-def plot_line_on_image(img, x, y, color='w', **extra):
+def plot_line_on_image(img, x, y, color='w', force_gray=True, **extra):
     '''
     '''
     
     if is_plotting_disabled(): return img
     fig, ax=draw_image(img, **extra)
+    
+    if 1 == 1:
+        y /= (y.max()-y.min())
+        y *= img.shape[0]/4
+        y += img.shape[0]/2
+        ax.plot(x, y, c=color)
+        #ax.get_xaxis().tick_bottom()
+        #ax.get_yaxis().tick_left()
+        #ax.axes.get_xaxis().set_visible(False)
+        #ax.axes.get_yaxis().set_visible(False)
+        ax.set_axis_off()
+        #ax.axis('off') 
+        fimg = save_as_image(fig, force_gray)
+        return fimg
+    
     newax = ax.twinx()
     newax.plot(x, y, c=color)
     val = numpy.max(numpy.abs(y))*4
     newax.set_ylim(-val, val)
+    
     newax.set_axis_off()
     newax.get_yaxis().tick_left()
     newax.axes.get_yaxis().set_visible(False)
@@ -103,7 +120,8 @@ def plot_line_on_image(img, x, y, color='w', **extra):
     ax.axes.get_yaxis().set_visible(False)
     newax.get_yaxis().tick_left()
     newax.axes.get_yaxis().set_visible(False)
-    return save_as_image(fig)
+    fimg = save_as_image(fig, force_gray)
+    return fimg
 
 def plot_lines(output, lines, labels, ylabel=None, xlabel=None, dpi=72):
     '''
@@ -198,7 +216,10 @@ def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_
     '''
     
     img = img.copy()
-    fig = pylab.figure(0, dpi=dpi, facecolor=facecolor)
+    pylab.clf()
+    fig = pylab.figure(0, dpi=dpi, facecolor=facecolor, figsize=(img.shape[0]/dpi, img.shape[1]/dpi))#, tight_layout=True
+    fig.frameon=False
+    #pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
     img -= img.min()
     img /= img.max()
     
@@ -207,7 +228,8 @@ def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_
     #ax.set_axis_off()
     #fig.add_axes(ax)
     
-    ax = pylab.axes(frameon=False)
+    ax = fig.add_axes((0,0,1,1), frameon=False) 
+    #ax = pylab.axes(frameon=False)
     ax.set_axis_off()
     ax.imshow(img, cmap=cmap)#, aspect = 'normal')
     if label is not None:
@@ -221,14 +243,16 @@ def forceAspect(ax,aspect=1):
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
 
-def save_as_image(fig):
+def save_as_image(fig, force_gray=True):
     '''
     '''
     
-    pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+    #pylab.subplots_adjust(wspace=0, hspace=0)#, left=0, right=1, bottom=0, top=0.1)
+    #fig.tight_layout(pad=0.9)
     fig.canvas.draw()
     data = numpy.fromstring(fig.canvas.tostring_rgb(), dtype=numpy.uint8, sep='')
     data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    if not force_gray: return data
     return rgb2gray(data)
 
 def rgb2gray(rgb):
