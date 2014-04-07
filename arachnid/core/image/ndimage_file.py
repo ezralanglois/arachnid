@@ -331,7 +331,7 @@ def is_writable(filename):
     
     return get_write_format(filename) is not None
 
-def write_image_8bit(filename, img, index=None, header=None, clamp_nstd=None):
+def write_image_8bit(filename, img, index=None, header=None, clamp_nstd=2.5, equalize=False):
     ''' Write the given image to the given filename using 
     the 8-bit MRC format.
     
@@ -348,7 +348,8 @@ def write_image_8bit(filename, img, index=None, header=None, clamp_nstd=None):
     '''
     
     if clamp_nstd is not None:
-        img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, clamp_nstd))
+        img = ndimage_utility.replace_outlier(img, clamp_nstd)
+    if equalize: img=ndimage_utility.histeq(img)
     img = ndimage_utility.normalize_min_max(img)*255
     img = img.astype(numpy.uint8)
     mrc.write_image(filename, img, index, header)
