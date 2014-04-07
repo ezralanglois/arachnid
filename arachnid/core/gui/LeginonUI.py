@@ -415,9 +415,13 @@ def load_images_iter(sessions):
                 total += 1
                 yield total
         else:
-            norm_file=None
-            norm_id=None
+            norm_file="None"
+            norm_id="None"
             for image in session.exposures:
+                print image.norm_path
+                print image.norm_filename
+                print image.norm_id
+                assert(image.norm_id is not None)
                 if image.norm_id != norm_id:
                     norm_path=image.norm_path
                     norm_file = os.path.join(norm_path, image.norm_filename+image_ext)
