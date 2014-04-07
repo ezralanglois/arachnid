@@ -419,12 +419,6 @@ def load_images_iter(sessions):
             norm_id="None"
             for image in session.exposures:
                 if image.norm_id is None: 
-                    print image.filename
-                    print image.norm_path
-                    print image.norm_filename
-                    print image.norm_id
-                    print image.pixelsize
-                    print image.frame_list
                     _logger.warning("Skipping %s - no gain normalization listed in database"%image.filename)
                     continue
                 if image.norm_id != norm_id:
