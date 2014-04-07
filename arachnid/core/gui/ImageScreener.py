@@ -92,17 +92,6 @@ class MainWindow(ImageViewerWindow):
         
         self.selection_file=os.path.relpath(filename)
     
-    def showEvent(self, evt):
-        '''Window close event triggered - save project and global settings 
-        
-        :Parameters:
-            
-        evt : QCloseEvent
-              Event for to close the main window
-        '''
-        
-        QtGui.QMainWindow.showEvent(self, evt)
-    
     def advancedSettings(self):
         ''' Get a list of advanced settings
         '''

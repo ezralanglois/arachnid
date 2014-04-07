@@ -69,6 +69,9 @@ class Widget(QtGui.QWidget):
         self.ui.projectTableView.setModel(ListTableModel([], self.header, None, self))
         selmodel=self.ui.projectTableView.selectionModel()
         selmodel.selectionChanged.connect(self.selectionChanged)
+        _logger.info("\rLoading settings ...")
+        self.readSettings()
+        self.on_loginPushButton_clicked()
         
     def initializePage(self):
         '''
@@ -86,21 +89,6 @@ class Widget(QtGui.QWidget):
             self.helpDialog.show()
         else:
             QtGui.QToolTip.showText(self.ui.changeUserPushButton.mapToGlobal(QtCore.QPoint(0,0)), self.ui.changeUserPushButton.toolTip())
-    
-    def showEvent(self, evt):
-        '''Window close event triggered - save project and global settings 
-        
-        :Parameters:
-            
-        evt : QCloseEvent
-              Event for to close the main window
-        '''
-        
-        # Load the settings
-        _logger.info("\rLoading settings ...")
-        self.readSettings()
-        self.on_loginPushButton_clicked()
-        QtGui.QWidget.showEvent(self, evt)
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 

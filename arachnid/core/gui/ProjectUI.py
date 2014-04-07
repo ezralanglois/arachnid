@@ -224,6 +224,10 @@ class MainWindow(QtGui.QWizard):
         self.ui.workerCountSpinBox.setValue(thread_count)
         self.ui.selectLeginonInformationLabel.setVisible(False)
         self.ui.selectReferenceInformationLabel.setVisible(False)
+        
+        _logger.info("\rLoading project settings ...")
+        self.readSettings()
+        self.loadProject()
     
     
     def onProgramCompleted(self, prog):
@@ -632,21 +636,6 @@ class MainWindow(QtGui.QWizard):
     ########################################################################################################################################
     
     ########################################################################################################################################
-    
-    def showEvent(self, evt):
-        '''Window close event triggered - save project and global settings 
-        
-        :Parameters:
-            
-        evt : QCloseEvent
-              Event for to close the main window
-        '''
-        
-        # Load the settings
-        _logger.info("\rLoading project settings ...")
-        self.readSettings()
-        self.loadProject()
-        QtGui.QWizard.showEvent(self, evt)
         
     def closeEvent(self, evt):
         '''Window close event triggered - save project and global settings 
