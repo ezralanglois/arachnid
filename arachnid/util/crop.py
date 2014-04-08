@@ -509,7 +509,7 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
     _logger.debug("Finished Enhancment")
     return win
 
-def read_coordinates(coordinate_file, good_file="", **extra):
+def read_coordinates(coordinate_file, good_file="", spiderid=None, **extra):
     ''' Read a coordinate file (use `good_file` to select a subset if specified)
     
     :Parameters:
@@ -528,7 +528,7 @@ def read_coordinates(coordinate_file, good_file="", **extra):
     '''
     
     try:
-        select = format.read(good_file, numeric=True) if good_file != "" else None
+        select = format.read(good_file, numeric=True, spiderid=spiderid) if good_file != "" else None
     except:
         if _logger.isEnabledFor(logging.DEBUG):
             _logger.exception("Skipping: %s"%good_file)
@@ -536,7 +536,7 @@ def read_coordinates(coordinate_file, good_file="", **extra):
             _logger.warn("Cannot find selection file: %s"%good_file)
         raise
     try:
-        blobs = format.read(coordinate_file, numeric=True)
+        blobs = format.read(coordinate_file, numeric=True, spiderid=spiderid)
     except:
         if _logger.isEnabledFor(logging.DEBUG):
             _logger.exception("Skipping: %s"%coordinate_file)
@@ -631,7 +631,7 @@ def initialize(files, param):
                 files.append(filename)
             elif tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
-                coord = format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len'])
+                coord = read_coordinates(spiderid=id, **param)
                 align = format.read(param['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
                 ncoord=len(coord)
                 # Todo only add frames that require processing
@@ -651,7 +651,7 @@ def initialize(files, param):
                         break
             else:
                 id = filename[0] if isinstance(filename, tuple) else filename
-                ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
+                ncoord = len(read_coordinates(spiderid=id, **param))
                 nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], id, param['id_len']))
                 if nimage != ncoord:
                     _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
