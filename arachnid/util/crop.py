@@ -587,7 +587,7 @@ def initialize(files, param):
         param['mask_diameter']=int(param['mask_diameter']/param['apix'])
     if mpi_utility.is_root(**param):
         _logger.info("Processing %d files"%len(files))
-        _logger.info("Paritcle diameter (in pixels): %d"%(param['pixel_diameter']))
+        _logger.info("Particle diameter (in pixels): %d"%(param['pixel_diameter']))
         _logger.info("Mask diameter (in pixels): %d"%(int(param['mask_diameter'])))
         param['window']=int(param['window'])
         if not param['disable_even'] and (param['window']%2)==1:
@@ -637,7 +637,7 @@ def initialize(files, param):
                 # Todo only add frames that require processing
                 param['output']=strip_frame_tag(param['output'])
                 for i in xrange(tot):
-                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id
+                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id+1
                     output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
                     frame_stack = spider_utility.spider_filename(output, id, param['id_len'])
                     if not os.path.exists(frame_stack):
