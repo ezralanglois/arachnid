@@ -632,7 +632,7 @@ def initialize(files, param):
             elif tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
                 coord = format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len'])
-                align = format.read(extra['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
+                align = format.read(param['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
                 ncoord=len(coord)
                 # Todo only add frames that require processing
                 param['output']=strip_frame_tag(param['output'])
