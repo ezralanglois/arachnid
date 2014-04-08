@@ -639,7 +639,12 @@ def initialize(files, param):
                 for i in xrange(tot):
                     frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id
                     output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
-                    nimage = ndimage_file.count_images(spider_utility.spider_filename(output, id, param['id_len']))
+                    frame_stack = spider_utility.spider_filename(output, id, param['id_len'])
+                    if not os.path.exists(frame_stack):
+                        _logger.info("Found incomplete frame crop: %s"%(frame_stack))
+                        files.append(filename)
+                        break
+                    nimage = ndimage_file.count_images(frame_stack)
                     if nimage != ncoord:
                         _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
                         files.append(filename)
