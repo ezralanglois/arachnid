@@ -632,11 +632,12 @@ def initialize(files, param):
             elif tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
                 coord = format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len'])
+                align = format.read(extra['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
                 ncoord=len(coord)
                 # Todo only add frames that require processing
                 param['output']=strip_frame_tag(param['output'])
                 for i in xrange(tot):
-                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else coord[i].id
+                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id
                     output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
                     nimage = ndimage_file.count_images(spider_utility.spider_filename(output, id, param['id_len']))
                     if nimage != ncoord:
