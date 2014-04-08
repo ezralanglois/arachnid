@@ -158,10 +158,20 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
-from ..core.image import ndimage_utility, ndimage_file, ndimage_filter, ndimage_interpolate
-from ..core.metadata import spider_utility, format_utility, format, spider_params, selection_utility
+from ..core.image import ndimage_utility
+from ..core.image import ndimage_file
+from ..core.image import ndimage_filter
+from ..core.image import ndimage_interpolate
+from ..core.metadata import spider_utility
+from ..core.metadata import format_utility
+from ..core.metadata import format
+from ..core.metadata import spider_params
+from ..core.metadata import selection_utility
 from ..core.parallel import mpi_utility
-import numpy, os, logging, psutil
+import numpy
+import os
+import logging
+import psutil
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -172,23 +182,23 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
     
     :Parameters:
     
-    filename : str
-               Input filename
-    id_len : int
-             Maximum length of ID
-    frame_beg : int
-                First frame to crop
-    frame_end : int
-                List frame to crop
-    single_stack : bool
-                   Write windows to a single stack
-    extra : dict
-            Unused keyword arguments
+        filename : str
+                   Input filename
+        id_len : int
+                 Maximum length of ID
+        frame_beg : int
+                    First frame to crop
+        frame_end : int
+                    List frame to crop
+        single_stack : bool
+                       Write windows to a single stack
+        extra : dict
+                Unused keyword arguments
                 
     :Returns:
-        
-    val : string
-          Current filename
+            
+        val : string
+              Current filename
     '''
     
     numpy.seterr('raise')
@@ -280,30 +290,30 @@ def iter_micrographs(filename, index=None, bin_factor=1.0, sigma=1.0, disable_bi
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
-        
-    filename : str
-               Filename for micrograph
-    index : int
-            Index of micrograph in stack
-    bin_factor : float
-                Downsampling factor
-    sigma : float
-            Gaussian highpass filtering factor (sigma/window)
-    disable_bin : bool    
-                  If True, do not downsample the micrograph
-    invert : bool
-             If True, invert the contrast of the micrograph (CCD Data)
-    window : int
-             Size of the window in pixels
-    gain : array
-           Gain correction/normalization image
-    extra : dict
-            Unused extra keyword arguments
+            
+        filename : str
+                   Filename for micrograph
+        index : int
+                Index of micrograph in stack
+        bin_factor : float
+                    Downsampling factor
+        sigma : float
+                Gaussian highpass filtering factor (sigma/window)
+        disable_bin : bool    
+                      If True, do not downsample the micrograph
+        invert : bool
+                 If True, invert the contrast of the micrograph (CCD Data)
+        window : int
+                 Size of the window in pixels
+        gain : array
+               Gain correction/normalization image
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-        
-    mic : array
-          Micrograph image
+            
+        mic : array
+              Micrograph image
     '''
     
     assert(window is not None)
@@ -332,30 +342,30 @@ def read_micrograph(filename, index=0, bin_factor=1.0, sigma=1.0, disable_bin=Fa
     ''' Read a micrograph from a file and perform preprocessing
     
     :Parameters:
-        
-    filename : str
-               Filename for micrograph
-    index : int
-            Index of micrograph in stack
-    bin_factor : float
-                Downsampling factor
-    sigma : float
-            Gaussian highpass filtering factor (sigma/window)
-    disable_bin : bool    
-                  If True, do not downsample the micrograph
-    invert : bool
-             If True, invert the contrast of the micrograph (CCD Data)
-    window : int
-             Size of the window in pixels
-    gain : array
-           Gain correction/normalization image
-    extra : dict
-            Unused extra keyword arguments
+            
+        filename : str
+                   Filename for micrograph
+        index : int
+                Index of micrograph in stack
+        bin_factor : float
+                    Downsampling factor
+        sigma : float
+                Gaussian highpass filtering factor (sigma/window)
+        disable_bin : bool    
+                      If True, do not downsample the micrograph
+        invert : bool
+                 If True, invert the contrast of the micrograph (CCD Data)
+        window : int
+                 Size of the window in pixels
+        gain : array
+               Gain correction/normalization image
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-        
-    mic : array
-          Micrograph image
+            
+        mic : array
+              Micrograph image
     '''
     
     assert(window is not None)
@@ -388,25 +398,25 @@ def generate_noise(filename, noise="", output="", noise_stack=True, window=None,
     
     :Parameters:
         
-    filename : str
-               Input micrograph filename
-    noise : str
-            Input filename for existing noise window
-    output : str
-             Output filename for window stacks
-    noise_stack : bool
-                  If True, write out full noise stack rather than single window
-    window : int
-             Size of the window in pixels
-    pixel_diameter : int
-                     Diameter of particle in pixels
-    extra : dict
-            Unused extra keyword arguments
+        filename : str
+                   Input micrograph filename
+        noise : str
+                Input filename for existing noise window
+        output : str
+                 Output filename for window stacks
+        noise_stack : bool
+                      If True, write out full noise stack rather than single window
+        window : int
+                 Size of the window in pixels
+        pixel_diameter : int
+                         Diameter of particle in pixels
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-        
-    noise_win : array
-                Noise window
+            
+        noise_win : array
+                    Noise window
     '''
     
     if noise != "":  
@@ -454,27 +464,27 @@ def enhance_window(win, noise_win=None, norm_mask=None, mask=None, clamp_window=
     
     :Parameters:
         
-    win : array
-          Input raw window
-    noise_win : array
-                Noise window
-    norm_mask : array
-                Disk mask with `radius` that keeps data outside the disk
-    mask : array
-           Disk mask with `radius` that keeps data inside the disk
-    clamp_window : float
-                   Number of standard deviations to replace extreme values using a Gaussian distribution
-    disable_enhance : bool
-                      Disable all enhancement
-    disable_normalize : bool
-                       Disable normalization
-    extra : dict
-            Unused extra keyword arguments
+        win : array
+              Input raw window
+        noise_win : array
+                    Noise window
+        norm_mask : array
+                    Disk mask with `radius` that keeps data outside the disk
+        mask : array
+               Disk mask with `radius` that keeps data inside the disk
+        clamp_window : float
+                       Number of standard deviations to replace extreme values using a Gaussian distribution
+        disable_enhance : bool
+                          Disable all enhancement
+        disable_normalize : bool
+                           Disable normalization
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-        
-    win : array
-          Enhanced window
+            
+        win : array
+              Enhanced window
     '''
     
     win = win.astype(numpy.float32)
@@ -503,18 +513,18 @@ def read_coordinates(coordinate_file, good_file="", **extra):
     ''' Read a coordinate file (use `good_file` to select a subset if specified)
     
     :Parameters:
-        
-    coordinate_file : str
-                      Filename for input coordinate file
-    good_file : str
-                Filename for input selection file
-    extra : dict
-            Unused extra keyword arguments
+            
+        coordinate_file : str
+                          Filename for input coordinate file
+        good_file : str
+                    Filename for input selection file
+        extra : dict
+                Unused extra keyword arguments
     
     :Returns:
-        
-    coords : list
-             List of coordinates (namedtuple)
+            
+        coords : list
+                 List of coordinates (namedtuple)
     '''
     
     try:
@@ -610,24 +620,6 @@ def initialize(files, param):
                 finished=list(param['finished'])
                 del param['finished'][:]
                 param['finished'].extend( selection_utility.select_file_subset(finished, select) )
-                
-                '''
-                old_files = files
-                select = set([s.id for s in select])
-                files = []
-                for filename in old_files:
-                    id = filename[0] if isinstance(filename, tuple) else spider_utility.spider_id(filename, param['id_len'])
-                    if id in select: files.append(filename)
-                
-                
-                finished = param['finished']
-                param['finished'] = []
-                for filename in finished:
-                    id = filename[0] if isinstance(filename, tuple) else spider_utility.spider_id(filename, param['id_len'])
-                    if id in select:
-                        param['finished'].append(filename)
-                '''
-                
             _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_file, len(files), file_count))
         
         if isinstance(filename, tuple):
@@ -639,11 +631,12 @@ def initialize(files, param):
                 files.append(filename)
             elif tot > 1:
                 id = filename[0] if isinstance(filename, tuple) else filename
-                ncoord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
+                coord = len(format.read(param['coordinate_file'], numeric=True, spiderid=id, id_len=param['id_len']))
+                ncoord=len(coord)
                 # Todo only add frames that require processing
                 param['output']=strip_frame_tag(param['output'])
                 for i in xrange(tot):
-                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else ncoord[i].id
+                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else coord[i].id
                     output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
                     nimage = ndimage_file.count_images(spider_utility.spider_filename(output, id, param['id_len']))
                     if nimage != ncoord:
@@ -724,16 +717,16 @@ def supports(files, **extra):
     ''' Test if this module is required in the project workflow
     
     :Parameters:
-    
-    files : list
-            List of filenames to test
-    extra : dict
-            Unused keyword arguments
+        
+        files : list
+                List of filenames to test
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    flag : bool
-           True if this module should be added to the workflow
+        
+        flag : bool
+               True if this module should be added to the workflow
     '''
     
     return True
@@ -801,9 +794,9 @@ def flags():
     ''' Get flags the define the supported features
     
     :Returns:
-    
-    flags : dict
-            Supported features
+        
+        flags : dict
+                Supported features
     '''
     
     return dict(description = '''Crop windows containing particles from a micrograph
