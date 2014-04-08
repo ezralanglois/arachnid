@@ -643,7 +643,7 @@ def initialize(files, param):
                 # Todo only add frames that require processing
                 param['output']=strip_frame_tag(param['output'])
                 for i in xrange(tot):
-                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else i+1
+                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else ncoord[i].id
                     output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
                     nimage = ndimage_file.count_images(spider_utility.spider_filename(output, id, param['id_len']))
                     if nimage != ncoord:
