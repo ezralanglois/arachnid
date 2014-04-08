@@ -220,8 +220,9 @@ def draw_image(img, label=None, dpi=72, facecolor='white', cmap=cm.gray, output_
     fig = pylab.figure(0, dpi=dpi, facecolor=facecolor, figsize=(img.shape[0]/dpi, img.shape[1]/dpi))#, tight_layout=True
     fig.frameon=False
     #pylab.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
-    img -= img.min()
-    img /= img.max()
+    if img.min() != img.max():
+        img -= img.min()
+        img /= img.max()
     
     #fig.set_size_inches(10, 10)
     #ax = pylab.Axes(fig, [0., 0., 10., 10.])

@@ -143,7 +143,8 @@ from ..core.metadata import format_alignment
 from ..core.metadata import namedtuple_utility
 from ..core.metadata import format_utility
 from ..core.metadata import selection_utility
-from ..core.parallel import mpi_utility, openmp
+from ..core.parallel import mpi_utility
+from ..core.parallel import openmp
 from ..core.orient import healpix
 from ..core.orient import spider_transforms
 from ..core.learn import unary_classification
