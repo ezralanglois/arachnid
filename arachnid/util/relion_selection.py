@@ -276,12 +276,12 @@ def generate_from_spider_alignment(filename, output, param_file, image_file, **e
     group=[]
     label=[]
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
-    align, header = format.read_alignment(filename, ndarray=True)
+    align, aheader = format.read_alignment(filename, ndarray=True)
     
-    defocus_col = header.index('defocus')
-    mic_col = header.index('micrograph')
-    id_col = header.index('id')
-    part_col = header.index('stack_id')
+    defocus_col = aheader.index('defocus')
+    mic_col = aheader.index('micrograph')
+    id_col = aheader.index('id')
+    part_col = aheader.index('stack_id')
     if align.shape[1] != 18: raise ValueError, "Only supports pySPIDER alignment file: %d"%align.shape[1]
     group_ids=set()
     idlen = len(str(len(align)))
