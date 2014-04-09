@@ -590,7 +590,7 @@ class MainWindow(QtGui.QMainWindow):
         current_powerspec = self.advanced_settings.current_powerspec
         if not current_powerspec and self.advanced_settings.resolution_rings:
             _logger.info("Cannot display resolution rings, requires powerspectra")
-        if not self.advanced_settings.resolution_rings.trim() or not current_powerspec: return img
+        if not self.advanced_settings.resolution_rings.strip() or not current_powerspec: return img
         if pixel_size == 0:
             _logger.error("Cannot display rings: no pixel size in header of image")
             return img
