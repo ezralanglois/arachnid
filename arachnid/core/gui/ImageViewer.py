@@ -430,9 +430,10 @@ class MainWindow(QtGui.QMainWindow):
                     img *= masks[img.shape]
                 if bin_factor > 1.0: img = ndimage_interpolate.interpolate(img, bin_factor, self.advanced_settings.downsample_type)
                 pixel_size *= bin_factor
-                img = self.box_particles(img, imgname)
                 img = self.display_powerspectra_1D(img, imgname, pixel_size)
                 img = self.display_resolution(img, imgname, pixel_size)
+                assert(img.ndim==2)
+                img = self.box_particles(img, imgname)
                 if self.advanced_settings.mark_image:
                     imgm = self.imageMarker(img)
                     selimg = qimage_utility.numpy_to_qimage(imgm)
@@ -587,9 +588,9 @@ class MainWindow(QtGui.QMainWindow):
             return img
         
         current_powerspec = self.advanced_settings.current_powerspec
-        if not current_powerspec and self.advanced_settings.radialAverage:
+        if not current_powerspec and self.advanced_settings.resolution_rings:
             _logger.info("Cannot display resolution rings, requires powerspectra")
-        if not self.advanced_settings.resolution_rings or not current_powerspec: return img
+        if not self.advanced_settings.resolution_rings.trim() or not current_powerspec: return img
         if pixel_size == 0:
             _logger.error("Cannot display rings: no pixel size in header of image")
             return img
