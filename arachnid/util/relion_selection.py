@@ -351,7 +351,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
             filename=files[0]
             _logger.debug("Generating relion entries")
             for val in stack_map:
-                id, mic, part = val[id_col], val[mic_col], val[stack_id_col]
+                id, mic, part = int(val[id_col]), val[mic_col], val[stack_id_col]
                 if mic not in defocus_dict: continue
                 if mic not in group_ids:
                     group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
