@@ -715,7 +715,7 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                 if pid1 in select_vals:
                     subset.append(v)
         else:
-            select_vals = set([s.id for s in format.read(good_file, spiderid=mic, numeric=True)])
+            select_vals = set([s.id for s in format.read(good_file, numeric=True)])
             for v in vals:
                 _,pid1 = relion_utility.relion_id(v.rlnImageName)
                 if pid1 in select_vals:
@@ -736,7 +736,10 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                 select = set([int(v) for v in select.split(',')])
             else:
                 select = format.read(class_file, numeric=True)
-                select = set([s.id for s in select if s.select > 0])
+                if len(select) > 0 and hasattr(select[0], 'select'):
+                    select = set([s.id for s in select if s.select > 0])
+                else:
+                    select = set([s.id for s in select])
         else: select=set([select])
         _logger.info("Selecting classes: %s"%str(select))
         for v in vals:
