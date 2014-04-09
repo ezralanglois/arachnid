@@ -217,8 +217,11 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
         generate_relion_selection_file(files, img, **extra)
         #relion_gui3dauto.settings
         #generate_settings(**extra)
+    elif len(files) == 1 and format.get_format(files[0]) != format.star:
+        generate_from_spider_alignment(files[0], **extra)
     else:
         _logger.info("Transforming %d relion selection files"%len(files))
+        
         vals = []
         for f in files:
             try:
@@ -261,6 +264,37 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
             else:
                 select_class_subset(vals, **extra)
     _logger.info("Completed")
+    
+def generate_from_spider_alignment(filename, output, param_file, image_file, **extra):
+    ''' 
+    '''
+    
+    header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber,araOriginalrlnImageName".split(',')
+    group=[]
+    label=[]
+    voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
+    align = format.read_alignment(filename)
+    if align.shape[1] != 18: raise ValueError, "Only supports pySPIDER alignment file: %d"%align.shape[1]
+    group_ids=set()
+    idlen = len(str(len(align)))
+    for val in align:
+        defocus = val[17]
+        mic = int(val[15])
+        part = int(val[16])
+        id = int(val[4])
+        if mic not in group_ids:
+            group.append((defocus, numpy.sum(align[:, 17]==mic), len(label), mic))
+            group_ids.add(mic)
+        label.append( ["%s@%s"%(str(int(id)).zfill(idlen), filename), str(mic), defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+    
+    if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
+    _logger.debug("Regrouping")
+    groupmap = regroup(group, **extra)
+    _logger.debug("Updating parameters")
+    update_parameters(label, header, groupmap, **extra)
+    
+    _logger.debug("Writing out selection file")
+    format.write(output, label, header=header)
 
 def generate_relion_selection_file(files, img, output, param_file, selection_file="", good_file="", test_all=False, reindex_file="", **extra):
     ''' Generate a relion selection file for a list of stacks, defocus file and params file
@@ -1292,6 +1326,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   remove_missing=False,            help="Test if image file exists and if not, remove from star file")
     group.add_option("",   mask_diameter=0.0,               help="Mask diameter for Relion (in Angstroms) - 0 mean uses particle_diameter from SPIDER params file")
     group.add_option("",   pad=3,                           help="Padding for image downsize")
+    group.add_option("",   image_file="",                   help="Image filename template", gui=dict(filetype="open"))
     
     pgroup.add_option_group(group)
     if main_option:
