@@ -423,6 +423,25 @@ def find_peaks_fast(cc, width, fwidth=None):
             Array of peaks (peak, x, y)
     '''
     
+    """
+    data_max = scipy.ndimage.filters.maximum_filter(cc, width)
+    maxima = (data == data_max)
+    data_min = scipy.ndimage.filters.minimum_filter(cc, width)
+    diff = ((data_max - data_min) > threshold)
+    maxima[diff == 0] = 0
+    
+    labeled, num_objects = ndimage.label(maxima)
+    slices = ndimage.find_objects(labeled)
+    x, y = [], []
+    for dy,dx in slices:
+        x_center = (dx.start + dx.stop - 1)/2
+        x.append(x_center)
+        y_center = (dy.start + dy.stop - 1)/2    
+        y.append(y_center)
+    """
+    
+    
+    
     if fwidth is None or fwidth < 0: fwidth = width/2.0
     if fwidth > 0.0: cc=scipy.ndimage.filters.gaussian_filter(cc, sigma=fwidth, mode='constant')
     neighborhood = numpy.ones((int(width),int(width)))
@@ -1565,7 +1584,11 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
     '''
     
     mdata = img[mask>0.5] if mask is not None else img
-    std = numpy.std(mdata) if var_one else 0.0
+    try:
+        std = numpy.std(mdata) if var_one else 0.0
+    except:
+        _logger.error("Is finite: %d"%float(numpy.alltrue(numpy.isfinite(mdata))))
+        raise
     out = numpy.subtract(img, numpy.mean(mdata), out)
     if std != 0.0: numpy.divide(out, std, out)
     return out
