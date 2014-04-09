@@ -1586,9 +1586,7 @@ def normalize_standard(img, mask=None, var_one=True, out=None):
     mdata = img[mask>0.5] if mask is not None else img
     try:
         std = numpy.std(mdata) if var_one else 0.0
-    except:
-        _logger.error("Is finite: %d"%float(numpy.alltrue(numpy.isfinite(mdata))))
-        raise
+    except: std=0.0
     out = numpy.subtract(img, numpy.mean(mdata), out)
     if std != 0.0: numpy.divide(out, std, out)
     return out
