@@ -1123,7 +1123,7 @@ def reindex_stacks(subset, reindex=False, **extra):
         idmap[filename] += 1
         subset[i] = subset[i]._replace(rlnImageName=relion_utility.relion_identifier(filename, idmap[filename]))
 
-def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=False, **extra):
+def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=False, param_file="", **extra):
     ''' Renormalize a set of images in-place
     
     :Parameters:
@@ -1141,7 +1141,11 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
     
     '''
     
-    pixel_radius = int(pixel_radius/apix)
+    if apix == 0:
+        if param_file == "": raise ValueError, "Requires --apix or --params-file"
+        spider_params.read(param_file, extra) 
+        apix = extra['apix']
+    pixel_radius = int(float(pixel_radius)/apix)
     filename, index = relion_utility.relion_file(vals[0].rlnImageName)
     img = ndimage_file.read_image(filename, index)
     mask = ndimage_utility.model_disk(int(pixel_radius/2), img.shape)*-1+1
