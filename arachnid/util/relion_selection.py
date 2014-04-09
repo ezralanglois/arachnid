@@ -288,18 +288,21 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     '''
     
     header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(',')
+    _logger.debug("Reading SPIDER params file")
     spider_params.read(param_file, extra)
     extra.update(spider_params.update_params(float(extra['window'])/img.shape[0], **extra))
     pixel_radius = int(extra['pixel_diameter']/2.0)
     if img.shape[0]%2 != 0: raise ValueError, "Relion requires even sized images"
     if img.shape[0] != img.shape[0]: raise ValueError, "Relion requires square images"
     if pixel_radius > 0:
+        _logger.debug("Testing normalization")
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         avg = numpy.mean(img*mask)
         if numpy.allclose(0.0, avg):
             _logger.warn("Relion requires the background to be zero normalized, not %g -- for radius %d"%(avg, pixel_radius))
     
     if test_all:
+        _logger.info("Testing normalization for all images - this could take some time")
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
         mask = mask > 0
         for filename in files:
@@ -309,6 +312,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                 if not numpy.allclose(0.0, avg): raise ValueError, "Image mean not correct: mean: %f, std: %f -- %d@%s"%(avg, std, i, filename)
                 if not numpy.allclose(1.0, std): raise ValueError, "Image std not correct: mean: %f, std: %f -- %d@%s"%(avg, std, i, filename)
     
+    _logger.debug("Read defocus file")
     defocus_dict = read_defocus(**extra)
     if selection_file != "": 
         if os.path.exists(selection_file):
@@ -320,26 +324,32 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                 if s.id in old: defocus_dict[s.id]=old[s.id]
         else:
             _logger.warn("No selection file found at %s - skipping"%selection_file)
-    spider_params.read(param_file, extra)
+    
+    #spider_params.read(param_file, extra)
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
     idlen = len(str(ndimage_file.count_images(files)))
     
     tilt_pair = read_tilt_pair(**extra)
     if len(tilt_pair) > 0:
+        _logger.debug("Generating tilt pair selection files")
         format.write(output, generate_selection(files, header, tilt_pair[:, :2], defocus_dict, **extra), header=header, prefix="first_")
         format.write(output, generate_selection(files, header, tilt_pair[:, 2:4], defocus_dict, **extra), header=header, prefix="second_")
+        _logger.debug("Generating tilt pair selection files - finished")
     else:
+        _logger.debug("Generating selection file from single stack")
         label = []
         group = []
         if len(files) == 1:
             header += ['araOriginalrlnImageName']
             group_ids=set()
             if reindex_file == "": raise ValueError, "A single stack requires --reindex-file"
+            logger.debug("Reading reindex file")
             stack_map, sheader = format.read(reindex_file, ndarray=True)
             mic_col = sheader.index('micrograph')
             id_col = sheader.index('id')
             stack_id_col = sheader.index('stack_id')
             filename=files[0]
+            _logger.debug("Generating relion entries")
             for val in stack_map:
                 id, mic, part = val[id_col], val[mic_col], val[stack_id_col]
                 if mic not in defocus_dict: continue
@@ -348,6 +358,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                     group_ids.add(mic)
                 label.append( ["%s@%s"%(str(id).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
         else:
+            _logger.debug("Generating selection file from many stacks")
             for filename in files:
                 mic = spider_utility.spider_id(filename)
                 if good_file != "":
@@ -368,9 +379,12 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                     #label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, mic] )
                     label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
         if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
+        _logger.debug("Regrouping")
         groupmap = regroup(group, **extra)
+        _logger.debug("Updating parameters")
         update_parameters(label, header, groupmap, **extra)
         
+        _logger.debug("Writing out selection file")
         format.write(output, label, header=header)
 
 def generate_selection(files, header, select, defocus_dict, voltage=0, cs=0, ampcont=0, id_len=0, **extra):
