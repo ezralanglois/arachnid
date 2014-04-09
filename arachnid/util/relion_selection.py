@@ -269,6 +269,7 @@ def generate_from_spider_alignment(filename, output, param_file, image_file, **e
     ''' 
     '''
     
+    img = ndimage_file.read_image(image_file)
     header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber,araOriginalrlnImageName".split(',')
     spider_params.read(param_file, extra)
     extra.update(spider_params.update_params(float(extra['window'])/img.shape[0], **extra))
@@ -287,7 +288,9 @@ def generate_from_spider_alignment(filename, output, param_file, image_file, **e
         if mic not in group_ids:
             group.append((defocus, numpy.sum(align[:, 17]==mic), len(label), mic))
             group_ids.add(mic)
-        label.append( ["%s@%s"%(str(int(id)).zfill(idlen), filename), str(mic), defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+        if spider_utility.is_spider_filename(image_file) and os.path.exists(spider_utility.spider_filename(image_file, mic)): 
+            image_file = spider_utility.spider_filename(image_file, mic)
+        label.append( ["%s@%s"%(str(int(id)).zfill(idlen), image_file), str(mic), defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
     
     if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
     _logger.debug("Regrouping")
