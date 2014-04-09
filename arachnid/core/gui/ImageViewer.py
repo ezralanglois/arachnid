@@ -18,7 +18,6 @@ import property
 from ..metadata import spider_utility
 from ..metadata import format
 from ..image import ndimage_utility
-from ..image import peakdetect_1d
 from ..image import ndimage_file
 from ..image import ndimage_interpolate
 from ..image import ndimage_filter
@@ -607,6 +606,7 @@ class MainWindow(QtGui.QMainWindow):
     def display_powerspectra_1D_old(self, img, fileid, pixel_size):
         '''
         '''
+        from ..image import peakdetect_1d
         
         if not plotting.is_available():
             _logger.warn("No matplotlib loaded")
