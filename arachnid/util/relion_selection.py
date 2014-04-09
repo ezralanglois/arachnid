@@ -343,7 +343,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
             header += ['araOriginalrlnImageName']
             group_ids=set()
             if reindex_file == "": raise ValueError, "A single stack requires --reindex-file"
-            logger.debug("Reading reindex file")
+            _logger.debug("Reading reindex file")
             stack_map, sheader = format.read(reindex_file, ndarray=True)
             mic_col = sheader.index('micrograph')
             id_col = sheader.index('id')
@@ -358,7 +358,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                     group_ids.add(mic)
                 label.append( ["%s@%s"%(str(id).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
         else:
-            _logger.debug("Generating selection file from many stacks")
+            _logger.debug("Generating selection file from many stacks: %d"%len(files))
             for filename in files:
                 mic = spider_utility.spider_id(filename)
                 if good_file != "":
