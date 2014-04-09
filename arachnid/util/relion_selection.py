@@ -335,12 +335,16 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
             header += ['araOriginalrlnImageName']
             group_ids=set()
             if reindex_file == "": raise ValueError, "A single stack requires --reindex-file"
-            stack_map, header = format.read(reindex_file, ndarray=True)
+            stack_map, sheader = format.read(reindex_file, ndarray=True)
+            mic_col = sheader.index('micrograph')
+            id_col = sheader.index('id')
+            stack_id_col = sheader.index('stack_id')
             filename=files[0]
-            for id, mic, part in stack_map:
+            for val in stack_map:
+                id, mic, part = val[id_col], val[mic_col], val[stack_id_col]
                 if mic not in defocus_dict: continue
                 if mic not in group_ids:
-                    group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, 1]==mic), len(label), mic))
+                    group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
                     group_ids.add(mic)
                 label.append( ["%s@%s"%(str(id).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
         else:
