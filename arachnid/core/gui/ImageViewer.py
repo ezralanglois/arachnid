@@ -432,18 +432,24 @@ class MainWindow(QtGui.QMainWindow):
                 pixel_size *= bin_factor
                 img = self.display_powerspectra_1D(img, imgname, pixel_size)
                 img = self.display_resolution(img, imgname, pixel_size)
-                assert(img.ndim==2)
                 img = self.box_particles(img, imgname)
                 if self.advanced_settings.mark_image:
                     imgm = self.imageMarker(img)
                     selimg = qimage_utility.numpy_to_qimage(imgm)
                 qimg = qimage_utility.numpy_to_qimage(img)
-                if self.base_level is not None:
+                if img.ndim == 2:
+                    if self.base_level is not None:
+                        qimg.setColorTable(self.color_level)
+                    else: 
+                        self.base_level = qimg.colorTable()
+                        self.color_level = qimage_utility.adjust_level(qimage_utility.change_contrast, self.base_level, self.ui.contrastSlider.value())
+                        qimg.setColorTable(self.color_level)
+                else:
+                    if self.base_level is None: self.base_level = []
+                    self.base_level.append(qimg.colorTable())
+                    self.color_level = qimage_utility.adjust_level(qimage_utility.change_contrast, self.base_level[-1], self.ui.contrastSlider.value())
                     qimg.setColorTable(self.color_level)
-                else: 
-                    self.base_level = qimg.colorTable()
-                    self.color_level = qimage_utility.adjust_level(qimage_utility.change_contrast, self.base_level, self.ui.contrastSlider.value())
-                    qimg.setColorTable(self.color_level)
+                    
             else:
                 qimg = img.convertToFormat(QtGui.QImage.Format_Indexed8)
                 if self.base_level is None: self.base_level = []
