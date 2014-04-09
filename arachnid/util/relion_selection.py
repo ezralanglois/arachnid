@@ -270,6 +270,8 @@ def generate_from_spider_alignment(filename, output, param_file, image_file, **e
     '''
     
     header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber,araOriginalrlnImageName".split(',')
+    spider_params.read(param_file, extra)
+    extra.update(spider_params.update_params(float(extra['window'])/img.shape[0], **extra))
     group=[]
     label=[]
     voltage, cs, ampcont=extra['voltage'], extra['cs'], extra['ampcont']
