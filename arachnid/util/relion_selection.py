@@ -1103,7 +1103,8 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
     idmap={}
     for v in vals:
         filename, index = relion_utility.relion_file(v.rlnImageName)
-        output = spider_utility.spider_filename(output, filename)
+        if spider_utility.is_spider_filename(filename):
+            output = spider_utility.spider_filename(output, filename)
         if filename not in idmap: idmap[filename]=0
         if not dry_run:
             img = ndimage_file.read_image(filename, index-1)
