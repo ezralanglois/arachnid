@@ -622,40 +622,41 @@ def initialize(files, param):
                 param['finished'].extend( selection_utility.select_file_subset(finished, select) )
             _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_file, len(files), file_count))
         
-        if isinstance(filename, tuple):
-            tot = len(filename[1])
-        else:
-            tot = ndimage_file.count_images(filename)
-        for filename in param['finished']:
-            if not ndimage_file.valid_image(filename):
-                files.append(filename)
-            elif tot > 1:
-                id = filename[0] if isinstance(filename, tuple) else filename
-                coord = read_coordinates(spiderid=id, **param)
-                align = format.read(param['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
-                ncoord=len(coord)
-                # Todo only add frames that require processing
-                param['output']=strip_frame_tag(param['output'])
-                for i in xrange(len(align)):
-                    frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id+1
-                    output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
-                    frame_stack = spider_utility.spider_filename(output, id, param['id_len'])
-                    if not os.path.exists(frame_stack):
-                        _logger.info("Found incomplete frame crop: %s"%(frame_stack))
-                        files.append(filename)
-                        break
-                    nimage = ndimage_file.count_images(frame_stack)
+        if not param['disable_complete_check']:
+            if isinstance(filename, tuple):
+                tot = len(filename[1])
+            else:
+                tot = ndimage_file.count_images(filename)
+            for filename in param['finished']:
+                if not ndimage_file.valid_image(filename):
+                    files.append(filename)
+                elif tot > 1:
+                    id = filename[0] if isinstance(filename, tuple) else filename
+                    coord = read_coordinates(spiderid=id, **param)
+                    align = format.read(param['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
+                    ncoord=len(coord)
+                    # Todo only add frames that require processing
+                    param['output']=strip_frame_tag(param['output'])
+                    for i in xrange(len(align)):
+                        frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id+1
+                        output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
+                        frame_stack = spider_utility.spider_filename(output, id, param['id_len'])
+                        if not os.path.exists(frame_stack):
+                            _logger.info("Found incomplete frame crop: %s"%(frame_stack))
+                            files.append(filename)
+                            break
+                        nimage = ndimage_file.count_images(frame_stack)
+                        if nimage != ncoord:
+                            _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
+                            files.append(filename)
+                            break
+                else:
+                    id = filename[0] if isinstance(filename, tuple) else filename
+                    ncoord = len(read_coordinates(spiderid=id, **param))
+                    nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], id, param['id_len']))
                     if nimage != ncoord:
                         _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
                         files.append(filename)
-                        break
-            else:
-                id = filename[0] if isinstance(filename, tuple) else filename
-                ncoord = len(read_coordinates(spiderid=id, **param))
-                nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], id, param['id_len']))
-                if nimage != ncoord:
-                    _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
-                    files.append(filename)
                
     files = mpi_utility.broadcast(files, **param)
     
@@ -748,6 +749,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", invert=False,             help="Invert the contrast on the micrograph (usually for raw CCD micrographs)")
     group.add_option("", noise="",                 help="Use specified noise file rather then automatically generate one", gui=dict(filetype="open"))
     group.add_option("", gain_file="",             help="Perform gain correction with given norm image", gui=dict(filetype="open"))
+    group.add_option("", disable_complete_check=False,             help="Disable checking for stack completeness")
     
     egroup = OptionGroup(parser, "Enhancement", "Enhancement for the windows")
     egroup.add_option("", disable_even=False,       help="Disable forcing windows to be even")

@@ -127,6 +127,7 @@ program architecture.
 '''
 from ..parallel import mpi_utility
 from ..metadata import spider_utility
+import tracing
 from progress import progress
 import multiprocessing
 import os
@@ -217,6 +218,7 @@ def main(files, module, **extra):
         _logger.debug("Setup progress monitor")
         monitor = progress(len(files))
     
+    tracing.backup(restart_file)
     restart_fout = open(restart_file, 'w') if restart_file is not None else None
     if restart_fout is not None:
         for f in finished:
@@ -249,7 +251,7 @@ def main(files, module, **extra):
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
 
-def check_dependencies(files, restart_file, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, **extra):
+def check_dependencies(files, restart_file, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, disable_restart_file=False, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
     output files. Note that this dependency checking is similar to the program `make`.
     
@@ -355,7 +357,7 @@ def check_dependencies(files, restart_file, infile_deps, outfile_deps, opt_chang
             _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))
             unfinished.append(filename)
             continue
-        elif restart_files is not None and fileid not in restart_files:
+        elif not disable_restart_file and restart_files is not None and fileid not in restart_files:
             _logger.debug("Adding: %s because it is not in the restart file"%(f))
             unfinished.append(filename)
             continue
@@ -392,6 +394,7 @@ def setup_options(parser, pgroup=None):
     group.add_option("-w", worker_count=0,    help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
     group.add_option("",   force=False,       help="Force the program to run from the start", dependent=False)
     group.add_option("",   restart_test=False,help="Test if the program will restart", dependent=False)
+    group.add_option("",   disable_restart_file=False,help="Disable restart file checking", dependent=False)
     pgroup.add_option_group(group)
 
 def check_options(options):
