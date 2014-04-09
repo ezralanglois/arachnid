@@ -352,7 +352,9 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
             _logger.debug("Generating relion entries")
             for val in stack_map:
                 id, mic, part = int(val[id_col]), val[mic_col], val[stack_id_col]
-                if mic not in defocus_dict: continue
+                if mic not in defocus_dict: 
+                    _logger.warn("Skipping: %s - not in defocus file"%str(mic))
+                    continue
                 if mic not in group_ids:
                     group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
                     group_ids.add(mic)
@@ -1101,6 +1103,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
     mask = ndimage_utility.model_disk(int(pixel_radius/2), img.shape)*-1+1
     new_vals = []
     idmap={}
+    numpy.seterr(all='raise')
     for v in vals:
         filename, index = relion_utility.relion_file(v.rlnImageName)
         if spider_utility.is_spider_filename(filename):
