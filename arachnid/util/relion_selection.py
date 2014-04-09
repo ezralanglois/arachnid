@@ -1259,7 +1259,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   remove_missing=False,            help="Test if image file exists and if not, remove from star file")
     group.add_option("",   mask_diameter=0.0,               help="Mask diameter for Relion (in Angstroms) - 0 mean uses particle_diameter from SPIDER params file")
     group.add_option("",   pad=3,                           help="Padding for image downsize")
-    group.add_option("",   bin_factor=1,                    help="Number of times to downsample SPIDER params file")
     
     pgroup.add_option_group(group)
     if main_option:
