@@ -652,6 +652,11 @@ def spider_filename(filename, id, idlen=0):
                      A new spider file name
     '''
     
+    
+    try: int(filename)
+    except: pass
+    else: return spider_id(id, idlen)
+    
     if filename.find('=') != -1:
         filename = filename.split('=', 1)[0]
     
