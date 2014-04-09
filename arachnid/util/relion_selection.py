@@ -1289,7 +1289,7 @@ def check_options(options, main_option=False):
     
     from ..core.app.settings import OptionValueError
     
-    if not format.is_readable(options.input_files[0]) and ndimage_file.is_readable(options.input_files[0]):
+    if ndimage_file.is_readable(options.input_files[0]): #and not format.is_readable(options.input_files[0]):
         if options.defocus_file == "": raise OptionValueError, "No defocus file specified"
         if options.param_file == "": raise OptionValueError, "No parameter file specified"
     
