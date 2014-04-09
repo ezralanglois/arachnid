@@ -701,18 +701,26 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
         _logger.info("Selecting good particles from: %s"%str(good_file))
         last=None
         subset=[]
-        for v in vals:
-            mic,pid1 = relion_utility.relion_id(v.rlnImageName)
-            if mic != last:
-                try:
-                    select_vals = set([s.id for s in format.read(good_file, spiderid=mic, numeric=True)])
-                except:
-                    if _logger.isEnabledFor(logging.DEBUG):
-                        _logger.exception("Error reading selection file")
-                    select_vals=set()
-                last=mic
-            if pid1 in select_vals:
-                subset.append(v)
+        if spider_utility.is_spider_filename(relion_utility.relion_file(vals[0].rlnImageName, True)):
+            for v in vals:
+                mic,pid1 = relion_utility.relion_id(v.rlnImageName)
+                if mic != last:
+                    try:
+                        select_vals = set([s.id for s in format.read(good_file, spiderid=mic, numeric=True)])
+                    except:
+                        if _logger.isEnabledFor(logging.DEBUG):
+                            _logger.exception("Error reading selection file")
+                        select_vals=set()
+                    last=mic
+                if pid1 in select_vals:
+                    subset.append(v)
+        else:
+            select_vals = set([s.id for s in format.read(good_file, spiderid=mic, numeric=True)])
+            for v in vals:
+                _,pid1 = relion_utility.relion_id(v.rlnImageName)
+                if pid1 in select_vals:
+                    subset.append(v)
+            
         _logger.info("Selected %d of %d"%(len(subset), len(vals)))
         if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good_file
     else: subset=vals
