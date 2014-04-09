@@ -356,7 +356,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                 if mic not in group_ids:
                     group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
                     group_ids.add(mic)
-                label.append( ["%s@%s"%(str(id).zfill(idlen), filename), str(mic), defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+                label.append( ["%s@%s"%(str(int(id)).zfill(idlen), filename), str(mic), defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
         else:
             _logger.debug("Generating selection file from many stacks: %d"%len(files))
             for filename in files:
