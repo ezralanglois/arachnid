@@ -1145,6 +1145,7 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
     filename, index = relion_utility.relion_file(vals[0].rlnImageName)
     img = ndimage_file.read_image(filename, index)
     mask = ndimage_utility.model_disk(int(pixel_radius/2), img.shape)*-1+1
+    assert(mask.sum()>0)
     new_vals = []
     idmap={}
     numpy.seterr(all='raise')
