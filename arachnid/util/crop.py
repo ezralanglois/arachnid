@@ -745,11 +745,11 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     group = OptionGroup(parser, "Cropping", "Options to crop particles from micrographs", id=__name__) #, gui=dict(root=True, stacked="prepComboBox"))
     
-    group.add_option("", single_stack=False,       help="Crop all files into a single stack")
-    group.add_option("", invert=False,             help="Invert the contrast on the micrograph (usually for raw CCD micrographs)")
-    group.add_option("", noise="",                 help="Use specified noise file rather then automatically generate one", gui=dict(filetype="open"))
-    group.add_option("", gain_file="",             help="Perform gain correction with given norm image", gui=dict(filetype="open"))
-    group.add_option("", disable_complete_check=False,             help="Disable checking for stack completeness")
+    group.add_option("", single_stack=False,            help="Crop all files into a single stack")
+    group.add_option("", invert=False,                  help="Invert the contrast on the micrograph (usually for raw CCD micrographs)")
+    group.add_option("", noise="",                      help="Use specified noise file rather then automatically generate one", gui=dict(filetype="open"))
+    group.add_option("", gain_file="",                  help="Perform gain correction with given norm image", gui=dict(filetype="open"))
+    group.add_option("", disable_complete_check=False,  help="Disable checking for stack completeness", dependent=False)
     
     egroup = OptionGroup(parser, "Enhancement", "Enhancement for the windows")
     egroup.add_option("", disable_even=False,       help="Disable forcing windows to be even")
