@@ -286,9 +286,9 @@ def generate_from_spider_alignment(filename, output, param_file, image_file, **e
     group_ids=set()
     idlen = len(str(len(align)))
     for val in align:
-        defocus = val[part_col]
+        defocus = val[defocus_col]
         mic = int(val[mic_col])
-        part = int(val[16])
+        part = int(val[part_col])
         id = int(val[id_col])
         if mic not in group_ids:
             group.append((defocus, numpy.sum(align[:, 17]==mic), len(label), mic))
