@@ -246,8 +246,14 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None, t
     '''
     
     leginondb;projectdb;password; # pyflakes hack
-    leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
-    projectdb = sqlalchemy.create_engine('mysql://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
+    #mysql+pyodbc://<username>:<password>@<dsnname>
+    try:
+        leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
+    except:
+        leginondb = sqlalchemy.create_engine('mysql+pyodbc://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
+        projectdb = sqlalchemy.create_engine('mysql+pyodbc://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
+    else:
+        projectdb = sqlalchemy.create_engine('mysql://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
     local_vars = locals()
     binds = dict([(v, local_vars[getattr(v, '__bind_key__')])for v in sys.modules[__name__].__dict__.values() if hasattr(v, '__bind_key__')])
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
