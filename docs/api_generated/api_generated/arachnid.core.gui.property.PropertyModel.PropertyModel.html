@@ -97,7 +97,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../users_guide.html">User&#8217;s Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../install.html">Install</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../install_franklab.html">Installation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../install_franklab.html#franklab">FrankLab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../install_franklab.html#franklab">FrankLab</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../install_franklab.html#latest-stable-build">Latest Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../install_franklab.html#latest-daily-build">Latest Daily Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../install_franklab.html#latest-accelerated-stable-build">Latest Accelerated Stable Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../install_franklab.html#latest-accelerated-daily-build">Latest Accelerated Daily Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../install_franklab.html#latest-bleeding-edge-build">Latest Bleeding Edge Build</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../attribution.html">Attribution</a><ul>
@@ -136,7 +143,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../install.html#anaconda">Anaconda</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../install.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../install.html#quick-start">Quick Start</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../install.html#first-install">First Install</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../install.html#update-to-latest">Update to Latest</a></li>
@@ -224,6 +230,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../manual.html">Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../manual.html#tutorials">Tutorials</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../manual.html#scripts">Scripts</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../manual.html#applications">Applications</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../man_generated/arachnid.app.align_frames.html">align_frames</a><ul>
@@ -314,6 +321,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../development.html#packaging-a-build-dependency">Packaging a build dependency</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../development.html#documentation-hack">Documentation Hack</a></li>
@@ -1489,7 +1497,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount">
-<tt class="descname">columnCount</tt><big>(</big><em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b99e0&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">columnCount</tt><big>(</big><em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb590698&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.columnCount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the number of columns - 2</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1760,7 +1768,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.index">
-<tt class="descname">index</tt><big>(</big><em>row</em>, <em>column</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b9a08&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.index" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">index</tt><big>(</big><em>row</em>, <em>column</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb5906c0&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the index of the item in the model specified by the given row, column and parent index</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1844,7 +1852,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth">
-<tt class="descname">maximumTextWidth</tt><big>(</big><em>fontMetric</em>, <em>indent</em>, <em>column=0</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b99b8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">maximumTextWidth</tt><big>(</big><em>fontMetric</em>, <em>indent</em>, <em>column=0</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb590670&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.maximumTextWidth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the maximum text with of a table column</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1985,7 +1993,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState">
-<tt class="descname">restoreState</tt><big>(</big><em>settings</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b9a58&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">restoreState</tt><big>(</big><em>settings</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb590710&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.restoreState" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restore the state of the properties in the tree</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2015,7 +2023,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount">
-<tt class="descname">rowCount</tt><big>(</big><em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b1d78&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">rowCount</tt><big>(</big><em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb58c9b8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.rowCount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the number of rows for the parent item</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2045,7 +2053,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.saveState">
-<tt class="descname">saveState</tt><big>(</big><em>settings</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b9a30&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.saveState" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">saveState</tt><big>(</big><em>settings</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb5906e8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.saveState" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save the state of the properties in the tree</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2217,7 +2225,7 @@ by the buddy item.</p>
 
 <dl class="method">
 <dt id="arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem">
-<tt class="descname">updateItem</tt><big>(</big><em>propertyObject</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xc7b1af8&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">updateItem</tt><big>(</big><em>propertyObject</em>, <em>parent=&lt;PySide.QtCore.QModelIndex(-1</em>, <em>-1</em>, <em>0x0</em>, <em>QObject(0x0) )  at 0xb58c738&gt;</em><big>)</big><a class="headerlink" href="#arachnid.core.gui.property.PropertyModel.PropertyModel.updateItem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update a property object in the tree</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

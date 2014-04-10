@@ -102,6 +102,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-daily-build">Latest Daily Build</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-accelerated-stable-build">Latest Accelerated Stable Build</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-accelerated-daily-build">Latest Accelerated Daily Build</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../install_franklab.html#latest-bleeding-edge-build">Latest Bleeding Edge Build</a></li>
 </ul>
 </li>
 </ul>
@@ -320,6 +321,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../development.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#stable-release">Stable Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../development.html#development-release-daily-build">Development Release (Daily Build)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development.html#packaging-a-build-dependency">Packaging a build dependency</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#documentation-hack">Documentation Hack</a></li>
@@ -1244,40 +1246,43 @@ by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filen
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>win <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Input raw window</dd>
+<dd><p class="first last">Input raw window</p>
+</dd>
 <dt>noise_win <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Noise window</dd>
+<dd><p class="first last">Noise window</p>
+</dd>
 <dt>norm_mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Disk mask with <cite>radius</cite> that keeps data outside the disk</dd>
+<dd><p class="first last">Disk mask with <cite>radius</cite> that keeps data outside the disk</p>
+</dd>
 <dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Disk mask with <cite>radius</cite> that keeps data inside the disk</dd>
+<dd><p class="first last">Disk mask with <cite>radius</cite> that keeps data inside the disk</p>
+</dd>
 <dt>clamp_window <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Number of standard deviations to replace extreme values using a Gaussian distribution</dd>
+<dd><p class="first last">Number of standard deviations to replace extreme values using a Gaussian distribution</p>
+</dd>
 <dt>disable_enhance <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Disable all enhancement</dd>
+<dd><p class="first last">Disable all enhancement</p>
+</dd>
 <dt>disable_normalize <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Disable normalization</dd>
+<dd><p class="first last">Disable normalization</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>win <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Enhanced window</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>win <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Enhanced window</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1309,14 +1314,15 @@ by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filen
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>flags <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Supported features</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>flags <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Supported features</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1335,38 +1341,40 @@ by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filen
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input micrograph filename</dd>
+<dd><p class="first last">Input micrograph filename</p>
+</dd>
 <dt>noise <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename for existing noise window</dd>
+<dd><p class="first last">Input filename for existing noise window</p>
+</dd>
 <dt>output <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Output filename for window stacks</dd>
+<dd><p class="first last">Output filename for window stacks</p>
+</dd>
 <dt>noise_stack <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True, write out full noise stack rather than single window</dd>
+<dd><p class="first last">If True, write out full noise stack rather than single window</p>
+</dd>
 <dt>window <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Size of the window in pixels</dd>
+<dd><p class="first last">Size of the window in pixels</p>
+</dd>
 <dt>pixel_diameter <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Diameter of particle in pixels</dd>
+<dd><p class="first last">Diameter of particle in pixels</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>noise_win <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Noise window</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>noise_win <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Noise window</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1425,36 +1433,37 @@ coordinate file and write particles to an image stack.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Input filename</dd>
+<dd><p class="first last">Input filename</p>
+</dd>
 <dt>id_len <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Maximum length of ID</dd>
+<dd><p class="first last">Maximum length of ID</p>
+</dd>
 <dt>frame_beg <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>First frame to crop</dd>
+<dd><p class="first last">First frame to crop</p>
+</dd>
 <dt>frame_end <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>List frame to crop</dd>
+<dd><p class="first last">List frame to crop</p>
+</dd>
 <dt>single_stack <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>Write windows to a single stack</dd>
+<dd><p class="first last">Write windows to a single stack</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Current filename</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>val <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>Current filename</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1467,36 +1476,34 @@ coordinate file and write particles to an image stack.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.crop.read_coordinates">
-<tt class="descname">read_coordinates</tt><big>(</big><em>coordinate_file</em>, <em>good_file=''</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.crop.read_coordinates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read_coordinates</tt><big>(</big><em>coordinate_file</em>, <em>good_file=''</em>, <em>spiderid=None</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.crop.read_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a coordinate file (use <cite>good_file</cite> to select a subset if specified)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>coordinate_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Filename for input coordinate file</dd>
+<dd><p class="first last">Filename for input coordinate file</p>
+</dd>
 <dt>good_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Filename for input selection file</dd>
+<dd><p class="first last">Filename for input selection file</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>coords <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of coordinates (namedtuple)</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>coords <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of coordinates (namedtuple)</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1515,42 +1522,46 @@ coordinate file and write particles to an image stack.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Filename for micrograph</dd>
+<dd><p class="first last">Filename for micrograph</p>
+</dd>
 <dt>index <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Index of micrograph in stack</dd>
+<dd><p class="first last">Index of micrograph in stack</p>
+</dd>
 <dt>bin_factor <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Downsampling factor</dd>
+<dd><p class="first last">Downsampling factor</p>
+</dd>
 <dt>sigma <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Gaussian highpass filtering factor (sigma/window)</dd>
+<dd><p class="first last">Gaussian highpass filtering factor (sigma/window)</p>
+</dd>
 <dt>disable_bin <span class="classifier-delimiter">:</span> <span class="classifier">bool    </span></dt>
-<dd>If True, do not downsample the micrograph</dd>
+<dd><p class="first last">If True, do not downsample the micrograph</p>
+</dd>
 <dt>invert <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>If True, invert the contrast of the micrograph (CCD Data)</dd>
+<dd><p class="first last">If True, invert the contrast of the micrograph (CCD Data)</p>
+</dd>
 <dt>window <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>Size of the window in pixels</dd>
+<dd><p class="first last">Size of the window in pixels</p>
+</dd>
 <dt>gain <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Gain correction/normalization image</dd>
+<dd><p class="first last">Gain correction/normalization image</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused extra keyword arguments</dd>
+<dd><p class="first last">Unused extra keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>mic <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Micrograph image</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>mic <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
-<dd>Micrograph image</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1595,28 +1606,25 @@ coordinate file and write particles to an image stack.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt>files <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of filenames to test</dd>
+<dd><p class="first last">List of filenames to test</p>
+</dd>
 <dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Unused keyword arguments</dd>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>flag <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if this module should be added to the workflow</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>flag <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd>True if this module should be added to the workflow</dd>
-</dl>
 </dd></dl>
 
 </div>
