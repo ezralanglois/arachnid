@@ -303,7 +303,7 @@ setup_package(entry_points = {
         'mpi4py',
         'matplotlib',
         'sqlalchemy', 
-        'mysql-python',
+        'pyodbc', # changed from MySQL-Python to support Anaconda on Mac OSX
         'pil',
         'basemap',
         'setuptools', #distribute
