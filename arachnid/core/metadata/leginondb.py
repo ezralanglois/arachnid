@@ -220,6 +220,28 @@ def query_session_info(username, password, leginondb, projectdb, session):
     if len(rs) > 0: return [rs[0]]
     return []
 
+def pyodbc_leginon_db(**extra):
+    '''
+    '''
+    import urllib
+    
+    return urllib.quote_plus("DRIVER={FreeTDS};"+'''
+    SERVER={leginondb};
+    DATABASE=MyDatabase;UID={username};PWD={password};port=13306;
+    TDS_Version=8.0;
+    '''.format(**extra))
+
+def pyodbc_project_db(**extra):
+    '''
+    '''
+    import urllib
+    
+    return urllib.quote_plus("DRIVER={FreeTDS};"+'''
+    SERVER={projectdb};
+    DATABASE=MyDatabase;UID={username};PWD={password};port=13306;
+    TDS_Version=8.0;
+    '''.format(**extra))
+
 def query_user_info(username, password, leginondb, projectdb, targetuser=None, targetpass=None):
     ''' Get the user relational object to access the Leginon
     
@@ -250,8 +272,11 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None, t
     try:
         leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
     except:
-        leginondb = sqlalchemy.create_engine('mysql+pyodbc://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
-        projectdb = sqlalchemy.create_engine('mysql+pyodbc://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
+        leginondb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_leginon_db(**locals()))
+        projectdb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_project_db(**locals()))
+        # Known bug!
+        #leginondb = sqlalchemy.create_engine('mysql+pyodbc://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
+        #projectdb = sqlalchemy.create_engine('mysql+pyodbc://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
     else:
         projectdb = sqlalchemy.create_engine('mysql://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
     local_vars = locals()
