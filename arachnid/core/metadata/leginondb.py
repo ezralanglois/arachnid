@@ -202,8 +202,13 @@ def query_session_info(username, password, leginondb, projectdb, session):
     '''
     
     leginondb;projectdb;password; # pyflakes hack
-    leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
-    projectdb = sqlalchemy.create_engine('mysql://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
+    try:
+        leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
+    except:
+        leginondb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_leginon_db(**locals()))
+        projectdb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_project_db(**locals()))
+    else:
+        projectdb = sqlalchemy.create_engine('mysql://{username}:{password}@{projectdb}'.format(**locals()), echo=False, echo_pool=False)
     local_vars = locals()
     binds = dict([(v, local_vars[getattr(v, '__bind_key__')])for v in sys.modules[__name__].__dict__.values() if hasattr(v, '__bind_key__')])
     SessionDB = sessionmaker(autocommit=False,autoflush=False)
