@@ -381,7 +381,7 @@ class MainWindow(QtGui.QMainWindow):
         self.imageListModel.clear()
         index, start=self.imageSubset(self.ui.pageSpinBox.value()-1, self.ui.imageCountSpinBox.value())
         if len(index) == 0:
-            _logger.info("start: %d"%int(start))
+            _logger.info("start: %s"%str(start))
             _logger.info("Page Spinbox: %d"%self.ui.pageSpinBox.value())
             _logger.info("Image Count Spinbox: %d"%self.ui.imageCountSpinBox.value())
             _logger.info("Files: %d"%len(self.files))
