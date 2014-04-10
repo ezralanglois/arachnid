@@ -717,10 +717,15 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
              Subset of good particles
     '''
     
+    
+    
     old_vals = vals
     vals = []
     old_max=(1e20, -1e20)
     new_max=(1e20, -1e20)
+    if len(old_vals) > 0 and not hasattr(old_vals[0], 'rlnDefocusU'):
+        _logger.error("Invalid header: %s"%str(old_vals[0]._fields))
+        raise ValueError, "Not a valid relion seleciton file"
     for v in old_vals:
         if v.rlnDefocusU < max_defocus and v.rlnDefocusU > min_defocus:
             vals.append(v)
