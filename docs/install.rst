@@ -25,6 +25,15 @@ Quick Start
 
 This section covers the installation and updating of Arachind. 
 
+.. note::
+
+	Mac OSX users: You must install arachnid-dev.
+	For the install script this requires: sh install.sh dev
+	
+	Then you have one additional step:
+	
+	easy_install mysql-python
+
 First Install
 ~~~~~~~~~~~~~
 
