@@ -198,6 +198,7 @@ import arachnid.distutils.check_dep
 
 import os
 import arachnid.setup
+import sys
 
 # QT UI support: https://bitbucket.org/jbmohler/qtviews/src/ead44bd27b38/setup.py
 
@@ -287,6 +288,8 @@ def setup_package(**extra):
         from numpy.distutils.core import setup
         setup(**extra)
 
+other_requires= [] if sys.platform == 'darwin' else ['mysql-python'] 
+
 kwargs = build_description(arachnid)
 setup_package(entry_points = {
         'console_scripts': arachnid.setup.console_scripts,
@@ -303,12 +306,12 @@ setup_package(entry_points = {
         'mpi4py',
         'matplotlib',
         'sqlalchemy', 
-        'pyodbc', # changed from MySQL-Python to support Anaconda on Mac OSX
+        #'mysql-python', # changed from MySQL-Python to support Anaconda on Mac OSX
         'pil',
         'basemap',
         'setuptools', #distribute
         #'PySide',
-        ],
+        ] + other_requires,
         #extras_require = dict(pyside="PySide"), #[pyside]
         #setup_requires = [ - causes conda build to fail
         #'Sphinx>=1.0.4',
