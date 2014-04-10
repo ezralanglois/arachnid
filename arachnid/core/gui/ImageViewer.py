@@ -380,6 +380,11 @@ class MainWindow(QtGui.QMainWindow):
         if len(self.files) == 0: return
         self.imageListModel.clear()
         index, start=self.imageSubset(self.ui.pageSpinBox.value()-1, self.ui.imageCountSpinBox.value())
+        if len(index) == 0:
+            _logger.info("Page Spinbox: %d"%self.ui.pageSpinBox.value())
+            _logger.info("Image Count Spinbox: %d"%self.ui.imageCountSpinBox.value())
+            _logger.info("File Index: %d"%len(self.file_index))
+            index, start=self.imageSubset(0, 1)
         bin_factor = self.ui.decimateSpinBox.value()
         nstd = self.ui.clampDoubleSpinBox.value()
         img = None
