@@ -1,5 +1,3 @@
-#!/bin/bash
-
 base=`dirname $RECIPE_DIR`
 base=`dirname $base`
 cp -r $base .

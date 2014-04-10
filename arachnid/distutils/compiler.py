@@ -34,6 +34,7 @@ def fcompiler_options():
     from numpy.distutils.fcompiler import new_fcompiler
     from numpy.distutils.fcompiler.pg import PGroupFCompiler
     from numpy.distutils.fcompiler.gnu import GnuFCompiler
+    import sys
     fcompiler = new_fcompiler()
     
     if issubclass(fcompiler.__class__, PGroupFCompiler):
@@ -52,6 +53,8 @@ def fcompiler_options():
         compiler_defs = [('USE_OPENMP', None)] if openmp_enabled else []
     else:
         raise ValueError, "Fortran compiler not supported: %s"%fcompiler.__class__.__name__
+    if sys.platform=='darwin':
+        compiler_args.extend(['-undefined dynamic_lookup', '-bundle'])
     return compiler_args, compiler_libraries, compiler_defs
 
 def compiler_options():

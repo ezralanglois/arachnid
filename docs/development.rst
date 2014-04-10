@@ -297,6 +297,34 @@ Development Release (Daily Build)
 	The accelerate (aka MKL) releases can be done the same way
 	except its `conda-recipes/daily-mkl`.
 
+Packaging a build dependency
+----------------------------
+
+Arachnid has two build dependencies:
+
+#. arachnid-build
+
+	.. sourcecode:: sh
+	
+		conda package -r
+		cp /Applications/spider/fftw/fftw3-osx-64/.libs/libfftw3f.a ~/miniconda/lib/
+		conda package --pkg-name=arachnid-build --pkg-version=1.0
+		binstar upload arachnid-build-1.0-0.tar.bz2
+
+#. arachnid-spider
+
+	.. sourcecode:: sh
+	
+		conda package -r
+		cp  /Users/robertlanglois/workspace//spiderweb.21.02/spider/bin/spider_osx_* ~/miniconda/bin/
+		conda package --pkg-name=arachnid-spider --pkg-version=21.00
+		binstar upload arachnid-spider-21.00-0.tar.bz2
+
+.. note::
+
+	On Mac OSX, you need an "apple compliant" compiler installed. The SciPy site
+	has some suggestions: http://www.scipy.org/scipylib/building/macosx.html.
+
 
 Documentation Hack
 ==================
