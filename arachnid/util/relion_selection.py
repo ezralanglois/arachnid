@@ -770,7 +770,11 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                 select=[s.id for s in format.read(good_file, numeric=True)]
                 _logger.info("Select: %d == %d"%(len(select), len(set(select))))
                 for s in select:
-                    v = vals[s-1]
+                    try:
+                        v = vals[s-1]
+                    except:
+                        _logger.error("%d > %d"%(s-1, len(vals)))
+                        raise
                     _,pid1 = relion_utility.relion_id(v.rlnImageName)
                     if pid1 != s:
                         _logger.error("%d != %d"%(pid1, s))
