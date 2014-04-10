@@ -381,13 +381,6 @@ class MainWindow(QtGui.QMainWindow):
         self.imageListModel.clear()
         index, start=self.imageSubset(self.ui.pageSpinBox.value()-1, self.ui.imageCountSpinBox.value())
         if len(index) == 0:
-            _logger.info("start: %s"%str(start))
-            _logger.info("Page Spinbox: %d"%self.ui.pageSpinBox.value())
-            _logger.info("Image Count Spinbox: %d"%self.ui.imageCountSpinBox.value())
-            _logger.info("Files: %d"%len(self.files))
-            _logger.info("File Index: %d"%len(self.file_index))
-            _logger.info("Average: %d"%int(hasattr(self.advanced_settings, 'average') and self.advanced_settings.average))
-            
             self.ui.pageSpinBox.blockSignals(True)
             self.ui.pageSpinBox.setValue(0)
             self.ui.pageSpinBox.blockSignals(False)
@@ -395,7 +388,6 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.imageCountSpinBox.setValue(1)
             self.ui.imageCountSpinBox.blockSignals(False)
             index, start=self.imageSubset(0, 1)
-            assert(len(index)>0)
         bin_factor = self.ui.decimateSpinBox.value()
         nstd = self.ui.clampDoubleSpinBox.value()
         img = None

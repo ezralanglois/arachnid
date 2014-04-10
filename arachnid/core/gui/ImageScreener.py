@@ -225,10 +225,14 @@ class MainWindow(ImageViewerWindow):
         
         if self.advanced_settings.show_images == 'Selected':
             idx = numpy.argwhere(self.file_index[:, 2]>0)
-            return self.file_index[idx[index*count:(index+1)*count].squeeze()],idx[index*count:]
+            index = self.file_index[idx[index*count:(index+1)*count].squeeze()]
+            if len(index) == 0: self.advanced_settings.show_images='All'
+            else: return index,idx[index*count:]
         elif self.advanced_settings.show_images == 'Unselected':
             idx = numpy.argwhere(self.file_index[:, 2]==0)
-            return self.file_index[idx[index*count:(index+1)*count].squeeze()],idx[index*count:]
+            index = self.file_index[idx[index*count:(index+1)*count].squeeze()]
+            if len(index) == 0: self.advanced_settings.show_images='All'
+            else: return index,idx[index*count:]
         return ImageViewerWindow.imageSubset(self, index, count)
     
     def imageTotal(self):
