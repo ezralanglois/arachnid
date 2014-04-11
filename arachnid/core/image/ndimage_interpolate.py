@@ -41,7 +41,7 @@ except:
     #_logger.exception("problem")
     tracing.log_import_error('Failed to load _spider_interpolate.so module', _logger)
 
-def resample_offsets(ishape, shape, axis=None):
+def resample_offsets(ishape, shape, axis=None, pad=None):
     '''
     '''
     
@@ -50,7 +50,8 @@ def resample_offsets(ishape, shape, axis=None):
     if not hasattr(shape, 'ndim'):
         if hasattr(shape, '__len__'): shape = (int(shape[0]), int(shape[1]), int(shape[2])) if len(ishape) == 3 else (int(shape[0]), int(shape[1]))
         else: shape = (int(ishape[0]/shape), int(ishape[1]/shape), int(ishape[2]/shape)) if len(ishape) == 3 else (int(ishape[0]/shape), int(ishape[1]/shape))
-    
+    ishape = numpy.asarray(ishape)*pad
+    shape = numpy.asarray(shape)*pad
     if axis is None:
         iy, oy = resample_offsets(ishape, shape, 0)
         ix, ox = resample_offsets(ishape, shape, 1)
@@ -98,7 +99,7 @@ def resample_fft(img, out, is_fft=False, offsets=None, pad=None):
     if not is_fft: 
         if pad is not None and pad > 1:
             img = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
-            out[:] = ndimage_filter.depad_image(img, shape)
+            out[:] = ndimage_filter.depad_image(img, out.shape)
         else:
             out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
         return out

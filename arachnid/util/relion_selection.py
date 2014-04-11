@@ -766,19 +766,11 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                 if pid1 in select_vals:
                     subset.append(v)
         else:
-            if 1==1:
-                select_vals = set([s.id for s in format.read(good_file, numeric=True)])
-                _logger.info("Unique selections: %d"%len(select_vals))
-                for s in select_vals:
-                    v = vals[s-1]
-                    assert(relion_utility.relion_id(v.rlnImageName)[1]==s)
+            select_vals = set([s.id for s in format.read(good_file, numeric=True)])
+            for v in vals:
+                _,pid1 = relion_utility.relion_id(v.rlnImageName)
+                if pid1 in select_vals:
                     subset.append(v)
-            else:
-                select_vals = set([s.id for s in format.read(good_file, numeric=True)])
-                for v in vals:
-                    _,pid1 = relion_utility.relion_id(v.rlnImageName)
-                    if pid1 in select_vals:
-                        subset.append(v)
             
         _logger.info("Selected %d of %d"%(len(subset), len(vals)))
         if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good_file
@@ -1220,7 +1212,7 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     
     mask = None
     #ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
-    ds_kernel = ndimage_interpolate.resample_offsets(img, downsample) if downsample > 1.0 else None
+    ds_kernel = ndimage_interpolate.resample_offsets(img, downsample, pad=pad) if downsample > 1.0 else None
     filename = relion_utility.relion_file(vals[0].rlnImageName, True)
     if phase_flip:
         output = os.path.join(os.path.dirname(filename)+"_flipped_%.2f"%downsample, os.path.basename(filename))
