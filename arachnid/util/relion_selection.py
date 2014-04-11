@@ -1214,10 +1214,12 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     #ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
     ds_kernel = ndimage_interpolate.resample_offsets(img, downsample, pad=pad) if downsample > 1.0 else None
     filename = relion_utility.relion_file(vals[0].rlnImageName, True)
+    base = os.path.dirname(filename)
+    if base == "": base='win'
     if phase_flip:
-        output = os.path.join(os.path.dirname(filename)+"_flipped_%.2f"%downsample, os.path.basename(filename))
+        output = os.path.join(base+"_flipped_%.2f"%downsample, os.path.basename(filename))
     else:
-        output = os.path.join(os.path.dirname(filename)+"_%.2f"%downsample, os.path.basename(filename))
+        output = os.path.join(base+"_%.2f"%downsample, os.path.basename(filename))
     oindex = {}
     
     try: os.makedirs(os.path.dirname(output))
@@ -1249,7 +1251,8 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
         ndimage_utility.normalize_standard(img, mask, out=img)
         if filename not in oindex: oindex[filename]=0
         oindex[filename] += 1
-        output = spider_utility.spider_filename(output, filename)
+        if spider_utility.is_spider_filename(output) and spider_utility.is_spider_filename(filename):
+            output = spider_utility.spider_filename(output, filename)
         ndimage_file.write_image(output, img, oindex[filename]-1, header=dict(apix=apix))
         vals[i] = vals[i]._replace(rlnImageName=relion_utility.relion_identifier(output, oindex[filename]))
     _logger.info("Stack preprocessing finished")
