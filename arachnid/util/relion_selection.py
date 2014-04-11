@@ -766,11 +766,18 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
                 if pid1 in select_vals:
                     subset.append(v)
         else:
-            select_vals = set([s.id for s in format.read(good_file, numeric=True)])
-            for v in vals:
-                _,pid1 = relion_utility.relion_id(v.rlnImageName)
-                if pid1 in select_vals:
+            if 1==1:
+                select_vals = set([s.id for s in format.read(good_file, numeric=True)])
+                for s in select_vals:
+                    v = vals[s.id-1]
+                    assert(relion_utility.relion_id(v.rlnImageName)[1]==s.id)
                     subset.append(v)
+            else:
+                select_vals = set([s.id for s in format.read(good_file, numeric=True)])
+                for v in vals:
+                    _,pid1 = relion_utility.relion_id(v.rlnImageName)
+                    if pid1 in select_vals:
+                        subset.append(v)
             
         _logger.info("Selected %d of %d"%(len(subset), len(vals)))
         if len(subset) == 0: raise ValueError, "Nothing selected from %s"%good_file
