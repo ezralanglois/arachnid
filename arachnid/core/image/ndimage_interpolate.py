@@ -46,16 +46,13 @@ def resample_offsets(ishape, shape, axis=None, pad=None):
     '''
     
     if hasattr(ishape, 'shape'): ishape=ishape.shape
-    
     if not hasattr(shape, 'ndim'):
         if hasattr(shape, '__len__'): shape = (int(shape[0]), int(shape[1]), int(shape[2])) if len(ishape) == 3 else (int(shape[0]), int(shape[1]))
         else: shape = (int(ishape[0]/shape), int(ishape[1]/shape), int(ishape[2]/shape)) if len(ishape) == 3 else (int(ishape[0]/shape), int(ishape[1]/shape))
     else: shape=shape.shape
     if pad is not None:
-        ishape = numpy.asarray(ishape)*pad
-        shape = numpy.asarray(shape)*pad
-    assert(len(shape) >= 2)
-    assert(len(ishape) >= 2)
+        ishape = tuple(numpy.asarray(ishape)*pad)
+        shape = tuple(numpy.asarray(shape)*pad)
     if axis is None:
         iy, oy = resample_offsets(ishape, shape, 0, None)
         ix, ox = resample_offsets(ishape, shape, 1, None)
@@ -96,7 +93,10 @@ def resample_fft(img, out, is_fft=False, offsets=None, pad=None):
     else:
         ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = offsets
     
-    fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
+    if pad is not None:
+        fout = numpy.zeros(tuple(numpy.asarray(out.shape)*pad), dtype=img.dtype)
+    else:
+        fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
     fout[y_out_idx, x_out_idx[:, numpy.newaxis]] = img[y_img_idx, x_img_idx[:, numpy.newaxis]].squeeze()
     fout[:]=scipy.fftpack.ifftshift(fout)
     
