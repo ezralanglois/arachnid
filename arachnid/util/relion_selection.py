@@ -768,6 +768,7 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
         else:
             if 1==1:
                 select_vals = set([s.id for s in format.read(good_file, numeric=True)])
+                _logger.info("Unique selections: %d"%len(select_vals))
                 for s in select_vals:
                     v = vals[s-1]
                     assert(relion_utility.relion_id(v.rlnImageName)[1]==s)
