@@ -50,11 +50,12 @@ def resample_offsets(ishape, shape, axis=None, pad=None):
     if not hasattr(shape, 'ndim'):
         if hasattr(shape, '__len__'): shape = (int(shape[0]), int(shape[1]), int(shape[2])) if len(ishape) == 3 else (int(shape[0]), int(shape[1]))
         else: shape = (int(ishape[0]/shape), int(ishape[1]/shape), int(ishape[2]/shape)) if len(ishape) == 3 else (int(ishape[0]/shape), int(ishape[1]/shape))
-    ishape = numpy.asarray(ishape)*pad
-    shape = numpy.asarray(shape)*pad
+    if pad is not None:
+        ishape = numpy.asarray(ishape)*pad
+        shape = numpy.asarray(shape)*pad
     if axis is None:
-        iy, oy = resample_offsets(ishape, shape, 0)
-        ix, ox = resample_offsets(ishape, shape, 1)
+        iy, oy = resample_offsets(ishape, shape, 0, pad)
+        ix, ox = resample_offsets(ishape, shape, 1, pad)
         return ((iy, ix), (oy, ox))
 
     i_range = numpy.arange(0, min(ishape[axis], shape[axis]), dtype=numpy.int)
