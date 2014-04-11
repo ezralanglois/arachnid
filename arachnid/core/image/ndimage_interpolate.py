@@ -54,8 +54,8 @@ def resample_offsets(ishape, shape, axis=None, pad=None):
         ishape = numpy.asarray(ishape)*pad
         shape = numpy.asarray(shape)*pad
     if axis is None:
-        iy, oy = resample_offsets(ishape, shape, 0, pad)
-        ix, ox = resample_offsets(ishape, shape, 1, pad)
+        iy, oy = resample_offsets(ishape, shape, 0, None)
+        ix, ox = resample_offsets(ishape, shape, 1, None)
         return ((iy, ix), (oy, ox))
 
     i_range = numpy.arange(0, min(ishape[axis], shape[axis]), dtype=numpy.int)
