@@ -737,7 +737,8 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, r
     _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
     
-    if remove_bad:    
+    if remove_bad:  
+        param_file=extra['param_file']  
         if param_file == "": raise ValueError, "Requires --apix or --params-file"
         spider_params.read(param_file, extra) 
         apix = extra['apix']
