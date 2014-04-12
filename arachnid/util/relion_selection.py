@@ -684,7 +684,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
+def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, remove_bad=False, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -737,6 +737,25 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, column="r
     _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
     
+    if remove_bad:    
+        if param_file == "": raise ValueError, "Requires --apix or --params-file"
+        spider_params.read(param_file, extra) 
+        apix = extra['apix']
+        pixel_diameter = int(float(extra['pixel_diameter'])/apix)
+        filename, index = relion_utility.relion_file(vals[0].rlnImageName)
+        img = ndimage_file.read_image(filename, index)
+        mask = ndimage_utility.model_disk(int(pixel_diameter/2), img.shape)*-1+1
+        old_vals = vals
+        vals = []
+        missing=set()
+        for v in old_vals:
+            filename, index = relion_utility.relion_file(v.rlnImageName)
+            img = ndimage_file.read_image(filename, index-1)
+            if img.max()==img.min() or img[mask].max()==img[mask].min():
+                missing.add(relion_utility.relion_file(v.rlnImageName, True))
+            else:
+                vals.append(v)
+        _logger.warn("Removed %d image stacks"%len(missing))
     if remove_missing:
         old_vals = vals
         vals = []
@@ -1350,6 +1369,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   mask_diameter=0.0,               help="Mask diameter for Relion (in Angstroms) - 0 mean uses particle_diameter from SPIDER params file")
     group.add_option("",   pad=3,                           help="Padding for image downsize")
     group.add_option("",   image_file="",                   help="Image filename template", gui=dict(filetype="open"))
+    group.add_option("",   remove_bad=False,                help="Remove bad images")
     
     pgroup.add_option_group(group)
     if main_option:
