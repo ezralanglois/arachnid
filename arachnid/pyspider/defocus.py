@@ -189,6 +189,10 @@ def process(filename, output, id_len=0, skip_defocus=False, **extra):
     spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
     _logger.debug("create power spec")
     ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
+    
+    if not ndimage_file.valid_image(extra['spi'].replace_ext(filename)):
+        _logger.warn("Skipping %s - invalid image"%(filename))
+        return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
     try:
         power_spec, powm = create_powerspectra(filename, **extra)
     except ndimage_file.InvalidHeaderException:
