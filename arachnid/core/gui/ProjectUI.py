@@ -565,7 +565,7 @@ class MainWindow(QtGui.QWizard):
         '''
         '''
         
-        return self.gain_files[0] if len(self.gain_files) > 0 else ""
+        return self.gain_files[-1] if len(self.gain_files) > 0 else ""
     
     @gainFile.setter
     def setGainFile(self, val):
