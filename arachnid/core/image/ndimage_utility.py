@@ -1168,8 +1168,9 @@ def pad_image(img, shape, fill=0.0, out=None):
           Padded image
     '''
     
-    cx = int((shape[0]-img.shape[0])/2)
-    cy = int((shape[1]-img.shape[1])/2)
+    shape = tuple(numpy.asarray(shape, dtype=numpy.int))
+    cx = (shape[0]-img.shape[0])/2
+    cy = (shape[1]-img.shape[1])/2
     if out is None: 
         if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
         out = numpy.zeros(shape, dtype=img.dtype)
