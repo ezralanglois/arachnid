@@ -127,6 +127,7 @@ def valid_image(filename):
     '''
     
     filename = readlinkabs(filename)
+    if os.path.getsize(filename) == 0: return False
     try:
         format = get_read_format_except(filename)
     except: return False
