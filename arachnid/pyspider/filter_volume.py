@@ -211,7 +211,7 @@ def filter_volume_lowpass(filename, spi, sp, filter_type=2, fermi_temp=0.0025, b
     
     if int(filter_type) == 4:
         try:
-            from skimage.filte import rdenoise_tv_chambolle as tv_denoise  #@UnresolvedImport
+            from skimage.filter import denoise_tv_chambolle as tv_denoise  #@UnresolvedImport
             tv_denoise;
         except:
             from skimage.filter import tv_denoise  #@UnresolvedImport
