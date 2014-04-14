@@ -737,8 +737,7 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, r
     _logger.info("Truncated Defocus Range: %f, %f"%new_max)
     if len(vals) == 0: raise ValueError, "Nothing selected from defocus range %f - %f"%(min_defocus, max_defocus)
     
-    if remove_bad:  
-        param_file=extra['param_file']  
+    if remove_bad:    
         if param_file == "": raise ValueError, "Requires --apix or --params-file"
         spider_params.read(param_file, extra) 
         apix = extra['apix']
@@ -1231,8 +1230,8 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
     img = ndimage_file.read_image(filename)
     
     mask = None
-    #ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
-    ds_kernel = ndimage_interpolate.resample_offsets(img, downsample, pad=pad) if downsample > 1.0 else None
+    ds_kernel = ndimage_interpolate.sincblackman(downsample, dtype=numpy.float32) if downsample > 1.0 else None
+    #ds_kernel = ndimage_interpolate.resample_offsets(img, downsample, pad=pad) if downsample > 1.0 else None
     filename = relion_utility.relion_file(vals[0].rlnImageName, True)
     base = os.path.dirname(filename)
     if base == "": base='win'
@@ -1265,8 +1264,8 @@ def downsample_images(vals, downsample=1.0, param_file="", phase_flip=False, api
             ctfimg = ctf_correct.phase_flip_transfer_function(img.shape, v.rlnDefocusU, **extra)
             img = ctf_correct.correct(img, ctfimg).copy()
         if ds_kernel is not None:
-            #img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
-            img = ndimage_interpolate.resample_fft(img, downsample, offsets=ds_kernel, pad=pad)
+            img = ndimage_interpolate.downsample(img, downsample, ds_kernel)
+            #img = ndimage_interpolate.resample_fft(img, downsample, offsets=ds_kernel, pad=pad) # bug - not sure what
         if mask is None: mask = ndimage_utility.model_disk(pixel_radius, img.shape)
         ndimage_utility.normalize_standard(img, mask, out=img)
         if filename not in oindex: oindex[filename]=0
