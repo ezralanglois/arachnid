@@ -204,12 +204,12 @@ def polar_simple(img, radius=None, angle=360.0):
     
     if radius is None: radius = img.shape[0]/2-1
     img = img.astype(numpy.float)
-    cx, cy = round(img.shape[0]/2.0), round(img.shape[1]/2.0)
+    cx, cy = int(round(img.shape[0]/2.0)), int(round(img.shape[1]/2.0))
     angles = numpy.arange(0, 2.0*numpy.pi-2.0*numpy.pi/angle, 2.0*numpy.pi/angle)
     out = numpy.zeros((radius, len(angles)))
     for r in xrange(radius):
         for j, a in enumerate(angles):
-            rc, rs = cx+round(r*numpy.sin(a)), cy+round(r*numpy.cos(a))
+            rc, rs = int(cx+round(r*numpy.sin(a))), int(cy+round(r*numpy.cos(a)))
             if rc < out.shape[0] and rs < out.shape[1]:
                 out[r, j] = img[rc, rs]
     return out
@@ -1143,8 +1143,8 @@ def depad_image(img, shape, out=None):
     if out is None: 
         if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
         out = numpy.zeros(shape)
-    cx = (img.shape[0]-shape[0])/2
-    cy = (img.shape[1]-shape[1])/2
+    cx = int(img.shape[0]-shape[0])/2
+    cy = int(img.shape[1]-shape[1])/2
     out[:,:] = img[cx:cx+shape[0], cy:cy+shape[1]]
     return out
 
@@ -1168,8 +1168,8 @@ def pad_image(img, shape, fill=0.0, out=None):
           Padded image
     '''
     
-    cx = (shape[0]-img.shape[0])/2
-    cy = (shape[1]-img.shape[1])/2
+    cx = int((shape[0]-img.shape[0])/2)
+    cy = int((shape[1]-img.shape[1])/2)
     if out is None: 
         if img.shape[0] == shape[0] and img.shape[1] == shape[1]: return img
         out = numpy.zeros(shape, dtype=img.dtype)
