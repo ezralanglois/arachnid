@@ -198,6 +198,9 @@ def process(filename, output, id_len=0, skip_defocus=False, **extra):
     except ndimage_file.InvalidHeaderException:
         _logger.warn("Skipping %s - invalid header"%(filename))
         return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
+    except:
+        _logger.error("Error for %s"%filename)
+        raise
     if not skip_defocus:
         _logger.debug("rotational average")
         rotational_average(power_spec, **extra) #ro_arr = 
