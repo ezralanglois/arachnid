@@ -830,7 +830,7 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, intersperse=Fal
 
     # Check that the window would not be larger then the original:
     if numpy.any(orig_shape[-len(window):] < window * wsteps):
-        raise ValueError("`window` * `wsteps` larger then `array` in at least one dimension. - %s -- %d*%d=%d"%(str(orig_shape[-len(window):]), window, wsteps, window*wsteps))
+        raise ValueError("`window` * `wsteps` larger then `array` in at least one dimension. - %s -- %s*%s=%s - %s"%(str(orig_shape[-len(window):]), str(window), str(wsteps), str(window*wsteps), str(orig_shape)))
 
     new_shape = orig_shape # just renaming...
 
