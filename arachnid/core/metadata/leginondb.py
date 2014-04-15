@@ -100,7 +100,8 @@ class Session(Base):
     
     name = Column('name', String)
     id = Column('DEF_id', Integer, primary_key=True)
-    exposures = relationship("ImageData", primaryjoin="and_(Session.id==ImageData.session, ImageData.label.startswith('Exposure'))")
+    #exposures = relationship("ImageData", primaryjoin="and_(Session.id==ImageData.session, ImageData.label.startswith('Exposure'))")
+    exposures = relationship("ImageData", primaryjoin="and_(Session.id==ImageData.session, ImageData.filename.endswith('en'))")
     timestamp = Column('DEF_timestamp', DateTime)
     image_path = Column('image path', String)
     frame_path = Column('frame path', String)
@@ -205,6 +206,7 @@ def query_session_info(username, password, leginondb, projectdb, session):
     try:
         leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
     except:
+        raise
         leginondb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_leginon_db(**locals()))
         projectdb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_project_db(**locals()))
     else:
@@ -277,6 +279,7 @@ def query_user_info(username, password, leginondb, projectdb, targetuser=None, t
     try:
         leginondb = sqlalchemy.create_engine('mysql://{username}:{password}@{leginondb}'.format(**locals()), echo=False, echo_pool=False)
     except:
+        raise
         leginondb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_leginon_db(**locals()))
         projectdb = sqlalchemy.create_engine('mssql+pyodbc:///?odbc_connect=%s' %pyodbc_project_db(**locals()))
         # Known bug!

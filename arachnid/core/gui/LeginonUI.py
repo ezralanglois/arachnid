@@ -416,7 +416,6 @@ def load_images_iter(sessions):
                 exposure=os.path.join(frame_path, image.filename+frame_ext)
                 if not os.path.exists(exposure) and os.path.exists(exposure+'.bz2'): exposure += '.bz2'
                 row = (exposure, norm_file)
-                    
                 apix = image.pixelsize*1e10
                 if apix not in images: images[apix]=[]
                 images[apix].append(row)
