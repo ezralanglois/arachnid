@@ -123,7 +123,7 @@ def plot_line_on_image(img, x, y, color='w', force_gray=True, **extra):
     fimg = save_as_image(fig, force_gray)
     return fimg
 
-def plot_lines(output, lines, labels, ylabel=None, xlabel=None, dpi=72):
+def plot_lines(output, lines, labels, ylabel=None, xlabel=None, dpi=72, prefix=None):
     '''
     '''
     
@@ -138,7 +138,7 @@ def plot_lines(output, lines, labels, ylabel=None, xlabel=None, dpi=72):
     if ylabel is not None: pylab.ylabel(ylabel)
     if xlabel is not None: pylab.xlabel(xlabel)
     lgd=ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
-    fig.savefig(format_utility.new_filename(output, ext="png"), dpi=dpi, bbox_extra_artists=(lgd,), bbox_inches='tight')
+    fig.savefig(format_utility.new_filename(output, ext="png", prefix=prefix), dpi=dpi, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 def plot_line(output, x, y, x_label=None, y_label=None, color=None, marker_idx=None, dpi=72):
     ''' Plot a scatter plot
