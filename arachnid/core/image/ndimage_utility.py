@@ -1215,7 +1215,7 @@ def filter_annular_bp(img, freq1, freq2):
     return filter_image(img, kernel)
 
 
-def spiral_transform(img):
+def spiral_transform(img, complex=False):
     '''
     Todo: optimize kernel
     '''
@@ -1228,7 +1228,7 @@ def spiral_transform(img):
             v1, v2 = i-cx, j-cy
             if v1 == 0 and v2 == 0: continue
             kernel[i,j] = numpy.complex(v2,v1)/numpy.sqrt( numpy.power(float(v1), 2)+numpy.power(float(v2), 2) )
-    return filter_image(img, kernel)
+    return filter_image(img, kernel, complex=complex)
     
 
 def filter_gaussian_lp(img, sigma, out=None):
@@ -1254,7 +1254,7 @@ def filter_gaussian_lp(img, sigma, out=None):
         return scipy.ndimage.filters.fourier_gaussian(img, sigma, output=out)
     return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect')#, output=out)
 
-def filter_image(img, kernel, pad=1):
+def filter_image(img, kernel, pad=1, complex=False):
     '''
     .. todo:: filter padding
     '''
@@ -1266,7 +1266,7 @@ def filter_image(img, kernel, pad=1):
 
     fimg = scipy.fftpack.fftshift(scipy.fftpack.fftn(img))
     numpy.multiply(fimg, kernel, fimg)
-    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy()
+    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy() if not complex else scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).copy()
 
 @_em2numpy2em
 def compress_image(img, mask, out=None):
