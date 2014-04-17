@@ -620,7 +620,7 @@ def initialize(files, param):
                 finished=list(param['finished'])
                 del param['finished'][:]
                 param['finished'].extend( selection_utility.select_file_subset(finished, select) )
-            _logger.info("Assuming %s is a micrograph selection file - found %d micrographs of %d"%(selection_file, len(files), file_count))
+            _logger.info("Using selection file %s - found %d micrographs of %d"%(selection_file, len(files), file_count))
         
         if not param['disable_complete_check']:
             if isinstance(filename, tuple):
