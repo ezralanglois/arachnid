@@ -125,6 +125,7 @@ class MainWindow(ImageViewerWindow):
             try:os.makedirs(os.path.dirname(self.selection_file))
             except: pass
             self.saveSelection()
+            self.saveSelection(True, None, "invert_")
             
         self.selectfout.close()
         if 1 == 0:
@@ -295,8 +296,9 @@ class MainWindow(ImageViewerWindow):
         filename = QtGui.QFileDialog.getSaveFileName(self.centralWidget(), self.tr("Save selection as"), path)
         if not filename: return #selection_file
         self.saveSelection(invert, filename)
+        self.saveSelection(True, filename, "invert_")
         
-    def saveSelection(self, invert=False, filename=None):
+    def saveSelection(self, invert=False, filename=None, prefix=None):
         '''
         '''
         
@@ -333,7 +335,7 @@ class MainWindow(ImageViewerWindow):
                     id = int(getattr(v, class_column_name))
                     if id in selected: subset.append(v)
                 progressDialog.setValue(4)
-                format.write(filename, subset)
+                format.write(filename, subset, prefix=prefix)
                 progressDialog.setValue(5)
                 #relion_selection.select_class_subset(vals, select, filename)
             elif len(self.files) == 1 or len(self.files) == len(file_index):
@@ -348,7 +350,7 @@ class MainWindow(ImageViewerWindow):
                 else:
                     vals = [(v[1]+1,1) for v in file_index if v[2] > 0]
                 progressDialog.setValue(4)
-                format.write(filename, vals, header='id,select'.split(','), default_format=format.spidersel)
+                format.write(filename, vals, header='id,select'.split(','), default_format=format.spidersel, prefix=prefix)
                 progressDialog.setValue(5)
             else:
                 progressDialog.setValue(3)
@@ -366,7 +368,7 @@ class MainWindow(ImageViewerWindow):
                             if mic not in micselect: micselect[mic]=[]
                             micselect[mic].append((v[1]+1, 1))
                     for mic,vals in micselect.iteritems():
-                        format.write(filename, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), default_format=format.spidersel) 
+                        format.write(filename, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), default_format=format.spidersel, prefix=prefix) 
                 progressDialog.setValue(5)
         self.setEnabled(True)
         #progressDialog.hide()
