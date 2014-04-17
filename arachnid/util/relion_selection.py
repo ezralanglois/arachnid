@@ -520,6 +520,7 @@ def read_defocus(defocus_file, defocus_header, min_defocus, max_defocus, **extra
     '''
     
     if defocus_file == "": return {}
+    if defocus_header == "": defocus_header=None
     defocus_dict = format.read(defocus_file, header=defocus_header, numeric=True)
     for i in xrange(len(defocus_dict)-1, 0, -1):
         if defocus_dict[i].defocus < min_defocus or defocus_dict[i].defocus > max_defocus:
@@ -1339,7 +1340,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   reindex_file="",                 help="Reindex file for 1) running movie mode on a subset of selected particles in a stack or 2) When generating a relion selection file from a single stack", gui=dict(filetype="open"))
     group.add_option("-p", param_file="",                   help="SPIDER parameters file (Only required when the input is a stack)", gui=dict(filetype="open"))
     group.add_option("-d", '--ctf-file', defocus_file="",   help="SPIDER defocus file (Only required when the input is a stack)", gui=dict(filetype="open"))
-    group.add_option("-l", defocus_header="id:0,defocus:1", help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
+    group.add_option("-l", defocus_header="",               help="Column location for micrograph id and defocus value (Only required when the input is a stack)")
     group.add_option("-m", minimum_group=50,                help="Minimum number of particles per defocus group (regroups using the micrograph name)", gui=dict(minimum=0, singleStep=1))
     group.add_option("",   stack_file="",                   help="Used to rename the stack portion of the image name (rlnImageName); ignored when creating a relion file")
     group.add_option("",   scale=1.0,                       help="Used to scale the translations in a relion file")
