@@ -67,6 +67,7 @@ typedef long dsize_type;
 %apply (std::complex<float>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<float>* out, dsize_type out_r, dsize_type out_c)};
 %apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* img, dsize_type img_r, dsize_type img_c)};
 %apply (std::complex<double>* INPLACE_ARRAY2, int DIM1, int DIM2) {(std::complex<double>* out, dsize_type out_r, dsize_type out_c)};
+
 %apply (std::complex<double>* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(std::complex<double>* vol, dsize_type vol_r, dsize_type vol_c, dsize_type vol_d)};
 %apply (std::complex<double>* INPLACE_ARRAY3, int DIM1, int DIM2, int DIM3) {(std::complex<double>* vout, dsize_type vout_r, dsize_type vout_c, dsize_type vout_d)};
 

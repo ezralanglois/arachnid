@@ -20,7 +20,7 @@ dsize_type resample_fft_offset_new(dsize_type orig_n, dsize_type new_n)
 }
 
 template<class T>
-void resample_fft_center(T* vol, dsize_type vol_r, dsize_type vol_c, dsize_type vol_d, T* out, dsize_type vout_r, dsize_type vout_c, dsize_type vout_d)
+void resample_fft_center(T* vol, dsize_type vol_r, dsize_type vol_c, dsize_type vol_d, T* vout, dsize_type vout_r, dsize_type vout_c, dsize_type vout_d)
 {
 	dsize_type rend=std::min(vol_r, vout_r);
 	dsize_type cend=std::min(vol_c, vout_c);
@@ -40,7 +40,7 @@ void resample_fft_center(T* vol, dsize_type vol_r, dsize_type vol_c, dsize_type 
 		{
 			for(dsize_type c = 0;c<cend;++c)
 			{
-				out[out_cbeg+c+((out_rbeg+r)*vout_c) + ((d+out_dbeg)*vout_c*vout_r)] = vol[img_cbeg+c+((img_rbeg+r)*vol_c)+((img_dbeg+d)*vol_c*vol_r)];
+				vout[out_cbeg+c+((out_rbeg+r)*vout_c) + ((d+out_dbeg)*vout_c*vout_r)] = vol[img_cbeg+c+((img_rbeg+r)*vol_c)+((img_dbeg+d)*vol_c*vol_r)];
 			}
 		}
 	}
