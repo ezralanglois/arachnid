@@ -184,7 +184,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.windowSizeUnitComboBox.currentIndexChanged.connect(functools.partial(connect_visible_spin_box, signals=(self.ui.windowSizeDoubleSpinBox.valueChanged, self.ui.windowSizeSpinBox.valueChanged), slots=(self.updateWindowSizeSpinBox, self.updateWindowSizeDoubleSpinBox)))
         self.ui.maskDiameterUnitComboBox.currentIndexChanged.connect(functools.partial(connect_visible_spin_box, signals=(self.ui.maskDiameterDoubleSpinBox.valueChanged, self.ui.maskDiameterSpinBox.valueChanged), slots=(self.updateMaskDiameterSpinBox, self.updateMaskDiameterDoubleSpinBox)))
         
-        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeDoubleSpinBox.setValue(x*1.4))
+        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeDoubleSpinBox.setValue(ensure_even_window(x*1.4, self.ui.pixelSizeDoubleSpinBox.value())))
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
   
         self.ui.additionalSettingsPage.registerField(self.param("spider_path"), self.ui.spiderExecutableLineEdit)
@@ -213,8 +213,10 @@ class MainWindow(QtGui.QWizard):
         # Hack to determine whether CPU supports hyperthreading
         frac = 1.0
         if sys.platform == 'darwin':
-            info = dict([line.strip().split(':') for line in os.popen('sysctl hw').readlines()[1:20] if line.find(':') != -1])
-            frac = float(info['hw.activecpu'].strip())/float(info['hw.physicalcpu'].strip())
+            try:
+                info = dict([line.strip().split(':') for line in os.popen('sysctl hw').readlines()[1:20] if line.find(':') != -1])
+                frac = float(info['hw.activecpu'].strip())/float(info['hw.physicalcpu'].strip())
+            except: pass
         else:
             if os.path.exists('/proc/cpuinfo'):
                 info = dict([(line.strip().split(':')[0].strip(), line.strip().split(':')[1].strip()) for line in open('/proc/cpuinfo', 'r').readlines() if line.find(':') != -1])
@@ -689,6 +691,11 @@ class MainWindow(QtGui.QWizard):
         if page == self.ui.introductionPage:
             if self.ui.screenShotCheckBox.checkState() == QtCore.Qt.Checked and not self.screen_shot_file:
                 self.screen_shot_file = "screen_shots/wizard_screen_shot_0000.png"
+        elif page == self.ui.additionalSettingsPage:
+            if (self.ui.windowSizeSpinBox.value()%2) == 1:
+                button = QtGui.QMessageBox.warning(self, "Invalid Value", "The window size is not even. Relion requires even windows. Do you wish to ignore this problem and continue?", buttons=QtGui.QMessageBox.Yes|QtGui.QMessageBox.No, defaultButton=QtGui.QMessageBox.No)
+                if button == QtGui.QMessageBox.No: return False
+            return True
         elif page == self.ui.leginonDBPage:
             if not self.ui.leginonWidget.validate():
                 return False
@@ -819,4 +826,12 @@ def connect_visible_spin_box(index, signals, slots):
     signals[prev].disconnect(slots[prev])
     signals[index].connect(slots[index])
 
+def ensure_even_window(val, apix):
+    '''
+    '''
+    
+    val /= apix
+    val = int(val)
+    if (val%2)!=0: val +=1
+    return val *apix
 
