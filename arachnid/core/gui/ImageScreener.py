@@ -43,6 +43,15 @@ class MainWindow(ImageViewerWindow):
         _logger.info("\rLoading settings ...")
         self.loadSettings()
         
+        self.ui.actionInvert_Selection.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Invert the current selection</p>\n"
+"</body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionInvert_Selection)
+        
+        '''
         self.ui.actionSelection_Mode.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -53,21 +62,8 @@ class MainWindow(ImageViewerWindow):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Otherwise selected images are rejected</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         
         self.ui.toolBar.insertAction(self.ui.actionShow_Coordinates, self.ui.actionSelection_Mode)
-        
-        
         '''
-        self.autopick_dialog = AutoPickDialog(self)
-        self.ui.actionAutoPick.setWhatsThis(QtGui.QApplication.translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/mini/mini/page_white_magnify.png\" /> Launch the AutoPick Tuning Controls</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This action opens a dialog that allows the user to run AutoPicker on the <span style=\" font-weight:600;\">currently opened and selected micrographs</span>.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         
-        self.ui.toolBar.insertAction(self.ui.actionSelection_Mode, self.ui.actionAutoPick)
-        '''
         
         try:
             self.selectfout = open(self.advanced_settings.select_file, 'a')
@@ -109,7 +105,8 @@ class MainWindow(ImageViewerWindow):
         ''' Display specific setup
         '''
         
-        self.connect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
+        selmodel = self.ui.imageListView.selectionModel()
+        self.connect(selmodel, QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         self.ui.imageListView.setStyleSheet('QListView::item:selected{ color: #008000; border: 3px solid #6FFF00; }')
     
     def closeEvent(self, evt):
@@ -206,12 +203,13 @@ class MainWindow(ImageViewerWindow):
         ''' Called when an image is added to the view
         '''
         
+        selmodel = self.ui.imageListView.selectionModel()
         if self.ui.actionSelection_Mode.isChecked():
             if self.file_index[item.data(QtCore.Qt.UserRole), 2] < 1:
-                self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
+                selmodel.select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
         else:
             if self.file_index[item.data(QtCore.Qt.UserRole), 2] > 0:
-                self.ui.imageListView.selectionModel().select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
+                selmodel.select(self.imageListModel.indexFromItem(item), QtGui.QItemSelectionModel.Select)
     
     def notify_added_files(self, newfiles):
         ''' Called when new files are loaded
@@ -264,6 +262,25 @@ class MainWindow(ImageViewerWindow):
         if self.autopick_dialog.isValid():
             self.autopick_dialog.show()
     """
+    
+    @qtSlot()
+    def on_actionInvert_Selection_triggered(self):
+        '''
+        '''
+        
+        selmodel = self.ui.imageListView.selectionModel()
+        
+        for row_index in xrange(self.imageListModel.rowCount()):
+            index = self.imageListModel.index(row_index, 0)
+            idx = self.imageListModel.data(index, QtCore.Qt.UserRole)
+            if hasattr(idx, '__iter__'): idx = idx[0]
+            print 'invert', idx, self.file_index[idx][2]
+            if self.file_index[idx][2] > 0:
+                print 'deselect'
+                selmodel.select(index, QtGui.QItemSelectionModel.Deselect)
+            else:
+                selmodel.select(index, QtGui.QItemSelectionModel.Select)
+    
     @qtSlot()
     def on_actionSelection_Mode_triggered(self):
         '''
@@ -304,73 +321,75 @@ class MainWindow(ImageViewerWindow):
         
         if filename is None: filename=self.selection_file
         self.setEnabled(False)
-        progressDialog = QtGui.QProgressDialog('Saving...', "", 0,5,self)
-        progressDialog.setWindowModality(QtCore.Qt.WindowModal)
-        progressDialog.show()
-        if isinstance(filename, tuple): filename = filename[0]
-        if not filename: return
-        
-        file_index = self.file_index.copy()
-        if invert: 
-            sel = file_index[:, 2] > -1
-            file_index[sel, 2] = numpy.logical_not(file_index[sel, 2]>0)
-        
-        if filename != "":
-            if self.advanced_settings.relion != "" and os.path.splitext(filename)[1]=='.star':
-                if not (len(self.files) == 1 or len(self.files) == len(file_index)):
-                    progressDialog.hide()
-                    QtGui.QMessageBox.critical(self, "Saving Relion Selection File", "You have opened more than one class stack. Cannot save a Relion Selection file!", QtGui.QMessageBox.Ok| QtGui.QMessageBox.Default|QtGui.QMessageBox.NoButton)
-                    self.setEnabled(True)
-                    return
-                
-                progressDialog.setValue(1)
-                _logger.info("Saving Relion selection file to %s"%filename)
-                class_column_name = 'rlnClassNumber'
-                vals = format.read(self.advanced_settings.relion, numeric=True)
-                progressDialog.setValue(2)
-                subset=[]
-                selected = set([v[1]+1 for v in file_index if v[2] > 0])
-                progressDialog.setValue(3)
-                for v in vals:
-                    id = int(getattr(v, class_column_name))
-                    if id in selected: subset.append(v)
-                progressDialog.setValue(4)
-                format.write(filename, subset, prefix=prefix)
-                progressDialog.setValue(5)
-                #relion_selection.select_class_subset(vals, select, filename)
-            elif len(self.files) == 1 or len(self.files) == len(file_index):
-                progressDialog.setValue(3)
-                _logger.info("Saving single selection file to %s"%filename)
-                if not spider_utility.is_spider_filename(self.files) and len(self.files) > 1:
-                    _logger.info("File names do not conform to SPIDER, writing as star file")
-                    filename = os.path.splitext(filename)[0]+'.star'
-                    vals = [(self.files[v[0]],1) for v in file_index if v[2] > 0]
-                elif len(self.files) > 1:
-                    vals = [(spider_utility.spider_id(self.files[v[0]]),1) for v in file_index if v[2] > 0]
+        try:
+            progressDialog = QtGui.QProgressDialog('Saving...', "", 0,5,self)
+            progressDialog.setWindowModality(QtCore.Qt.WindowModal)
+            progressDialog.show()
+            if isinstance(filename, tuple): filename = filename[0]
+            if not filename: return
+            
+            file_index = self.file_index.copy()
+            if invert: 
+                sel = file_index[:, 2] > -1
+                file_index[sel, 2] = numpy.logical_not(file_index[sel, 2]>0)
+            
+            if filename != "":
+                if self.advanced_settings.relion != "" and os.path.splitext(filename)[1]=='.star':
+                    if not (len(self.files) == 1 or len(self.files) == len(file_index)):
+                        progressDialog.hide()
+                        QtGui.QMessageBox.critical(self, "Saving Relion Selection File", "You have opened more than one class stack. Cannot save a Relion Selection file!", QtGui.QMessageBox.Ok| QtGui.QMessageBox.Default|QtGui.QMessageBox.NoButton)
+                        self.setEnabled(True)
+                        return
+                    
+                    progressDialog.setValue(1)
+                    _logger.info("Saving Relion selection file to %s"%filename)
+                    class_column_name = 'rlnClassNumber'
+                    vals = format.read(self.advanced_settings.relion, numeric=True)
+                    progressDialog.setValue(2)
+                    subset=[]
+                    selected = set([v[1]+1 for v in file_index if v[2] > 0])
+                    progressDialog.setValue(3)
+                    for v in vals:
+                        id = int(getattr(v, class_column_name))
+                        if id in selected: subset.append(v)
+                    progressDialog.setValue(4)
+                    format.write(filename, subset, prefix=prefix)
+                    progressDialog.setValue(5)
+                    #relion_selection.select_class_subset(vals, select, filename)
+                elif len(self.files) == 1 or len(self.files) == len(file_index):
+                    progressDialog.setValue(3)
+                    _logger.info("Saving single selection file to %s"%filename)
+                    if not spider_utility.is_spider_filename(self.files) and len(self.files) > 1:
+                        _logger.info("File names do not conform to SPIDER, writing as star file")
+                        filename = os.path.splitext(filename)[0]+'.star'
+                        vals = [(self.files[v[0]],1) for v in file_index if v[2] > 0]
+                    elif len(self.files) > 1:
+                        vals = [(spider_utility.spider_id(self.files[v[0]]),1) for v in file_index if v[2] > 0]
+                    else:
+                        vals = [(v[1]+1,1) for v in file_index if v[2] > 0]
+                    progressDialog.setValue(4)
+                    format.write(filename, vals, header='id,select'.split(','), default_format=format.spidersel, prefix=prefix)
+                    progressDialog.setValue(5)
                 else:
-                    vals = [(v[1]+1,1) for v in file_index if v[2] > 0]
-                progressDialog.setValue(4)
-                format.write(filename, vals, header='id,select'.split(','), default_format=format.spidersel, prefix=prefix)
-                progressDialog.setValue(5)
-            else:
-                progressDialog.setValue(3)
-                _logger.info("Saving multiple selection files by stack to %s"%filename)
-                if not spider_utility.is_spider_filename(self.files):
-                    _logger.info("File names do not conform to SPIDER, writing as star file")
-                    filename = os.path.splitext(filename)[0]+'.star'
-                    vals = [(relion_utility.relion_identifier(self.files[v[0]], v[1]+1),1) for v in file_index if v[2] > 0]
-                    format.write(filename, vals, header='id,select'.split(','))
-                else:
-                    micselect={}
-                    for v in file_index:
-                        if v[2] > 0:
-                            mic = spider_utility.spider_id(self.files[v[0]])
-                            if mic not in micselect: micselect[mic]=[]
-                            micselect[mic].append((v[1]+1, 1))
-                    for mic,vals in micselect.iteritems():
-                        format.write(filename, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), default_format=format.spidersel, prefix=prefix) 
-                progressDialog.setValue(5)
-        self.setEnabled(True)
+                    progressDialog.setValue(3)
+                    _logger.info("Saving multiple selection files by stack to %s"%filename)
+                    if not spider_utility.is_spider_filename(self.files):
+                        _logger.info("File names do not conform to SPIDER, writing as star file")
+                        filename = os.path.splitext(filename)[0]+'.star'
+                        vals = [(relion_utility.relion_identifier(self.files[v[0]], v[1]+1),1) for v in file_index if v[2] > 0]
+                        format.write(filename, vals, header='id,select'.split(','))
+                    else:
+                        micselect={}
+                        for v in file_index:
+                            if v[2] > 0:
+                                mic = spider_utility.spider_id(self.files[v[0]])
+                                if mic not in micselect: micselect[mic]=[]
+                                micselect[mic].append((v[1]+1, 1))
+                        for mic,vals in micselect.iteritems():
+                            format.write(filename, numpy.asarray(vals), spiderid=mic, header="id,select".split(','), default_format=format.spidersel, prefix=prefix) 
+                    progressDialog.setValue(5)
+        finally:
+            self.setEnabled(True)
         #progressDialog.hide()
         print 'done'
     
@@ -379,9 +398,11 @@ class MainWindow(ImageViewerWindow):
         ''' Load the current batch of images into the list
         '''
         
-        self.disconnect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
+        selmodel = self.ui.imageListView.selectionModel()
+        self.disconnect(selmodel, QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
         ImageViewerWindow.on_loadImagesPushButton_clicked(self)
-        self.connect(self.ui.imageListView.selectionModel(), QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
+        selmodel = self.ui.imageListView.selectionModel()
+        self.connect(selmodel, QtCore.SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.onSelectionChanged)
     
     # Custom Slots
     def onSelectionChanged(self, selected, deselected):
@@ -395,7 +416,7 @@ class MainWindow(ImageViewerWindow):
                      List of deselected items in the list
         '''
         
-        
+        print 'onSelectionChanged'
         #modifiers = QtGui.QApplication.keyboardModifiers()
         #if modifiers == QtCore.Qt.AltModifier:
         

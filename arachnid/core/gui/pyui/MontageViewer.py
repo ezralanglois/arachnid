@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/MontageViewer.ui'
 #
-# Created: Mon Mar 31 12:00:04 2014
+# Created: Mon Apr 21 12:21:27 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -292,6 +292,11 @@ class Ui_MainWindow(object):
         icon18.addPixmap(QtGui.QPixmap(":/mini/mini/page_white_magnify.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionAutoPick.setIcon(icon18)
         self.actionAutoPick.setObjectName("actionAutoPick")
+        self.actionInvert_Selection = QtGui.QAction(MainWindow)
+        icon19 = QtGui.QIcon()
+        icon19.addPixmap(QtGui.QPixmap(":/mini/mini/shape_square_error.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionInvert_Selection.setIcon(icon19)
+        self.actionInvert_Selection.setObjectName("actionInvert_Selection")
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionLoad_More)
@@ -502,5 +507,8 @@ class Ui_MainWindow(object):
         self.actionSelection_Mode.setToolTip(QtGui.QApplication.translate("MainWindow", "Set the selection mode: Accept or Reject selected", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAutoPick.setText(QtGui.QApplication.translate("MainWindow", "AutoPick", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAutoPick.setToolTip(QtGui.QApplication.translate("MainWindow", "Launch the AutoPick Tuning Controls", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionInvert_Selection.setText(QtGui.QApplication.translate("MainWindow", "Invert Selection", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionInvert_Selection.setToolTip(QtGui.QApplication.translate("MainWindow", "Invert the current selection", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionInvert_Selection.setShortcut(QtGui.QApplication.translate("MainWindow", "Meta+I", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..icons import icons_rc;icons_rc;

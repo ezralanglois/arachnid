@@ -843,6 +843,21 @@ p, li { white-space: pre-wrap; }
     <string>Launch the AutoPick Tuning Controls</string>
    </property>
   </action>
+  <action name="actionInvert_Selection">
+   <property name="icon">
+    <iconset resource="../../../../docs/images/icons/icons.qrc">
+     <normaloff>:/mini/mini/shape_square_error.png</normaloff>:/mini/mini/shape_square_error.png</iconset>
+   </property>
+   <property name="text">
+    <string>Invert Selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Invert the current selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+I</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../../../../docs/images/icons/icons.qrc"/>
