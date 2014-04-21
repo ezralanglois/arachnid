@@ -333,7 +333,7 @@ def flags():
                               ''',
                 supports_MPI=False, 
                 supports_OMP=False,
-                use_version=False)
+                use_version=True)
 
 def main():
     #Main entry point for this script
