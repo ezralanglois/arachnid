@@ -403,7 +403,7 @@ def gaussian_lowpass(img, low_cutoff, pad=1):
         img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
     else: img = img.astype(ctype)
     img = filter_image(img, gaussian_lowpass_kernel(img.shape, low_cutoff, img.dtype), pad)
-    if pad > 1: img = depad_image(img, shape)
+    if pad > 1: img = depad(img, shape)
     return img
 
 def gaussian_highpass_kernel(shape, high_cutoff, dtype):
@@ -464,7 +464,7 @@ def gaussian_highpass(img, high_cutoff, pad=1):
         img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
     else: img = img.astype(ctype)
     img = filter_image(img, gaussian_highpass_kernel(img.shape, high_cutoff, img.dtype), pad)
-    if pad > 1: img = depad_image(img, shape)
+    if pad > 1: img = depad(img, shape)
     return img
 
 def filter_annular_bp_kernel(shape, dtype, freq1, freq2):
@@ -524,7 +524,7 @@ def filter_annular_bp(img, freq1, freq2, pad=1):
         img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
     else: img = img.astype(ctype)
     img = filter_image(img, filter_annular_bp_kernel(img.shape, img.dtype, freq1, freq2), pad)
-    if pad > 1: img = depad_image(img, shape)
+    if pad > 1: img = depad(img, shape)
     return img
 
 def filter_image(img, kernel, pad=1):
@@ -544,20 +544,160 @@ def pad_image(img, shape, fill=0.0, out=None):
     ''' Pad an image with zeros
     
     :Parameters:
-    
-    img : array
-          Image to pad
-    shape : tuple
-            Dimensions of new image
-    fill : float
-           Value to fill array with
-    out : array
-          Padded image
+        
+        img : array
+              Image to pad
+        shape : tuple
+                Dimensions of new image
+        fill : float
+               Value to fill array with
+        out : array
+              Padded image
     
     :Returns:
+        
+        out : array
+              Padded image
+    '''
     
-    out : array
-          Padded image
+    center = []
+    for i in xrange(img.ndim):
+        center.append( (shape[i]-img.shape[i])/2 )
+    
+    if out is None:
+        if numpy.alltrue([img.shape[i]==shape[i] for i in xrange(img.ndim)]): return img
+        out = numpy.zeros(shape, dtype=img.dtype)
+        if fill == 'm':
+            out[0:cx, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
+            out[cx+img.shape[0]:, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
+            out[cx:cx+img.shape[0], 0:cy] = img[:, 0:cx]
+            out[cx:cx+img.shape[0], cy+img.shape[1]:] = img[:, 0:cx]
+        elif fill == 'e':
+            fact = (numpy.asarray(img.shape)).sum()*2
+            fact -= numpy.pow(2, img.ndim) # remove corners
+            if img.ndim == 3:
+                avg = (img[0, 0, :].sum()+
+                       img[0, :, 0].sum()+
+                       img[:,0, 0].sum()+
+                       img[img.shape[0]-1,0, :].sum()+
+                       img[0,img.shape[1]-1, :].sum()+
+                       img[:, img.shape[1]-1,0].sum()+
+                       img[:, 0,img.shape[2]-1].sum()+
+                       img[img.shape[0]-1, :, 0].sum()+
+                       img[0, :, img.shape[2]-1].sum()+
+                       img[img.shape[0]-1, img.shape[1]-1, :].sum()+
+                       img[:, img.shape[1]-1, img.shape[2]-1].sum()+
+                       img[img.shape[0]-1, :, img.shape[2]-1].sum())
+            elif img.ndim == 2:
+                avg = (img[0, :].sum()+img[:, 0].sum()+img[img.shape[0]-1, :].sum()+img[:, img.shape[1]-1].sum())
+            else: raise ValueError, "fill=e ony supports 2 and 3D arrays"
+            avg /= fact
+            out[:] = avg
+        elif fill == 'r': out[:] = numpy.random.normal(img.mean(), img.std(), shape)
+        elif fill != 0: out[:] = fill
+    
+    oindex = []
+    for i in xrange(img.ndim):
+        oindex.append(slice(center[i], center[i]+img.shape[i]))
+    oindex=tuple(oindex)
+    out[oindex] = img
+    return out
+
+def pad(img, shape, mode=None, **extra):
+    '''
+    '''
+    
+    width = (shape[0]-img.shape[0])/2+1
+    if mode is None: mode='reflect'
+    img=numpy.pad(img, width, mode=mode, **extra)
+    return depad(img, shape)
+    
+def depad(img, shape, out=None):
+    ''' Depad an array
+    
+    numpy.pad(img, int(0.5*pad-0.5))
+    
+    :Parameters:
+        
+        img : array
+              Image to pad
+        shape : tuple
+                Dimensions of new image
+        out : array
+              Padded image
+    
+    :Returns:
+        
+        out : array
+              Padded image
+    '''
+    
+    if out is None: 
+        if numpy.alltrue([img.shape[i]==shape[i] for i in xrange(img.ndim)]): return img
+        out = numpy.zeros(shape)
+    center = []
+    for i in xrange(img.ndim):
+        center.append( (img.shape[i]-shape[i])/2 - (img.shape[i]%2 ) )
+    
+    iindex = []
+    for i in xrange(img.ndim):
+        iindex.append(slice(center[i], center[i]+shape[i]))
+    iindex=tuple(iindex)
+        
+    out[:,:] = img[iindex]
+    return out
+
+def depad_image(img, shape, out=None):
+    ''' Depad an image
+    
+    :Parameters:
+        
+        img : array
+              Image to pad
+        shape : tuple
+                Dimensions of new image
+        out : array
+              Padded image
+    
+    :Returns:
+        
+        out : array
+              Padded image
+    '''
+    
+    if out is None: 
+        if numpy.alltrue([img.shape[i]==shape[i] for i in xrange(img.ndim)]): return img
+        out = numpy.zeros(shape)
+    center = []
+    for i in xrange(img.ndim):
+        center.append( (img.shape[i]-shape[i])/2 )
+    
+    iindex = []
+    for i in xrange(img.ndim):
+        iindex.append(slice(center[i], center[i]+shape[i]))
+    iindex=tuple(iindex)
+        
+    out[:,:] = img[iindex]
+    return out
+
+def pad_image_2d(img, shape, fill=0.0, out=None):
+    ''' Pad an image with zeros
+    
+    :Parameters:
+        
+        img : array
+              Image to pad
+        shape : tuple
+                Dimensions of new image
+        fill : float
+               Value to fill array with
+        out : array
+              Padded image
+    
+    :Returns:
+        
+        out : array
+              Padded image
     '''
     
     cx = (shape[0]-img.shape[0])/2
@@ -577,7 +717,8 @@ def pad_image(img, shape, fill=0.0, out=None):
     out[cx:cx+img.shape[0], cy:cy+img.shape[1]] = img
     return out
 
-def depad_image(img, shape, out=None):
+
+def depad_image_2d(img, shape, out=None):
     ''' Depad an image
     
     :Parameters:
