@@ -3802,19 +3802,19 @@ SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_8(PyObject *SWIGUNUSEDPARM(
   
   if (!PyArg_ParseTuple(args,(char *)"OO:resample_fft_center",&obj0,&obj1)) SWIG_fail;
   {
-    array1 = obj_to_array_no_conversion(obj0, NPY_CDOUBLE);
+    array1 = obj_to_array_no_conversion(obj0, NPY_CFLOAT);
     if (!array1 || !require_dimensions(array1,3) || !require_contiguous(array1) ||
       !require_native(array1)) SWIG_fail;
-    arg1 = (std::complex<double>*) array_data(array1);
+    arg1 = (std::complex<float>*) array_data(array1);
     arg2 = (int) array_size(array1,0);
     arg3 = (int) array_size(array1,1);
     arg4 = (int) array_size(array1,2);
   }
   {
-    array5 = obj_to_array_no_conversion(obj1, NPY_CDOUBLE);
+    array5 = obj_to_array_no_conversion(obj1, NPY_CFLOAT);
     if (!array5 || !require_dimensions(array5,3) || !require_contiguous(array5) ||
       !require_native(array5)) SWIG_fail;
-    arg5 = (std::complex<double>*) array_data(array5);
+    arg5 = (std::complex<float>*) array_data(array5);
     arg6 = (int) array_size(array5,0);
     arg7 = (int) array_size(array5,1);
     arg8 = (int) array_size(array5,2);
@@ -4169,12 +4169,12 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
     int _v;
     {
       _v = is_array(argv[0]) && PyArray_EquivTypenums(array_type(argv[0]),
-        NPY_CDOUBLE);
+        NPY_CFLOAT);
     }
     if (_v) {
       {
         _v = is_array(argv[1]) && PyArray_EquivTypenums(array_type(argv[1]),
-          NPY_CDOUBLE);
+          NPY_CFLOAT);
       }
       if (_v) {
         if (argc <= 2) {
