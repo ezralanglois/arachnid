@@ -48,6 +48,8 @@ except AttributeError:
 del types
 
 
+resample_fft_offset_orig = _resample.resample_fft_offset_orig
+resample_fft_offset_new = _resample.resample_fft_offset_new
 
 cvar = _resample.cvar
 pi = cvar.pi

@@ -2576,20 +2576,6 @@ namespace swig {
 #include "resample.hpp"
 
 
-#ifndef SWIG_FILE_WITH_INIT
-#  define NO_IMPORT_ARRAY
-#endif
-#include "stdio.h"
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
-
-
-#include <complex> 
-
-
-typedef long dsize_type;
-
-
 SWIGINTERN int
 SWIG_AsVal_double (PyObject *obj, double *val)
 {
@@ -2707,6 +2693,23 @@ SWIG_AsVal_long (PyObject *obj, long* val)
 #endif
   return SWIG_TypeError;
 }
+
+
+  #define SWIG_From_long   PyInt_FromLong 
+
+
+#ifndef SWIG_FILE_WITH_INIT
+#  define NO_IMPORT_ARRAY
+#endif
+#include "stdio.h"
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+
+
+#include <complex> 
+
+
+typedef long dsize_type;
 
 
 /* Support older NumPy data type names
@@ -3182,6 +3185,68 @@ SWIG_AsVal_int (PyObject * obj, int *val)
 #ifdef __cplusplus
 extern "C" {
 #endif
+SWIGINTERN PyObject *_wrap_resample_fft_offset_orig(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  dsize_type arg1 ;
+  dsize_type arg2 ;
+  dsize_type result;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:resample_fft_offset_orig",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "resample_fft_offset_orig" "', argument " "1"" of type '" "dsize_type""'");
+  } 
+  arg1 = static_cast< dsize_type >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "resample_fft_offset_orig" "', argument " "2"" of type '" "dsize_type""'");
+  } 
+  arg2 = static_cast< dsize_type >(val2);
+  result = (dsize_type)resample_fft_offset_orig(arg1,arg2);
+  resultobj = SWIG_From_long(static_cast< long >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_offset_new(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  dsize_type arg1 ;
+  dsize_type arg2 ;
+  dsize_type result;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:resample_fft_offset_new",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "resample_fft_offset_new" "', argument " "1"" of type '" "dsize_type""'");
+  } 
+  arg1 = static_cast< dsize_type >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "resample_fft_offset_new" "', argument " "2"" of type '" "dsize_type""'");
+  } 
+  arg2 = static_cast< dsize_type >(val2);
+  result = (dsize_type)resample_fft_offset_new(arg1,arg2);
+  resultobj = SWIG_From_long(static_cast< long >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN int pi_set(PyObject *) {
   SWIG_Error(SWIG_AttributeError,"Variable pi is read-only.");
   return 1;
@@ -3210,7 +3275,101 @@ SWIGINTERN PyObject *twopi_get(void) {
 }
 
 
-SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  float *arg1 = (float *) 0 ;
+  dsize_type arg2 ;
+  dsize_type arg3 ;
+  dsize_type arg4 ;
+  float *arg5 = (float *) 0 ;
+  dsize_type arg6 ;
+  dsize_type arg7 ;
+  dsize_type arg8 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  long val6 ;
+  int ecode6 = 0 ;
+  long val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:resample_fft_center",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_float, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "resample_fft_center" "', argument " "1"" of type '" "float *""'"); 
+  }
+  arg1 = reinterpret_cast< float * >(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "resample_fft_center" "', argument " "2"" of type '" "dsize_type""'");
+  } 
+  arg2 = static_cast< dsize_type >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "resample_fft_center" "', argument " "3"" of type '" "dsize_type""'");
+  } 
+  arg3 = static_cast< dsize_type >(val3);
+  ecode4 = SWIG_AsVal_long(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "resample_fft_center" "', argument " "4"" of type '" "dsize_type""'");
+  } 
+  arg4 = static_cast< dsize_type >(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_float, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "resample_fft_center" "', argument " "5"" of type '" "float *""'"); 
+  }
+  arg5 = reinterpret_cast< float * >(argp5);
+  ecode6 = SWIG_AsVal_long(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "resample_fft_center" "', argument " "6"" of type '" "dsize_type""'");
+  } 
+  arg6 = static_cast< dsize_type >(val6);
+  ecode7 = SWIG_AsVal_long(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "resample_fft_center" "', argument " "7"" of type '" "dsize_type""'");
+  } 
+  arg7 = static_cast< dsize_type >(val7);
+  ecode8 = SWIG_AsVal_long(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "resample_fft_center" "', argument " "8"" of type '" "dsize_type""'");
+  } 
+  arg8 = static_cast< dsize_type >(val8);
+  {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      resample_fft_center<float >(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+    } catch(...) {
+      PyEval_RestoreThread(_save);
+      PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_3(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   float *arg1 = (float *) 0 ;
   dsize_type arg2 ;
@@ -3286,7 +3445,101 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_4(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  double *arg1 = (double *) 0 ;
+  dsize_type arg2 ;
+  dsize_type arg3 ;
+  dsize_type arg4 ;
+  double *arg5 = (double *) 0 ;
+  dsize_type arg6 ;
+  dsize_type arg7 ;
+  dsize_type arg8 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  long val6 ;
+  int ecode6 = 0 ;
+  long val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:resample_fft_center",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "resample_fft_center" "', argument " "1"" of type '" "double *""'"); 
+  }
+  arg1 = reinterpret_cast< double * >(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "resample_fft_center" "', argument " "2"" of type '" "dsize_type""'");
+  } 
+  arg2 = static_cast< dsize_type >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "resample_fft_center" "', argument " "3"" of type '" "dsize_type""'");
+  } 
+  arg3 = static_cast< dsize_type >(val3);
+  ecode4 = SWIG_AsVal_long(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "resample_fft_center" "', argument " "4"" of type '" "dsize_type""'");
+  } 
+  arg4 = static_cast< dsize_type >(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "resample_fft_center" "', argument " "5"" of type '" "double *""'"); 
+  }
+  arg5 = reinterpret_cast< double * >(argp5);
+  ecode6 = SWIG_AsVal_long(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "resample_fft_center" "', argument " "6"" of type '" "dsize_type""'");
+  } 
+  arg6 = static_cast< dsize_type >(val6);
+  ecode7 = SWIG_AsVal_long(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "resample_fft_center" "', argument " "7"" of type '" "dsize_type""'");
+  } 
+  arg7 = static_cast< dsize_type >(val7);
+  ecode8 = SWIG_AsVal_long(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "resample_fft_center" "', argument " "8"" of type '" "dsize_type""'");
+  } 
+  arg8 = static_cast< dsize_type >(val8);
+  {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      resample_fft_center<double >(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+    } catch(...) {
+      PyEval_RestoreThread(_save);
+      PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_5(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   double *arg1 = (double *) 0 ;
   dsize_type arg2 ;
@@ -3362,7 +3615,101 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_3(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_6(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long double *arg1 = (long double *) 0 ;
+  dsize_type arg2 ;
+  dsize_type arg3 ;
+  dsize_type arg4 ;
+  long double *arg5 = (long double *) 0 ;
+  dsize_type arg6 ;
+  dsize_type arg7 ;
+  dsize_type arg8 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  long val6 ;
+  int ecode6 = 0 ;
+  long val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:resample_fft_center",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_long_double, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "resample_fft_center" "', argument " "1"" of type '" "long double *""'"); 
+  }
+  arg1 = reinterpret_cast< long double * >(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "resample_fft_center" "', argument " "2"" of type '" "dsize_type""'");
+  } 
+  arg2 = static_cast< dsize_type >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "resample_fft_center" "', argument " "3"" of type '" "dsize_type""'");
+  } 
+  arg3 = static_cast< dsize_type >(val3);
+  ecode4 = SWIG_AsVal_long(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "resample_fft_center" "', argument " "4"" of type '" "dsize_type""'");
+  } 
+  arg4 = static_cast< dsize_type >(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_long_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "resample_fft_center" "', argument " "5"" of type '" "long double *""'"); 
+  }
+  arg5 = reinterpret_cast< long double * >(argp5);
+  ecode6 = SWIG_AsVal_long(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "resample_fft_center" "', argument " "6"" of type '" "dsize_type""'");
+  } 
+  arg6 = static_cast< dsize_type >(val6);
+  ecode7 = SWIG_AsVal_long(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "resample_fft_center" "', argument " "7"" of type '" "dsize_type""'");
+  } 
+  arg7 = static_cast< dsize_type >(val7);
+  ecode8 = SWIG_AsVal_long(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "resample_fft_center" "', argument " "8"" of type '" "dsize_type""'");
+  } 
+  arg8 = static_cast< dsize_type >(val8);
+  {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      resample_fft_center<long double >(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+    } catch(...) {
+      PyEval_RestoreThread(_save);
+      PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_7(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   long double *arg1 = (long double *) 0 ;
   dsize_type arg2 ;
@@ -3438,7 +3785,59 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_4(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_8(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std::complex<float > *arg1 = (std::complex<float > *) 0 ;
+  dsize_type arg2 ;
+  dsize_type arg3 ;
+  dsize_type arg4 ;
+  std::complex<float > *arg5 = (std::complex<float > *) 0 ;
+  dsize_type arg6 ;
+  dsize_type arg7 ;
+  dsize_type arg8 ;
+  PyArrayObject *array1 = NULL ;
+  PyArrayObject *array5 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:resample_fft_center",&obj0,&obj1)) SWIG_fail;
+  {
+    array1 = obj_to_array_no_conversion(obj0, NPY_CDOUBLE);
+    if (!array1 || !require_dimensions(array1,3) || !require_contiguous(array1) ||
+      !require_native(array1)) SWIG_fail;
+    arg1 = (std::complex<double>*) array_data(array1);
+    arg2 = (int) array_size(array1,0);
+    arg3 = (int) array_size(array1,1);
+    arg4 = (int) array_size(array1,2);
+  }
+  {
+    array5 = obj_to_array_no_conversion(obj1, NPY_CDOUBLE);
+    if (!array5 || !require_dimensions(array5,3) || !require_contiguous(array5) ||
+      !require_native(array5)) SWIG_fail;
+    arg5 = (std::complex<double>*) array_data(array5);
+    arg6 = (int) array_size(array5,0);
+    arg7 = (int) array_size(array5,1);
+    arg8 = (int) array_size(array5,2);
+  }
+  {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      resample_fft_center<std::complex<float > >(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+    } catch(...) {
+      PyEval_RestoreThread(_save);
+      PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_9(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   std::complex<float > *arg1 = (std::complex<float > *) 0 ;
   dsize_type arg2 ;
@@ -3486,7 +3885,59 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_5(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_10(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std::complex<double > *arg1 = (std::complex<double > *) 0 ;
+  dsize_type arg2 ;
+  dsize_type arg3 ;
+  dsize_type arg4 ;
+  std::complex<double > *arg5 = (std::complex<double > *) 0 ;
+  dsize_type arg6 ;
+  dsize_type arg7 ;
+  dsize_type arg8 ;
+  PyArrayObject *array1 = NULL ;
+  PyArrayObject *array5 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:resample_fft_center",&obj0,&obj1)) SWIG_fail;
+  {
+    array1 = obj_to_array_no_conversion(obj0, NPY_CDOUBLE);
+    if (!array1 || !require_dimensions(array1,3) || !require_contiguous(array1) ||
+      !require_native(array1)) SWIG_fail;
+    arg1 = (std::complex<double>*) array_data(array1);
+    arg2 = (int) array_size(array1,0);
+    arg3 = (int) array_size(array1,1);
+    arg4 = (int) array_size(array1,2);
+  }
+  {
+    array5 = obj_to_array_no_conversion(obj1, NPY_CDOUBLE);
+    if (!array5 || !require_dimensions(array5,3) || !require_contiguous(array5) ||
+      !require_native(array5)) SWIG_fail;
+    arg5 = (std::complex<double>*) array_data(array5);
+    arg6 = (int) array_size(array5,0);
+    arg7 = (int) array_size(array5,1);
+    arg8 = (int) array_size(array5,2);
+  }
+  {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      resample_fft_center<std::complex<double > >(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+    } catch(...) {
+      PyEval_RestoreThread(_save);
+      PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_11(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   std::complex<double > *arg1 = (std::complex<double > *) 0 ;
   dsize_type arg2 ;
@@ -3534,7 +3985,101 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_6(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_12(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std::complex<long double > *arg1 = (std::complex<long double > *) 0 ;
+  dsize_type arg2 ;
+  dsize_type arg3 ;
+  dsize_type arg4 ;
+  std::complex<long double > *arg5 = (std::complex<long double > *) 0 ;
+  dsize_type arg6 ;
+  dsize_type arg7 ;
+  dsize_type arg8 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  long val6 ;
+  int ecode6 = 0 ;
+  long val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:resample_fft_center",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_std__complexTlong_double_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "resample_fft_center" "', argument " "1"" of type '" "std::complex<long double > *""'"); 
+  }
+  arg1 = reinterpret_cast< std::complex<long double > * >(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "resample_fft_center" "', argument " "2"" of type '" "dsize_type""'");
+  } 
+  arg2 = static_cast< dsize_type >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "resample_fft_center" "', argument " "3"" of type '" "dsize_type""'");
+  } 
+  arg3 = static_cast< dsize_type >(val3);
+  ecode4 = SWIG_AsVal_long(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "resample_fft_center" "', argument " "4"" of type '" "dsize_type""'");
+  } 
+  arg4 = static_cast< dsize_type >(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_std__complexTlong_double_t, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "resample_fft_center" "', argument " "5"" of type '" "std::complex<long double > *""'"); 
+  }
+  arg5 = reinterpret_cast< std::complex<long double > * >(argp5);
+  ecode6 = SWIG_AsVal_long(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "resample_fft_center" "', argument " "6"" of type '" "dsize_type""'");
+  } 
+  arg6 = static_cast< dsize_type >(val6);
+  ecode7 = SWIG_AsVal_long(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "resample_fft_center" "', argument " "7"" of type '" "dsize_type""'");
+  } 
+  arg7 = static_cast< dsize_type >(val7);
+  ecode8 = SWIG_AsVal_long(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "resample_fft_center" "', argument " "8"" of type '" "dsize_type""'");
+  } 
+  arg8 = static_cast< dsize_type >(val8);
+  {
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      resample_fft_center<std::complex<long double > >(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+    } catch(...) {
+      PyEval_RestoreThread(_save);
+      PyErr_SetString(PyExc_StandardError,"Unknown exception thrown");
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_resample_fft_center__SWIG_13(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   std::complex<long double > *arg1 = (std::complex<long double > *) 0 ;
   dsize_type arg2 ;
@@ -3612,13 +4157,38 @@ fail:
 
 SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
   int argc;
-  PyObject *argv[7];
+  PyObject *argv[9];
   int ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = PyObject_Length(args);
-  for (ii = 0; (ii < argc) && (ii < 6); ii++) {
+  for (ii = 0; (ii < argc) && (ii < 8); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    {
+      _v = is_array(argv[0]) && PyArray_EquivTypenums(array_type(argv[0]),
+        NPY_CDOUBLE);
+    }
+    if (_v) {
+      {
+        _v = is_array(argv[1]) && PyArray_EquivTypenums(array_type(argv[1]),
+          NPY_CDOUBLE);
+      }
+      if (_v) {
+        if (argc <= 2) {
+          return _wrap_resample_fft_center__SWIG_8(self, args);
+        }
+        if (argc <= 3) {
+          return _wrap_resample_fft_center__SWIG_8(self, args);
+        }
+        if (argc <= 4) {
+          return _wrap_resample_fft_center__SWIG_8(self, args);
+        }
+        return _wrap_resample_fft_center__SWIG_8(self, args);
+      }
+    }
   }
   if (argc == 2) {
     int _v;
@@ -3633,12 +4203,12 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
       }
       if (_v) {
         if (argc <= 2) {
-          return _wrap_resample_fft_center__SWIG_4(self, args);
+          return _wrap_resample_fft_center__SWIG_9(self, args);
         }
         if (argc <= 3) {
-          return _wrap_resample_fft_center__SWIG_4(self, args);
+          return _wrap_resample_fft_center__SWIG_9(self, args);
         }
-        return _wrap_resample_fft_center__SWIG_4(self, args);
+        return _wrap_resample_fft_center__SWIG_9(self, args);
       }
     }
   }
@@ -3655,12 +4225,75 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
       }
       if (_v) {
         if (argc <= 2) {
-          return _wrap_resample_fft_center__SWIG_5(self, args);
+          return _wrap_resample_fft_center__SWIG_10(self, args);
         }
         if (argc <= 3) {
-          return _wrap_resample_fft_center__SWIG_5(self, args);
+          return _wrap_resample_fft_center__SWIG_10(self, args);
         }
-        return _wrap_resample_fft_center__SWIG_5(self, args);
+        if (argc <= 4) {
+          return _wrap_resample_fft_center__SWIG_10(self, args);
+        }
+        return _wrap_resample_fft_center__SWIG_10(self, args);
+      }
+    }
+  }
+  if (argc == 2) {
+    int _v;
+    {
+      _v = is_array(argv[0]) && PyArray_EquivTypenums(array_type(argv[0]),
+        NPY_CDOUBLE);
+    }
+    if (_v) {
+      {
+        _v = is_array(argv[1]) && PyArray_EquivTypenums(array_type(argv[1]),
+          NPY_CDOUBLE);
+      }
+      if (_v) {
+        if (argc <= 2) {
+          return _wrap_resample_fft_center__SWIG_11(self, args);
+        }
+        if (argc <= 3) {
+          return _wrap_resample_fft_center__SWIG_11(self, args);
+        }
+        return _wrap_resample_fft_center__SWIG_11(self, args);
+      }
+    }
+  }
+  if (argc == 6) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_double, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_long(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_long(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          void *vptr = 0;
+          int res = SWIG_ConvertPtr(argv[3], &vptr, SWIGTYPE_p_double, 0);
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            {
+              int res = SWIG_AsVal_long(argv[4], NULL);
+              _v = SWIG_CheckState(res);
+            }
+            if (_v) {
+              {
+                int res = SWIG_AsVal_long(argv[5], NULL);
+                _v = SWIG_CheckState(res);
+              }
+              if (_v) {
+                return _wrap_resample_fft_center__SWIG_5(self, args);
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -3694,7 +4327,7 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
                 _v = SWIG_CheckState(res);
               }
               if (_v) {
-                return _wrap_resample_fft_center__SWIG_3(self, args);
+                return _wrap_resample_fft_center__SWIG_7(self, args);
               }
             }
           }
@@ -3732,45 +4365,7 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
                 _v = SWIG_CheckState(res);
               }
               if (_v) {
-                return _wrap_resample_fft_center__SWIG_1(self, args);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  if (argc == 6) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_double, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      {
-        int res = SWIG_AsVal_long(argv[1], NULL);
-        _v = SWIG_CheckState(res);
-      }
-      if (_v) {
-        {
-          int res = SWIG_AsVal_long(argv[2], NULL);
-          _v = SWIG_CheckState(res);
-        }
-        if (_v) {
-          void *vptr = 0;
-          int res = SWIG_ConvertPtr(argv[3], &vptr, SWIGTYPE_p_double, 0);
-          _v = SWIG_CheckState(res);
-          if (_v) {
-            {
-              int res = SWIG_AsVal_long(argv[4], NULL);
-              _v = SWIG_CheckState(res);
-            }
-            if (_v) {
-              {
-                int res = SWIG_AsVal_long(argv[5], NULL);
-                _v = SWIG_CheckState(res);
-              }
-              if (_v) {
-                return _wrap_resample_fft_center__SWIG_2(self, args);
+                return _wrap_resample_fft_center__SWIG_3(self, args);
               }
             }
           }
@@ -3808,7 +4403,207 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
                 _v = SWIG_CheckState(res);
               }
               if (_v) {
-                return _wrap_resample_fft_center__SWIG_6(self, args);
+                return _wrap_resample_fft_center__SWIG_13(self, args);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (argc == 8) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_double, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_long(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_long(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          {
+            int res = SWIG_AsVal_long(argv[3], NULL);
+            _v = SWIG_CheckState(res);
+          }
+          if (_v) {
+            void *vptr = 0;
+            int res = SWIG_ConvertPtr(argv[4], &vptr, SWIGTYPE_p_double, 0);
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              {
+                int res = SWIG_AsVal_long(argv[5], NULL);
+                _v = SWIG_CheckState(res);
+              }
+              if (_v) {
+                {
+                  int res = SWIG_AsVal_long(argv[6], NULL);
+                  _v = SWIG_CheckState(res);
+                }
+                if (_v) {
+                  {
+                    int res = SWIG_AsVal_long(argv[7], NULL);
+                    _v = SWIG_CheckState(res);
+                  }
+                  if (_v) {
+                    return _wrap_resample_fft_center__SWIG_4(self, args);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (argc == 8) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_float, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_long(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_long(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          {
+            int res = SWIG_AsVal_long(argv[3], NULL);
+            _v = SWIG_CheckState(res);
+          }
+          if (_v) {
+            void *vptr = 0;
+            int res = SWIG_ConvertPtr(argv[4], &vptr, SWIGTYPE_p_float, 0);
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              {
+                int res = SWIG_AsVal_long(argv[5], NULL);
+                _v = SWIG_CheckState(res);
+              }
+              if (_v) {
+                {
+                  int res = SWIG_AsVal_long(argv[6], NULL);
+                  _v = SWIG_CheckState(res);
+                }
+                if (_v) {
+                  {
+                    int res = SWIG_AsVal_long(argv[7], NULL);
+                    _v = SWIG_CheckState(res);
+                  }
+                  if (_v) {
+                    return _wrap_resample_fft_center__SWIG_2(self, args);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (argc == 8) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_std__complexTlong_double_t, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_long(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_long(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          {
+            int res = SWIG_AsVal_long(argv[3], NULL);
+            _v = SWIG_CheckState(res);
+          }
+          if (_v) {
+            void *vptr = 0;
+            int res = SWIG_ConvertPtr(argv[4], &vptr, SWIGTYPE_p_std__complexTlong_double_t, 0);
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              {
+                int res = SWIG_AsVal_long(argv[5], NULL);
+                _v = SWIG_CheckState(res);
+              }
+              if (_v) {
+                {
+                  int res = SWIG_AsVal_long(argv[6], NULL);
+                  _v = SWIG_CheckState(res);
+                }
+                if (_v) {
+                  {
+                    int res = SWIG_AsVal_long(argv[7], NULL);
+                    _v = SWIG_CheckState(res);
+                  }
+                  if (_v) {
+                    return _wrap_resample_fft_center__SWIG_12(self, args);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (argc == 8) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_long_double, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_long(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_long(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          {
+            int res = SWIG_AsVal_long(argv[3], NULL);
+            _v = SWIG_CheckState(res);
+          }
+          if (_v) {
+            void *vptr = 0;
+            int res = SWIG_ConvertPtr(argv[4], &vptr, SWIGTYPE_p_long_double, 0);
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              {
+                int res = SWIG_AsVal_long(argv[5], NULL);
+                _v = SWIG_CheckState(res);
+              }
+              if (_v) {
+                {
+                  int res = SWIG_AsVal_long(argv[6], NULL);
+                  _v = SWIG_CheckState(res);
+                }
+                if (_v) {
+                  {
+                    int res = SWIG_AsVal_long(argv[7], NULL);
+                    _v = SWIG_CheckState(res);
+                  }
+                  if (_v) {
+                    return _wrap_resample_fft_center__SWIG_6(self, args);
+                  }
+                }
               }
             }
           }
@@ -3818,7 +4613,7 @@ SWIGINTERN PyObject *_wrap_resample_fft_center(PyObject *self, PyObject *args) {
   }
   
 fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'resample_fft_center'.\n  Possible C/C++ prototypes are:\n    resample_fft_center<(float)>(float *,dsize_type,dsize_type,float *,dsize_type,dsize_type)\n    resample_fft_center<(double)>(double *,dsize_type,dsize_type,double *,dsize_type,dsize_type)\n    resample_fft_center<(long double)>(long double *,dsize_type,dsize_type,long double *,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(float)>)>(std::complex<float > *,dsize_type,dsize_type,std::complex<float > *,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(double)>)>(std::complex<double > *,dsize_type,dsize_type,std::complex<double > *,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(long double)>)>(std::complex<long double > *,dsize_type,dsize_type,std::complex<long double > *,dsize_type,dsize_type)\n");
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'resample_fft_center'.\n  Possible C/C++ prototypes are:\n    resample_fft_center<(float)>(float *,dsize_type,dsize_type,dsize_type,float *,dsize_type,dsize_type,dsize_type)\n    resample_fft_center<(float)>(float *,dsize_type,dsize_type,float *,dsize_type,dsize_type)\n    resample_fft_center<(double)>(double *,dsize_type,dsize_type,dsize_type,double *,dsize_type,dsize_type,dsize_type)\n    resample_fft_center<(double)>(double *,dsize_type,dsize_type,double *,dsize_type,dsize_type)\n    resample_fft_center<(long double)>(long double *,dsize_type,dsize_type,dsize_type,long double *,dsize_type,dsize_type,dsize_type)\n    resample_fft_center<(long double)>(long double *,dsize_type,dsize_type,long double *,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(float)>)>(std::complex<float > *,dsize_type,dsize_type,dsize_type,std::complex<float > *,dsize_type,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(float)>)>(std::complex<float > *,dsize_type,dsize_type,std::complex<float > *,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(double)>)>(std::complex<double > *,dsize_type,dsize_type,dsize_type,std::complex<double > *,dsize_type,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(double)>)>(std::complex<double > *,dsize_type,dsize_type,std::complex<double > *,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(long double)>)>(std::complex<long double > *,dsize_type,dsize_type,dsize_type,std::complex<long double > *,dsize_type,dsize_type,dsize_type)\n    resample_fft_center<(std::complex<(long double)>)>(std::complex<long double > *,dsize_type,dsize_type,std::complex<long double > *,dsize_type,dsize_type)\n");
   return NULL;
 }
 
@@ -4453,6 +5248,8 @@ fail:
 
 
 static PyMethodDef SwigMethods[] = {
+	 { (char *)"resample_fft_offset_orig", _wrap_resample_fft_offset_orig, METH_VARARGS, NULL},
+	 { (char *)"resample_fft_offset_new", _wrap_resample_fft_offset_new, METH_VARARGS, NULL},
 	 { (char *)"resample_fft_center", _wrap_resample_fft_center, METH_VARARGS, NULL},
 	 { (char *)"downsample", _wrap_downsample, METH_VARARGS, NULL},
 	 { (char *)"sinc_blackman_kernel", _wrap_sinc_blackman_kernel, METH_VARARGS, NULL},
