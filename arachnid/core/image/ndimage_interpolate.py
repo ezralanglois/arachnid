@@ -134,6 +134,7 @@ def resample_fft_fast(img, out, is_fft=False):
         out = numpy.zeros(shape, dtype=img.dtype)
     if not is_fft: img = scipy.fftpack.fftn(img)
     img = scipy.fftpack.fftshift(img)
+    oshape = out.shape
     
     gain = 1.0
     for i in xrange(len(oshape)):
