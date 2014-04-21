@@ -54,9 +54,14 @@ def resample_offsets(ishape, shape, axis=None, pad=None):
         ishape = tuple(numpy.asarray(ishape)*pad)
         shape = tuple(numpy.asarray(shape)*pad)
     if axis is None:
-        iy, oy = resample_offsets(ishape, shape, 0, None)
-        ix, ox = resample_offsets(ishape, shape, 1, None)
-        return ((iy, ix), (oy, ox))
+        ret = [[], []]
+        for i in xrange(len(ishape)):
+            iy, oy = resample_offsets(ishape, shape, 0, None)
+            ret[0].append(iy)
+            ret[1].append(oy)
+        return tuple(ret)  
+        #ix, ox = resample_offsets(ishape, shape, 1, None)
+        #return ((iy, ix), (oy, ox))
 
     i_range = numpy.arange(0, min(ishape[axis], shape[axis]), dtype=numpy.int)
     if (((ishape[axis]%2) == 0) and (shape[axis]>ishape[axis])) or (((ishape[axis]%2) != 0) and shape[axis] < ishape[axis]):
@@ -82,30 +87,38 @@ def resample_fft(img, out, is_fft=False, offsets=None, pad=None):
             shape = img.shape
             ctype = numpy.complex128 if img.dtype is numpy.float64 else numpy.complex64
             img = ndimage_filter.pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
-        img = scipy.fftpack.fft2(img)
+        img = scipy.fftpack.fftn(img)
     img = scipy.fftpack.fftshift(img)
+    oshape = out.shape
+    if pad is not None and pad > 1: 
+        oshape = (int(oshape[0]*pad), int(oshape[1]*pad))
     
-    gain_x = float(out.shape[1])/float(img.shape[1])
-    gain_y = float(out.shape[0])/float(img.shape[0])
+    gain = 1.0
+    for i in xrange(len(oshape)):
+        gain *= float(oshape[i])/float(img.shape[i])
     
     if offsets is None:
-        ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = resample_offsets(img, out.shape)
+        #((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = resample_offsets(img, oshape)
+        (img_idx, out_idx) = resample_offsets(img, oshape)
     else:
-        ((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = offsets
+        #((y_img_idx, x_img_idx), (y_out_idx, x_out_idx)) = offsets
+        (img_idx, out_idx) = offsets
     
-    if pad is not None:
-        fout = numpy.zeros(tuple(numpy.asarray(out.shape)*pad), dtype=img.dtype)
+    if pad is not None and pad > 1:
+        fout = numpy.zeros(oshape, dtype=img.dtype)
     else:
         fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
-    fout[y_out_idx, x_out_idx[:, numpy.newaxis]] = img[y_img_idx, x_img_idx[:, numpy.newaxis]].squeeze()
+    img_idx = numpy.meshgrid(*img_idx)
+    out_idx = numpy.meshgrid(*out_idx)
+    fout[out_idx] = img[img_idx].squeeze()
     fout[:]=scipy.fftpack.ifftshift(fout)
     
     if not is_fft: 
         if pad is not None and pad > 1:
-            img = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+            img = gain*scipy.fftpack.ifftn(fout).real
             out[:] = ndimage_filter.depad_image(img, out.shape)
         else:
-            out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+            out[:] = gain*scipy.fftpack.ifftn(fout).real
         return out
     return fout
 
@@ -119,21 +132,21 @@ def resample_fft_fast(img, out, is_fft=False):
             assert(out > 1.0)
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
         out = numpy.zeros(shape, dtype=img.dtype)
-    if not is_fft: img = scipy.fftpack.fft2(img)
+    if not is_fft: img = scipy.fftpack.fftn(img)
     img = scipy.fftpack.fftshift(img)
     
-    gain_x = float(out.shape[1])/float(img.shape[1])
-    gain_y = float(out.shape[0])/float(img.shape[0])
+    gain = 1.0
+    for i in xrange(len(oshape)):
+        gain *= float(oshape[i])/float(img.shape[i])
     
     fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
     _resample.resample_fft_center(img, fout)
     fout[:]=scipy.fftpack.ifftshift(fout)
     
     if not is_fft: 
-        out[:] = (gain_x*gain_y)*scipy.fftpack.ifft2(fout).real
+        out[:] = gain*scipy.fftpack.ifftn(fout).real
         return out
     return fout
-    
     
 def sincblackman(bin_factor, template_min = 15, kernel_size=2002, dtype=numpy.float32):
     '''

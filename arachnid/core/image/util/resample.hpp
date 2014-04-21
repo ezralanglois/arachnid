@@ -2,38 +2,59 @@ typedef long dsize_type;
 
 // future swig example http://mdanalysis.googlecode.com/svn/trunk/src/KDTree/KDTree.i
 
-/**
- * todo: remove fshifts by changing index
- */
+
+dsize_type resample_fft_offset_orig(dsize_type orig_n, dsize_type new_n)
+{
+	if( ((orig_n%2) == 0 && new_n>orig_n) || ((orig_n%2)!= 0 &&  new_n < orig_n) )
+		return std::max(std::floor((orig_n-new_n)/2.0), 0.0);
+	else
+		return std::max(std::ceil((orig_n-new_n)/2.0), 0.0);
+}
+
+dsize_type resample_fft_offset_new(dsize_type orig_n, dsize_type new_n)
+{
+	if( ((orig_n%2) == 0 && new_n>orig_n) || ((orig_n%2)!= 0 &&  new_n < orig_n) )
+		return std::max(std::floor((new_n-orig_n)/2.0), 0.0);
+	else
+		return std::max(std::ceil((new_n-orig_n)/2.0), 0.0);
+}
+
+template<class T>
+void resample_fft_center(T* vol, dsize_type vol_r, dsize_type vol_c, dsize_type vol_d, T* out, dsize_type vout_r, dsize_type vout_c, dsize_type vout_d)
+{
+	dsize_type rend=std::min(vol_r, vout_r);
+	dsize_type cend=std::min(vol_c, vout_c);
+	dsize_type dend=std::min(vol_d, vout_d);
+	dsize_type img_rbeg = resample_fft_offset_orig(vol_r, vout_r);
+	dsize_type img_cbeg = resample_fft_offset_orig(vol_c, vout_c);
+	dsize_type img_dbeg = resample_fft_offset_orig(vol_d, vout_d);
+	dsize_type out_rbeg = resample_fft_offset_new(vol_r, vout_r);
+	dsize_type out_cbeg = resample_fft_offset_new(vol_c, vout_c);
+	dsize_type out_dbeg = resample_fft_offset_new(vol_d, vout_d);
+#	ifdef _OPENMP
+#	pragma omp parallel for
+#	endif
+	for(dsize_type d = 0;d<dend;++d)
+	{
+		for(dsize_type r = 0;r<rend;++r)
+		{
+			for(dsize_type c = 0;c<cend;++c)
+			{
+				out[out_cbeg+c+((out_rbeg+r)*vout_c) + ((d+out_dbeg)*vout_c*vout_r)] = vol[img_cbeg+c+((img_rbeg+r)*vol_c)+((img_dbeg+d)*vol_c*vol_r)];
+			}
+		}
+	}
+}
+
 template<class T>
 void resample_fft_center(T* img, dsize_type img_r, dsize_type img_c, T* out, dsize_type out_r, dsize_type out_c)
 {
 	dsize_type rend=std::min(img_r, out_r);
 	dsize_type cend=std::min(img_c, out_c);
-	dsize_type img_rbeg;
-	dsize_type img_cbeg;
-	dsize_type out_rbeg;
-	dsize_type out_cbeg;
-	if( ((img_r%2) == 0 && out_r>img_r) || ((img_r%2)!= 0 &&  out_r < img_r) )
-	{
-		out_rbeg = std::max(std::floor((out_r-img_r)/2.0), 0.0);
-		img_rbeg = std::max(std::floor((img_r-out_r)/2.0), 0.0);
-	}
-	else
-	{
-		out_rbeg = std::max(std::ceil((out_r-img_r)/2.0), 0.0);
-		img_rbeg = std::max(std::ceil((img_r-out_r)/2.0), 0.0);
-	}
-	if( ((img_c%2) == 0 && out_c>img_c) || ((img_c%2)!= 0 &&  out_c < img_c) )
-	{
-		out_cbeg = std::max(std::floor((out_c-img_c)/2.0), 0.0);
-		img_cbeg = std::max(std::floor((img_c-out_c)/2.0), 0.0);
-	}
-	else
-	{
-		out_cbeg = std::max(std::ceil((out_c-img_c)/2.0), 0.0);
-		img_cbeg = std::max(std::ceil((img_c-out_c)/2.0), 0.0);
-	}
+	dsize_type img_rbeg = resample_fft_offset_orig(img_r, out_r);
+	dsize_type img_cbeg = resample_fft_offset_orig(img_c, out_c);
+	dsize_type out_rbeg = resample_fft_offset_new(img_r, out_r);
+	dsize_type out_cbeg = resample_fft_offset_new(img_c, out_c);
 #	ifdef _OPENMP
 #	pragma omp parallel for
 #	endif
