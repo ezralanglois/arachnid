@@ -465,7 +465,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("",   ova=False,      help="One-versus-all, the last one versus all other listed volumes")
         pgroup.add_option("",   disable_scale=False,      help="Scale y-axis automatically")
         
-        spider_params.setup_options(parser, pgroup, True)
+        spider_params.setup_options(parser, pgroup, False)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
     if main_option:
         setup_options_from_doc(parser, spider.open_session, group=pgroup)
