@@ -48,7 +48,7 @@ def min_max_euclidiean_dist(samp, batch=10000):
     dense = numpy.empty((batch,batch), dtype=dtype)
     a = (samp**2).sum(axis=1)
     maxval = -1e20
-    minval = 1e20
+    maxarr = numpy.zeros(sampe.shape[0])
     for r in xrange(0, samp.shape[0], batch):
         rnext = min(r+batch, samp.shape[0])
         s1 = samp[r:rnext]
@@ -61,9 +61,8 @@ def min_max_euclidiean_dist(samp, batch=10000):
             dist2=tmp
             dist2 += a[c:c+batch]#, numpy.newaxis]
             dist2 += a[r:rnext, numpy.newaxis]
+            maxarr[r:rnext] = numpy.maximum(maxarr[r:rnext], dist2.max(axis=1))
             val=dist2.max()
             if val > maxval: maxval = val
-            val=dist2.min()
-            if val < minval: minval = val
-    return numpy.sqrt(minval), numpy.sqrt(maxval)
+    return numpy.sqrt(maxarr.min()), numpy.sqrt(maxval)
 
