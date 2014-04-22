@@ -1,6 +1,6 @@
 '''
 .. Created on Jan 13, 2014
-.. codeauthor:: robertlanglois
+.. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
 import logging
@@ -34,4 +34,5 @@ def fastdot_t1(s1_t, s2, out=None, alpha=1.0, beta=0.0):
     if out is None: out = numpy.zeros((s1_t.shape[1], s2.shape[1]), dtype=s1_t.dtype)
     _fastdot.gemm_t1(s1_t, s2, out, float(alpha), float(beta))
     return out
+
 
