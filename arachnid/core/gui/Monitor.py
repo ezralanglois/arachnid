@@ -206,8 +206,13 @@ class Widget(QtGui.QWidget):
                 _logger.info("Running "+str(prog.name()))
                 try:
                     prog.check_options_validity()
+                except:
+                    _logger.exception("Invalid option")
+                    break
+                try:
                     prog.launch()
-                except: break
+                except: 
+                    break
             _logger.info("Workflow ended")
         self.workflowProcess=multiprocessing.Process(target=_run_worker, args=(self.workflow(), ))
         self.workflowProcess.start()
