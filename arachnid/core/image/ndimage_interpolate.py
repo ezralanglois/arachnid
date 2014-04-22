@@ -129,7 +129,6 @@ def resample_fft_fast(img, out, is_fft=False):
     if not hasattr(out, 'ndim'):
         if hasattr(out, '__len__'): shape = (int(out[0]), int(out[1]), int(out[2])) if img.ndim == 3 else (int(out[0]), int(out[1]))
         else:
-            assert(out > 1.0)
             shape = (int(img.shape[0]/out), int(img.shape[1]/out), int(img.shape[2]/out)) if img.ndim == 3 else (int(img.shape[0]/out), int(img.shape[1]/out))
         out = numpy.zeros(shape, dtype=img.dtype)
     if not is_fft: img = scipy.fftpack.fftn(img)
@@ -142,6 +141,7 @@ def resample_fft_fast(img, out, is_fft=False):
     
     fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
     _resample.resample_fft_center(img, fout)
+    
     fout[:]=scipy.fftpack.ifftshift(fout)
     
     if not is_fft: 
