@@ -420,10 +420,10 @@ class Option(optparse.Option):
         self._dependent = True
         self._default_regular_expression = None
         choices = None
-        flag, value = self.determine_flag(args, kwargs)
         if 'regexp' in kwargs:
             self._default_regular_expression = kwargs["regexp"]
             del kwargs["regexp"]
+        flag, value = self.determine_flag(args, kwargs)
         if flag is not None:
             args, choices = self.setup_auto_flag(flag, value, args, kwargs)
         if "gui" in kwargs: # TODO remove this
