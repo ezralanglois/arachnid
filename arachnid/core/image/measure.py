@@ -23,11 +23,7 @@ def estimate_diameter(vol, cur_apix, apix=10, threshold=None, **extra):
     mask = ndimage_utility.tight_mask(vol_sm, threshold, 0, 0)[0]
     #ndimage_file.write_image('test03.mrc', mask)
     mask2 = scipy.ndimage.binary_dilation(mask, scipy.ndimage.generate_binary_structure(mask.ndim, 2), 1)
-    y,x,z = numpy.unravel_index(numpy.nonzero(mask.ravel()), mask.shape)
-    coords = numpy.zeros((len(x.ravel()), 3))
-    coords[:, 0]=x.ravel()
-    coords[:, 1]=y.ravel()
-    coords[:, 2]=z.ravel()
+    coords = numpy.vstack(numpy.unravel_index(numpy.nonzero(mask.ravel()), mask.shape)).T.copy()
     diameter=distance.max_euclidiean_dist(coords)
     
     if 1 == 0:
@@ -61,11 +57,7 @@ def estimate_shape(vol, cur_apix, apix=20, threshold=None, **extra):
     apix=float(vol.shape[0])/vol_sm.shape[0]*cur_apix
     vol_sm = tv_denoise(vol_sm, weight=10, eps=2.e-4, n_iter_max=200)
     mask = ndimage_utility.tight_mask(vol_sm, threshold, 0, 0)[0]
-    y,x,z = numpy.unravel_index(numpy.nonzero(mask.ravel()), vol_sm.shape)
-    coords = numpy.zeros((len(x.ravel()), 3))
-    coords[:, 0]=x.ravel()
-    coords[:, 1]=y.ravel()
-    coords[:, 2]=z.ravel()
+    coords = numpy.vstack(numpy.unravel_index(numpy.nonzero(mask.ravel()), vol_sm.shape)).T.copy()
     return minimum_volume_ellipse(coords)[1]*apix
 
 def minimum_volume_ellipse(P=None, tolerance=0.01):
