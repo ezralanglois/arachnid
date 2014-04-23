@@ -13,6 +13,7 @@ import os
 from urlparse import urlparse
 import multiprocessing
 from ..image import ndimage_file
+from ..image import measure
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -23,6 +24,7 @@ class Widget(QtGui.QWidget):
     
     taskFinished = qtSignal(object)
     captureScreen = qtSignal(int)
+    updateParticleDiameter = qtSignal(float)
     
     def __init__(self, parent=None, helpDialog=None):
         "Initialize ReferenceUI widget"
@@ -185,6 +187,9 @@ NUCLEIC ACIDS RES. (2013)"""),]
                 QtGui.QMessageBox.warning(self, "Warning", "File is not a volume: %s"%str(img.shape))
             header = ndimage_file.read_header(filename)
             self.ui.referencePixelSizeDoubleSpinBox.setValue(header['apix'])
+            diameter = measure.estimate_diameter(img, header['apix'])
+            #self.parent().setField('particle_diameter', diameter)
+            self.updateParticleDiameter.emit(diameter)
 
         return filename
     

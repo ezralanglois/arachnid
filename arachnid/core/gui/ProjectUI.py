@@ -51,6 +51,7 @@ class MainWindow(QtGui.QWizard):
     
     micrographFilesUpdated = qtSignal()
     gainFilesUpdated = qtSignal()
+    diameterChanged = qtSignal(float)
     
     def __init__(self, screen_shot_file=None, parent=None):
         '''
@@ -118,6 +119,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.referenceWidget.registerPage(self.ui.referencePage) 
         #self.ui.referencePage.registerField("referenceEdit*", self.ui.referenceWidget.ui.referenceLineEdit)
         self.ui.referenceWidget.captureScreen.connect(self.captureScreen)
+        self.ui.referenceWidget.updateParticleDiameter.connect(self.ui.particleSizeDoubleSpinBox.setValue)
         
         ########################################################################################################################################
         ###### Monitor Page
@@ -148,6 +150,8 @@ class MainWindow(QtGui.QWizard):
         ###### Manual Settings Page
         ########################################################################################################################################
         self.ui.manualSettingsPage.registerField(self.param("apix*"), self.ui.pixelSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        
+        
         self.ui.manualSettingsPage.registerField(self.param("voltage*"), self.ui.voltageDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.manualSettingsPage.registerField(self.param("cs*"), self.ui.csDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.manualSettingsPage.registerField(self.param("input_files*"), self, 'micrographFiles', QtCore.SIGNAL('micrographFilesUpdated()'))
@@ -188,7 +192,11 @@ class MainWindow(QtGui.QWizard):
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
   
         self.ui.additionalSettingsPage.registerField(self.param("spider_path"), self.ui.spiderExecutableLineEdit)
+        self.ui.particleSizeDoubleSpinBox.valueChanged.connect(self.diameterChanged)
         self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
+        #self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self, "particleDiameter", QtCore.SIGNAL('diameterChanged(double)'))
+        
+        
         self.ui.additionalSettingsPage.registerField(self.param("window_actual*"), self.ui.windowSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param("mask_diameter*"), self.ui.maskDiameterDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         self.ui.additionalSettingsPage.registerField(self.param('worker_count'), self.ui.workerCountSpinBox)
@@ -561,6 +569,21 @@ class MainWindow(QtGui.QWizard):
     ########################################################################################################################################
     ###### Converted properties
     ########################################################################################################################################
+    
+    def particleDiameter(self):
+        '''
+        '''
+        
+        return self.ui.particleSizeDoubleSpinBox.value()
+    
+    def setParticleDiameter(self, val):
+        '''
+        '''
+        
+        return self.ui.particleSizeDoubleSpinBox.setValue(val)
+    
+    particleDiameter = qtProperty(float, particleDiameter, setParticleDiameter)
+    
     
     @qtProperty(str)
     def gainFile(self):
