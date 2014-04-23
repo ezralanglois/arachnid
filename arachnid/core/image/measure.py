@@ -97,7 +97,7 @@ def minimum_volume_ellipse(P=None, tolerance=0.01):
     # Khachiyan Algorithm
     while err > tolerance:
         V = numpy.dot(Q, numpy.dot(numpy.diag(u), QT))
-        M = numpy.diag(numpy.dot(QT , numpy.dot(linalg.inv(V), Q)))    # M the diagonal vector of an NxN matrix
+        M = numpy.diag(numpy.dot(QT , numpy.dot(numpy.linalg.inv(V), Q)))    # M the diagonal vector of an NxN matrix
         j = numpy.argmax(M)
         maximum = M[j]
         step_size = (maximum - d - 1.0) / ((d + 1.0) * (maximum - 1.0))
