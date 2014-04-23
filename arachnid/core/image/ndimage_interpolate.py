@@ -140,7 +140,10 @@ def resample_fft_fast(img, out, is_fft=False):
         gain *= float(oshape[i])/float(img.shape[i])
     
     fout = numpy.zeros_like(out, dtype=img.dtype) if not is_fft else out
-    _resample.resample_fft_center(img, fout)
+    if fout.ndim == 3:
+        _resample.resample_fft_center_3(img, fout)
+    else:
+        _resample.resample_fft_center_2(img, fout)
     
     fout[:]=scipy.fftpack.ifftshift(fout)
     

@@ -55,7 +55,7 @@ cvar = _resample.cvar
 pi = cvar.pi
 twopi = cvar.twopi
 
-def resample_fft_center(*args):
+def resample_fft_center_3(*args):
   """
     This SWIG wrapper function resample an image from
     	the Fourier Transform.
@@ -71,7 +71,25 @@ def resample_fft_center(*args):
     		  Resampled output 2D complex array
     	
     """
-  return _resample.resample_fft_center(*args)
+  return _resample.resample_fft_center_3(*args)
+
+def resample_fft_center_2(*args):
+  """
+    This SWIG wrapper function resample an image from
+    	the Fourier Transform.
+    	
+    	Assumes the Fourier transform is shifted to the center
+    	using fftshift.
+
+    	:Parameters:
+
+    	img : array
+    		  Input 2D complex array
+    	out : array
+    		  Resampled output 2D complex array
+    	
+    """
+  return _resample.resample_fft_center_2(*args)
 
 def downsample(*args):
   """

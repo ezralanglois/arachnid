@@ -109,7 +109,24 @@ DECLARE_DATA_TYPE(long double)
 		out : array
 			  Resampled output 2D complex array
 		");
-INSTANTIATE_DATA_MORE(resample_fft_center);
+INSTANTIATE_DATA_MORE(resample_fft_center_3);
+
+%feature("autodoc", "");
+%feature("docstring",
+		" This SWIG wrapper function resample an image from
+		the Fourier Transform.
+		
+		Assumes the Fourier transform is shifted to the center
+		using fftshift.
+
+		:Parameters:
+
+		img : array
+			  Input 2D complex array
+		out : array
+			  Resampled output 2D complex array
+		");
+INSTANTIATE_DATA_MORE(resample_fft_center_2);
 
 %feature("autodoc", "");
 %feature("docstring",
