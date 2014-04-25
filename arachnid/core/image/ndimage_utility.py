@@ -1342,6 +1342,47 @@ def fftamp(img, s=None, out=None):
     out = numpy.abs(fimg, out)
     return out
 
+def polar_half(image, center=None, out=None, rng=None):
+    '''Transform image into log-polar representation
+    
+    @todo - add radius range
+    
+    :Parameters:
+    
+    image : numpy.ndarray
+            Input image
+    angles : int, optional
+             Size of angle dimension
+    out : numpy.ndarray, optional
+          Image in log polar space
+    
+    :Returns:
+    
+    out : numpy.ndarray
+          Image in polar space (radius, angle)
+    '''
+    
+    ny, nx = image.shape[:2]
+    
+    if center is None: center = (image.shape[0]/2+image.shape[0]%2, image.shape[1]/2+image.shape[0]%2)
+    #if center is None: center = (nx // 2, ny // 2)
+    x, y = index_coords(image, center)
+    r, theta = cart2polar(x, y)
+    
+    if rng is None: rng = (r.min(), r.max())
+    nx = rng[1]-rng[0]
+    r_i = numpy.linspace(rng[0], rng[1], nx)
+    theta_i = numpy.linspace(theta.min(), theta.max(), ny)
+    theta_grid, r_grid = numpy.meshgrid(theta_i, r_i)
+    
+    xi, yi = polar2cart(r_grid, theta_grid)
+    xi += center[0] # We need to shift the origin back to 
+    yi += center[1] # back to the lower-left corner...
+    xi, yi = xi.flatten(), yi.flatten()
+    coords = numpy.vstack((xi, yi))
+
+    return scipy.ndimage.interpolation.map_coordinates(image, coords).reshape((nx, ny)).T
+
 def polar(image, center=None, out=None, rng=None):
     '''Transform image into log-polar representation
     
@@ -1363,7 +1404,9 @@ def polar(image, center=None, out=None, rng=None):
     '''
     
     ny, nx = image.shape[:2]
-    if center is None: center = (nx // 2, ny // 2)
+    
+    if center is None: center = (image.shape[0]/2+image.shape[0]%2, image.shape[1]/2+image.shape[0]%2)
+    #if center is None: center = (nx // 2, ny // 2)
     x, y = index_coords(image, center)
     r, theta = cart2polar(x, y)
     
@@ -2065,7 +2108,7 @@ def flatten_solvent(img, threshold=None, out=None):
         out[sel] = img[sel]
     return out, threshold
 
-def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None):
+def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, mask=None, out=None):
     ''' Create a tight mask from the given image
     
     :Parameters:
@@ -2080,6 +2123,8 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
               Size of Gaussian kernel used for real space smoothing
     gk_sigma : float, optional
                Sigma value for Gaussian kernel
+    mask : array
+           Mask for threshold selection
     out : numpy.ndarray, optional
           Output image
                      
@@ -2095,7 +2140,10 @@ def tight_mask(img, threshold=None, ndilate=1, gk_size=3, gk_sigma=3.0, out=None
     _logger.debug("Tight mask - started")
     if threshold is None or threshold == 'A': 
         _logger.debug("Finding threshold")
-        threshold = unary_classification.otsu(img.ravel())
+        if mask is not None:
+            threshold = unary_classification.otsu(img[mask].ravel())
+        else:
+            threshold = unary_classification.otsu(img.ravel())
     else: threshold=float(threshold)
     
     _logger.debug("Finding biggest object")
