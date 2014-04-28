@@ -681,7 +681,9 @@ def read_alignment(filename, header=None, **extra):
         try:
             align = read(filename, numeric=True, header=h, **extra)
         except: pass
-        else: break
+        else: 
+            if len(align) == 0 or align[0]._fields[0]=='epsi':
+                break
     if align is None:
         align = read(filename, numeric=True, header=header, **extra)
     return align

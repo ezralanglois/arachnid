@@ -96,6 +96,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
             align = format.read(filename, **extra)
         param = numpy.zeros((len(align), align_cols))
         files = []
+        fileset=set()
         if use_3d:
             _logger.info("Standard Relion alignment file - leave 3D")
             for i in xrange(len(align)):
@@ -106,6 +107,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                     filename = spider_utility.spider_filename(image_file, filename)
                     
                 files.append((filename, index))
+                fileset.add(filename)
                 if supports_spider_id is not None and spider_utility.is_spider_filename(files[-1][0]):
                     if supports_spider_id == "":
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
@@ -131,6 +133,7 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
                 if image_file != "":
                     filename = spider_utility.spider_filename(image_file, filename)
                 files.append((filename, index))
+                fileset.add(filename)
                 if supports_spider_id is not None and spider_utility.is_spider_filename(files[-1][0]): 
                     if supports_spider_id == "":
                         supports_spider_id = spider_utility.spider_filepath(files[-1][0])
@@ -152,9 +155,12 @@ def read_alignment(filename, image_file, use_3d=False, align_cols=7, force_list=
         if supports_spider_id is not None:
             label = numpy.zeros((len(param), 2), dtype=numpy.int)
             for i in xrange(len(files)): label[i, :] = (spider_utility.spider_id(files[i][0]), files[i][1])
-            label[:, 1]-=1
-            files = (files[0][0], label)
-            if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+            if len(fileset) == len(numpy.unique(label[:, 0]).squeeze()):
+                label[:, 1]-=1
+                files = (files[0][0], label)
+                if label[:, 1].min() < 0: raise ValueError, "Cannot have a negative index"
+            else:
+                _logger.warn("Input filenames appear to be SPIDER but the ID is not unique")
         if ctf_params:
             ctf_param=dict(cs=align[0].rlnSphericalAberration,
                            voltage=align[0].rlnVoltage,
@@ -258,7 +264,9 @@ def read_spider_alignment(filename, header=None, **extra):
         try:
             align = format.read(filename, numeric=True, header=h, **extra)
         except: pass
-        else: break
+        else: 
+            if len(align) == 0 or align[0]._fields[0]=='epsi':
+                break
     if align is None:
         align = format.read(filename, numeric=True, header=header, **extra)
     return align
