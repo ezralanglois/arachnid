@@ -341,7 +341,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     if pixel_radius > 0:
         _logger.debug("Testing normalization")
         mask = ndimage_utility.model_disk(pixel_radius, img.shape)*-1+1
-        avg = numpy.mean(img*mask)
+        avg = numpy.mean(img[mask>0])
         if numpy.allclose(0.0, avg):
             _logger.warn("Relion requires the background to be zero normalized, not %g -- for radius %d"%(avg, pixel_radius))
     
@@ -746,6 +746,7 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, r
         filename, index = relion_utility.relion_file(vals[0].rlnImageName)
         img = ndimage_file.read_image(filename, index)
         mask = ndimage_utility.model_disk(int(pixel_diameter/2), img.shape)*-1+1
+        mask = mask > 0
         old_vals = vals
         vals = []
         missing=set()
