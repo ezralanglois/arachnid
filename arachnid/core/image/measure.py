@@ -1,4 +1,6 @@
-'''
+''' Image morphology routines to estimate object size in an image or volume
+
+
 .. Created on Apr 22, 2014
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -12,28 +14,14 @@ import scipy.ndimage
 import numpy.linalg
 import ndimage_interpolate
 import ndimage_utility
+import logging
+
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def estimate_diameter(vol, cur_apix, apix=10, threshold=None, **extra):
     ''' Estimate the diameter of the object
-    '''
-    
-    vol_sm = ndimage_interpolate.resample_fft_fast(vol, apix/cur_apix)
-    vol_sm = tv_denoise(vol_sm, weight=10, eps=2.e-4, n_iter_max=200)
-    apix=float(vol.shape[0])/vol_sm.shape[0]*cur_apix
-    mask = ndimage_utility.tight_mask(vol_sm, threshold, 0, 0)[0]
-    #ndimage_file.write_image('test03.mrc', mask)
-    mask2 = scipy.ndimage.binary_dilation(mask, scipy.ndimage.generate_binary_structure(mask.ndim, 2), 1)
-    coords = numpy.vstack(numpy.unravel_index(numpy.nonzero(mask.ravel()), mask.shape)).T.copy()
-    diameter=distance.max_euclidiean_dist(coords)
-    
-    if 1 == 0:
-        radii = getMinVolEllipse(coords)[1]
-        print radii.max()/radii.min()
-        
-    return diameter*apix
-
-def estimate_shape(vol, cur_apix, apix=20, threshold=None, **extra):
-    ''' Get the basic shape of the object based on ellipsoid fitting
     
     :Parameters:
         
@@ -50,6 +38,47 @@ def estimate_shape(vol, cur_apix, apix=20, threshold=None, **extra):
     :Returns:
         
         radii : float
+                Maximum diameter of the object
+    '''
+    
+    vol_sm = ndimage_interpolate.resample_fft_fast(vol, apix/cur_apix)
+    vol_sm = tv_denoise(vol_sm, weight=10, eps=2.e-4, n_iter_max=200)
+    apix=float(vol.shape[0])/vol_sm.shape[0]*cur_apix
+    mask = ndimage_utility.tight_mask(vol_sm, threshold, 0, 0)[0]
+    mask2 = scipy.ndimage.binary_dilation(mask, scipy.ndimage.generate_binary_structure(mask.ndim, 2), 1)
+    coords = numpy.vstack(numpy.unravel_index(numpy.nonzero(mask.ravel()), mask.shape)).T.copy().astype(numpy.float32)
+    try:
+        diameter=distance.max_euclidiean_dist(coords)
+    except:
+        _logger.error("%s -- %s"%(str(coords.shape), str(coords.dtype)))
+        raise
+    
+    if 1 == 0:
+        radii = getMinVolEllipse(coords)[1]
+        print radii.max()/radii.min()
+        
+    return diameter*apix
+
+def estimate_shape(vol, cur_apix, apix=20, threshold=None, ret_all=False, **extra):
+    ''' Get the basic shape of the object based on ellipsoid fitting
+    
+    :Parameters:
+        
+        vol : array
+              Volume data
+        cur_apix : float
+                   Current pixel size of volume 
+        apix : float
+               Pixel size for downsampling
+        threshold : float
+                    Density threshold, default find automaticaly
+        ret_all : bool
+                  Return all the ellipse parameters, unscaled by pixel size
+        extra : dict
+                Unused keyword arguments
+    :Returns:
+        
+        radii : tuple
                 Radii of minimum volumn ellipse scaled by pixel size
     '''
     
@@ -57,8 +86,10 @@ def estimate_shape(vol, cur_apix, apix=20, threshold=None, **extra):
     apix=float(vol.shape[0])/vol_sm.shape[0]*cur_apix
     vol_sm = tv_denoise(vol_sm, weight=10, eps=2.e-4, n_iter_max=200)
     mask = ndimage_utility.tight_mask(vol_sm, threshold, 0, 0)[0]
-    coords = numpy.vstack(numpy.unravel_index(numpy.nonzero(mask.ravel()), vol_sm.shape)).T.copy()
-    return minimum_volume_ellipse(coords)[1]*apix
+    coords = numpy.vstack(numpy.unravel_index(numpy.nonzero(mask.ravel()), vol_sm.shape)).T.copy().astype(numpy.float32)
+    if ret_all:
+        return minimum_volume_ellipse(coords)
+    return minimum_volume_ellipse(coords)[1]*apix*2.0
 
 def minimum_volume_ellipse(P=None, tolerance=0.01):
     ''' Find the minimum volume ellipsoid which holds all the points
