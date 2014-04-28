@@ -331,7 +331,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
             pylab.plot((x[0], xp), (yp, yp), markers[i])
             pylab.plot((xp, xp), (0.0, yp), markers[i])
             res = 0 if xp == 0 else apix/xp
-            pylab.text(xp+xp*0.1, yp, r'$%.1f,\ %.1f \AA (%.1f-criterion)$'%(xp, res, yp))
+            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.1f \AA (%.1f-criterion)$'%(xp, res, yp))
     
     pylab.plot(x, y)
     if not disable_scale:
