@@ -1,22 +1,55 @@
 ''' Plot angular coverage
 
-This script (`ara-selrelion`) generates angular histogram mapped to a 2D projection of a 3D sphere and writes it out
-as a color image. It both the size and color of a circle indicate the number of projections in a view and uses an 'x'
-to denote a view with no projections.
+This script (`ara-coverage`) generates angular histogram tabulating the number
+of projections within a discrete area on a spherical surface. This angular
+histogram can be displayed in a number of ways:
 
-todo add 3d scatter in plot_angles
+ - 2D map projection (default)
+ - 3D scatter plot
+ - Cylinders surrounding a volume in Chimera
+ 
+The number of projections is represented by both the color and size of circle/cylinder in each
+representation. An 'x' is used to denote a view with no projections in the 2D project plot.
 
->>> reset
->>> turn y theta coordinatesystem #0 # Rotating frame like SPIDER
->>> turn z phi coordinatesystem #0
->>> turn x 180
 
-#open #0 spider:~/Desktop/autopick/enh_25_r7_05.ter
+                        
+    Supported Projection Plots
+    ---------------------------
+    aeqd    Azimuthal Equidistant
+    poly    Polyconic
+    gnom    Gnomonic
+    moll    Mollweide
+    tmerc    Transverse Mercator
+    nplaea    North-Polar Lambert Azimuthal
+    gall    Gall Stereographic Cylindrical
+    mill    Miller Cylindrical
+    merc    Mercator
+    stere    Stereographic
+    npstere    North-Polar Stereographic
+    hammer    Hammer
+    geos    Geostationary
+    nsper    Near-Sided Perspective
+    vandg    van der Grinten
+    laea    Lambert Azimuthal Equal Area
+    mbtfpq    McBryde-Thomas Flat-Polar Quartic
+    sinu    Sinusoidal
+    spstere    South-Polar Stereographic
+    lcc    Lambert Conformal
+    npaeqd    North-Polar Azimuthal Equidistant
+    eqdc    Equidistant Conic
+    cyl    Cylindrical Equidistant
+    omerc    Oblique Mercator
+    aea    Albers Equal Area
+    spaeqd    South-Polar Azimuthal Equidistant
+    ortho    Orthographic
+    cass    Cassini-Soldner
+    splaea    South-Polar Lambert Azimuthal
+    robin    Robinson
 
-SPIDER:  ZYZ rotating frame
-CHIMERA: XYZ rotating frame
-
-#http://plato.cgl.ucsf.edu/pipermail/chimera-users/attachments/20080429/aaf842f9/attachment.ksh
+.. note::
+    
+     For more information concerning the map projections, 
+     see http://matplotlib.github.com/basemap/users/mapsetup.html
 
 .. Created on Aug 27, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
@@ -46,25 +79,35 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 def batch(files, output, dpi, chimera=False, **extra):
-    '''
+    ''' Generate an angular histogram for the given alignment files
+        
+    :Parameters:
+    
+        files : list
+                List of input alignment files
+        output : str
+                 Output filename for angular histogram
+        dpi : float
+              Dots per inch for plots
+        chimera : bool
+                  Output in chimera bild format
     '''
     
     outputn=output
-    mapargs = projection_args(**extra) if extra['projection'] != '3d' else None
+    mapargs = projection_args(**extra) if extra['projection'].lower() != '3d' else None
     i=0
     for filename in files:
         if len(files) > 1:
             outputn = format_utility.new_filename(output, suffix=os.path.splitext(os.path.basename(filename))[0], ext='.png')
         angs = read_angles(filename, **extra)
+        angs,cnt = count_angles(angs, **extra)
         if chimera:
-            chimera_balls(angs, outputn, **extra)
+            chimera_bild(angs, cnt, outputn, **extra)
         elif mapargs is None:
             fig = pylab.figure(i, dpi=dpi)
-            angs,cnt = count_angles(angs, **extra)
             scatterEuler3d(fig, angs, cnt, **extra)
             fig.savefig(outputn, dpi=dpi)
         else:
-            angs,cnt = count_angles(angs, **extra)
             _logger.info("%s has %d missing views"%(os.path.basename(filename), numpy.sum(cnt < 1)))
             fig = pylab.figure(i, dpi=dpi)
             fig.add_axes([0.05,0.05,0.9,0.9])
@@ -93,8 +136,35 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
     ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), c=nhist, cmap=cmap)
     if not hide_zero_marker:
         ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
+        
+def chimera_bild(angs, cnt, output, particle_radius=60, particle_center=0, radius_frac=0.3, width_frac=0.5, count_mode=2, color_map='cool', view_resolution=3, **extra):
+    '''
+    '''
     
-def chimera_balls(angs, output, view_resolution=3, disable_mirror=False, ball_radius=60, ball_center=0, ball_size=1.0, mirror=False, count_mode=2, color_map='cool', **extra):
+    #double offset = ori_size * pixel_size / 2.;
+    cmap = getattr(cm, color_map)
+    output = os.path.splitext(output)[0]+'.bild'
+    fout = open(output, 'w')
+    maxcnt = cnt.max()
+    
+    width = width_frac * numpy.pi*particle_radius/healpix.sampling(view_resolution)
+    try:
+        for i in xrange(len(angs)):
+            val = cnt[i]/float(maxcnt)
+            r, g, b = cmap()[:3]
+            fout.write('.color %f %f %f\n'%(r, g, b))
+            
+            v1,v2,v3 = spider_transforms.euler_to_vector(*angs[i, :])
+            length = particle_radius + radius_frac * particle_radius * val;
+            diff = particle_radius-length
+            if abs(diff*v1) < 0.01 and abs(diff*v2) < 0.01 and abs(diff*v3) < 0.01: continue
+            fout.write('.cylinder %f %f %f\n'%(particle_radius*v1+particle_center, particle_radius*v2+particle_center, particle_radius*v3+particle_center,
+                                               length*v1+particle_center, length*v2+particle_center, length*v3+particle_center,
+                                               width))
+    finally:
+        fout.close()
+    
+def chimera_bild_old(angs, cnt, output, view_resolution=3, disable_mirror=False, ball_radius=60, ball_center=0, ball_size=1.0, mirror=False, count_mode=2, color_map='cool', **extra):
     '''
     '''
     
@@ -154,7 +224,6 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
     nhist/=nhist.max()
     m.drawparallels(numpy.arange(-90.,120.,30.))
     m.drawmeridians(numpy.arange(0.,420.,60.))
-    m.drawgreatcircle(angs[0, 1], 90.0-angs[0, 0], angs[-1, 1], 90.0-angs[-1, 0], del_s=50, color='red', lw=4.)
     im = m.scatter(x, y, s=s, marker="o", c=cmap(nhist), alpha=alpha, edgecolors='none')
     
     font_tiny=matplotlib.font_manager.FontProperties()
@@ -278,6 +347,7 @@ def read_angles(filename, header=None, select_file="", **extra):
             angles = numpy.zeros((len(align), 2))
             for i in xrange(len(align)):
                 angles[i] = (align[i].theta, align[i].phi)
+  
     return angles
 
 def setup_options(parser, pgroup=None, main_option=False):
@@ -298,9 +368,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", use_scale=False,           help="Display scale and color instead of color bar")
     group.add_option("", label_view=[],             help="List of views to label with number and Euler Angles (theta,phi)")
     group.add_option("", chimera=False,             help="Write out Chimera bild file")
-    group.add_option("", ball_radius=60,            help="Radius from center for ball projections")
-    group.add_option("", ball_size=1.0,             help="Size of largest ball projection")
-    group.add_option("", ball_center=0,             help="Offset from center for ball projections")
+    group.add_option("", particle_radius=320,            help="Radius from center for ball projections")
+    group.add_option("", particle_center=0,             help="Offset from center for ball projections")
     group.add_option("", select_file="",            help="Selection file", gui=dict(filetype="open"))
     
     pgroup.add_option_group(group)
@@ -328,6 +397,10 @@ def check_options(options, main_option=False):
     from ..core.app.settings import OptionValueError
     if options.view_resolution < 1: raise OptionValueError, "--view-resolution must have a value greater than 0, found: %d"%options.view_resolution
     
+    if options.chimera:
+        if options.particle_radius == 0: raise OptionValueError, "--particle-radius must be greater than 0"
+        if options.particle_center == 0:
+            options.particle_center = options.particle_radius
     if options.boundinglat:
         try:float(options.boundinglat)
         except: raise OptionValueError, "--boundinglat must be a floating point number"
@@ -383,49 +456,16 @@ def main():
     
     program.run_hybrid_program(__name__,
         description = ''' Plot angular coverage on a map projection
-        
-                         http://
                          
                          Example: Map a relion star file
-                         
                          $ ara-coverage data.star -o plot.png
                          
-                        For more information:
-                        
-                        http://matplotlib.github.com/basemap/users/mapsetup.html
-                        
-                        Supported Projection Plots
-                        ---------------------------
-                        aeqd    Azimuthal Equidistant
-                        poly    Polyconic
-                        gnom    Gnomonic
-                        moll    Mollweide
-                        tmerc    Transverse Mercator
-                        nplaea    North-Polar Lambert Azimuthal
-                        gall    Gall Stereographic Cylindrical
-                        mill    Miller Cylindrical
-                        merc    Mercator
-                        stere    Stereographic
-                        npstere    North-Polar Stereographic
-                        hammer    Hammer
-                        geos    Geostationary
-                        nsper    Near-Sided Perspective
-                        vandg    van der Grinten
-                        laea    Lambert Azimuthal Equal Area
-                        mbtfpq    McBryde-Thomas Flat-Polar Quartic
-                        sinu    Sinusoidal
-                        spstere    South-Polar Stereographic
-                        lcc    Lambert Conformal
-                        npaeqd    North-Polar Azimuthal Equidistant
-                        eqdc    Equidistant Conic
-                        cyl    Cylindrical Equidistant
-                        omerc    Oblique Mercator
-                        aea    Albers Equal Area
-                        spaeqd    South-Polar Azimuthal Equidistant
-                        ortho    Orthographic
-                        cass    Cassini-Soldner
-                        splaea    South-Polar Lambert Azimuthal
-                        robin    Robinson
+                         Example: Chimera Bild file
+                         $ ara-coverage data.star -o plot.bild --chimera
+                         
+                         Example: 3D Scatter
+                         $ ara-coverage data.star -o plot.png --projection 3d
+                         
                       ''',
         supports_MPI = False,
         use_version = False,

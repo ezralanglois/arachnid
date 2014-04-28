@@ -131,6 +131,13 @@ def angles_gen(resolution, deg=False, half=False):
     for i in xrange(npix):
         ang = _healpix.pix2ang_ring(nsample, i, ang)
         yield numpy.rad2deg(ang) if deg else ang
+        
+def sampling(resolution):
+    ''' Get the angular sampling for the healpix order
+    '''
+    
+    nsample = pow(2, resolution)
+    return 6*nsample
 
 def res2npix(resolution, half=False, equator=False):
     ''' Get the number of pixels for a given resolution
