@@ -568,13 +568,14 @@ def pad_image(img, shape, fill=0.0, out=None):
         if numpy.alltrue([img.shape[i]==shape[i] for i in xrange(img.ndim)]): return img
         out = numpy.zeros(shape, dtype=img.dtype)
         if fill == 'm':
+            cx, cy = center
             out[0:cx, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
             out[cx+img.shape[0]:, cy:cy+img.shape[1]] = img[-cx:0:-1, :]
             out[cx:cx+img.shape[0], 0:cy] = img[:, 0:cx]
             out[cx:cx+img.shape[0], cy+img.shape[1]:] = img[:, 0:cx]
         elif fill == 'e':
             fact = (numpy.asarray(img.shape)).sum()*2
-            fact -= numpy.pow(2, img.ndim) # remove corners
+            fact -= numpy.power(2, img.ndim) # remove corners
             if img.ndim == 3:
                 avg = (img[0, 0, :].sum()+
                        img[0, :, 0].sum()+

@@ -3,8 +3,9 @@
 .. Created on Apr 16, 2014
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
+from ..core.app import program
 from ..core.metadata import format
-from ..core.metadata import format_utility
+from ..core.metadata import spider_params
 from ..core.metadata import selection_utility
 import logging
 import os
@@ -30,7 +31,7 @@ def initialize(files, param):
     select = format.read(param['selection_file'], numeric=True)
     oldcnt = len(files)
     files = selection_utility.select_file_subset(files, select, param.get('id_len', 0))
-    _logger.info("Deleting %d Files"%len(files))
+    _logger.info("Deleting %d Files of %d"%(len(files), oldcnt))
     _logger.info("Example files include:")
     for filename in files[:5]:
         _logger.info("  -   %s"%filename)
