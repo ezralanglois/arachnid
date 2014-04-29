@@ -11,6 +11,71 @@ histogram can be displayed in a number of ways:
 The number of projections is represented by both the color and size of circle/cylinder in each
 representation. An 'x' is used to denote a view with no projections in the 2D project plot.
 
+Notes
+=====
+
+    #. An output selection file is created that maps the orignal name to
+       the enumerated name.
+    #. The `--mapping-file` option allows the user to relink the target
+       files after they have moved to another directory.
+
+Examples
+========
+
+.. sourcecode :: sh
+
+    $ ara-coverage relion_data.star -o plot.png
+    
+    $ ara-coverage relion_data.star -o plot.bild --chimera
+    
+    $ ara-coverage relion_data.star -o plot3d.png --projection 3d
+
+
+Critical Options
+================
+
+.. program:: ara-enumfiles
+
+.. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
+    
+    List of input filenames
+    If you use the parameters `-i` or `--inputfiles` the filenames may be comma or 
+    space separated on the command line; they must be comma seperated in a configuration 
+    file. Note, these flags are optional for input files; the filenames must be separated 
+    by spaces. For a very large number of files (>5000) use `-i "filename*"`
+
+.. option:: -o <FILENAME>, --output <FILENAME>
+    
+    Output template for the enumerated filename (e.g. mic_0000.mrc)
+
+Useful Options
+===============
+
+.. program:: ara-enumfiles
+
+.. option:: -m, --mapping-file <FILENAME>
+
+    Input filename for selection file that maps the original 
+    filename to the enumerated filename. This is specified when the files need to be
+    relinked because of a change in location.
+
+.. option:: -s, --strict <BOOL>
+
+    Only use files list in --mapping-file
+
+.. option:: --test-image <BOOL>
+    
+    Test if the input filename is a valid image - do not link if invalid
+
+Other Options
+=============
+
+This is not a complete list of options available to this script, for additional options see:
+
+    #. :ref:`Options shared by all scripts ... <shared-options>`
+
+
+
 
                         
     Supported Projection Plots
@@ -62,15 +127,12 @@ from ..core.metadata import format_utility
 from ..core.orient import healpix
 from ..core.orient import spider_transforms
 import scipy.io
-
 from mpl_toolkits import basemap
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 import matplotlib.cm
 import matplotlib.lines
 import matplotlib.font_manager
-
-
 import logging
 import numpy
 import os
@@ -100,7 +162,7 @@ def batch(files, output, dpi, chimera=False, **extra):
         if len(files) > 1:
             outputn = format_utility.new_filename(output, suffix=os.path.splitext(os.path.basename(filename))[0], ext='.png')
         angs = read_angles(filename, **extra)
-        angs,cnt = count_angles(angs, **extra)
+        angs,cnt = angular_histogram(angs, **extra)
         if chimera:
             chimera_bild(angs, cnt, outputn, **extra)
         elif mapargs is None:
@@ -117,7 +179,22 @@ def batch(files, output, dpi, chimera=False, **extra):
     _logger.info("Completed")
     
 def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **extra):
-    '''
+    ''' Plot the angular histogram using a 3D scatter plot
+    
+    :Parameters:
+        
+        fig : Figure
+              Matplotlib figure handle
+        angs : array
+               Array of view angles
+        cnt : array
+              Histogram for each view angle 
+        color_map : str
+                    Name of color map
+        hide_zero_marker : bool
+                           If true, hide the zero projection count marker
+        extra : dict
+                Unused keyword arguments
     '''
     
     cmap = getattr(cm, color_map)
@@ -137,8 +214,31 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
     if not hide_zero_marker:
         ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
         
-def chimera_bild(angs, cnt, output, particle_radius=60, particle_center=0, radius_frac=0.3, width_frac=0.5, count_mode=2, color_map='cool', view_resolution=3, **extra):
-    '''
+def chimera_bild(angs, cnt, output, particle_radius=60.0, particle_center=0.0, radius_frac=0.3, width_frac=0.5, color_map='cool', view_resolution=3, **extra):
+    '''Write out angular histogram has a Chimera BILD file
+    
+    :Parameters:
+        
+        angs : array
+               Array of view angles
+        cnt : array
+              Histogram for each view angle 
+        output : str
+                 Output filename
+        particle_radius : float
+                          Radius of paritlce in angstroms
+        particle_center : float
+                          Ceneter of particle in angstroms
+        radius_frac : float
+                      Radius scaling factor
+        width_frac : float
+                     Cylinder width scaling factor
+        color_map : str
+                    Name of color map
+        view_resolution : int
+                          HealPix resolution
+        extra : dict
+                Unused keyword arguments
     '''
     
     #double offset = ori_size * pixel_size / 2.;
@@ -163,49 +263,37 @@ def chimera_bild(angs, cnt, output, particle_radius=60, particle_center=0, radiu
                                                width))
     finally:
         fout.close()
-    
-def chimera_bild_old(angs, cnt, output, view_resolution=3, disable_mirror=False, ball_radius=60, ball_center=0, ball_size=1.0, mirror=False, count_mode=2, color_map='cool', **extra):
-    '''
-    '''
-    
-    
-    pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
-    total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
-    count = numpy.histogram(pix, total)[0]
-    maxcnt = count.max()
-    pix = numpy.arange(total, dtype=numpy.int)
-    angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
-    _logger.info("Number of angles %d for resolution %d"%(len(angs), view_resolution))
-    fout = open(output, 'w')
-    
-    # Todo empty shape
-    # Fix orientation
-    
-    cmap = getattr(cm, color_map)
-    if count_mode == 0:
-        fout.write('.color 1 0 0\n')
-    for i in xrange(len(angs)):
-        
-        v1,v2,v3 = spider_transforms.euler_to_vector(*angs[i, :])
-        ncnt = count[i]/float(maxcnt)
-        if count_mode != 0:
-            r, g, b = cmap(ncnt)[:3]
-            fout.write('.color %f %f %f\n'%(r, g, b))
-            if count_mode == 1: ncnt=1.0
-            
-        fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
-        if mirror:
-            v1,v2,v3 = spider_transforms.euler_to_vector(180+angs[i, 0], angs[i, 1])
-            fout.write('.sphere %f %f %f %f\n'%(v1*ball_radius+ball_center, v2*ball_radius+ball_center, v3*ball_radius+ball_center, ncnt*ball_size))
-            
-    fout.close()
 
 def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9, hide_zero_marker=False, use_scale=False, label_view=[], **extra):
-    '''
+    ''' Plot the angular histogram using a map projection from basemap
+    
     .. note::
          
         Basemap uses longitude latitude conventions, but the given angles are in
-        colatitude, longitude convention. 
+        colatitude, longitude convention.
+    
+    :Parameters:
+        
+        angs : array
+               Array of view angles
+        cnt : array
+              Histogram for each view angle 
+        mapargs : dict
+                  Arguments specific to a map projection in basemap
+        color_map : str
+                    Name of color map
+        area_mult : float
+                    Scaling factor for size display
+        alpha : float
+                Transparency factor
+        hide_zero_marker : bool
+                           If true, hide the zero projection count marker
+        use_scale : bool
+                    If true, then display scale for size and color
+        label_view : list
+                     Label each view with text
+        extra : dict
+                Unused keyword arguments 
     '''
     
     cmap = getattr(cm, color_map)
@@ -263,10 +351,21 @@ def plot_angles(angs, hist, mapargs, color_map='cool', area_mult=1.0, alpha=0.9,
             labels.append("%s"%hist[i])
             lines.append(matplotlib.lines.Line2D(range(1), range(1), color=cm.gray(0.5), marker='x', markersize=numpy.max(s)/5, linestyle='none')) #@UndefinedVariable
         pylab.legend(tuple(lines),tuple(labels), numpoints=1, frameon=False, loc='center left', bbox_to_anchor=(1, 0.5), prop = fontP)
-    #l.get_lines()[0]._legmarker.set_ms(numpy.max(s)) 
+        #l.get_lines()[0]._legmarker.set_ms(numpy.max(s)) 
 
 def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_lat, proj_width=0, proj_height=0, boundinglat=0, **extra):
     ''' Get default values for various projection types
+    
+    :Parameters:
+    
+        projection : str
+                     Name of the map projection mode
+        lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_lat, proj_width=0, proj_height=0, boundinglat=0, **extra
+        
+    :Returns:
+    
+    args : dict
+           Keyword dictionary for each parameter value pair
     '''
     
     if projection == 'hammer':
@@ -294,8 +393,26 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
     if boundinglat > 0: param['boundinglat'] = boundinglat
     return param
     
-def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
-    '''
+def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
+    ''' Discretize the angles using healpix and tabulate an angular histogram
+    
+    .. todo:: add mirror here (rename both options)
+    
+    :Parameters:
+        
+        angs : array
+               Array of angles (theta, phi) in degrees
+        view_resolution : int
+        disable_mirror : bool
+        extra : dict
+                Unused keyword arguments 
+    
+    :Returns:
+        
+        angs : array
+               Discretized angles
+        count : array
+                Number of projections for each angle
     '''
     
     if view_resolution == 0:
@@ -312,18 +429,20 @@ def count_angles(angs, view_resolution=3, disable_mirror=False, **extra):
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
     return angs, count
     
-def read_angles(filename, header=None, select_file="", **extra):
-    '''
+def read_angles(filename, header=None, selection_file="", **extra):
+    ''' Read in an alignment file and apply optional selection file
+    
+    .. todo:: format_alignment?
     '''
     
-    select_file, header = format_utility.parse_header(select_file)
+    selection_file, header = format_utility.parse_header(selection_file)
     select = None
-    if select_file != "":
-        if os.path.splitext(select_file)[1]=='.mat':
-            select = scipy.io.loadmat(select_file)
+    if selection_file != "":
+        if os.path.splitext(selection_file)[1]=='.mat':
+            select = scipy.io.loadmat(selection_file)
             select = select[header[0]]
         else:
-            select,header = format.read(select_file, ndarray=True)
+            select,header = format.read(selection_file, ndarray=True)
             select=select[:, header.index('id')]
     if format.get_format(filename) == format.star:
         align = format.read(filename, numeric=True)
@@ -356,25 +475,33 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "Coverage", "Options to control creation of the coverage plot",  id=__name__)
     group.add_option("-p", projection="npstere",    help="Map projection type")
-    group.add_option("-d", dpi=300,                 help="Resolution of the image in dots per inch")
-    group.add_option("-r", view_resolution=3,       help="Group views into a coarse grid: (2) 15 deg, (3) 7.5 deg ...")
-    group.add_option("-a", area_mult=1.0,           help="Cirle area multiplier")
-    group.add_option("", disable_mirror=False,      help="Disable mirroring over the equator for counting")
-    group.add_option("", mirror=False,              help="Mirroring over the equator for visualization")
-    group.add_option("", count_mode=('Shape', 'Color', 'Both'),              help="Mirroring over the equator for visualization", default=2)
+    group.add_option("", count_mode=('Shape', 'Color', 'Both'), help="Mirroring over the equator for visualization", default=2)
     group.add_option("", hide_zero_marker=False,    help="Hide the zero markers")
     group.add_option("", color_map='cool',          help="Set the color map")
-    group.add_option("", alpha=0.9,                 help="Transparency of the marker (1.0 = solid, 0.0 = no color)")
-    group.add_option("", use_scale=False,           help="Display scale and color instead of color bar")
-    group.add_option("", label_view=[],             help="List of views to label with number and Euler Angles (theta,phi)")
-    group.add_option("", chimera=False,             help="Write out Chimera bild file")
-    group.add_option("", particle_radius=320,            help="Radius from center for ball projections")
-    group.add_option("", particle_center=0,             help="Offset from center for ball projections")
-    group.add_option("", select_file="",            help="Selection file", gui=dict(filetype="open"))
-    
     pgroup.add_option_group(group)
     
-    group = OptionGroup(parser, "Projection", "Options to control the projection",  id=__name__)
+    
+    group = OptionGroup(parser, "Histogram", "Options to control angular histogram")
+    group.add_option("-r", view_resolution=3,       help="Group views into a coarse grid: (2) 15 deg, (3) 7.5 deg ...")
+    group.add_option("", disable_mirror=False,      help="Disable mirroring over the equator for counting")
+    group.add_option("", mirror=False,              help="Mirroring over the equator for visualization")
+    pgroup.add_option_group(group)
+    
+    group = OptionGroup(parser, "Plot", "Options to control plotting 3d or map projection output")
+    group.add_option("-d", dpi=300,                 help="Resolution of the image in dots per inch")
+    group.add_option("-a", area_mult=1.0,           help="Cirle area multiplier")
+    group.add_option("", alpha=0.9,                 help="Transparency of the marker (1.0 = solid, 0.0 = no color)")
+    group.add_option("", label_view=[],             help="List of views to label with number and Euler Angles (theta,phi)")
+    group.add_option("", use_scale=False,           help="Display scale and color instead of color bar")
+    pgroup.add_option_group(group)
+    
+    group = OptionGroup(parser, "Chimera", "Options to control chimera bild output")
+    group.add_option("", chimera=False,             help="Write out Chimera bild file")
+    group.add_option("", particle_radius=320.0,     help="Radius from center for ball projections")
+    group.add_option("", particle_center=0.0,       help="Offset from center for ball projections")
+    pgroup.add_option_group(group)
+    
+    group = OptionGroup(parser, "Projection", "Options to control the projection")
     group.add_option("",   lon_zero="",             help="Longitude for axis zero (empty for default values determined by projection)")
     group.add_option("",   lat_zero="",             help="Latitude for axis zero (empty for default values determined by projection)")
     group.add_option("",   ll_lat=-90.0,            help="Latitude of lower left hand corner of the desired map domain (degrees)")
@@ -387,8 +514,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option_group(group)
     
     if main_option:
-        pgroup.add_option("-i", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",      help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", input_files=[],     help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", output="",          help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-s", selection_file="",  help="Selection file", gui=dict(filetype="open"))
         parser.change_default(log_level=3)
 
 def check_options(options, main_option=False):
@@ -465,7 +593,6 @@ def main():
                          
                          Example: 3D Scatter
                          $ ara-coverage data.star -o plot.png --projection 3d
-                         
                       ''',
         supports_MPI = False,
         use_version = False,
