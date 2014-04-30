@@ -262,6 +262,7 @@ def batch(files, output, dpi, chimera=False, **extra):
     
     outputn=output
     mapargs = projection_args(**extra) if extra['projection'].lower() != '3d' else None
+    if chimera or mapargs is None: del extra['use_mirror']
     i=0
     for filename in files:
         if len(files) > 1:
@@ -517,7 +518,7 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
     if boundinglat > 0: param['boundinglat'] = boundinglat
     return param
     
-def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
+def angular_histogram(angs, view_resolution=3, disable_mirror=False, use_mirror=True, **extra):
     ''' Discretize the angles using healpix and tabulate an angular histogram
         
     :Parameters:
@@ -528,6 +529,8 @@ def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
                           Healpix resolution where (2) 15 deg, (3) 7.5 deg ...
         disable_mirror : bool
                          Use the full sphere for counting, not half sphere
+        use_mirror : bool
+                     Display views on both hemispheres
         extra : dict
                 Unused keyword arguments 
     
@@ -542,7 +545,7 @@ def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
     if view_resolution == 0: return angs, numpy.ones(len(angs))
     total = healpix.res2npix(view_resolution, not disable_mirror)
     _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
-    total = healpix.res2npix(view_resolution)
+    total = healpix.res2npix(view_resolution, True)
     
     
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs))#,  half=not disable_mirror)
@@ -559,6 +562,10 @@ def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
             if i == mpix[i]: continue
             count[i] += count[mpix[i]]
             count[mpix[i]]=count[i]
+    if not use_mirror:
+        total = healpix.res2npix(view_resolution, False)
+        angs = angs[:total]
+        count=count[:total]
     
     #pix = numpy.nonzero(count)[0]
     #count = count[pix].copy().squeeze()
@@ -648,6 +655,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   alpha=0.9,               help="Transparency of the marker (1.0 = solid, 0.0 = no color)")
     group.add_option("",   label_view=[],           help="List of views to label with number and Euler Angles (theta,phi)")
     group.add_option("",   use_scale=False,         help="Display scale and color instead of color bar")
+    group.add_option("",   use_mirror=False,        help="Display projections on both hemispheres")
     pgroup.add_option_group(group)
     
     group = OptionGroup(parser, "Layout", "Options to control the projection layout")
