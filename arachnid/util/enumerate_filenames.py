@@ -187,6 +187,7 @@ def remap_enum_files(files, mapping_file, strict=False):
     mapped = [tuple(m) for m in mapped]
     newmapping=[]
     index = len(mapped)+1
+    flag=True
     for filename in files:
         basename = os.path.basename(filename)
         if os.path.splitext(basename)[1] == '.bz2': basename = os.path.splitext(basename)[0]
@@ -194,6 +195,9 @@ def remap_enum_files(files, mapping_file, strict=False):
         for pair in mapped:
             mapbase = os.path.splitext(os.path.basename(pair[0]))[0]
             if os.path.splitext(mapbase)[1] == '.bz2': mapbase = os.path.splitext(mapbase)[0]
+            if flag:
+                _logger.debug("Example: %s == %s"%(basename, mapbase))
+                flag=False
             if mapbase.find(basename) != -1 or basename.find(mapbase) != -1:
                 found.append(pair)
         if len(found) == 1:
