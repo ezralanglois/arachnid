@@ -777,7 +777,22 @@
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
-<li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#plot-options">Plot Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#histogram-options">Histogram Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#chimera-options">Chimera Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#projection-options">Projection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#layout-options">Layout Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#other-options">Other Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#additional-option-information">Additional Option Information</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.util.coverage.html#support-color-maps">Support color maps</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.util.coverage.html#supported-projection-plots">Supported Projection Plots</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
@@ -1749,7 +1764,7 @@ from ndarray to EMData only if the input is EMData.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.core.image.ndimage_utility.filter_image">
-<tt class="descname">filter_image</tt><big>(</big><em>img</em>, <em>kernel</em>, <em>pad=1</em><big>)</big><a class="headerlink" href="#arachnid.core.image.ndimage_utility.filter_image" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">filter_image</tt><big>(</big><em>img</em>, <em>kernel</em>, <em>pad=1</em>, <em>complex=False</em><big>)</big><a class="headerlink" href="#arachnid.core.image.ndimage_utility.filter_image" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -3823,7 +3838,7 @@ a noise image.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.core.image.ndimage_utility.spiral_transform">
-<tt class="descname">spiral_transform</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#arachnid.core.image.ndimage_utility.spiral_transform" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">spiral_transform</tt><big>(</big><em>img</em>, <em>complex=False</em><big>)</big><a class="headerlink" href="#arachnid.core.image.ndimage_utility.spiral_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Todo: optimize kernel</p>
 </dd></dl>
 
@@ -3927,7 +3942,7 @@ Originally from <a class="reference external" href="http://stackoverflow.com/que
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.core.image.ndimage_utility.tight_mask">
-<tt class="descname">tight_mask</tt><big>(</big><em>img</em>, <em>threshold=None</em>, <em>ndilate=1</em>, <em>gk_size=3</em>, <em>gk_sigma=3.0</em>, <em>out=None</em><big>)</big><a class="headerlink" href="#arachnid.core.image.ndimage_utility.tight_mask" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">tight_mask</tt><big>(</big><em>img</em>, <em>threshold=None</em>, <em>ndilate=1</em>, <em>gk_size=3</em>, <em>gk_sigma=3.0</em>, <em>mask=None</em>, <em>out=None</em><big>)</big><a class="headerlink" href="#arachnid.core.image.ndimage_utility.tight_mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a tight mask from the given image</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3948,6 +3963,8 @@ Originally from <a class="reference external" href="http://stackoverflow.com/que
 <dd>Size of Gaussian kernel used for real space smoothing</dd>
 <dt>gk_sigma <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
 <dd>Sigma value for Gaussian kernel</dd>
+<dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Mask for threshold selection</dd>
 <dt>out <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray, optional</span></dt>
 <dd>Output image</dd>
 </dl>

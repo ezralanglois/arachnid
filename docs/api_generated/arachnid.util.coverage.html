@@ -777,7 +777,22 @@
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="">coverage</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="">coverage</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#plot-options">Plot Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#histogram-options">Histogram Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#chimera-options">Chimera Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#projection-options">Projection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#layout-options">Layout Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#other-options">Other Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#additional-option-information">Additional Option Information</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#support-color-maps">Support color maps</a></li>
+<li class="toctree-l7"><a class="reference internal" href="#supported-projection-plots">Supported Projection Plots</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l5"><a class="reference internal" href="#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
@@ -998,7 +1013,22 @@
 </ul>
 </div>
 <ul>
-<li><a class="reference internal" href="#">coverage</a></li>
+<li><a class="reference internal" href="#">coverage</a><ul>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#critical-options">Critical Options</a></li>
+<li><a class="reference internal" href="#plot-options">Plot Options</a></li>
+<li><a class="reference internal" href="#histogram-options">Histogram Options</a></li>
+<li><a class="reference internal" href="#chimera-options">Chimera Options</a></li>
+<li><a class="reference internal" href="#projection-options">Projection Options</a></li>
+<li><a class="reference internal" href="#layout-options">Layout Options</a></li>
+<li><a class="reference internal" href="#other-options">Other Options</a></li>
+<li><a class="reference internal" href="#additional-option-information">Additional Option Information</a><ul>
+<li><a class="reference internal" href="#support-color-maps">Support color maps</a></li>
+<li><a class="reference internal" href="#supported-projection-plots">Supported Projection Plots</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 </ul>
 
@@ -1010,20 +1040,239 @@
   <div class="section" id="module-arachnid.util.coverage">
 <span id="coverage"></span><h1>coverage<a class="headerlink" href="#module-arachnid.util.coverage" title="Permalink to this headline">¶</a></h1>
 <p>Plot angular coverage</p>
-<p>This script (<cite>ara-selrelion</cite>) generates angular histogram mapped to a 2D projection of a 3D sphere and writes it out
-as a color image. It both the size and color of a circle indicate the number of projections in a view and uses an &#8216;x&#8217;
-to denote a view with no projections.</p>
-<p>todo add 3d scatter in plot_angles</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">reset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">turn</span> <span class="n">y</span> <span class="n">theta</span> <span class="n">coordinatesystem</span> <span class="c">#0 # Rotating frame like SPIDER</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">turn</span> <span class="n">z</span> <span class="n">phi</span> <span class="n">coordinatesystem</span> <span class="c">#0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">turn</span> <span class="n">x</span> <span class="mi">180</span>
+<p>This script (<cite>ara-coverage</cite>) generates angular histogram tabulating the number
+of projections within a discrete area on a spherical surface. This angular
+histogram can be displayed in a number of ways:</p>
+<blockquote>
+<div><ul class="simple">
+<li>2D map projection (default)</li>
+<li>3D scatter plot</li>
+<li>Cylinders surrounding a volume in Chimera</li>
+</ul>
+</div></blockquote>
+<p>The number of projections is represented by both the color and size of circle/cylinder in each
+representation. An &#8216;x&#8217; is used to denote a view with no projections in the 2D project plot.</p>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ara-coverage relion_data.star -o plot.png
+
+<span class="nv">$ </span>ara-coverage relion_data.star -o plot.bild --chimera
+
+<span class="nv">$ </span>ara-coverage relion_data.star -o plot3d.png --projection 3d
 </pre></div>
 </div>
-<p>#open #0 spider:~/Desktop/autopick/enh_25_r7_05.ter</p>
-<p>SPIDER:  ZYZ rotating frame
-CHIMERA: XYZ rotating frame</p>
-<p>#http://plato.cgl.ucsf.edu/pipermail/chimera-users/attachments/20080429/aaf842f9/attachment.ksh</p>
+</div>
+<div class="section" id="critical-options">
+<h2>Critical Options<a class="headerlink" href="#critical-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-coverage-i">
+<tt class="descname">-i</tt><tt class="descclassname"> &lt;FILENAME1,FILENAME2&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--input-files</tt><tt class="descclassname"> &lt;FILENAME1,FILENAME2&gt;, FILENAME1 FILENAME2</tt><a class="headerlink" href="#cmdoption-ara-coverage-i" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of input filenames
+If you use the parameters <cite>-i</cite> or <cite>&#8211;inputfiles</cite> the filenames may be comma or 
+space separated on the command line; they must be comma seperated in a configuration 
+file. Note, these flags are optional for input files; the filenames must be separated 
+by spaces. For a very large number of files (&gt;5000) use <cite>-i &#8220;filename*&#8221;</cite></p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage-o">
+<tt class="descname">-o</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--output</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output template for the enumerated filename (e.g. mic_0000.mrc)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage-s">
+<tt class="descname">-s</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><tt class="descclassname">, </tt><tt class="descname">--selection-file</tt><tt class="descclassname"> &lt;FILENAME&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage-s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selection file for projections in alignment file</p>
+</dd></dl>
+
+</div>
+<div class="section" id="plot-options">
+<h2>Plot Options<a class="headerlink" href="#plot-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-coverage-p">
+<tt class="descname">-p</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--projection</tt><tt class="descclassname"> &lt;CHOICE&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage-p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map projection type. See below for more details on 
+available map projections.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage-d">
+<tt class="descname">-d</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--dpi</tt><tt class="descclassname"> &lt;int&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolution of the image in dots per inch</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--count-mode">
+<tt class="descname">--count-mode</tt><tt class="descclassname"> &lt;Shape|Color|Both&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--count-mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode to measure the number of projections per view (Currently only works for map projection output)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--hide-zero-marker">
+<tt class="descname">--hide-zero-marker</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--hide-zero-marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hide the zero markers (Currently does not work for Chimera BILD output)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--color-map">
+<tt class="descname">--color-map</tt><tt class="descclassname"> &lt;CHOICE&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--color-map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the color map. See below for more details on 
+available color maps.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="histogram-options">
+<h2>Histogram Options<a class="headerlink" href="#histogram-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-coverage--view-resolution">
+<tt class="descname">--view-resolution</tt><tt class="descclassname"> &lt;INT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--view-resolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group views into a coarse grid: (2) 15 deg, (3) 7.5 deg ...</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--disable-mirror">
+<tt class="descname">--disable-mirror</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--disable-mirror" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable mirroring over the equator for counting</p>
+</dd></dl>
+
+</div>
+<div class="section" id="chimera-options">
+<h2>Chimera Options<a class="headerlink" href="#chimera-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-coverage--chimera">
+<tt class="descname">--chimera</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--chimera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out Chimera bild file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--particle-radius">
+<tt class="descname">--particle-radius</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--particle-radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Radius from center for ball projections</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--particle-center">
+<tt class="descname">--particle-center</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--particle-center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Offset from center for ball projections (zero means use radius)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="projection-options">
+<h2>Projection Options<a class="headerlink" href="#projection-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-coverage--area-mult">
+<tt class="descname">--area-mult</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--area-mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Circle area multiplier</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--alpha">
+<tt class="descname">--alpha</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transparency of the marker (1.0 = solid, 0.0 = no color)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--label-view">
+<tt class="descname">--label-view</tt><tt class="descclassname"> &lt;LIST&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--label-view" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of views to label with number and Euler Angles (theta,phi)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--use-scale">
+<tt class="descname">--use-scale</tt><tt class="descclassname"> &lt;BOOL&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--use-scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display scale and color instead of color bar</p>
+</dd></dl>
+
+</div>
+<div class="section" id="layout-options">
+<h2>Layout Options<a class="headerlink" href="#layout-options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-ara-coverage--lon-zero">
+<tt class="descname">--lon-zero</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--lon-zero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Longitude for axis zero (empty for default values determined by projection)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--lat-zero">
+<tt class="descname">--lat-zero</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--lat-zero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latitude for axis zero (empty for default values determined by projection)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--ll-lat">
+<tt class="descname">--ll-lat</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--ll-lat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latitude of lower left hand corner of the desired map domain (degrees)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--ll-lon">
+<tt class="descname">--ll-lon</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--ll-lon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Longitude of lower left hand corner of the desired map domain (degrees)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage-ur-lat">
+<tt class="descname">-ur-lat</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage-ur-lat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latitude of upper right hand corner of the desired map domain (degrees)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--ur-lon">
+<tt class="descname">--ur-lon</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--ur-lon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Longitude of upper right hand corner of the desired map domain (degrees)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--boundinglat">
+<tt class="descname">--boundinglat</tt><tt class="descclassname"> &lt;FLOAT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--boundinglat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bounding latitude for npstere,spstere,nplaea,splaea,npaeqd,spaeqd</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--proj-width">
+<tt class="descname">--proj-width</tt><tt class="descclassname"> &lt;INT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--proj-width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Width of desired map domain in projection coordinates (meters)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-ara-coverage--proj-height">
+<tt class="descname">--proj-height</tt><tt class="descclassname"> &lt;INT&gt;</tt><a class="headerlink" href="#cmdoption-ara-coverage--proj-height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Height of desired map domain in projection coordinates (meters)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="other-options">
+<h2>Other Options<a class="headerlink" href="#other-options" title="Permalink to this headline">¶</a></h2>
+<p>This is not a complete list of options available to this script, for additional options see:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><a class="reference internal" href="../manual.html#shared-options"><em>Options shared by all scripts ...</em></a></li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="additional-option-information">
+<h2>Additional Option Information<a class="headerlink" href="#additional-option-information" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="support-color-maps">
+<h3>Support color maps<a class="headerlink" href="#support-color-maps" title="Permalink to this headline">¶</a></h3>
+<p>Here is an limited selection of the available color maps:</p>
+<img alt="http://matplotlib.org/_images/colormaps_reference_00.png" src="http://matplotlib.org/_images/colormaps_reference_00.png" />
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A full description of the color maps can be found at:
+<a class="reference external" href="http://matplotlib.org/examples/color/colormaps_reference.html">http://matplotlib.org/examples/color/colormaps_reference.html</a></p>
+</div>
+</div>
+<div class="section" id="supported-projection-plots">
+<h3>Supported Projection Plots<a class="headerlink" href="#supported-projection-plots" title="Permalink to this headline">¶</a></h3>
+<p>The following are supported projections for the <cite>:option:-p</cite> option.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more information concerning the map projections, 
+see <a class="reference external" href="http://matplotlib.github.com/basemap/users/mapsetup.html">http://matplotlib.github.com/basemap/users/mapsetup.html</a></p>
+</div>
+</div>
+</div>
 </div>
 <div class="section" id="functions">
 <h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
@@ -1037,7 +1286,30 @@ CHIMERA: XYZ rotating frame</p>
 <dl class="function">
 <dt id="arachnid.util.coverage.batch">
 <tt class="descname">batch</tt><big>(</big><em>files</em>, <em>output</em>, <em>dpi</em>, <em>chimera=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.batch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate an angular histogram for the given alignment files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>files <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of input alignment files</p>
+</dd>
+<dt>output <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Output filename for angular histogram</p>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Dots per inch for plots</p>
+</dd>
+<dt>chimera <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Output in chimera bild format</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 </div>
@@ -1060,11 +1332,6 @@ CHIMERA: XYZ rotating frame</p>
 <a data-toggle="collapse" data-parent="#function_parent" href="#chimera-balls">chimera_balls</a></div>
 <div class="panel-collapse collapse container" id="chimera-balls">
 <div class="panel-body container">
-<dl class="function">
-<dt id="arachnid.util.coverage.chimera_balls">
-<tt class="descname">chimera_balls</tt><big>(</big><em>angs</em>, <em>output</em>, <em>view_resolution=3</em>, <em>disable_mirror=False</em>, <em>ball_radius=60</em>, <em>ball_center=0</em>, <em>ball_size=1.0</em>, <em>mirror=False</em>, <em>count_mode=2</em>, <em>color_map='cool'</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.chimera_balls" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 </div>
 </div>
@@ -1073,11 +1340,6 @@ CHIMERA: XYZ rotating frame</p>
 <a data-toggle="collapse" data-parent="#function_parent" href="#count-angles">count_angles</a></div>
 <div class="panel-collapse collapse container" id="count-angles">
 <div class="panel-body container">
-<dl class="function">
-<dt id="arachnid.util.coverage.count_angles">
-<tt class="descname">count_angles</tt><big>(</big><em>angs</em>, <em>view_resolution=3</em>, <em>disable_mirror=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.count_angles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 </div>
 </div>
@@ -1115,11 +1377,52 @@ CHIMERA: XYZ rotating frame</p>
 <dl class="function">
 <dt id="arachnid.util.coverage.plot_angles">
 <tt class="descname">plot_angles</tt><big>(</big><em>angs</em>, <em>hist</em>, <em>mapargs</em>, <em>color_map='cool'</em>, <em>area_mult=1.0</em>, <em>alpha=0.90000000000000002</em>, <em>hide_zero_marker=False</em>, <em>use_scale=False</em>, <em>label_view=</em><span class="optional">[</span><span class="optional">]</span>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.plot_angles" title="Permalink to this definition">¶</a></dt>
-<dd><div class="admonition note">
+<dd><p>Plot the angular histogram using a map projection from basemap</p>
+<div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Basemap uses longitude latitude conventions, but the given angles are in
 colatitude, longitude convention.</p>
 </div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt>angs <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Array of view angles</p>
+</dd>
+<dt>cnt <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Histogram for each view angle</p>
+</dd>
+<dt>mapargs <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Arguments specific to a map projection in basemap</p>
+</dd>
+<dt>color_map <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of color map</p>
+</dd>
+<dt>area_mult <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Scaling factor for size display</p>
+</dd>
+<dt>alpha <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Transparency factor</p>
+</dd>
+<dt>hide_zero_marker <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If true, hide the zero projection count marker</p>
+</dd>
+<dt>use_scale <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If true, then display scale for size and color</p>
+</dd>
+<dt>label_view <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Label each view with text</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1134,6 +1437,55 @@ colatitude, longitude convention.</p>
 <dt id="arachnid.util.coverage.projection_args">
 <tt class="descname">projection_args</tt><big>(</big><em>projection</em>, <em>lat_zero</em>, <em>lon_zero</em>, <em>ll_lon</em>, <em>ll_lat</em>, <em>ur_lon</em>, <em>ur_lat</em>, <em>proj_width=0</em>, <em>proj_height=0</em>, <em>boundinglat=0</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.projection_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get default values for various projection types</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>projection <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the map projection mode</p>
+</dd>
+<dt>lat_zero <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Latitude for axis zero</p>
+</dd>
+<dt>lon_zero <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Longitude for axis zero</p>
+</dd>
+<dt>ll_lon <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Longitude of lower left hand corner of the desired map domain (degrees)</p>
+</dd>
+<dt>ll_lat <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Latitude of lower left hand corner of the desired map domain (degrees)</p>
+</dd>
+<dt>ur_lon <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Longitude of upper right hand corner of the desired map domain (degrees)</p>
+</dd>
+<dt>ur_lat <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Latitude of upper right hand corner of the desired map domain (degrees)</p>
+</dd>
+<dt>proj_width <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Width of desired map domain in projection coordinates (meters)</p>
+</dd>
+<dt>proj_height <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Height of desired map domain in projection coordinates (meters)</p>
+</dd>
+<dt>boundinglat <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Bounding latitude for npstere,spstere,nplaea,splaea,npaeqd,spaeqd</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>args <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>Keyword dictionary for each parameter value pair</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1146,8 +1498,38 @@ colatitude, longitude convention.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.coverage.read_angles">
-<tt class="descname">read_angles</tt><big>(</big><em>filename</em>, <em>header=None</em>, <em>select_file=''</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.read_angles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descname">read_angles</tt><big>(</big><em>filename</em>, <em>header=None</em>, <em>selection_file=''</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.coverage.read_angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in an alignment file and apply optional selection file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Filename for alignment file</p>
+</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Header for alignment file</p>
+</dd>
+<dt>selection_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Selection file for projections in alignment file</p>
+</dd>
+<dt>extra <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Unused keyword arguments</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>angles <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd><p class="first last">Array of angles for each projection</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 </div>

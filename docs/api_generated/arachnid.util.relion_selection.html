@@ -777,7 +777,22 @@
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.image_info.html#functions">Functions</a></li>
-<li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a></li>
+<li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html">coverage</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#examples">Examples</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#critical-options">Critical Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#plot-options">Plot Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#histogram-options">Histogram Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#chimera-options">Chimera Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#projection-options">Projection Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#layout-options">Layout Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#other-options">Other Options</a></li>
+<li class="toctree-l6"><a class="reference internal" href="arachnid.util.coverage.html#additional-option-information">Additional Option Information</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.util.coverage.html#support-color-maps">Support color maps</a></li>
+<li class="toctree-l7"><a class="reference internal" href="arachnid.util.coverage.html#supported-projection-plots">Supported Projection Plots</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.coverage.html#functions">Functions</a></li>
 <li class="toctree-l5"><a class="reference internal" href="arachnid.util.screenmics.html">screenmics</a><ul>
 <li class="toctree-l6"><a class="reference internal" href="arachnid.util.screenmics.html#notes">Notes</a></li>
@@ -1842,7 +1857,7 @@ from the input relion seleciton file.</p>
 <div class="panel-body container">
 <dl class="function">
 <dt id="arachnid.util.relion_selection.select_good">
-<tt class="descname">select_good</tt><big>(</big><em>vals</em>, <em>class_file</em>, <em>good_file</em>, <em>min_defocus</em>, <em>max_defocus</em>, <em>column='rlnClassNumber'</em>, <em>view_resolution=0</em>, <em>view_limit=0</em>, <em>remove_missing=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_good" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_good</tt><big>(</big><em>vals</em>, <em>class_file</em>, <em>good_file</em>, <em>min_defocus</em>, <em>max_defocus</em>, <em>apix=0</em>, <em>remove_bad=False</em>, <em>column='rlnClassNumber'</em>, <em>view_resolution=0</em>, <em>view_limit=0</em>, <em>remove_missing=False</em>, <em>**extra</em><big>)</big><a class="headerlink" href="#arachnid.util.relion_selection.select_good" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select good particles based on selection file and defocus
 range.</p>
 <table class="docutils field-list" frame="void" rules="none">
