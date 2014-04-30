@@ -563,8 +563,8 @@ def angular_histogram(angs, view_resolution=3, disable_mirror=False, use_mirror=
             count[i] += count[mpix[i]]
             count[mpix[i]]=count[i]
     if not use_mirror:
-        total = healpix.res2npix(view_resolution, True)
-        angs = angs[:total]
+        total = healpix.res2npix(view_resolution, True, True)
+        pix = pix[:total]
         count=count[:total]
     
     #pix = numpy.nonzero(count)[0]
