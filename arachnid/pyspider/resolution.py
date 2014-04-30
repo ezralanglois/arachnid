@@ -174,7 +174,7 @@ def process(filename, output, **extra):
     _logger.info(" - Resolution = %f - between %s and %s --- (0.5) = %.1f | (0.143) = %.1f"%(res, filename[0], filename[1], res1, res2))
     return filename, fsc, apix
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, disable_gs=False, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, disable_gs=None, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
