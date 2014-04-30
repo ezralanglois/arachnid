@@ -171,7 +171,7 @@ def process(filename, output, **extra):
     res2 = fitting.fit_linear_interp(fsc, 0.143)
     res1 = apix/res1 if res1 > 0 else 0
     res2 = apix/res2 if res2 > 0 else 0
-    _logger.info(" - Resolution = %f - between %s and %s --- (0.5) = %.1f | (0.14) = %.1f"%(res, filename[0], filename[1], res1, res2))
+    _logger.info(" - Resolution = %f - between %s and %s --- (0.5) = %.1f | (0.143) = %.1f"%(res, filename[0], filename[1], res1, res2))
     return filename, fsc, apix
 
 def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, **extra):
@@ -331,7 +331,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
             pylab.plot((x[0], xp), (yp, yp), markers[i])
             pylab.plot((xp, xp), (0.0, yp), markers[i])
             res = 0 if xp == 0 else apix/xp
-            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.1f \AA (%.1f-criterion)$'%(xp, res, yp))
+            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.1f \AA (%.3f-criterion)$'%(xp, res, yp))
     
     pylab.plot(x, y)
     if not disable_scale:
@@ -395,7 +395,7 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False
     
     pylab.clf()
     pylab.plot(numpy.arange(1, len(res)+1), res[:, 0], label="FSC(0.5)")
-    pylab.plot(numpy.arange(1, len(res)+1), res[:, 1], label="FSC(0.14)")
+    pylab.plot(numpy.arange(1, len(res)+1), res[:, 1], label="FSC(0.143)")
     lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
     #pylab.axis([0.0,0.5,0.0,1.0])
     pylab.ylabel('Resolution ($\AA$)')
