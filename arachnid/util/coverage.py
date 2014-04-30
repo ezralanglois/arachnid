@@ -11,14 +11,6 @@ histogram can be displayed in a number of ways:
 The number of projections is represented by both the color and size of circle/cylinder in each
 representation. An 'x' is used to denote a view with no projections in the 2D project plot.
 
-Notes
-=====
-
-    #. An output selection file is created that maps the orignal name to
-       the enumerated name.
-    #. The `--mapping-file` option allows the user to relink the target
-       files after they have moved to another directory.
-
 Examples
 ========
 
@@ -30,11 +22,10 @@ Examples
     
     $ ara-coverage relion_data.star -o plot3d.png --projection 3d
 
-
 Critical Options
 ================
 
-.. program:: ara-enumfiles
+.. program:: ara-coverage
 
 .. option:: -i <FILENAME1,FILENAME2>, --input-files <FILENAME1,FILENAME2>, FILENAME1 FILENAME2
     
@@ -48,24 +39,120 @@ Critical Options
     
     Output template for the enumerated filename (e.g. mic_0000.mrc)
 
-Useful Options
+.. option:: -s <FILENAME>, --selection-file <FILENAME>
+    
+    Selection file for projections in alignment file
+
+Plot Options
+============
+
+.. program:: ara-coverage
+
+.. option:: -p, --projection <CHOICE>
+
+    Map projection type. See below for more details on 
+    available map projections.
+
+.. option:: -d, --dpi <int>
+
+    Resolution of the image in dots per inch
+
+.. option:: --count-mode <Shape|Color|Both>
+    
+    Mode to measure the number of projections per view (Currently only works for map projection output)
+
+.. option:: --hide-zero-marker <BOOL>
+    
+    Hide the zero markers (Currently does not work for Chimera BILD output)
+
+.. option:: --color-map <CHOICE>
+    
+    Set the color map. See below for more details on 
+    available color maps.
+
+Histogram Options
+=================
+
+.. option:: --view-resolution <INT>
+    
+    Group views into a coarse grid: (2) 15 deg, (3) 7.5 deg ...
+
+.. option:: --disable-mirror <BOOL>
+    
+    Disable mirroring over the equator for counting
+
+Chimera Options
 ===============
 
-.. program:: ara-enumfiles
-
-.. option:: -m, --mapping-file <FILENAME>
-
-    Input filename for selection file that maps the original 
-    filename to the enumerated filename. This is specified when the files need to be
-    relinked because of a change in location.
-
-.. option:: -s, --strict <BOOL>
-
-    Only use files list in --mapping-file
-
-.. option:: --test-image <BOOL>
+.. option:: --chimera <BOOL>
     
-    Test if the input filename is a valid image - do not link if invalid
+    Write out Chimera bild file
+
+.. option:: --particle-radius <FLOAT>
+    
+    Radius from center for ball projections
+
+.. option:: --particle-center <FLOAT>
+    
+    Offset from center for ball projections (zero means use radius)
+
+Projection Options
+==================
+
+.. option:: --area-mult <BOOL>
+    
+    Circle area multiplier
+
+.. option:: --alpha <FLOAT>
+    
+    Transparency of the marker (1.0 = solid, 0.0 = no color)
+
+.. option:: --label-view <LIST>
+    
+    List of views to label with number and Euler Angles (theta,phi)
+
+.. option:: --use-scale <BOOL>
+    
+    Display scale and color instead of color bar
+
+Layout Options
+==============
+
+.. option:: --lon-zero <FLOAT>
+    
+    Longitude for axis zero (empty for default values determined by projection)
+
+.. option:: --lat-zero <FLOAT>
+    
+    Latitude for axis zero (empty for default values determined by projection)
+
+.. option:: --ll-lat <FLOAT>
+    
+    Latitude of lower left hand corner of the desired map domain (degrees)
+
+.. option:: --ll-lon <FLOAT>
+    
+    Longitude of lower left hand corner of the desired map domain (degrees)
+
+.. option:: -ur-lat <FLOAT>
+    
+    Latitude of upper right hand corner of the desired map domain (degrees)
+
+.. option:: --ur-lon <FLOAT>
+    
+    Longitude of upper right hand corner of the desired map domain (degrees)
+
+.. option:: --boundinglat <FLOAT>
+    
+    Bounding latitude for npstere,spstere,nplaea,splaea,npaeqd,spaeqd
+
+.. option:: --proj-width <INT>
+    
+    Width of desired map domain in projection coordinates (meters)
+
+.. option:: --proj-height <INT>
+    
+    Height of desired map domain in projection coordinates (meters)
 
 Other Options
 =============
@@ -74,42 +161,60 @@ This is not a complete list of options available to this script, for additional 
 
     #. :ref:`Options shared by all scripts ... <shared-options>`
 
+Additional Option Information
+=============================
 
+Support color maps
+------------------
 
+Here is an limited selection of the available color maps:
 
-                        
-    Supported Projection Plots
-    ---------------------------
-    aeqd    Azimuthal Equidistant
-    poly    Polyconic
-    gnom    Gnomonic
-    moll    Mollweide
-    tmerc    Transverse Mercator
-    nplaea    North-Polar Lambert Azimuthal
-    gall    Gall Stereographic Cylindrical
-    mill    Miller Cylindrical
-    merc    Mercator
-    stere    Stereographic
-    npstere    North-Polar Stereographic
-    hammer    Hammer
-    geos    Geostationary
-    nsper    Near-Sided Perspective
-    vandg    van der Grinten
-    laea    Lambert Azimuthal Equal Area
-    mbtfpq    McBryde-Thomas Flat-Polar Quartic
-    sinu    Sinusoidal
-    spstere    South-Polar Stereographic
-    lcc    Lambert Conformal
-    npaeqd    North-Polar Azimuthal Equidistant
-    eqdc    Equidistant Conic
-    cyl    Cylindrical Equidistant
-    omerc    Oblique Mercator
-    aea    Albers Equal Area
-    spaeqd    South-Polar Azimuthal Equidistant
-    ortho    Orthographic
-    cass    Cassini-Soldner
-    splaea    South-Polar Lambert Azimuthal
-    robin    Robinson
+.. image:: http://matplotlib.org/_images/colormaps_reference_00.png
+
+.. note::
+    
+    A full description of the color maps can be found at:
+    http://matplotlib.org/examples/color/colormaps_reference.html
+          
+Supported Projection Plots
+---------------------------
+
+The following are supported projections for the `:option:-p` option.
+
+======    =================================
+Option    Description
+======    =================================
+aeqd      Azimuthal Equidistant
+poly      Polyconic
+gnom      Gnomonic
+moll      Mollweide
+tmerc     Transverse Mercator
+nplaea    North-Polar Lambert Azimuthal
+gall      Gall Stereographic Cylindrical
+mill      Miller Cylindrical
+merc      Mercator
+stere     Stereographic
+npstere   North-Polar Stereographic
+hammer    Hammer
+geos      Geostationary
+nsper     Near-Sided Perspective
+vandg     van der Grinten
+laea      Lambert Azimuthal Equal Area
+mbtfpq    McBryde-Thomas Flat-Polar Quartic
+sinu      Sinusoidal
+spstere   South-Polar Stereographic
+lcc       Lambert Conformal
+npaeqd    North-Polar Azimuthal Equidistant
+eqdc      Equidistant Conic
+cyl       Cylindrical Equidistant
+omerc     Oblique Mercator
+aea       Albers Equal Area
+spaeqd    South-Polar Azimuthal Equidistant
+ortho     Orthographic
+cass      Cassini-Soldner
+splaea    South-Polar Lambert Azimuthal
+robin     Robinson
+======    =================================
 
 .. note::
     
@@ -126,13 +231,13 @@ from ..core.metadata import format
 from ..core.metadata import format_utility
 from ..core.orient import healpix
 from ..core.orient import spider_transforms
-import scipy.io
 from mpl_toolkits import basemap
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 import matplotlib.cm
 import matplotlib.lines
 import matplotlib.font_manager
+import scipy.io
 import logging
 import numpy
 import os
@@ -360,7 +465,26 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
     
         projection : str
                      Name of the map projection mode
-        lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_lat, proj_width=0, proj_height=0, boundinglat=0, **extra
+        lat_zero : float
+                   Latitude for axis zero
+        lon_zero : float
+                   Longitude for axis zero
+        ll_lon : float
+                 Longitude of lower left hand corner of the desired map domain (degrees)
+        ll_lat : float
+                 Latitude of lower left hand corner of the desired map domain (degrees)
+        ur_lon : float
+                 Longitude of upper right hand corner of the desired map domain (degrees)
+        ur_lat : float
+                 Latitude of upper right hand corner of the desired map domain (degrees)
+        proj_width : int
+                     Width of desired map domain in projection coordinates (meters)
+        proj_height : int
+                      Height of desired map domain in projection coordinates (meters)
+        boundinglat : int
+                     Bounding latitude for npstere,spstere,nplaea,splaea,npaeqd,spaeqd
+        extra : dict
+                Unused keyword arguments 
         
     :Returns:
     
@@ -395,15 +519,15 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
     
 def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
     ''' Discretize the angles using healpix and tabulate an angular histogram
-    
-    .. todo:: add mirror here (rename both options)
-    
+        
     :Parameters:
         
         angs : array
                Array of angles (theta, phi) in degrees
         view_resolution : int
+                          Healpix resolution where (2) 15 deg, (3) 7.5 deg ...
         disable_mirror : bool
+                         Use the full sphere for counting, not half sphere
         extra : dict
                 Unused keyword arguments 
     
@@ -415,35 +539,61 @@ def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
                 Number of projections for each angle
     '''
     
-    if view_resolution == 0:
-        return angs, numpy.ones(len(angs))
-    pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs),  half=not disable_mirror)
+    if view_resolution == 0: return angs, numpy.ones(len(angs))
     total = healpix.res2npix(view_resolution, not disable_mirror)
-    #total = healpix.ang2pix(view_resolution, numpy.deg2rad(healpix.angles(view_resolution))[:, 1:], half=not disable_mirror).max()+1
     _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
     
-    count = numpy.bincount(pix)
-    pix = numpy.nonzero(count)[0]
-    count = count[pix].copy().squeeze()
+    
+    pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs))#,  half=not disable_mirror)
+    count1 = numpy.bincount(pix)
+    
+    count = numpy.zeros(total, dtype=numpy.int)
+    sel = numpy.nonzero(count1)[0]
+    count[sel] = count1[sel]
+    pix = numpy.arange(total, dtype=numpy.int)
+    
+    if not disable_mirror:
+        mpix = healpix.pix2mirror(view_resolution, pix)
+        for i in xrange(len(pix)):
+            if i == mpix[i]: continue
+            count[i] += count[mpix[i]]
+            count[mpix[i]]=count[i]
+    
+    #pix = numpy.nonzero(count)[0]
+    #count = count[pix].copy().squeeze()
     
     angs = numpy.rad2deg(healpix.pix2ang(view_resolution, pix))
     return angs, count
     
 def read_angles(filename, header=None, selection_file="", **extra):
     ''' Read in an alignment file and apply optional selection file
+        
+    :Parameters:
+        
+        filename : str
+                   Filename for alignment file
+        header : int
+                 Header for alignment file
+        selection_file : str
+                         Selection file for projections in alignment file
+        extra : dict
+                Unused keyword arguments 
     
-    .. todo:: format_alignment?
+    :Returns:
+        
+        angles : array
+                 Array of angles for each projection
     '''
     
-    selection_file, header = format_utility.parse_header(selection_file)
+    selection_file, sheader = format_utility.parse_header(selection_file)
     select = None
     if selection_file != "":
         if os.path.splitext(selection_file)[1]=='.mat':
             select = scipy.io.loadmat(selection_file)
-            select = select[header[0]]
+            select = select[sheader[0]]
         else:
-            select,header = format.read(selection_file, ndarray=True)
-            select=select[:, header.index('id')]
+            select,sheader = format.read(selection_file, ndarray=True)
+            select=select[:, sheader.index('id')]
     if format.get_format(filename) == format.star:
         align = format.read(filename, numeric=True)
         
@@ -473,26 +623,17 @@ def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
-    group = OptionGroup(parser, "Coverage", "Options to control creation of the coverage plot",  id=__name__)
+    group = OptionGroup(parser, "Plot", "Options to control creation of the coverage plot",  id=__name__)
     group.add_option("-p", projection="npstere",    help="Map projection type")
-    group.add_option("", count_mode=('Shape', 'Color', 'Both'), help="Mirroring over the equator for visualization", default=2)
-    group.add_option("", hide_zero_marker=False,    help="Hide the zero markers")
-    group.add_option("", color_map='cool',          help="Set the color map")
+    group.add_option("-d", dpi=300,                 help="Resolution of the image in dots per inch")
+    group.add_option("",   count_mode=('Shape', 'Color', 'Both'), help="Mode to measure the number of projections per view", default=2)
+    group.add_option("",   hide_zero_marker=False,  help="Hide the zero markers")
+    group.add_option("",   color_map='cool',        help="Set the color map")
     pgroup.add_option_group(group)
-    
     
     group = OptionGroup(parser, "Histogram", "Options to control angular histogram")
     group.add_option("-r", view_resolution=3,       help="Group views into a coarse grid: (2) 15 deg, (3) 7.5 deg ...")
-    group.add_option("", disable_mirror=False,      help="Disable mirroring over the equator for counting")
-    group.add_option("", mirror=False,              help="Mirroring over the equator for visualization")
-    pgroup.add_option_group(group)
-    
-    group = OptionGroup(parser, "Plot", "Options to control plotting 3d or map projection output")
-    group.add_option("-d", dpi=300,                 help="Resolution of the image in dots per inch")
-    group.add_option("-a", area_mult=1.0,           help="Cirle area multiplier")
-    group.add_option("", alpha=0.9,                 help="Transparency of the marker (1.0 = solid, 0.0 = no color)")
-    group.add_option("", label_view=[],             help="List of views to label with number and Euler Angles (theta,phi)")
-    group.add_option("", use_scale=False,           help="Display scale and color instead of color bar")
+    group.add_option("",   disable_mirror=False,    help="Disable mirroring over the equator for counting")
     pgroup.add_option_group(group)
     
     group = OptionGroup(parser, "Chimera", "Options to control chimera bild output")
@@ -501,13 +642,20 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", particle_center=0.0,       help="Offset from center for ball projections")
     pgroup.add_option_group(group)
     
-    group = OptionGroup(parser, "Projection", "Options to control the projection")
+    group = OptionGroup(parser, "Projection", "Options to control map projection output")
+    group.add_option("-a", area_mult=1.0,           help="Circle area multiplier")
+    group.add_option("",   alpha=0.9,               help="Transparency of the marker (1.0 = solid, 0.0 = no color)")
+    group.add_option("",   label_view=[],           help="List of views to label with number and Euler Angles (theta,phi)")
+    group.add_option("",   use_scale=False,         help="Display scale and color instead of color bar")
+    pgroup.add_option_group(group)
+    
+    group = OptionGroup(parser, "Layout", "Options to control the projection layout")
     group.add_option("",   lon_zero="",             help="Longitude for axis zero (empty for default values determined by projection)")
     group.add_option("",   lat_zero="",             help="Latitude for axis zero (empty for default values determined by projection)")
     group.add_option("",   ll_lat=-90.0,            help="Latitude of lower left hand corner of the desired map domain (degrees)")
     group.add_option("",   ll_lon=-180.0,           help="Longitude of lower left hand corner of the desired map domain (degrees)")
-    group.add_option("",   ur_lat=90.0,             help="Longitude of upper right hand corner of the desired map domain (degrees)")
-    group.add_option("",   ur_lon=180.0,            help="Latitude of upper right hand corner of the desired map domain (degrees)")
+    group.add_option("",   ur_lat=90.0,             help="Latitude of upper right hand corner of the desired map domain (degrees)")
+    group.add_option("",   ur_lon=180.0,            help="Longitude of upper right hand corner of the desired map domain (degrees)")
     group.add_option("",   boundinglat="",          help="Bounding latitude for npstere,spstere,nplaea,splaea,npaeqd,spaeqd")
     group.add_option("",   proj_width=0,            help="Width of desired map domain in projection coordinates (meters)")
     group.add_option("",   proj_height=0,           help="Height of desired map domain in projection coordinates (meters)")

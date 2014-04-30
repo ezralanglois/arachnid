@@ -246,6 +246,44 @@ def nside2pixarea(resolution, degrees=False):
     if degrees: pixarea = numpy.rad2deg(numpy.rad2deg(pixarea))
     return numpy.sqrt(pixarea)
 
+def pix2mirror(resolution, pix, scheme='ring', out=None):
+    ''' Convert Euler angles to pixel
+    
+    :Parameters:
+        
+        resolution : int
+                     Pixel resolution
+        pix : int or array
+                Euler angle theta or array of Euler angles
+        scheme : str
+                 Pixel layout scheme: nest or ring
+        out : array, optional
+              Array of pixels for specified mirror pixels
+    
+    :Returns:
+        
+        out : in or, array
+              Pixel for specified mirror pixel
+    '''
+    
+    #resolution, theta, phi=None, scheme='ring', half=False, deg=False, out=None
+    resolution = pow(2, resolution)
+    if scheme not in ('nest', 'ring'): raise ValueError, "scheme must be nest or ring"
+    _pix2ang = getattr(_healpix, 'pix2ang_%s'%scheme)
+    _ang2pix = getattr(_healpix, 'ang2pix_%s'%scheme)
+    if hasattr(pix, '__iter__'):
+        if out is None: out = numpy.zeros(len(pix))
+        for i in xrange(len(pix)):
+            t, p = _pix2ang(int(resolution), int(pix[i]))
+            t, p = healpix_half_sphere_euler_rad((t, p))
+            mpix = _ang2pix(int(resolution), t, p)
+            out[i]= mpix
+        return out
+    else:
+        t, p = _pix2ang(int(resolution), int(pix))
+        t, p = healpix_half_sphere_euler_rad((t, p))
+        return _ang2pix(int(resolution), t, p)
+
 def pix2ang(resolution, pix, scheme='ring', half=False, out=None):
     ''' Convert Euler angles to pixel
     
