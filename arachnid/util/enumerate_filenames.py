@@ -193,7 +193,7 @@ def remap_enum_files(files, mapping_file, strict=False):
         if os.path.splitext(basename)[1] == '.bz2': basename = os.path.splitext(basename)[0]
         found=[]
         for pair in mapped:
-            mapbase = os.path.splitext(os.path.basename(pair[0]))[0]
+            mapbase = os.path.basename(pair[0]) #os.path.splitext()[0]
             if os.path.splitext(mapbase)[1] == '.bz2': mapbase = os.path.splitext(mapbase)[0]
             if flag:
                 _logger.debug("Example: %s == %s"%(basename, mapbase))
