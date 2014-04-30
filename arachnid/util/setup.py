@@ -12,4 +12,5 @@ console_scripts = [
  'sanitycheck = arachnid.util.sanitycheck:sanitycheck',
  'screenmics = arachnid.util.screenmics:main',
  'delete = arachnid.util.delete:main',
+ 'prepvol = arachnid.util.prepvol:main',
 ]
