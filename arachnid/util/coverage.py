@@ -542,6 +542,7 @@ def angular_histogram(angs, view_resolution=3, disable_mirror=False, **extra):
     if view_resolution == 0: return angs, numpy.ones(len(angs))
     total = healpix.res2npix(view_resolution, not disable_mirror)
     _logger.info("Healpix order %d gives %d views"%(view_resolution, total))
+    total = healpix.res2npix(view_resolution)
     
     
     pix = healpix.ang2pix(view_resolution, numpy.deg2rad(angs))#,  half=not disable_mirror)
