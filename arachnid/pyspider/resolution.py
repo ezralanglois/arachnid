@@ -174,7 +174,7 @@ def process(filename, output, **extra):
     _logger.info(" - Resolution = %f - between %s and %s --- (0.5) = %.1f | (0.143) = %.1f"%(res, filename[0], filename[1], res1, res2))
     return filename, fsc, apix
 
-def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, **extra):
+def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='N', res_edge_width=3, res_threshold='A', res_ndilate=0, res_gk_size=3, res_gk_sigma=5.0, res_filter=0.0, dpi=None, disable_sigmoid=None, disable_scale=None, disable_gs=False, **extra):
     ''' Estimate the resolution from two half volumes
     
     :Parameters:
@@ -205,6 +205,10 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
           Dots per inch for output plot
     disable_sigmoid : bool
                       Disable the sigmoid model fitting
+    disable_scale : bool
+                    Scale y-axis automatically
+    disable_gs : bool
+                 Do not report 0.143 for gold standard
     extra : dict 
             Unused keyword arguments
     
@@ -235,7 +239,7 @@ def estimate_resolution(filename1, filename2, spi, outputfile, resolution_mask='
     vals = numpy.asarray(format.read(spi.replace_ext(outputfile), numeric=True, header="id,freq,dph,fsc,fscrit,voxels"))
     write_xml(os.path.splitext(outputfile)[0]+'.xml', vals[:, 1], vals[:, 3])
     if pylab is not None:
-        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid, 0.5, disable_scale)
+        plot_fsc(format_utility.add_prefix(outputfile, "plot_"), vals[:, 1], vals[:, 3], extra['apix'], dpi, disable_sigmoid, 0.5, disable_scale, disable_gs)
     return sp, numpy.vstack((vals[:, 1], vals[:, 3])).T, extra['apix']
 
 def write_xml(output, x, y):
@@ -286,7 +290,7 @@ def ensure_pixel_size(spi, filename, **extra):
         _logger.warn("Changing pixel size: %f (%f/%f) | %f -> %f (%f)"%(bin_factor, extra['window'], w, extra['apix'], params['apix'], extra['dec_level']))
     return params
 
-def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5, disable_scale=False):
+def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5, disable_scale=False, disable_gs=False):
     '''Write a resolution image plot to a file
     
     :Parameters:
@@ -305,6 +309,10 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
                       Disable the sigmoid model fitting
     freq_rng : float, optional
                Spatial frequency range to plot
+    disable_scale : bool
+                    Scale y-axis automatically
+    disable_gs : bool
+                 Do not report 0.143 for gold standard
     '''
     
     if pylab is None: return 
@@ -320,6 +328,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
         y -= y.min()
         y /= y.max()
     markers=['r--', 'b--']
+    
     for i, yp in enumerate([0.5, 0.143]):
         if coeff is not None:
             xp = fitting.sigmoid_inv(coeff, yp)
@@ -331,7 +340,11 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
             pylab.plot((x[0], xp), (yp, yp), markers[i])
             pylab.plot((xp, xp), (0.0, yp), markers[i])
             res = 0 if xp == 0 else apix/xp
-            pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.1f \AA (%.3f-criterion)$'%(xp, res, yp))
+            if i == 0:
+                pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.1f \AA (%.1f-criterion)$'%(xp, res, yp))
+            else:
+                pylab.text(xp+xp*0.1, yp, r'$%.3f,\ %.1f \AA (%.3f-criterion)$'%(xp, res, yp))
+        if disable_gs: break
     
     pylab.plot(x, y)
     if not disable_scale:
@@ -343,7 +356,7 @@ def plot_fsc(outputfile, x, y, apix, dpi=72, disable_sigmoid=False, freq_rng=0.5
     #pylab.title('Fourier Shell Correlation')
     pylab.savefig(os.path.splitext(outputfile)[0]+".png", dpi=dpi)
 
-def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False):
+def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False, disable_gs=False):
     '''Write a resolution image plot to a file comparing multiple FSC curves
     
     :Parameters:
@@ -356,6 +369,10 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False
            Pixel size
     freq_rng : float, optional
                Spatial frequency range to plot
+    disable_scale : bool
+                    Scale y-axis automatically
+    disable_gs : bool
+                 Do not report 0.143 for gold standard
     '''
     
     if pylab is None: return 
@@ -379,7 +396,10 @@ def plot_cmp_fsc(outputfile, fsc_curves, apix, freq_rng=0.5, disable_scale=False
                 res1 = fitting.fit_linear_interp(fsc, 0.5)
                 res2 = fitting.fit_linear_interp(fsc, 0.143)
             res[i, :] = (apix1/res1, apix1/res2)
-            label += ( " $%.1f (%.1f) \AA$"%(apix1/res1, apix1/res2) )
+            if disable_gs:
+                label += ( " $%.1f \AA$"%(apix1/res1) )
+            else:
+                label += ( " $%.1f (%.1f) \AA$"%(apix1/res1, apix1/res2) )
         pylab.plot(fsc[:, 0], fsc[:, 1], label=label)
     
     lgd=pylab.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., prop={'size':8})
@@ -464,6 +484,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("",   disable_sigmoid=False, help="Disable the sigmoid model fitting")
         pgroup.add_option("",   ova=False,      help="One-versus-all, the last one versus all other listed volumes")
         pgroup.add_option("",   disable_scale=False,      help="Scale y-axis automatically")
+        pgroup.add_option("",   disable_gs=False,      help="Do not  report 0.143 on plot")
         
         spider_params.setup_options(parser, pgroup, False)
     setup_options_from_doc(parser, estimate_resolution, 'rf_3', classes=spider.Session, group=pgroup)
