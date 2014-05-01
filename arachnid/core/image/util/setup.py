@@ -32,7 +32,8 @@ def configuration(parent_package='',top_path=None):
     resample_src = 'resample_wrap.cpp' if os.path.exists(os.path.join(os.path.dirname(__file__), 'resample_wrap.cpp')) else 'resample.i'
     config.add_extension('_image_utility', sources=[img_src, 'radon.c'], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['image_utility.h'], swig_opts=['-c++'], extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
     config.add_extension('_resample', sources=[resample_src], define_macros=[('__STDC_FORMAT_MACROS', 1)]+compiler_defs, depends=['resample.hpp'], swig_opts=['-c++'], extra_compile_args=compiler_args, extra_link_args=compiler_args, libraries=compiler_libraries)
-
+    config.add_extension('_ctf', sources=['ctf.F90'], define_macros=compiler_defs, extra_compile_args=compiler_args, extra_link_args=fcompiler_args)
+    
     config.add_include_dirs(os.path.dirname(__file__))
     return config
 
