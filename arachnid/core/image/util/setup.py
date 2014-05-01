@@ -24,7 +24,7 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('util', parent_package, top_path)
     
         
-    #fcompiler_args = compiler_options()[0]
+    fcompiler_args = compiler_options()[0]
     compiler_args, compiler_libraries, compiler_defs = compiler_options()[3:]
     
     
