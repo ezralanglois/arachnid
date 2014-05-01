@@ -1033,7 +1033,10 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
         last=-1
         idlen = len(str(len(vals)))
         for i in xrange(len(vals)):
-            filename,pid1 = relion_utility.relion_file(vals[i].rlnImageName)
+            if hasattr(vals[i], 'araOriginalrlnImageName'):
+                filename,pid1 = relion_utility.relion_file(vals[i].araOriginalrlnImageName)
+            else:
+                filename,pid1 = relion_utility.relion_file(vals[i].rlnImageName)
             if last != filename:
                 index = format.read(reindex_file, spiderid=filename, numeric=True)
                 index = dict([(val.id, i+1) for i, val in enumerate(index)])
