@@ -520,6 +520,8 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
     
 def angular_histogram(angs, view_resolution=3, disable_mirror=False, use_mirror=True, **extra):
     ''' Discretize the angles using healpix and tabulate an angular histogram
+    
+    .. todo:: add mode to scale by number of STDs
         
     :Parameters:
         

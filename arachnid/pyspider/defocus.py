@@ -148,6 +148,7 @@ This is not a complete list of options available to this script, for additional 
 from ..core.app import program
 from ..core.metadata import format, spider_params, spider_utility, format_utility
 from ..core.image import ndimage_file, ndimage_interpolate, ndimage_utility
+from ..core.image.ctf import estimate2d as estimate_ctf2d
 from ..core.learn import unary_classification
 from ..core.parallel import mpi_utility
 from ..core.spider import spider, spider_file
@@ -161,7 +162,7 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, skip_defocus=False, **extra):
+def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20, rmax=5, **extra):
     ''' Esimate the defocus of the given micrograph
     
     :Parameters:
@@ -189,6 +190,7 @@ def process(filename, output, id_len=0, skip_defocus=False, **extra):
     spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
     _logger.debug("create power spec")
     ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
+    df1, df2, ang = 0, 0, 0
     
     if not ndimage_file.valid_image(extra['spi'].replace_ext(filename)):
         _logger.warn("Skipping %s - invalid image"%(filename))
@@ -213,8 +215,18 @@ def process(filename, output, id_len=0, skip_defocus=False, **extra):
         except:
             _logger.exception("Failed to estimate defocus for %s"%filename)
             raise
+        if fit2d:
+            if defocus == 0:
+                defocusU=10000
+                defocusV=80000
+                defocusS=500
+            else:
+                defocusU = defocus + mag/2
+                defocusV = defocus - mag/2
+                defocusS = (defocusU-defocusV)/20
+            df1, df2, ang = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
 
-    return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
+    return filename, numpy.asarray([id, defocus, ang, mag, cutoff, df1, df2, ang])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     '''Compute the rotation average of the power spectra and store as an ndarray
@@ -516,7 +528,7 @@ angle_astig = angle_astig + 90;
 }
 '''
 
-def reduce_all(filename, file_completed, file_count, output, defocus_arr, output_offset=0, **extra):
+def reduce_all(filename, file_completed, file_count, output, defocus_arr, output_offset=0, fit2d=False, **extra):
     # Process each input file in the main thread (for multi-threaded code) 38.25 - 3:45
     
     filename, defocus_vals = filename
@@ -537,13 +549,17 @@ def reduce_all(filename, file_completed, file_count, output, defocus_arr, output
         fout.close()
     else:
         try:
-            defocus_arr[file_completed-1, :]=defocus_vals
+            defocus_arr[file_completed-1, :]=defocus_vals[:5]
         except:
             _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
             raise
         mode = 'a' if (file_completed+output_offset) > 1 else 'w'
         format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
                      header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode=mode, write_offset=file_completed+output_offset)
+        if fit2d:
+            defocus_vals = defocus_vals[numpy.asarray((0,5,6,7))]
+            format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
+                         header="id,defocus_u,defocus_v,defocus_ang".split(','), mode=mode, write_offset=file_completed+output_offset, prefix="acc_")
     return filename
 
 def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, summary=False, **extra):
@@ -712,6 +728,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   summary=False,                                  help="Write out a summary for the power spectra")
     group.add_option("",   use_8bit=False,                                 help="Write decimate micrograph as 8-bit mrc")
     group.add_option("",   skip_defocus=False,                             help="Write only power spectra and decimated micrographs")
+    group.add_option("",   fit2d=False,                                    help="Use CTFFIND3 type algorithm to fit in 2D")
+    group.add_option("",   rmin=20.0,                                      help="Minimum resolutino for fit in 2D")
+    group.add_option("",   rmax=5.0,                                       help="Maximum resolutino for fit in 2D")
     pgroup.add_option_group(group)
     
     setup_options_from_doc(parser, create_powerspectra, group=pgroup)# classes=spider.Session, for_window_in_micrograph
