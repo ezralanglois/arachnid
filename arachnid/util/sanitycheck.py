@@ -23,6 +23,7 @@ def check_shared_libs():
                 'arachnid.core.image.spi._spider_rotate', 
                 'arachnid.core.image.util._image_utility',
                 'arachnid.core.image.util._resample',
+                'arachnid.core.image.util._ctf',
                 'arachnid.core.learn.core._fastdot', 
                 'arachnid.core.orient.core._healpix', 
                 'arachnid.core.orient.core._transformations', 
