@@ -453,7 +453,7 @@ def write_pow(pow, index=0, diagnostic_file="", apix=None, **extra):
     
     
     if diagnostic_file == "": return
-    if apix is not None and apix > 0.0:
+    if apix is not None and apix > 0.0 and 1 == 0:
         rmin=30.0
         rmax=apix*3.0
         
