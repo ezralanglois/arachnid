@@ -192,7 +192,7 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
     ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
     df1, df2, ang = 0, 0, 0
     
-    if not ndimage_file.valid_image(extra['spi'].replace_ext(filename)):
+    if not ndimage_file.valid_image(filename):#extra['spi'].replace_ext(
         _logger.warn("Skipping %s - invalid image"%(filename))
         return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
     try:
@@ -554,7 +554,7 @@ def reduce_all(filename, file_completed, file_count, output, defocus_arr, output
             _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
             raise
         mode = 'a' if (file_completed+output_offset) > 1 else 'w'
-        format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
+        format.write(output, defocus_vals[:5].reshape((1, defocus_vals[:5].shape[0])), format=format.spiderdoc, 
                      header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode=mode, write_offset=file_completed+output_offset)
         if fit2d:
             defocus_vals = defocus_vals[numpy.asarray((0,5,6,7))]
