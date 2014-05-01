@@ -357,14 +357,14 @@ def chimera_bild(angs, cnt, output, particle_radius=60.0, particle_center=0.0, r
     try:
         for i in xrange(len(angs)):
             val = cnt[i]/float(maxcnt)
-            r, g, b = cmap()[:3]
+            r, g, b = cmap(val)[:3]
             fout.write('.color %f %f %f\n'%(r, g, b))
             
             v1,v2,v3 = spider_transforms.euler_to_vector(*angs[i, :])
             length = particle_radius + radius_frac * particle_radius * val;
             diff = particle_radius-length
             if abs(diff*v1) < 0.01 and abs(diff*v2) < 0.01 and abs(diff*v3) < 0.01: continue
-            fout.write('.cylinder %f %f %f\n'%(particle_radius*v1+particle_center, particle_radius*v2+particle_center, particle_radius*v3+particle_center,
+            fout.write('.cylinder %f %f %f %f %f %f %d\n'%(particle_radius*v1+particle_center, particle_radius*v2+particle_center, particle_radius*v3+particle_center,
                                                length*v1+particle_center, length*v2+particle_center, length*v3+particle_center,
                                                width))
     finally:
