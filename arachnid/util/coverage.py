@@ -318,7 +318,7 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
     nonzero = numpy.nonzero(cnt)
     ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), c=nhist, cmap=cmap)
     if not hide_zero_marker:
-        nonzero = numpy.logical_not(nonzero)
+        nonzero = numpy.nonzero(cnt==0)
         if len(nonzero) > 0:
             ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
         
