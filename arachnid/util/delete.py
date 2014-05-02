@@ -36,7 +36,7 @@ def initialize(files, param):
     for filename in files[:5]:
         _logger.info("  -   %s"%filename)
     if param['yes']: return files
-    val = input('Are you sure you want to delete these files? (Yes or No)').strip()
+    val = str(input('Are you sure you want to delete these files? (Yes or No)')).strip()
     if len(val) == 0 or val.lower()[0]!='y': return []
     return files
 
