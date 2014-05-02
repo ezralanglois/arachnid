@@ -217,13 +217,13 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
             raise
         if fit2d:
             if defocus == 0:
-                defocusU=10000
-                defocusV=80000
-                defocusS=500
+                defocusU=5000
+                defocusV=60000
+                defocusS=5000
             else:
                 defocusU = defocus + mag/2
                 defocusV = defocus - mag/2
-                defocusS = (defocusU-defocusV)/20
+                defocusS = (defocusU-defocusV)/5
             _logger.info("Searching with range %f-%f by %f -- defocus found: %f with mag: %f"%(defocusV, defocusU, defocusS, defocus, mag))
             df1, df2, ang = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
 

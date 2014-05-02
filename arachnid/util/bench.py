@@ -108,26 +108,24 @@ import numpy
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, id_len=0, subset=None, **extra):
+def process(filename, id_len=0, subset=None, **extra):
     '''Concatenate files and write to a single output file
     
     :Parameters:
         
-    filename : str
-               Input filename
-    output : str
-             Filename for output file
-    id_len : int
-             Maximum length of the ID
-    extra : dict
-            Unused key word arguments
+        filename : str
+                   Input filename
+        id_len : int
+                 Maximum length of the ID
+        extra : dict
+                Unused key word arguments
                 
     :Returns:
         
-    filename : string
-          Current filename
-    peaks : numpy.ndarray
-             List of peaks and coordinates
+        filename : string
+              Current filename
+        peaks : numpy.ndarray
+                 List of peaks and coordinates
     '''
     
     id = spider_utility.spider_id(filename, id_len)
@@ -143,21 +141,21 @@ def benchmark(coords, header, fid, good_output="", **extra):
     
     :Parameters:
     
-    coords : array
-             List of x,y coordinate centers for particles
-    header : list
-             List of names for each column in array
-    fid : str
-          Current SPIDER id
-    good_output : str
-                  Output filename for good particle coordinates
-    extra : dict
-            Unused key word arguments
+        coords : array
+                 List of x,y coordinate centers for particles
+        header : list
+                 List of names for each column in array
+        fid : str
+              Current SPIDER id
+        good_output : str
+                      Output filename for good particle coordinates
+        extra : dict
+                Unused key word arguments
     
     :Returns:
-    
-    conf : tuple
-           Confusion matrix counts: (TP, FP, TN, FN)
+        
+        conf : tuple
+               Confusion matrix counts: (TP, FP, TN, FN)
     '''
     
     #coords, header = namedtuple_utility.tuple2numpy(coords)
@@ -181,20 +179,20 @@ def read_bench_coordinates(fid, good_coords="", good="", **extra):
     ''' Read benchmark coordinates
     
     :Parameters:
-        
-    pixel_radius : int
-                   Current SPIDER ID
-    good_coords : str
-                  Filename for input benchmark coordinates
-    good : str
-           Filename for optional selection file to select good coordinates
-    extra : dict
-            Unused keyword arguments
+            
+        pixel_radius : int
+                       Current SPIDER ID
+        good_coords : str
+                      Filename for input benchmark coordinates
+        good : str
+               Filename for optional selection file to select good coordinates
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-        
-    coords : numpy.ndarray
-             Selected (x,y) coordinates
+            
+        coords : numpy.ndarray
+                 Selected (x,y) coordinates
     '''
     
     if good_coords == "": return None
@@ -221,20 +219,20 @@ def find_overlap(coords, benchmark, pixel_radius, bench_mult=1.2, **extra):
     '''Find the overlaping coordinates with the benchmark
     
     :Parameters:
-        
-    coords : numpy.ndarray
-             Coorindates found by algorithm
-    benchmark : numpy.ndarray
-                Set of 'good' coordinates
-    pixel_radius : int
-                   Radius of the particle in pixels
-    bench_mult : float
-                 Amount of allowed overlap (pixel_radius*bench_mult)
+            
+        coords : numpy.ndarray
+                 Coorindates found by algorithm
+        benchmark : numpy.ndarray
+                    Set of 'good' coordinates
+        pixel_radius : int
+                       Radius of the particle in pixels
+        bench_mult : float
+                     Amount of allowed overlap (pixel_radius*bench_mult)
     
     :Returns:
-        
-    coords : list
-             Overlapping (x,y) coordinates
+            
+        coords : list
+                 Overlapping (x,y) coordinates
     '''
     
     assert(benchmark.shape[1] == 2)
@@ -259,19 +257,19 @@ def precision(tp, fp, tn, fn):
     
     :Parameters:
     
-    tp : float
-         True positive rate
-    fp : float
-         False positive rate
-    tn : float
-         True negative rate
-    fn : float
-         False negative rate
+        tp : float
+             True positive rate
+        fp : float
+             False positive rate
+        tn : float
+             True negative rate
+        fn : float
+             False negative rate
     
     :Returns:
-    
-    precision : float
-                Esimated precision
+        
+        precision : float
+                    Esimated precision
     '''
     
     return numpy.divide(tp, float(fp+tp))
@@ -283,19 +281,19 @@ def recall(tp, fp, tn, fn):
     
     :Parameters:
     
-    tp : float
-         True positive rate
-    fp : float
-         False positive rate
-    tn : float
-         True negative rate
-    fn : float
-         False negative rate
+        tp : float
+             True positive rate
+        fp : float
+             False positive rate
+        tn : float
+             True negative rate
+        fn : float
+             False negative rate
     
     :Returns:
-    
-    precision : float
-                Esimated precision
+        
+        precision : float
+                    Esimated precision
     '''
     
     return numpy.divide(tp, float(fn+tp))
@@ -355,7 +353,7 @@ def setup_options(parser, pgroup=None, main_option=False):
         pgroup.add_option("-i", input_files=[], help="List of filenames for the input micrographs", required_file=True, gui=dict(filetype="file-list"))
         pgroup.add_option("-o", output="",      help="Output filename for the coordinate file with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-r", pixel_radius=0, help="Radius of the expected particle (if default value 0, then overridden by SPIDER params file, --param-file)")
-        pgroup.add_option("-s",   select="",    help="Selection file for input particles/micrographs", gui=dict(filetype="open"))
+        pgroup.add_option("-s", select="",    help="Selection file for input particles/micrographs", gui=dict(filetype="open"))
 
 def check_options(options, main_option=False):
     #Check if the option values are valid
