@@ -218,7 +218,7 @@ def main(files, module, **extra):
         _logger.debug("Setup progress monitor")
         monitor = progress(len(files))
     
-    tracing.backup(restart_file)
+    if restart_file is not None: tracing.backup(restart_file)
     restart_fout = open(restart_file, 'w') if restart_file is not None else None
     if restart_fout is not None:
         for f in finished:
