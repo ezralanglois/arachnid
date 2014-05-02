@@ -322,7 +322,7 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
         if len(nonzero) > 0:
             ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
         
-def chimera_bild(angs, cnt, output, particle_diameter=60.0, particle_center=0.0, radius_frac=0.3, width_frac=0.5, color_map='cool', view_resolution=3, **extra):
+def chimera_bild(angs, cnt, output, particle_diameter=60.0, particle_center=0.0, radius_frac=1.0, width_frac=0.5, color_map='cool', view_resolution=3, **extra):
     '''Write out angular histogram has a Chimera BILD file
     
     :Parameters:
