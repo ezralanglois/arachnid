@@ -318,7 +318,9 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
     nonzero = numpy.nonzero(cnt)
     ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), c=nhist, cmap=cmap)
     if not hide_zero_marker:
-        ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
+        nonzero = numpy.logical_not(nonzero)
+        if len(nonzero) > 0:
+            ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
         
 def chimera_bild(angs, cnt, output, particle_radius=60.0, particle_center=0.0, radius_frac=0.3, width_frac=0.5, color_map='cool', view_resolution=3, **extra):
     '''Write out angular histogram has a Chimera BILD file
@@ -520,8 +522,6 @@ def projection_args(projection, lat_zero, lon_zero, ll_lon, ll_lat, ur_lon, ur_l
     
 def angular_histogram(angs, view_resolution=3, disable_mirror=False, use_mirror=True, **extra):
     ''' Discretize the angles using healpix and tabulate an angular histogram
-    
-    .. todo:: add mode to scale by number of STDs
         
     :Parameters:
         
