@@ -322,7 +322,7 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
         if len(nonzero) > 0:
             ax.scatter3D(data[nonzero, 0].ravel(), data[nonzero, 1].ravel(), data[nonzero, 2].ravel(), color=cm.gray(0.5), marker='x') # @UndefinedVariable
         
-def chimera_bild(angs, cnt, output, particle_radius=60.0, particle_center=0.0, radius_frac=0.3, width_frac=0.5, color_map='cool', view_resolution=3, **extra):
+def chimera_bild(angs, cnt, output, particle_diameter=60.0, particle_center=0.0, radius_frac=0.3, width_frac=0.5, color_map='cool', view_resolution=3, **extra):
     '''Write out angular histogram has a Chimera BILD file
     
     :Parameters:
@@ -333,8 +333,8 @@ def chimera_bild(angs, cnt, output, particle_radius=60.0, particle_center=0.0, r
               Histogram for each view angle 
         output : str
                  Output filename
-        particle_radius : float
-                          Radius of paritlce in angstroms
+        particle_diameter : float
+                            Diameter of paritlce in angstroms
         particle_center : float
                           Ceneter of particle in angstroms
         radius_frac : float
@@ -355,6 +355,7 @@ def chimera_bild(angs, cnt, output, particle_radius=60.0, particle_center=0.0, r
     fout = open(output, 'w')
     maxcnt = cnt.max()
     
+    particle_radius = particle_diameter/2.0
     width = width_frac * numpy.pi*particle_radius/healpix.sampling(view_resolution)
     try:
         for i in xrange(len(angs)):
@@ -648,7 +649,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     
     group = OptionGroup(parser, "Chimera", "Options to control chimera bild output")
     group.add_option("", chimera=False,             help="Write out Chimera bild file")
-    group.add_option("", particle_radius=320.0,     help="Radius from center for ball projections")
+    group.add_option("", particle_diameter=320.0,   help="Radius from center for ball projections")
     group.add_option("", particle_center=0.0,       help="Offset from center for ball projections")
     pgroup.add_option_group(group)
     
@@ -685,9 +686,9 @@ def check_options(options, main_option=False):
     if options.view_resolution < 1: raise OptionValueError, "--view-resolution must have a value greater than 0, found: %d"%options.view_resolution
     
     if options.chimera:
-        if options.particle_radius == 0: raise OptionValueError, "--particle-radius must be greater than 0"
+        if options.particle_diameter == 0: raise OptionValueError, "--particle-diameter must be greater than 0"
         if options.particle_center == 0:
-            options.particle_center = options.particle_radius
+            options.particle_center = options.particle_diameter/2.0
     if options.boundinglat:
         try:float(options.boundinglat)
         except: raise OptionValueError, "--boundinglat must be a floating point number"
