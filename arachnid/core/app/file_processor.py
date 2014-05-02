@@ -252,7 +252,7 @@ def main(files, module, **extra):
     if mpi_utility.is_root(**extra):
         if finalize is not None: finalize(files, **extra)
 
-def check_dependencies(files, restart_file, infile_deps, outfile_deps, opt_changed, force=False, id_len=0, data_ext=None, restart_test=False, disable_restart_file=False, **extra):
+def check_dependencies(files, restart_file, infile_deps, outfile_deps=[], opt_changed=False, force=False, id_len=0, data_ext=None, restart_test=False, disable_restart_file=False, **extra):
     ''' Generate a subset of files required to process based on changes to input and existing
     output files. Note that this dependency checking is similar to the program `make`.
     

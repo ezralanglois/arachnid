@@ -56,7 +56,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", input_files=[],           help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"))
-        pgroup.add_option("",   selection_file="",        help="Selection file", gui=dict(filetype="open"), required_file=True)
+        pgroup.add_option("-s",   selection_file="",        help="Selection file", gui=dict(filetype="open"), required_file=True)
         spider_params.setup_options(parser, pgroup, False)
 
 def flags():
