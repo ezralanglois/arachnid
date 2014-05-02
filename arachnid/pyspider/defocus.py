@@ -224,6 +224,7 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
                 defocusU = defocus + mag/2
                 defocusV = defocus - mag/2
                 defocusS = (defocusU-defocusV)/20
+            _logger.info("Searching with range %f-%f by %f -- defocus found: %f with mag: %f"%(defocusV, defocusU, defocusS, defocus, mag))
             df1, df2, ang = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
 
     return filename, numpy.asarray([id, defocus, ang, mag, cutoff, df1, df2, ang])
