@@ -246,7 +246,7 @@ def main(files, module, **extra):
                     if spider_utility.is_spider_filename(filename): filename=spider_utility.spider_id(filename)
                     restart_fout.write(str(filename)+'\n')
                     restart_fout.flush()
-    restart_fout.close()
+    if restart_fout is not None: restart_fout.close()
     if len(files) == 0:
         raise ValueError, "Error in root process"
     if mpi_utility.is_root(**extra):
