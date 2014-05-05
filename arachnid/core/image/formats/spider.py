@@ -258,7 +258,10 @@ def valid_image(filename):
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
         count = count_images(h)
-        return file_size(f) == (h_len + count * (h_len+i_len))
+        if count > 1 or h['istack'] == 2:
+            return file_size(f) == (h_len + count * (h_len+i_len))
+        else:
+            return file_size(f) == (h_len + count * i_len)
     finally:
         util.close(filename, f)
 
