@@ -7,4 +7,5 @@ console_scripts = [
  'vicer = arachnid.app.vicer:main',
  'reconstruct = arachnid.app.reconstruct:main',
  'alignmovie = arachnid.app.align_frames:main',
+ 'fastctf = arachnid.app.fastctf:main',
 ]
