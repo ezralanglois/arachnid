@@ -53,13 +53,14 @@ def process(filename, id_len=0, **extra):#, neig=1, nstd=1.5
     _logger.debug("Generate power spectra")
     pow = generate_powerspectra(filename, **extra)
     
-    defu, defv, defa, error = estimate_defocus_2D(pow, **extra)
+    defu, defv, defa, error, beg, end = estimate_defocus_2D(pow, **extra)
     vals=[id, defu, defv, defa, (defu+defv)/2.0, numpy.abs(defu-defv), error]
     
     _logger.debug("Defocus=%f, %f, %f, %f"%(defu, defv, defa, error))
     
     if diagnostic_file != "":
-        pow = power_spectra_model(pow, defu, defv, defa, **extra)
+        pow = power_spectra_model_range(pow, defu, defv, defa, beg, end, **extra)
+        #pow = power_spectra_model(pow, defu, defv, defa, **extra)
         ndimage_file.write_image(diagnostic_file, pow)
     
     
@@ -72,6 +73,19 @@ def process(filename, id_len=0, **extra):#, neig=1, nstd=1.5
     
     
     return filename, numpy.asarray(vals)
+
+def power_spectra_model(pow, defu, defv, defa, beg, end, ampcont, cs, voltage, apix, bfactor=0, **extra):
+    '''
+    '''
+    
+    pow=pow.copy()
+    model = ctf_model.transfer_function_2D_full(pow.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
+    pow[:, :pow.shape[0]/2]=ndimage_utility.histeq(model[:, :pow.shape[0]/2])
+    avg = model[:, beg:pow.shape[0]/2-end].mean()
+    pow[:, 0:beg] = avg
+    pow[:, 0:beg] = avg
+    pow[:, pow.shape[0]/2:]=ndimage_utility.histeq(pow[:, pow.shape[0]/2:])
+    return pow
 
 def power_spectra_model(pow, defu, defv, defa, ampcont, cs, voltage, apix, bfactor=0, **extra):
     '''
@@ -106,7 +120,7 @@ def estimate_defocus_2D(pow, **extra):
     args = (pow, mask, extra['ampcont'], extra['cs'], extra['voltage'], extra['apix'], extra.get('bfactor', 0))
     defu, defv, defa = scipy.optimize.leastsq(model_fit_error_2d,[defu, defv, defa],args=args)[0]
     error = numpy.sqrt(numpy.sum(numpy.square(model_fit_error_2d([defu, defv, defa], *args))))
-    return defu, defv, defa, error
+    return defu, defv, defa, error, beg, end
     
 def model_fit_error_2d(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
     '''
