@@ -7,7 +7,7 @@ from ..core.app import program
 from ..core.image import ndimage_file
 from ..core.image import ndimage_utility
 from ..core.image import ndimage_interpolate
-from ..core.image.ctf import model as ctf_model, estimate2d, estimate1d
+from ..core.image.ctf import model as ctf_model
 from ..core.metadata import spider_params
 from ..core.metadata import spider_utility
 from ..core.metadata import format_utility
@@ -102,12 +102,6 @@ def estimate_defocus_2D(pow, **extra):
     mask = ndimage_utility.model_ring(beg, end, pow.shape)
     mask[:, :mask.shape[0]/2+beg]=0
     mask = numpy.nonzero(mask)
-    
-    if 1 == 0:
-        rmin = estimate1d.resolution(beg, pow.shape[0]/2, extra['apix'])
-        rmax = estimate1d.resolution(end, pow.shape[0]/2, extra['apix'])
-        vals = estimate2d.fit_ctf(pow1, defu, defv, defa, rmin, rmax, **extra)
-        _logger.info("CTFFIND3=%f, %f, %f"%tuple(vals))
     
     args = (pow, mask, extra['ampcont'], extra['cs'], extra['voltage'], extra['apix'], extra.get('bfactor', 0))
     defu, defv, defa = scipy.optimize.leastsq(model_fit_error_2d,[defu, defv, defa],args=args)[0]
