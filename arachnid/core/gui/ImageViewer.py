@@ -715,7 +715,8 @@ class MainWindow(QtGui.QMainWindow):
         '''
         
         fileset=set(self.files)
-        newfiles = sorted([f for f in files if os.path.abspath(f) not in fileset])
+        files = [os.path.abspath(f) for f in files]
+        newfiles = sorted([f for f in files if f not in fileset])
         imgfiles = [f for f in newfiles if not ndimage_file.is_readable(f)]
         if len(imgfiles) > 0:
             messagebox.error_message(self, "File open failed - found non-image files. See details.", "\n".join(imgfiles))
