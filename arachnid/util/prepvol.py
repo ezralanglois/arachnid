@@ -144,7 +144,7 @@ from ..core.metadata import spider_params
 from ..core.metadata import selection_utility
 from ..core.metadata import format_utility
 from ..core.image import ndimage_file
-#from ..core.image import ndimage_utility
+from ..core.image import ndimage_utility
 from ..core.image import ndimage_interpolate
 from ..core.image import ndimage_filter
 try:
