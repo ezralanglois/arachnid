@@ -687,7 +687,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, remove_bad=False, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
+def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, param_file="", remove_bad=False, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
