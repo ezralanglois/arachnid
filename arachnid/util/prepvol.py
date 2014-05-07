@@ -153,6 +153,7 @@ try:
 except:
     from skimage.filter import tv_denoise  #@UnresolvedImport
 import logging
+import numpy
 import os
 
 _logger = logging.getLogger(__name__)
@@ -216,9 +217,9 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
     _logger.debug("Setting pixel size: %f"%apix)
     if mask_type != 'None':
         if mask_type == 'Adaptive':
-            mask_type = tight_mask(vol, **extra)
-        elif mask == 'Sphere':
-            mask_type = sphere_mask(vol, apix, **extra)
+            mask = tight_mask(vol, **extra)
+        elif mask_type == 'Sphere':
+            mask = sphere_mask(vol, apix, **extra)
         else:
             mask = ndimage_file.read_image(extra['mask_file'])
         ndimage_file.write_image(format_utility.add_suffix(output, "_mask"), mask, header=dict(apix=apix))
@@ -264,7 +265,7 @@ def sphere_mask(vol, apix, sphere_radius, sphere_pad=3, sm_size=3, sm_sigma=3.0,
     mask = ndimage_utility.model_ball(vol.shape, sphere_radius+sphere_pad, dtype=numpy.float)
     if sm_size > 0 and sm_sigma > 0:
         if (sm_size%2) == 0: sm_size += 1
-        gaussian_smooth(mask, sm_size, sm_sigma, mask)
+        ndimage_utility.gaussian_smooth(mask, sm_size, sm_sigma, mask)
     return mask
 
 def tight_mask(vol, threshold=None, ndilate=0, sm_size=3, sm_sigma=3.0, disable_filter=False, **extra):
