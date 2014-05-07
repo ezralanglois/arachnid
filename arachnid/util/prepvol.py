@@ -63,6 +63,10 @@ Preparation Options
     
     Trim or pad volume to given window size
     
+.. option:: --weight <float>
+    
+    Weight for total variance denosing
+    
 Mask Options
 ============
 
@@ -159,7 +163,7 @@ import os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, apix, resolution, window, id_len=0, diameter=False, cur_apix=0, mask_type='None', **extra):
+def process(filename, output, apix, resolution, window, id_len=0, diameter=False, cur_apix=0, mask_type='None', weight=0, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -182,6 +186,8 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
                    Pixel size of input volume
         mask_type : choice
                     Type of masking to perform
+        weight : float
+                 Regularization parameter for total variance denoising
         extra : dict
                 Unused key word arguments
                 
@@ -206,6 +212,8 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
         # todo -- pad to ensure better interpolation
         vol = ndimage_interpolate.resample_fft_fast(vol, apix/cur_apix)
     else: apix=cur_apix
+    if weight > 0:
+        vol = tv_denoise(vol, weight=weight, eps=2.e-4, n_iter_max=200)
     if window > 0:
         window = int(window)
         if window > vol.shape[0]:
@@ -297,7 +305,9 @@ def tight_mask(vol, threshold=None, ndilate=0, sm_size=3, sm_sigma=3.0, disable_
     try: threshold=float(threshold)
     except: threshold=None
     fvol = tv_denoise(vol, weight=10, eps=2.e-4, n_iter_max=200)
-    return ndimage_utility.tight_mask(fvol, threshold, ndilate, sm_size, sm_sigma)[0]
+    mask, th = ndimage_utility.tight_mask(fvol, threshold, ndilate, sm_size, sm_sigma)
+    _logger.info("Determined threshold=%f"%th)
+    return mask
 
 def initialize(files, param):
     # Initialize global parameters for the script
@@ -343,6 +353,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", apix=0.0,              help="Scale volume to the given pixel size")
     group.add_option("", cur_apix=0.0,          help="Current pixel size of input volume (only required if not in header)")
     group.add_option("", window=0.0,            help="Trim or pad volume to given window size")
+    group.add_option("", weight=0.0,            help="Weight for total variance denosing")
     group.add_option("", diameter=False,        help="Measure diameter of object")
     #group.add_option("", center=('None', 'Mass'),          help="Center volume using specified algorithm")
     mgroup = OptionGroup(parser, "Mask", "Options to control volume masking",  id=__name__)
