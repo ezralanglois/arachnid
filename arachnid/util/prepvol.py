@@ -121,6 +121,10 @@ More Options
     
     Measure diameter of object
 
+..option:: --cur-apix <FLOAT>
+    
+    Current pixel size of input volume (only required if not in header)
+
 Other Options
 =============
 
@@ -154,7 +158,7 @@ import os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, apix, resolution, window, id_len=0, diameter=False, **extra):
+def process(filename, output, apix, resolution, window, id_len=0, diameter=False, cur_apix=0, **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -184,9 +188,9 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
         output = spider_utility.spider_filename(output, filename, id_len)
     header={}
     vol = ndimage_file.read_image(filename, header=header)
-    cur_apix = header['apix']
+    if cur_apix == 0: cur_apix = header['apix']
     _logger.debug("Got pixel size: %f"%cur_apix)
-    if cur_apix == 0: raise ValueError, "Pixel size not found in volume header!"
+    if cur_apix == 0: raise ValueError, "Pixel size not found in volume header! Use --cur-apix to set current pixel size"
     if resolution > 0:
         _logger.debug("Filtering volume")
         vol = ndimage_filter.filter_gaussian_lowpass(vol, cur_apix/resolution, 2)
@@ -330,6 +334,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     group = OptionGroup(parser, "Prepare", "Options to control volume preparation",  id=__name__)
     group.add_option("", resolution=0.0,        help="Low pass filter volume to given resolution using Gaussian function")
     group.add_option("", apix=0.0,              help="Scale volume to the given pixel size")
+    group.add_option("", cur_apix=0.0,          help="Current pixel size of input volume (only required if not in header)")
     group.add_option("", window=0.0,            help="Trim or pad volume to given window size")
     group.add_option("", diameter=False,        help="Measure diameter of object")
     #group.add_option("", center=('None', 'Mass'),          help="Center volume using specified algorithm")
