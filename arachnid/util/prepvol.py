@@ -158,7 +158,7 @@ import os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, output, apix, resolution, window, id_len=0, diameter=False, cur_apix=0, **extra):
+def process(filename, output, apix, resolution, window, id_len=0, diameter=False, cur_apix=0, mask_type='None', **extra):
     '''Concatenate files and write to a single output file
         
     :Parameters:
@@ -175,6 +175,12 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
                New windows size
         id_len : int, optional
                  Maximum length of the ID
+        diameter : bool
+                   Meaure diameter of object
+        cur_apix : float
+                   Pixel size of input volume
+        mask_type : choice
+                    Type of masking to perform
         extra : dict
                 Unused key word arguments
                 
@@ -208,11 +214,11 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
             _logger.debug("Decreasing window size")
             vol = ndimage_filter.depad_image(vol, tuple([window for _ in xrange(vol.ndim)]))
     _logger.debug("Setting pixel size: %f"%apix)
-    if mask != 'None':
-        if mask == 'Adaptive':
-            mask = tight_mask(vol, **extra)
+    if mask_type != 'None':
+        if mask_type == 'Adaptive':
+            mask_type = tight_mask(vol, **extra)
         elif mask == 'Sphere':
-            mask = sphere_mask(vol, apix, **extra)
+            mask_type = sphere_mask(vol, apix, **extra)
         else:
             mask = ndimage_file.read_image(extra['mask_file'])
         ndimage_file.write_image(format_utility.add_suffix(output, "_mask"), mask, header=dict(apix=apix))
