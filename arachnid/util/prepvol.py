@@ -8,6 +8,7 @@ It performs the following preprocessing on the volume:
     - Resize
     - Filtering
     - Padding or trimming window
+    - Masking: Tight, sphereical or custom from file
     
 Todo
  - interpolate to volume size
@@ -62,6 +63,45 @@ Preparation Options
     
     Trim or pad volume to given window size
     
+Mask Options
+============
+
+.. option:: --mask-type <None|Adaptive|Sphere|File>
+    
+    Type of masking
+
+.. option:: --mask-file <FILENAME>
+    
+    Input filename for existing mask
+
+.. option:: --threshold <FLOAT or STR>
+    
+    Threshold for density or 'A' for auto threshold - Adaptive
+
+.. option:: --disable-filter
+    
+    Disable pre filtering - Adaptive
+
+.. option:: --ndilate <INT>
+    
+    Number of times to dilate the mask - Adaptive
+
+.. option:: --sm-size <INT>
+    
+    Size of the real space Gaussian kernel (must be odd!) - Adaptive or Sphere - set to 0 to disable
+
+.. option:: --sm-sigma <FLOAT>
+    
+    Width of the real space Gaussian kernel - Adaptive or Sphere
+
+.. option:: --sphere-pad <INT>
+    
+    Additional padding on radius of sphere for Sphere mask - Sphere
+
+.. option:: --sphere-radius <FLOAT>
+    
+    Radius of sphereical mask in angstroms or 'A' for auto measure - Sphere
+    
 More Options
 ============
     
@@ -76,6 +116,10 @@ More Options
 .. option:: --bin-factor <FLOAT>
     
     Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
+
+..option:: --diameter
+    
+    Measure diameter of object
 
 Other Options
 =============
@@ -99,6 +143,11 @@ from ..core.image import ndimage_file
 #from ..core.image import ndimage_utility
 from ..core.image import ndimage_interpolate
 from ..core.image import ndimage_filter
+try:
+    from skimage.filter import denoise_tv_chambolle as tv_denoise  #@UnresolvedImport
+    tv_denoise;
+except:
+    from skimage.filter import tv_denoise  #@UnresolvedImport
 import logging
 import os
 
@@ -155,12 +204,89 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
             _logger.debug("Decreasing window size")
             vol = ndimage_filter.depad_image(vol, tuple([window for _ in xrange(vol.ndim)]))
     _logger.debug("Setting pixel size: %f"%apix)
+    if mask != 'None':
+        if mask == 'Adaptive':
+            mask = tight_mask(vol, **extra)
+        elif mask == 'Sphere':
+            mask = sphere_mask(vol, apix, **extra)
+        else:
+            mask = ndimage_file.read_image(extra['mask_file'])
+        ndimage_file.write_image(format_utility.add_suffix(output, "_mask"), mask, header=dict(apix=apix))
+        vol *= mask
     ndimage_file.write_image(output, vol, header=dict(apix=apix))
     if diameter:
         from ..core.image import measure
         print measure.estimate_diameter(vol, cur_apix)
         print measure.estimate_shape(vol, cur_apix)
     return filename
+
+def sphere_mask(vol, apix, sphere_radius, sphere_pad=3, sm_size=3, sm_sigma=3.0, **extra):
+    ''' Generate a tight mask for the given volume
+        
+    :Parameters:
+    
+        vol : array
+              Input volume
+        apix : float
+               Pixel size
+        sphere_radius : int, optional
+                        Radius of the sphere
+        sphere_pad : int
+                     Additional padding on radius of sphere for mask
+        sm_size : int
+                  Size of the real space Gaussian kernel (must be odd!)
+        sm_sigma : float
+                   Width of the real space Gaussian kernel
+        extra : dict
+                Unused key word arguments
+    :Returns:
+    
+        mask : array
+               Tight mask
+    '''
+    
+    try: sphere_radius=int(float(sphere_radius)/apix)
+    except: 
+        from ..core.image import measure
+        sphere_radius=int(measure.estimate_diameter(vol, 1.0))
+        _logger.info("Estimated radius to be %d"%sphere_radius)
+    
+    mask = ndimage_utility.model_ball(vol.shape, sphere_radius+sphere_pad, dtype=numpy.float)
+    if sm_size > 0 and sm_sigma > 0:
+        if (sm_size%2) == 0: sm_size += 1
+        gaussian_smooth(mask, sm_size, sm_sigma, mask)
+    return mask
+
+def tight_mask(vol, threshold=None, ndilate=0, sm_size=3, sm_sigma=3.0, disable_filter=False, **extra):
+    ''' Generate a tight mask for the given volume
+        
+    :Parameters:
+    
+        vol : array
+              Input volume
+        threshold : float, optional
+                    Threshold for density or None for auto threshold
+        ndilate : int
+                  Number of times to dilate the mask
+        sm_size : int
+                  Size of the real space Gaussian kernel (must be odd!)
+        sm_sigma : float
+                   Width of the real space Gaussian kernel
+        disable_prefilter : bool
+                            Disable pre filtering
+        extra : dict
+                Unused key word arguments
+    :Returns:
+    
+        mask : array
+               Tight mask
+    '''
+    
+    if sm_size > 0 and (sm_size%2) == 0: sm_size += 1
+    try: threshold=float(threshold)
+    except: threshold=None
+    fvol = tv_denoise(vol, weight=10, eps=2.e-4, n_iter_max=200)
+    return ndimage_utility.tight_mask(fvol, threshold, ndilate, sm_size, sm_sigma)[0]
 
 def initialize(files, param):
     # Initialize global parameters for the script
@@ -175,6 +301,26 @@ def initialize(files, param):
     if param.get('window', 0) > 0: _logger.info("Window size: %d"%(param.get('window', 0)))
     if param.get('apix', 0) > 0: _logger.info("Pixel size: %f"%(param.get('apix', 0)))
     if param.get('resolution', 0) > 0: _logger.info("Filter: %f angstroms"%(param.get('resolution', 0)))
+    if param.get("mask_type", 'None') != 'None':
+        if param["mask_type"] == 'Adaptive':
+            _logger.info("Using adaptive tight mask with:")
+            try: float(param["threshold"])
+            except: _logger.info("    - Determine threshold automatically")
+            else:   _logger.info("    - Threshold = %f"%float(param["threshold"]))
+            if param["ndilate"] > 0: _logger.info("    - Dilation: %d"%param["ndilate"])
+            else: _logger.info("    - Dilation disabled")
+        if param["mask_type"] == 'Sphere':
+            _logger.info("Using sphereical mask with:")
+            try: float(param["sphere_radius"])
+            except: _logger.info("    - Determine radius automatically")
+            else:   _logger.info("    - Radius = %d A"%float(param["sphere_radius"]))
+            _logger.info("    - Radius padding: %d"%param["sphere_pad"])
+        
+        if param["mask_type"] == 'Adaptive' or param["mask_type"] == 'Sphere':
+            if param["sm_size"] > 0 and param["sm_sigma"] > 0: _logger.info("    - Soften: %d, %f"%(param["sm_size"], param["sm_sigma"]))
+            else: _logger.info("    - Hard edge mask")
+        if param["mask_type"] == 'File':
+            _logger.info("Using adaptive tight mask with:"%param['mask_file'])
     return files
 
 def setup_options(parser, pgroup=None, main_option=False):
@@ -187,6 +333,19 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", window=0.0,            help="Trim or pad volume to given window size")
     group.add_option("", diameter=False,        help="Measure diameter of object")
     #group.add_option("", center=('None', 'Mass'),          help="Center volume using specified algorithm")
+    mgroup = OptionGroup(parser, "Mask", "Options to control volume masking",  id=__name__)
+    mgroup.add_option("", mask_type=('None', 'Adaptive', 'Sphere', 'File'), help="Type of masking")
+    mgroup.add_option("", mask_file="",  help="Input filename for existing mask", gui=dict(filetype="open"), required_file=False)
+    
+    mgroup.add_option("", threshold="A", help="Threshold for density or 'A' for auto threshold - Adaptive")
+    mgroup.add_option("", ndilate=0, help="Number of times to dilate the mask - Adaptive")
+    mgroup.add_option("", disable_filter=False, help="Disable pre filtering - Adaptive")
+    mgroup.add_option("", sm_size=3, help="Size of the real space Gaussian kernel (must be odd!) - Adaptive or Sphere - set to 0 to disable")
+    mgroup.add_option("", sm_sigma=3.0, help="Width of the real space Gaussian kernel - Adaptive or Sphere")
+    mgroup.add_option("", sphere_pad=3, help="Additional padding on radius of sphere for Sphere mask - Sphere")
+    mgroup.add_option("", sphere_radius="A", help="Radius of sphereical mask in angstroms or 'A' for auto measure - Sphere")
+    
+    group.add_option_group(mgroup)
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--volumes", input_files=[], help="List of filenames for the input volumes", required_file=True, gui=dict(filetype="file-list"))

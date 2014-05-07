@@ -459,6 +459,54 @@ def find_peaks_fast(cc, width, fwidth=None):
     cc = cc.ravel()[offsets].copy().squeeze()
     return numpy.hstack((cc[:, numpy.newaxis], x[:, numpy.newaxis], y[:, numpy.newaxis]))
 
+def grid_array(shape, center=None):
+    '''
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    if center is None: center = numpy.asarray(shape, dtype=numpy.int)/2
+    rngs = []
+    for i in xrange(len(center)):
+        rngs.append(numpy.arange(-center[i], shape[i]-center[i]))
+    return numpy.meshgrid(*rngs)
+
+def radial_array(shape, center=None):
+    '''
+    '''
+    
+    vals = grid_image(shape, center)
+    val=vals[0]
+    numpy.square(val, val)
+    for v in vals[1:]:
+        val += v**2
+    
+    return val
+
+def model_ball(radius, shape, center=None, dtype=numpy.int, order='C'):
+    ''' Create a disk of given radius with background zero and foreground 1
+    
+    :Parameters:
+    
+        shape : int or sequence of two ints
+                Shape of the new array, e.g., (2, 2) or 2
+        center : int or sequence of two ints, optional
+                 Center of the disk, if not specified then use the center of the image
+        dtype : data-type, optional
+                The desired data-type for the array. Default is numpy.int
+        order : {'C', 'F'}, optional
+                Whether to store multidimensional data in C- or Fortran-contiguous (row- or column-wise) order in memory
+        
+    :Returns:
+    
+        img : numpy.ndarray
+              Disk image
+    '''
+    
+    a = numpy.zeros(shape, dtype, order)
+    irad = radial_array(shape, center)
+    a[irad <= radius**2]=1
+    return a
+
 def grid_image(shape, center=None):
     '''
     '''
