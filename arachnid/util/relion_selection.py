@@ -523,8 +523,10 @@ def read_defocus(defocus_file, defocus_header, min_defocus, max_defocus, **extra
     if defocus_header == "": defocus_header=None
     defocus_dict = format.read(defocus_file, header=defocus_header, numeric=True)
     for i in xrange(len(defocus_dict)-1, 0, -1):
-        if defocus_dict[i].defocus < min_defocus or defocus_dict[i].defocus > max_defocus:
-            _logger.warn("Removing micrograph %d because defocus %f violates allowed range %f-%f "%(defocus_dict[i].id, defocus_dict[i].defocus, min_defocus, max_defocus))
+        defocus_u = defocus_dict[i].defocus_u if hasattr(defocus_dict[i], 'defocus_u') else defocus_dict[i].defocus
+        defocus_v = defocus_dict[i].defocus_v if hasattr(defocus_dict[i], 'defocus_v') else defocus_dict[i].defocus
+        if min(defocus_u, defocus_v) < min_defocus or max(defocus_u, defocus_v) > max_defocus:
+            _logger.warn("Removing micrograph %d because defocus %f(%f) violates allowed range %f-%f "%(defocus_dict[i].id, defocus_u, defocus_v, min_defocus, max_defocus))
             del defocus_dict[i]
     return format_utility.map_object_list(defocus_dict)
     
@@ -685,7 +687,7 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     return data
     
-def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, remove_bad=False, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
+def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, param_file="", remove_bad=False, column="rlnClassNumber", view_resolution=0, view_limit=0, remove_missing=False, **extra):
     ''' Select good particles based on selection file and defocus
     range.
     
@@ -1038,8 +1040,9 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
             else:
                 filename,pid1 = relion_utility.relion_file(vals[i].rlnImageName)
             if last != filename:
-                index = format.read(reindex_file, spiderid=filename, numeric=True)
-                index = dict([(val.id, i+1) for i, val in enumerate(index)])
+                filename1 = filename if spider_utility.is_spider_filename(filename) else None
+                index = format.read(reindex_file, spiderid=filename1, numeric=True)
+                index = dict([(val.id, k+1) for k, val in enumerate(index)])
                 last=filename
             pid = index[pid1]
             vals[i] = vals[i]._replace(rlnImageName="%s@%s"%(str(pid).zfill(idlen), filename))
@@ -1047,6 +1050,7 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
     subset=vals
     if os.path.splitext(output)[1] == '.star':
         defocus_dict = read_defocus(**extra)
+        
         if param_file != "":
             _logger.info("Update params values")
             spider_params.read(param_file, extra)
@@ -1060,12 +1064,37 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
             
         if len(defocus_dict) > 0:
             _logger.info("Read %d values from a defocus file"%len(defocus_dict))
-            for i in xrange(len(subset)):
-                mic,par = relion_utility.relion_id(subset[i].rlnImageName)
-                try:
-                    subset[i] = subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
-                except:
-                    _logger.warn("Not updating defocus for micrograph %d"%mic)
+            add = []
+            if 'rlnDefocusV' not in subset[0]._fields: add.append('rlnDefocusV')
+            if 'rlnDefocusAngle' not in subset[0]._fields: add.append('rlnDefocusAngle')
+            add=tuple(add)
+            Tuple = format_utility.collections.namedtuple('Field', add+subset[0]._fields) if len(add) > 0 and hasattr(defocus_dict[defocus_dict.keys()[0]], 'defocus_u') else None
+            oldset=list(subset)
+            subset=[]
+            noupdate=set()
+            for i in xrange(len(oldset)):
+                mic,par = relion_utility.relion_id(oldset[i].rlnImageName)
+                if Tuple is not None:
+                    try:
+                        subset.append(Tuple(defocus_dict[mic].defocus_v, defocus_dict[mic].astig_ang, *oldset[i])) #subset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus)
+                        subset[-1] = subset[-1]._replace(rlnDefocusU=defocus_dict[mic].defocus_u)
+                    except:
+                        #if _logger.isEnabledFor(logging.DEBUG):
+                        #    _logger.exception("Not updating defocus for micrograph %d"%mic)
+                        #    raise
+                        if mic not in noupdate:
+                            noupdate.add(mic)
+                            _logger.warn("Not updating defocus for micrograph %d - skipping %d"%(mic, len(noupdate)))
+                else:
+                    try:
+                        subset.append(oldset[i]._replace(rlnDefocusU=defocus_dict[mic].defocus))
+                    except:
+                        #if _logger.isEnabledFor(logging.DEBUG):
+                        #    _logger.exception("Not updating defocus for micrograph %d"%mic)
+                        #    raise
+                        if mic not in noupdate:
+                            noupdate.add(mic)
+                            _logger.warn("Not updating defocus for micrograph %d - skipping %d"%(mic, len(noupdate)))
         if sort_column != "":
             subset.sort(key=operator.attrgetter(sort_column), reverse=sort_rev)
         #rlnSphericalAberration

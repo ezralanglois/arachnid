@@ -190,7 +190,7 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
     spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
     _logger.debug("create power spec")
     ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
-    df1, df2, ang = 0, 0, 0
+    df1, df2, ang1 = 0, 0, 0
     
     if not ndimage_file.valid_image(filename):#extra['spi'].replace_ext(
         _logger.warn("Skipping %s - invalid image"%(filename))
@@ -225,9 +225,9 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
                 defocusV = defocus - mag/2
                 defocusS = (defocusU-defocusV)/5
             _logger.info("Searching with range %f-%f by %f -- defocus found: %f with mag: %f"%(defocusV, defocusU, defocusS, defocus, mag))
-            df1, df2, ang = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
+            df1, df2, ang1 = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
 
-    return filename, numpy.asarray([id, defocus, ang, mag, cutoff, df1, df2, ang])
+    return filename, numpy.asarray([id, defocus, ang, mag, cutoff, df1, df2, ang1])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     '''Compute the rotation average of the power spectra and store as an ndarray
@@ -473,8 +473,10 @@ def initialize(files, param):
             #oldfiles = list(files)
             #files = []
             for f in param['finished']:
-                if spider_utility.spider_id(f, param['id_len']) not in defvals:
+                id = spider_utility.spider_id(f, param['id_len'])
+                if id not in defvals or defvals[id].defocus == 0:
                     files.append(f)
+                    del defvals[id]
             _logger.info("Restarting on %f files"%(len(files)))
             param['output_offset']=len(defvals)
         if os.path.splitext(param['output'])[1] == '.emx':

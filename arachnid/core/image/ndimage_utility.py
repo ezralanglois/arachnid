@@ -459,6 +459,54 @@ def find_peaks_fast(cc, width, fwidth=None):
     cc = cc.ravel()[offsets].copy().squeeze()
     return numpy.hstack((cc[:, numpy.newaxis], x[:, numpy.newaxis], y[:, numpy.newaxis]))
 
+def grid_array(shape, center=None):
+    '''
+    '''
+    
+    if not hasattr(shape, '__iter__'): shape = (shape, shape)
+    if center is None: center = numpy.asarray(shape, dtype=numpy.int)/2
+    rngs = []
+    for i in xrange(len(center)):
+        rngs.append(numpy.arange(-center[i], shape[i]-center[i]))
+    return numpy.meshgrid(*rngs)
+
+def radial_array(shape, center=None):
+    '''
+    '''
+    
+    vals = grid_image(shape, center)
+    val=vals[0]
+    numpy.square(val, val)
+    for v in vals[1:]:
+        val += v**2
+    
+    return val
+
+def model_ball(radius, shape, center=None, dtype=numpy.int, order='C'):
+    ''' Create a disk of given radius with background zero and foreground 1
+    
+    :Parameters:
+    
+        shape : int or sequence of two ints
+                Shape of the new array, e.g., (2, 2) or 2
+        center : int or sequence of two ints, optional
+                 Center of the disk, if not specified then use the center of the image
+        dtype : data-type, optional
+                The desired data-type for the array. Default is numpy.int
+        order : {'C', 'F'}, optional
+                Whether to store multidimensional data in C- or Fortran-contiguous (row- or column-wise) order in memory
+        
+    :Returns:
+    
+        img : numpy.ndarray
+              Disk image
+    '''
+    
+    a = numpy.zeros(shape, dtype, order)
+    irad = radial_array(shape, center)
+    a[irad <= radius**2]=1
+    return a
+
 def grid_image(shape, center=None):
     '''
     '''
@@ -490,6 +538,21 @@ def grid_image_fft(shape, center=None):
     #radius2 = radius+1
     y, x = numpy.ogrid[1-cx: shape[0]-cx+1, 1-cy: shape[1]-cy+1]
     return x, y
+
+def elliptical_image_fft(shape, skew, ang, center=None, norm=False):
+    '''
+    '''
+
+    x, y = grid_image_fft(shape, center)
+    if norm:
+        x = x.astype(numpy.float)
+        y = y.astype(numpy.float)
+        x /= shape[1]
+        y /= shape[0]
+    ang = numpy.cos(2.0*(ang-numpy.arctan2(y, x)))
+    rad = x**2+y**2
+    df = 0.5*((skew+1) + ang*(skew-1))
+    return rad*df
 
 def radial_image_fft(shape, center=None, norm=False):
     '''
@@ -1666,19 +1729,19 @@ def normalize_standard_norm(img, mask=None, var_one=True, dust_sigma=2.5, xray_s
     return out
 
 @_em2numpy2em
-def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
+def normalize_min_max(img, mask=None, lower=0.0, upper=1.0, out=None):
     ''' Normalize image to given lower and upper range
     
     :Parameters:
     
     img : numpy.ndarray
           Input image
+    mask : numpy.ndarray
+           Mask for min/max calculation
     lower : float
             Lower value
     upper : numpy.ndarray
             Upper value
-    mask : numpy.ndarray
-           Mask for min/max calculation
     out : numpy.ndarray
           Output image
     
@@ -1691,9 +1754,9 @@ def normalize_min_max(img, lower=0.0, upper=1.0, mask=None, out=None):
     if numpy.issubdtype(img.dtype, numpy.integer):
         img = img.astype(numpy.float)
     
-    vmin = numpy.min(img) if mask is None else numpy.min(img*mask)
+    vmin = numpy.min(img) if mask is None else numpy.min(img[mask>0.5])
     out = numpy.subtract(img, vmin, out)
-    vmax = numpy.max(img) if mask is None else numpy.max(img*mask)
+    vmax = numpy.max(img) if mask is None else numpy.max(img[mask>0.5])
     if vmax == 0: raise ValueError, "No information in image"
     numpy.divide(out, vmax, out)
     upper = upper-lower

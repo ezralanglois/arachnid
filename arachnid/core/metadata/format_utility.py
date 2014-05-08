@@ -10,7 +10,8 @@ from type_utility import is_float_int
 import collections
 import operator
 import functools
-import os, logging
+import os
+import logging
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
