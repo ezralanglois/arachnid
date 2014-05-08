@@ -61,7 +61,10 @@ def process(filename, id_len=0, **extra):#, neig=1, nstd=1.5
     if diagnostic_file != "":
         pow = power_spectra_model_range(pow, defu, defv, defa, beg, end, **extra)
         #pow = power_spectra_model(pow, defu, defv, defa, **extra)
-        ndimage_file.write_image(diagnostic_file, pow)
+        if use_8bit:
+            #os.unlink(spi.replace_ext(output_pow))
+            ndimage_file.write_image_8bit(diagnostic_file, pow, equalize=True, header=dict(apix=extra['apix']))
+        else: ndimage_file.write_image(diagnostic_file, pow, header=dict(apix=extra['apix']))
     
     
     
@@ -391,7 +394,7 @@ def generate_powerspectra(filename, bin_factor, window_size, overlap, pad=1, off
     #if bin_factor > 1.0: mic = ndimage_interpolate.resample_fft(mic, bin_factor, pad=3)
     if bin_factor > 1.0: mic = ndimage_interpolate.downsample(mic, bin_factor)
     pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset)
-    if pow_file != "": ndimage_file.write_image(pow_file, pow)
+    if pow_file != "": ndimage_file.write_image(pow_file, pow, header=dict(apix=extra['apix']))
     return pow
 
 def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, feature_size=8):
@@ -535,12 +538,30 @@ def finalize(files, defocus_arr, output, dpi=300, **extra):
     # 3. Falloff scatter
     
     _logger.info("Completed")
+    
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
     
     from ..core.app.settings import OptionGroup
-    group = OptionGroup(parser, "AutoPick", "Options to control reference-free particle selection",  id=__name__)
+    group = OptionGroup(parser, "CTF", "Options to control contrast transfer function estimation",  id=__name__)
     group.add_option("", window_size=256, help="Size of the window for the power spec (pixels)")
     #group.add_option("", pad=2.0, help="Number of times to pad the power spec")
     group.add_option("", overlap=0.5, help="Amount of overlap between windows")

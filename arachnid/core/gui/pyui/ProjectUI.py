@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/Users/robertlanglois/workspace/arachnida/src/arachnid/core/gui/pyui/ProjectUI.ui'
 #
-# Created: Mon Mar 10 12:09:16 2014
+# Created: Thu May  8 13:42:39 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -621,35 +621,6 @@ class Ui_ProjectWizard(object):
         self.logInformationToolButton.setObjectName("logInformationToolButton")
         self.gridLayout_4.addWidget(self.logInformationToolButton, 0, 2, 1, 1)
         self.verticalLayout_6.addWidget(self.groupBox_5)
-        self.groupBox_6 = QtGui.QGroupBox(self.additionalSettingsPage)
-        self.groupBox_6.setObjectName("groupBox_6")
-        self.verticalLayout_7 = QtGui.QVBoxLayout(self.groupBox_6)
-        self.verticalLayout_7.setContentsMargins(4, 4, 4, 4)
-        self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.widget_10 = QtGui.QWidget(self.groupBox_6)
-        self.widget_10.setObjectName("widget_10")
-        self.horizontalLayout_11 = QtGui.QHBoxLayout(self.widget_10)
-        self.horizontalLayout_11.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_11.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        self.spiderExecutableLineEdit = QtGui.QLineEdit(self.widget_10)
-        self.spiderExecutableLineEdit.setObjectName("spiderExecutableLineEdit")
-        self.horizontalLayout_11.addWidget(self.spiderExecutableLineEdit)
-        self.spiderExecutablePushButton = QtGui.QPushButton(self.widget_10)
-        self.spiderExecutablePushButton.setEnabled(True)
-        self.spiderExecutablePushButton.setText("")
-        self.spiderExecutablePushButton.setIcon(icon3)
-        self.spiderExecutablePushButton.setAutoDefault(False)
-        self.spiderExecutablePushButton.setFlat(True)
-        self.spiderExecutablePushButton.setObjectName("spiderExecutablePushButton")
-        self.horizontalLayout_11.addWidget(self.spiderExecutablePushButton)
-        self.spiderExecutableToolButton = QtGui.QToolButton(self.widget_10)
-        self.spiderExecutableToolButton.setText("")
-        self.spiderExecutableToolButton.setIcon(icon2)
-        self.spiderExecutableToolButton.setObjectName("spiderExecutableToolButton")
-        self.horizontalLayout_11.addWidget(self.spiderExecutableToolButton)
-        self.verticalLayout_7.addWidget(self.widget_10)
-        self.verticalLayout_6.addWidget(self.groupBox_6)
         ProjectWizard.addPage(self.additionalSettingsPage)
         self.fineTunePage = QtGui.QWizardPage()
         self.fineTunePage.setSubTitle("")
@@ -921,20 +892,6 @@ class Ui_ProjectWizard(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Log to the console (using the error stream)</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This is in addition to logging to the <span style=\" font-style:italic;\">project.log</span> file.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_6.setTitle(QtGui.QApplication.translate("ProjectWizard", "SPIDER", None, QtGui.QApplication.UnicodeUTF8))
-        self.spiderExecutableLineEdit.setToolTip(QtGui.QApplication.translate("ProjectWizard", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Lucida Grande\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The SPIDER executable is required for this workflow (Reference Generation and Defocus Estimation).</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If you do not have SPIDER</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">1. Download the executables from: http://spider.wadsworth.org/spider_doc/spider/docs/spi-register.html</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">2. Extract the files from the archive</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Then select the folder that was extracted from the archive using the <img src=\":/mini/mini/folder.png\" /> button or, alternatively, you can specify the path in the neighboring line edit.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.fineTunePage.setTitle(QtGui.QApplication.translate("ProjectWizard", "Review Individual Program Options", None, QtGui.QApplication.UnicodeUTF8))
         self.workflowListView.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Select a program to view or change is current options", None, QtGui.QApplication.UnicodeUTF8))
         self.documentationURLToolButton.setToolTip(QtGui.QApplication.translate("ProjectWizard", "Change the URL for the documentation", None, QtGui.QApplication.UnicodeUTF8))

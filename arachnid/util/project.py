@@ -92,7 +92,7 @@ from ..core.metadata import spider_params
 import logging
 import os
 import sys
-from ..core.spider import spider
+##spi##from ..core.spider import spider
 
 _project = sys.modules[__name__]
 
@@ -282,10 +282,10 @@ def build_workflow(files, extra):
     '''
     
     import pkgutil
-    from .. import app, pyspider, util
+    from .. import app, util
     
     workflow = [_project]
-    for pkg in [app, pyspider, util]:
+    for pkg in [app, util]:
         modules = [name for _, name, ispkg in pkgutil.iter_modules([os.path.dirname(cpkg.__file__) for cpkg in [pkg]] ) if not ispkg]
         for name in modules:
             try:
@@ -405,7 +405,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("", window=0,              help="Set the window size (pixels): 0 means use 1.3*particle_diamater", gui=dict(minimum=0))
     pgroup.add_option("", particle_diameter=0.0, help="Longest diameter of the particle, Angstroms", gui=dict(minimum=0), required=True)
     pgroup.add_option("", mask_diameter=0.0,     help="Set the mask diameter (Angstroms): 0 means use 1.1*particle_diamater", gui=dict(minimum=0))
-    
+    pgroup.add_option("", resolution=40.0,        help="Low pass filter reference to given resolution")
     addgroup = OptionGroup(parser, "Parallel", "Options for parallel processing")
     addgroup.add_option("-w", worker_count=1,  help="Set number of  workers to process files in parallel",  gui=dict(minimum=0), dependent=False)
     addgroup.add_option("-t", thread_count=1,  help="Number of threads per machine, 0 means determine from environment", gui=dict(minimum=0), dependent=False)
@@ -435,8 +435,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     ########################################################################################################
     # Depreciated Parameters for Future Versions
     ########################################################################################################
-    shrgroup.add_option("", data_ext="dat",                                        help="SPIDER extension")
-    shrgroup.add_option("", spider_path="/guam.raid.cluster.software/spider.21.00",help="SPIDER executable", gui=dict(filetype="open"), required=True)
+    ##spi##shrgroup.add_option("", data_ext="dat",                                        help="SPIDER extension")
+    ##spi##shrgroup.add_option("", spider_path="/guam.raid.cluster.software/spider.21.00",help="SPIDER executable", gui=dict(filetype="open"), required=True)
     pgroup.add_option_group(shrgroup)
     # create suffix system? internal database?
     
@@ -451,11 +451,11 @@ def check_options(options, main_option=False):
     if options.gain_file == "" and len(options.input_files) > 0 and ndimage_file.count_images(options.input_files[0]) > 1:
         _logger.warn("No gain reference specified for movie mode alignment!")
     
-    path = spider.determine_spider(options.spider_path)
-    if path == "": options.spider_path = os.path.dirname(sys.argv[0])
-    path = spider.determine_spider(options.spider_path)
-    if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
-    options.spider_path = path
+    ##spi##path = spider.determine_spider(options.spider_path)
+    ##spi##if path == "": options.spider_path = os.path.dirname(sys.argv[0])
+    ##spi##path = spider.determine_spider(options.spider_path)
+    ##spi##if path == "": raise OptionValueError, "Cannot find SPIDER executable in %s, please use --spider-path to specify"%options.spider_path
+    ##spi##options.spider_path = path
     if options.apix == 0.0:
         raise OptionValueError, "No pixel size in angstroms specified (--apix), either specifiy it or an existing SPIDER params file"
     if options.voltage == 0.0:

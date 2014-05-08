@@ -371,8 +371,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option_group(mgroup)
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--volumes", input_files=[], help="List of filenames for the input volumes", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",          help="Output filename template for processed volumes", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", "--raw-reference-file", input_files=[], help="List of filenames for the input volumes", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", "--reference-file", output="",          help="Output filename template for processed volumes", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", selection_file="",  help="Selection file for a subset of micrographs", gui=dict(filetype="open"), required_file=False)
 
 def check_options(options, main_option=False):
@@ -408,6 +408,26 @@ def flags():
                 supports_MPI=False, 
                 supports_OMP=True,
                 use_version=True)
+
+def supports(files, raw_reference_file="", **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    raw_reference_file : str
+                         Input filename for raw reference map
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return raw_reference_file != ""
 
 def main():
     #Main entry point for this script

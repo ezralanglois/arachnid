@@ -29,7 +29,7 @@ from util.qt4_loader import QtGui, qtSlot, QtCore, qtProperty, qtSignal
 from arachnid.util import project
 from ..image import ndimage_file
 from ..metadata import spider_utility
-from ..spider import spider
+##spi##from ..spider import spider
 from util import messagebox
 from ..parallel import openmp
 import logging
@@ -70,7 +70,7 @@ class MainWindow(QtGui.QWizard):
         self.parameters=[]
         self.screen_shot_file=screen_shot_file
         self.helpDialog = HelpDialog(self)
-        self.default_spider_path = '/guam.raid.cluster.software/spider.21.00/'
+        ##spi## self.default_spider_path = '/guam.raid.cluster.software/spider.21.00/'
         
         version = arachnid.__version__
         n=version.find('_')
@@ -165,8 +165,8 @@ class MainWindow(QtGui.QWizard):
         ###### Additional Settings Page
         ########################################################################################################################################
         
-        if os.path.exists(self.default_spider_path):
-            self.updateSpiderExe(self.default_spider_path, True)
+        ##spi## if os.path.exists(self.default_spider_path):
+        ##spi##     self.updateSpiderExe(self.default_spider_path, True)
         
         self.updateParticleSizeSpinBox = lambda x: self.ui.particleSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
         self.updateWindowSizeSpinBox = lambda x: self.ui.windowSizeSpinBox.setValue(int(x/self.ui.pixelSizeDoubleSpinBox.value()) if self.ui.pixelSizeDoubleSpinBox.value() > 0 else 0)
@@ -191,7 +191,7 @@ class MainWindow(QtGui.QWizard):
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.windowSizeDoubleSpinBox.setValue(ensure_even_window(x*1.4, self.ui.pixelSizeDoubleSpinBox.value())))
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(lambda x: self.ui.maskDiameterDoubleSpinBox.setValue(x*1.2))
   
-        self.ui.additionalSettingsPage.registerField(self.param("spider_path"), self.ui.spiderExecutableLineEdit)
+        ##spi##self.ui.additionalSettingsPage.registerField(self.param("spider_path"), self.ui.spiderExecutableLineEdit)
         self.ui.particleSizeDoubleSpinBox.valueChanged.connect(self.diameterChanged)
         self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self.ui.particleSizeDoubleSpinBox, "value", QtCore.SIGNAL('valueChanged(double)'))
         #self.ui.additionalSettingsPage.registerField(self.param("particle_diameter*"), self, "particleDiameter", QtCore.SIGNAL('diameterChanged(double)'))
@@ -285,37 +285,37 @@ class MainWindow(QtGui.QWizard):
             QtGui.QDesktopServices.openUrl(self.docs_url+program.id()+".html")
     
     
-    @qtSlot()
-    def on_spiderExecutablePushButton_clicked(self):
-        '''
-        
-        Possible names:
-            - spider_linux  spider_linux_mp_intel  spider_linux_mp_intel64  spider_linux_mpi_opt64  spider_linux_mp_opt64  spider_osx_32  spider_osx_64
-        '''
-        
-        file_path = QtGui.QFileDialog.getExistingDirectory(self, self.tr("Directory containing SPIDER executables"))
-        if file_path == "": return
-        self.updateSpiderExe(file_path)
+    ##spi##@qtSlot()
+    ##spi##def on_spiderExecutablePushButton_clicked(self):
+    ##spi##    '''
+    ##spi##    
+    ##spi##    Possible names:
+    ##spi##        - spider_linux  spider_linux_mp_intel  spider_linux_mp_intel64  spider_linux_mpi_opt64  spider_linux_mp_opt64  spider_osx_32  spider_osx_64
+    ##spi##    '''
+    ##spi##    
+    ##spi##    file_path = QtGui.QFileDialog.getExistingDirectory(self, self.tr("Directory containing SPIDER executables"))
+    ##spi##    if file_path == "": return
+    ##spi##    self.updateSpiderExe(file_path)
     
-    def updateSpiderExe(self, file_path, suppress_error=False):
-        '''
-        '''
-        
-        exe = spider.determine_spider(file_path)
-        if exe == "" and not suppress_error:
-            messagebox.error_message(self, "Cannot find SPIDER executables in %s"%file_path)
-        elif exe == "" and suppress_error:
-            file_path = os.path.dirname(sys.argv[0])
-            exe = spider.determine_spider(file_path)
-        self.ui.spiderExecutableLineEdit.setText(exe)
+    ##spi##def updateSpiderExe(self, file_path, suppress_error=False):
+    ##spi##    '''
+    ##spi##    '''
+    ##spi##    
+    ##spi##    exe = spider.determine_spider(file_path)
+    ##spi##    if exe == "" and not suppress_error:
+    ##spi##        messagebox.error_message(self, "Cannot find SPIDER executables in %s"%file_path)
+    ##spi##    elif exe == "" and suppress_error:
+    ##spi##        file_path = os.path.dirname(sys.argv[0])
+    ##spi##        exe = spider.determine_spider(file_path)
+    ##spi##    self.ui.spiderExecutableLineEdit.setText(exe)
     
-    @qtSlot()
-    def on_spiderExecutableToolButton_clicked(self):
-        '''
-        '''
-        
-        self.helpDialog.setHTML(self.ui.spiderExecutableLineEdit.toolTip())
-        self.helpDialog.show()
+    ##spi##@qtSlot()
+    ##spi##def on_spiderExecutableToolButton_clicked(self):
+    ##spi##    '''
+    ##spi##    '''
+    ##spi##    
+    ##spi##    self.helpDialog.setHTML(self.ui.spiderExecutableLineEdit.toolTip())
+    ##spi##    self.helpDialog.show()
     
     @qtSlot()
     def on_sampleShapeInfoToolButton_clicked(self):
@@ -681,8 +681,8 @@ class MainWindow(QtGui.QWizard):
         
         settings = QtCore.QSettings()
         settings.beginGroup("ProjectUI")
-        val = settings.value('spiderExecutable')
-        if val: self.ui.spiderExecutableLineEdit.setText(val)
+        ##spi##val = settings.value('spiderExecutable')
+        ##spi##if val: self.ui.spiderExecutableLineEdit.setText(val)
         settings.endGroup()
         
     def writeSettings(self):
@@ -691,7 +691,7 @@ class MainWindow(QtGui.QWizard):
         
         settings = QtCore.QSettings()
         settings.beginGroup("ProjectUI")
-        settings.setValue('spiderExecutable', self.ui.spiderExecutableLineEdit.text())
+        ##spi##settings.setValue('spiderExecutable', self.ui.spiderExecutableLineEdit.text())
         settings.endGroup()
         
     ########################################################################################################################################
@@ -734,17 +734,17 @@ class MainWindow(QtGui.QWizard):
                     Please contact your administrator and have them mount the image file server. 
                     '''%self.ui.micrographComboBox.itemText(i))
                     return False
-        elif page == self.ui.fineTunePage:
-            spiderexe = self.ui.spiderExecutableLineEdit.text()
-            if spiderexe == "":
-                messagebox.error_message(self, "No SPIDER executable specified")
-                return False
-            if not os.path.exists(spiderexe):
-                messagebox.error_message(self, "SPIDER executable does not exist")
-                return False
-            if not spider.determine_spider(spiderexe):
-                messagebox.error_message(self, "SPIDER executable does not run")
-                return False
+        ##spi##elif page == self.ui.fineTunePage:
+            ##spi##spiderexe = self.ui.spiderExecutableLineEdit.text()
+            ##spi##if spiderexe == "":
+            ##spi##    messagebox.error_message(self, "No SPIDER executable specified")
+            ##spi##    return False
+            ##spi##if not os.path.exists(spiderexe):
+            ##spi##    messagebox.error_message(self, "SPIDER executable does not exist")
+            ##spi##    return False
+            ##spi##if not spider.determine_spider(spiderexe):
+            ##spi##    messagebox.error_message(self, "SPIDER executable does not run")
+            ##spi##    return False
         self.captureScreen()
         return True
     

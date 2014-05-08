@@ -331,7 +331,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
             Unused key word arguments
     '''
     
-    header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(',')
+    header = "rlnImageName,rlnMicrographName,rlnDefocusU,rlnDefocusV,rlnDefocusAngle,rlnVoltage,rlnSphericalAberration,rlnAmplitudeContrast,rlnGroupNumber".split(',')
     _logger.debug("Reading SPIDER params file")
     spider_params.read(param_file, extra)
     extra.update(spider_params.update_params(float(extra['window'])/img.shape[0], **extra))
@@ -358,6 +358,7 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
     
     _logger.debug("Read defocus file")
     defocus_dict = read_defocus(**extra)
+    if 
     if selection_file != "": 
         if os.path.exists(selection_file):
             select = format.read(selection_file, numeric=True)
@@ -400,9 +401,19 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                     _logger.warn("Skipping: %s - not in defocus file"%str(mic))
                     continue
                 if mic not in group_ids:
-                    group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
+                    if hasattr(defocus_dict[mic], 'defocus_u'):
+                        defocus_v = defocus_dict[mic].defocus_v
+                        defocus_u = defocus_dict[mic].defocus_u
+                        defocus_mean = (defocus_v+defocus_u)*0.5
+                        defocus_a = defocus_dict[mic].astig_ang
+                    else:
+                        defocus_mean = defocus_dict[mic].defocus
+                        defocus_v = defocus_dict[mic].defocus
+                        defocus_u = defocus_dict[mic].defocus
+                        defocus_a = 0
+                    group.append((defocus_mean, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
                     group_ids.add(mic)
-                label.append( ["%s@%s"%(str(int(id)).zfill(idlen), filename), str(mic), defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+                label.append( ["%s@%s"%(str(int(id)).zfill(idlen), filename), str(mic), defocus_u, defocus_v, defocus_a, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
         else:
             _logger.debug("Generating selection file from many stacks: %d"%len(files))
             for filename in files:
@@ -420,10 +431,20 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
                     _logger.warn("Micrograph not found in defocus file: %d -- skipping"%mic)
                     continue
                 
-                group.append((defocus_dict[mic].defocus, len(select_vals), len(label), mic))
+                if hasattr(defocus_dict[mic], 'defocus_u'):
+                    defocus_v = defocus_dict[mic].defocus_v
+                    defocus_u = defocus_dict[mic].defocus_u
+                    defocus_mean = (defocus_v+defocus_u)*0.5
+                    defocus_a = defocus_dict[mic].astig_ang
+                else:
+                    defocus_mean = defocus_dict[mic].defocus
+                    defocus_v = defocus_dict[mic].defocus
+                    defocus_u = defocus_dict[mic].defocus
+                    defocus_a = 0
+                group.append((defocus_mean, len(select_vals), len(label), mic))
                 for pid in select_vals:
                     #label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, mic] )
-                    label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
+                    label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_u, defocus_v, defocus_a, voltage, cs, ampcont, len(group)-1] )
         if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
         _logger.debug("Regrouping")
         groupmap = regroup(group, **extra)
@@ -472,10 +493,20 @@ def generate_selection(files, header, select, defocus_dict, voltage=0, cs=0, amp
     while i < len(select):
         mic = int(select[i, 0])
         select_vals = select[mic==select[:, 0], 1]
-        group.append((defocus_dict[mic].defocus, len(select_vals), len(label), mic))
         filename = spider_utility.spider_filename(filename, mic, id_len)
+        if hasattr(defocus_dict[mic], 'defocus_u'):
+            defocus_v = defocus_dict[mic].defocus_v
+            defocus_u = defocus_dict[mic].defocus_u
+            defocus_mean = (defocus_v+defocus_u)*0.5
+            defocus_a = defocus_dict[mic].astig_ang
+        else:
+            defocus_mean = defocus_dict[mic].defocus
+            defocus_v = defocus_dict[mic].defocus
+            defocus_u = defocus_dict[mic].defocus
+            defocus_a = 0
+        group.append((defocus_mean, len(select_vals), len(label), mic))
         for pid in select_vals:
-            label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1] )
+            label.append( ["%s@%s"%(str(pid).zfill(idlen), filename), filename, defocus_u, defocus_v, defocus_a, voltage, cs, ampcont, len(group)-1] )
         i+=len(select_vals)
     if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
     groupmap = regroup(group, **extra)

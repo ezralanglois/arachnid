@@ -197,13 +197,30 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--micrograph-files", input_files=[], help="List of filenames for the input stacks or selection file", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",          help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-o", "--small-micrograph-file", output="", help="Output filename for the relion selection file", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", selection_file="",  help="Selection file for a subset of micrographs", gui=dict(filetype="open"), required_file=False)
 
-    
 def change_option_defaults(parser):
     #
     parser.change_default(log_level=3, bin_factor=6.0)
+
+def supports(files, **extra):
+    ''' Test if this module is required in the project workflow
+    
+    :Parameters:
+    
+    files : list
+            List of filenames to test
+    extra : dict
+            Unused keyword arguments
+    
+    :Returns:
+    
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+    
+    return True
 
 def flags():
     ''' Get flags the define the supported features
