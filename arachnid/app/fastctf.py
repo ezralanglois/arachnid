@@ -1,4 +1,16 @@
-'''
+''' Automated contrast transfer function estimation
+
+This script (`ara-fastctf`) automatically determines the contrast transfer 
+function (CTF) from the 2D power spectra of a micrograph. The 2D power spectra
+is estimated using the periodogram method. The CTF is estimated by first
+transforming the 2D power spectra to polar space. Then a 1D CTF is estimated
+for each angle. This provides an initial estimate of the major and minor defocus
+values as well as the angle between the minor and the x-axis. Then, starting with
+these initial values, non-linear least squares is used to determine more precise
+values using the 2D CTF model.
+
+
+
 .. Created on Apr 8, 2014
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
@@ -15,14 +27,11 @@ from ..core.metadata import format
 from ..core.metadata import selection_utility
 from ..core.parallel import mpi_utility
 from ..core.util import plotting
+import scipy.optimize
+import scipy.signal
 import warnings
 import logging
 import numpy
-#import scipy.special
-#import scipy.misc
-#import scipy.integrate
-import scipy.optimize
-import scipy.signal
 import os
 
 _logger = logging.getLogger(__name__)
@@ -106,10 +115,14 @@ def estimate_defocus_2D(pow, **extra):
     
     defu, defv, defa = esimate_defocus_range(pow, **extra)
     _logger.debug("Guess=%f, %f, %f"%(defu, defv, defa))
-    if defu < 0:
+    if defu < 0 or numpy.abs(defu-defv) > 5000:
         pow2 = ndimage_interpolate.downsample(pow, 2)
         defu, defv, defa = esimate_defocus_range(pow2, **extra)
-        _logger.debug("Guess=%f, %f, %f"%(defu, defv, defa))
+        _logger.debug("Guess(Attempt #2)=%f, %f, %f"%(defu, defv, defa))
+        if defu < 0 or numpy.abs(defu-defv) > 5000:
+            pow2 = ndimage_interpolate.downsample(pow, 2)
+            defu, defv, defa = esimate_defocus_range(pow2, **extra)
+            _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
         
     beg, end, window = resolution_range(pow)
     _logger.debug("Mask: %d - %d"%(beg,end))
@@ -548,16 +561,16 @@ def supports(files, **extra):
     ''' Test if this module is required in the project workflow
     
     :Parameters:
-    
-    files : list
-            List of filenames to test
-    extra : dict
-            Unused keyword arguments
+        
+        files : list
+                List of filenames to test
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    flag : bool
-           True if this module should be added to the workflow
+        
+        flag : bool
+               True if this module should be added to the workflow
     '''
     
     return True
