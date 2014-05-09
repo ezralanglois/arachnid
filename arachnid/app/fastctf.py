@@ -90,7 +90,7 @@ def power_spectra_model(pow, defu, defv, defa, beg, end, ampcont, cs, voltage, a
     pow[:, pow.shape[0]/2:]=ndimage_utility.histeq(pow[:, pow.shape[0]/2:])
     return pow
 
-def power_spectra_model(pow, defu, defv, defa, ampcont, cs, voltage, apix, bfactor=0, **extra):
+def power_spectra_model_old(pow, defu, defv, defa, ampcont, cs, voltage, apix, bfactor=0, **extra):
     '''
     '''
     
@@ -528,9 +528,14 @@ def finalize(files, defocus_arr, output, dpi=300, **extra):
     
     if len(files) > 0:
         defocus = (defocus_arr[:, 1]+defocus_arr[:, 2])/2.0
+        magnitude = numpy.abs((defocus_arr[:, 1]-defocus_arr[:, 2])/2.0)
         plot_histogram(output, defocus, 'Defocus', dpi=dpi)
-        plot_histogram(output, numpy.abs((defocus_arr[:, 1]-defocus_arr[:, 2])/2.0), 'Astigmatism', dpi=dpi)
+        plot_histogram(output, magnitude, 'Astigmatism', dpi=dpi)
         plot_scatter(output, defocus, 'Defocus', defocus_arr[:, 4], 'Error', dpi=dpi)
+        sel = magnitude > 2000
+        if numpy.sum(sel) > 0:
+            plot_scatter(output, defocus[sel], 'Defocus', defocus_arr[sel, 3], 'Angle', dpi=dpi)
+        
     
     # Plots
     # 1. Defocus histogram
