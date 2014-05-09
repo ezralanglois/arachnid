@@ -295,7 +295,7 @@ def frt2(a):
     """
     
     if not issubclass(a.dtype.type, numpy.integer):
-        normalize_min_max(a, 0, 2048, a)
+        normalize_min_max(a, None, 0, 2048, a)
         a = a.astype(numpy.int32)
     
     if a.ndim != 2 or a.shape[0] != a.shape[1]:
@@ -1782,7 +1782,7 @@ def invert(img, out=None):
     '''
         
     out = numpy.multiply(img, -1.0, out)
-    normalize_min_max(out, -numpy.max(out), -numpy.min(out), out)
+    normalize_min_max(out, None, -numpy.max(out), -numpy.min(out), out)
     return out
 
 @_em2numpy2em
