@@ -1220,8 +1220,8 @@ def renormalize_images(vals, pixel_radius, apix, output, invert=False, dry_run=F
             img = ndimage_file.read_image(filename, index-1)
             if img.shape[0] != mask.shape[0]:
                 _logger.error("Image does not match mask (%d != %d) - %s"%(img.shape[0], mask.shape[0], filename))
-            ndimage_utility.normalize_standard(img, mask, True, img)
             if invert: ndimage_utility.invert(img, img)
+            ndimage_utility.normalize_standard(img, mask, True, img)
             ndimage_file.write_image(output, img, idmap[filename], header=dict(apix=apix))
         idmap[filename] += 1
         new_vals.append(v._replace(rlnImageName=relion_utility.relion_identifier(output, idmap[filename])))
