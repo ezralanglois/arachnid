@@ -37,15 +37,17 @@ import os
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process(filename, id_len=0, **extra):#, neig=1, nstd=1.5
+def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     '''Concatenate files and write to a single output file
         
     :Parameters:
         
         filename : str 
                    Filename for input image
-        output : str
-                 Filename for output file
+        id_len : int
+                 Maximum length of the SPIDER ID
+        use_8bit : bool
+                   Write out space-saving 8-bit 2D diagnostic power spectra image
         extra : dict
                 Unused key word arguments
                 
@@ -56,8 +58,8 @@ def process(filename, id_len=0, **extra):#, neig=1, nstd=1.5
     '''
     
     id = spider_utility.spider_id(filename, id_len)
-    spider_utility.update_spider_files(extra, id, 'pow_file', 'diagnostic_file')
-    diagnostic_file=extra['diagnostic_file']
+    spider_utility.update_spider_files(extra, id, 'pow_file')
+    pow_file=extra['pow_file']
     
     _logger.debug("Generate power spectra")
     pow = generate_powerspectra(filename, **extra)
@@ -67,50 +69,93 @@ def process(filename, id_len=0, **extra):#, neig=1, nstd=1.5
     
     _logger.debug("Defocus=%f, %f, %f, %f"%(defu, defv, defa, error))
     
-    if diagnostic_file != "":
+    if pow_file != "":
         pow = power_spectra_model_range(pow, defu, defv, defa, beg, end, **extra)
         #pow = power_spectra_model(pow, defu, defv, defa, **extra)
         if use_8bit:
             #os.unlink(spi.replace_ext(output_pow))
-            ndimage_file.write_image_8bit(diagnostic_file, pow, equalize=True, header=dict(apix=extra['apix']))
-        else: ndimage_file.write_image(diagnostic_file, pow, header=dict(apix=extra['apix']))
+            ndimage_file.write_image_8bit(pow_file, pow, equalize=True, header=dict(apix=extra['apix']))
+        else: ndimage_file.write_image(pow_file, pow, header=dict(apix=extra['apix']))
     
-    
-    
-    #model = ctf_model_array(defocus, len(roo), **extra)
-    #plotting.plot_lines(extra['diagnostic_file'], [roo[beg:end], model[beg:end]], ['ROO', 'Model'])
-    
+    # Todo:
     # B-factor
     # Selection
     
     
     return filename, numpy.asarray(vals)
 
-def power_spectra_model(pow, defu, defv, defa, beg, end, ampcont, cs, voltage, apix, bfactor=0, **extra):
-    '''
+def power_spectra_model_range(pow, defu, defv, defa, beg, end, ampcont, cs, voltage, apix, bfactor=0, out=None, **extra):
+    ''' Generate model for a specific range of rings
+    
+    :Parameters:
+        
+        pow : array
+              Image of 2D power spectra
+        defu : float
+               Defocus on minor axis in angstroms
+        defv : float
+               Defocus on major axis in angstroms
+        defa : float
+               Astigmatism angle in degrees between x-axis and minor defocus axis
+        beg : int
+              Starting ring
+        end : int
+              Last ring
+        ampcont : float
+                  Amplitude contrast in percent
+        cs : float
+             Spherical abberation in mm
+        voltage : float
+                  Electron energy in kV
+        apix : float
+               Pixel size
+        bfactor : float
+                  Fall off in angstroms^2
+        out : array
+              Image of 2D power spectra with model on left and data on right
+        extra : dict
+                Unused keyword arguments
+        
+    :Returns:
+        
+        out : array
+              Image of 2D power spectra with model on left and data on right
+              
     '''
     
-    pow=pow.copy()
+    out=pow.copy()
     model = ctf_model.transfer_function_2D_full(pow.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
-    pow[:, :pow.shape[0]/2]=ndimage_utility.histeq(model[:, :pow.shape[0]/2])
+    out[:, :pow.shape[0]/2]=ndimage_utility.histeq(model[:, :pow.shape[0]/2])
     avg = model[:, beg:pow.shape[0]/2-end].mean()
-    pow[:, 0:beg] = avg
-    pow[:, 0:beg] = avg
-    pow[:, pow.shape[0]/2:]=ndimage_utility.histeq(pow[:, pow.shape[0]/2:])
-    return pow
-
-def power_spectra_model_old(pow, defu, defv, defa, ampcont, cs, voltage, apix, bfactor=0, **extra):
-    '''
-    '''
-    
-    pow=pow.copy()
-    model = ctf_model.transfer_function_2D_full(pow.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
-    pow[:, :pow.shape[0]/2]=ndimage_utility.histeq(model[:, :pow.shape[0]/2])
-    pow[:, pow.shape[0]/2:]=ndimage_utility.histeq(pow[:, pow.shape[0]/2:])
-    return pow
+    out[:, 0:beg] = avg
+    out[:, 0:beg] = avg
+    out[:, pow.shape[0]/2:]=ndimage_utility.histeq(pow[:, pow.shape[0]/2:])
+    return out
 
 def estimate_defocus_2D(pow, **extra):
-    '''
+    '''Estimate the defocus of an image from the 2D power spectra
+    
+    :Parameters:
+        
+        pow : array
+              Image of 2D power spectra
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        defu : float
+               Defocus on minor axis in angstroms
+        defv : float
+               Defocus on major axis in angstroms
+        defa : float
+               Astigmatism angle in degrees between x-axis and minor defocus axis
+        error : float
+                Error between data and model
+        beg : int
+              Starting ring
+        end : int
+              Last ring
     '''
     
     defu, defv, defa = esimate_defocus_range(pow, **extra)
@@ -139,37 +184,63 @@ def estimate_defocus_2D(pow, **extra):
     return defu, defv, defa, error, beg, end
     
 def model_fit_error_2d(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
-    '''
+    ''' Estimate the error between the data, 2D power spectra, and model
+    
+    :Parameters:
+        
+        p : array
+            A 3-element array with defu, defv and defa, i.e.
+            defocus on minor and major axis in angstroms along with angle
+            between the x-axis and the minor axis in degrees.
+        pow : array
+              Image of 2D power spectra
+        mask : array
+               Valid range to compare
+        ampcont : float
+                  Amplitude contrast in percent
+        cs : float
+             Spherical abberation in mm
+        voltage : float
+                  Electron energy in kV
+        apix : float
+               Pixel size
+        bfactor : float
+                  Fall off in angstroms^2
+    
+    :Returns:
+        
+        error : array
+                Error for each pixel between data and model
     '''
     
     model = ctf_model.transfer_function_2D_full(pow.shape, p[0], p[1], p[2], ampcont, cs, voltage, apix, bfactor)**2
     #_logger.debug("Defocus=%f - Error=%f"%(p, numpy.sum(numpy.square(model[mask]-pow[mask]))))
     return model[mask].ravel()-pow[mask].ravel()
 
-def estimate_defocus_2D_no_astig(pow, **extra):
-    '''
-    '''
-    
-    beg, end, window = resolution_range(pow)
-    pow = subtract_background(pow, window)
-    return estimate_2D_no_astig(pow, beg, end, **extra)
-
-def estimate_defocus_1D(pow, **extra):
-    '''
-    '''
-    
-    ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
-    raw = ppow.mean(axis=0)
-    window = int(len(raw)*0.08)
-    if (window%2)==0: window+=1
-    #_logger.debug("Subtract background with window: %d"%window)
-    roo = subtract_background(raw, window)
-    beg = first_zero(roo)
-    end = energy_cutoff(roo[beg:])+beg
-    return estimate_1D(roo, beg, end, **extra)
-
 def resolution_range(pow):
-    '''
+    ''' Determine resolution range for 2d power spectra using heuristics
+    
+    The following heuristics are used to determine the range:
+        
+        #. The first minima of the background subtracted 1D
+           power spectra is used as the start
+        #. Then point where the energy of the 1D background
+           subtract power spectra dips below 95% is used as 
+           the finish
+    
+    :Parameters:
+    
+        pow : array
+              Image of 2D power spectra
+    
+    :Returns:
+    
+        beg : int
+              Starting resolution as a pixel radius
+        end : int
+              Ending resolution as a pixel radius
+        window : int
+                 Window size used for background subtraction
     '''
     
     ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
@@ -181,7 +252,31 @@ def resolution_range(pow):
     return beg, end, window
 
 def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
-    '''
+    '''Estimate the maximum and minimum defocus as well as the angle of astigmatism
+    
+    This function calculates the polar form of the power spectra. It, then, estimates
+    the CTF over locally averaged radial lines representing 1D power spectra. It saves
+    the minimum and maximum defocus and the angle between the minimum and the x-axis.
+    
+    :Parameters:
+    
+        pow : array
+              Image of 2D power spectra
+        awindow_size : int
+                       Number of neighboring polar 1D power spectra to average
+        overlap : float
+                  Overlap between successive lines
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        defu : float
+               Defocus on minor axis in angstroms
+        defv : float
+               Defocus on major axis in angstroms
+        defa : float
+               Astigmatism angle in degrees between x-axis and minor defocus axis
     '''
     
     ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
@@ -200,8 +295,19 @@ def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
     ang = 360.0/raw.shape[0]
     return defocus.min(), defocus.max(), (raw.shape[0]/2-defocus.argmin())*ang
     
-def first_zero(roo, **extra):
-    ''' Determine the first zero of the CTF
+def first_zero(roo):
+    ''' Determine the first zero of the 1D, background 
+    subtracted power spectra
+    
+    :Parameters:
+    
+        roo : array
+              1D, background-subtracted power spectra
+    
+    :Returns:
+        
+        zero : int
+                Pixel index of first zero
     '''
     
     roo = roo[2:]
@@ -241,15 +347,15 @@ def subtract_background(roo, window):
     
     :Parameters:
     
-    roo : array
-          Power spectra 1D
-    window : int
-             Size of the window
-    
+        roo : array
+              Power spectra 1D
+        window : int
+                 Size of the window
+        
     :Returns:
-    
-    out : array
-          Background subtracted power spectra
+        
+        out : array
+              Background subtracted power spectra
     '''
     
     bg = roo.copy()
@@ -274,7 +380,7 @@ def denoise():
     raw = ndimage_utility.mean_azimuthal(pow)[4:pow.shape[0]/2]
         area = scipy.integrate.trapz(raw, dx=5)
         
-        if extra['diagnostic_file'] != "":
+        if extra['model_file'] != "":
         _logger.info("Running diagnostic2")
         for i, reg in enumerate([10, 1, 0.1, 0.001, 0.0001, 0.00001]):
             dnpow = tv_denoise(pow, weight=reg, eps=2.e-4, n_iter_max=200)
@@ -287,42 +393,40 @@ def denoise():
                 roo2 = roo2[10:len(roo1)-10]
                 roo1 /= roo1.max()
                 roo2 /= roo2.max()
-                plotting.plot_lines(extra['diagnostic_file'], [roo1, roo2], ['Average', 'Single1'])
-                plotting.plot_lines(extra['diagnostic_file'], [roo2], ['Single1'], prefix='single_')
-                plotting.plot_lines(extra['diagnostic_file'], [roo1], ['Average'], prefix='avg_')
-            ndimage_file.write_image(extra['diagnostic_file'], dnpow, 1+i)
+                plotting.plot_lines(extra['model_file'], [roo1, roo2], ['Average', 'Single1'])
+                plotting.plot_lines(extra['model_file'], [roo2], ['Single1'], prefix='single_')
+                plotting.plot_lines(extra['model_file'], [roo1], ['Average'], prefix='avg_')
+            ndimage_file.write_image(extra['model_file'], dnpow, 1+i)
     """
-    
-def ctf_model_array(p, n, ampcont, cs, voltage, apix, bfactor=0, **extra):
-    '''
-    '''
-    
-    model = ctf_model.transfer_function_1D(n, p, ampcont, cs, voltage, apix, bfactor)
-    return model**2
-
-def model_fit_error_1d_bfactor(p, roo, beg, end, ampcont, cs, voltage, apix):
-    '''
-    '''
-    
-    model = ctf_model.transfer_function_1D(len(roo), p[0], ampcont, cs, voltage, apix, p[1])**2
-    return model[beg:end]-roo[beg:end]
-
-def estimate_1D_bfactor(roo, beg, end, defocus, ampcont, cs, voltage, apix, bfactor=0.0, bfactor_start=0.2, bfactor_end=8.0, **extra):
-    '''
-    '''
-    
-    best=(1e20, None)
-    
-    for p in scipy.logspace(0.1, 5, 50):
-        err = numpy.sum(numpy.square(model_fit_error_1d(defocus, roo, beg, end, ampcont, cs, voltage, apix, p)))
-        if err < best[0]: best = (err, p)
-    #_logger.debug("-------Best: %s"%str(best))
-    bfactor=best[1]
-    dz1, bfactor= scipy.optimize.leastsq(model_fit_error_1d_bfactor,[defocus,bfactor],args=(roo, beg, end, ampcont, cs, voltage, apix))[0]
-    return dz1, bfactor
 
 def model_fit_error_1d(p, roo, beg, end, ampcont, cs, voltage, apix, bfactor):
-    '''
+    ''' Compute the error between the 1D power spectra and the model CTF
+    
+    :Parameters:
+        
+        p : array
+            A a-element array with the current defocus value
+        roo : array
+              1D, background-subtracted power spectra
+        beg : int
+              Starting index
+        end : int
+              Last index
+        ampcont : float
+                  Amplitude contrast in percent
+        cs : float
+             Spherical abberation in mm
+        voltage : float
+                  Electron energy in kV
+        apix : float
+               Pixel size
+        bfactor : float
+                  Fall off in angstroms^2
+    
+    :Returns:
+    
+        error : array
+                Error for each value in valid range
     '''
     
     model = ctf_model.transfer_function_1D(len(roo), p, ampcont, cs, voltage, apix, bfactor)**2
@@ -335,50 +439,44 @@ def model_fit_error_1d(p, roo, beg, end, ampcont, cs, voltage, apix, bfactor):
     return model[beg:end]-roo[beg:end]
 
 def estimate_1D(roo, beg, end, ampcont, cs, voltage, apix, bfactor=0.0, defocus_start=0.2, defocus_end=8.0, **extra):
-    '''
+    ''' Find the defocus of the image from the background-subtracted 1D power spectra
+    
+    :Parameters:
+        
+        roo : array
+              1D, background-subtracted power spectra
+        beg : int
+              Starting ring
+        end : int
+              Last ring
+        ampcont : float
+                  Amplitude contrast in percent
+        cs : float
+             Spherical abberation in mm
+        voltage : float
+                  Electron energy in kV
+        apix : float
+               Pixel size
+        bfactor : float
+                  Fall off in angstroms^2
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+        
+        defocus : float
+                  Defocus of image
     '''
     
     best=(1e20, None)
     for p in numpy.arange(defocus_start, defocus_end, 0.1, dtype=numpy.float):
         err = numpy.sum(numpy.square(model_fit_error_1d(p*1e4, roo, beg, end, ampcont, cs, voltage, apix, bfactor)))
         if err < best[0]: best = (err, p*1e4)
-    #_logger.debug("-------Best: %s"%str(best))
     p0=[best[1]]
     dz1, = scipy.optimize.leastsq(model_fit_error_1d,p0,args=(roo, beg, end, ampcont, cs, voltage, apix, bfactor))[0]
     return dz1
-
-def ctf_model_array_2d(p, shape, ampcont, cs, voltage, apix, bfactor=0, **extra):
-    '''
-    '''
     
-    model = ctf_model.transfer_function_2D(shape, p, ampcont, cs, voltage, apix, bfactor)
-    return model**2
-
-def model_fit_error_2d_no_astig(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
-    '''
-    '''
-    
-    model = ctf_model.transfer_function_2D(pow.shape, p, ampcont, cs, voltage, apix, bfactor)**2
-    #_logger.debug("Defocus=%f - Error=%f"%(p, numpy.sum(numpy.square(model[mask]-pow[mask]))))
-    return model[mask].ravel()-pow[mask].ravel()
-
-def estimate_2D_no_astig(pow, beg, end, ampcont, cs, voltage, apix, bfactor=0.0, defocus_start=0.15, defocus_end=8.0, **extra):
-    '''
-    '''
-    
-    mask = ndimage_utility.model_ring(beg, end, pow.shape)
-    mask[:, :mask.shape[0]/2+beg]=0
-    mask = numpy.nonzero(mask)
-    best=(1e20, None)
-    for p in numpy.arange(defocus_start, defocus_end, 0.1, dtype=numpy.float):
-        err = numpy.sum(numpy.square(model_fit_error_2d_no_astig(p*1e4, pow, mask, ampcont, cs, voltage, apix, bfactor)))
-        if err < best[0]: best = (err, p*1e4)
-    #_logger.debug("-------Best: %s"%str(best))
-    p0=[best[1]]
-    dz1, = scipy.optimize.leastsq(model_fit_error_2d_no_astig,p0,args=(pow, mask, ampcont, cs, voltage, apix, bfactor))[0]
-    return dz1
-    
-def generate_powerspectra(filename, bin_factor, window_size, overlap, pad=1, offset=0, from_power=False, pow_file="", **extra):
+def generate_powerspectra(filename, bin_factor, window_size, overlap, pad=1, offset=0, from_power=False, **extra):
     ''' Generate a power spectra using a perdiogram
     
     :Parameters:
@@ -393,8 +491,12 @@ def generate_powerspectra(filename, bin_factor, window_size, overlap, pad=1, off
                   Amount of overlap between windows
         pad : int
               Number of times to pad the perdiogram
+        offset : int
+                 Offset from the edge of the micrograph
         from_power : bool
                      Is the input file already a power spectra
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
         
@@ -407,10 +509,9 @@ def generate_powerspectra(filename, bin_factor, window_size, overlap, pad=1, off
     #if bin_factor > 1.0: mic = ndimage_interpolate.resample_fft(mic, bin_factor, pad=3)
     if bin_factor > 1.0: mic = ndimage_interpolate.downsample(mic, bin_factor)
     pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset)
-    if pow_file != "": ndimage_file.write_image(pow_file, pow, header=dict(apix=extra['apix']))
     return pow
 
-def perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, feature_size=8):
+def _perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, feature_size=8):
     '''
     '''
     
@@ -495,11 +596,6 @@ def initialize(files, param):
                 os.makedirs(os.path.dirname(param['pow_file']))
             except: pass
             _logger.info("Writing power spectra to %s"%param['pow_file'])
-        if param['diagnostic_file'] != "":
-            try:
-                os.makedirs(os.path.dirname(param['diagnostic_file']))
-            except: pass
-            _logger.info("Writing diagnostic power spectra images to stack: %s"%param['diagnostic_file'])
         try:
             defvals = format.read(param['output'], map_ids=True)
         except:
@@ -536,7 +632,28 @@ def reduce_all(filename, file_completed, defocus_arr, output_offset, output, def
     return filename
 
 def finalize(files, defocus_arr, output, dpi=300, **extra):
-    '''
+    ''' Write out plots summarizing CTF features of the input images
+    
+    These plots include
+        
+        - Mean defocus histogram
+        - Astigmatism magnitude histogram
+        - Mean defocus vs. Error scatter plot
+        - Mean defocus vs. Astigmatism angle scatter plot (for magnitude > 2000 angstroms)
+        
+    :Parameters:
+        
+        files : list
+                List of input filenames
+        defocus_arr : array
+                      Array of CTF parameters for each input file, with columns:
+                      (id,defocus_u,defocus_v,astig_ang,defocus_avg,astig_mag,error)
+        output : str
+                 Output filename 
+        dpi : int
+              Resolution of plot in dots per inch
+        extra : dict
+                Unused keyword arguments
     '''
     
     if len(files) > 0:
@@ -581,19 +698,17 @@ def setup_options(parser, pgroup=None, main_option=False):
     from ..core.app.settings import OptionGroup
     group = OptionGroup(parser, "CTF", "Options to control contrast transfer function estimation",  id=__name__)
     group.add_option("", window_size=256, help="Size of the window for the power spec (pixels)")
-    #group.add_option("", pad=2.0, help="Number of times to pad the power spec")
     group.add_option("", overlap=0.5, help="Amount of overlap between windows")
     group.add_option("", offset=0, help="Offset from the edge of the micrograph (pixels)")
     group.add_option("", from_power=False, help="Input is a powerspectra not a micrograph")
     group.add_option("", awindow_size=8, help="Window size for polar average")
+    #group.add_option("", pad=2.0, help="Number of times to pad the power spec") # - Caused all sorts of issues in 2D
     
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--micrograph-files", input_files=[],     help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)
         pgroup.add_option("-o", "--ctf-file",         output="",          help="Output filename for ctf file", gui=dict(filetype="save"), required_file=True)
-        pgroup.add_option("",   pow_file="",                              help="Output filename for power spectra file", gui=dict(filetype="save"), required_file=False)
-        pgroup.add_option("",   diagnostic_file="",                       help="Output filename for stack of diagnostic images", gui=dict(filetype="save"), required_file=False)
-
+        pgroup.add_option("",   pow_file="",                              help="Output filename for power spectra file - Display model in first half", gui=dict(filetype="save"), required_file=False)
         pgroup.add_option("-s", selection_file="",                        help="Selection file for a subset of good micrographs", gui=dict(filetype="open"), required_file=False)
         spider_params.setup_options(parser, pgroup, True)
         parser.change_default(log_level=3, bin_factor=2)
