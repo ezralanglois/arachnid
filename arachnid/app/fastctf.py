@@ -673,7 +673,7 @@ def finalize(files, defocus_arr, output, dpi=300, **extra):
     # 3. Falloff scatter
     
     _logger.info("Completed")
-    
+"""
 def supports(files, **extra):
     ''' Test if this module is required in the project workflow
     
@@ -691,6 +691,7 @@ def supports(files, **extra):
     '''
     
     return True
+"""
 
 def setup_options(parser, pgroup=None, main_option=False):
     # Collection of options necessary to use functions in this script
