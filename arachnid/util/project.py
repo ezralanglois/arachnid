@@ -298,13 +298,17 @@ def build_workflow(files, extra):
         workflow[i] = [workflow[i]]+list(program.collect_file_dependents(workflow[i], **extra))
     
     first_param,first_script = find_root(workflow, ('unenum_files', 'movie_files', 'micrograph_files'))
+    _logger.debug("First script: %s"%str(first_script))
+    _logger.debug("First param: %s"%str(first_param))
     # Hack
     if first_param == 'unenum_files':
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
         extra['linked_files'] = os.path.join('other', *os_path_split(extra[input2])[1:])
         extra[input2] = extra['linked_files']
+        _logger.debug("Second param: %s"%str(input2))
         input2 = find_root(workflow, ('movie_files', 'micrograph_files'))[0]
         first_script[3] = ['--'+input2.replace('_', '-'), ]+first_script[3]
+        _logger.debug("Third param: %s"%str(input2))
     
     return [workflow[0]]+build_dependency_tree(workflow[1:], workflow[0], ['--'+first_param.replace('_', '-')])
 
