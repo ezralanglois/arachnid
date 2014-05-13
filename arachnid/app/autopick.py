@@ -807,9 +807,6 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   nstd_pw=4.0,                 help="Cutoff for Fourier space PCA")
     group.add_option("",   mask_mult=1.0,               help="Change the size of the real space PCA mask")
     
-    
-    
-    
     pgroup.add_option_group(group)
     if main_option:
         pgroup.add_option("-i", "--micrograph-files", input_files=[],     help="List of filenames for the input micrographs, e.g. mic_*.mrc", required_file=True, gui=dict(filetype="open"), regexp=spider_utility.spider_searchpath)

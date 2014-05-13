@@ -303,15 +303,16 @@ def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
     min_defocus = defocus.min()
     max_defocus = defocus.max()
     min_index = defocus.argmin()
-    #idx = numpy.argsort(defocus)
-    #dd = numpy.diff(defocus[idx])
-    #std = dd.std()
-    #avg = dd.mean()
-    #if defocus[idx[0]] < (avg-std*2.5):
-    #    min_defocus = defocus[idx[1]]
-    #    min_index = index[1]
-    #if defocus[idx[-1]] > (avg+std*2.5):
-    #    max_defocus = defocus[idx[-2]]
+    if 1 == 1:
+        idx = numpy.argsort(defocus)
+        dd = numpy.diff(defocus[idx])
+        std = dd.std()
+        avg = dd.mean()
+        if defocus[idx[0]] < (avg-std*2.5):
+            min_defocus = defocus[idx[1]]
+            min_index = index[1]
+        if defocus[idx[-1]] > (avg+std*2.5):
+            max_defocus = defocus[idx[-2]]
     
     ang = 360.0/raw.shape[0]
     return min_defocus, max_defocus, (raw.shape[0]/2-min_index)*ang
