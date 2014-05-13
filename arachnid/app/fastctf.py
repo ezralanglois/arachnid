@@ -64,7 +64,7 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     _logger.debug("Generate power spectra")
     pow = generate_powerspectra(filename, **extra)
     
-    defu, defv, defa, error, beg, end = estimate_defocus_2D(pow, **extra)
+    defu, defv, defa, error, beg, end = estimate_defocus_2D(pow, input_filename=filename, **extra)
     vals=[id, defu, defv, defa, (defu+defv)/2.0, numpy.abs(defu-defv), error]
     
     _logger.debug("Defocus=%f, %f, %f, %f"%(defu, defv, defa, error))
@@ -168,6 +168,14 @@ def estimate_defocus_2D(pow, **extra):
             pow2 = ndimage_interpolate.downsample(pow, 2)
             defu, defv, defa = esimate_defocus_range(pow2, **extra)
             _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
+    if defu < 0 or numpy.abs(defu-defv) > 5000:
+        pow2 = ndimage_interpolate.downsample(pow, 2)
+        param = dict(extra)
+        param['bin_factor']*=2
+        param.update(spider_params.update_params(**param))
+        pow2=generate_powerspectra(extra['input_filename'], **param)
+        defu, defv, defa = esimate_defocus_range(pow2, **param)
+        _logger.debug("Guess(Attempt #4)=%f, %f, %f"%(defu, defv, defa))
         
     beg, end, window = resolution_range(pow)
     _logger.debug("Mask: %d - %d"%(beg,end))
@@ -292,8 +300,21 @@ def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
     for i in xrange(len(raw)):
         defocus[i] = estimate_1D(subtract_background(raw[i], window), beg, end, **extra)
     
+    min_defocus = defocus.min()
+    max_defocus = defocus.max()
+    min_index = defocus.argmin()
+    #idx = numpy.argsort(defocus)
+    #dd = numpy.diff(defocus[idx])
+    #std = dd.std()
+    #avg = dd.mean()
+    #if defocus[idx[0]] < (avg-std*2.5):
+    #    min_defocus = defocus[idx[1]]
+    #    min_index = index[1]
+    #if defocus[idx[-1]] > (avg+std*2.5):
+    #    max_defocus = defocus[idx[-2]]
+    
     ang = 360.0/raw.shape[0]
-    return defocus.min(), defocus.max(), (raw.shape[0]/2-defocus.argmin())*ang
+    return min_defocus, max_defocus, (raw.shape[0]/2-min_index)*ang
     
 def first_zero(roo):
     ''' Determine the first zero of the 1D, background 
