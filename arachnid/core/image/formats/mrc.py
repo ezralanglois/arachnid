@@ -254,7 +254,7 @@ def is_readable(filename, no_strict_mrc=False):
                Filename or open stream for a file
     no_strict_mrc : bool
                     Perform strict MRC header checking (recommended) - Only
-                    EPU MRC files and Yifang's frame alignment require this
+                    EPU MRC files and Yifan's frame alignment require this
                     to be off.
     
     :Returns:
@@ -298,9 +298,9 @@ def is_readable(filename, no_strict_mrc=False):
                 if not bad_mrc_header:
                     bad_mrc_header=True
                     if not no_strict_mrc and 1 == 0:
-                        _logger.warn("This image could be MRC format likely this image came from Yifang's GPU alignment. Use --no-strict-mrc to read this image")
+                        _logger.warn("This image could be MRC format likely this image came from Yifan's GPU alignment. Use --no-strict-mrc to read this image")
                         return False
-                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from Yifang's GPU alignment)")
+                    _logger.warn("Assuming image is MRC format - format is not correct (Likely this image came from Yifan's GPU alignment)")
             else:
                 _logger.debug("Failed to read proper machine stamp - not MRC!")
                 return False
@@ -320,7 +320,7 @@ def read_header(filename, index=None, no_strict_mrc=False):
             Index of image to get the header, if None, the stack header (Default: None)
     no_strict_mrc : bool
                     Perform strict MRC header checking (recommended) - Only
-                    EPU MRC files and Yifang's frame alignment require this
+                    EPU MRC files and Yifan's frame alignment require this
                     to be off.
     
     :Returns:
@@ -352,7 +352,7 @@ def read_mrc_header(filename, index=None, no_strict_mrc=False):
             Index of image to get the header, if None, the stack header (Default: None)
     no_strict_mrc : bool
                     Perform strict MRC header checking (recommended) - Only
-                    EPU MRC files and Yifang's frame alignment require this
+                    EPU MRC files and Yifan's frame alignment require this
                     to be off.
     
     :Returns:
@@ -388,7 +388,7 @@ def count_images(filename, no_strict_mrc=False):
                Filename or open stream for a file
     no_strict_mrc : bool
                     Perform strict MRC header checking (recommended) - Only
-                    EPU MRC files and Yifang's frame alignment require this
+                    EPU MRC files and Yifan's frame alignment require this
                     to be off.
     
     :Returns:
@@ -414,7 +414,7 @@ def iter_images(filename, index=None, header=None, no_strict_mrc=False):
              Output dictionary to place header values
     no_strict_mrc : bool
                     Perform strict MRC header checking (recommended) - Only
-                    EPU MRC files and Yifang's frame alignment require this
+                    EPU MRC files and Yifan's frame alignment require this
                     to be off.
     
     :Returns:
@@ -462,7 +462,7 @@ def valid_image(filename, no_strict_mrc=False):
                    Input filename to test
         no_strict_mrc : bool
                         Perform strict MRC header checking (recommended) - Only
-                        EPU MRC files and Yifang's frame alignment require this
+                        EPU MRC files and Yifan's frame alignment require this
                         to be off.
     
     :Returns:
@@ -493,7 +493,7 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
                  Output dictionary to place header values
         no_strict_mrc : bool
                         Perform strict MRC header checking (recommended) - Only
-                        EPU MRC files and Yifang's frame alignment require this
+                        EPU MRC files and Yifan's frame alignment require this
                         to be off.
     
     :Returns:
