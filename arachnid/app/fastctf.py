@@ -63,8 +63,10 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     
     _logger.debug("Generate power spectra")
     pow = generate_powerspectra(filename, **extra)
+    #pow += pow.min()+1
+    #pow = numpy.log(pow)
     
-    defu, defv, defa, error, beg, end = estimate_defocus_2D(pow, input_filename=filename, **extra)
+    defu, defv, defa, error, beg, end, window = estimate_defocus_2D(pow, input_filename=filename, **extra)
     vals=[id, defu, defv, defa, (defu+defv)/2.0, numpy.abs(defu-defv), error]
     
     _logger.debug("Defocus=%f, %f, %f, %f"%(defu, defv, defa, error))
@@ -84,7 +86,7 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     
     return filename, numpy.asarray(vals)
 
-def power_spectra_model_range(pow, defu, defv, defa, beg, end, ampcont, cs, voltage, apix, bfactor=0, out=None, **extra):
+def power_spectra_model_range(pow, defu, defv, defa, beg, end, window, ampcont, cs, voltage, apix, bfactor=0, out=None, tdv=0.0, bs=False, mask_pow=False, **extra):
     ''' Generate model for a specific range of rings
     
     :Parameters:
@@ -101,6 +103,8 @@ def power_spectra_model_range(pow, defu, defv, defa, beg, end, ampcont, cs, volt
               Starting ring
         end : int
               Last ring
+        window : int
+                 Size of window for background subtraction
         ampcont : float
                   Amplitude contrast in percent
         cs : float
@@ -123,13 +127,36 @@ def power_spectra_model_range(pow, defu, defv, defa, beg, end, ampcont, cs, volt
               
     '''
     
+    mask = ndimage_utility.model_ring(beg, end, pow.shape) < 0.5
     out=pow.copy()
     model = ctf_model.transfer_function_2D_full(pow.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
-    out[:, :pow.shape[0]/2]=ndimage_utility.histeq(model[:, :pow.shape[0]/2])
-    avg = model[:, beg:pow.shape[0]/2-end].mean()
-    out[:, 0:beg] = avg
-    out[:, 0:beg] = avg
-    out[:, pow.shape[0]/2:]=ndimage_utility.histeq(pow[:, pow.shape[0]/2:])
+    if bs:
+        pow = subtract_background(pow, window)
+    if tdv > 0:
+        from skimage.filter import denoise_tv_chambolle as tv_denoise
+        pow = tv_denoise(pow, weight=tdv, eps=2.e-4, n_iter_max=200)
+    
+    out[:, :pow.shape[0]/2] = model[:, :pow.shape[0]/2]
+    
+    if mask_pow:
+        tmask = mask.copy()
+        tmask[:, pow.shape[0]/2:]=0
+        gmask = numpy.logical_not(mask.copy())
+        gmask[:, pow.shape[0]/2:]=0
+        out[tmask] = numpy.mean(model[gmask])
+    
+    out[:, pow.shape[0]/2:] = pow[:, pow.shape[0]/2:]
+    
+    if mask_pow:
+        tmask = mask.copy()
+        tmask[:, :pow.shape[0]/2]=0
+        gmask = numpy.logical_not(mask.copy())
+        gmask[:, :pow.shape[0]/2]=0
+        out[tmask] = numpy.mean(model[gmask])
+    
+    
+    out[:, :pow.shape[0]/2]=ndimage_utility.histeq(out[:, :pow.shape[0]/2])
+    out[:, pow.shape[0]/2:]=ndimage_utility.histeq(out[:, pow.shape[0]/2:])
     return out
 
 def estimate_defocus_2D(pow, **extra):
@@ -156,18 +183,34 @@ def estimate_defocus_2D(pow, **extra):
               Starting ring
         end : int
               Last ring
+        window : int
+                 Size of window for background subtraction
     '''
     
     defu, defv, defa = esimate_defocus_range(pow, **extra)
-    _logger.debug("Guess=%f, %f, %f"%(defu, defv, defa))
-    if defu < 0 or numpy.abs(defu-defv) > 5000:
-        pow2 = ndimage_interpolate.downsample(pow, 2)
-        defu, defv, defa = esimate_defocus_range(pow2, **extra)
-        _logger.debug("Guess(Attempt #2)=%f, %f, %f"%(defu, defv, defa))
+    _logger.debug("Guess(Attempt #1)=%f, %f, %f"%(defu, defv, defa))
+    if 1 == 0:
         if defu < 0 or numpy.abs(defu-defv) > 5000:
             pow2 = ndimage_interpolate.downsample(pow, 2)
             defu, defv, defa = esimate_defocus_range(pow2, **extra)
-            _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
+            _logger.debug("Guess(Attempt #2)=%f, %f, %f"%(defu, defv, defa))
+            if defu < 0 or numpy.abs(defu-defv) > 5000:
+                pow2 = ndimage_interpolate.downsample(pow, 2)
+                defu, defv, defa = esimate_defocus_range(pow2, **extra)
+                _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
+            bfactor = 0.01
+            while (defu < 0 or numpy.abs(defu-defv) > 5000) and bfactor < 1100:
+                extra['bfactor']=bfactor
+                defu, defv, defa = esimate_defocus_range(pow2, **extra)
+                _logger.debug("Guess(Attempt #4)=%f, %f, %f"%(defu, defv, defa))
+                bfactor *= 10
+    else:
+        while (defu < 0 or numpy.abs(defu-defv) > 5000) and bfactor < 1100:
+            extra['bfactor']=bfactor
+            defu, defv, defa = esimate_defocus_range(pow2, **extra)
+            _logger.debug("Guess(Attempt #2 - %f)=%f, %f, %f"%(bfactor, defu, defv, defa))
+            bfactor *= 10
+    '''
     if defu < 0 or numpy.abs(defu-defv) > 5000:
         pow2 = ndimage_interpolate.downsample(pow, 2)
         param = dict(extra)
@@ -176,7 +219,7 @@ def estimate_defocus_2D(pow, **extra):
         pow2=generate_powerspectra(extra['input_filename'], **param)
         defu, defv, defa = esimate_defocus_range(pow2, **param)
         _logger.debug("Guess(Attempt #4)=%f, %f, %f"%(defu, defv, defa))
-        
+    ''' 
     beg, end, window = resolution_range(pow)
     _logger.debug("Mask: %d - %d"%(beg,end))
     pow1=pow.copy()
@@ -189,7 +232,7 @@ def estimate_defocus_2D(pow, **extra):
     args = (pow, mask, extra['ampcont'], extra['cs'], extra['voltage'], extra['apix'], extra.get('bfactor', 0))
     defu, defv, defa = scipy.optimize.leastsq(model_fit_error_2d,[defu, defv, defa],args=args)[0]
     error = numpy.sqrt(numpy.sum(numpy.square(model_fit_error_2d([defu, defv, defa], *args))))
-    return defu, defv, defa, error, beg, end
+    return defu, defv, defa, error, beg, end, window
     
 def model_fit_error_2d(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
     ''' Estimate the error between the data, 2D power spectra, and model
@@ -303,21 +346,30 @@ def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
     min_defocus = defocus.min()
     max_defocus = defocus.max()
     min_index = defocus.argmin()
-    if 1 == 1:
+    if min_defocus < 0:
+        idx = numpy.argsort(defocus)
+        sel = defocus[idx] > 0
+        if numpy.sum(sel) > 0:
+            idx = idx[sel]
+            min_defocus = defocus[idx[0]]
+            min_index = idx[0]
+        
+    if 1 == 0:
         idx = numpy.argsort(defocus)
         dd = numpy.diff(defocus[idx])
         std = dd.std()
         avg = dd.mean()
-        if defocus[idx[0]] < (avg-std*2.5):
+        
+        if dd[min(idx[0], len(dd)-1)] < (avg-std*2.5):
             min_defocus = defocus[idx[1]]
-            min_index = index[1]
-        if defocus[idx[-1]] > (avg+std*2.5):
+            min_index = idx[1]
+        if dd[min(idx[-1], len(dd)-1)] > (avg+std*2.5):
             max_defocus = defocus[idx[-2]]
     
     ang = 360.0/raw.shape[0]
     return min_defocus, max_defocus, (raw.shape[0]/2-min_index)*ang
     
-def first_zero(roo):
+def first_zero(roo, offset=10):
     ''' Determine the first zero of the 1D, background 
     subtracted power spectra
     
@@ -332,7 +384,13 @@ def first_zero(roo):
                 Pixel index of first zero
     '''
     
-    roo = roo[2:]
+    if 1 == 1:
+        from ..core.image import peakdetect_1d
+        peak = peakdetect_1d.peakdetect(roo, lookahead=5)[1]
+        return peak[1][0]
+        
+    
+    roo = roo[offset:]
     zero = numpy.mean(roo[len(roo)-len(roo)/5:])
     minima = []
     idx = numpy.argwhere(roo < zero).squeeze()
@@ -342,8 +400,9 @@ def first_zero(roo):
         minima.append(numpy.argmin(roo[b:idx[c+1]])+b)
         b = idx[c+1]
     #n = len(minima)-1 if len(minima) < 2 else 1
-    if len(minima)==0:return 0
-    return minima[0]+2
+    if len(minima)==0:return offset
+    if len(minima) > 1 and minima[0]==0: return minima[1]+offset
+    return minima[0]+offset
 
 def energy_cutoff(roo, energy=0.95):
     ''' Determine the index when the energy drops below cutoff
@@ -725,6 +784,13 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("", offset=0, help="Offset from the edge of the micrograph (pixels)")
     group.add_option("", from_power=False, help="Input is a powerspectra not a micrograph")
     group.add_option("", awindow_size=8, help="Window size for polar average")
+    group.add_option("", tdv=0.0,        help="Regularizstion for total variance denosing for output diagnostic power spectra")
+    group.add_option("", bs=False,        help="Background subtract for output diagnostic power spectra")
+    group.add_option("", mask_pow=False,  help="Mask diagnostic power spectra")
+    group.add_option("", bfactor=0.0,     help="B-factor for fitting")
+    
+    
+    
     #group.add_option("", pad=2.0, help="Number of times to pad the power spec") # - Caused all sorts of issues in 2D
     
     pgroup.add_option_group(group)
