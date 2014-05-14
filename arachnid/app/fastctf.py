@@ -159,13 +159,15 @@ def power_spectra_model_range(pow, defu, defv, defa, beg, end, window, ampcont, 
     out[:, pow.shape[0]/2:]=ndimage_utility.histeq(out[:, pow.shape[0]/2:])
     return out
 
-def estimate_defocus_2D(pow, **extra):
+def estimate_defocus_2D(pow, astig_limit=5000.0, **extra):
     '''Estimate the defocus of an image from the 2D power spectra
     
     :Parameters:
         
         pow : array
               Image of 2D power spectra
+        astig_limit : float
+                      Maximum allowed astigmastism
         extra : dict
                 Unused keyword arguments
     
@@ -189,27 +191,26 @@ def estimate_defocus_2D(pow, **extra):
     
     defu, defv, defa = esimate_defocus_range(pow, **extra)
     _logger.debug("Guess(Attempt #1)=%f, %f, %f"%(defu, defv, defa))
-    if 1 == 0:
-        if defu < 0 or numpy.abs(defu-defv) > 5000:
+    if defu < 0 or numpy.abs(defu-defv) > astig_limit:
+        pow2 = ndimage_interpolate.downsample(pow, 2)
+        defu, defv, defa = esimate_defocus_range(pow2, **extra)
+        _logger.debug("Guess(Attempt #2)=%f, %f, %f"%(defu, defv, defa))
+        if defu < 0 or numpy.abs(defu-defv) > astig_limit:
             pow2 = ndimage_interpolate.downsample(pow, 2)
             defu, defv, defa = esimate_defocus_range(pow2, **extra)
-            _logger.debug("Guess(Attempt #2)=%f, %f, %f"%(defu, defv, defa))
-            if defu < 0 or numpy.abs(defu-defv) > 5000:
-                pow2 = ndimage_interpolate.downsample(pow, 2)
-                defu, defv, defa = esimate_defocus_range(pow2, **extra)
-                _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
-            bfactor = 0.01
-            while (defu < 0 or numpy.abs(defu-defv) > 5000) and bfactor < 1100:
-                extra['bfactor']=bfactor
-                defu, defv, defa = esimate_defocus_range(pow2, **extra)
-                _logger.debug("Guess(Attempt #4)=%f, %f, %f"%(defu, defv, defa))
-                bfactor *= 10
-    else:
-        while (defu < 0 or numpy.abs(defu-defv) > 5000) and bfactor < 1100:
+            _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
+        orig = extra['bfactor']
+        bfactor = 0.01
+        while (defu < 0 or numpy.abs(defu-defv) > astig_limit) and bfactor < 1100:
             extra['bfactor']=bfactor
             defu, defv, defa = esimate_defocus_range(pow2, **extra)
-            _logger.debug("Guess(Attempt #2 - %f)=%f, %f, %f"%(bfactor, defu, defv, defa))
+            _logger.debug("Guess(Attempt #4 - %f)=%f, %f, %f"%(bfactor, defu, defv, defa))
             bfactor *= 10
+        extra['bfactor']=orig
+        if defu < 0 or numpy.abs(defu-defv) > astig_limit:
+            defu, defv, defa = esimate_defocus_1D(pow2, **extra)
+            _logger.debug("Guess(Attempt #5)=%f, %f, %f"%(defu, defv, defa))
+    
     '''
     if defu < 0 or numpy.abs(defu-defv) > 5000:
         pow2 = ndimage_interpolate.downsample(pow, 2)
@@ -301,6 +302,36 @@ def resolution_range(pow):
     beg = first_zero(roo)
     end = energy_cutoff(roo[beg:])+beg
     return beg, end, window
+
+def esimate_defocus_1D(pow, **extra):
+    '''Estimate the mean defocus
+    
+    :Parameters:
+    
+        pow : array
+              Image of 2D power spectra
+        extra : dict
+                Unused keyword arguments
+    
+    :Returns:
+    
+        defu : float
+               Defocus on minor axis in angstroms
+        defv : float
+               Defocus on major axis in angstroms
+        defa : float
+               Astigmatism angle in degrees between x-axis and minor defocus axis
+    '''
+    
+    ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
+    raw = ppow.mean(axis=0)
+    window = int(raw.shape[0]*0.08)
+    if (window%2)==0: window+=1
+    roo = subtract_background(raw, window)
+    beg = first_zero(roo)
+    end = energy_cutoff(roo[beg:])+beg
+    defu = estimate_1D(roo, beg, end, **extra)
+    return defu, defu, 0.0
 
 def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
     '''Estimate the maximum and minimum defocus as well as the angle of astigmatism
@@ -519,7 +550,7 @@ def model_fit_error_1d(p, roo, beg, end, ampcont, cs, voltage, apix, bfactor):
     #_logger.debug("Defocus=%f - Error=%f"%(p, numpy.sum(numpy.square(model[beg:end]-roo[beg:end]))))
     return model[beg:end]-roo[beg:end]
 
-def estimate_1D(roo, beg, end, ampcont, cs, voltage, apix, bfactor=0.0, defocus_start=0.2, defocus_end=8.0, **extra):
+def estimate_1D(roo, beg, end, ampcont, cs, voltage, apix, bfactor=0.0, defocus_start=0.1, defocus_end=8.0, **extra):
     ''' Find the defocus of the image from the background-subtracted 1D power spectra
     
     :Parameters:
