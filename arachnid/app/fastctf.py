@@ -72,7 +72,7 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     _logger.debug("Defocus=%f, %f, %f, %f"%(defu, defv, defa, error))
     
     if pow_file != "":
-        pow = power_spectra_model_range(pow, defu, defv, defa, beg, end, **extra)
+        pow = power_spectra_model_range(pow, defu, defv, defa, beg, end, window, **extra)
         #pow = power_spectra_model(pow, defu, defv, defa, **extra)
         if use_8bit:
             #os.unlink(spi.replace_ext(output_pow))
@@ -86,7 +86,7 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     
     return filename, numpy.asarray(vals)
 
-def power_spectra_model_range(pow, defu, defv, defa, beg, end, window, ampcont, cs, voltage, apix, bfactor=0, out=None, tdv=0.0, bs=False, mask_pow=False, **extra):
+def power_spectra_model_range(pow, defu, defv, defa, beg, end, bswindow, ampcont, cs, voltage, apix, bfactor=0, out=None, tdv=0.0, bs=False, mask_pow=False, **extra):
     ''' Generate model for a specific range of rings
     
     :Parameters:
@@ -103,7 +103,7 @@ def power_spectra_model_range(pow, defu, defv, defa, beg, end, window, ampcont, 
               Starting ring
         end : int
               Last ring
-        window : int
+        bswindow : int
                  Size of window for background subtraction
         ampcont : float
                   Amplitude contrast in percent
@@ -131,7 +131,7 @@ def power_spectra_model_range(pow, defu, defv, defa, beg, end, window, ampcont, 
     out=pow.copy()
     model = ctf_model.transfer_function_2D_full(pow.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
     if bs:
-        pow = subtract_background(pow, window)
+        pow = subtract_background(pow, bswindow)
     if tdv > 0:
         from skimage.filter import denoise_tv_chambolle as tv_denoise
         pow = tv_denoise(pow, weight=tdv, eps=2.e-4, n_iter_max=200)
@@ -223,7 +223,7 @@ def estimate_defocus_2D(pow, astig_limit=5000.0, **extra):
     ''' 
     beg, end, window = resolution_range(pow)
     _logger.debug("Mask: %d - %d"%(beg,end))
-    pow1=pow.copy()
+    #pow1=pow.copy()
     pow = subtract_background(pow, window)
     
     mask = ndimage_utility.model_ring(beg, end, pow.shape)
