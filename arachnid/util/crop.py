@@ -201,7 +201,8 @@ def process(filename, id_len=0, frame_beg=0, frame_end=0, single_stack=False, **
               Current filename
     '''
     
-    numpy.seterr('raise')
+    if _logger.isEnabledFor(logging.DEBUG):
+        numpy.seterr('raise')
     if isinstance(filename, tuple):
         tot = len(filename[1])
         fid = filename[0]
