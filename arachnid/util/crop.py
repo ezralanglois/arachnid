@@ -640,16 +640,16 @@ def initialize(files, param):
                 if not ndimage_file.valid_image(filename):
                     files.append(filename)
                 elif tot > 1:
-                    id = filename[0] if isinstance(filename, tuple) else filename
-                    coord = read_coordinates(spiderid=id, **param)
-                    align = format.read(param['frame_align'], spiderid=id, numeric=True, id_len=param['id_len'])
+                    fid = filename[0] if isinstance(filename, tuple) else filename
+                    coord = read_coordinates(spiderid=fid, **param)
+                    align = format.read(param['frame_align'], spiderid=fid, numeric=True, id_len=param['id_len'])
                     ncoord=len(coord)
                     # Todo only add frames that require processing
                     param['output']=strip_frame_tag(param['output'])
                     for i in xrange(len(align)):
                         frame = spider_utility.spider_id(filename[1][i]) if isinstance(filename, tuple) else align[i].id+1
                         output = format_utility.add_prefix(param['output'], 'frame_%d_'%(frame))
-                        frame_stack = spider_utility.spider_filename(output, id, param['id_len'])
+                        frame_stack = spider_utility.spider_filename(output, fid, param['id_len'])
                         if not os.path.exists(frame_stack):
                             _logger.info("Found incomplete frame crop: %s"%(frame_stack))
                             files.append(filename)
@@ -660,9 +660,9 @@ def initialize(files, param):
                             files.append(filename)
                             break
                 else:
-                    id = filename[0] if isinstance(filename, tuple) else filename
-                    ncoord = len(read_coordinates(spiderid=id, **param))
-                    nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], id, param['id_len']))
+                    fid = filename[0] if isinstance(filename, tuple) else filename
+                    ncoord = len(read_coordinates(spiderid=fid, **param))
+                    nimage = ndimage_file.count_images(spider_utility.spider_filename(param['output'], fid, param['id_len']))
                     if nimage != ncoord:
                         _logger.info("Found partial stack: %d != %d"%(ncoord, nimage))
                         files.append(filename)
