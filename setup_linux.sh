@@ -4,6 +4,11 @@
 # Download CentOS-5.10-x86_64-bin-1of9.iso
 # from http://isoredirect.centos.org/centos/5/isos/x86_64/
 # 
+# Run the following:
+#
+# $ yum install wget -yq
+# $ wget https://raw.githubusercontent.com/ezralanglois/arachnid/master/setup_linux.sh
+# $ sh setup_linux.sh
 # 
 
 yum install wget gcc gcc-gfortran gcc-c++ \
@@ -30,6 +35,10 @@ git clone http://github.com/ezralanglois/arachnid/
 conda install conda-build jinja2 setuptools binstar patchelf --yes
 cd arachnid
 cp .condarc ~/
+
+rm -f Miniconda-3.0.0-Linux-x86_64.sh master.zip setup_linux.sh install.log install.log.syslog anaconda-ks.cfg
+
+echo 'export PATH=$HOME/anaconda/bin:$PATH' >> .bashrc
 
 
 

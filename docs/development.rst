@@ -170,6 +170,18 @@ option when you see it and unselecting the Gnome Desktop.
 
 	Do not use automatic installation in VMWare if you want a bare minimum install
 	of CentOS 5.
+	
+#. Quick Install
+
+	You have the option of running the three following commands. This allows you to skip
+	to `Stable Release`_.
+	
+	.. sourcecode:: sh
+		
+		$ yum install wget -yq
+		$ wget https://raw.githubusercontent.com/ezralanglois/arachnid/master/setup_linux.sh
+		$ sh setup_linux.sh
+	
 
 #. Install Compilers
 
