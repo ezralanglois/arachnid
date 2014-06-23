@@ -1,4 +1,4 @@
-'''Model for a QTreeView.
+'''Model for a QTreeView
 
 .. note::
 

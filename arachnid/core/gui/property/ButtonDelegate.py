@@ -12,15 +12,16 @@ _logger.setLevel(logging.INFO)
 
 class CheckboxWidget(QtGui.QWidget):
     ''' Display a checkbox in a table/tree cell
-        
-    :Parameters:
-    
-    parent : QObject
-             Parent of the checkbox widget
     '''
     
     def __init__(self, parent=None):
-        "Initialize a font dialog"
+        '''Initialize a font dialog
+        
+        :Parameters:
+        
+            parent : QObject
+                     Parent of the checkbox widget
+        '''
         
         QtGui.QWidget.__init__(self, parent)
         
@@ -40,21 +41,22 @@ class CheckboxWidget(QtGui.QWidget):
 
 class DialogWidget(QtGui.QWidget):
     ''' Abtract class to create a button, which displays a dialog
-        
-    :Parameters:
-    
-    parent : QObject
-             Parent of the checkbox widget
-    icon : QIcon
-           Icon for the button
-    keep_editor : bool
-                  Keep the text editor
     '''
     
     editFinished = qtSignal()
     
     def __init__(self, parent=None, icon=None, keep_editor=False):
-        "Initialize a font dialog"
+        '''Initialize a font dialog
+        
+        :Parameters:
+            
+            parent : QObject
+                     Parent of the checkbox widget
+            icon : QIcon
+                   Icon for the button
+            keep_editor : bool
+                          Keep the text editor
+        '''
         
         QtGui.QWidget.__init__(self, parent)
         
@@ -153,17 +155,18 @@ class WorkflowWidget(DialogWidget):
 """
 class FontDialogWidget(DialogWidget):
     ''' Create a button and display font dialog on press
-        
-    :Parameters:
-    
-    parent : QObject
-             Parent of the checkbox widget
     '''
     
     fontChanged = qtSignal(QtGui.QFont)
     
     def __init__(self, parent=None):
-        "Initialize a font dialog"
+        '''Initialize a font dialog
+        
+        :Parameters:
+            
+            parent : QObject
+                     Parent of the checkbox widget
+        '''
         
         DialogWidget.__init__(self, parent)
         self.font = QtGui.QFont()
@@ -183,9 +186,9 @@ class FontDialogWidget(DialogWidget):
         ''' Set the current font
         
         :Parameters:
-        
-        font : QFont
-                Font to display
+            
+            font : QFont
+                    Font to display
         '''
         
         self.font = font
@@ -194,38 +197,39 @@ class FontDialogWidget(DialogWidget):
         ''' Get the current font
         
         :Returns:
-        
-        font : QFont
-                Selected font
+            
+            font : QFont
+                    Selected font
         '''
         
         return self.font
 
 class FileDialogWidget(DialogWidget):
     ''' Create a button and display file dialog on press
-        
-    :Parameters:
-    
-    type : str
-           Type of file dialog: open or save
-    filter : str
-             Semi-colon separated list of file filters
-    path : str
-           Starting directory for file dialog
-    parent : QObject
-             Parent of the checkbox widget
     '''
     
     fileChanged = qtSignal(object)
     
-    def __init__(self, type, filter="", path="", parent=None):
-        "Initialize a font dialog"
+    def __init__(self, stype, filter="", path="", parent=None):
+        '''Initialize a font dialog
+        
+        :Parameters:
+            
+            stype : str
+                   Type of file dialog: open or save
+            filter : str
+                     Semi-colon separated list of file filters
+            path : str
+                   Starting directory for file dialog
+            parent : QObject
+                     Parent of the checkbox widget
+        '''
         
         DialogWidget.__init__(self, parent, keep_editor=True)
         self.filename = ""
         self.filter = filter
         self.path = path
-        self.filetype = type
+        self.filetype = stype
         self.field.setText(self.filename)
         self.field_text = None
         self.field.editingFinished.connect(self.updateFilename)
@@ -282,9 +286,9 @@ class FileDialogWidget(DialogWidget):
         ''' Set the current filename
         
         :Parameters:
-        
-        filename : str
-                   Filename to display
+            
+            filename : str
+                       Filename to display
         '''
         
         self.filename = filename
@@ -299,9 +303,9 @@ class FileDialogWidget(DialogWidget):
         ''' Get the current filename
         
         :Returns:
-        
-        filename : str
-                   Selected filename
+            
+            filename : str
+                       Selected filename
         '''
         
         return self.filename

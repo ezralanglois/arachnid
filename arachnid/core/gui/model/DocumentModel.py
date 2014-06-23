@@ -16,7 +16,8 @@ class DocumentModel(QtCore.QAbstractTableModel):
     orderUpdated = qtSignal('PyQt_PyObject')
     
     def __init__(self, min_header=[], parent=None):
-        "Initialize an abstract meta data model"
+        '''Initialize an abstract meta data model
+        '''
         
         QtCore.QAbstractTableModel.__init__(self, parent)
         self.min_header=min_header
@@ -35,16 +36,16 @@ class DocumentModel(QtCore.QAbstractTableModel):
         '''Get data with specified index and type
         
         :Parameters:
-        
-        index : QModelIndex
-                Index in QAbstractTableModel
-        role : ItemDataRole
-               Role for item data
+            
+            index : QModelIndex
+                    Index in QAbstractTableModel
+            role : ItemDataRole
+                   Role for item data
         
         :Returns:
-        
-        data : object
-               Item data
+            
+            data : object
+                   Item data
         '''
         
         if not index.isValid() or not (0 <= index.row() and index.row() < len(self.records)): return None
@@ -96,10 +97,10 @@ class DocumentModel(QtCore.QAbstractTableModel):
         self.modelUpdated.emit(self.records, self.header, self.currentIds)
         QtCore.QAbstractTableModel.reset(self)
     
-    def setCurrentId(self, id):
+    def setCurrentId(self, cid):
         ''' Set the current Id of the model
         '''
         
-        self.currentIds = id
+        self.currentIds = cid
         QtCore.QAbstractTableModel.reset(self)
 

@@ -1,5 +1,4 @@
-'''
-This class defines a tree model.
+''' This class defines a tree model
 
 Adopted from http://qt-apps.org/content/show.php/QPropertyEditor?content=68684
 Original Author: Volker Wiendl with Enhancements by Roman alias banal
@@ -7,44 +6,52 @@ Original Author: Volker Wiendl with Enhancements by Roman alias banal
 .. Created on Dec 2, 2010
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ButtonDelegate import FontDialogWidget, FileDialogWidget #, WorkflowWidget #, CheckboxWidget
-from ..util.qt4_loader import QtGui, QtCore, qtSlot, qtSignal 
-import re, logging, glob, os
+from ButtonDelegate import FontDialogWidget
+from ButtonDelegate import FileDialogWidget
+from ..util.qt4_loader import QtGui
+from ..util.qt4_loader import QtCore
+from ..util.qt4_loader import qtSlot
+from ..util.qt4_loader import qtSignal
+import re
+import logging
+import glob
+import os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
 class Property(QtCore.QObject):
     ''' Abstract Class to store properties in a QObject tree and connect to an editor
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-             Parent object
     '''
     
     PROPERTIES = []
     
     propertyValidity = qtSignal(object, bool)
     
-    def __init__(self, name, group=0, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a Property"
+    def __init__(self, name, group=0, property_obj=None, hints={}, doc="", flag="", parent=None):
+        '''Initialize a Property
+            
+        :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                     Parent object
+        '''
         
         QtCore.QObject.__init__(self, parent)
         self.setObjectName(name)
-        self.property_obj = property
+        self.property_obj = property_obj
         self.group = group
         self.doc = doc
         self.hints = hints
@@ -66,9 +73,9 @@ class Property(QtCore.QObject):
         to a command-line option.
         
         :Returns:
-        
-        flag : str
-               Name of the flag
+            
+            flag : str
+                   Name of the flag
         '''
         
         return self._flag
@@ -77,9 +84,9 @@ class Property(QtCore.QObject):
         ''' Test if the property holds a valid value
         
         :Returns:
-        
-        val : bool
-              True by default for most properties
+            
+            val : bool
+                  True by default for most properties
         '''
         
         return True
@@ -89,16 +96,16 @@ class Property(QtCore.QObject):
         widget and style option are used to control how the editor widget appears. (abstract)
         
         :Parameters:
-    
-        parent : QWidget
-                 Parent of created widget
-        option : QStyleOptionViewItem
-                 Used to describe the parameters used to draw an item in a view widget
+        
+            parent : QWidget
+                     Parent of created widget
+            option : QStyleOptionViewItem
+                     Used to describe the parameters used to draw an item in a view widget
         
         :Returns:
-        
-        val : QWidget
-              Widget to edit the cell value
+            
+            val : QWidget
+                  Widget to edit the cell value
         '''
         
         pass
@@ -107,9 +114,9 @@ class Property(QtCore.QObject):
         '''Test if property defines a Bool
         
         :Returns:
-        
-        val : bool
-              False
+            
+            val : bool
+                  False
         '''
         
         return False
@@ -121,15 +128,15 @@ class Property(QtCore.QObject):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
-        data : object
-                Data to set in the editor
+            editor : QWidget
+                     Editor widget to display data
+            data : object
+                    Data to set in the editor
                 
         :Returns:
         
-        val : bool
-              False
+            val : bool
+                  False
         '''
         
         return False
@@ -139,13 +146,13 @@ class Property(QtCore.QObject):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
+            editor : QWidget
+                     Editor widget to display data
         
         :Returns:
         
-        val : object
-              Data from the editor (empty)
+            val : object
+                  Data from the editor (empty)
         '''
         
         return None
@@ -155,13 +162,13 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        role : enum
-               Stored value role (Unused)
+            role : enum
+                   Stored value role (Unused)
         
         :Returns:
         
-        value : object
-                Stored value
+            value : object
+                    Stored value
         '''
         
         if self.property_obj is not None:
@@ -173,13 +180,13 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        other : object
-                String or Property to compare
+            other : object
+                    String or Property to compare
         
         :Returns:
-        
-        val : bool
-              True if both names are equals
+            
+            val : bool
+                  True if both names are equals
         '''
         
         if isinstance(other, Property):
@@ -196,8 +203,8 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        value : QObject
-               Value to store
+            value : QObject
+                   Value to store
         '''
         
         if self.property_obj is not None:
@@ -211,8 +218,8 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        val : bool
-              False if property is writable
+            val : bool
+                  False if property is writable
         '''
         
         if self.property_obj is not None:
@@ -230,8 +237,8 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        hints : str
-                Editor hints
+            hints : str
+                    Editor hints
         '''
         
         self.hints = hints
@@ -241,8 +248,8 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        val : str
-              Editor Hints
+            val : str
+                  Editor Hints
         '''
         
         return self.hints
@@ -252,8 +259,8 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        val : QObject
-              Property object
+            val : QObject
+                  Property object
         '''
         
         return self.property_obj
@@ -263,8 +270,8 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        val : bool
-              True if no property is referenced
+            val : bool
+                  True if no property is referenced
         '''
         
         return self.property_obj is None
@@ -273,30 +280,30 @@ class Property(QtCore.QObject):
         ''' Get the row of the property in the greater list
         
         :Returns:
-        
-        row : int
-              Row offset in property tree
+            
+            row : int
+                  Row offset in property tree
         '''
         
         return self.parent().children().index(self)
     
-    def findPropertyObject(self, property):
+    def findPropertyObject(self, property_obj):
         ''' Recursively search for specified property
         
         :Parameters:
     
-        property : QObject
-                    Property object to find
+            property_obj : QObject
+                        Property object to find
         
         :Returns:
-        
-        val : Property
-              Property encapsulation class containing the property
+            
+            val : Property
+                  Property encapsulation class containing the property
         '''
         
-        if self.property_obj == property: return self
+        if self.property_obj == property_obj: return self
         for child in self.children():
-            obj = child.findPropertyObject(property)
+            obj = child.findPropertyObject(property_obj)
             if obj is not None: return obj
         return None
     
@@ -305,8 +312,8 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        total : int
-                Total number of children
+            total : int
+                    Total number of children
         '''
         
         total = 0
@@ -319,8 +326,8 @@ class Property(QtCore.QObject):
         
         :Returns:
         
-        total : int
-                Total number of invalid, but required children
+            total : int
+                    Total number of invalid, but required children
         '''
         
         total = 0
@@ -335,17 +342,17 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        fontMetric : QFontMetrics
-                      Metric to measure font size
-        indent : int
-                 Width of indent
-        depth : int
-                Depth of node
+            fontMetric : QFontMetrics
+                          Metric to measure font size
+            indent : int
+                     Width of indent
+            depth : int
+                    Depth of node
         
         :Returns:
         
-        width : int
-                Maximum width of text given the font
+            width : int
+                    Maximum width of text given the font
         '''
         
         width = fontMetric.width(self.displayName) + indent*depth
@@ -359,8 +366,8 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        settings : QSettings
-                   Save settings to platform specific location
+            settings : QSettings
+                       Save settings to platform specific location
         '''
         
         if self.property_obj is not None:
@@ -378,8 +385,8 @@ class Property(QtCore.QObject):
         
         :Parameters:
         
-        settings : QSettings
-                   Load settings from platform specific location
+            settings : QSettings
+                       Load settings from platform specific location
         '''
         
         if self.property_obj is not None:
@@ -393,25 +400,25 @@ class Property(QtCore.QObject):
                 child.restoreState(settings)
             settings.endGroup()
 
-def register_property(name, bases, dict):
+def register_property(name, bases, dict_obj):
     ''' Register a property subclass with Property
     
     :Parameters:
     
-    name : str
-           Name of the class
-    bases : list
-            Base classes
-    dict : dict
-           Class attributes
+        name : str
+               Name of the class
+        bases : list
+                Base classes
+        dict_obj : dict
+                   Class attributes
     
     :Returns:
     
-    type : type
-           Type of the class
+        type : type
+               Type of the class
     '''
     
-    classType = type(name, bases, dict)
+    classType = type(name, bases, dict_obj)
     Property.PROPERTIES.append(classType)
     return classType
 
@@ -420,13 +427,13 @@ def parseHints(name, obj):
     
     :Parameters:
     
-    obj : object
-          Input property object, 
+        obj : object
+              Input property object, 
     
     :Returns:
     
-    hints : dict
-            Editor hint map
+        hints : dict
+                Editor hint map
     '''
     
     hints={}
@@ -452,62 +459,63 @@ def parseHints(name, obj):
 
 class ChoiceProperty(Property):
     '''Connect a choice property to a QComboBox
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-           Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a Choice Property"
+    def __init__(self, name, group, property_obj=None, hints={}, doc="", flag="", parent=None):
+        ''' Initialize a Choice Property
         
-        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+            :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                   Parent object
+        '''
+        
+        Property.__init__(self, name, group, property_obj, hints, doc, flag, parent)
         self.choices = self.hints["choices"]
-        self.use_int = isinstance( property.property(name), ( int, long ) )
+        self.use_int = isinstance( property_obj.property(name), ( int, long ) )
     
     @classmethod
-    def create(cls, name, group, property=None, extended=None, parent=None):
+    def create(cls, name, group, property_obj=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a ChoiceProperty
         
         :Parameters:
-        
-        name : str
-               Name of the property
-        group : int
-                Group index
-        property : QObject
-                   Property object
-        extended : object
-                   Additional meta information
-        parent : QObject
-               Parent object
-        
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            extended : object
+                       Additional meta information
+            parent : QObject
+                   Parent object
+            
         :Returns:
-        
-        val : BoolProperty
-              Property object
+            
+            val : BoolProperty
+                  Property object
         '''
         
         name, hints, doc, flag = parseHints(name, extended)
-        _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
-        val = property.property(name)
+        _logger.debug("Create ChoiceProperty: %s - %s - %s"%(name, str(property_obj.property(name).__class__), str(hints)))
+        val = property_obj.property(name)
         if( isinstance( val, ( int, long ) ) or isinstance( val, basestring )  ) and "choices" in hints:
-            return cls(name, group, property, hints, doc, flag, parent)
+            return cls(name, group, property_obj, hints, doc, flag, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -515,16 +523,16 @@ class ChoiceProperty(Property):
         widget and style option are used to control how the editor widget appears.
         
         :Parameters:
-    
-        parent : QWidget
-                 Parent of created widget
-        option : QStyleOptionViewItem
-                 Used to describe the parameters used to draw an item in a view widget
+        
+            parent : QWidget
+                     Parent of created widget
+            option : QStyleOptionViewItem
+                     Used to describe the parameters used to draw an item in a view widget
         
         :Returns:
-        
-        val : QWidget
-              Widget to edit the cell value
+            
+            val : QWidget
+                  Widget to edit the cell value
         '''
         
         _logger.debug("Create QComboBox")
@@ -541,8 +549,8 @@ class ChoiceProperty(Property):
         
         :Parameters:
         
-        value : QObject
-               Value to store
+            value : QObject
+                   Value to store
         '''
 
         if is_int(value):
@@ -576,15 +584,15 @@ class ChoiceProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
-        data : object
-                Data to set in the editor
+            editor : QWidget
+                     Editor widget to display data
+            data : object
+                    Data to set in the editor
         
         :Returns:
         
-        val : bool
-              True if new value was set
+            val : bool
+                  True if new value was set
         '''
         
         index = editor.findText(data)
@@ -599,13 +607,13 @@ class ChoiceProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
+            editor : QWidget
+                     Editor widget to display data
         
         :Returns:
         
-        val : object
-              Data from the editor
+            val : object
+                  Data from the editor
         '''
         
         #return editor.currentIndex()
@@ -616,13 +624,13 @@ class ChoiceProperty(Property):
         
         :Parameters:
         
-        role : enum
-               Stored value role (Unused)
+            role : enum
+                   Stored value role (Unused)
         
         :Returns:
         
-        value : object
-                Stored value
+            value : object
+                    Stored value
         '''
         
         if self.property_obj is not None:
@@ -645,31 +653,32 @@ class ChoiceProperty(Property):
 
 class NumericProperty(Property):
     '''Connect a Numeric property to a QSpinBox
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-           Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a Numeric Property"
+    def __init__(self, name, group, property_obj=None, hints={}, doc="", flag="", parent=None):
+        '''Initialize a Numeric Property
         
-        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                   Parent object
+        '''
+        
+        Property.__init__(self, name, group, property_obj, hints, doc, flag, parent)
         #editorHints
         self.minimum = self.hints["minimum"] if "minimum" in self.hints else -32767
         self.maximum = self.hints["maximum"] if "maximum" in self.hints else 32767
@@ -693,32 +702,32 @@ class NumericProperty(Property):
         Property.setValue(self, val)
     
     @classmethod
-    def create(cls, name, group, property=None, extended=None, parent=None):
+    def create(cls, name, group, property_obj=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a NumericProperty
         
         :Parameters:
         
-        name : str
-               Name of the property
-        group : int
-                Group index
-        property : QObject
-                   Property object
-        extended : object
-                   Additional meta information
-        parent : QObject
-               Parent object
-        
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property : QObject
+                       Property object
+            extended : object
+                       Additional meta information
+            parent : QObject
+                   Parent object
+            
         :Returns:
-        
-        val : NumericProperty
-              Property object
+            
+            val : NumericProperty
+                  Property object
         '''
         
         name, hints, doc, flag = parseHints(name, extended)
-        _logger.debug("Create NumericProperty: %s - %s - %s | %d"%(name, str(property.property(name).__class__), str(hints), isinstance( property.property(name), ( int, long, float ) )))
-        if isinstance( property.property(name), ( int, long, float ) ) and not isinstance(property.property(name), bool):
-            return cls(name, group, property, hints, doc, flag, parent)
+        _logger.debug("Create NumericProperty: %s - %s - %s | %d"%(name, str(property_obj.property(name).__class__), str(hints), isinstance( property_obj.property(name), ( int, long, float ) )))
+        if isinstance( property_obj.property(name), ( int, long, float ) ) and not isinstance(property_obj.property(name), bool):
+            return cls(name, group, property_obj, hints, doc, flag, parent)
         return None
     
     def createEditor(self, parent, option):
@@ -726,16 +735,16 @@ class NumericProperty(Property):
         widget and style option are used to control how the editor widget appears.
         
         :Parameters:
-    
-        parent : QWidget
-                 Parent of created widget
-        option : QStyleOptionViewItem
-                 Used to describe the parameters used to draw an item in a view widget
+        
+            parent : QWidget
+                     Parent of created widget
+            option : QStyleOptionViewItem
+                     Used to describe the parameters used to draw an item in a view widget
         
         :Returns:
-        
-        val : QWidget
-              Widget to edit the cell value
+            
+            val : QWidget
+                  Widget to edit the cell value
         '''
         
         editor = None
@@ -767,15 +776,15 @@ class NumericProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
-        data : object
-                Data to set in the editor
+            editor : QWidget
+                     Editor widget to display data
+            data : object
+                    Data to set in the editor
         
         :Returns:
-        
-        val : bool
-              True if new value was set
+            
+            val : bool
+                  True if new value was set
         '''
         
         val = self.value()
@@ -797,13 +806,13 @@ class NumericProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
+            editor : QWidget
+                     Editor widget to display data
         
         :Returns:
         
-        val : object
-              Data from the editor
+            val : object
+                  Data from the editor
         '''
         
         if isinstance( self.value(), ( int, long, float ) ):
@@ -812,60 +821,61 @@ class NumericProperty(Property):
 
 class BoolProperty(Property):
     '''Connect a bool property to a QCheckBox
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-           Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a Boolean Property"
+    def __init__(self, name, group, property_obj=None, hints={}, doc="", flag="", parent=None):
+        '''Initialize a Boolean Property
         
-        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                   Parent object
+        '''
+        
+        Property.__init__(self, name, group, property_obj, hints, doc, flag, parent)
     
     @classmethod
-    def create(cls, name, group, property=None, extended=None, parent=None):
+    def create(cls, name, group, property_obj=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a BoolProperty
         
         :Parameters:
         
-        name : str
-               Name of the property
-        group : int
-                Group index
-        property : QObject
-                   Property object
-        extended : object
-                   Additional meta information
-        parent : QObject
-                 Parent object
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            extended : object
+                       Additional meta information
+            parent : QObject
+                     Parent object
         
         :Returns:
-        
-        val : BoolProperty
-              Property object
+            
+            val : BoolProperty
+                  Property object
         '''
         
         name, hints, doc, flag = parseHints(name, extended)
-        _logger.debug("Create BoolProperty: %s - %s"%(name, str(property.property(name).__class__), ))
+        _logger.debug("Create BoolProperty: %s - %s"%(name, str(property_obj.property(name).__class__), ))
         
-        if isinstance(property.property(name), bool):
-            return cls(name, group, property, hints, doc, flag, parent)
+        if isinstance(property_obj.property(name), bool):
+            return cls(name, group, property_obj, hints, doc, flag, parent)
         return None
     
     def setValue(self, val):
@@ -882,9 +892,9 @@ class BoolProperty(Property):
         '''Test if property defines a Bool
         
         :Returns:
-        
-        val : bool
-              True
+            
+            val : bool
+                  True
         '''
         
         return True
@@ -893,14 +903,14 @@ class BoolProperty(Property):
         ''' Get the value for the given role
         
         :Parameters:
-        
-        role : enum
-               Stored value role (Unused)
+            
+            role : enum
+                   Stored value role (Unused)
         
         :Returns:
-        
-        value : object
-                Stored value
+            
+            value : object
+                    Stored value
         '''
         
         
@@ -917,16 +927,16 @@ class BoolProperty(Property):
         widget and style option are used to control how the editor widget appears.
         
         :Parameters:
-    
-        parent : QWidget
-                 Parent of created widget
-        option : QStyleOptionViewItem
-                 Used to describe the parameters used to draw an item in a view widget
+        
+            parent : QWidget
+                     Parent of created widget
+            option : QStyleOptionViewItem
+                     Used to describe the parameters used to draw an item in a view widget
         
         :Returns:
-        
-        val : QWidget
-              Widget to edit the cell value
+            
+            val : QWidget
+                  Widget to edit the cell value
         '''
         
         editor = QtGui.QCheckBox(parent) #CheckboxWidget(parent)
@@ -941,15 +951,15 @@ class BoolProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
-        data : object
-                Data to set in the editor
+            editor : QWidget
+                     Editor widget to display data
+            data : object
+                    Data to set in the editor
         
         :Returns:
         
-        val : bool
-              True if new value was set
+            val : bool
+                  True if new value was set
         '''
         
         #editor = editor.button
@@ -963,14 +973,14 @@ class BoolProperty(Property):
         ''' Get the data from a finished editor.
         
         :Parameters:
-    
-        editor : QWidget
-                 Editor widget to display data
+        
+            editor : QWidget
+                     Editor widget to display data
         
         :Returns:
         
-        val : object
-              Data from the editor
+            val : object
+                  Data from the editor
         '''
         
         #return editor.button.checkState() == QtCore.Qt.Checked
@@ -978,59 +988,60 @@ class BoolProperty(Property):
 
 class FontProperty(Property):
     '''Connect a font property to a QFontDialog
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-           Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a Choice Property"
+    def __init__(self, name, group, property_obj=None, hints={}, doc="", flag="", parent=None):
+        '''Initialize a Choice Property
         
-        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                   Parent object
+        '''
+        
+        Property.__init__(self, name, group, property_obj, hints, doc, flag, parent)
     
     @classmethod
-    def create(cls, name, group, property=None, extended=None, parent=None):
+    def create(cls, name, group, property_obj=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a ChoiceProperty
         
         :Parameters:
         
-        name : str
-               Name of the property
-        group : int
-                Group index
-        property : QObject
-                   Property object
-        extended : object
-                   Additional meta information
-        parent : QObject
-               Parent object
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            extended : object
+                       Additional meta information
+            parent : QObject
+                   Parent object
         
         :Returns:
-        
-        val : BoolProperty
-              Property object
+            
+            val : BoolProperty
+                  Property object
         '''
         
         name, hints, doc, flag = parseHints(name, extended)
-        _logger.debug("Create FontProperty: %s - %s"%(name, str(property.property(name).__class__)))
-        if isinstance(property.property(name), QtGui.QFont):
-            return cls(name, group, property, hints, doc, flag, parent)
+        _logger.debug("Create FontProperty: %s - %s"%(name, str(property_obj.property(name).__class__)))
+        if isinstance(property_obj.property(name), QtGui.QFont):
+            return cls(name, group, property_obj, hints, doc, flag, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1039,15 +1050,15 @@ class FontProperty(Property):
         
         :Parameters:
     
-        parent : QWidget
-                 Parent of created widget
-        option : QStyleOptionViewItem
-                 Used to describe the parameters used to draw an item in a view widget
+            parent : QWidget
+                     Parent of created widget
+            option : QStyleOptionViewItem
+                     Used to describe the parameters used to draw an item in a view widget
         
         :Returns:
         
-        val : QWidget
-              Widget to edit the cell value
+            val : QWidget
+                  Widget to edit the cell value
         '''
         
         _logger.debug("Create QFontDialog")
@@ -1062,15 +1073,15 @@ class FontProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
-        data : object
-                Data to set in the editor
+            editor : QWidget
+                     Editor widget to display data
+            data : object
+                    Data to set in the editor
         
         :Returns:
         
-        val : bool
-              True if new value was set
+            val : bool
+                  True if new value was set
         '''
         
         editor.setCurrentFont(QtGui.QFont(data))
@@ -1081,13 +1092,13 @@ class FontProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
+            editor : QWidget
+                     Editor widget to display data
         
         :Returns:
         
-        val : object
-              Data from the editor
+            val : object
+                  Data from the editor
         '''
         
         #return editor.currentIndex()
@@ -1099,8 +1110,8 @@ class FontProperty(Property):
         
         :Parameters:
         
-        value : QObject
-               Value to store
+            value : QObject
+                   Value to store
         '''
         
         value = QtGui.QFont(value)
@@ -1111,13 +1122,13 @@ class FontProperty(Property):
         
         :Parameters:
         
-        role : enum
-               Stored value role (Unused)
+            role : enum
+                   Stored value role (Unused)
         
         :Returns:
         
-        value : object
-                Stored value
+            value : object
+                    Stored value
         '''
         
         if self.property_obj is not None:
@@ -1128,37 +1139,38 @@ class FontProperty(Property):
 
 class FilenameProperty(Property):
     '''Connect a font property to a file dialog
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-           Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a Choice Property"
+    def __init__(self, name, group, property_obj=None, hints={}, doc="", flag="", parent=None):
+        '''Initialize a Choice Property
         
-        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                   Parent object
+        '''
+        
+        Property.__init__(self, name, group, property_obj, hints, doc, flag, parent)
         self.filter = self.hints["filter"] if 'filter' in self.hints else ""
         self.path = self.hints["path"]if 'path' in self.hints else ""
         self.filetype = self.hints["filetype"]
-        self.classtype = property.property(name).__class__
+        self.classtype = property_obj.property(name).__class__
         #print 'here1', name, self.classtype
-        if isinstance(property.property(name), list) and self.filetype=='open':
+        if isinstance(property_obj.property(name), list) and self.filetype=='open':
             #print 'here2', name, self.classtype
             self.filetype = 'file-list'
     
@@ -1167,8 +1179,8 @@ class FilenameProperty(Property):
         
         :Returns:
         
-        val : bool
-              True by default for most properties
+            val : bool
+                  True by default for most properties
         '''
         
         if not self.required: return True
@@ -1177,32 +1189,32 @@ class FilenameProperty(Property):
         return self.value() != ""
     
     @classmethod
-    def create(cls, name, group, property=None, extended=None, parent=None):
+    def create(cls, name, group, property_obj=None, extended=None, parent=None):
         ''' Test if property holds a numeric type and if so return a ChoiceProperty
         
         :Parameters:
-        
-        name : str
-               Name of the property
-        group : int
-                Group index
-        property : QObject
-                   Property object
-        extended : object
-                   Additional meta information
-        parent : QObject
-               Parent object
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            extended : object
+                       Additional meta information
+            parent : QObject
+                   Parent object
         
         :Returns:
-        
-        val : BoolProperty
-              Property object
+            
+            val : BoolProperty
+                  Property object
         '''
         
         name, hints, doc, flag = parseHints(name, extended)
-        _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property.property(name).__class__), str(hints)))
-        if (isinstance(property.property(name), basestring) or isinstance(property.property(name), list)) and 'filetype' in hints:
-            return cls(name, group, property, hints, doc, flag, parent)
+        _logger.debug("Create FilenameProperty: %s - %s - %s"%(name, str(property_obj.property(name).__class__), str(hints)))
+        if (isinstance(property_obj.property(name), basestring) or isinstance(property_obj.property(name), list)) and 'filetype' in hints:
+            return cls(name, group, property_obj, hints, doc, flag, parent)
         return None
 
     def createEditor(self, parent, option):
@@ -1211,15 +1223,15 @@ class FilenameProperty(Property):
         
         :Parameters:
     
-        parent : QWidget
-                 Parent of created widget
-        option : QStyleOptionViewItem
-                 Used to describe the parameters used to draw an item in a view widget
+            parent : QWidget
+                     Parent of created widget
+            option : QStyleOptionViewItem
+                     Used to describe the parameters used to draw an item in a view widget
         
         :Returns:
         
-        val : QWidget
-              Widget to edit the cell value
+            val : QWidget
+                  Widget to edit the cell value
         '''
         
         editor = FileDialogWidget(self.filetype, self.filter, self.path, parent)
@@ -1232,15 +1244,15 @@ class FilenameProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
-        data : object
-                Data to set in the editor
+            editor : QWidget
+                     Editor widget to display data
+            data : object
+                    Data to set in the editor
         
         :Returns:
         
-        val : bool
-              True if new value was set
+            val : bool
+                  True if new value was set
         '''
         
         _logger.debug("FilenameProperty type %s"%(data.__class__))
@@ -1268,13 +1280,13 @@ class FilenameProperty(Property):
         
         :Parameters:
     
-        editor : QWidget
-                 Editor widget to display data
+            editor : QWidget
+                     Editor widget to display data
         
         :Returns:
-        
-        val : object
-              Data from the editor
+            
+            val : object
+                  Data from the editor
         '''
         
         #return editor.currentIndex()
@@ -1286,8 +1298,8 @@ class FilenameProperty(Property):
         
         :Parameters:
         
-        value : QObject
-               Value to store
+            value : QObject
+                   Value to store
         '''
         
         _logger.debug("setValue Qstring")
@@ -1301,14 +1313,14 @@ class FilenameProperty(Property):
         ''' Get the value for the given role
         
         :Parameters:
-        
-        role : enum
-               Stored value role (Unused)
+            
+            role : enum
+                   Stored value role (Unused)
         
         :Returns:
-        
-        value : object
-                Stored value
+            
+            value : object
+                    Stored value
         '''
         
         return Property.value(self, role)
@@ -1468,71 +1480,72 @@ class WorkflowProperty(Property):
 
 class StringProperty(Property):
     '''Connect a String property to a QLineEdit
-        
-    :Parameters:
-    
-    name : str
-           Name of the property
-    group : int
-            Group index
-    property : QObject
-               Property object
-    hints : dict
-            GUI hints
-    doc : str
-          GUI help string
-    flag : str
-           Flag identifier if property corresponds to an option
-    parent : QObject
-           Parent object
     '''
     
     __metaclass__ = register_property
     
-    def __init__(self, name, group, property=None, hints={}, doc="", flag="", parent=None):
-        "Initialize a String Property"
+    def __init__(self, name, group, property_obj=None, hints={}, doc="", flag="", parent=None):
+        '''Initialize a String Property
         
-        Property.__init__(self, name, group, property, hints, doc, flag, parent)
+        :Parameters:
+            
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            hints : dict
+                    GUI hints
+            doc : str
+                  GUI help string
+            flag : str
+                   Flag identifier if property corresponds to an option
+            parent : QObject
+                   Parent object
+        '''
+        
+        Property.__init__(self, name, group, property_obj, hints, doc, flag, parent)
     
     def isValid(self):
         ''' Test if the property holds a valid value
         
         :Returns:
-        
-        val : bool
-              True by default for most properties
+            
+            val : bool
+                  True by default for most properties
         '''
         
         if not self.required: return True
         return self.value() != ""
     
     @classmethod
-    def create(cls, name, group, property=None, extended=None, parent=None):
+    def create(cls, name, group, property_obj=None, extended=None, parent=None):
         ''' Test if property holds a string type and if so return a StringProperty
         
         :Parameters:
         
-        name : str
-               Name of the property
-        group : int
-                Group index
-        property : QObject
-                   Property object
-        extended : object
-                   Additional meta information
-        parent : QObject
-               Parent object
+            name : str
+                   Name of the property
+            group : int
+                    Group index
+            property_obj : QObject
+                       Property object
+            extended : object
+                       Additional meta information
+            parent : QObject
+                   Parent object
         
         :Returns:
         
-        val : StringProperty
-              Property object
+            val : StringProperty
+                  Property object
         '''
         
         name, hints, doc, flag = parseHints(name, extended)
-        _logger.debug("Create StringProperty: %s - %s"%(name, str(property.property(name).__class__)))
-        if isinstance(property.property(name), basestring) or isinstance(property.property(name), list):
-            return cls(name, group, property, hints, doc, flag, parent)
+        _logger.debug("Create StringProperty: %s - %s"%(name, str(property_obj.property(name).__class__)))
+        if isinstance(property_obj.property(name), basestring) or isinstance(property_obj.property(name), list):
+            return cls(name, group, property_obj, hints, doc, flag, parent)
         return None
     
     def setValue(self, value):
@@ -1540,8 +1553,8 @@ class StringProperty(Property):
         
         :Parameters:
         
-        value : QObject
-               Value to store
+            value : QObject
+                   Value to store
         '''
         
         if value is not None:
@@ -1572,13 +1585,13 @@ def is_int(f):
     
     :Parameters:
 
-    obj : float
-          A float value
+        obj : float
+              A float value
         
     :Returns:
         
-    return_val : boolean
-                 True if float holds an integer
+        return_val : boolean
+                     True if float holds an integer
     '''
     
     try:
