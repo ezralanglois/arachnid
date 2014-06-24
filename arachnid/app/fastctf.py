@@ -13,7 +13,7 @@ values using the 2D CTF model.
 
 .. Created on Apr 8, 2014
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
-'''
+''' 
 
 from ..core.app import program
 from ..core.image import ndimage_file
@@ -57,27 +57,27 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
                    Current filename
     '''
     
-    id = spider_utility.spider_id(filename, id_len)
-    spider_utility.update_spider_files(extra, id, 'pow_file')
+    fid = spider_utility.spider_id(filename, id_len)
+    spider_utility.update_spider_files(extra, fid, 'pow_file')
     pow_file=extra['pow_file']
     
     _logger.debug("Generate power spectra")
-    pow = generate_powerspectra(filename, **extra)
-    #pow += pow.min()+1
-    #pow = numpy.log(pow)
+    powspec = generate_powerspectra(filename, **extra)
+    #powspec += pow.min()+1
+    #powspec = numpy.log(powspec)
     
-    defu, defv, defa, error, beg, end, window = estimate_defocus_2D(pow, input_filename=filename, **extra)
-    vals=[id, defu, defv, defa, (defu+defv)/2.0, numpy.abs(defu-defv), error]
+    defu, defv, defa, error, beg, end, window = estimate_defocus_2D(powspec, input_filename=filename, **extra)
+    vals=[fid, defu, defv, defa, (defu+defv)/2.0, numpy.abs(defu-defv), error]
     
     _logger.debug("Defocus=%f, %f, %f, %f"%(defu, defv, defa, error))
     
     if pow_file != "":
-        pow = power_spectra_model_range(pow, defu, defv, defa, beg, end, window, **extra)
-        #pow = power_spectra_model(pow, defu, defv, defa, **extra)
+        powspec = power_spectra_model_range(powspec, defu, defv, defa, beg, end, window, **extra)
+        #powspec = power_spectra_model(powspec, defu, defv, defa, **extra)
         if use_8bit:
             #os.unlink(spi.replace_ext(output_pow))
-            ndimage_file.write_image_8bit(pow_file, pow, equalize=True, header=dict(apix=extra['apix']))
-        else: ndimage_file.write_image(pow_file, pow, header=dict(apix=extra['apix']))
+            ndimage_file.write_image_8bit(pow_file, powspec, equalize=True, header=dict(apix=extra['apix']))
+        else: ndimage_file.write_image(pow_file, powspec, header=dict(apix=extra['apix']))
     
     # Todo:
     # B-factor
@@ -86,13 +86,13 @@ def process(filename, id_len=0, use_8bit=False, **extra):#, neig=1, nstd=1.5
     
     return filename, numpy.asarray(vals)
 
-def power_spectra_model_range(pow, defu, defv, defa, beg, end, bswindow, ampcont, cs, voltage, apix, bfactor=0, out=None, tdv=0.0, bs=False, mask_pow=False, **extra):
+def power_spectra_model_range(powspec, defu, defv, defa, beg, end, bswindow, ampcont, cs, voltage, apix, bfactor=0, out=None, tdv=0.0, bs=False, mask_pow=False, **extra):
     ''' Generate model for a specific range of rings
     
     :Parameters:
         
-        pow : array
-              Image of 2D power spectra
+        powspec : array
+                  Image of 2D power spectra
         defu : float
                Defocus on minor axis in angstroms
         defv : float
@@ -127,45 +127,45 @@ def power_spectra_model_range(pow, defu, defv, defa, beg, end, bswindow, ampcont
               
     '''
     
-    mask = ndimage_utility.model_ring(beg, end, pow.shape) < 0.5
-    out=pow.copy()
-    model = ctf_model.transfer_function_2D_full(pow.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
+    mask = ndimage_utility.model_ring(beg, end, powspec.shape) < 0.5
+    out=powspec.copy()
+    model = ctf_model.transfer_function_2D_full(powspec.shape, defu, defv, defa, ampcont, cs, voltage, apix, bfactor)**2
     if bs:
-        pow = subtract_background(pow, bswindow)
+        powspec = subtract_background(powspec, bswindow)
     if tdv > 0:
         from skimage.filter import denoise_tv_chambolle as tv_denoise
-        pow = tv_denoise(pow, weight=tdv, eps=2.e-4, n_iter_max=200)
+        powspec = tv_denoise(powspec, weight=tdv, eps=2.e-4, n_iter_max=200)
     
-    out[:, :pow.shape[0]/2] = model[:, :pow.shape[0]/2]
-    
-    if mask_pow:
-        tmask = mask.copy()
-        tmask[:, pow.shape[0]/2:]=0
-        gmask = numpy.logical_not(mask.copy())
-        gmask[:, pow.shape[0]/2:]=0
-        out[tmask] = numpy.mean(model[gmask])
-    
-    out[:, pow.shape[0]/2:] = pow[:, pow.shape[0]/2:]
+    out[:, :powspec.shape[0]/2] = model[:, :powspec.shape[0]/2]
     
     if mask_pow:
         tmask = mask.copy()
-        tmask[:, :pow.shape[0]/2]=0
+        tmask[:, powspec.shape[0]/2:]=0
         gmask = numpy.logical_not(mask.copy())
-        gmask[:, :pow.shape[0]/2]=0
+        gmask[:, powspec.shape[0]/2:]=0
+        out[tmask] = numpy.mean(model[gmask])
+    
+    out[:, powspec.shape[0]/2:] = powspec[:, powspec.shape[0]/2:]
+    
+    if mask_pow:
+        tmask = mask.copy()
+        tmask[:, :powspec.shape[0]/2]=0
+        gmask = numpy.logical_not(mask.copy())
+        gmask[:, :powspec.shape[0]/2]=0
         out[tmask] = numpy.mean(model[gmask])
     
     
-    out[:, :pow.shape[0]/2]=ndimage_utility.histeq(out[:, :pow.shape[0]/2])
-    out[:, pow.shape[0]/2:]=ndimage_utility.histeq(out[:, pow.shape[0]/2:])
+    out[:, :powspec.shape[0]/2]=ndimage_utility.histeq(out[:, :powspec.shape[0]/2])
+    out[:, powspec.shape[0]/2:]=ndimage_utility.histeq(out[:, powspec.shape[0]/2:])
     return out
 
-def estimate_defocus_2D(pow, astig_limit=5000.0, **extra):
+def estimate_defocus_2D(powspec, astig_limit=5000.0, **extra):
     '''Estimate the defocus of an image from the 2D power spectra
     
     :Parameters:
         
-        pow : array
-              Image of 2D power spectra
+        powspec : array
+                  Image of 2D power spectra
         astig_limit : float
                       Maximum allowed astigmastism
         extra : dict
@@ -189,14 +189,14 @@ def estimate_defocus_2D(pow, astig_limit=5000.0, **extra):
                  Size of window for background subtraction
     '''
     
-    defu, defv, defa = esimate_defocus_range(pow, **extra)
+    defu, defv, defa = esimate_defocus_range(powspec, **extra)
     _logger.debug("Guess(Attempt #1)=%f, %f, %f"%(defu, defv, defa))
     if defu < 0 or numpy.abs(defu-defv) > astig_limit:
-        pow2 = ndimage_interpolate.downsample(pow, 2)
+        pow2 = ndimage_interpolate.downsample(powspec, 2)
         defu, defv, defa = esimate_defocus_range(pow2, **extra)
         _logger.debug("Guess(Attempt #2)=%f, %f, %f"%(defu, defv, defa))
         if defu < 0 or numpy.abs(defu-defv) > astig_limit:
-            pow2 = ndimage_interpolate.downsample(pow, 2)
+            pow2 = ndimage_interpolate.downsample(powspec, 2)
             defu, defv, defa = esimate_defocus_range(pow2, **extra)
             _logger.debug("Guess(Attempt #3)=%f, %f, %f"%(defu, defv, defa))
         orig = extra['bfactor']
@@ -213,7 +213,7 @@ def estimate_defocus_2D(pow, astig_limit=5000.0, **extra):
     
     '''
     if defu < 0 or numpy.abs(defu-defv) > 5000:
-        pow2 = ndimage_interpolate.downsample(pow, 2)
+        pow2 = ndimage_interpolate.downsample(powspec, 2)
         param = dict(extra)
         param['bin_factor']*=2
         param.update(spider_params.update_params(**param))
@@ -221,21 +221,21 @@ def estimate_defocus_2D(pow, astig_limit=5000.0, **extra):
         defu, defv, defa = esimate_defocus_range(pow2, **param)
         _logger.debug("Guess(Attempt #4)=%f, %f, %f"%(defu, defv, defa))
     ''' 
-    beg, end, window = resolution_range(pow)
+    beg, end, window = resolution_range(powspec)
     _logger.debug("Mask: %d - %d"%(beg,end))
-    #pow1=pow.copy()
-    pow = subtract_background(pow, window)
+    #pow1=powspec.copy()
+    powspec = subtract_background(powspec, window)
     
-    mask = ndimage_utility.model_ring(beg, end, pow.shape)
+    mask = ndimage_utility.model_ring(beg, end, powspec.shape)
     mask[:, :mask.shape[0]/2+beg]=0
     mask = numpy.nonzero(mask)
     
-    args = (pow, mask, extra['ampcont'], extra['cs'], extra['voltage'], extra['apix'], extra.get('bfactor', 0))
+    args = (powspec, mask, extra['ampcont'], extra['cs'], extra['voltage'], extra['apix'], extra.get('bfactor', 0))
     defu, defv, defa = scipy.optimize.leastsq(model_fit_error_2d,[defu, defv, defa],args=args)[0]
     error = numpy.sqrt(numpy.sum(numpy.square(model_fit_error_2d([defu, defv, defa], *args))))
     return defu, defv, defa, error, beg, end, window
     
-def model_fit_error_2d(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
+def model_fit_error_2d(p, powspec, mask, ampcont, cs, voltage, apix, bfactor):
     ''' Estimate the error between the data, 2D power spectra, and model
     
     :Parameters:
@@ -244,7 +244,7 @@ def model_fit_error_2d(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
             A 3-element array with defu, defv and defa, i.e.
             defocus on minor and major axis in angstroms along with angle
             between the x-axis and the minor axis in degrees.
-        pow : array
+        powspec : array
               Image of 2D power spectra
         mask : array
                Valid range to compare
@@ -265,11 +265,11 @@ def model_fit_error_2d(p, pow, mask, ampcont, cs, voltage, apix, bfactor):
                 Error for each pixel between data and model
     '''
     
-    model = ctf_model.transfer_function_2D_full(pow.shape, p[0], p[1], p[2], ampcont, cs, voltage, apix, bfactor)**2
-    #_logger.debug("Defocus=%f - Error=%f"%(p, numpy.sum(numpy.square(model[mask]-pow[mask]))))
-    return model[mask].ravel()-pow[mask].ravel()
+    model = ctf_model.transfer_function_2D_full(powspec.shape, p[0], p[1], p[2], ampcont, cs, voltage, apix, bfactor)**2
+    #_logger.debug("Defocus=%f - Error=%f"%(p, numpy.sum(numpy.square(model[mask]-powspec[mask]))))
+    return model[mask].ravel()-powspec[mask].ravel()
 
-def resolution_range(pow):
+def resolution_range(powspec):
     ''' Determine resolution range for 2d power spectra using heuristics
     
     The following heuristics are used to determine the range:
@@ -282,8 +282,8 @@ def resolution_range(pow):
     
     :Parameters:
     
-        pow : array
-              Image of 2D power spectra
+        powspec : array
+                  Image of 2D power spectra
     
     :Returns:
     
@@ -295,7 +295,7 @@ def resolution_range(pow):
                  Window size used for background subtraction
     '''
     
-    ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
+    ppow = ndimage_utility.polar_half(powspec, rng=(0, powspec.shape[1]/2)).copy()
     window = int(ppow.shape[1]*0.08)
     if (window%2)==0: window+=1
     roo = subtract_background(ppow.mean(axis=0), window)
@@ -303,13 +303,13 @@ def resolution_range(pow):
     end = energy_cutoff(roo[beg:])+beg
     return beg, end, window
 
-def esimate_defocus_1D(pow, **extra):
+def esimate_defocus_1D(powspec, **extra):
     '''Estimate the mean defocus
     
     :Parameters:
     
-        pow : array
-              Image of 2D power spectra
+        powspec : array
+                  Image of 2D power spectra
         extra : dict
                 Unused keyword arguments
     
@@ -323,7 +323,7 @@ def esimate_defocus_1D(pow, **extra):
                Astigmatism angle in degrees between x-axis and minor defocus axis
     '''
     
-    ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
+    ppow = ndimage_utility.polar_half(powspec, rng=(0, powspec.shape[1]/2)).copy()
     raw = ppow.mean(axis=0)
     window = int(raw.shape[0]*0.08)
     if (window%2)==0: window+=1
@@ -333,7 +333,7 @@ def esimate_defocus_1D(pow, **extra):
     defu = estimate_1D(roo, beg, end, **extra)
     return defu, defu, 0.0
 
-def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
+def esimate_defocus_range(powspec, awindow_size=64, overlap=0.9, **extra):
     '''Estimate the maximum and minimum defocus as well as the angle of astigmatism
     
     This function calculates the polar form of the power spectra. It, then, estimates
@@ -342,7 +342,7 @@ def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
     
     :Parameters:
     
-        pow : array
+        powspec : array
               Image of 2D power spectra
         awindow_size : int
                        Number of neighboring polar 1D power spectra to average
@@ -361,7 +361,7 @@ def esimate_defocus_range(pow, awindow_size=64, overlap=0.9, **extra):
                Astigmatism angle in degrees between x-axis and minor defocus axis
     '''
     
-    ppow = ndimage_utility.polar_half(pow, rng=(0, pow.shape[1]/2)).copy()
+    ppow = ndimage_utility.polar_half(powspec, rng=(0, powspec.shape[1]/2)).copy()
     step = max(1, awindow_size*(1.0-overlap))
     rpow = ndimage_utility.rolling_window(ppow, (awindow_size, 0), (step,1))
     raw = rpow.mean(axis=-1)
@@ -416,11 +416,9 @@ def first_zero(roo, offset=10):
     '''
     
     if 1 == 1:
-        from ..core.image import peakdetect_1d
-        peak = peakdetect_1d.peakdetect(roo, lookahead=5)[1]
+        peak = ndimage_utility.peakdetect(roo, lookahead=5)[1]
         return peak[1][0]
         
-    
     roo = roo[offset:]
     zero = numpy.mean(roo[len(roo)-len(roo)/5:])
     minima = []
@@ -483,12 +481,13 @@ def subtract_background(roo, window):
     bg[off:len(roo)-off]=numpy.convolve(roo, weightings)[window-1:-(window-1)]
     return roo-bg
 
+    """
 def denoise():
     '''
     '''
     from skimage.filter import denoise_tv_chambolle as tv_denoise
     
-    """
+    
     raw = ndimage_utility.mean_azimuthal(pow)[4:pow.shape[0]/2]
         area = scipy.integrate.trapz(raw, dx=5)
         
@@ -620,8 +619,8 @@ def generate_powerspectra(filename, bin_factor, window_size, overlap, pad=1, off
     mic = ndimage_file.read_image(filename)
     #if bin_factor > 1.0: mic = ndimage_interpolate.resample_fft(mic, bin_factor, pad=3)
     if bin_factor > 1.0: mic = ndimage_interpolate.downsample(mic, bin_factor)
-    pow = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset)
-    return pow
+    powspec = ndimage_utility.perdiogram(mic, window_size, pad, overlap, offset)
+    return powspec
 
 def _perdiogram(mic, window_size=256, pad=1, overlap=0.5, offset=0.1, shift=True, feature_size=8):
     '''
@@ -715,11 +714,11 @@ def initialize(files, param):
         else:
             saved=[]
             for filename in param['finished']:
-                id = spider_utility.spider_id(filename)
-                if id not in defvals: 
+                fid = spider_utility.spider_id(filename)
+                if fid not in defvals: 
                     files.append(filename)
                     continue
-                saved.append(defvals[id])
+                saved.append(defvals[fid])
             if len(saved) > 0: format.write(param['output'], saved)
             param['output_offset']=len(saved)
         
