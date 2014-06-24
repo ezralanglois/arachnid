@@ -203,7 +203,12 @@ This generates a list of failed imports of optional modules, which will be logge
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 
-import logging, logging.config, os, socket, time, sys, zipfile
+import logging.config
+import os
+import socket
+import time
+import sys
+import zipfile
 
 class Logger(logging.Logger):
     ''' Maintains a list of loggers for this package
@@ -342,6 +347,8 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_st
                 if backupname: logging.debug("Backing up log file to %s"%(backupname))
                 h = logging.FileHandler(log_file, mode=log_mode)
                 h.addFilter(ExceptionFilter())
+                backupname = backup(default_error_log)
+                if backupname: logging.debug("Backing up crash report to %s"%(backupname))
                 handlers.append(logging.FileHandler(default_error_log, mode='w'))
                 handlers.append(h)
                 if enable_stderr: 
