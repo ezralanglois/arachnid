@@ -147,6 +147,8 @@ If you are using VirtualBox as your Virtual Machine, then the following link is 
 CentOS 5 bare minimum install (described below) with Anaconda and Arachnid (4 gigs):
 
 	`Download VirtualBox VM <https://downloads.sourceforge.net/project/arachnidvm/Arachnid.zip?r=&ts=1403224899&use_mirror=superb-dca3>`_
+	
+Username/password = root/root
 
 Build System: CentOS 5.10
 -------------------------
