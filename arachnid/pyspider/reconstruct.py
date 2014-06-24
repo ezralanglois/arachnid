@@ -95,7 +95,7 @@ Reconstruction Options
     
     Multiply by the CTF rather than phase flip before backprojection
 
-.. option:: --engine <('MPI_nn4', 'BPCG', 'BP32F')>
+.. option:: --engine <(MPI_nn4, BPCG, BP32F)>
 
     Type of reconstruction engine to use
     

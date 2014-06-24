@@ -134,8 +134,8 @@ def write_relion_settings(align_file, mask_diameter, apix, **extra):
                         Diameter of mask in angstroms
         apix : float
                Pixel size in angstroms
-    extra : dict
-            Keyword arguments
+        extra : dict
+                Keyword arguments
     '''
     
     fout = open('.lastrun_gui2d.settings', 'w')

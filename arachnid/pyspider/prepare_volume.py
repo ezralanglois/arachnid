@@ -72,7 +72,7 @@ Critical Options
     
     Number of times to decimate params file
 
-.. option:: volume-mask <('A', 'C', 'G' or FILENAME)>
+.. option:: volume-mask (A, C, G or <FILENAME>)
     
     Set the type of mask: C for cosine and G for Gaussian and N for no mask and A for adaptive tight mask or a filepath for external mask
 

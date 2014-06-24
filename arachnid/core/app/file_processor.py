@@ -338,19 +338,19 @@ def check_dependencies(files, restart_file, infile_deps, outfile_deps=[], opt_ch
         if len(files) == 1:
             
             deps = [f] if not isinstance(f, int) else []
-            for input in infile_deps:
-                if input == "" or isinstance(extra[input], list): continue
-                if spider_utility.is_spider_filename(extra[input]) and spider_utility.is_spider_filename(f):
-                    deps.append(spider_utility.spider_filename(extra[input], f, id_len))
+            for input_dep in infile_deps:
+                if input == "" or isinstance(extra[input_dep], list): continue
+                if spider_utility.is_spider_filename(extra[input_dep]) and spider_utility.is_spider_filename(f):
+                    deps.append(spider_utility.spider_filename(extra[input_dep], f, id_len))
                 else: 
-                    deps.append(extra[input])
+                    deps.append(extra[input_dep])
         else:
             deps = [f] if not isinstance(f, int) else []
-            deps.extend([spider_utility.spider_filename(extra[input], f, id_len) for input in infile_deps if input != "" and not isinstance(extra[input], list) and spider_utility.is_spider_filename(extra[input])])
+            deps.extend([spider_utility.spider_filename(extra[input_dep], f, id_len) for input_dep in infile_deps if input_dep != "" and not isinstance(extra[input_dep], list) and spider_utility.is_spider_filename(extra[input_dep])])
         if data_ext is not None:
             for i in xrange(len(deps)):
                 if os.path.splitext(deps[i])[1] == "": deps[i] += '.'+data_ext
-        mods = [os.path.getctime(input) for input in deps if input != "" and os.path.exists(input)]
+        mods = [os.path.getctime(input_dep) for input_dep in deps if input_dep != "" and os.path.exists(input_dep)]
         last_input = numpy.max( mods ) if len(mods) > 0 else 0
         
         fileid = spider_utility.spider_id(filename, 0, False) if spider_utility.is_spider_filename(filename) else filename

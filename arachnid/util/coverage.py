@@ -181,9 +181,9 @@ Supported Projection Plots
 
 The following are supported projections for the `:option:-p` option.
 
-======    =================================
+=======   =================================
 Option    Description
-======    =================================
+=======   =================================
 aeqd      Azimuthal Equidistant
 poly      Polyconic
 gnom      Gnomonic
@@ -214,7 +214,7 @@ ortho     Orthographic
 cass      Cassini-Soldner
 splaea    South-Polar Lambert Azimuthal
 robin     Robinson
-======    =================================
+=======   =================================
 
 .. note::
     
@@ -232,7 +232,7 @@ from ..core.metadata import format_utility
 from ..core.orient import healpix
 from ..core.orient import spider_transforms
 from mpl_toolkits import basemap
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits import mplot3d
 import matplotlib.cm as cm
 import matplotlib.cm
 import matplotlib.lines
@@ -310,7 +310,7 @@ def scatterEuler3d(fig, angs, cnt, color_map='cool', hide_zero_marker=False, **e
         nhist-=nhist.min()
         nhist/=nhist.max()
     
-    ax = Axes3D(fig)
+    ax = mplot3d.Axes3D(fig)
     data = numpy.zeros((len(angs), 3))
     for i in xrange(len(angs)):
         if i == 0: print angs[i, :]
