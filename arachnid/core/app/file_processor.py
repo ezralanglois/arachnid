@@ -222,7 +222,8 @@ def main(files, module, **extra):
     restart_fout = open(restart_file, 'w') if restart_file is not None else None
     if restart_fout is not None:
         for f in finished:
-            restart_fout.write(str(f)+'\n')
+            fileid = spider_utility.spider_id(f) if spider_utility.is_spider_filename(f) else f
+            restart_fout.write(str(fileid)+'\n')
     current = 0
     _logger.debug("Start processing")
     for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
@@ -295,6 +296,7 @@ def check_dependencies(files, restart_file, infile_deps, outfile_deps=[], opt_ch
     
     restart_files = set([f.strip() for f in open(restart_file, 'r').readlines()]) if restart_file is not None and os.path.exists(restart_file) else None
     
+    restart_example = ",".join([v for v in list(restart_files)[:3]])
     if opt_changed or force:
         msg = "configuration file changed" if opt_changed else "--force option specified"
         _logger.info("Skipping 0 files - restarting from the beginning - %s"%msg)
@@ -353,13 +355,13 @@ def check_dependencies(files, restart_file, infile_deps, outfile_deps=[], opt_ch
         mods = [os.path.getctime(input_dep) for input_dep in deps if input_dep != "" and os.path.exists(input_dep)]
         last_input = numpy.max( mods ) if len(mods) > 0 else 0
         
-        fileid = spider_utility.spider_id(filename, 0, False) if spider_utility.is_spider_filename(filename) else filename
+        fileid = spider_utility.spider_id(filename) if spider_utility.is_spider_filename(filename) else filename
         if last_input >= first_output:
             _logger.debug("Adding: %s because %s has been modified in the future"%(f, deps[numpy.argmax(mods)]))
             unfinished.append(filename)
             continue
-        elif not disable_restart_file and restart_files is not None and fileid not in restart_files:
-            _logger.debug("Adding: %s because it is not in the restart file"%(f))
+        elif not disable_restart_file and restart_files is not None and str(fileid) not in restart_files:
+            _logger.debug("Adding: %s because it is not in the restart file, e.g. %s"%(f, restart_example))
             unfinished.append(filename)
             continue
         else: finished.append(filename)
