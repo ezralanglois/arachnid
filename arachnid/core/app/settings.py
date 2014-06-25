@@ -1044,10 +1044,13 @@ class OptionParser(optparse.OptionParser):
             try:
                 os.makedirs(os.path.dirname(output))
             except: pass
-        fout = file(output, mode)
-        fout.write("# %s - %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), str(self.version)))
-        self.write(fout, changed, comments=False)
-        fout.close()
+        fout = None
+        try:
+            fout = file(output, mode)
+            fout.write("# %s - %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), str(self.version)))
+            self.write(fout, changed, comments=False)
+        finally: 
+            if fout is not None: fout.close()
         
         dep_opts = set(self.collect_dependent_options())
         dep = [key for key,val in vars(changed).iteritems() if key in dep_opts and val is not None]
@@ -2003,9 +2006,11 @@ class VersionControl(object):
         '''
         
         now = datetime.datetime.now()
-        fout = file(self.filename, 'a')
-        fout.write("# %s: %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), message))
-        fout.close()
+        try:
+            fout = file(self.filename, 'a')
+            fout.write("# %s: %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), message))
+            fout.close()
+        except: pass
 
 def setup_options_from_doc(parser, *args, **kwargs):
     ''' Extract command line options from function documentation

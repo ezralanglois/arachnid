@@ -295,8 +295,7 @@ def check_dependencies(files, restart_file, infile_deps, outfile_deps=[], opt_ch
     '''
     
     restart_files = set([f.strip() for f in open(restart_file, 'r').readlines()]) if restart_file is not None and os.path.exists(restart_file) else None
-    
-    restart_example = ",".join([v for v in list(restart_files)[:3]])
+    restart_example = ",".join([v for v in list(restart_files)[:3]]) if restart_files is not None else ""
     if opt_changed or force:
         msg = "configuration file changed" if opt_changed else "--force option specified"
         _logger.info("Skipping 0 files - restarting from the beginning - %s"%msg)
