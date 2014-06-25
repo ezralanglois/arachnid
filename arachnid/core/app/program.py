@@ -285,7 +285,7 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
         _logger.info("Program: %s"%(main_module.__name__))# , extra=dict(tofile=True))
         _logger.info("Version: %s"%(str(root_module.__version__)), extra=dict(tofile=True))
         _logger.info("PID: %d"%os.getpid())
-        _logger.info("Created: %d"%psutil.Process(os.getpid()).create_time)
+        _logger.info("Created: %d"%int(psutil.Process(os.getpid()).create_time()))
     
     #mpi_utility.mpi_init(param, **param)
     if supports_OMP:
