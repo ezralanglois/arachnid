@@ -343,8 +343,12 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_st
         try: 
             if log_file != "":
                 logging.debug("Writing to log file: %s"%(log_file))
-                backupname = backup(log_file)
-                if backupname: logging.debug("Backing up log file to %s"%(backupname))
+                try:
+                    backupname = backup(log_file)
+                except:
+                    logging.warn("Unable to backup log file")
+                else:
+                    if backupname: logging.debug("Backing up log file to %s"%(backupname))
                 h = logging.FileHandler(log_file, mode=log_mode)
                 h.addFilter(ExceptionFilter())
                 backupname = backup(default_error_log)
@@ -365,6 +369,8 @@ def configure_logging(rank=0, log_level=3, log_file="", log_config="", enable_st
                 logging.exception("Logging to %s"%log_file)
             ch = logging.StreamHandler()
             try:
+                backupname = backup(default_error_log)
+                if backupname: logging.debug("Backing up crash report to %s"%(backupname))
                 handlers.append(logging.FileHandler(default_error_log, mode='w'))
             except: pass
             else: ch.addFilter(ExceptionFilter())

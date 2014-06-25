@@ -408,11 +408,11 @@ class Option(optparse.Option):
         """ Create an Option object
         
         :Parameters:
-            
-        args : list
-               Positional arguments
-        kwargs : dict
-                 Keyword arguments
+                
+            args : list
+                   Positional arguments
+            kwargs : dict
+                     Keyword arguments
         """
         
         self._required=False
@@ -465,9 +465,9 @@ class Option(optparse.Option):
         ''' Return the name Sphinx uses to identify an option
         
         :Returns:
-        
-        flag : str
-               Short option if it exists, otherwise long option
+            
+            flag : str
+                   Short option if it exists, otherwise long option
         '''
         
         if len(self._short_opts) > 0: return self._short_opts[0]
@@ -477,9 +477,9 @@ class Option(optparse.Option):
         ''' Test if option should be written to the configuration file
         
         :Returns:
-        
-        val : bool
-              True if should not be written to config file
+            
+            val : bool
+                  True if should not be written to config file
         '''
         
         return self.gui_hint is not None and 'nogui' in self.gui_hint
@@ -488,12 +488,12 @@ class Option(optparse.Option):
         ''' Validate this option
         
         :Parameters:
-            
-        values : object
-                 Option value collection
-        validators : dict
-                     Dictionary of validator objects, based 
-                     on the type of the option value
+                
+            values : object
+                     Option value collection
+            validators : dict
+                         Dictionary of validator objects, based 
+                         on the type of the option value
         '''
         
         if self.gui_hint is not None and 'type' in self.gui_hint and self.gui_hint['type'] in validators:
@@ -524,19 +524,19 @@ class Option(optparse.Option):
         
         :Parameters:
             
-        flag : str
-              The name of a flag
-        value : object
-                The value of a flag
-        args : list
-               A list of arguments
-        kwargs : dict
-                 A dictionary of keyword arguments
+            flag : str
+                  The name of a flag
+            value : object
+                    The value of a flag
+            args : list
+                   A list of arguments
+            kwargs : dict
+                     A dictionary of keyword arguments
         
         :Returns:
         
-        return_val : list
-                     A list of choices to set for the option
+            return_val : list
+                         A list of choices to set for the option
         '''
         
         # Get Validation
@@ -592,8 +592,8 @@ class Option(optparse.Option):
         
         :Returns:
         
-        val : bool
-              True if the callback holds Option.choice_index
+            val : bool
+                  True if the callback holds Option.choice_index
         '''
         
         if self.action == "callback":
@@ -610,15 +610,16 @@ class Option(optparse.Option):
         
         :Parameters:
         
-        value : object
-                The value whose type will be tested
-        kwargs : dict
-                 A dictionary of keyword arguments
+            value : object
+                    The value whose type will be tested
+            kwargs : dict
+                     A dictionary of keyword arguments
         
         :Returns:
-        
-        return_val : tuple
-                     The first value holds a dictionary, empty if the type is not found and the second a tuple of choices or None
+            
+            return_val : tuple
+                         The first value holds a dictionary, empty if the type 
+                         is not found and the second a tuple of choices or None
         '''
         
         TYPE_REGISTRY = {
@@ -655,16 +656,16 @@ class Option(optparse.Option):
         that does not match ATTRS in either Option class.
         
         :Parameters:
-            
-        args : list
-               A list of arguments
-        kwargs : dict
-                 A dictionary of keyword arguments
+                
+            args : list
+                   A list of arguments
+            kwargs : dict
+                     A dictionary of keyword arguments
         
         :Returns:
-        
-        return_val : tuple
-                     A tuple holding: return flag, value tuple
+            
+            return_val : tuple
+                         A tuple holding: return flag, value tuple
         '''
         
         # Search for flag in argument list
@@ -689,14 +690,14 @@ class Option(optparse.Option):
         
         :Parameters:
             
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
     
         vals = value.strip().split(',')
@@ -709,14 +710,14 @@ class Option(optparse.Option):
         
         :Parameters:
             
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
         
         vals = value.strip().split(',')
@@ -735,14 +736,14 @@ class Option(optparse.Option):
         
         :Parameters:
                 
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
         
         setattr(parser.values, option.dest+"_compressed", value)
@@ -754,14 +755,14 @@ class Option(optparse.Option):
         
         :Parameters:
                 
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
         
         index = None
@@ -784,24 +785,24 @@ class Option(optparse.Option):
         
         :Parameters:
             
-        option : Option
-                 The option instance calling the callback
-        flag : str
-               The options flag as seen on the command line
-        value : object
-                The command line value of the option, type corresponding to the option type
-        parser : OptionParser
-                 The current option parser instance
+            option : Option
+                     The option instance calling the callback
+            flag : str
+                   The options flag as seen on the command line
+            value : object
+                    The command line value of the option, type corresponding to the option type
+            parser : OptionParser
+                     The current option parser instance
         '''
     
-        type = option.choices[0].__class__
+        type_obj = option.choices[0].__class__
         try:
             val = option.choices[int(value)]
         except:
             try:
-                val = type(value)
+                val = type_obj(value)
             except:
-                raise optparse.OptionValueError("option %s: cannot convert %r to %s" % (flag, value, type.__name__))
+                raise optparse.OptionValueError("option %s: cannot convert %r to %s" % (flag, value, type_obj.__name__))
         if val in option.choices:
             setattr(parser.values, option.dest, val)
         else: 
@@ -831,16 +832,16 @@ class OptionGroup(optparse.OptionGroup):
         
         :Parameters:
     
-        parser : OptionParser
-                 An instance of the option parser
-        title : str
-                A title of the group
-        description : str
-                     A help description of the group
-        dependent : bool
-                    Set false if this option has no bearing on output file creation
-        kwargs : dict
-                 A dictionary of keyword arguments
+            parser : OptionParser
+                     An instance of the option parser
+            title : str
+                    A title of the group
+            description : str
+                         A help description of the group
+            dependent : bool
+                        Set false if this option has no bearing on output file creation
+            kwargs : dict
+                     A dictionary of keyword arguments
         '''
         
         optparse.OptionGroup.__init__(self, parser, title, description)
@@ -854,9 +855,9 @@ class OptionGroup(optparse.OptionGroup):
         ''' Test if the option group is a child of another option group
         
         :Returns:
-        
-        val : bool
-              True if this option group is a child of another group
+            
+            val : bool
+                  True if this option group is a child of another group
         '''
         
         return self._child
@@ -865,9 +866,9 @@ class OptionGroup(optparse.OptionGroup):
         '''Get a tuple of group titles.
         
         :Returns:
-    
-        val : tuple
-              List of group titles
+        
+            val : tuple
+                  List of group titles
         '''
         
         return tuple([g.title for g in self.option_groups])
@@ -876,9 +877,9 @@ class OptionGroup(optparse.OptionGroup):
         '''Add a group to the tree structure
         
         :Parameters:
-    
-        group : OptionGroup
-               A child option group
+        
+            group : OptionGroup
+                   A child option group
         '''
         
         #self.parser.add_option_group(group)
@@ -889,9 +890,9 @@ class OptionGroup(optparse.OptionGroup):
         ''' Get options that will appear in the config file
         
         :Returns:
-        
-        option_list : list
-                      List of configurable options
+            
+            option_list : list
+                          List of configurable options
         '''
         
         option_list = []
@@ -922,35 +923,35 @@ class OptionParser(optparse.OptionParser):
         '''Construct an OptionParser
     
         :Parameters:
-            
-        usage : str
-                A usage string for your program
-        option_list : list
-                      A list of options to add
-        option_class : class
-                       An option class
-        version : str
-                  A version of program
-        conflict_handler : str
-                           Name of conflict handler
-        description : str
-                      Description of program
-        formatter : str
-                    Name of help file formatter
-        add_help_option : boolean
-                          Whether to add a help option
-        prog : str
-                The name of your program
-        url : str
-              URL for documentation of the program
-        site_url : str
-                   URL for documentation of the cite
-        comment : (new) string
-                  A comment character for configuration file
-        separator : (new) string
-                   A flag/value separator for configuration file
-        add_input_files : (new) string or None
-                        Add option for input files (globbing in configuration file)
+                
+            usage : str
+                    A usage string for your program
+            option_list : list
+                          A list of options to add
+            option_class : class
+                           An option class
+            version : str
+                      A version of program
+            conflict_handler : str
+                               Name of conflict handler
+            description : str
+                          Description of program
+            formatter : str
+                        Name of help file formatter
+            add_help_option : boolean
+                              Whether to add a help option
+            prog : str
+                    The name of your program
+            url : str
+                  URL for documentation of the program
+            site_url : str
+                       URL for documentation of the cite
+            comment : (new) string
+                      A comment character for configuration file
+            separator : (new) string
+                       A flag/value separator for configuration file
+            add_input_files : (new) string or None
+                            Add option for input files (globbing in configuration file)
         '''
         
         usage = "" if usage is None else usage+"\n\n"
@@ -975,12 +976,12 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        key : object
-              GUI hint object used to find argument type
-        validator : function
-                    Python function where first argument takes the value type
-        extra : dict
-                Keyword arguments passed to the validator
+            key : object
+                  GUI hint object used to find argument type
+            validator : function
+                        Python function where first argument takes the value type
+            extra : dict
+                    Keyword arguments passed to the validator
         '''
         
         self.validators[key] = functools.partial(validator, **extra)
@@ -990,8 +991,8 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        group : OptionGroup
-                An OptionGroup to add to the OptionParser
+            group : OptionGroup
+                    An OptionGroup to add to the OptionParser
         '''
         
         if not group._dependent:
@@ -1009,15 +1010,15 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        options : object
-                  An object containing option value pairs
-        output : str
-                 Name of the output, if not specified, then derived from options.output, if that does not exist then it returns with no error
-        
-        :Returns:
-        
-        control : VersionControl
-                  Access to the version control configuration file
+            options : object
+                      An object containing option value pairs
+            output : str
+                     Name of the output, if not specified, then derived from options.output, if that does not exist then it returns with no error
+            
+            :Returns:
+            
+            control : VersionControl
+                      Access to the version control configuration file
         '''
         
         now = datetime.datetime.now()
@@ -1057,18 +1058,18 @@ class OptionParser(optparse.OptionParser):
         '''Parse configuration file, then command line
         
         :Parameters:
-            
-        args : list
-            A list of command line arguments (override sys.argv[1:])
-        values : object (dict)
-            An object containing default values
-        fin : str or stream
-            An input filename or input stream
+                
+            args : list
+                A list of command line arguments (override sys.argv[1:])
+            values : object (dict)
+                An object containing default values
+            fin : str or stream
+                An input filename or input stream
         
         :Returns:
-        
-        return_val : tuple 
-                     A tuple of options and arguments without flags
+            
+            return_val : tuple 
+                         A tuple of options and arguments without flags
         '''
         
         if os.path.exists(global_config):
@@ -1087,15 +1088,15 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        args : list
-            A list of command line arguments (override sys.argv[1:])
-        values : object (dict)
-            An object containing default values
+            args : list
+                A list of command line arguments (override sys.argv[1:])
+            values : object (dict)
+                An object containing default values
         
         :Returns:
         
-        return_val : tuple
-                     A tuple of options and arguments without flags
+            return_val : tuple
+                         A tuple of options and arguments without flags
         '''
         
         self.add_option("-c", config_file="", help="Read a configuration file for options", gui=dict(nogui=True))#, archive=True)
@@ -1129,15 +1130,15 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        args : list
-            A list of command line arguments (override sys.argv[1:])
-        values : object (dict)
-            An object containing default values
+            args : list
+                A list of command line arguments (override sys.argv[1:])
+            values : object (dict)
+                An object containing default values
         
         :Returns:
         
-        return_val : tuple
-                     A tuple of options and arguments without flags
+            return_val : tuple
+                         A tuple of options and arguments without flags
         '''
         
         _logger.debug("Checking output file - has output "+str(hasattr(values, 'output')))
@@ -1179,18 +1180,18 @@ class OptionParser(optparse.OptionParser):
         '''Parse a configuration file
         
         :Parameters:
-        
-        args : list
-            A list of command line arguments (override sys.argv[1:])
-        values : object (dict)
-            An object containing default values
-        fin : str or stream
-            An input filename or input stream
+            
+            args : list
+                A list of command line arguments (override sys.argv[1:])
+            values : object (dict)
+                An object containing default values
+            fin : str or stream
+                An input filename or input stream
         
         :Returns:
         
-        return_val : object
-                    A values object
+            return_val : object
+                        A values object
         '''
         
         if values is None: self.values = self.get_default_values()
@@ -1246,8 +1247,9 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        kwargs : dict
-                 Keyword arguments where name of the option is pair with the new value
+            kwargs : dict
+                     Keyword arguments where name of the 
+                     option is pair with the new value
         '''
         
         for key, val in kwargs.iteritems():
@@ -1270,13 +1272,13 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        flag : str
-               Name of the flag
+            flag : str
+                   Name of the flag
         
         :Returns:
-        
-        option : Option
-                 Option that corresponds to the flag
+            
+            option : Option
+                     Option that corresponds to the flag
         '''
         
         for group in [self]+self.option_groups:
@@ -1289,13 +1291,13 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        flag : str
-               Name of the flag
+            flag : str
+                   Name of the flag
         
         :Returns:
-        
-        option : Option
-                 Option that corresponds to the flag
+            
+            option : Option
+                     Option that corresponds to the flag
         '''
         
         for option in option_list:
@@ -1310,9 +1312,9 @@ class OptionParser(optparse.OptionParser):
         it to test whether the given value is valid.
         
         :Parameters:
-        
-        values : object
-                 Option value container
+            
+            values : object
+                     Option value container
         '''
         
         self._validate_options(self.option_list, values)
@@ -1325,11 +1327,11 @@ class OptionParser(optparse.OptionParser):
         it to test whether the given value is valid.
         
         :Parameters:
-        
-        option_list : list
-                      List of options to test
-        values : object
-                 Option value container
+            
+            option_list : list
+                          List of options to test
+            values : object
+                     Option value container
         '''
         
         for cgroup in group.option_groups:
@@ -1344,10 +1346,10 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        option_list : list
-                      List of options to test
-        values : object
-                 Option value container
+            option_list : list
+                          List of options to test
+            values : object
+                     Option value container
         '''
         
         for option in option_list:
@@ -1357,13 +1359,13 @@ class OptionParser(optparse.OptionParser):
         '''Write a configuration file
         
         :Parameters:
-            
-        fout : str or stream
-               An output filename or output stream
-        values : object (dict)
-                 An object containing default values
-        comments : bool
-                   Set false to disable writing comments to the config file
+                
+            fout : str or stream
+                   An output filename or output stream
+            values : object (dict)
+                     An object containing default values
+            comments : bool
+                       Set false to disable writing comments to the config file
         '''
         
         if fout is None: fout = self.default_config_filename()
@@ -1384,9 +1386,9 @@ class OptionParser(optparse.OptionParser):
         '''Determine the maximum length of a configuration flag
         
         :Returns:
-        
-        return_val : int
-                     Maximum length of flag
+            
+            return_val : int
+                         Maximum length of flag
         '''
         
         flag_len = self._maximum_flag_length(self.option_list)
@@ -1399,15 +1401,15 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
     
-        options : list
-                  List of options
-        flag_len : int
-                   Current length of the flag
+            options : list
+                      List of options
+            flag_len : int
+                       Current length of the flag
         
         :Returns:
         
-        return_val : int
-                     Maximum length of flag
+            return_val : int
+                         Maximum length of flag
         '''
         
         for option in options:
@@ -1422,9 +1424,9 @@ class OptionParser(optparse.OptionParser):
         This method defines for format for the configuration file header.
         
         :Parameters:
-            
-        fout : stream
-               Output filename or output stream
+                
+            fout : stream
+                   Output filename or output stream
         '''
         
         prog = self.prog if self.prog is not None else os.path.basename(sys.argv[0])
@@ -1450,10 +1452,10 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : stream
-               An output filename or output stream
-        group : OptionGroup
-                An option group for the header
+            fout : stream
+                   An output filename or output stream
+            group : OptionGroup
+                    An option group for the header
         '''
         
         fout.write("\n\n"+self.comment+"  "+group.get_description()+"\n")
@@ -1463,16 +1465,16 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : stream
-               An output filename or output stream
-        groups : list
-                  A list of OptionGroups
-        values : object (dict)
-                 An instance of the value object
-        flag_len : int
-                   Length of the flag for comment white space
-        comments : bool
-                   Set False to disable all comments
+            fout : stream
+                   An output filename or output stream
+            groups : list
+                      A list of OptionGroups
+            values : object (dict)
+                     An instance of the value object
+            flag_len : int
+                       Length of the flag for comment white space
+            comments : bool
+                       Set False to disable all comments
         '''
         
         groups = sorted(groups, key=_attrgetter('group_order'))
@@ -1490,16 +1492,16 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        fout : stream
-               An output filename or output stream
-        options : list
-                  A list of options
-        values : object (dict)
-                 An instance of the value object
-        flag_len : int
-                   Length of the flag for comment white space
-        use_comment : bool
-                      Set False to disable all comments
+            fout : stream
+                   An output filename or output stream
+            options : list
+                      A list of options
+            values : object (dict)
+                     An instance of the value object
+            flag_len : int
+                       Length of the flag for comment white space
+            use_comment : bool
+                          Set False to disable all comments
         '''
         
         for option in options:
@@ -1521,13 +1523,13 @@ class OptionParser(optparse.OptionParser):
                     value = getattr(values, option.dest+'_compressed', None)
                 else:
                     value=compress_filenames(value)
-            help = option.help
-            flag_sep = "".join(["\t" for i in xrange(flag_len-len(name[1:])/8)])
+            help_str = option.help
+            flag_sep = "".join(["\t" for _ in xrange(flag_len-len(name[1:])/8)])
             try:
                 comment = ""
                 if use_comment:
                     if code != "": code = "\t(%s)\t"%code
-                    comment = "\t"+self.comment+"\t"+code+help
+                    comment = "\t"+self.comment+"\t"+code+help_str
                     if option.choices is not None:
                         comment += ": "
                         comment += ",".join([str(c) for c in option.choices])
@@ -1541,17 +1543,17 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
         
-        test : function
-               Function used to select option
-        options : list
-                  List of options to test
-        key : str
-              Name of option field to return
+            test : function
+                   Function used to select option
+            options : list
+                      List of options to test
+            key : str
+                  Name of option field to return
         
         :Returns:
-        
-        names : list
-                List of file option destinations
+            
+            names : list
+                    List of file option destinations
         '''
         
         optionlist = []
@@ -1578,8 +1580,8 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        names : list
-                List of options with unset GUI hint
+            names : list
+                    List of options with unset GUI hint
         '''
         
         def is_unset(opt):
@@ -1591,35 +1593,35 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        names : list
-                List of file option destinations
+            names : list
+                    List of file option destinations
         '''
         
         def is_dependent(opt):
             return opt._dependent and opt.dest != self.add_input_files
         return self.collect_options(is_dependent)
         
-    def collect_dependent_file_options(self, type=None, required=False, key='dest'):
+    def collect_dependent_file_options(self, type_obj=None, required=False, key='dest'):
         ''' Collect all the options that point to file names
         
         :Parameters:
         
-        type : str
-               Type of the file to collect: open or save
-        required : bool
-                   File must be required
-        key : str
-              Name of option field to return
+            type_obj : str
+                       Type of the file to collect: open or save
+            required : bool
+                       File must be required
+            key : str
+                  Name of option field to return
         
         :Returns:
-        
-        names : list
-                List of file option destinations
+            
+            names : list
+                    List of file option destinations
         '''
         
         def is_dependent(opt):
             return opt._dependent # and opt.dest != self.add_input_files
-        if type is None:
+        if type_obj is None:
             def is_file(opt):
                 if required and not opt._required: return False
                 return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint and is_dependent(opt)
@@ -1627,31 +1629,31 @@ class OptionParser(optparse.OptionParser):
         else:
             def is_file_type(opt):
                 if required and not opt._required: return False
-                return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type and is_dependent(opt)
+                return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type_obj and is_dependent(opt)
             is_file_test = is_file_type
         return list(set(self.collect_options(is_file_test, key=key)))
         
-    def collect_file_options(self, type=None):
+    def collect_file_options(self, type_obj=None):
         ''' Collect all the options that point to file names
         
         :Parameters:
         
-        type : str
-               Type of the file to collect: open or save
+            type_obj : str
+                       Type of the file to collect: open or save
         
         :Returns:
         
-        names : list
-                List of file option destinations
+            names : list
+                    List of file option destinations
         '''
         
-        if type is None:
+        if type_obj is None:
             def is_file(opt):
                 return hasattr(opt, 'gui_hint') and 'file' in opt.gui_hint
             is_file_test = is_file
         else:
             def is_file_type(opt):
-                return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type
+                return hasattr(opt, 'gui_hint') and 'type' in opt.gui_hint and opt.gui_hint['type'] == type_obj
             is_file_test = is_file_type
         return self.collect_options(is_file_test)
     
@@ -1660,8 +1662,8 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        return_val : str
-                     Name of the program
+            return_val : str
+                         Name of the program
         '''
         
         return sys.argv[0] if self.prog is None else self.prog
@@ -1671,19 +1673,19 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        return_val : str
-                     Basename of prog with cfg extension
+            return_val : str
+                         Basename of prog with cfg extension
         '''
         
         return os.path.splitext(os.path.basename(self.program_name()))[0]+".cfg"
     
-    def print_help(self, file=None):
+    def print_help(self, hfile=None):
         ''' Print a configuration file instead of a help message
         
         :Parameters:
         
-        file : str
-               Unused variable
+            hfile : str
+                    Unused variable
         '''
         
         self.write()
@@ -1693,10 +1695,10 @@ class OptionParser(optparse.OptionParser):
         
         :Parameters:
             
-        msg : str
-            An error message
-        values : object
-                 Object containing option name/value pairs
+            msg : str
+                An error message
+            values : object
+                     Object containing option name/value pairs
         '''
         
         raise OptionValueError, msg
@@ -1709,8 +1711,8 @@ class OptionParser(optparse.OptionParser):
         
         :Returns:
         
-        option_list : list
-                      List of configurable options
+            option_list : list
+                          List of configurable options
         '''
         
         option_list = []
@@ -1729,8 +1731,8 @@ class OptionValueError(optparse.OptParseError):
         
         :Parameters:
         
-        msg : str
-            An error message
+            msg : str
+                An error message
         '''
         
         optparse.OptParseError.__init__(self, msg)
@@ -1753,8 +1755,9 @@ class optdict(dict):
         
         :Parameters:
     
-        val : str or dictionary object
-              A string to convert to a dictionary or some other dictionary compatible object
+            val : str or dict object
+                  A string to convert to a dictionary or some other 
+                  dictionary compatible object
         '''
         
         if isinstance(val, str):
@@ -1778,9 +1781,9 @@ class optdict(dict):
         the key and value are separated by a colon.
         
         :Returns:
-        
-        return_val : str
-                    A string representation of the dictionary
+            
+            return_val : str
+                        A string representation of the dictionary
         '''
         
         return ",".join([str(k)+":"+str(v) for k, v in self.iteritems()])
@@ -1793,8 +1796,8 @@ class optdict(dict):
         
         :Returns:
         
-        return_val : str
-                    A string representation of the dictionary
+            return_val : str
+                        A string representation of the dictionary
         '''
         
         return str(self)
@@ -1818,9 +1821,9 @@ class optlist(list):
         This method creates a comma separated string representation of the list items.
         
         :Returns:
-        
-        return_val : str
-                    A string representation of the list
+            
+            return_val : str
+                        A string representation of the list
         '''
         
         keys = []
@@ -1838,8 +1841,8 @@ class optlist(list):
         
         :Returns:
         
-        return_val : str
-                    A string representation of the list
+            return_val : str
+                        A string representation of the list
         '''
         
         return str(self)
@@ -1889,9 +1892,9 @@ class optfilelist(optlist):
         This method creates a comma separated string representation of the list items.
         
         :Returns:
-        
-        return_val : str
-                    A string representation of the list
+            
+            return_val : str
+                        A string representation of the list
         '''
         
         keys = []
@@ -1908,9 +1911,9 @@ class optfilelist(optlist):
         This method creates a comma separated string representation of the list items.
         
         :Returns:
-        
-        return_val : str
-                    A string representation of the list
+            
+            return_val : str
+                        A string representation of the list
         '''
         
         return str(self)
@@ -1926,14 +1929,14 @@ class Validation:
         ''' Test whether the given string is empty
         
         :Parameters:
-    
-        val : list
-              List to test
+        
+            val : list
+                  List to test
         
         :Returns:
-        
-        return_val : str
-                     "No values given"
+            
+            return_val : str
+                         "No values given"
         '''
         
         return "No values given" if not val else ""
@@ -1943,16 +1946,16 @@ class Validation:
         ''' Test whether the given string is empty
         
         :Parameters:
-    
-        val : str
-              String to test
-        message : str
-                  Return message if string empty
+        
+            val : str
+                  String to test
+            message : str
+                      Return message if string empty
         
         :Returns:
         
-        return_val : str
-                     Given message if string is empty
+            return_val : str
+                         Given message if string is empty
         '''
         
         return message if val == "" else ""
@@ -1963,13 +1966,13 @@ class Validation:
         
         :Parameters:
     
-        val : str
-              String to test
+            val : str
+                  String to test
         
         :Returns:
-        
-        return_val : str
-                     Empty filename
+            
+            return_val : str
+                         Empty filename
         '''
         
         return Validation.empty_string(val, "Empty filename")
@@ -1977,15 +1980,16 @@ class Validation:
 class VersionControl(object):
     ''' Helper class that writes specific data as a comment
     in the version control configuration file
-    
-    :Parameters:
-    
-    filename : str
-               Version control configuration file
     '''
     
     def __init__(self, filename):
-        # Initialize VersionControl Object
+        ''' Initialize help class
+    
+        :Parameters:
+        
+            filename : str
+                       Version control configuration file
+        '''
         
         self.filename = filename
     
@@ -1994,8 +1998,8 @@ class VersionControl(object):
         
         :Parameters:
         
-        message : str
-                  Message to add as comment to version control configuration file
+            message : str
+                      Message to add as comment to version control configuration file
         '''
         
         now = datetime.datetime.now()
@@ -2008,13 +2012,13 @@ def setup_options_from_doc(parser, *args, **kwargs):
     
     :Parameters:
     
-    parser : OptionParser
-             The option parser
-    args : list
-           List of functions or method names
-    kwargs : dict
-             Optionally contains `classes` a list of classes for
-             given method names
+        parser : OptionParser
+                 The option parser
+        args : list
+               List of functions or method names
+        kwargs : dict
+                 Optionally contains `classes` a list of classes for
+                 given method names
     '''
     
     import inspect
@@ -2029,7 +2033,7 @@ def setup_options_from_doc(parser, *args, **kwargs):
                     break
             if classobj is None: raise ValueError, "Function not found: %s"%str(func)
             func = getattr(classobj, func)
-        args, varargs, varkw, defaults = inspect.getargspec(func)
+        args, _, _, defaults = inspect.getargspec(func)
         doc = func.__doc__.split('\n')
         group_order=0
         for d in doc:
@@ -2041,19 +2045,19 @@ def setup_options_from_doc(parser, *args, **kwargs):
         group = OptionGroup(parser, name, doc[0], group_order=group_order, id=name)
         for i in xrange(1, len(defaults)+1):
             if defaults[-i] is None: continue
-            help = parameter_help(args[-i], doc)
-            if help is None: raise ValueError, "Cannot find documentation for parameter %s"%args[-i]
-            type = parameter_type(args[-i], doc)
+            helpstr = parameter_help(args[-i], doc)
+            if helpstr is None: raise ValueError, "Cannot find documentation for parameter %s"%args[-i]
+            type_obj = parameter_type(args[-i], doc)
             param = {args[-i]: defaults[-i]}
-            if type.find('noupdate') != -1:
+            if type_obj.find('noupdate') != -1:
                 param['dependent']=False
-            if type.find('infile') != -1:
+            if type_obj.find('infile') != -1:
                 param.update(gui=dict(filetype="open"))
-            if type.find('outfile') != -1:
+            if type_obj.find('outfile') != -1:
                 param.update(gui=dict(filetype="save"))
             if isinstance(defaults[-i], tuple):
                 param.update(default=0)
-            group.add_option("", help=help, **param)
+            group.add_option("", help=helpstr, **param)
         kwargs.get('group', parser).add_option_group(group)
 
 def parameter_type(name, doc):
@@ -2061,15 +2065,15 @@ def parameter_type(name, doc):
     
     :Parameters:
     
-    name : str
-           Name of the parameter
-    doc : str
-          Function doc string
+        name : str
+               Name of the parameter
+        doc : str
+              Function doc string
               
     :Returns:
-    
-    type : str
-           If found, a string type of the parameter, otherwise None
+        
+        type : str
+               If found, a string type of the parameter, otherwise None
     '''
     
     for d in doc:
@@ -2083,15 +2087,15 @@ def parameter_help(name, doc):
     
     :Parameters:
     
-    name : str
-           Name of the parameter
-    doc : str
-          Function doc string
+        name : str
+               Name of the parameter
+        doc : str
+              Function doc string
               
     :Returns:
     
-    help : str
-           If found, a string description of the parameter, otherwise None
+        help : str
+               If found, a string description of the parameter, otherwise None
     '''
     
     for i, d in enumerate(doc):
@@ -2111,14 +2115,14 @@ def convert(val):
         2.1
     
     :Parameters:
-    
-    val : str
-          Value for conversion
+        
+        val : str
+              Value for conversion
     
     :Returns:
 
-    val : numeric
-          Numeric (float or int) converted from string
+        val : numeric
+              Numeric (float or int) converted from string
     '''
     
     try: val = int(val)
@@ -2137,16 +2141,16 @@ def uncompress_filenames(input_files, default_regexp=None):
     
     :Parameters:
     
-    input_files : list
-            List of compressed filenames (or single string)
-    default_regexp : callable, optional
-                     Convert filename to regular expression
+        input_files : list
+                List of compressed filenames (or single string)
+        default_regexp : callable, optional
+                         Convert filename to regular expression
     
     :Returns:
     
-    input_files : list
-                  List of uncompressed filenames - possibly much longer than
-                  original list
+        input_files : list
+                      List of uncompressed filenames - possibly much longer than
+                      original list
     '''
     
     try: ""+input_files
@@ -2173,13 +2177,13 @@ def compress_filenames(files):
     
     :Parameters:
     
-    files : list
-            List of filenames
+        files : list
+                List of filenames
     
     :Returns:
     
-    files : list
-            List of compressed filenames - possibly single entry with wild card
+        files : list
+                List of compressed filenames - possibly single entry with wild card
     '''
     
     if not isinstance(files, optlist):
@@ -2206,15 +2210,15 @@ def parse_config_simple(config_file, **extra):
     
     :Parameters:
     
-    config_file : str
-                 Configuration file to parse
-    extra : dict
-            Flag, default value pairs
+        config_file : str
+                     Configuration file to parse
+        extra : dict
+                Flag, default value pairs
     
     :Returns:
-    
-    param : dict
-            Keyword, value pairs
+        
+        param : dict
+                Keyword, value pairs
     '''
     
     parser = OptionParser()

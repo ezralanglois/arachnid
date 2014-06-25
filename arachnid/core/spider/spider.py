@@ -3524,6 +3524,8 @@ def determine_spider(file_path):
                    File path for SPIDER executable
     '''
     
+    if file_path == "": file_path = os.path.dirname(sys.argv[0])
+    
     if os.path.isdir(file_path):
         platform_str = 'linux_mp'
         if sys.platform == 'darwin': 

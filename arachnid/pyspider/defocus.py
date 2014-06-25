@@ -757,19 +757,6 @@ def check_options(options, main_option=False):
     if main_option:
         if not spider_utility.test_valid_spider_input(options.input_files):
             raise OptionValueError, "Multiple input files must have numeric suffix, e.g. vol0001.spi"
-        if 1 == 0:
-            i=0
-            while i < len(options.input_files):
-                if not ndimage_file.is_readable(options.input_files[i]): 
-                    del options.input_files[i]
-                    _logger.warn("Cannot read: %s"%options.input_files[i])
-                else:
-                    i+=1
-        """
-        for f in options.input_files:
-            if not ndimage_file.is_readable(f): 
-                raise OptionValueError, "Unrecognized image format for input-file: %s \n Check if you have permission to access this file and this file is in an acceptable format"%f
-        """
         if spider_file.is_spider_image(options.input_files[0]) and options.data_ext == "":
             raise OptionValueError, "You must set --data-ext when the input file is not in SPIDER format"
 
