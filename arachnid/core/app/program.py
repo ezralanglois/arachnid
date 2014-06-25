@@ -275,8 +275,8 @@ def launch_program(main_module, main_template, args, options, parser, supports_O
         if val is not None: param['vercontrol'], param['opt_changed'] = val
     else: param['opt_changed']=False
     param['file_options'] = parser.collect_file_options()
-    param['infile_deps'] = parser.collect_dependent_file_options(type='open')
-    param['outfile_deps'] = parser.collect_dependent_file_options(type='save')
+    param['infile_deps'] = parser.collect_dependent_file_options(type_obj='open')
+    param['outfile_deps'] = parser.collect_dependent_file_options(type_obj='save')
     extra['file_options']=param['file_options']
     param.update(update_file_param(**param))
     args = param['input_files'] #options.input_files
@@ -369,7 +369,7 @@ def collect_file_dependents(main_module, config_path=None, **extra):
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     
-    return output, parser.collect_dependent_file_options(type='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
+    return output, parser.collect_dependent_file_options(type_obj='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
 
 class program(object):
     '''
