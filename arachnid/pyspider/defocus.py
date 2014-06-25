@@ -167,39 +167,39 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
     
     :Parameters:
     
-    filename : str
-               Input micrograph, stack or power spectra file
-    output : str
-             Output defocus file
-    id_len : int
-             Max length of SPIDER ID
-    skip_defocus : bool
-                   Skip the defocus estimation step
-    extra : dict
-            Unused key word arguments
+        filename : str
+                   Input micrograph, stack or power spectra file
+        output : str
+                 Output defocus file
+        id_len : int
+                 Max length of SPIDER ID
+        skip_defocus : bool
+                       Skip the defocus estimation step
+        extra : dict
+                Unused key word arguments
     
     :Returns:
-    
-    filename : str
-               Current filename
+        
+        filename : str
+                   Current filename
     '''
     
     if 'spi' not in extra or extra['spi'] is None: raise ValueError, "Bug in code, spider failed to launch"
     _logger.debug("Processing: %s"%filename)
-    id = spider_utility.spider_id(filename, id_len)
-    spider_utility.update_spider_files(extra, id, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
+    fid = spider_utility.spider_id(filename, id_len)
+    spider_utility.update_spider_files(extra, fid, 'output_pow', 'output_roo', 'output_ctf', 'output_mic')  
     _logger.debug("create power spec")
-    ang, mag, defocus, overdef, cutoff, unused = 0, 0, 0, 0, 0, 0
+    ang, mag, defocus, _, cutoff, unused = 0, 0, 0, 0, 0, 0
     df1, df2, ang1 = 0, 0, 0
     
     if not ndimage_file.valid_image(filename):#extra['spi'].replace_ext(
         _logger.warn("Skipping %s - invalid image"%(filename))
-        return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
+        return filename, numpy.asarray([fid, defocus, ang, mag, cutoff])
     try:
         power_spec, powm = create_powerspectra(filename, **extra)
     except ndimage_file.InvalidHeaderException:
         _logger.warn("Skipping %s - invalid header"%(filename))
-        return filename, numpy.asarray([id, defocus, ang, mag, cutoff])
+        return filename, numpy.asarray([fid, defocus, ang, mag, cutoff])
     except:
         _logger.error("Error for %s"%filename)
         raise
@@ -208,7 +208,7 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
         rotational_average(power_spec, **extra) #ro_arr = 
         _logger.debug("estimate defocus")
         try:
-            ang, mag, defocus, overdef, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
+            ang, mag, defocus, _, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
         except spider.SpiderCrashed:
             _logger.warn("SPIDER crashed - attempting to restart - try increasing the padding and or window size")
             extra['spi'].relaunch()
@@ -221,34 +221,39 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
                 defocusV=60000
                 defocusS=5000
             else:
-                defocusU = defocus + mag/2
-                defocusV = defocus - mag/2
-                defocusS = (defocusU-defocusV)/5
+                defocusU = defocus + min(500, mag)/2
+                defocusV = defocus - min(500, mag)/2
+                defocusS = (defocusU-defocusV)/5.0
             _logger.info("Searching with range %f-%f by %f -- defocus found: %f with mag: %f"%(defocusV, defocusU, defocusS, defocus, mag))
-            df1, df2, ang1 = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
+            try:
+                df1, df2, ang1 = estimate_ctf2d.search_model_2d(powm, defocusV, defocusU, defocusS, rmin, rmax, **extra)
+            except:
+                df1 = df1 = defocus
+                ang1 = 0
+            
 
-    return filename, numpy.asarray([id, defocus, ang, mag, cutoff, df1, df2, ang1])
+    return filename, numpy.asarray([fid, defocus, ang, mag, cutoff, df1, df2, ang1])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
     '''Compute the rotation average of the power spectra and store as an ndarray
     
     :Parameters:
     
-    power_spec : str
-                Input filename for power spectra
-    spi : spider.Session
-          Current SPIDER session
-    output_roo : str
-                 Output file for rotational average
-    use_2d : bool
-             Assume 2D power spectra, if true
-    extra : dict
-            Unused keyword arguments
+        power_spec : str
+                    Input filename for power spectra
+        spi : spider.Session
+              Current SPIDER session
+        output_roo : str
+                     Output file for rotational average
+        use_2d : bool
+                 Assume 2D power spectra, if true
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    vals : ndarray
-           Rotational average of power spectra
+        
+        vals : ndarray
+               Rotational average of power spectra
     '''
     
     #ma = ndimage_utility.mean_azimuthal(img)[:img.shape[0]/2]
@@ -272,41 +277,41 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
     
     :Parameters:
     
-    filename : str
-               Input filename for the micrograph
-    spi : spider.Session
-          Current SPIDER session
-    use_powerspec : bool
-                    Set True if the input file is a power spectra
-    pad : int
-          Number of times to pad window before Fourier transform; if pad > window-size, then size of padded image (0 means none)
-    du_nstd : list
-              List of number of standard deviations for dedusting
-    du_type : int
-              Type of dedusting: (1) BOTTOM, (2) TOP, (3) BOTH SIDES: 3
-    window_size : int
-                  Size of the window to be cropped from the micrograph for the power spectra (Default: 500)
-    x_overlap : int
-                Percent overlap in the x-direction (Default: 50)
-    offset : int
-             Offset from the edge of the micrograph
-    output_pow : str, optional
-                 Output file for power spectra
-    bin_factor : int
-                 Decimation factor of the micrograph
-    invert : bool
-             Invert the contrast of the micrograph
-    output_mic : str
-                 Output filename for decimated micrograph
-    bin_micrograph : float
-                     Decimation factor for decimated micrograph
-    extra : dict
-            Unused keyword arguments
+        filename : str
+                   Input filename for the micrograph
+        spi : spider.Session
+              Current SPIDER session
+        use_powerspec : bool
+                        Set True if the input file is a power spectra
+        pad : int
+              Number of times to pad window before Fourier transform; if pad > window-size, then size of padded image (0 means none)
+        du_nstd : list
+                  List of number of standard deviations for dedusting
+        du_type : int
+                  Type of dedusting: (1) BOTTOM, (2) TOP, (3) BOTH SIDES: 3
+        window_size : int
+                      Size of the window to be cropped from the micrograph for the power spectra (Default: 500)
+        x_overlap : int
+                    Percent overlap in the x-direction (Default: 50)
+        offset : int
+                 Offset from the edge of the micrograph
+        output_pow : str, optional
+                     Output file for power spectra
+        bin_factor : int
+                     Decimation factor of the micrograph
+        invert : bool
+                 Invert the contrast of the micrograph
+        output_mic : str
+                     Output filename for decimated micrograph
+        bin_micrograph : float
+                         Decimation factor for decimated micrograph
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    power_sec : spider_var
-                In-core reference to power spectra image
+        
+        power_sec : spider_var
+                    In-core reference to power spectra image
     '''
     
     if not use_powerspec:       
@@ -473,10 +478,10 @@ def initialize(files, param):
             #oldfiles = list(files)
             #files = []
             for f in param['finished']:
-                id = spider_utility.spider_id(f, param['id_len'])
-                if id not in defvals or defvals[id].defocus == 0:
+                fid = spider_utility.spider_id(f, param['id_len'])
+                if fid not in defvals or defvals[fid].defocus == 0:
                     files.append(f)
-                    del defvals[id]
+                    del defvals[fid]
             _logger.info("Restarting on %f files"%(len(files)))
             param['output_offset']=len(defvals)
         if os.path.splitext(param['output'])[1] == '.emx':
@@ -579,13 +584,13 @@ def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, sum
         if summary:
             idx = numpy.argsort(defocus_arr[:, 1])
             for i, j in enumerate(idx):
-                id =  int(defocus_arr[j, 0])
-                roo = numpy.asarray(format.read(output_roo, numeric=True, spiderid=id, header="id,value,index,dum1,dum2".split(',')))
-                ctf = numpy.asarray(format.read(output_ctf, numeric=True, spiderid=id, header="id,freq,noise,sub,env".split(',')))
-                pow = ndimage_file.read_image(spider_utility.spider_filename(output_pow, id))
-                remove_line(pow)
-                pow = label_image(pow, defocus_arr[j], roo[:, 2:], ctf[:, 3], **extra)
-                ndimage_file.write_image(format_utility.add_prefix(output, 'stack'), pow, int(i))
+                fid =  int(defocus_arr[j, 0])
+                roo = numpy.asarray(format.read(output_roo, numeric=True, spiderid=fid, header="id,value,index,dum1,dum2".split(',')))
+                ctf = numpy.asarray(format.read(output_ctf, numeric=True, spiderid=fid, header="id,freq,noise,sub,env".split(',')))
+                powspec = ndimage_file.read_image(spider_utility.spider_filename(output_pow, id))
+                remove_line(powspec)
+                powspec = label_image(powspec, defocus_arr[j], roo[:, 2:], ctf[:, 3], **extra)
+                ndimage_file.write_image(format_utility.add_prefix(output, 'stack'), powspec, int(i))
     
     _logger.info("Completed")
     
