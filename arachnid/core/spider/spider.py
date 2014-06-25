@@ -3246,8 +3246,8 @@ def cache_data(session, inputfile, selection, outputfile, window, rank=0):
             elif width != window:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
             elif stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
             else: _logger.info("Transfering data to cache - selection files do not match")
-        input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
-        width = session.fi_h(spider_stack(input), ('NSAM', ))
+        inputstr = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
+        width = session.fi_h(spider_stack(inputstr), ('NSAM', ))
         copy(session, inputfile, selection, outputfile)
         stack_count,  = session.fi_h(spider_stack(outputfile), ('MAXIM', ))
         if stack_count == 0: 
@@ -3300,8 +3300,8 @@ def cache_interpolate(session, inputfile, selection, outputfile, window, rank=0)
             elif width != window:  _logger.info("Transfering data to cache - incorrect window size - %d != %d"%(width, window))
             elif stack_count != len(selection): _logger.info("Transfering data to cache - incorrect number of windows - %d != %d"%(stack_count, len(selection)))
             else: _logger.info("Transfering data to cache - selection files do not match")
-        input = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
-        width = session.fi_h(spider_stack(input), ('NSAM', ))
+        inputstr = inputfile if not isinstance(inputfile, dict) else inputfile[inputfile.keys()[0]]
+        width = session.fi_h(spider_stack(inputstr), ('NSAM', ))
         if width != window:
             copy_interpolate(session, inputfile, selection, outputfile, window)
         else:
@@ -3544,6 +3544,10 @@ def determine_spider(file_path):
         file_path = files[0]
 
     if not os.path.exists(file_path) or os.path.isdir(file_path):
+        if os.path.isdir(file_path):
+            _logger.warn("No SPIDER executable found in directory: %s"%file_path)
+        else:
+            _logger.warn("SPIDER filename does not exist")
         return ""
     if not validate_spider(file_path):
         _logger.warn("Not a valid SPIDER executable: %s"%file_path)
