@@ -5,7 +5,7 @@
 '''
 
 from arachnid.core.app import tracing
-from .. import ndimage_interpolate
+#from .. import ndimage_interpolate
 import numpy
 import scipy.optimize
 
@@ -25,7 +25,7 @@ except:
 # CTF FIND3
 ######################################################################
 
-def search_model_2d(pow, dfmin, dfmax, fstep, rmin, rmax, ampcont, cs, voltage, pad=1.0, apix=None, xmag=None, res=None, **extra):
+def search_model_2d(powspec, dfmin, dfmax, fstep, rmin, rmax, ampcont, cs, voltage, pad=1.0, apix=None, xmag=None, res=None, **extra):
     '''
     '''
     
@@ -48,8 +48,8 @@ def search_model_2d(pow, dfmin, dfmax, fstep, rmin, rmax, ampcont, cs, voltage, 
     kv = voltage*1000.0
     wl = 12.26/numpy.sqrt( kv+0.9785*kv**2/10.0**6.0 )
     
-    pow = pow.astype(numpy.float32)
-    pow_sm = pow
+    powspec = powspec.astype(numpy.float32)
+    pow_sm = powspec
     thetatr = wl/(apix*min(pow_sm.shape))
     pow_sm = pow_sm.copy()
     pow_sm = pow_sm[:pow_sm.shape[0]/2, :].copy()
@@ -63,29 +63,29 @@ def search_model_2d(pow, dfmin, dfmax, fstep, rmin, rmax, ampcont, cs, voltage, 
                 df1, df2, ang = fstep*i, fstep*j, numpy.deg2rad(5.0*k)
                 val = eval_model_2d(df1, df2, ang, pow_sm, cs, wl, ampcont, thetatr, rmin2, rmax2, hw)
                 #model[:, :]=0
-                #val = eval_model_2d_test(df1, df2, ang, pow, model, cs, wl, ampcont, thetatr, rmin2, rmax2, hw)
+                #val = eval_model_2d_test(df1, df2, ang, powspec, model, cs, wl, ampcont, thetatr, rmin2, rmax2, hw)
                 if val > best[0]:  
                     print "%f\t%f\t%f\t%f"%(df1, df2, numpy.rad2deg(ang), val)
                     best=(val, df1, df2, ang)
                 p+=1
                 
-    pow = pow_sm
+    powspec = pow_sm
     
     def error_func(p0):
-        return -eval_model_2d(p0[0], p0[1], p0[2], pow, cs, wl, ampcont, thetatr, rmin2, rmax2, hw)
+        return -eval_model_2d(p0[0], p0[1], p0[2], powspec, cs, wl, ampcont, thetatr, rmin2, rmax2, hw)
     
     vals = scipy.optimize.fmin(error_func, (best[1], best[2], best[3]), disp=1)
     return vals[0], vals[1], vals[2]
     
-def smooth_2d(pow, rmin):
+def smooth_2d(powspec, rmin):
     '''
     '''
     
-    n = max(pow.shape)
+    n = max(powspec.shape)
     buf = numpy.zeros((n,n), dtype=numpy.float32)
-    nw = int(pow.shape[0]*rmin*numpy.sqrt(2.0))
-    size = numpy.asarray(pow.shape, dtype=numpy.int32)
-    _ctf.msmooth(pow.T, size, int(nw), buf.T)
+    nw = int(powspec.shape[0]*rmin*numpy.sqrt(2.0))
+    size = numpy.asarray(powspec.shape, dtype=numpy.int32)
+    _ctf.msmooth(powspec.T, size, int(nw), buf.T)
 
 
 def eval_model_2d(dfmid1, dfmid2, angast, pow, cs, wl, wgh, thetatr, rmin2, rmax2, hw):
