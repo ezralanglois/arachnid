@@ -1049,6 +1049,7 @@ class OptionParser(optparse.OptionParser):
             fout = file(output, mode)
             fout.write("# %s - %s\n"%(now.strftime("%Y-%m-%d %H:%M:%S"), str(self.version)))
             self.write(fout, changed, comments=False)
+        except: pass
         finally: 
             if fout is not None: fout.close()
         
