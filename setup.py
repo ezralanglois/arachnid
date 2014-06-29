@@ -191,7 +191,7 @@ try:
 except: 
     import ez_setup #@UnresolvedImport
     ez_setup.use_setuptools()
-    import setuptools
+    import setuptools  # @Reimport
     setuptools;
 import arachnid.distutils.sdist
 import arachnid.distutils.check_dep
@@ -222,8 +222,8 @@ def build_description(package, extra=None):
                 Keyword arguments to setup the package description
     '''
     from distutils import log # Workaround for conda build with jinga
-    import setuptools # Workaround for conda build with jinga
-    import sys
+    import setuptools # @Reimport - Workaround for conda build with jinga
+    import sys # @Reimport
     
     if extra is None: extra = {}
     description = [('name', 'project'), 'version', 'author', 'license', 'author_email', 'description', 'url', 'download_url', 'keywords', 'classifiers', 'platforms']#, ('long_description', 'doc')
@@ -241,7 +241,7 @@ def build_description(package, extra=None):
     except: 
         if os.path.basename(sys.argv[0]) != 'conda-build':
             log.error("No setup file found in root package to build extensions")
-            raise
+            #raise
     extra['packages'] = setuptools.find_packages(exclude='pyspider')
     return extra
 
@@ -278,17 +278,26 @@ def get_readme():
 def setup_package(**extra):
     '''
     '''
-    import sys
+    import sys # @Reimport
     
     if ('build_sphinx' in sys.argv or 'sphinx-build' in sys.argv) and __name__ != '__main__': return # Do not invoke if sphinx is called
     if len(sys.argv) > 1 and (sys.argv[1] in ('--help-commands', 'egg_info', '--version', '.', '') or '--help' in sys.argv or sys.argv[1].find('conda') != -1):
         from setuptools import setup
         setup(**extra)
     else:
-        from numpy.distutils.core import setup
+        from numpy.distutils.core import setup # @Reimport
         setup(**extra)
 
-other_requires= [] if sys.platform == 'darwin' else ['mysql-python'] 
+other_requires= [] if sys.platform == 'darwin' else ['mysql-python']
+
+cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist, 'version':arachnid.distutils.sdist.version}
+try:
+    import sphinx.setup_command
+    cmdclass.update(build_docs=sphinx.setup_command.BuildDoc)
+except:
+    from distutils import log
+    log.warn("Sphinx not installed!")
+    
 
 kwargs = build_description(arachnid)
 setup_package(entry_points = {
@@ -317,7 +326,7 @@ setup_package(entry_points = {
         #'Sphinx>=1.0.4',
         #'nose>=1.0',
         #],
-        cmdclass = {'checkdep': arachnid.distutils.check_dep.check_dep, 'sdist':arachnid.distutils.sdist.sdist, 'version':arachnid.distutils.sdist.version},
+        cmdclass = cmdclass,
         test_suite = 'nose.collector',
         **kwargs
 )
