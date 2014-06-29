@@ -205,7 +205,7 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
         raise
     if not skip_defocus:
         _logger.debug("rotational average")
-        rotational_average(power_spec, **extra) #ro_arr = 
+        rotational_average(power_spec, **extra)
         _logger.debug("estimate defocus")
         try:
             ang, mag, defocus, _, cutoff, unused = extra['spi'].tf_ed(power_spec, outputfile=extra['output_ctf'], **extra)
@@ -230,8 +230,6 @@ def process(filename, output, id_len=0, skip_defocus=False, fit2d=False, rmin=20
             except:
                 df1 = df1 = defocus
                 ang1 = 0
-            
-
     return filename, numpy.asarray([fid, defocus, ang, mag, cutoff, df1, df2, ang1])
 
 def rotational_average(power_spec, spi, output_roo, use_2d=True, **extra):
@@ -346,14 +344,12 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
         npowerspec = ndimage_utility.powerspec_avg(rwin, pad)
         mpowerspec = npowerspec.copy()
         
-        
         #remove_line(npowerspec)
         _logger.debug("Writing power spectra to %s"%spi.replace_ext(output_pow))
         ndimage_file.write_image(spi.replace_ext(output_pow), npowerspec)
         if not os.path.exists(spi.replace_ext(output_pow)): raise ValueError, "Bug in code: cannot find power spectra at %s"%spi.replace_ext(output_pow)
         power_spec = spi.cp(output_pow)
         spi.du(power_spec, 3, 3)
-        
         
         assert(output_pow != "" and output_pow is not None)
         # small image format
@@ -369,7 +365,16 @@ def create_powerspectra(filename, spi, use_powerspec=False, use_8bit=None, pad=2
     return power_spec, npowerspec
 
 def save_8bit(output, img, apix):
-    '''
+    ''' Write an image in a reduced size format
+    
+    :Parameters:
+        
+        output : str
+                 Output filename for image
+        img : array
+              2D array of an image
+        apix : float
+               Pixel size in angstroms
     '''
     
     img = ndimage_utility.histeq(ndimage_utility.replace_outlier(img, 2.5))
@@ -383,17 +388,17 @@ def prepare_micrograph(mic, bin_factor, invert):
     
     :Parameters:
     
-    mic : array
-          Micrograph image
-    bin_factor : float
-                 Number of times to decimate the micrograph
-    invert : bool
-             True if the micrograph should be inverted
+        mic : array
+              Micrograph image
+        bin_factor : float
+                     Number of times to decimate the micrograph
+        invert : bool
+                 True if the micrograph should be inverted
     
     :Returns:
     
-    mic : array
-          Preprocessed micrograph
+        mic : array
+              Preprocessed micrograph
     '''
     
     if issubclass(numpy.dtype(mic.dtype).type, numpy.integer):
@@ -409,15 +414,15 @@ def default_path(filename, output):
     
     :Parameters:
     
-    filename : str
-               Filename for secondary output file
-    output : str
-             Filename primary output file
+        filename : str
+                   Filename for secondary output file
+        output : str
+                 Filename primary output file
     
     :Returns:
-    
-    filename : str
-               Filename for correct location
+        
+        filename : str
+                   Filename for correct location
     '''
     
     if filename == "": return filename
@@ -466,28 +471,33 @@ def initialize(files, param):
         
     if mpi_utility.is_root(**param):
         try:
+            defvals2d = format.read(param['output'], numeric=True, prefix="acc_")
+        except: defvals2d={}
+        else:
+            defvals2d = format_utility.map_object_list(defvals2d)
+        try:
             defvals = format.read(param['output'], numeric=True)
         except:
-            param['output_offset']=0
+            param['defocus_dict']={}
         else:
             _logger.info("Restarting from defocus file")
-            #newvals = []
-            #if param['use_powerspec']:
-            #newvals = defvals
             defvals = format_utility.map_object_list(defvals)
-            #oldfiles = list(files)
-            #files = []
             for f in param['finished']:
                 fid = spider_utility.spider_id(f, param['id_len'])
                 if fid not in defvals or defvals[fid].defocus == 0:
                     files.append(f)
                     del defvals[fid]
+                    if fid in defvals2d: del defvals2d[fid]
             _logger.info("Restarting on %f files"%(len(files)))
-            param['output_offset']=len(defvals)
+            param['defocus_dict']=defvals
+            format.write(param['output'], defvals.values(), format=format.spiderdoc)
+            if len(defvals2d) > 0:
+                format.write(param['output'], defvals2d.values(), format=format.spiderdoc, prefix="acc_")
         if os.path.splitext(param['output'])[1] == '.emx':
             fout = open(param['output'], 'w')
             fout.write('<EMX version="1.0">\n')
             fout.close()
+            
     
     if mpi_utility.is_root(**param):
         param['defocus_arr'] = numpy.zeros((len(files), 5))
@@ -519,24 +529,7 @@ def init_process(input_files, rank=0, **extra):
     param['spi'] = spider.open_session(input_files, rank=rank, **extra)
     return param
 
-'''
-
-df1 = defocus + astig/2
-df2 = defocus - astig/2
-if astig < 0
-ang = astig + 45
-
-
-defocus = (DFMID1 + DFMID2)/2;
-astig = (DFMID2 - DFMID1);
-angle_astig = ANGAST - 45;
-if (astig < 0) {
-astig = -astig;
-angle_astig = angle_astig + 90;
-}
-'''
-
-def reduce_all(filename, file_completed, file_count, output, defocus_arr, output_offset=0, fit2d=False, **extra):
+def reduce_all(filename, file_completed, file_count, output, defocus_arr, defocus_dict, fit2d=False, **extra):
     # Process each input file in the main thread (for multi-threaded code) 38.25 - 3:45
     
     filename, defocus_vals = filename
@@ -561,13 +554,14 @@ def reduce_all(filename, file_completed, file_count, output, defocus_arr, output
         except:
             _logger.error("%d > %d"%(file_completed, len(defocus_arr)))
             raise
-        mode = 'a' if (file_completed+output_offset) > 1 else 'w'
+        mode = 'a' if len(defocus_dict) > 0 else 'w'
         format.write(output, defocus_vals[:5].reshape((1, defocus_vals[:5].shape[0])), format=format.spiderdoc, 
-                     header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode=mode, write_offset=file_completed+output_offset)
+                     header="id,defocus,astig_ang,astig_mag,cutoff_freq".split(','), mode=mode, write_offset=len(defocus_dict))
+        defocus_dict[int(defocus_vals[0])]=defocus_vals
         if fit2d:
             defocus_vals = defocus_vals[numpy.asarray((0,5,6,7))]
             format.write(output, defocus_vals.reshape((1, defocus_vals.shape[0])), format=format.spiderdoc, 
-                         header="id,defocus_u,defocus_v,defocus_ang".split(','), mode=mode, write_offset=file_completed+output_offset, prefix="acc_")
+                         header="id,defocus_u,defocus_v,defocus_ang".split(','), mode=mode, write_offset=len(defocus_dict), prefix="acc_")
     return filename
 
 def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, summary=False, **extra):
@@ -596,16 +590,11 @@ def finalize(files, defocus_arr, output, output_pow, output_roo, output_ctf, sum
     
 def remove_line(img):
     ''' Remove the line artifact in the center of the power spec
-    
-    877-242-7372
-    1446237624
     '''
     
     m = img.shape[0]/2
     b, e = m-3, m+4
-    #idx = range(b-2,b) + range(e,e+2)
-    #img[b:e, :] = img[e+5, :] #numpy.mean(img[idx, :], axis=0)
-    img[:, b:e] = img[:, e+5][:, numpy.newaxis] #numpy.mean(img[:, idx], axis=1)[:, numpy.newaxis]
+    img[:, b:e] = img[:, e+5][:, numpy.newaxis]
     return img
 
 def label_image(img, label, roo, ctf, pixel_diameter, dpi=72, **extra):
@@ -702,16 +691,17 @@ def supports(files, **extra):
     ''' Test if this module is required in the project workflow
     
     :Parameters:
-    
-    files : list
-            List of filenames to test
-    extra : dict
-            Unused keyword arguments
+        
+        files : list
+                List of filenames to test
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    flag : bool
-           True if this module should be added to the workflow
+        
+        flag : bool
+               True if this module should be 
+               added to the workflow
     '''
     
     return True
@@ -784,6 +774,7 @@ def main():
     #Main entry point for this script
     
     program.run_hybrid_program(__name__)
+
 if __name__ == "__main__": main()
 
 
