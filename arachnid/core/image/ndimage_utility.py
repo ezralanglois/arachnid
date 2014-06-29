@@ -1281,7 +1281,7 @@ def filter_annular_bp(img, freq1, freq2):
     return filter_image(img, kernel)
 
 
-def spiral_transform(img, complex=False):
+def spiral_transform(img, ret_complex=False):
     '''
     Todo: optimize kernel
     '''
@@ -1294,7 +1294,7 @@ def spiral_transform(img, complex=False):
             v1, v2 = i-cx, j-cy
             if v1 == 0 and v2 == 0: continue
             kernel[i,j] = numpy.complex(v2,v1)/numpy.sqrt( numpy.power(float(v1), 2)+numpy.power(float(v2), 2) )
-    return filter_image(img, kernel, complex=complex)
+    return filter_image(img, kernel, ret_complex=ret_complex)
     
 
 def filter_gaussian_lp(img, sigma, out=None):
@@ -1320,7 +1320,7 @@ def filter_gaussian_lp(img, sigma, out=None):
         return scipy.ndimage.filters.fourier_gaussian(img, sigma, output=out)
     return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect')#, output=out)
 
-def filter_image(img, kernel, pad=1, complex=False):
+def filter_image(img, kernel, pad=1, ret_complex=False):
     '''
     .. todo:: filter padding
     '''
@@ -1332,7 +1332,7 @@ def filter_image(img, kernel, pad=1, complex=False):
 
     fimg = scipy.fftpack.fftshift(scipy.fftpack.fftn(img))
     numpy.multiply(fimg, kernel, fimg)
-    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy() if not complex else scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).copy()
+    return scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).real.copy() if not ret_complex else scipy.fftpack.ifftn(scipy.fftpack.ifftshift(fimg)).copy()
 
 @_em2numpy2em
 def compress_image(img, mask, out=None):
@@ -1428,7 +1428,7 @@ def polar_half(image, center=None, out=None, rng=None):
           Image in polar space (radius, angle)
     '''
     
-    ny, nx = image.shape[:2]
+    ny, _ = image.shape[:2]
     
     if center is None: center = (image.shape[0]/2+image.shape[0]%2, image.shape[1]/2+image.shape[0]%2)
     #if center is None: center = (nx // 2, ny // 2)
@@ -1917,7 +1917,7 @@ def crop_window(img, x, y, offset, out=None):
     if (y-width) > img.shape[0]: raise ValueError, "y-coordinate out of bounds: %d > %d"%(y, img.shape[0])
         
     if out is None: out = numpy.zeros((width, width), dtype=img.dtype)
-    dxb, dyb, dxe, dye = 0, 0, out.shape[1], out.shape[0]
+    dxb, dyb = 0, 0
     #dx, dy = dxe, dye
     
     if xb < 0:
@@ -2253,7 +2253,7 @@ def gaussian_smooth(img, gk_size=3, gk_sigma=3.0, out=None):#, mode='reflect', c
     if out is None: out = numpy.empty_like(img)
     # Smooth the image with a Gausian kernel of size `kernel_size`, and smoothness `gauss_standard_dev`
     #return scipy.ndimage.filters.gaussian_filter(img, sigma, mode='reflect', output=out)
-    K = gaussian_kernel(tuple([gk_size for i in xrange(img.ndim)]), gk_sigma)
+    K = gaussian_kernel(tuple([gk_size for _ in xrange(img.ndim)]), gk_sigma)
     
     K  /= (K.mean()*numpy.prod(K.shape))
     if img.ndim == 2:
