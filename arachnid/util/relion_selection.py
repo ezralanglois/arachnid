@@ -175,8 +175,15 @@ This is not a complete list of options available to this script, for additional 
 '''
 
 from ..core.app import program
-from ..core.metadata import spider_utility, relion_utility, format_utility, format, spider_params, selection_utility
-from ..core.image import ndimage_file, ndimage_utility, ndimage_interpolate
+from ..core.metadata import spider_utility
+from ..core.metadata import relion_utility
+from ..core.metadata import format_utility
+from ..core.metadata import format
+from ..core.metadata import spider_params
+from ..core.metadata import selection_utility
+from ..core.image import ndimage_file
+from ..core.image import ndimage_utility
+from ..core.image import ndimage_interpolate
 from ..core.parallel import parallel_utility
 from ..core.orient import healpix
 from ..core.image.ctf import correct as ctf_correct
@@ -237,14 +244,14 @@ def batch(files, relion2spider=False, frame_stack_file="", renormalize=0, **extr
         if extra['test_valid']:
             count = {}
             for v in vals:
-                filename, id = relion_utility.relion_file(v.rlnImageName)
+                filename, pid = relion_utility.relion_file(v.rlnImageName)
                 if filename not in count: 
                     try:
                         count[filename]=ndimage_file.count_images(filename)
                     except:
                         if not os.path.exists(filename): raise IOError, "%s does not exist - check your relative path"%(filename)
                         count[filename]=ndimage_file.count_images(filename)
-                if id > count[filename]: raise ValueError, "%s does not have index %d in stack of size %d"%(filename, id, count[filename])
+                if pid > count[filename]: raise ValueError, "%s does not have index %d in stack of size %d"%(filename, pid, count[filename])
         
         if renormalize > 0:
             _logger.info("Renormalizing images to diameter of %f"%(renormalize))
@@ -289,13 +296,13 @@ def generate_from_spider_alignment(filename, output, param_file, image_file, **e
         defocus = val[defocus_col]
         mic = int(val[mic_col])
         part = int(val[part_col])
-        id = int(val[id_col])
+        pid = int(val[id_col])
         if mic not in group_ids:
             group.append((defocus, numpy.sum(align[:, 17]==mic), len(label), mic))
             group_ids.add(mic)
         if spider_utility.is_spider_filename(image_file) and os.path.exists(spider_utility.spider_filename(image_file, mic)): 
             image_file = spider_utility.spider_filename(image_file, mic)
-        label.append( ["%s@%s"%(str(int(id)).zfill(idlen), image_file), str(mic), defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+        label.append( ["%s@%s"%(str(int(pid)).zfill(idlen), image_file), str(mic), defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
     
     if len(group) == 0: raise ValueError, "No values to write out, try changing selection file"
     _logger.debug("Regrouping")
@@ -395,14 +402,14 @@ def generate_relion_selection_file(files, img, output, param_file, selection_fil
             filename=files[0]
             _logger.debug("Generating relion entries")
             for val in stack_map:
-                id, mic, part = int(val[id_col]), val[mic_col], val[stack_id_col]
+                pid, mic, part = int(val[id_col]), val[mic_col], val[stack_id_col]
                 if mic not in defocus_dict: 
                     _logger.warn("Skipping: %s - not in defocus file"%str(mic))
                     continue
                 if mic not in group_ids:
                     group.append((defocus_dict[mic].defocus, numpy.sum(stack_map[:, mic_col]==mic), len(label), mic))
                     group_ids.add(mic)
-                label.append( ["%s@%s"%(str(int(id)).zfill(idlen), filename), str(mic), defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
+                label.append( ["%s@%s"%(str(int(pid)).zfill(idlen), filename), str(mic), defocus_dict[mic].defocus, voltage, cs, ampcont, len(group)-1, "%s@%s"%(str(part).zfill(idlen), str(mic))] )
         else:
             _logger.debug("Generating selection file from many stacks: %d"%len(files))
             for filename in files:
@@ -507,16 +514,16 @@ def read_defocus(defocus_file, defocus_header, min_defocus, max_defocus, **extra
     
     :Parameters:
     
-    defocus_file : str
-                   Filename for input defocus file
-    defocus_header : str
-                     Header for defocus file
-    min_defocus : float
-                  Minimum allowed defocus
-    max_defocus : float
-                  Maximum allowed defocus
-    extra : dict
-            Unused key word arguments
+        defocus_file : str
+                       Filename for input defocus file
+        defocus_header : str
+                         Header for defocus file
+        min_defocus : float
+                      Minimum allowed defocus
+        max_defocus : float
+                      Maximum allowed defocus
+        extra : dict
+                Unused key word arguments
     '''
     
     if defocus_file == "": return {}
@@ -553,13 +560,13 @@ def build_group(data):
     total = 0
     selected = 0
     for d in data:
-        id = spider_utility.spider_id(d[mic_index])
-        if id != last:
+        fid = spider_utility.spider_id(d[mic_index])
+        if fid != last:
             group.append((defocus, selected, total, last))
             defocus = data[0][def_index]
             total += selected
             selected = 0
-            last = id
+            last = fid
         selected += 1
     if selected > 0:
         group.append((defocus, selected, total, last))
@@ -597,19 +604,19 @@ def regroup(group, minimum_group, **extra):
     
     for i in idx:
         if total <= minimum_group:
-            id = int(group[i, 3])
-            groupmap[id]=offset
-            regroup.append(id)
+            fid = int(group[i, 3])
+            groupmap[fid]=offset
+            regroup.append(fid)
             total += group[i, 1]
         if total > minimum_group:
             offset += 1
-            for id in regroup: groupmap[id]=offset
+            for fid in regroup: groupmap[fid]=offset
             total = 0
             regroup=[]
     _logger.info("Regrouping from %d to %d"%(len(groupmap), offset))
     return groupmap
     
-def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **extra):
+def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", relion_old=False, **extra):
     ''' Update parameters in a relion selection file
     
     data : list
@@ -658,11 +665,12 @@ def update_parameters(data, header, group_map=None, scale=1.0, stack_file="", **
     
     for i in xrange(len(data)):
         vals = data[i] if not isinstance(data[i], tuple) else list(data[i])
-        if group_col >= 0 and group_map is not None:
-            id = spider_utility.spider_id(vals[group_col])
+        if group_col2 >= 0 and group_map is not None:
+            fid = spider_utility.spider_id(vals[group_col])
             try:
-                vals[group_col] = spider_utility.spider_filename(vals[group_col], group_map[id])
-                vals[group_col2] = spider_utility.spider_id(group_map[id])
+                if relion_old: 
+                    vals[group_col] = spider_utility.spider_filename(vals[group_col], group_map[fid])
+                vals[group_col2] = spider_utility.spider_id(group_map[fid])
                 
             except:
                 _logger.error("keys: %s"%str(group_map.keys()))
@@ -817,10 +825,10 @@ def select_good(vals, class_file, good_file, min_defocus, max_defocus, apix=0, p
         else: select=set([select])
         _logger.info("Selecting classes: %s"%str(select))
         for v in vals:
-            id = getattr(v, column)
-            try: id = int(id)
-            except: id = spider_utility.spider_id(id)
-            if id in select: subset.append(v)
+            fid = getattr(v, column)
+            try: fid = int(fid)
+            except: fid = spider_utility.spider_id(fid)
+            if fid in select: subset.append(v)
         if len(subset) == 0: raise ValueError, "No classes selected"
     
     if view_resolution > 0:
@@ -1002,7 +1010,7 @@ def create_movie_old(vals, frame_stack_file, output, frame_limit=0, **extra):
     header.append('rlnParticleName')
     format.write(output, frame_vals, header=header)
 
-def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", sort_column="", sort_rev=False, split=False, **extra):
+def select_class_subset(vals, output, random_subset=0, restart=False, param_file="", reindex_file="", sort_column="", sort_rev=False, split=False, micrograph_file="", coordinate_file="", **extra):
     ''' Select a subset of classes and write a new selection file
     
     :Parameter:
@@ -1046,6 +1054,30 @@ def select_class_subset(vals, output, random_subset=0, restart=False, param_file
                 last=filename
             pid = index[pid1]
             vals[i] = vals[i]._replace(rlnImageName="%s@%s"%(str(pid).zfill(idlen), filename))
+    
+    if micrograph_file != "":
+        idlen = len(str(len(vals)))
+        for i in xrange(len(vals)):
+            if hasattr(vals[i], 'araOriginalrlnImageName'):
+                filename = relion_utility.relion_file(vals[i].araOriginalrlnImageName)[0]
+            else:
+                filename = relion_utility.relion_file(vals[i].rlnImageName)[0]
+            if not spider_utility.is_spider_filename(filename): raise ValueError, "Relion images not organzed by SPIDER stack - cannot recover micrographs - %s"%filename
+            vals[i] = vals[i]._replace(rlnMicrographName=spider_utility.spider_filename(micrograph_file, filename, idlen))
+    
+    if coordinate_file != "" and len(vals) > 0:
+        coords_dict = {}
+        Tuple = format_utility.collections.namedtuple('Field', ('rlnCoordinateX', 'rlnCoordinateY')+vals[0]._fields)
+        for i in xrange(len(vals)):
+            if hasattr(vals[i], 'araOriginalrlnImageName'):
+                mic,par = relion_utility.relion_id(vals[i].araOriginalrlnImageName)
+            else:
+                mic,par = relion_utility.relion_id(vals[i].rlnImageName)
+            if mic is None: raise ValueError, "Relion images not organzed by SPIDER stack - cannot recover micrographs"
+            if mic not in coords_dict:
+                coords_dict[mic] = format.read(coordinate_file, map_ids='id', spiderid=mic)
+            vals[i] = Tuple(coords_dict[mic][par].x, coords_dict[mic][par].y, *vals[i])
+        
     
     subset=vals
     if os.path.splitext(output)[1] == '.star':
@@ -1404,6 +1436,9 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   pad=3,                           help="Padding for image downsize")
     group.add_option("",   image_file="",                   help="Image filename template", gui=dict(filetype="open"))
     group.add_option("",   remove_bad=False,                help="Remove bad images")
+    group.add_option("",   relion_old=False,                help="Group according to older versions of relion")
+    group.add_option("",    micrograph_file="",             help="Reindex micrograph", gui=dict(filetype="open"))
+    pgroup.add_option("-l", coordinate_file="",             help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"))
     
     pgroup.add_option_group(group)
     if main_option:
