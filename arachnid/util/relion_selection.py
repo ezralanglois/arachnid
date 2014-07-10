@@ -1437,8 +1437,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   image_file="",                   help="Image filename template", gui=dict(filetype="open"))
     group.add_option("",   remove_bad=False,                help="Remove bad images")
     group.add_option("",   relion_old=False,                help="Group according to older versions of relion")
-    group.add_option("",    micrograph_file="",             help="Reindex micrograph", gui=dict(filetype="open"))
-    pgroup.add_option("-l", coordinate_file="",             help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"))
+    group.add_option("",   micrograph_file="",              help="Reindex micrograph", gui=dict(filetype="open"))
+    group.add_option("",   coordinate_file="",              help="Input filename template containing particle coordinates with correct number of digits (e.g. sndc_0000.spi)", gui=dict(filetype="open"))
     
     pgroup.add_option_group(group)
     if main_option:
