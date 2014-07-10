@@ -67,8 +67,11 @@ This is not a complete list of options available to this script, for additional 
 .. Created on Nov 23, 2013
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
-from ..core.app import program, tracing
-from ..core.metadata import format_utility, spider_utility, format
+from ..core.app import program
+from ..core.app import tracing
+from ..core.metadata import format_utility
+from ..core.metadata import spider_utility
+from ..core.metadata import format
 from ..core.image import ndimage_file
 import os
 import logging
@@ -77,23 +80,25 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def batch(files, output, mapping_file="", test_image=False, strict=False, **extra):
+def batch(files, output, mapping_file="", test_image=False, strict=False, rename_files=False, **extra):
     ''' Reconstruct a 3D volume from a projection stack (or set of stacks)
     
     :Parameters:
     
-    files : list
-            List of input filenames
-    output : str
-             Output filename for micrograph links
-    mapping_file : str
-                   Filename of possible existing mapping
-    test_image : bool
-                 Test if input file is valid image
-    strict : bool
-             If True, Only use files list in --mapping-file
-    extra : dict
-            Unused keyword arguments
+        files : list
+                List of input filenames
+        output : str
+                 Output filename for micrograph links
+        mapping_file : str
+                       Filename of possible existing mapping
+        test_image : bool
+                     Test if input file is valid image
+        strict : bool
+                 If True, Only use files list in --mapping-file
+        rename_files : bool
+                       Rename files rather than generate soft links
+        extra : dict
+                Unused keyword arguments
     '''
     
     if is_enum_filename(files):
@@ -121,7 +126,10 @@ def batch(files, output, mapping_file="", test_image=False, strict=False, **extr
         try: os.makedirs(path)
         except: pass
     format.write(output_map_file, mapped, header="filename,id".split(','))
-    generate_enum_links(mapped, output, test_image)
+    if rename_files:
+        rename_mapped_files(mapped, output, test_image)
+    else:
+        generate_enum_links(mapped, output, test_image)
     _logger.info("Completed")
     
 def map_enum_files(files, mapping_file, strict=False):
@@ -129,17 +137,17 @@ def map_enum_files(files, mapping_file, strict=False):
     
     :Parameters:
     
-    files : list
-            List of filenames to map
-    mapping_file : str
-                   Filename of possible existing mapping
-    strict : bool
-             If True, Only use files list in --mapping-file
+        files : list
+                List of filenames to map
+        mapping_file : str
+                       Filename of possible existing mapping
+        strict : bool
+                 If True, Only use files list in --mapping-file
     
     :Returns:
-    
-    mapped : list
-             List of mapped files
+        
+        mapped : list
+                 List of mapped files
     '''
     
     if os.path.exists(mapping_file):
@@ -170,17 +178,17 @@ def remap_enum_files(files, mapping_file, strict=False):
     
     :Parameters:
     
-    files : list
-            List of filenames to remap
-    mapping_file : str
-                   Filename of existing mapping
-    strict : bool
-             If True, Only use files list in --mapping-file
+        files : list
+                List of filenames to remap
+        mapping_file : str
+                       Filename of existing mapping
+        strict : bool
+                 If True, Only use files list in --mapping-file
     
     :Returns:
     
-    mapped : list
-             List of tuples mapping filename to id
+        mapped : list
+                 List of tuples mapping filename to id
     '''
     
     mapped = format.read(mapping_file, numeric=True)
@@ -222,19 +230,19 @@ def generate_enum_links(mapped, output, test_image=False):
     
     :Parameters:
     
-    mapped : list
-             List of tuples mapping filename to id
-    output : str
-             Output link filename template
-    test_image : bool
-                 Test if input file is valid image
+        mapped : list
+                 List of tuples mapping filename to id
+        output : str
+                 Output link filename template
+        test_image : bool
+                     Test if input file is valid image
     '''
     
     if not os.path.exists(os.path.dirname(output)):
         try: os.makedirs(os.path.dirname(output))
         except: pass
-    for filename, id in mapped:
-        link = spider_utility.spider_filename(output, id)
+    for filename, fid in mapped:
+        link = spider_utility.spider_filename(output, fid)
         if os.path.exists(filename):
             if os.path.exists(link):
                 linkedfilename = os.readlink(link)
@@ -254,6 +262,30 @@ def generate_enum_links(mapped, output, test_image=False):
             try:os.unlink(link)
             except: pass
 
+def rename_mapped_files(mapped, output, test_image=False):
+    ''' Generate a set of enumerated softlinks
+    
+    :Parameters:
+    
+        mapped : list
+                 List of tuples mapping filename to id
+        output : str
+                 Output link filename template
+        test_image : bool
+                     Test if input file is valid image
+    '''
+    
+    if not os.path.exists(os.path.dirname(output)):
+        try: os.makedirs(os.path.dirname(output))
+        except: pass
+    for filename, fid in mapped:
+        link = spider_utility.spider_filename(output, fid)
+        if os.path.exists(filename):
+            if not os.path.exists(link):
+                os.rename(filename, link)
+            if test_image and not ndimage_file.is_readable(filename):
+                _logger.warn("%s is not a valid image"%(link, filename))
+
 def is_enum_filename(files):
     ''' Test if list of filenames all follow the enumerated filename
     convention.
@@ -262,46 +294,46 @@ def is_enum_filename(files):
     and then the file extension: path/filename00001.dat
     
     :Parameters:
-    
-    files : list
-            List of filenames to test
+        
+        files : list
+                List of filenames to test
     
     :Returns:
     
-    flag : bool
-           True if a single filename does not follow this convention or
-           if the ID is not unique
+        flag : bool
+               True if a single filename does not follow this convention or
+               if the ID is not unique
     '''
     if len(files) == 0: raise ValueError, "No input files!"
     
     found = set()
     for f in files:
         try:
-            id = spider_utility.spider_id(f)
+            fid = spider_utility.spider_id(f)
         except: 
             _logger.debug("No id: "+str(f))
             return False
         else:
-            if id in found: 
-                _logger.debug("Found id: "+str(id)+" in "+str(found))
+            if fid in found: 
+                _logger.debug("Found id: "+str(fid)+" in "+str(found))
                 return False
-            found.add(id)
+            found.add(fid)
     return True
 
 def supports(files, **extra):
     ''' Test if this module is required in the project workflow
     
     :Parameters:
-    
-    files : list
-            List of filenames to test
-    extra : dict
-            Unused keyword arguments
+        
+        files : list
+                List of filenames to test
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
-    
-    flag : bool
-           True if this module should be added to the workflow
+        
+        flag : bool
+               True if this module should be added to the workflow
     '''
     
     return not is_enum_filename(files)
@@ -312,6 +344,7 @@ def check_options(options, main_option=False):
     
     if len(options.input_files)==0: raise OptionValueError, "No input filenames"
     if not spider_utility.is_spider_filename(options.output): raise OptionValueError, "Output filename not a enumerated filename, e.g. path/mic_00000.spi"
+    if options.rename_files and options.mapping_file == "": raise OptionValueError, "--rename-files requires an existing --mapping-file"
 
 def setup_options(parser, pgroup=None, main_option=False):
     #Setup options for automatic option parsing
@@ -321,6 +354,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     pgroup.add_option("-m", mapping_file="",                          help="Recreate mapping after files have changed in location", gui=dict(filetype="open"))
     pgroup.add_option("-t", test_image=False,                         help="Test if the input filename is a valid image - do not link if invalid")
     pgroup.add_option("-s", strict=False,                             help="Only use files list in --mapping-file")
+    pgroup.add_option("", rename_files=False,                         help="Rename the input files based on an existing mapping file (--mapping-file)")
     
 def flags():
     ''' Get flags the define the supported features
