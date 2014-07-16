@@ -82,8 +82,8 @@ def cache_data():
     
     :Returns:
     
-    extra : dict
-            Keyword arguments
+        extra : dict
+                Keyword arguments
     '''
     
     return dict(cache=eman2_utility.EMAN2.EMData())
@@ -92,9 +92,9 @@ def is_avaliable():
     ''' Test if EMAN2 can be found
     
     :Returns:
-    
-    out : bool
-          True if the EMAN2 library is available
+        
+        out : bool
+              True if the EMAN2 library is available
     '''
     
     return eman2_utility.is_avaliable()
@@ -105,20 +105,20 @@ def is_readable(filename):
     
     :Parameters:
     
-    filename : str
-               Input filename to test
+        filename : str
+                   Input filename to test
     
     :Returns:
-    
-    read : bool
-           True if the format is recognized
+        
+        read : bool
+               True if the format is recognized
     '''
     
     if not os.path.exists(filename): return False
     filename = str(filename)
     try: 
-        type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
-        return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
+        itype = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
+        return itype != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except:
         return False
     
@@ -126,16 +126,16 @@ def read_header(filename, index=None):
     ''' Read the SPIDER header
     
     :Parameters:
-    
-    filename : str or file object
-               Filename or open stream for a file
-    index : int, optional
-            Index of image to get the header, if None, the stack header (Default: None)
+        
+        filename : str or file object
+                   Filename or open stream for a file
+        index : int, optional
+                Index of image to get the header, if None, the stack header (Default: None)
     
     :Returns:
-        
-    header : dict
-             Dictionary with header information
+            
+        header : dict
+                 Dictionary with header information
     '''
     
     try: "+"+filename
@@ -181,19 +181,19 @@ def read_image(filename, index=None, header=None, cache=None):
     
     :Parameters:
     
-    filename : str
-               Input filename to read
-    index : int, optional
-            Index of image to get, if None, first image (Default: None)
-    header : dict, optional
-             Output dictionary to place header values
-    cache : EMData
-             Cached image data object
+        filename : str
+                   Input filename to read
+        index : int, optional
+                Index of image to get, if None, first image (Default: None)
+        header : dict, optional
+                 Output dictionary to place header values
+        cache : EMData
+                 Cached image data object
     
     :Returns:
         
-    out : array
-          Array with header information in the file
+        out : array
+              Array with header information in the file
     '''
     
     try: "+"+filename
@@ -208,8 +208,8 @@ def read_image(filename, index=None, header=None, cache=None):
     else: emdata.read_image_c(filename, int(index))
     #_logger.debug("read_image-2")
     if header is not None: util.update_header(emdata.todict(), header, eman2ara)
-    type = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
-    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
+    itype = eman2_utility.EMAN2.EMUtil.get_image_type(filename)
+    if itype == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC:
         if emdata.get_attr('MRC.nlabels') > 0:
             try: mrc_label = emdata.get_attr('MRC.label0')
             except: mrc_label = ""
@@ -226,17 +226,17 @@ def iter_images(filename, index=None, header=None):
     
     :Parameters:
     
-    filename : str
-               Input filename to read
-    index : int, optional
-            Index of image to start, if None, start with the first image (Default: None)
-    header : dict, optional
-             Output dictionary to place header values
+        filename : str
+                   Input filename to read
+        index : int, optional
+                Index of image to start, if None, start with the first image (Default: None)
+        header : dict, optional
+                 Output dictionary to place header values
     
     :Returns:
-        
-    out : array
-          Array with header information in the file
+            
+        out : array
+              Array with header information in the file
     '''
     
     try: "+"+filename
@@ -266,14 +266,14 @@ def count_images(filename):
     ''' Count the number of images in the file
     
     :Parameters:
-    
-    filename : str
-               Input filename to read
+        
+        filename : str
+                   Input filename to read
     
     :Returns:
-        
-    out : int
-          Number of images in the file
+            
+        out : int
+              Number of images in the file
     '''
     
     try: "+"+filename
@@ -287,20 +287,20 @@ def is_writable(filename):
     as a writable format.
     
     :Parameters:
-    
-    filename : str
-               Output filename to test
+        
+        filename : str
+                   Output filename to test
     
     :Returns:
-    
-    write : bool
-            True if the format is recognized
+        
+        write : bool
+                True if the format is recognized
     '''
     
-    ext = eman2_utility.EMAN2.Util.get_filename_ext(str(filename))
+    ext = eman2_utility.EMAN2.Util.get_filename_ext(str(filename))  # @UndefinedVariable
     try:
-        type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(str(ext))
-        return type != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
+        itype = eman2_utility.EMAN2.EMUtil.get_image_ext_type(str(ext))
+        return itype != eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN
     except: return False
 
 def write_spider_image(filename, img, index=None):
@@ -309,24 +309,24 @@ def write_spider_image(filename, img, index=None):
     
     write_image(filename, img, index, None, eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN)
 
-def write_image(filename, img, index=None, header=None, inplace=False, type=None):
+def write_image(filename, img, index=None, header=None, inplace=False, itype=None):
     ''' Write the given image to the given filename using a format
     based on the file extension, or given type.
     
     :Parameters:
     
-    filename : str
-               Output filename for the image
-    img : array
-          Image data to write out
-    index : int, optional
-            Index image should be written to in the stack
-    header : dict, optional
-             Dictionary of header values
-    inplace : bool
-              Write new image to stack without removing the stack
-    type : eman2_utility.EMAN2.EMUtil.ImageType, optional
-           Format in which to write image
+        filename : str
+                   Output filename for the image
+        img : array
+              Image data to write out
+        index : int, optional
+                Index image should be written to in the stack
+        header : dict, optional
+                 Dictionary of header values
+        inplace : bool
+                  Write new image to stack without removing the stack
+        itype : eman2_utility.EMAN2.EMUtil.ImageType, optional
+               Format in which to write image
     '''
     
     filename = str(filename)
@@ -342,22 +342,22 @@ def write_image(filename, img, index=None, header=None, inplace=False, type=None
     h={'apix_x': 1.0}
     header=util.update_header(h, header, ara2eman)
     for key, val in header.iteritems(): img.set_attr(key, val)
-    if type is None:
-        type = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))
-    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: 
+    if itype is None:
+        itype = eman2_utility.EMAN2.EMUtil.get_image_ext_type(eman2_utility.EMAN2.Util.get_filename_ext(filename))  # @UndefinedVariable
+    if itype == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_MRC: 
         #_logger.debug("MRC - must flip")
         img.process_inplace("xform.flip",{"axis":"y"})
-    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: 
+    if itype == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_UNKNOWN: 
         #_logger.debug("Type unknown - assume spider stack")
-        type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
+        itype = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER
     if index is None:
-        if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER:
+        if itype == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SPIDER:
             #_logger.debug("Type SPIDER stack - switch to SINGLE spider")
-            type = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
+            itype = eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER
         index = 0
-    img.write_image_c(filename, int(index), type)
+    img.write_image_c(filename, int(index), itype)
     # Workaround for buggy Montage from doc viewer
-    if type == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
+    if itype == eman2_utility.EMAN2.EMUtil.ImageType.IMAGE_SINGLE_SPIDER:
         _logger.debug("Hacking spider file")
         f = open(filename, 'r+b')
         f.seek(26*4)
