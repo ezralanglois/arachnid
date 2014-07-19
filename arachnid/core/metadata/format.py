@@ -434,8 +434,8 @@ def read(filename, columns=None, header=None, ndarray=False, map_ids=None, facto
         ndarray : bool
                   If True, return tuple (array, header) where header is a list of strings
                   describing each column
-        map_ids : bool
-                  If True, return a dictionary mapping id to full list of values
+        map_ids : str
+                  If not empty, return a dictionary mapping given id to full list of values
         factory : Factory
                   Class or module that creates the container for the values returned by the parser
         extra : dict
