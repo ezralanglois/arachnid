@@ -139,6 +139,7 @@ This is not a complete list of options available to this script, for additional 
 .. codeauthor:: Robert Langlois <rl2528@columbia.edu>
 '''
 from ..core.app import program
+from ..util import bench
 from ..core.image import ndimage_utility, ndimage_filter
 from ..core.learn import dimensionality_reduction
 from ..core.learn import unary_classification
@@ -151,7 +152,8 @@ import numpy.linalg
 import scipy.spatial
 import scipy.stats
 import lfcpick
-import logging, os
+import logging
+import os
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -207,7 +209,7 @@ def process(filename, disk_mult_range, id_len=0, **extra):
     format.write(extra['output'], coords, default_format=format.spiderdoc)
     return filename, peaks
 
-def search(img, disable_prune=False, limit=0, experimental=False, **extra):
+def search(img, disable_prune=False, limit_template=0, limit=0, experimental=False, **extra):
     ''' Search a micrograph for particles using a template
     
     Args:
@@ -230,7 +232,7 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
     peaks=cull_boundary(peaks, img.shape, **extra)
     if len(peaks.squeeze())==0: return []
     index = numpy.argsort(peaks[:,0])[::-1]
-    if index.shape[0] > limit: index = index[:limit]
+    if index.shape[0] > limit_template: index = index[:limit_template]
     index = index[::-1]
     try:
         peaks = peaks[index].copy().squeeze()
@@ -247,6 +249,8 @@ def search(img, disable_prune=False, limit=0, experimental=False, **extra):
             sel = classify_windows(img, peaks, **extra)
         peaks = peaks[sel].copy()
     peaks[:, 1:3] *= extra['bin_factor']
+    if limit>0:
+        return peaks[::-1][:limit]
     return peaks[::-1]
 
 def search_range(img, disk_mult_range, **extra):
@@ -733,10 +737,10 @@ def write_example(mic, coords, filename, box_image="", bin_factor=1.0, pixel_dia
     mic = ndimage_filter.filter_gaussian_highpass(mic, 0.25/radius, 2)
     ndimage_utility.replace_outlier(mic, 4.0, 4.0, None, mic)
     
-    bench = lfcpick.benchmark.read_bench_coordinates(filename, **extra)
-    if bench is not None:
+    benchmark = bench.read_bench_coordinates(filename, **extra)
+    if benchmark is not None:
         mic = drawing.draw_particle_boxes(mic, coords, window, bin_factor, ret_draw=True)
-        drawing.draw_particle_boxes_to_file(mic, bench, window, bin_factor, box_image, outline="#40ff40")
+        drawing.draw_particle_boxes_to_file(mic, benchmark, window, bin_factor, box_image, outline="#40ff40")
     else:
         drawing.draw_particle_boxes_to_file(mic, coords, window, bin_factor, box_image)
     
@@ -799,6 +803,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option("",   pca_mode=1.0,                help="Set the PCA mode for outlier removal: 0: auto, <1: energy, >=1: number of eigen vectors", gui=dict(minimum=0.0))
     group.add_option("",   iter_threshold=1,            help="Number of times to iterate thresholding")
     group.add_option("",   limit=2000,                  help="Limit on number of particles, 0 means give all", gui=dict(minimum=0, singleStep=1))
+    group.add_option("",   limit_template=2000,         help="Limit on number of particles after template-matching but before pruning, 0 means give all", gui=dict(minimum=0, singleStep=1))
+    
     group.add_option("",   experimental=False,          help="Use the latest experimental features!")
     group.add_option("",   real_space_nstd=2.5,         help="Cutoff for real space PCA")
     group.add_option("",   boundary=[],                 help="Margin for particle selection top, bottom, left, right")
