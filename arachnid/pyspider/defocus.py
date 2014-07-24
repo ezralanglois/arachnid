@@ -486,7 +486,7 @@ def initialize(files, param):
                 fid = spider_utility.spider_id(f, param['id_len'])
                 if fid not in defvals or defvals[fid].defocus == 0:
                     files.append(f)
-                    del defvals[fid]
+                    if fid in defvals: del defvals[fid]
                     if fid in defvals2d: del defvals2d[fid]
             _logger.info("Restarting on %f files"%(len(files)))
             param['defocus_dict']=defvals
