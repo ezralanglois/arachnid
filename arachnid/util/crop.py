@@ -566,7 +566,8 @@ def init_root(files, param):
         tot = ndimage_file.count_images(filename)
         if param['frame_align'] != "" and tot == 1:
             files = spider_utility.single_images(files)
-            _logger.info("Processing example movie: %s"%str(filename))
+            raise ValueError, "Single image frames not supported!"
+            #_logger.info("Processing example movie: %s"%str(filename))
         
         if tot > 0:
             if param['frame_align'] != "":
