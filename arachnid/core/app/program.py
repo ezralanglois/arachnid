@@ -369,7 +369,7 @@ def collect_file_dependents(main_module, config_path=None, **extra):
         output = os.path.join(config_path, name+".cfg")
     else: output = name+".cfg"
     
-    return output, parser.collect_dependent_file_options(type_obj='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type='save', key='_long_opts')
+    return output, parser.collect_dependent_file_options(type_obj='open', required=True, key='_long_opts'), parser.collect_dependent_file_options(type_obj='save', key='_long_opts')
 
 class program(object):
     '''
