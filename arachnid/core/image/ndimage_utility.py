@@ -1760,7 +1760,7 @@ def normalize_min_max(img, mask=None, lower=0.0, upper=1.0, out=None):
     vmin = numpy.min(img) if mask is None else numpy.min(img[mask>0.5])
     out = numpy.subtract(img, vmin, out)
     vmax = numpy.max(img) if mask is None else numpy.max(img[mask>0.5])
-    if vmax == 0: raise ValueError, "No information in image"
+    if vmax == vmin: raise ValueError, "No information in image"
     numpy.divide(out, vmax, out)
     upper = upper-lower
     if upper != 1.0: numpy.multiply(upper, out, out)
