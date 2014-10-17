@@ -189,6 +189,12 @@ def process(filename, disk_mult_range, id_len=0, **extra):
     except ndimage_file.InvalidHeaderException:
         _logger.warn("Skipping: %s - invalid header"%filename)
         return filename, []
+    except:
+        if _logger.getEffectiveLevel() == logging.DEBUG:
+            _logger.exception("Skipping: %s - unknown error"%filename)
+        else:
+            _logger.warn("Skipping: %s - unknown error"%filename)
+        return filename, []
         
     _logger.debug("Search micrograph")
     try:
@@ -453,7 +459,14 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
-    dsel = unary_classification.one_class_classification_old(feat, nstd=nstd_pw)
+    try:
+        dsel = unary_classification.one_class_classification_old(feat, nstd=nstd_pw)
+    except:
+        dsel = numpy.ones(feat.shape[0], dtype=numpy.bool)
+        if _logger.getEffectiveLevel() == logging.DEBUG:
+            _logger.exception("Skipping contaminant removal - unknown error")
+        else:
+            _logger.warn("Skipping contaminant removal - unknown error")
     
 
     feat, idx = dimensionality_reduction.pca(datar, datar, pca_mode)[:2]
@@ -462,7 +475,6 @@ def classify_windows(mic, scoords, dust_sigma=4.0, xray_sigma=4.0, disable_thres
     assert(idx > 0)
     assert(feat.shape[0]>1)
     _logger.debug("Eigen: %d"%idx)
-    
     dsel = numpy.logical_and(dsel, unary_classification.robust_euclidean(feat, real_space_nstd))
     
     _logger.debug("Removed by PCA: %d of %d -- %d"%(numpy.sum(dsel), len(scoords), idx))
