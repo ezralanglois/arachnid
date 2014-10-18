@@ -42,7 +42,16 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
     #_logger.error("worker_count2=%d"%worker_count)
     
     if worker_count > 1:
-        qout = process_queue.start_workers_with_output(vals, process, worker_count, init_process, **extra)
+        def process_helper(val, **extra):
+            try:
+                return process(val, **extra)
+            except:
+                if _logger.getEffectiveLevel()==logging.DEBUG:
+                    _logger.exception("Unexpected error in process - report this problem to the developer")
+                else:
+                    _logger.warn("nexpected error in process - report this problem to the developer")
+                return extra.get('process_number', 0), val
+        qout = process_queue.start_workers_with_output(vals, process_helper, worker_count, init_process, ignore_error=True, **extra)
         index = 0
         while index < len(vals):
             val = process_queue.safe_get(qout.get)    
@@ -59,7 +68,15 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
         #_logger.error("worker_count3=%d"%worker_count)
         logging.debug("Running with single process: %d"%len(vals))
         for i, val in enumerate(vals):
-            yield i, process(val, **extra)
+            try:
+                f = process(val, **extra)
+            except:
+                if _logger.getEffectiveLevel()==logging.DEBUG:
+                    _logger.exception("Unexpected error in process - report this problem to the developer")
+                else:
+                    _logger.warn("nexpected error in process - report this problem to the developer")
+                yield i, val
+            yield i, f
 
 def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
     ''' Iterate over the input value and reduce after finished processing

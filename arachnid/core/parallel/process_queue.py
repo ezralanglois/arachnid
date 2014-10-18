@@ -460,16 +460,18 @@ def worker_all(qin, qout, worker_callback, init_process=None, **extra):
     
     :Parameters:
 
-    qin : Queue
-          Input Queue
-    qout : Queue
-           Output Queue
-    worker_callback : function
-                      Worker callback function to process an item
-    init_process : function
-                   Initalize the parameters for the child process
-    extra : dict
-            Unused keyword arguments
+        qin : Queue
+              Input Queue
+        qout : Queue
+               Output Queue
+        worker_callback : function
+                          Worker callback function to process an item
+        init_process : function
+                       Initalize the parameters for the child process
+        ignore_error : bool
+                       Ignore error and continue
+        extra : dict
+                Unused keyword arguments
     '''
 
     try:
