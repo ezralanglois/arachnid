@@ -226,7 +226,8 @@ def main(files, module, **extra):
             restart_fout.write(str(fileid)+'\n')
     current = 0
     _logger.debug("Start processing")
-    for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, **extra):
+    ignored_errors=[0]
+    for index, filename in mpi_utility.mpi_reduce(process, files, init_process=init_process, ignored_errors=ignored_errors, **extra):
         if mpi_utility.is_root(**extra):
             try:
                 monitor.update()
@@ -235,7 +236,8 @@ def main(files, module, **extra):
                     try:
                         filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
                     except:
-                        if _logger.getEffectiveLevel()==logging.DEBUG:
+                        ignored_errors[0]+=1
+                        if _logger.getEffectiveLevel()==logging.DEBUG or 1 == 1:
                             _logger.exception("Reduce to root failed")
                         else:
                             _logger.warn("Reduce to root failed - report this problem to the developer")
@@ -253,6 +255,9 @@ def main(files, module, **extra):
                     if spider_utility.is_spider_filename(filename): filename=spider_utility.spider_id(filename)
                     restart_fout.write(str(filename)+'\n')
                     restart_fout.flush()
+    if ignored_errors[0] > 0:
+        see_also="\n\nSee .%s.crash_report for more details"%os.path.basename(sys.argv[0])
+        _logger.warn("Errors occurred during run"+see_also)
     if restart_fout is not None: restart_fout.close()
     if len(files) == 0:
         raise ValueError, "Error in root process"

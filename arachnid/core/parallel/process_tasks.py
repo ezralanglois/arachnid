@@ -14,22 +14,24 @@ import multiprocessing.sharedctypes
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-def process_mp(process, vals, worker_count, init_process=None, **extra):
+def process_mp(process, vals, worker_count, init_process=None, ignored_errors=None, **extra):
     ''' Generator that runs a process functor in parallel (or serial if worker_count 
         is less than 2) over a list of given data values and returns the result
         
     :Parameters:
     
-    process : function
-              Functor to be run in parallel (or serial if worker_count is less than 2)
-    vals : list
-           List of items to process in parallel
-    worker_count : int
-                    Number of processes to run in parallel
-    init_process : function
-                   Initalize the parameters for the child process
-    extra : dict
-            Unused keyword arguments
+        process : function
+                  Functor to be run in parallel (or serial if worker_count is less than 2)
+        vals : list
+               List of items to process in parallel
+        worker_count : int
+                        Number of processes to run in parallel
+        init_process : function
+                       Initalize the parameters for the child process
+        ignored_errors : list
+                         Single element list with counter for ignored errors
+        extra : dict
+                Unused keyword arguments
     
     :Returns:
         
@@ -46,7 +48,8 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
             try:
                 return process(val, **extra)
             except:
-                if _logger.getEffectiveLevel()==logging.DEBUG:
+                if ignored_errors is not None and len(ignored_errors) > 0:ignored_errors[0]+=1
+                if _logger.getEffectiveLevel()==logging.DEBUG or 1 == 1:
                     _logger.exception("Unexpected error in process - report this problem to the developer")
                 else:
                     _logger.warn("nexpected error in process - report this problem to the developer")
@@ -71,7 +74,8 @@ def process_mp(process, vals, worker_count, init_process=None, **extra):
             try:
                 f = process(val, **extra)
             except:
-                if _logger.getEffectiveLevel()==logging.DEBUG:
+                if ignored_errors is not None and len(ignored_errors) > 0:ignored_errors[0]+=1
+                if _logger.getEffectiveLevel()==logging.DEBUG or 1 == 1:
                     _logger.exception("Unexpected error in process - report this problem to the developer")
                 else:
                     _logger.warn("nexpected error in process - report this problem to the developer")
