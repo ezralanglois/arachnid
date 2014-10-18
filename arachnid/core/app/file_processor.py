@@ -232,7 +232,13 @@ def main(files, module, **extra):
                 monitor.update()
                 if reduce_all is not None:
                     current += 1
-                    filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
+                    try:
+                        filename = reduce_all(filename, file_index=index, file_count=len(files), file_completed=current, **extra)
+                    except:
+                        if _logger.getEffectiveLevel()==logging.DEBUG:
+                            _logger.exception("Reduce to root failed")
+                        else:
+                            _logger.warn("Reduce to root failed - report this problem to the developer")
                     if isinstance(filename, tuple):
                         filename, msg = filename
                     else: msg=filename
