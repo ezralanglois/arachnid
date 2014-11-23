@@ -169,10 +169,10 @@ def array_from_header(header):
     
     dtype = numpy.dtype(header['dtype'][0]+str(header['byte_num'][0]))
     shape = (header['nx'][0], header['ny'][0], header['nz'][0])
-    if header_dtype.newbyteorder()==header.dtype: dtype = dtype.newbyteorder()
+    if header_dtype.newbyteorder()[0]==header.dtype[0]: dtype = dtype.newbyteorder()
     return (int(header_dtype.itemsize+int(header['extended'])),
            (imheader, dtype, numpy.prod(shape), shape, 
-           header_dtype.newbyteorder()==header.dtype, header['order'][0],) )
+           header_dtype.newbyteorder()[0]==header.dtype[0], header['order'][0],) )
 
 def cache_data():
     ''' Get keywords to be added as data cache

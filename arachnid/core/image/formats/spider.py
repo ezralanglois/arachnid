@@ -130,7 +130,7 @@ def is_format_header(h):
           Test if dtype matches format dtype
     '''
     
-    return h.dtype == header_dtype or h.dtype == header_dtype.newbyteorder()
+    return h.dtype[0] == header_dtype[0] or h.dtype[0] == header_dtype.newbyteorder()[0]
 
 def is_readable(filename):
     ''' Test if the file read has a valid SPIDER header
@@ -317,7 +317,7 @@ def read_image(filename, index=None, header=None):
             _logger.error("Offset: %s"%str(offset))
             raise
         out = numpy.fromfile(f, dtype=dtype, count=d_len)
-        if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
+        if header_dtype.newbyteorder()[0]==h.dtype[0]: out = out.byteswap()
         #assert(out.ravel().shape[0]==d_len)
         if int(h['nz']) > 1:   out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
         elif int(h['ny']) > 1: 
@@ -375,7 +375,7 @@ def iter_images(filename, index=None, header=None):
             raise
         if int(h['istack']) == 0: # This file contains a single image!
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
-            if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
+            if header_dtype.newbyteorder()[0]==h.dtype[0]: out = out.byteswap()
             if int(h['nz']) > 1:    out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))
             elif int(h['ny']) > 1:  out = out.reshape(int(h['ny']), int(h['nx']))
             yield out
@@ -400,7 +400,7 @@ def iter_images(filename, index=None, header=None):
                 f.seek(h_len, 1)
             last=i
             out = numpy.fromfile(f, dtype=dtype, count=d_len)
-            if header_dtype.newbyteorder()==h.dtype: out = out.byteswap()
+            if header_dtype.newbyteorder()[0]==h.dtype[0]: out = out.byteswap()
             if int(h['nz']) > 1:   
                 try:
                     out = out.reshape(int(h['nz']), int(h['ny']), int(h['nx']))

@@ -448,7 +448,7 @@ def iter_images(filename, index=None, header=None, no_strict_mrc=False):
             out = util.fromfile(f, dtype=dtype, count=d_len)
             
             out = reshape_data(out, h, index, count)
-            if header_image_dtype.newbyteorder()==h.dtype: out = out.byteswap()
+            if header_image_dtype.newbyteorder()[0]==h.dtype[0]: out = out.byteswap()
             yield out
     finally:
         util.close(filename, f)
@@ -521,7 +521,7 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
         f.seek(int(offset))
         out = util.fromfile(f, dtype=dtype, count=d_len)
         out = reshape_data(out, h, index, count)
-        if header_image_dtype.newbyteorder()==h.dtype: out = out.byteswap()
+        if header_image_dtype.newbyteorder()[0]==h.dtype[0]: out = out.byteswap()
     finally:
         util.close(filename, f)
     #assert(numpy.alltrue(numpy.logical_not(numpy.isnan(out))))
