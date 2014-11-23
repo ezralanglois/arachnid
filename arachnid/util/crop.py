@@ -767,7 +767,7 @@ def setup_options(parser, pgroup=None, main_option=False):
     egroup.add_option("", disable_bin=False,        help="Disable micrograph decimation")
     egroup.add_option("", disable_normalize=False,  help="Disable XMIPP normalization")
     egroup.add_option("", clamp_window=2.5,         help="Number of standard deviations to replace extreme values using a Gaussian distribution (0 to disable)")
-    egroup.add_option("", sigma=1.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
+    egroup.add_option("", sigma=0.0,                help="Highpass factor: 1 or 2 where 1/window size or 2/window size (0 to disable)")
     egroup.add_option("", mask_diameter=0.0,        help="Mask multiplier for Relion (in Angstroms) - 0 mean uses particle_diameter")
     group.add_option_group(egroup)
     
