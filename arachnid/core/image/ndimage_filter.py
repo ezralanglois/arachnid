@@ -375,6 +375,8 @@ def gaussian_lowpass_kernel(shape, low_cutoff, dtype):
     dy2 = (1.0/shape[1])**2
     irad = x**2*dx2+y**2*dy2
     kernel[:, :] = numpy.exp(-irad*omega)
+    sel = numpy.logical_not(numpy.isfinite(kernel))
+    kernel[sel] = 0.0
     return kernel
 
 def gaussian_lowpass(img, low_cutoff, pad=1):
@@ -402,8 +404,11 @@ def gaussian_lowpass(img, low_cutoff, pad=1):
         shape = img.shape
         img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
     else: img = img.astype(ctype)
+    state = numpy.geterr()
+    numpy.seterr(all='ignore')
     img = filter_image(img, gaussian_lowpass_kernel(img.shape, low_cutoff, img.dtype), pad)
     if pad > 1: img = depad(img, shape)
+    numpy.seterr(**state)
     return img
 
 def gaussian_highpass_kernel(shape, high_cutoff, dtype):
@@ -436,6 +441,8 @@ def gaussian_highpass_kernel(shape, high_cutoff, dtype):
     dy2 = (1.0/shape[1])**2
     irad = x**2*dx2+y**2*dy2
     kernel[:, :] = 1.0-numpy.exp(-irad*omega)
+    sel = numpy.logical_not(numpy.isfinite(kernel))
+    kernel[sel] = 1.0
     return kernel
 
 def gaussian_highpass(img, high_cutoff, pad=1):
@@ -463,7 +470,10 @@ def gaussian_highpass(img, high_cutoff, pad=1):
         shape = img.shape
         img = pad_image(img.astype(ctype), (int(img.shape[0]*pad), int(img.shape[1]*pad)), 'e')
     else: img = img.astype(ctype)
+    state = numpy.geterr()
+    numpy.seterr(all='ignore')
     img = filter_image(img, gaussian_highpass_kernel(img.shape, high_cutoff, img.dtype), pad)
+    numpy.seterr(**state)
     if pad > 1: img = depad(img, shape)
     return img
 
@@ -530,6 +540,8 @@ def filter_annular_bp(img, freq1, freq2, pad=1):
 def filter_image(img, kernel, pad=1):
     '''
     '''
+    
+    
     
     if img.ndim == 2:
         fimg = scipy.fftpack.fftshift(scipy.fftpack.fft2(img))
