@@ -70,7 +70,7 @@ Packages to Download
         - `scikit-learn`_
         - `scikit-image`_
         - `Basemap`_
-        - `Python Imaging Library (PIL)`_
+        - `Pillow`_
         - `mpi4py`_
     
     - Database Packages
@@ -102,7 +102,7 @@ Packages to Download
 .. _`SQLAlchemy`: http://www.sqlalchemy.org/
 .. _`MySQL-Python`: http://mysql-python.sourceforge.net/
 .. _`Basemap`: http://matplotlib.org/basemap/
-.. _`Python Imaging Library (PIL)`: http://www.pythonware.com/products/pil/
+.. _`Pillow`: https://pillow.readthedocs.org/
 .. _`psutil`: https://code.google.com/p/psutil/
 .. _`setuptools`: http://pythonhosted.org/setuptools/setuptools.html
 
@@ -297,7 +297,6 @@ try:
 except:
     from distutils import log
     log.warn("Sphinx not installed!")
-    
 
 kwargs = build_description(arachnid)
 setup_package(entry_points = {
@@ -316,7 +315,7 @@ setup_package(entry_points = {
         'matplotlib',
         'sqlalchemy', 
         #'mysql-python', # changed from MySQL-Python to support Anaconda on Mac OSX
-        'pil',
+        "Pillow",
         'basemap',
         'setuptools', #distribute
         #'PySide',

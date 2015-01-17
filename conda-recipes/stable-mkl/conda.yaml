@@ -39,8 +39,11 @@ requirements:
     - setuptools
     - jinja2
     {% for req in data.get('install_requires', []) -%}
+    {% if req != "Pillow" %}
     - {{req}}
+    {% endif %}
     {% endfor %}
+    - pil
     - accelerate
     - arachnid-build
     
@@ -48,8 +51,11 @@ requirements:
     - python
     - setuptools
     {% for req in data.get('install_requires', []) -%}
+    {% if req != "Pillow" %}
     - {{req}}
+    {% endif %}
     {% endfor %}
+    - pil
     - pyside
     - arachnid-spider
     - accelerate
