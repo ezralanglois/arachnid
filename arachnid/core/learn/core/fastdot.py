@@ -15,20 +15,20 @@ if version_info >= (2,6,0):
         import imp
         fp = None
         try:
-            fp, pathname, description = imp.find_module('_image_utility', [dirname(__file__)])
+            fp, pathname, description = imp.find_module('_fastdot', [dirname(__file__)])
         except ImportError:
-            import _image_utility
-            return _image_utility
+            import _fastdot
+            return _fastdot
         if fp is not None:
             try:
-                _mod = imp.load_module('_image_utility', fp, pathname, description)
+                _mod = imp.load_module('_fastdot', fp, pathname, description)
             finally:
                 fp.close()
             return _mod
-    _image_utility = swig_import_helper()
+    _fastdot = swig_import_helper()
     del swig_import_helper
 else:
-    import _image_utility
+    import _fastdot
 del version_info
 try:
     _swig_property = property
@@ -70,46 +70,51 @@ except AttributeError:
 
 
 
-def radon_count(*args):
-  return _image_utility.radon_count(*args)
-radon_count = _image_utility.radon_count
+def x_gemm(*args):
+  return _fastdot.x_gemm(*args)
+x_gemm = _fastdot.x_gemm
 
-def sine_psd(*args):
+def gemm(*args):
   """
-    This SWIG wrapper for multitaper with a sine function
-    	
-    """
-  return _image_utility.sine_psd(*args)
-
-def sine_psd_1D(*args):
-  """
-    This SWIG wrapper for multitaper with a sine function
-    	
-    """
-  return _image_utility.sine_psd_1D(*args)
-
-def rotavg(*args):
-  """
-    This SWIG wrapper function creates a 2D rotational average from a 1D average.
+    This SWIG wrapper function selects a subset of rows 
+    	(and columns) from a CSR sparse matrix.
 
     	:Parameters:
 
-    	out : array
-    		  Output 3D rotational average
-    	avg :array
-    		 1D array rotational average
-    	rmax : int
-    		   Maximum radius
+    	samp1 : array
+    		   In/out 1D array of values
+    	samp2 :array
+    		   In/out 1D array of values
+    	dist2 : array
+    		   	Output matrix
+    	alpha : float
+    			Value to mulitply by result
+    	beta : float
+    		   Value to add to result
     	
     """
-  return _image_utility.rotavg(*args)
+  return _fastdot.gemm(*args)
 
-def radon_transform(*args):
+def gemm_t1(*args):
   """
-    This SWIG wrapper function creates a 2D rotational average from a 1D average.
+    This SWIG wrapper function selects a subset of rows 
+    	(and columns) from a CSR sparse matrix.
+
+    	:Parameters:
+
+    	samp1 : array
+    		   In/out 1D array of values
+    	samp2 :array
+    		   In/out 1D array of values
+    	dist2 : array
+    		   	Output matrix
+    	alpha : float
+    			Value to mulitply by result
+    	beta : float
+    		   Value to add to result
     	
     """
-  return _image_utility.radon_transform(*args)
+  return _fastdot.gemm_t1(*args)
 # This file is compatible with both classic and new-style classes.
 
 
