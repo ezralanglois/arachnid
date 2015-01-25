@@ -304,7 +304,9 @@ def tight_mask(vol, threshold=None, ndilate=0, sm_size=3, sm_sigma=3.0, disable_
     if sm_size > 0 and (sm_size%2) == 0: sm_size += 1
     try: threshold=float(threshold)
     except: threshold=None
-    fvol = tv_denoise(vol, weight=10, eps=2.e-4, n_iter_max=200)
+    if not disable_filter:
+        fvol = tv_denoise(vol, weight=10, eps=2.e-4, n_iter_max=200)
+    else: fvol = vol
     mask, th = ndimage_utility.tight_mask(fvol, threshold, ndilate, sm_size, sm_sigma)
     _logger.info("Determined threshold=%f"%th)
     return mask
