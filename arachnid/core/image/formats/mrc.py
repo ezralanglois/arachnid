@@ -225,7 +225,7 @@ def cache_data():
             Keyword arguments
     '''
     
-    return dict(header=None, no_strict_mrc=False)
+    return dict(header=None, no_strict_mrc=False, force_volume=False)
 
 def is_format_header(h):
     ''' Test if the given header has the proper format
