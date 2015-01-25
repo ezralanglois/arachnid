@@ -309,7 +309,7 @@ def is_readable(filename, no_strict_mrc=False):
         return False
     return True
 
-def read_header(filename, index=None, no_strict_mrc=False):
+def read_header(filename, index=None, no_strict_mrc=False, force_volume=False):
     ''' Read the MRC header
     
     :Parameters:
@@ -322,6 +322,8 @@ def read_header(filename, index=None, no_strict_mrc=False):
                     Perform strict MRC header checking (recommended) - Only
                     EPU MRC files and Yifan's frame alignment require this
                     to be off.
+    force_volume : bool
+                   Force image to be treated as a volume
     
     :Returns:
         
@@ -332,10 +334,10 @@ def read_header(filename, index=None, no_strict_mrc=False):
     h = read_mrc_header(filename, index, no_strict_mrc) if not hasattr(filename, 'ndim') else filename
     header={}
     header['apix']=float(h['xlen'][0])/float(h['nx'][0])
-    header['count'] = int(h['nz'][0]) if int(h['nz'][0])!=int(h['nx'][0]) else 1
+    header['count'] = int(h['nz'][0]) if int(h['nz'][0])!=int(h['nx'][0]) and not force_volume else 1
     header['nx'] = int(h['nx'][0])
     header['ny'] = int(h['ny'][0])
-    header['nz'] = int(h['nz'][0]) if int(h['nz'][0])==int(h['nx'][0]) else 1
+    header['nz'] = int(h['nz'][0]) if int(h['nz'][0])==int(h['nx'][0]) or force_volume else 1
     for key in h.dtype.fields.iterkeys():
         header['mrc_'+key] = h[key][0]
     header['format'] = 'mrc'
@@ -429,7 +431,8 @@ def iter_images(filename, index=None, header=None, no_strict_mrc=False):
         h = read_mrc_header(f, no_strict_mrc)
         count = count_images(h)
         #if header is not None:  util.update_header(header, h, mrc2ara, 'mrc')
-        if header is not None: header.update(read_header(h))
+        tmp=read_header(h)
+        if header is not None: header.update(tmp)
         d_len = h['nx'][0]*h['ny'][0]
         dtype = numpy.dtype(mrc2numpy[h['mode'][0]])
         offset = 1024+int(h['nsymbt'])+ 0 * d_len * dtype.itemsize
@@ -480,7 +483,7 @@ def valid_image(filename, no_strict_mrc=False):
     finally:
         util.close(filename, f)
 
-def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=False):
+def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=False, force_volume=False):
     ''' Read an image from the specified file in the MRC format
     
     :Parameters:
@@ -495,6 +498,8 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
                         Perform strict MRC header checking (recommended) - Only
                         EPU MRC files and Yifan's frame alignment require this
                         to be off.
+        force_volume : bool
+                       For image to be read as a volume
     
     :Returns:
             
@@ -507,7 +512,8 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
     try:
         h = read_mrc_header(f, no_strict_mrc)
         #if header is not None: util.update_header(header, h, mrc2ara, 'mrc')
-        if header is not None: header.update(read_header(h))
+        tmp = read_header(h, force_volume=force_volume)
+        if header is not None: header.update(tmp)
         count = count_images(h)
         if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
         if index is None and count == h['nx'][0]:

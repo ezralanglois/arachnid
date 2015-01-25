@@ -200,7 +200,8 @@ def process(filename, output, apix, resolution, window, id_len=0, diameter=False
     if spider_utility.is_spider_filename(filename):
         output = spider_utility.spider_filename(output, filename, id_len)
     header={}
-    vol = ndimage_file.read_image(filename, header=header)
+    vol = ndimage_file.read_image(filename, header=header, force_volume=True)
+    if vol.min() == vol.max(): raise ValueError, "Input image has no information: %s"%str(vol.shape)
     if cur_apix == 0: cur_apix = header['apix']
     _logger.debug("Got pixel size: %f"%cur_apix)
     if cur_apix == 0: raise ValueError, "Pixel size not found in volume header! Use --cur-apix to set current pixel size"

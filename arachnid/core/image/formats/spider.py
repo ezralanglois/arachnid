@@ -291,7 +291,8 @@ def read_image(filename, index=None, header=None):
         dtype = numpy.dtype(spi2numpy[float(h['iform'])])
         #if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder() # - changed
         #if header is not None: util.update_header(header, h, spi2ara, 'spi')
-        if header is not None: header.update(read_header(h))
+        tmp=read_header(h)
+        if header is not None: header.update(tmp)
         
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
@@ -356,7 +357,8 @@ def iter_images(filename, index=None, header=None):
         dtype = numpy.dtype(spi2numpy[float(h['iform'])])
         #if header_dtype.newbyteorder()==h.dtype: dtype = dtype.newbyteorder()
         #if header is not None: util.update_header(header, h, spi2ara, 'spi')
-        if header is not None:  header.update(read_header(h))
+        tmp=read_header(h)
+        if header is not None:  header.update(tmp)
         h_len = int(h['labbyt'])
         d_len = int(h['nx']) * int(h['ny']) * int(h['nz'])
         i_len = d_len * 4
