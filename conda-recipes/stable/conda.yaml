@@ -34,11 +34,8 @@ requirements:
     - setuptools
     - jinja2
     {% for req in data.get('install_requires', []) -%}
-    {% if req != "Pillow" %}
-    - {{req}}
-    {% endif %}
+    - {{req|lower}}
     {% endfor %}
-    - pil
     - atlas # [linux]
     - arachnid-build
     
@@ -46,11 +43,8 @@ requirements:
     - python
     - setuptools
     {% for req in data.get('install_requires', []) -%}
-    {% if req != "Pillow" %}
-    - {{req}}
-    {% endif %}
+    - {{req|lower}}
     {% endfor %}
-    - pil
     - pyside
     - arachnid-spider
 
