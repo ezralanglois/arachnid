@@ -175,14 +175,14 @@ def read_image(filename, index=None, **extra):
     
     if isinstance(filename, tuple): filename,index=filename
     filename = readlinkabs(filename)
-    format = get_read_format_except(filename)
-    cache_keys = format.cache_data().keys()
+    read_format = get_read_format_except(filename)
+    cache_keys = read_format.cache_data().keys()
     param = {}
     for key in cache_keys:
         if key not in extra: continue
         param[key] = extra[key]
     try:
-        return format.read_image(filename, index, **param)
+        return read_format.read_image(filename, index, **param)
     except:
         if index is not None:
             _logger.error("Error reading: %d@%s"%(index, filename))

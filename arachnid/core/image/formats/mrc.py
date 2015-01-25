@@ -516,7 +516,7 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
         if header is not None: header.update(tmp)
         count = count_images(h)
         if idx >= count: raise IOError, "Index exceeds number of images in stack: %d < %d"%(idx, count)
-        if index is None and count == h['nx'][0]:
+        if index is None and (count == h['nx'][0] or force_volume):
             d_len = h['nx'][0]*h['ny'][0]*h['nz'][0]
         else:
             d_len = h['nx'][0]*h['ny'][0]
@@ -526,7 +526,7 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
         if total != (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize): raise util.InvalidHeaderException, "file size != header: %d != %d -- %s, %d"%(total, (1024+int(h['nsymbt'])+int(h['nx'][0])*int(h['ny'][0])*int(h['nz'][0])*dtype.itemsize), str(idx), int(h['nsymbt']))
         f.seek(int(offset))
         out = util.fromfile(f, dtype=dtype, count=d_len)
-        out = reshape_data(out, h, index, count)
+        out = reshape_data(out, h, index, count, force_volume)
         if header_image_dtype.newbyteorder()[0]==h.dtype[0]: out = out.byteswap()
     finally:
         util.close(filename, f)
@@ -534,7 +534,7 @@ def read_image(filename, index=None, header=None, cache=None, no_strict_mrc=Fals
     #if header_image_dtype.newbyteorder()==h.dtype:out = out.byteswap()
     return out
 
-def reshape_data(out, h, index, count):
+def reshape_data(out, h, index, count, force_volume=False):
     ''' Reshape the data to the proper dimensions
     
     :Parameters:
@@ -555,7 +555,7 @@ def reshape_data(out, h, index, count):
     
     '''
     
-    if index is None and int(h['nz'][0]) > 1 and count == h['nx'][0]:
+    if index is None and int(h['nz'][0]) > 1 and (count == h['nx'][0] or force_volume):
         if h['mapc'][0] == 2 and h['mapr'][0]==1:
             out = out.reshape( (int(h['nx'][0]), int(h['ny'][0]), int(h['nz'][0])) )
             for i in xrange(out.shape[2]):
