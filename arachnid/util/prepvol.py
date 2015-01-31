@@ -344,7 +344,7 @@ def initialize(files, param):
             if param["sm_size"] > 0 and param["sm_sigma"] > 0: _logger.info("    - Soften: %d, %f"%(param["sm_size"], param["sm_sigma"]))
             else: _logger.info("    - Hard edge mask")
         if param["mask_type"] == 'File':
-            _logger.info("Using adaptive tight mask with:"%param['mask_file'])
+            _logger.info("Using mask from file: %s"%param['mask_file'])
     return files
 
 def setup_options(parser, pgroup=None, main_option=False):
