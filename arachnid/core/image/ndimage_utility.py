@@ -1931,7 +1931,7 @@ def crop_window(img, x, y, offset, out=None):
     dxe = dxb+(xe-xb)
     dye = dyb+(ye-yb)
     if dxe <= dxb: _logger.error("dxe: %f, dxb: %f", dxe, dxb)
-    if dxe <= dxb: _logger.error("dye: %f, dyb: %f", dye, dyb)
+    if dye <= dyb: _logger.error("dye: %f, dyb: %f", dye, dyb)
     assert(dxe > dxb)
     assert(dye > dyb)
 
