@@ -1913,8 +1913,8 @@ def crop_window(img, x, y, offset, out=None):
     ye = yb+width
     assert(width>0)
     
-    if (x-width) > img.shape[1]: raise ValueError, "x-coordinate out of bounds: %d > %d"%(x, img.shape[1])
-    if (y-width) > img.shape[0]: raise ValueError, "y-coordinate out of bounds: %d > %d"%(y, img.shape[0])
+    if (x-width) >= img.shape[1]: raise ValueError, "x-coordinate out of bounds: %d > %d"%(x, img.shape[1])
+    if (y-width) >= img.shape[0]: raise ValueError, "y-coordinate out of bounds: %d > %d"%(y, img.shape[0])
         
     if out is None: out = numpy.zeros((width, width), dtype=img.dtype)
     dxb, dyb = 0, 0
@@ -1930,6 +1930,8 @@ def crop_window(img, x, y, offset, out=None):
     if img.shape[0] < ye: ye = img.shape[0]
     dxe = dxb+(xe-xb)
     dye = dyb+(ye-yb)
+    if dxe <= dxb: _logger.error("dxe: %f, dxb: %f", dxe, dxb)
+    if dxe <= dxb: _logger.error("dye: %f, dyb: %f", dye, dyb)
     assert(dxe > dxb)
     assert(dye > dyb)
 
