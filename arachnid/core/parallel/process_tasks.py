@@ -74,12 +74,13 @@ def process_mp(process, vals, worker_count, init_process=None, ignored_errors=No
             try:
                 f = process(val, **extra)
             except:
-                if ignored_errors is not None and len(ignored_errors) > 0:ignored_errors[0]+=1
+                if ignored_errors is not None and len(ignored_errors) > 0: ignored_errors[0]+=1
                 if _logger.getEffectiveLevel()==logging.DEBUG or 1 == 1:
                     _logger.exception("Unexpected error in process - report this problem to the developer")
                 else:
                     _logger.warn("nexpected error in process - report this problem to the developer")
                 yield i, val
+                continue
             yield i, f
 
 def iterate_map(for_func, worker, thread_count, queue_limit=None, **extra):
