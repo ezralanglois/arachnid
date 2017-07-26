@@ -12,7 +12,7 @@ install:
   - conda upgrade conda
   - conda upgrade conda-build
   - conda install --channel ezralanglois arachnid-build
-  - conda package conda-recipes/stable
+  - conda build conda-recipes/stable
   - conda install --use-local
 script:
   - ara-autopick -h
