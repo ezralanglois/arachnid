@@ -8,8 +8,11 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+  - conda install conda-build -y
+  - conda upgrade conda
+  - conda upgrade conda-build
   - conda install --channel ezralanglois arachnid-build
-  - conda build conda-recipes/stable
+  - conda package conda-recipes/stable
   - conda install --use-local
 script:
   - ara-autopick -h
