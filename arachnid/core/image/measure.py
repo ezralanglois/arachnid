@@ -8,7 +8,10 @@ try:
     from skimage.filter import denoise_tv_chambolle as tv_denoise  #@UnresolvedImport
     tv_denoise;
 except:
-    from skimage.filter import tv_denoise  #@UnresolvedImport
+	try:
+		from skimage.restoration import denoise_tv_chambolle as tv_denoise  #@UnresolvedImport
+	except:
+		from skimage.filters import tv_denoise  #@UnresolvedImport
 from ..learn import distance
 import scipy.ndimage
 import numpy.linalg
