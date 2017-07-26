@@ -19,6 +19,12 @@ except:
     #logging.exception("mpi4py failed to load")
     #logging.warn("MPI not loaded, please install mpi4py")
 
+	
+def mpi_dtype(dtype):
+	''' Get the MPI type from the NumPy dtype
+	'''
+	
+	return MPI.__TypeDict__[dtype.char] if hasattr(MPI, '__TypeDict__') else MPI._typedict[dtype.char]
 
 def hostname():
     ''' Get the current hostname
@@ -94,7 +100,7 @@ def gather_all(vals, curvals=None, comm=None, **extra):
             curvals = vals[b:e]
         curvals = curvals.ravel()
         vals = vals.ravel()
-        mpi_type = MPI.__TypeDict__[vals.dtype.char]
+		mpi_type = mpi_dtype(vals.dtype)
         comm.Allgatherv(sendbuf=[curvals, mpi_type], recvbuf=[vals, (counts, None), mpi_type])
     
 def mpi_range(total, rank=None, comm=None, **extra):
@@ -155,7 +161,7 @@ def iterate_reduce(data, comm=None, **extra):
     '''
     
     if comm is not None:
-        mpi_type = MPI.__TypeDict__[data.dtype.char]
+        mpi_type = mpi_dtype(data.dtype)
         if comm.Get_rank() == 0:
             if isinstance(data, tuple):
                 data = [d.copy() for d in data]
@@ -192,7 +198,7 @@ def send_to_root(data, root, comm=None, **extra):
     '''
     
     if comm is None or data is None: return
-    mpi_type = MPI.__TypeDict__[data.dtype.char]
+    mpi_type = mpi_dtype(data.dtype)
     rank = comm.Get_rank()
     if rank == 0:
         comm.Recv([data, mpi_type], source=root, tag=4)
@@ -239,7 +245,7 @@ def block_reduce(data, comm=None, batch_size=100000, **extra):
     '''
     
     if comm is None: return
-    mpi_type = MPI.__TypeDict__[data.dtype.char]
+    mpi_type = mpi_dtype(data.dtype)
     if 1 == 0:
         tmp = data.copy(order=data.order)
         #comm.Allreduce(MPI.IN_PLACE, [data, mpi_type], op=MPI.SUM)
@@ -288,7 +294,7 @@ def block_reduce_root(data, batch_size=100000, root=0, comm=None, **extra):
             Unused keyword arguments
     '''
     
-    mpi_type = MPI.__TypeDict__[data.dtype.char]
+    mpi_type = mpi_dtype(data.dtype)
     if comm is None: return
     batch_count = (data.shape[0]-1) / batch_size + 1
     block_end = 0
@@ -373,7 +379,7 @@ def mpi_reduce(process, vals, comm=None, rank=None, **extra):
     size = get_size(comm)
     lenbuf = numpy.zeros((size, 1), dtype=numpy.int32)
     _logger.debug("processing - started: %d - %d"%(len(vals), size))
-    mpi_type = MPI.__TypeDict__[lenbuf.dtype.char] if MPI is not None else None
+    mpi_type = mpi_dtype(lenbuf.dtype) if MPI is not None else None
     if is_client(comm):
         if rank > 0:
             vals = parallel_utility.partition_list(vals, size-1)
