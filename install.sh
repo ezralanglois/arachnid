@@ -1,7 +1,7 @@
 #!/bin/bash
 ####################################################################################
 #
-# This script installs Anaconda and Arachind in your current working directory.
+# This script installs Anaconda and Arachnid in your current working directory.
 # 
 # $ sh install.sh
 #

@@ -331,7 +331,7 @@ class Widget(QtGui.QWidget):
             p = psutil.Process(self.current_pid)
         except psutil.NoSuchProcess: 
             return False
-        return created == int(p.create_time)
+        return created == int(p.create_time())
     
     def isComplete(self, lines):
         '''
