@@ -11,9 +11,9 @@ install:
   - conda install setuptools conda-build -y
   - conda upgrade conda
   - conda upgrade conda-build
-  - conda install --channel ezralanglois arachnid-build
-  - conda build conda-recipes/stable
-  - conda install --use-local
+  - conda install --channel ezralanglois arachnid-dev
+  - conda remove arachnid-dev
+  - python setup.py install
 script:
   - ara-autopick -h
 
