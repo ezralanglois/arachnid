@@ -34,16 +34,16 @@ Critical Options
 
 .. program:: ara-prepvol
 
-.. option:: --volumes <filename1,filename2>, -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
-    
+.. option:: --raw-reference-file <filename1,filename2>, -i <filename1,filename2>, --input-files <filename1,filename2>, filename1 filename
+
     List of input volume filenames
-    If you use the parameters `-i` or `--inputfiles` the filenames may be comma or 
-    space separated on the command line; they must be comma seperated in a configuration 
-    file. Note, these flags are optional for input files; the filenames must be separated 
+    If you use the parameters `-i` or `--inputfiles` the filenames may be comma or
+    space separated on the command line; they must be comma seperated in a configuration
+    file. Note, these flags are optional for input files; the filenames must be separated
     by spaces. For a very large number of files (>5000) use `-i "filename*"`
 
-.. option:: -o <str>, --output <str>
-    
+.. option:: -o <str>, --output <str>, --reference
+
     Output filename template for processed volumes with correct number of digits (e.g. sndc_0000.spi)
 
 Preparation Options
@@ -52,81 +52,81 @@ Preparation Options
 .. program:: ara-prepvol
 
 .. option:: --resolution <float>
-    
+
     Low pass filter volume to given resolution using Gaussian function
 
 .. option:: --apix <float>
-    
+
     Scale volume to the given pixel size
 
 .. option:: --window <int>
-    
+
     Trim or pad volume to given window size
-    
+
 .. option:: --weight <float>
-    
+
     Weight for total variance denosing
-    
+
 Mask Options
 ============
 
 .. option:: --mask-type <None|Adaptive|Sphere|File>
-    
+
     Type of masking
 
 .. option:: --mask-file <FILENAME>
-    
+
     Input filename for existing mask
 
 .. option:: --threshold <FLOAT or STR>
-    
+
     Threshold for density or 'A' for auto threshold - Adaptive
 
 .. option:: --disable-filter
-    
+
     Disable pre filtering - Adaptive
 
 .. option:: --ndilate <INT>
-    
+
     Number of times to dilate the mask - Adaptive
 
 .. option:: --sm-size <INT>
-    
+
     Size of the real space Gaussian kernel (must be odd!) - Adaptive or Sphere - set to 0 to disable
 
 .. option:: --sm-sigma <FLOAT>
-    
+
     Width of the real space Gaussian kernel - Adaptive or Sphere
 
 .. option:: --sphere-pad <INT>
-    
+
     Additional padding on radius of sphere for Sphere mask - Sphere
 
 .. option:: --sphere-radius <FLOAT>
-    
+
     Radius of sphereical mask in angstroms or 'A' for auto measure - Sphere
-    
+
 More Options
 ============
-    
+
 .. option:: --selection-file <str>
-    
+
     Selection file for a subset of micrographs or selection file template for subset of good particles
 
-.. option:: -p <FILENAME>, --param-file <FILENAME> 
-    
+.. option:: -p <FILENAME>, --param-file <FILENAME>
+
     Filename for SPIDER parameter file describing a Cryo-EM experiment
-    
+
 .. option:: --bin-factor <FLOAT>
-    
+
     Decimatation factor for the script: changes size of images, coordinates, parameters such as pixel_size or window unless otherwise specified
 
 ..option:: --diameter
-    
+
     Measure diameter of object
 
 ..option:: --cur-apix <FLOAT>
-    
+
     Current pixel size of input volume (only required if not in header)
 
 Other Options
@@ -374,8 +374,8 @@ def setup_options(parser, pgroup=None, main_option=False):
     group.add_option_group(mgroup)
     pgroup.add_option_group(group)
     if main_option:
-        pgroup.add_option("-i", "--volumes", input_files=[], help="List of filenames for the input volumes", required_file=True, gui=dict(filetype="file-list"))
-        pgroup.add_option("-o", output="",          help="Output filename template for processed volumes", gui=dict(filetype="save"), required_file=True)
+        pgroup.add_option("-i", "--raw-reference-file", input_files=[], help="List of filenames for the input volumes", required_file=True, gui=dict(filetype="file-list"))
+        pgroup.add_option("-o", "--reference-file", output="",          help="Output filename template for processed volumes", gui=dict(filetype="save"), required_file=True)
         pgroup.add_option("-s", selection_file="",  help="Selection file for a subset of micrographs", gui=dict(filetype="open"), required_file=False)
 
 def check_options(options, main_option=False):
@@ -411,6 +411,26 @@ def flags():
                 supports_MPI=False, 
                 supports_OMP=True,
                 use_version=True)
+
+def supports(files, raw_reference_file="", **extra):
+    ''' Test if this module is required in the project workflow
+
+    :Parameters:
+
+    files : list
+            List of filenames to test
+    raw_reference_file : str
+                         Input filename for raw reference map
+    extra : dict
+            Unused keyword arguments
+
+    :Returns:
+
+    flag : bool
+           True if this module should be added to the workflow
+    '''
+
+    return raw_reference_file != ""
 
 def main():
     #Main entry point for this script
