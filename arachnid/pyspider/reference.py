@@ -252,7 +252,7 @@ def finalize(files, **extra):
     # Finalize global parameters for the script
     _logger.info("Completed")
     
-def supports(files, raw_reference_file="", **extra):
+def supports_disable(files, raw_reference_file="", **extra):
     ''' Test if this module is required in the project workflow
     
     :Parameters:
